@@ -57,6 +57,12 @@ void Env::raise(const char *class_name, const ManagedString *message) {
     this->raise_exception(exception);
 }
 
+void Env::raise(const char *class_name, const String message) {
+    ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
+    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { message } };
+    this->raise_exception(exception);
+}
+
 void Env::raise_exception(ExceptionObject *exception) {
     if (!exception->backtrace()) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)

@@ -15,17 +15,16 @@ namespace ArrayPacker {
 
     class Packer {
     public:
-        Packer(ArrayObject *source, ManagedString *directives)
+        Packer(ArrayObject *source, String directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
-            , m_packed { new ManagedString }
             , m_encoding { Encoding::ASCII_8BIT } { }
 
         StringObject *pack(Env *env) {
             signed char directive = 0;
             for (auto token : *m_directives) {
                 if (token.error)
-                    env->raise("ArgumentError", token.error);
+                    env->raise("ArgumentError", *token.error);
 
                 auto d = token.directive;
                 switch (d) {
@@ -40,14 +39,14 @@ namespace ArrayPacker {
                     if (at_end())
                         env->raise("ArgumentError", "too few arguments");
 
-                    ManagedString *string;
+                    String string;
                     auto item = m_source->at(m_index);
                     if (m_source->is_string()) {
                         string = item->as_string()->to_low_level_string();
                     } else if (item->is_nil()) {
                         if (d == 'u')
                             env->raise("TypeError", "no implicit conversion of nil into String");
-                        string = new ManagedString("");
+                        string = "";
                     } else if (item->respond_to(env, "to_str"_s)) {
                         auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
@@ -58,7 +57,7 @@ namespace ArrayPacker {
                     }
 
                     auto packer = StringHandler { string, token };
-                    m_packed->append(packer.pack(env));
+                    m_packed.append(packer.pack(env));
 
                     m_index++;
                     break;
@@ -81,7 +80,7 @@ namespace ArrayPacker {
                         }
 
                         auto packer = IntegerHandler { integer, token };
-                        m_packed->append(packer.pack(env));
+                        m_packed.append(packer.pack(env));
                     });
 
                     if (d == 'U')
@@ -127,7 +126,7 @@ namespace ArrayPacker {
 
         ArrayObject *m_source;
         TM::Vector<Token> *m_directives;
-        ManagedString *m_packed;
+        String m_packed {};
         Encoding m_encoding;
         size_t m_index { 0 };
     };
