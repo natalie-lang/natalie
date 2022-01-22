@@ -20,7 +20,7 @@ bool RationalObject::eq(Env *env, Value other) {
 }
 
 Value RationalObject::inspect(Env *env) {
-    return StringObject::format(env, "({}/{})", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
+    return StringObject::format("({}/{})", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
 Value RationalObject::numerator(Env *env) {
@@ -28,7 +28,7 @@ Value RationalObject::numerator(Env *env) {
 }
 
 Value RationalObject::to_s(Env *env) {
-    return StringObject::format(env, "{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
+    return StringObject::format("{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
 }

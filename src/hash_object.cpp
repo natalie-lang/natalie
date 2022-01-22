@@ -271,7 +271,7 @@ Value HashObject::inspect(Env *env) {
             else
                 obj = new StringObject("?");
             if (!obj->is_string())
-                obj = StringObject::format(env, "#<{}:{}>", obj->klass()->inspect_str(), int_to_hex_string(obj->object_id(), false));
+                obj = StringObject::format("#<{}:{}>", obj->klass()->inspect_str(), int_to_hex_string(obj->object_id(), false));
             return obj->as_string();
         };
 

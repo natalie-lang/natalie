@@ -496,7 +496,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, size_t argc, Valu
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
     return self->ivar_get(env, ivar_name->to_symbol(env));
 }
 
@@ -525,7 +525,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, size_t argc, Valu
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
     self->ivar_set(env, ivar_name->to_symbol(env), val);
     return val;
 }

@@ -209,7 +209,7 @@ Env *build_top_env() {
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     Natalie::ManagedString *ruby_revision_short = new Natalie::ManagedString { ruby_revision, 10 };
-    StringObject *RUBY_DESCRIPTION = StringObject::format(env, "natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
+    StringObject *RUBY_DESCRIPTION = StringObject::format("natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
     Value RUBY_ENGINE = new StringObject { "natalie" };

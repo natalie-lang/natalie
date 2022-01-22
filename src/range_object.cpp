@@ -100,13 +100,13 @@ Value RangeObject::inspect(Env *env) {
             if (m_begin->is_nil()) {
                 return new StringObject { "nil...nil" };
             } else {
-                return StringObject::format(env, "{}...", m_begin->inspect_str(env));
+                return StringObject::format("{}...", m_begin->inspect_str(env));
             }
         } else {
             if (m_begin->is_nil()) {
-                return StringObject::format(env, "...{}", m_end->inspect_str(env));
+                return StringObject::format("...{}", m_end->inspect_str(env));
             } else {
-                return StringObject::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+                return StringObject::format("{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
             }
         }
     } else {
@@ -114,13 +114,13 @@ Value RangeObject::inspect(Env *env) {
             if (m_begin->is_nil()) {
                 return new StringObject { "nil..nil" };
             } else {
-                return StringObject::format(env, "{}..", m_begin->inspect_str(env));
+                return StringObject::format("{}..", m_begin->inspect_str(env));
             }
         } else {
             if (m_begin->is_nil()) {
-                return StringObject::format(env, "..{}", m_end->inspect_str(env));
+                return StringObject::format("..{}", m_end->inspect_str(env));
             } else {
-                return StringObject::format(env, "{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+                return StringObject::format("{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
             }
         }
     }
@@ -129,7 +129,7 @@ Value RangeObject::inspect(Env *env) {
 Value RangeObject::to_s(Env *env) {
     auto begin = m_begin->send(env, "to_s"_s)->as_string();
     auto end = m_end->send(env, "to_s"_s)->as_string();
-    return StringObject::format(env, m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
+    return StringObject::format(m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
 }
 
 bool RangeObject::eq(Env *env, Value other_value) {
