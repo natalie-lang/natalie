@@ -9,7 +9,7 @@ class StandardError < Exception; end
   class IndexError < StandardError; end
     class StopIteration < IndexError; end
   class NameError < StandardError; attr_reader :name; end
-    class NoMethodError < NameError; end
+    class NoMethodError < NameError; attr_reader :receiver; end
   class IOError < StandardError; end
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end

@@ -95,12 +95,12 @@ void Env::raise_errno() {
     raise_exception(error);
 }
 
-void Env::raise_no_method_error(Object *object, SymbolObject *name, MethodMissingReason reason) {
+void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMissingReason reason) {
     const ManagedString *inspect_string;
-    if (object->is_module()) {
-        inspect_string = ManagedString::format("{}:{}", object->as_module()->inspect_str(), object->klass()->inspect_str());
+    if (receiver->is_module()) {
+        inspect_string = ManagedString::format("{}:{}", receiver->as_module()->inspect_str(), receiver->klass()->inspect_str());
     } else {
-        inspect_string = object->inspect_str(this);
+        inspect_string = receiver->inspect_str(this);
     }
     const ManagedString *message;
     switch (reason) {
@@ -118,6 +118,7 @@ void Env::raise_no_method_error(Object *object, SymbolObject *name, MethodMissin
     }
     auto NoMethodError = find_top_level_const(this, "NoMethodError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { *message } };
+    exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
