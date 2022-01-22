@@ -58,7 +58,7 @@ public:
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
-    Optional<const ManagedString *> class_name() {
+    Optional<String> class_name() {
         return m_class_name;
     }
 
@@ -151,7 +151,7 @@ public:
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         if (m_class_name)
-            snprintf(buf, len, "<ModuleObject %p name=%p>", this, m_class_name.value());
+            snprintf(buf, len, "<ModuleObject %p name=%s>", this, m_class_name.value().c_str());
         else
             snprintf(buf, len, "<ModuleObject %p name=(none)>", this);
     }
@@ -159,7 +159,7 @@ public:
 protected:
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
-    Optional<const ManagedString *> m_class_name {};
+    Optional<String> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
     TM::Hashmap<SymbolObject *, MethodInfo *> m_method_info {};
