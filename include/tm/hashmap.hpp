@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <assert.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -124,7 +125,10 @@ public:
         auto item = find_item(key, hash, data);
         if (item)
             return item->value;
-        return nullptr;
+        if constexpr (std::is_pointer<T>::value)
+            return nullptr;
+        else
+            return {};
     }
 
     Item *find_item(KeyT key, size_t hash, void *data = nullptr) const {
