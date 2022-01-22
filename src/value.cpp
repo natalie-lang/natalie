@@ -14,7 +14,7 @@ namespace Natalie {
             auto maybe_classname = val->klass()->class_name();                                   \
             return (maybe_classname.present()) ? maybe_classname.value()->c_str() : "Anonymous"; \
         };                                                                                       \
-        auto event_name = new String();                                                          \
+        auto event_name = new ManagedString();                                                   \
         event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());                 \
         for (size_t i = 0; i < argc; ++i) {                                                      \
             if (i > 0)                                                                           \

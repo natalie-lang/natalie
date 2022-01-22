@@ -22,18 +22,18 @@ Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
     return this;
 }
 
-ClassObject *ClassObject::subclass(Env *env, const String *name, Type object_type) {
+ClassObject *ClassObject::subclass(Env *env, const ManagedString *name, Type object_type) {
     ClassObject *subclass = new ClassObject { klass() };
     initialize_subclass(subclass, env, name, object_type);
     return subclass;
 }
 
-void ClassObject::initialize_subclass(ClassObject *subclass, Env *env, const String *name, Type object_type) {
+void ClassObject::initialize_subclass(ClassObject *subclass, Env *env, const ManagedString *name, Type object_type) {
     subclass->m_env = new Env {};
     if (singleton_class()) {
-        const String *singleton_name = nullptr;
+        const ManagedString *singleton_name = nullptr;
         if (name)
-            singleton_name = String::format("#<Class:{}>", name);
+            singleton_name = ManagedString::format("#<Class:{}>", name);
         ClassObject *singleton = singleton_class()->subclass(env, singleton_name);
         subclass->set_singleton_class(singleton);
     }

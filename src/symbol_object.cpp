@@ -12,7 +12,7 @@ SymbolObject *SymbolObject::intern(const char *name, Ownedness ownedness) {
     return symbol;
 }
 
-SymbolObject *SymbolObject::intern(const String *name) {
+SymbolObject *SymbolObject::intern(const ManagedString *name) {
     assert(name);
     return intern(name->c_str(), Ownedness::DuplicatedString);
 }

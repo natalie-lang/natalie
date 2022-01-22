@@ -21,7 +21,7 @@ public:
         RUNTIME,
     };
 
-    static NativeProfilerEvent *named(const Type, const String *);
+    static NativeProfilerEvent *named(const Type, const ManagedString *);
     static NativeProfilerEvent *named(const Type, const char *);
     NativeProfilerEvent *start_now();
     NativeProfilerEvent *start(std::chrono::time_point<std::chrono::system_clock>);

@@ -3,17 +3,15 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
-
-#include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 
 // from dtoa.c by David Gay
 extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
 
-namespace Natalie {
+namespace TM {
 
-class String : public Cell {
+class String {
 public:
     const int STRING_GROW_FACTOR = 2;
 
@@ -72,7 +70,7 @@ public:
         set_str(buf);
     }
 
-    virtual ~String() override {
+    virtual ~String() {
         delete[] m_str;
     }
 
@@ -102,15 +100,15 @@ public:
         return m_str[--m_length];
     }
 
-    String *clone() const { return new String { *this }; }
+    String clone() const { return String { *this }; }
 
-    String *substring(size_t start, size_t length) const {
+    String substring(size_t start, size_t length) const {
         assert(start < m_length);
         assert(start + length <= m_length);
-        return new String(c_str() + start, length);
+        return String(c_str() + start, length);
     }
 
-    String *substring(size_t start) const {
+    String substring(size_t start) const {
         return substring(start, m_length - start);
     }
 
@@ -168,12 +166,11 @@ public:
         append(buf);
     }
 
-    void prepend(const String *str) {
-        if (!str) return;
-        size_t new_length = str->length();
+    void prepend(const String &str) {
+        size_t new_length = str.length();
         if (new_length == 0) return;
         char buf[new_length + m_length + 1];
-        memcpy(buf, str->m_str, sizeof(char) * new_length);
+        memcpy(buf, str.m_str, sizeof(char) * new_length);
         memcpy(buf + new_length, m_str, sizeof(char) * (m_length + 1));
         set_str(buf);
     }
@@ -255,16 +252,13 @@ public:
         append(buf);
     }
 
-    void append(const String *str) {
-        if (!str) return;
-        if (str->length() == 0) return;
-        size_t total_length = m_length + str->length();
+    void append(const String &str) {
+        if (str.length() == 0) return;
+        size_t total_length = m_length + str.length();
         grow_at_least(total_length);
-        memcpy(m_str + m_length, str->m_str, sizeof(char) * str->length());
+        memcpy(m_str + m_length, str.m_str, sizeof(char) * str.length());
         m_length = total_length;
     }
-
-    void append(const StringObject *str);
 
     void append(size_t n, char c) {
         size_t total_length = m_length + n;
@@ -386,40 +380,33 @@ public:
     }
 
     template <typename... Args>
-    static String *format(const char *fmt, Args... args) {
-        String *out = new String {};
+    static String format(const char *fmt, Args... args) {
+        String out {};
         format(out, fmt, args...);
         return out;
     }
 
-    static void format(String *out, const char *fmt) {
+    static void format(String &out, const char *fmt) {
         for (const char *c = fmt; *c != 0; c++) {
-            out->append_char(*c);
+            out.append_char(*c);
         }
     }
 
     template <typename T, typename... Args>
-    static void format(String *out, const char *fmt, T first, Args... rest) {
+    static void format(String &out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == '}') {
                 c++;
-                out->append(first);
+                out.append(first);
                 format(out, c + 1, rest...);
                 return;
             } else {
-                out->append_char(*c);
+                out.append_char(*c);
             }
         }
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
-    }
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<String %p str='%s'>", this, m_str);
-    }
-
-    String *uppercase() const {
+    String uppercase() const {
         auto new_str = new String(this);
         for (size_t i = 0; i < new_str->m_length; ++i) {
             new_str->m_str[i] = toupper(new_str->m_str[i]);
@@ -427,7 +414,7 @@ public:
         return new_str;
     }
 
-    String *lowercase() const {
+    String lowercase() const {
         auto new_str = new String(this);
         for (size_t i = 0; i < new_str->m_length; ++i) {
             new_str->m_str[i] = tolower(new_str->m_str[i]);

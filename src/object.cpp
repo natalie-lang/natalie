@@ -282,7 +282,7 @@ SexpObject *Object::as_sexp_object_for_method_binding() {
     return static_cast<SexpObject *>(this);
 }
 
-const String *Object::identifier_str(Env *env, Conversion conversion) {
+const ManagedString *Object::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->to_s(env)->to_low_level_string();
     } else if (is_string()) {
@@ -338,15 +338,15 @@ ClassObject *Object::singleton_class(Env *env) {
         env->raise("TypeError", "can't define singleton");
     }
 
-    const String *inspect_string = nullptr;
+    const ManagedString *inspect_string = nullptr;
     if (is_module()) {
         inspect_string = as_module()->inspect_str();
     } else if (respond_to(env, "inspect"_s)) {
         inspect_string = inspect_str(env);
     }
-    const String *name = nullptr;
+    const ManagedString *name = nullptr;
     if (inspect_string) {
-        name = String::format("#<Class:{}>", inspect_string);
+        name = ManagedString::format("#<Class:{}>", inspect_string);
     }
 
     ClassObject *singleton_superclass;
@@ -782,12 +782,12 @@ bool Object::neq(Env *env, Value other) {
     return send(env, "=="_s, { other })->is_falsey();
 }
 
-const String *Object::inspect_str(Env *env) {
+const ManagedString *Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return String::format("#<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
+        return ManagedString::format("#<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
-        return new String(""); // TODO: what to do here?
+        return new ManagedString(""); // TODO: what to do here?
     return inspected->as_string()->to_low_level_string();
 }
 

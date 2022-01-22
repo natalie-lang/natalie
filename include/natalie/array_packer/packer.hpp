@@ -5,7 +5,7 @@
 #include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
-#include "natalie/string.hpp"
+#include "natalie/managed_string.hpp"
 #include "natalie/string_object.hpp"
 #include "natalie/symbol_object.hpp"
 
@@ -15,10 +15,10 @@ namespace ArrayPacker {
 
     class Packer {
     public:
-        Packer(ArrayObject *source, String *directives)
+        Packer(ArrayObject *source, ManagedString *directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
-            , m_packed { new String }
+            , m_packed { new ManagedString }
             , m_encoding { Encoding::ASCII_8BIT } { }
 
         StringObject *pack(Env *env) {
@@ -40,14 +40,14 @@ namespace ArrayPacker {
                     if (at_end())
                         env->raise("ArgumentError", "too few arguments");
 
-                    String *string;
+                    ManagedString *string;
                     auto item = m_source->at(m_index);
                     if (m_source->is_string()) {
                         string = item->as_string()->to_low_level_string();
                     } else if (item->is_nil()) {
                         if (d == 'u')
                             env->raise("TypeError", "no implicit conversion of nil into String");
-                        string = new String("");
+                        string = new ManagedString("");
                     } else if (item->respond_to(env, "to_str"_s)) {
                         auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
@@ -127,7 +127,7 @@ namespace ArrayPacker {
 
         ArrayObject *m_source;
         TM::Vector<Token> *m_directives;
-        String *m_packed;
+        ManagedString *m_packed;
         Encoding m_encoding;
         size_t m_index { 0 };
     };

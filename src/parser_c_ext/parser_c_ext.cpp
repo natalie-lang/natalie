@@ -1,7 +1,7 @@
 #include "extconf.h"
 #include "natalie.hpp"
+#include "natalie/managed_string.hpp"
 #include "natalie/parser.hpp"
-#include "natalie/string.hpp"
 #include "ruby.h"
 #include "ruby/intern.h"
 #include "stdio.h"

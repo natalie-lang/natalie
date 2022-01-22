@@ -107,9 +107,9 @@ Value FloatObject::to_s(Env *env) const {
     char *out, *e;
     out = dtoa(to_double(), 0, 0, &decpt, &sign, &e);
 
-    String *string;
+    ManagedString *string;
 
-    auto add_exp = [decpt](String *out) {
+    auto add_exp = [decpt](ManagedString *out) {
         if (out->length() > 1) {
             out->insert(1, '.');
         } else {
@@ -119,7 +119,7 @@ Value FloatObject::to_s(Env *env) const {
     };
 
     if (decpt > 0) {
-        string = new String { out };
+        string = new ManagedString { out };
         long long s_length = string->length();
         if (decpt < s_length) {
             string->insert(decpt, '.');
@@ -132,11 +132,11 @@ Value FloatObject::to_s(Env *env) const {
             add_exp(string);
         }
     } else if (decpt > -4) {
-        string = new String { "0." };
+        string = new ManagedString { "0." };
         string->append(::abs(decpt), '0');
         string->append(out);
     } else {
-        string = new String { out };
+        string = new ManagedString { out };
         add_exp(string);
     }
 

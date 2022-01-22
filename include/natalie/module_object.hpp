@@ -58,18 +58,18 @@ public:
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
-    Optional<const String *> class_name() {
+    Optional<const ManagedString *> class_name() {
         return m_class_name;
     }
 
-    void set_class_name(const String *name) {
+    void set_class_name(const ManagedString *name) {
         assert(name);
         m_class_name = name;
     }
 
     void set_class_name(const char *name) {
         assert(name);
-        m_class_name = new String(name);
+        m_class_name = new ManagedString(name);
     }
 
     virtual ClassObject *superclass(Env *) { return m_superclass; }
@@ -111,7 +111,7 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
-    const String *inspect_str();
+    const ManagedString *inspect_str();
     Value inspect(Env *);
     Value name(Env *);
     Value attr_reader(Env *, size_t, Value *);
@@ -159,7 +159,7 @@ public:
 protected:
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
-    Optional<const String *> m_class_name {};
+    Optional<const ManagedString *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
     TM::Hashmap<SymbolObject *, MethodInfo *> m_method_info {};

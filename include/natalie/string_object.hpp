@@ -9,8 +9,8 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/managed_string.hpp"
 #include "natalie/object.hpp"
-#include "natalie/string.hpp"
 
 namespace Natalie {
 
@@ -46,18 +46,18 @@ public:
         set_str(other.c_str(), other.length());
     }
 
-    StringObject(const String &str)
+    StringObject(const ManagedString &str)
         : Object { Object::Type::String, GlobalEnv::the()->String() } {
         m_string = str;
     }
 
-    StringObject(const String &str, Encoding encoding)
+    StringObject(const ManagedString &str, Encoding encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         m_string = str;
     }
 
-    String *to_low_level_string() const { return m_string.clone(); }
+    ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
@@ -83,7 +83,7 @@ public:
     void append(unsigned char c) { append(static_cast<signed char>(c)); }
     void append(Env *, const char *);
     void append(Env *, const StringObject *);
-    void append(Env *, const String *);
+    void append(Env *, const ManagedString *);
     void append(Env *, Value);
 
     void append_sprintf(const char *format, ...) {
@@ -187,7 +187,7 @@ public:
 
     template <typename... Args>
     static StringObject *format(Env *env, const char *fmt, Args... args) {
-        auto str = String::format(fmt, args...);
+        auto str = ManagedString::format(fmt, args...);
         return new StringObject { *str };
     }
 
@@ -203,7 +203,8 @@ private:
 
     void raise_encoding_invalid_byte_sequence_error(Env *, size_t) const;
 
-    String m_string {};
+    // TODO: just us a TM::String
+    ManagedString m_string {};
     Encoding m_encoding { Encoding::UTF_8 };
 };
 }

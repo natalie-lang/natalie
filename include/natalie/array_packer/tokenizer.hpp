@@ -1,6 +1,6 @@
 #pragma once
 
-#include "natalie/string.hpp"
+#include "natalie/managed_string.hpp"
 
 namespace Natalie {
 
@@ -10,12 +10,12 @@ namespace ArrayPacker {
         signed char directive { 0 };
         int count { -1 };
         bool star { false };
-        String *error { nullptr };
+        ManagedString *error { nullptr };
     };
 
     class Tokenizer {
     public:
-        Tokenizer(String *directives)
+        Tokenizer(ManagedString *directives)
             : m_directives { directives } { }
 
         TM::Vector<Token> *tokenize() {
@@ -55,7 +55,7 @@ namespace ArrayPacker {
             case '!':
                 next_char();
                 if (d != 's' && d != 'S' && d != 'i' && d != 'I' && d != 'l' && d != 'L' && d != 'q' && d != 'Q' && d != 'j' && d != 'J')
-                    token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", d);
+                    token.error = ManagedString::format("'{}' allowed only after types sSiIlLqQjJ", d);
                 return token;
             default:
                 return token;
@@ -80,7 +80,7 @@ namespace ArrayPacker {
             return c;
         }
 
-        String *m_directives;
+        ManagedString *m_directives;
         size_t m_index { 0 };
     };
 

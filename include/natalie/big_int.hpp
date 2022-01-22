@@ -50,10 +50,11 @@
 
 #pragma once
 
-#include "string.hpp"
+#include "tm/string.hpp"
 
 class BigInt {
-    Natalie::String value;
+    // FIXME: members should be prefixed with m_
+    TM::String value;
     char sign;
 
 public:
@@ -63,12 +64,12 @@ public:
     BigInt(const long long &);
     BigInt(const int &);
     BigInt(const double &);
-    BigInt(const Natalie::String &);
+    BigInt(const TM::String &);
 
     // Assignment operators:
     BigInt &operator=(const BigInt &);
     BigInt &operator=(const long long &);
-    BigInt &operator=(const Natalie::String &);
+    BigInt &operator=(const TM::String &);
 
     // Unary arithmetic operators:
     BigInt operator+() const; // unary +
@@ -85,11 +86,11 @@ public:
     BigInt operator*(const long long &) const;
     BigInt operator/(const long long &) const;
     BigInt operator%(const long long &) const;
-    BigInt operator+(const Natalie::String &) const;
-    BigInt operator-(const Natalie::String &) const;
-    BigInt operator*(const Natalie::String &) const;
-    BigInt operator/(const Natalie::String &) const;
-    BigInt operator%(const Natalie::String &) const;
+    BigInt operator+(const TM::String &) const;
+    BigInt operator-(const TM::String &) const;
+    BigInt operator*(const TM::String &) const;
+    BigInt operator/(const TM::String &) const;
+    BigInt operator%(const TM::String &) const;
 
     // Arithmetic-assignment operators:
     BigInt &operator+=(const BigInt &);
@@ -102,11 +103,11 @@ public:
     BigInt &operator*=(const long long &);
     BigInt &operator/=(const long long &);
     BigInt &operator%=(const long long &);
-    BigInt &operator+=(const Natalie::String &);
-    BigInt &operator-=(const Natalie::String &);
-    BigInt &operator*=(const Natalie::String &);
-    BigInt &operator/=(const Natalie::String &);
-    BigInt &operator%=(const Natalie::String &);
+    BigInt &operator+=(const TM::String &);
+    BigInt &operator-=(const TM::String &);
+    BigInt &operator*=(const TM::String &);
+    BigInt &operator/=(const TM::String &);
+    BigInt &operator%=(const TM::String &);
 
     // Increment and decrement operators:
     BigInt &operator++(); // pre-increment
@@ -133,12 +134,12 @@ public:
     bool operator>=(const int &) const;
     bool operator==(const int &) const;
     bool operator!=(const int &) const;
-    bool operator<(const Natalie::String &) const;
-    bool operator>(const Natalie::String &) const;
-    bool operator<=(const Natalie::String &) const;
-    bool operator>=(const Natalie::String &) const;
-    bool operator==(const Natalie::String &) const;
-    bool operator!=(const Natalie::String &) const;
+    bool operator<(const TM::String &) const;
+    bool operator>(const TM::String &) const;
+    bool operator<=(const TM::String &) const;
+    bool operator>=(const TM::String &) const;
+    bool operator==(const TM::String &) const;
+    bool operator!=(const TM::String &) const;
     bool operator<(const double &) const;
     bool operator>(const double &) const;
     bool operator<=(const double &) const;
@@ -158,7 +159,7 @@ public:
     bool is_negative() const { return sign == '-'; }
 
     // Conversion functions:
-    Natalie::String to_string() const;
+    TM::String to_string() const;
     long to_long() const;
     long long to_long_long() const;
     double to_double() const;

@@ -3,7 +3,7 @@
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
 #include "natalie/integer_object.hpp"
-#include "natalie/string.hpp"
+#include "natalie/managed_string.hpp"
 
 namespace Natalie {
 
@@ -14,9 +14,9 @@ namespace ArrayPacker {
         IntegerHandler(IntegerObject *source, Token token)
             : m_source { source }
             , m_token { token }
-            , m_packed { new String } { }
+            , m_packed { new ManagedString } { }
 
-        String *pack(Env *env) {
+        ManagedString *pack(Env *env) {
             signed char d = m_token.directive;
             switch (d) {
             case 'U':
@@ -72,7 +72,7 @@ namespace ArrayPacker {
 
         IntegerObject *m_source;
         Token m_token;
-        String *m_packed;
+        ManagedString *m_packed;
     };
 
 }

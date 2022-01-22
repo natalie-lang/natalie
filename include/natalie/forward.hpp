@@ -39,7 +39,6 @@ class RangeObject;
 class RationalObject;
 class RegexpObject;
 class SexpObject;
-class String;
 class StringObject;
 class SymbolObject;
 class Token;

@@ -1,7 +1,7 @@
 #include <stdarg.h>
 
 #include "natalie.hpp"
-#include "natalie/string.hpp"
+#include "natalie/managed_string.hpp"
 
 namespace Natalie {
 
@@ -27,18 +27,18 @@ Method *Env::current_method() {
     return env->method();
 }
 
-const String *Env::build_code_location_name(Env *location_env) {
+const ManagedString *Env::build_code_location_name(Env *location_env) {
     if (location_env->is_main())
-        return new String("<main>");
+        return new ManagedString("<main>");
     if (location_env->method())
-        return new String(location_env->method()->name());
+        return new ManagedString(location_env->method()->name());
     // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
     if (location_env->outer()) {
         auto outer_name = build_code_location_name(location_env->outer());
-        return String::format("block in {}", outer_name);
+        return ManagedString::format("block in {}", outer_name);
     }
     // fall back to just "block" if we don't know where this block came from
-    return new String("block");
+    return new ManagedString("block");
 }
 
 void Env::raise(ClassObject *klass, StringObject *message) {
@@ -46,12 +46,12 @@ void Env::raise(ClassObject *klass, StringObject *message) {
     this->raise_exception(exception);
 }
 
-void Env::raise(ClassObject *klass, const String *message) {
+void Env::raise(ClassObject *klass, const ManagedString *message) {
     ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
 }
 
-void Env::raise(const char *class_name, const String *message) {
+void Env::raise(const char *class_name, const ManagedString *message) {
     ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
     ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
@@ -66,7 +66,7 @@ void Env::raise_exception(ExceptionObject *exception) {
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
-    auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
+    auto message = new StringObject { ManagedString::format("key not found: {}", key->inspect_str(this)) };
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
     exception->ivar_set(this, "@receiver"_s, receiver);
@@ -95,19 +95,19 @@ void Env::raise_errno() {
     raise_exception(error);
 }
 
-void Env::raise_name_error(SymbolObject *name, const String *message) {
+void Env::raise_name_error(SymbolObject *name, const ManagedString *message) {
     auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { *message } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
-void Env::warn(const String *message) {
+void Env::warn(const ManagedString *message) {
     Value _stderr = global_get("$stderr"_s);
-    message = String::format("warning: {}", message);
+    message = ManagedString::format("warning: {}", message);
 
     if (m_file && m_line) {
-        message = String::format("{}:{}: {}", m_file, m_line, message);
+        message = ManagedString::format("{}:{}: {}", m_file, m_line, message);
     }
 
     _stderr.send(this, "puts"_s, { new StringObject { message } });
