@@ -218,6 +218,9 @@ public:
         return send(env, name, args.size(), const_cast<Value *>(data(args)), block);
     }
 
+    Value send(Env *, SymbolObject *, size_t, Value *, Block *, MethodVisibility);
+    Value method_missing(Env *, size_t, Value *, Block *);
+
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
     Value dup(Env *);

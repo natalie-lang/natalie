@@ -4,6 +4,7 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/method_missing_reason.hpp"
 #include "tm/hashmap.hpp"
 
 namespace Natalie {
@@ -71,6 +72,9 @@ public:
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
 
+    MethodMissingReason method_missing_reason() const { return m_method_missing_reason; }
+    void set_method_missing_reason(MethodMissingReason reason) { m_method_missing_reason = reason; }
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -102,5 +106,6 @@ private:
     Natalie::Object *m_main_obj { nullptr };
 
     Env *m_main_env { nullptr };
+    MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
 };
 }

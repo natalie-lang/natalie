@@ -144,7 +144,7 @@ describe "Array#flatten" do
       ScratchPad.recorded.should == [:to_ary]
     end
 
-    # NATFIXME: Implement BasicObject#method_missing
+    # NATFIXME: Array#flatten should call #method_missing if defined
     xit "calls #method_missing if defined" do
       @obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
       [@obj].flatten.should == [1, 2, 3]
@@ -161,7 +161,7 @@ describe "Array#flatten" do
     end
   end
 
-  # NATFIXME: Implement BasicObject#method_missing
+  # NATFIXME: Array#flatten should perform respond_to? and method_missing-aware checks when coercing elements to array
   xit "performs respond_to? and method_missing-aware checks when coercing elements to array" do
     bo = BasicObject.new
     [bo].flatten.should == [bo]
