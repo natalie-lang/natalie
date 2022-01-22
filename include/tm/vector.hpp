@@ -11,30 +11,28 @@ namespace TM {
 const int VECTOR_GROW_FACTOR = 2;
 const int VECTOR_MIN_CAPACITY = 10;
 
-#define ARRAY_OF_SIZE(size) reinterpret_cast<T *>(new unsigned char[size * sizeof(T)] {})
-
 template <typename T>
 class Vector {
 public:
     Vector()
         : m_capacity { VECTOR_MIN_CAPACITY }
-        , m_data { ARRAY_OF_SIZE(VECTOR_MIN_CAPACITY) } { }
+        , m_data { array_of_size(VECTOR_MIN_CAPACITY) } { }
 
     Vector(size_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { ARRAY_OF_SIZE(initial_capacity) } { }
+        , m_data { array_of_size(initial_capacity) } { }
 
     Vector(size_t initial_capacity, T filler)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { ARRAY_OF_SIZE(initial_capacity) } {
+        , m_data { array_of_size(initial_capacity) } {
         fill(0, initial_capacity, filler);
     }
 
     Vector(std::initializer_list<T> list)
         : m_capacity { list.size() }
-        , m_data { ARRAY_OF_SIZE(list.size()) } {
+        , m_data { array_of_size(list.size()) } {
         for (auto v : list) {
             push(v);
         }
@@ -43,7 +41,7 @@ public:
     Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
-        , m_data { ARRAY_OF_SIZE(other.m_size) } {
+        , m_data { array_of_size(other.m_size) } {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
@@ -60,7 +58,7 @@ public:
         if (offset >= m_size || count == 0) {
             return {};
         }
-        T *data = ARRAY_OF_SIZE(count);
+        T *data = array_of_size(count);
         memcpy(data, m_data + offset, sizeof(T) * count);
         return { count, count, data };
     }
@@ -118,7 +116,14 @@ public:
             return;
         }
 
-        memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
+        if constexpr (std::is_trivially_copyable<T>::value) {
+            memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
+        } else {
+            for (size_t i = m_size - 1; i >= index; --i) {
+                m_data[i + 1] = m_data[i];
+            }
+        }
+
         m_data[index] = val;
         m_size++;
     }
@@ -230,6 +235,13 @@ private:
         , m_capacity(capacity)
         , m_data(data) { }
 
+    static T *array_of_size(size_t size) {
+        if constexpr (std::is_trivially_copyable<T>::value)
+            return reinterpret_cast<T *>(new unsigned char[size * sizeof(T)] {});
+        else
+            return new T[size] {};
+    }
+
     void grow(size_t capacity) {
         if (m_capacity >= capacity)
             return;
@@ -238,7 +250,7 @@ private:
         } else {
             auto old_data = m_data;
             m_data = new T[capacity] {};
-            for (size_t i = 0; i < capacity; ++i)
+            for (size_t i = 0; i < m_size; ++i)
                 m_data[i] = old_data[i];
             delete[] old_data;
         }
@@ -288,7 +300,5 @@ private:
     size_t m_capacity { 0 };
     T *m_data { nullptr };
 };
-
-#undef ARRAY_OF_SIZE
 
 }
