@@ -70,6 +70,26 @@ public:
         set_str(buf);
     }
 
+    enum class HexFormat {
+        UppercaseAndPrefixed,
+        Uppercase,
+        LowercaseAndPrefixed,
+        Lowercase,
+    };
+
+    static String hex(long long number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
+        bool uppercase = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::Uppercase;
+        bool prefixed = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::LowercaseAndPrefixed;
+        const char *format_str = uppercase ? "%llX" : "%llx";
+        int length = snprintf(NULL, 0, format_str, number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, format_str, number);
+        auto str = String(buf);
+        if (prefixed)
+            str.prepend(uppercase ? "0X" : "0x");
+        return str;
+    }
+
     virtual ~String() {
         delete[] m_str;
     }

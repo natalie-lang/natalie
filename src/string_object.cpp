@@ -450,11 +450,8 @@ Value StringObject::encode(Env *env, Value encoding) {
             StringObject *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
                 Value ord = char_obj->ord(env);
-                Value message = StringObject::format("U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
-                StringObject zero_x { "0X" };
-                StringObject blank { "" };
-                message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_find(env, "UndefinedConversionError"_s)->as_class(), "{}", message->as_string());
+                auto message = StringObject::format("U+{} from UTF-8 to ASCII-8BIT", String::hex(ord->as_integer()->to_nat_int_t(), String::HexFormat::Uppercase));
+                env->raise(Encoding->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
             }
         }
         return copy;

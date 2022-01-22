@@ -724,20 +724,6 @@ void set_status_object(Env *env, int pid, int status) {
     env->global_set("$?"_s, status_obj);
 }
 
-const ManagedString *int_to_hex_string(nat_int_t num, bool capitalize) {
-    if (num == 0) {
-        return new ManagedString("0");
-    } else {
-        char buf[100]; // ought to be enough for anybody ;-)
-        if (capitalize) {
-            snprintf(buf, 100, "0X%llX", num);
-        } else {
-            snprintf(buf, 100, "0x%llx", num);
-        }
-        return new ManagedString(buf);
-    }
-}
-
 Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {
     auto current_method = env->current_method();
     auto klass = self->singleton_class();
