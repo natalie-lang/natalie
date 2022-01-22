@@ -25,6 +25,7 @@ public:
     bool and_method(Env *, Value);
     bool or_method(Env *, Value);
     Value eqtilde(Env *, Value);
+    Value rationalize(Env *, Value);
     Value to_s(Env *);
     Value to_a(Env *);
     Value to_h(Env *);
