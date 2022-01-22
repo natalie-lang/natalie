@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
 #include <initializer_list>
 #include <stddef.h>
+#include <type_traits>
 
 namespace TM {
 
@@ -231,7 +233,15 @@ private:
     void grow(size_t capacity) {
         if (m_capacity >= capacity)
             return;
-        m_data = static_cast<T *>(realloc(m_data, capacity * sizeof(T)));
+        if constexpr (std::is_trivially_copyable<T>::value) {
+            m_data = static_cast<T *>(realloc(m_data, capacity * sizeof(T)));
+        } else {
+            auto old_data = m_data;
+            m_data = new T[capacity] {};
+            for (size_t i = 0; i < capacity; ++i)
+                m_data[i] = old_data[i];
+            delete[] old_data;
+        }
         m_capacity = capacity;
     }
 
