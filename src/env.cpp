@@ -46,15 +46,8 @@ void Env::raise(ClassObject *klass, StringObject *message) {
     this->raise_exception(exception);
 }
 
-void Env::raise(ClassObject *klass, const ManagedString *message) {
-    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
-    this->raise_exception(exception);
-}
-
-void Env::raise(const char *class_name, const ManagedString *message) {
-    ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
-    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
-    this->raise_exception(exception);
+void Env::raise(ClassObject *klass, String message) {
+    raise(klass, new StringObject(message));
 }
 
 void Env::raise(const char *class_name, const String message) {
@@ -72,7 +65,7 @@ void Env::raise_exception(ExceptionObject *exception) {
 }
 
 void Env::raise_key_error(Value receiver, Value key) {
-    auto message = new StringObject { ManagedString::format("key not found: {}", key->inspect_str(this)) };
+    auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
     exception->ivar_set(this, "@receiver"_s, receiver);
@@ -102,35 +95,35 @@ void Env::raise_errno() {
 }
 
 void Env::raise_no_method_error(Object *object, SymbolObject *name, MethodMissingReason reason) {
-    const ManagedString *inspect_string;
+    String inspect_string;
     if (object->is_module()) {
-        inspect_string = ManagedString::format("{}:{}", object->as_module()->inspect_str(), object->klass()->inspect_str());
+        inspect_string = String::format("{}:{}", object->as_module()->inspect_str(), object->klass()->inspect_str());
     } else {
         inspect_string = object->inspect_str(this);
     }
-    const ManagedString *message;
+    String message;
     switch (reason) {
     case MethodMissingReason::Private:
-        message = ManagedString::format("private method `{}' called for {}", name->c_str(), inspect_string);
+        message = String::format("private method `{}' called for {}", name->c_str(), inspect_string);
         break;
     case MethodMissingReason::Protected:
-        message = ManagedString::format("protected method `{}' called for {}", name->c_str(), inspect_string);
+        message = String::format("protected method `{}' called for {}", name->c_str(), inspect_string);
         break;
     case MethodMissingReason::Undefined:
-        message = ManagedString::format("undefined method `{}' for {}", name->c_str(), inspect_string);
+        message = String::format("undefined method `{}' for {}", name->c_str(), inspect_string);
         break;
     default:
         NAT_UNREACHABLE();
     }
     auto NoMethodError = find_top_level_const(this, "NoMethodError"_s)->as_class();
-    ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { *message } };
+    ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { message } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
-void Env::raise_name_error(SymbolObject *name, const ManagedString *message) {
+void Env::raise_name_error(SymbolObject *name, const String message) {
     auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
-    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { *message } };
+    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { message } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
