@@ -7,7 +7,7 @@ describe "Enumerable#take_while" do
     @enum = EnumerableSpecs::Numerous.new(3, 2, 1, :go)
   end
 
-  xit "returns an Enumerator if no block given" do
+  it "returns an Enumerator if no block given" do
     @enum.take_while.should be_an_instance_of(Enumerator)
   end
 
@@ -47,5 +47,5 @@ describe "Enumerable#take_while" do
     yields.should == [1, [2], 3, 5, [8, 9], nil, []]
   end
 
-  # it_behaves_like :enumerable_enumeratorized_with_unknown_size, :take_while
+  it_behaves_like :enumerable_enumeratorized_with_unknown_size, :take_while
 end
