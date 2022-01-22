@@ -1,8 +1,12 @@
 #pragma once
 
-#include "natalie/managed_string.hpp"
+#include "tm/optional.hpp"
+#include "tm/string.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
+
+using namespace TM;
 
 namespace ArrayPacker {
 
@@ -10,16 +14,16 @@ namespace ArrayPacker {
         signed char directive { 0 };
         int count { -1 };
         bool star { false };
-        ManagedString *error { nullptr };
+        Optional<String> error {};
     };
 
     class Tokenizer {
     public:
-        Tokenizer(ManagedString *directives)
+        Tokenizer(String directives)
             : m_directives { directives } { }
 
-        TM::Vector<Token> *tokenize() {
-            auto tokens = new TM::Vector<Token> {};
+        Vector<Token> *tokenize() {
+            auto tokens = new Vector<Token> {};
             for (Token token = next_token(); token.directive; token = next_token()) {
                 tokens->push(token);
                 if (token.error)
@@ -55,7 +59,7 @@ namespace ArrayPacker {
             case '!':
                 next_char();
                 if (d != 's' && d != 'S' && d != 'i' && d != 'I' && d != 'l' && d != 'L' && d != 'q' && d != 'Q' && d != 'j' && d != 'J')
-                    token.error = ManagedString::format("'{}' allowed only after types sSiIlLqQjJ", d);
+                    token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", d);
                 return token;
             default:
                 return token;
@@ -69,18 +73,18 @@ namespace ArrayPacker {
         }
 
         signed char peek_char() {
-            if (m_index >= m_directives->length())
+            if (m_index >= m_directives.length())
                 return 0;
-            signed char c = (*m_directives)[m_index];
+            signed char c = m_directives[m_index];
             while (isspace(c)) {
-                if (m_index + 1 >= m_directives->length())
+                if (m_index + 1 >= m_directives.length())
                     return 0;
-                c = (*m_directives)[++m_index];
+                c = m_directives[++m_index];
             }
             return c;
         }
 
-        ManagedString *m_directives;
+        String m_directives;
         size_t m_index { 0 };
     };
 

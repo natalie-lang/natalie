@@ -48,6 +48,7 @@ public:
     [[noreturn]] void raise(ClassObject *, StringObject *);
     [[noreturn]] void raise(ClassObject *, const ManagedString *);
     [[noreturn]] void raise(const char *, const ManagedString *);
+    [[noreturn]] void raise(const char *, String);
     [[noreturn]] void raise_exception(ExceptionObject *);
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType);

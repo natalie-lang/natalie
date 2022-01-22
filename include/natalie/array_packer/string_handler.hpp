@@ -2,7 +2,7 @@
 
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
-#include "natalie/managed_string.hpp"
+#include "tm/string.hpp"
 
 namespace Natalie {
 
@@ -10,12 +10,11 @@ namespace ArrayPacker {
 
     class StringHandler {
     public:
-        StringHandler(ManagedString *source, Token token)
+        StringHandler(String source, Token token)
             : m_source { source }
-            , m_token { token }
-            , m_packed { new ManagedString } { }
+            , m_token { token } { }
 
-        ManagedString *pack(Env *env) {
+        String pack(Env *env) {
             signed char d = m_token.directive;
             switch (d) {
             case 'a':
@@ -43,8 +42,8 @@ namespace ArrayPacker {
                 if (m_token.star) {
                     while (!at_end())
                         pack_a();
-                    if (m_packed->length() == 0 || m_packed->last_char() != '\x00')
-                        m_packed->append_char('\x00');
+                    if (m_packed.length() == 0 || m_packed.last_char() != '\x00')
+                        m_packed.append_char('\x00');
                 } else if (m_token.count != -1) {
                     for (int i = 0; i < m_token.count; ++i)
                         pack_a();
@@ -78,16 +77,16 @@ namespace ArrayPacker {
 
         void pack_a() {
             if (at_end())
-                m_packed->append_char('\x00');
+                m_packed.append_char('\x00');
             else
-                m_packed->append_char(next());
+                m_packed.append_char(next());
         }
 
         void pack_A() {
             if (at_end())
-                m_packed->append_char(' ');
+                m_packed.append_char(' ');
             else
-                m_packed->append_char(next());
+                m_packed.append_char(next());
         }
 
         void pack_b() {
@@ -95,14 +94,14 @@ namespace ArrayPacker {
                 return;
             size_t bit_index = m_index % 8;
             unsigned char d = next();
-            unsigned char c = bit_index > 0 ? m_packed->pop_char() : 0;
+            unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
             unsigned char b = 0;
             if (d == '0' || d == '1')
                 b = d - 48;
             else
                 b = d & 1;
             auto shift_amount = bit_index++;
-            m_packed->append_char((unsigned char)(c | (b << shift_amount)));
+            m_packed.append_char((unsigned char)(c | (b << shift_amount)));
         }
 
         void pack_B() {
@@ -110,14 +109,14 @@ namespace ArrayPacker {
                 return;
             size_t bit_index = m_index % 8;
             unsigned char d = next();
-            unsigned char c = bit_index > 0 ? m_packed->pop_char() : 0;
+            unsigned char c = bit_index > 0 ? m_packed.pop_char() : 0;
             unsigned char b = 0;
             if (d == '0' || d == '1')
                 b = d - 48;
             else
                 b = d & 1;
             auto shift_amount = 7 - bit_index++;
-            m_packed->append_char((unsigned char)(c | (b << shift_amount)));
+            m_packed.append_char((unsigned char)(c | (b << shift_amount)));
         }
 
         unsigned char hex_char_to_nibble(unsigned char c) {
@@ -136,9 +135,9 @@ namespace ArrayPacker {
             unsigned char c = next();
 
             if (is_first_nibble) {
-                m_packed->append_char(hex_char_to_nibble(c));
+                m_packed.append_char(hex_char_to_nibble(c));
             } else {
-                m_packed->append_char((hex_char_to_nibble(c) << 4) | m_packed->pop_char());
+                m_packed.append_char((hex_char_to_nibble(c) << 4) | m_packed.pop_char());
             }
         }
 
@@ -147,9 +146,9 @@ namespace ArrayPacker {
             unsigned char c = next();
 
             if (is_first_nibble) {
-                m_packed->append_char(hex_char_to_nibble(c) << 4);
+                m_packed.append_char(hex_char_to_nibble(c) << 4);
             } else {
-                m_packed->append_char(hex_char_to_nibble(c) | m_packed->pop_char());
+                m_packed.append_char(hex_char_to_nibble(c) | m_packed.pop_char());
             }
         }
 
@@ -165,38 +164,38 @@ namespace ArrayPacker {
 
             while (!at_end()) {
                 auto starting_index = m_index;
-                auto start_of_packed_string = m_packed->length();
+                auto start_of_packed_string = m_packed.length();
                 auto compute_number_of_bytes = [&]() {
-                    return std::min(m_index, m_source->length()) - starting_index;
+                    return std::min(m_index, m_source.length()) - starting_index;
                 };
                 while (!at_end() && compute_number_of_bytes() < count) {
                     unsigned char first = next();
                     unsigned char second = next();
                     unsigned char third = next();
 
-                    m_packed->append_char(ascii_to_uu(first >> 2));
-                    m_packed->append_char(ascii_to_uu(first << 4 | second >> 4));
-                    m_packed->append_char(ascii_to_uu(second << 2 | third >> 6));
-                    m_packed->append_char(ascii_to_uu(third));
+                    m_packed.append_char(ascii_to_uu(first >> 2));
+                    m_packed.append_char(ascii_to_uu(first << 4 | second >> 4));
+                    m_packed.append_char(ascii_to_uu(second << 2 | third >> 6));
+                    m_packed.append_char(ascii_to_uu(third));
                 }
-                m_packed->insert(start_of_packed_string, ascii_to_uu(has_valid_count ? compute_number_of_bytes() : std::min(count, compute_number_of_bytes())));
-                m_packed->append_char('\n');
+                m_packed.insert(start_of_packed_string, ascii_to_uu(has_valid_count ? compute_number_of_bytes() : std::min(count, compute_number_of_bytes())));
+                m_packed.append_char('\n');
             }
         }
 
-        bool at_end() { return m_index >= m_source->length(); }
+        bool at_end() { return m_index >= m_source.length(); }
 
         unsigned char next() {
             auto is_end = at_end();
             auto i = m_index++;
             if (is_end)
                 return 0;
-            return m_source->at(i);
+            return m_source.at(i);
         }
 
-        ManagedString *m_source;
+        String m_source {};
         Token m_token;
-        ManagedString *m_packed;
+        String m_packed {};
         size_t m_index { 0 };
     };
 
