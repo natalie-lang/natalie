@@ -187,9 +187,8 @@ public:
 
     Value convert_float();
 
-    // TODO: remove Env*
     template <typename... Args>
-    static StringObject *format(Env *, const char *fmt, Args... args) {
+    static StringObject *format(const char *fmt, Args... args) {
         String out;
         format(out, fmt, args...);
         return new StringObject { out };

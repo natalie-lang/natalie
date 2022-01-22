@@ -15,7 +15,7 @@ constexpr bool is_strippable_whitespace(char c) {
 };
 
 void StringObject::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) const {
-    StringObject *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
+    StringObject *message = format("invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
     ClassObject *InvalidByteSequenceError = find_nested_const(env, { "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
     ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };
     env->raise_exception(exception);
@@ -450,7 +450,7 @@ Value StringObject::encode(Env *env, Value encoding) {
             StringObject *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
                 Value ord = char_obj->ord(env);
-                Value message = StringObject::format(env, "U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
+                Value message = StringObject::format("U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
                 StringObject zero_x { "0X" };
                 StringObject blank { "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
