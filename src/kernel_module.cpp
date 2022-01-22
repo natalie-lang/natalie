@@ -216,7 +216,7 @@ Value KernelModule::inspect(Env *env) {
 
 Value KernelModule::inspect(Env *env, Value value) {
     if (value->is_module() && value->as_module()->class_name()) {
-        return new StringObject { *value->as_module()->class_name().value() };
+        return new StringObject { value->as_module()->class_name().value() };
     } else {
         return StringObject::format("#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
     }
