@@ -14,7 +14,7 @@ namespace TM {
 
 class String {
 public:
-    const int STRING_GROW_FACTOR = 2;
+    static constexpr int STRING_GROW_FACTOR = 2;
 
     String() { }
 
