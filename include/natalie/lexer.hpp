@@ -542,7 +542,7 @@ private:
                 // kinda janky, but we gotta trick consume_word and then prepend the '@' back on the front
                 advance();
                 auto token = consume_word(Token::Type::ClassVariable);
-                token->set_literal(ManagedString::format("@{}", token->literal()));
+                token->set_literal(String::format("@{}", token->literal()));
                 return token;
             }
             default:
@@ -739,7 +739,7 @@ private:
             } else if (c >= 'A' && c <= 'Z') {
                 return consume_constant();
             } else {
-                auto *buf = consume_non_whitespace();
+                auto buf = consume_non_whitespace();
                 auto token = new Token { Token::Type::Invalid, buf, m_file, m_token_line, m_token_column };
                 return token;
             }
@@ -749,7 +749,7 @@ private:
 
     Token *consume_symbol() {
         char c = current_char();
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         auto gobble = [&buf, this](char c) -> char { buf->append_char(c); advance(); return current_char(); };
         switch (c) {
         case '@':
@@ -805,7 +805,7 @@ private:
 
     Token *consume_word(Token::Type type) {
         char c = current_char();
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         do {
             buf->append_char(c);
             advance();
@@ -849,7 +849,7 @@ private:
         case '!':
         case '=': {
             advance();
-            auto buf = new ManagedString("$");
+            SharedPtr<String> buf = new String("$");
             buf->append_char(current_char());
             advance();
             return new Token { Token::Type::GlobalVariable, buf, m_file, m_token_line, m_token_column };
@@ -867,7 +867,7 @@ private:
             with_dash = true;
         }
         auto heredoc_name = consume_word(Token::Type::BareName);
-        auto doc = new ManagedString();
+        SharedPtr<String> doc = new String("");
         size_t heredoc_index = m_index;
         auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
 
@@ -880,10 +880,10 @@ private:
         heredoc_index++;
 
         // consume the heredoc until we find the delimiter, either "\nDELIM\n" (if << was used) or "DELIM\n" (if <<- was used)
-        auto delimiter = new ManagedString(heredoc_name->literal());
-        delimiter->append_char('\n');
+        auto delimiter = String(heredoc_name->literal());
+        delimiter.append_char('\n');
         if (!with_dash)
-            delimiter->prepend_char('\n');
+            delimiter.prepend_char('\n');
         while (doc->find(delimiter) == -1) {
             if (heredoc_index >= m_size)
                 return new Token { Token::Type::UnterminatedString, doc, m_file, m_token_line, m_token_column };
@@ -892,7 +892,7 @@ private:
         }
 
         // chop the delimiter and any trailing space off the string
-        doc->truncate(doc->length() - delimiter->length() + (with_dash ? 0 : 1));
+        doc->truncate(doc->length() - delimiter.length() + (with_dash ? 0 : 1));
         doc->strip_trailing_spaces();
 
         // we have to keep tokenizing on the line where the heredoc was started, and then jump to the line after the heredoc
@@ -1032,7 +1032,7 @@ private:
     }
 
     Token *consume_double_quoted_string(char delimiter) {
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1063,7 +1063,7 @@ private:
     }
 
     Token *consume_single_quoted_string(char delimiter) {
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1092,7 +1092,7 @@ private:
     }
 
     Token *consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
@@ -1122,7 +1122,7 @@ private:
     }
 
     Token *consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
@@ -1152,7 +1152,7 @@ private:
     }
 
     Token *consume_regexp(char delimiter) {
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1161,7 +1161,7 @@ private:
                 buf->append_char(current_char());
             } else if (c == delimiter) {
                 advance();
-                auto options = new ManagedString();
+                SharedPtr<String> options = new String("");
                 while ((c = current_char())) {
                     if (c == 'i' || c == 'm' || c == 'x' || c == 'o') {
                         options->append_char(c);
@@ -1183,9 +1183,9 @@ private:
         return new Token { Token::Type::UnterminatedRegexp, buf, m_file, m_token_line, m_token_column };
     }
 
-    const ManagedString *consume_non_whitespace() {
+    SharedPtr<String> consume_non_whitespace() {
         char c = current_char();
-        auto buf = new ManagedString();
+        SharedPtr<String> buf = new String("");
         do {
             buf->append_char(c);
             advance();
@@ -1224,7 +1224,7 @@ private:
 class InterpolatedStringLexer {
 public:
     InterpolatedStringLexer(Token *token)
-        : m_input { new String(token->literal()) }
+        : m_input { token->literal_string() }
         , m_file { token->file() }
         , m_line { token->line() }
         , m_column { token->column() }
@@ -1232,13 +1232,13 @@ public:
 
     ManagedVector<Token *> *tokens() {
         auto tokens = new ManagedVector<Token *> {};
-        auto raw = new ManagedString();
+        SharedPtr<String> raw = new String("");
         while (m_index < m_size) {
             char c = current_char();
             if (c == '#' && peek() == '{') {
                 if (!raw->is_empty() || tokens->is_empty()) {
-                    tokens->push(new Token { Token::Type::String, raw->clone(), m_file, m_line, m_column });
-                    raw->clear();
+                    tokens->push(new Token { Token::Type::String, new String(*raw), m_file, m_line, m_column });
+                    *raw = "";
                 }
                 m_index += 2;
                 tokenize_interpolation(tokens);

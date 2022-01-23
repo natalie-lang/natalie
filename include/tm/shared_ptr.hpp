@@ -67,6 +67,11 @@ public:
         return *m_ptr;
     }
 
+    T &ref() const {
+        assert(m_ptr);
+        return *m_ptr;
+    }
+
     T *operator->() const {
         assert(m_ptr);
         return m_ptr;

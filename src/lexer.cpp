@@ -44,7 +44,7 @@ ManagedVector<Token *> *Lexer::tokens() {
             }
             auto end_token = new Token { end_token_type, token->file(), token->line(), token->column() };
             if (token->options())
-                end_token->set_options(token->options());
+                end_token->set_options(token->options().value());
             tokens->push(end_token);
             continue;
         }

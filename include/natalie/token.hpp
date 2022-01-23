@@ -160,7 +160,7 @@ public:
 
     Token(Type type, const char *literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new ManagedString(literal) }
+        , m_literal { new String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
@@ -168,7 +168,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, const ManagedString *literal, SharedPtr<String> file, size_t line, size_t column)
+    Token(Type type, SharedPtr<String> literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_literal { literal }
         , m_file { file }
@@ -180,7 +180,7 @@ public:
 
     Token(Type type, char literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new ManagedString(literal) }
+        , m_literal { new String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
@@ -222,16 +222,17 @@ public:
         return m_literal.value()->c_str();
     }
 
-    const ManagedString *literal_string() {
+    SharedPtr<String> literal_string() {
         assert(m_literal);
         return m_literal.value();
     }
 
-    void set_literal(const char *literal) { m_literal = new ManagedString(literal); }
-    void set_literal(const ManagedString *literal) { m_literal = literal; }
+    void set_literal(const char *literal) { m_literal = new String(literal); }
+    void set_literal(SharedPtr<String> literal) { m_literal = literal; }
+    void set_literal(String literal) { m_literal = new String(literal); }
 
-    const ManagedString *options() { return m_options ? m_options.value() : nullptr; }
-    void set_options(const ManagedString *options) { m_options = options; }
+    Optional<SharedPtr<String>> options() { return m_options; }
+    void set_options(SharedPtr<String> options) { m_options = options; }
 
     nat_int_t get_integer() const { return m_integer; }
     double get_double() const { return m_double; }
@@ -535,7 +536,7 @@ public:
             break;
         case Type::InterpolatedRegexpEnd:
             if (m_options)
-                hash->put(env, "options"_s, new StringObject { m_options.value() });
+                hash->put(env, "options"_s, new StringObject { *m_options.value() });
             break;
         default:
             void();
@@ -749,17 +750,10 @@ public:
             m_has_sign);
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        if (m_literal)
-            visitor.visit(m_literal.value());
-        if (m_options)
-            visitor.visit(m_options.value());
-    }
-
 private:
     Type m_type { Type::Invalid };
-    Optional<const ManagedString *> m_literal {};
-    Optional<const ManagedString *> m_options {};
+    Optional<SharedPtr<String>> m_literal {};
+    Optional<SharedPtr<String>> m_options {};
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };

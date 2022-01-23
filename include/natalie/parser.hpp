@@ -230,7 +230,7 @@ private:
     Node *parse_lit(LocalsHashmap &);
     Node *parse_keyword_args(LocalsHashmap &);
     Node *parse_keyword_splat(LocalsHashmap &);
-    ManagedString *parse_method_name(LocalsHashmap &);
+    SharedPtr<String> parse_method_name(LocalsHashmap &);
     Node *parse_module(LocalsHashmap &);
     Node *parse_next(LocalsHashmap &);
     Node *parse_nil(LocalsHashmap &);

@@ -157,17 +157,15 @@ public:
     ArgNode(Token *token)
         : Node { token } { }
 
-    ArgNode(Token *token, const char *name)
+    ArgNode(Token *token, SharedPtr<String> name)
         : Node { token }
-        , m_name { new ManagedString(name) } {
-        assert(m_name);
-    }
+        , m_name { name } { }
 
     virtual Type type() override { return Type::Arg; }
 
     virtual Value to_ruby(Env *) override;
 
-    const char *name() { return m_name->c_str(); }
+    SharedPtr<String> name() { return m_name; }
 
     bool splat() const { return m_splat; }
     void set_splat(bool splat) { m_splat = splat; }
@@ -187,12 +185,11 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_name);
         visitor.visit(m_value);
     }
 
 protected:
-    const ManagedString *m_name { nullptr };
+    SharedPtr<String> m_name {};
     bool m_block_arg { false };
     bool m_splat { false };
     bool m_kwsplat { false };
@@ -398,10 +395,10 @@ protected:
 
 class CallNode : public NodeWithArgs {
 public:
-    CallNode(Token *token, Node *receiver, const char *message)
+    CallNode(Token *token, Node *receiver, SharedPtr<String> message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
-        , m_message { new ManagedString(message) } {
+        , m_message { message } {
         assert(m_receiver);
         assert(m_message);
     }
@@ -423,27 +420,26 @@ public:
 
     Node *receiver() { return m_receiver; }
 
-    const char *message() { return m_message->c_str(); }
+    SharedPtr<String> message() { return m_message; }
 
-    void set_message(const ManagedString *message) {
+    void set_message(SharedPtr<String> message) {
         assert(message);
         m_message = message;
     }
 
     void set_message(const char *message) {
         assert(message);
-        m_message = new ManagedString(message);
+        m_message = new String(message);
     }
 
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
         visitor.visit(m_receiver);
-        visitor.visit(m_message);
     }
 
 protected:
     Node *m_receiver { nullptr };
-    const ManagedString *m_message { nullptr };
+    SharedPtr<String> m_message {};
 };
 
 class CaseNode : public Node {
@@ -508,7 +504,7 @@ protected:
 
 class AttrAssignNode : public CallNode {
 public:
-    AttrAssignNode(Token *token, Node *receiver, const char *message)
+    AttrAssignNode(Token *token, Node *receiver, SharedPtr<String> message)
         : CallNode { token, receiver, message } { }
 
     AttrAssignNode(Token *token, CallNode &node)
@@ -521,7 +517,7 @@ public:
 
 class SafeCallNode : public CallNode {
 public:
-    SafeCallNode(Token *token, Node *receiver, const char *message)
+    SafeCallNode(Token *token, Node *receiver, SharedPtr<String> message)
         : CallNode { token, receiver, message } { }
 
     SafeCallNode(Token *token, CallNode &node)
@@ -556,10 +552,10 @@ protected:
 
 class Colon2Node : public Node {
 public:
-    Colon2Node(Token *token, Node *left, const char *name)
+    Colon2Node(Token *token, Node *left, SharedPtr<String> name)
         : Node { token }
         , m_left { left }
-        , m_name { new ManagedString(name) } {
+        , m_name { name } {
         assert(m_left);
         assert(m_name);
     }
@@ -571,21 +567,18 @@ public:
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
         visitor.visit(m_left);
-        visitor.visit(m_name);
     }
 
 protected:
     Node *m_left { nullptr };
-    const ManagedString *m_name { nullptr };
+    SharedPtr<String> m_name {};
 };
 
 class Colon3Node : public Node {
 public:
-    Colon3Node(Token *token, const char *name)
+    Colon3Node(Token *token, SharedPtr<String> name)
         : Node { token }
-        , m_name { new ManagedString(name) } {
-        assert(m_name);
-    }
+        , m_name { name } { }
 
     virtual Type type() override { return Type::Colon3; }
 
@@ -593,11 +586,10 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_name);
     }
 
 protected:
-    const ManagedString *m_name { nullptr };
+    SharedPtr<String> m_name {};
 };
 
 class ConstantNode : public Node {
@@ -609,7 +601,7 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    const char *name() { return m_token->literal(); }
+    SharedPtr<String> name() { return m_token->literal_string(); }
 };
 
 class IntegerNode : public Node {
@@ -667,13 +659,13 @@ protected:
 
 class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, ManagedString *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, SharedPtr<String> name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
         , m_body { body } { }
 
-    DefNode(Token *token, ManagedString *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, SharedPtr<String> name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_name { name }
         , m_body { body } { }
@@ -688,7 +680,7 @@ protected:
     SexpObject *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
-    ManagedString *m_name { nullptr };
+    SharedPtr<String> m_name {};
     BlockNode *m_body { nullptr };
 };
 
@@ -757,10 +749,10 @@ public:
 
     Token::Type token_type() { return m_token->type(); }
 
-    const char *name() { return m_token->literal(); }
+    SharedPtr<String> name() { return m_token->literal_string(); }
 
     void append_to_name(char c) {
-        auto literal = new ManagedString(m_token->literal());
+        auto literal = m_token->literal_string();
         literal->append_char(c);
         m_token->set_literal(literal);
     }
@@ -780,14 +772,14 @@ public:
 
     nat_int_t nth_ref() {
         auto str = name();
-        size_t len = strlen(str);
-        if (strcmp(str, "$0") == 0)
+        size_t len = str->length();
+        if (*str == "$0")
             return 0;
         if (len <= 1)
             return 0;
         int ref = 0;
         for (size_t i = 1; i < len; i++) {
-            char c = str[i];
+            char c = (*str)[i];
             if (i == 1 && c == '0')
                 return 0;
             int num = c - 48;
@@ -819,12 +811,12 @@ public:
     }
 
     SymbolObject *to_symbol() {
-        return SymbolObject::intern(name());
+        return SymbolObject::intern(*name());
     }
 
     void add_to_locals(TM::Hashmap<const char *> &locals) {
         if (token_type() == Token::Type::BareName)
-            locals.set(name());
+            locals.set(name()->c_str());
     }
 
 protected:
@@ -943,7 +935,7 @@ public:
 
 class KeywordArgNode : public ArgNode {
 public:
-    KeywordArgNode(Token *token, const char *name)
+    KeywordArgNode(Token *token, SharedPtr<String> name)
         : ArgNode { token, name } { }
 
     virtual Type type() override { return Type::KeywordArg; }
@@ -1160,7 +1152,7 @@ public:
         assert(m_value);
     }
 
-    OpAssignNode(Token *token, const ManagedString *op, IdentifierNode *name, Node *value)
+    OpAssignNode(Token *token, SharedPtr<String> op, IdentifierNode *name, Node *value)
         : Node { token }
         , m_op { op }
         , m_name { name }
@@ -1176,20 +1168,19 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_op);
         visitor.visit(m_name);
         visitor.visit(m_value);
     }
 
 protected:
-    const ManagedString *m_op { nullptr };
+    SharedPtr<String> m_op {};
     IdentifierNode *m_name { nullptr };
     Node *m_value { nullptr };
 };
 
 class OpAssignAccessorNode : public NodeWithArgs {
 public:
-    OpAssignAccessorNode(Token *token, const ManagedString *op, Node *receiver, const ManagedString *message, Node *value, ManagedVector<Node *> &args)
+    OpAssignAccessorNode(Token *token, SharedPtr<String> op, Node *receiver, SharedPtr<String> message, Node *value, ManagedVector<Node *> &args)
         : NodeWithArgs { token, args }
         , m_op { op }
         , m_receiver { receiver }
@@ -1207,16 +1198,14 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
-        visitor.visit(m_op);
         visitor.visit(m_receiver);
-        visitor.visit(m_message);
         visitor.visit(m_value);
     }
 
 protected:
-    const ManagedString *m_op { nullptr };
+    SharedPtr<String> m_op {};
     Node *m_receiver { nullptr };
-    const ManagedString *m_message { nullptr };
+    SharedPtr<String> m_message {};
     Node *m_value { nullptr };
 };
 
@@ -1269,7 +1258,7 @@ protected:
 
 class RegexpNode : public Node {
 public:
-    RegexpNode(Token *token, const ManagedString *pattern)
+    RegexpNode(Token *token, SharedPtr<String> pattern)
         : Node { token }
         , m_pattern { pattern } {
         assert(m_pattern);
@@ -1279,19 +1268,13 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    const ManagedString *pattern() { return m_pattern; }
+    SharedPtr<String> pattern() { return m_pattern; }
 
-    void set_options(const ManagedString *options) { m_options = options; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_pattern);
-        visitor.visit(m_options);
-    }
+    void set_options(SharedPtr<String> options) { m_options = options; }
 
 protected:
-    const ManagedString *m_pattern { nullptr };
-    const ManagedString *m_options { nullptr };
+    SharedPtr<String> m_pattern {};
+    SharedPtr<String> m_options {};
 };
 
 class ReturnNode : public Node {
@@ -1347,7 +1330,7 @@ public:
 
 class ShellNode : public Node {
 public:
-    ShellNode(Token *token, ManagedString *string)
+    ShellNode(Token *token, SharedPtr<String> string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1357,15 +1340,10 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    ManagedString *string() { return m_string; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_string);
-    }
+    SharedPtr<String> string() { return m_string; }
 
 protected:
-    ManagedString *m_string { nullptr };
+    SharedPtr<String> m_string {};
 };
 
 class SplatAssignmentNode : public Node {
@@ -1431,7 +1409,7 @@ public:
 
 class StringNode : public Node {
 public:
-    StringNode(Token *token, ManagedString *string)
+    StringNode(Token *token, SharedPtr<String> string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1441,21 +1419,16 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    ManagedString *string() { return m_string; }
-    StringObject *to_string_value() { return new StringObject(m_string); }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_string);
-    }
+    SharedPtr<String> string() { return m_string; }
+    StringObject *to_string_value() { return new StringObject(*m_string); }
 
 protected:
-    ManagedString *m_string { nullptr };
+    SharedPtr<String> m_string {};
 };
 
 class SymbolNode : public Node {
 public:
-    SymbolNode(Token *token, ManagedString *name)
+    SymbolNode(Token *token, SharedPtr<String> name)
         : Node { token }
         , m_name { name } { }
 
@@ -1463,13 +1436,8 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_name);
-    }
-
 protected:
-    ManagedString *m_name { nullptr };
+    SharedPtr<String> m_name {};
 };
 
 class TrueNode : public Node {
