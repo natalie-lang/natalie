@@ -8,12 +8,10 @@ namespace Natalie {
 
 class Lexer : public Cell {
 public:
-    Lexer(const ManagedString *input, const ManagedString *file)
+    Lexer(SharedPtr<String> input, SharedPtr<String> file)
         : m_input { input }
         , m_file { file }
-        , m_size { input->length() } {
-        assert(m_input);
-    }
+        , m_size { input->length() } { }
 
     ManagedVector<Token *> *tokens();
 
@@ -1196,8 +1194,8 @@ private:
         return buf;
     }
 
-    const ManagedString *m_input { nullptr };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_input;
+    SharedPtr<String> m_file;
     size_t m_size { 0 };
     size_t m_index { 0 };
 
@@ -1219,8 +1217,6 @@ private:
     Token *m_last_token { nullptr };
 
     virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(m_input);
-        visitor.visit(m_file);
         visitor.visit(m_last_token);
     }
 };
@@ -1228,7 +1224,7 @@ private:
 class InterpolatedStringLexer {
 public:
     InterpolatedStringLexer(Token *token)
-        : m_input { new ManagedString(token->literal()) }
+        : m_input { new String(token->literal()) }
         , m_file { token->file() }
         , m_line { token->line() }
         , m_column { token->column() }
@@ -1271,8 +1267,8 @@ private:
         return m_input->at(m_index + 1);
     }
 
-    const ManagedString *m_input { nullptr };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_input;
+    SharedPtr<String> m_file;
     size_t m_line { 0 };
     size_t m_column { 0 };
     size_t m_size { 0 };

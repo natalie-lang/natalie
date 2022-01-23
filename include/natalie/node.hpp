@@ -86,7 +86,7 @@ public:
 
     virtual bool is_callable() { return false; }
 
-    const ManagedString *file() { return m_token->file(); }
+    SharedPtr<String> file() { return m_token->file(); }
     size_t line() { return m_token->line(); }
     size_t column() { return m_token->column(); }
 

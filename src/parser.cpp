@@ -613,7 +613,7 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_file_constant(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new StringNode { token, new ManagedString { token->file() } };
+    return new StringNode { token, new ManagedString { *token->file() } };
 }
 
 Node *Parser::parse_group(LocalsHashmap &locals) {

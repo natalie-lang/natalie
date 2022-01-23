@@ -14,7 +14,10 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
     else
         source_path = new StringObject { "(string)" };
     code->assert_type(env, Object::Type::String, "String");
-    auto parser = Parser { code->as_string()->to_low_level_string(), source_path->as_string()->to_low_level_string() };
+    auto parser = Parser {
+        new String(code->as_string()->to_low_level_string()),
+        new String(source_path->as_string()->to_low_level_string())
+    };
     Node *tree;
     try {
         tree = parser.tree();
@@ -26,7 +29,10 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
 
 Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numbers) {
     code->assert_type(env, Object::Type::String, "String");
-    auto lexer = Lexer { code->as_string()->to_low_level_string(), new ManagedString("(string)") };
+    auto lexer = Lexer {
+        new String(code->as_string()->to_low_level_string()),
+        new String("(string)")
+    };
     auto array = new ArrayObject {};
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();
