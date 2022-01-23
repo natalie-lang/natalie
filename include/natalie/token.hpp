@@ -150,7 +150,7 @@ public:
         YieldKeyword,
     };
 
-    Token(Type type, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_file { file }
         , m_line { line }
@@ -158,7 +158,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, const char *literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, const char *literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_literal { new ManagedString(literal) }
         , m_file { file }
@@ -168,7 +168,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, const ManagedString *literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, const ManagedString *literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_literal { literal }
         , m_file { file }
@@ -178,7 +178,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, char literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, char literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_literal { new ManagedString(literal) }
         , m_file { file }
@@ -187,7 +187,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, nat_int_t integer, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, nat_int_t integer, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
         , m_file { file }
@@ -196,7 +196,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, double dbl, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, double dbl, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
         , m_file { file }
@@ -675,7 +675,7 @@ public:
     bool has_sign() const { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
-    const ManagedString *file() { return m_file; }
+    SharedPtr<String> file() { return m_file; }
     size_t line() const { return m_line; }
     size_t column() const { return m_column; }
 
@@ -754,7 +754,6 @@ public:
             visitor.visit(m_literal.value());
         if (m_options)
             visitor.visit(m_options.value());
-        visitor.visit(m_file);
     }
 
 private:
@@ -764,7 +763,7 @@ private:
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_file;
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };

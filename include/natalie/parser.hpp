@@ -33,10 +33,9 @@ public:
         char *m_message { nullptr };
     };
 
-    Parser(const ManagedString *code, const ManagedString *file)
+    Parser(SharedPtr<String> code, SharedPtr<String> file)
         : m_code { code }
         , m_file { file } {
-        assert(m_code);
         m_tokens = Lexer { m_code, m_file }.tokens();
     }
 
@@ -82,8 +81,6 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         visitor.visit(m_tokens);
-        visitor.visit(m_code);
-        visitor.visit(m_file);
     }
 
 private:
@@ -307,8 +304,8 @@ private:
     void advance() { m_index++; }
     void rewind() { m_index--; }
 
-    const ManagedString *m_code { nullptr };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_code;
+    SharedPtr<String> m_file;
     size_t m_index { 0 };
     ManagedVector<Token *> *m_tokens { nullptr };
 };

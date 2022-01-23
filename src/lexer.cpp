@@ -89,7 +89,7 @@ void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
     // part = ":foo" (len = 4)
     size_t len = m_index - start_index - 1;
     auto part = m_input->substring(start_index, len);
-    auto lexer = new Lexer { part, m_file };
+    auto lexer = new Lexer { new String(part), m_file };
     tokens->push(new Token { Token::Type::EvaluateToStringBegin, m_file, m_line, m_column });
     for (auto token : *lexer->tokens()) {
         if (token->is_eof()) {
