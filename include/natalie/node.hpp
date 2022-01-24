@@ -79,13 +79,10 @@ public:
         Yield,
     };
 
-    Node(Token *token)
+    Node(const Token &token)
         : m_token { token } { }
 
-    virtual ~Node() {
-        // FIXME: copy the Token
-        // delete m_token;
-    }
+    virtual ~Node() { }
 
     virtual Type type() = 0;
 
@@ -96,22 +93,22 @@ public:
         NAT_UNREACHABLE();
     }
 
-    SharedPtr<String> file() const { return m_token->file(); }
-    size_t line() const { return m_token->line(); }
-    size_t column() const { return m_token->column(); }
+    SharedPtr<String> file() const { return m_token.file(); }
+    size_t line() const { return m_token.line(); }
+    size_t column() const { return m_token.column(); }
 
-    Token *token() const { return m_token; }
+    const Token &token() const { return m_token; }
 
 protected:
-    Token *m_token { nullptr };
+    Token m_token {};
 };
 
 class NodeWithArgs : public Node {
 public:
-    NodeWithArgs(Token *token)
+    NodeWithArgs(const Token &token)
         : Node { token } { }
 
-    NodeWithArgs(Token *token, Vector<Node *> &args)
+    NodeWithArgs(const Token &token, Vector<Node *> &args)
         : Node { token } {
         for (auto arg : args)
             add_arg(arg);
@@ -136,7 +133,7 @@ class SymbolNode;
 
 class AliasNode : public Node {
 public:
-    AliasNode(Token *token, SymbolNode *new_name, SymbolNode *existing_name)
+    AliasNode(const Token &token, SymbolNode *new_name, SymbolNode *existing_name)
         : Node { token }
         , m_new_name { new_name }
         , m_existing_name { existing_name } { }
@@ -155,10 +152,10 @@ private:
 
 class ArgNode : public Node {
 public:
-    ArgNode(Token *token)
+    ArgNode(const Token &token)
         : Node { token } { }
 
-    ArgNode(Token *token, SharedPtr<String> name)
+    ArgNode(const Token &token, SharedPtr<String> name)
         : Node { token }
         , m_name { name } { }
 
@@ -208,7 +205,7 @@ protected:
 
 class ArrayNode : public Node {
 public:
-    ArrayNode(Token *token)
+    ArrayNode(const Token &token)
         : Node { token } { }
 
     ArrayNode(const ArrayNode &other)
@@ -240,7 +237,7 @@ protected:
 
 class BlockPassNode : public Node {
 public:
-    BlockPassNode(Token *token, Node *node)
+    BlockPassNode(const Token &token, Node *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -260,7 +257,7 @@ protected:
 
 class BreakNode : public NodeWithArgs {
 public:
-    BreakNode(Token *token, Node *arg = nullptr)
+    BreakNode(const Token &token, Node *arg = nullptr)
         : NodeWithArgs { token }
         , m_arg { arg } { }
 
@@ -280,7 +277,7 @@ class IdentifierNode;
 
 class AssignmentNode : public Node {
 public:
-    AssignmentNode(Token *token, Node *identifier, Node *value)
+    AssignmentNode(const Token &token, Node *identifier, Node *value)
         : Node { token }
         , m_identifier { identifier }
         , m_value { value } {
@@ -308,7 +305,7 @@ class BeginRescueNode;
 
 class BeginNode : public Node {
 public:
-    BeginNode(Token *token, BlockNode *body)
+    BeginNode(const Token &token, BlockNode *body)
         : Node { token }
         , m_body { body } {
         assert(m_body);
@@ -340,7 +337,7 @@ protected:
 
 class BeginRescueNode : public Node {
 public:
-    BeginRescueNode(Token *token)
+    BeginRescueNode(const Token &token)
         : Node { token } { }
 
     ~BeginRescueNode();
@@ -371,10 +368,10 @@ protected:
 
 class BlockNode : public Node {
 public:
-    BlockNode(Token *token)
+    BlockNode(const Token &token)
         : Node { token } { }
 
-    BlockNode(Token *token, Node *single_node)
+    BlockNode(const Token &token, Node *single_node)
         : Node { token } {
         add_node(single_node);
     }
@@ -408,7 +405,7 @@ protected:
 
 class CallNode : public NodeWithArgs {
 public:
-    CallNode(Token *token, Node *receiver, SharedPtr<String> message)
+    CallNode(const Token &token, Node *receiver, SharedPtr<String> message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
         , m_message { message } {
@@ -416,7 +413,7 @@ public:
         assert(m_message);
     }
 
-    CallNode(Token *token, CallNode &node)
+    CallNode(const Token &token, CallNode &node)
         : NodeWithArgs { token }
         , m_receiver { node.m_receiver }
         , m_message { node.m_message } {
@@ -454,7 +451,7 @@ protected:
 
 class CaseNode : public Node {
 public:
-    CaseNode(Token *token, Node *subject)
+    CaseNode(const Token &token, Node *subject)
         : Node { token }
         , m_subject { subject } {
         assert(m_subject);
@@ -489,7 +486,7 @@ protected:
 
 class CaseWhenNode : public Node {
 public:
-    CaseWhenNode(Token *token, Node *condition, BlockNode *body)
+    CaseWhenNode(const Token &token, Node *condition, BlockNode *body)
         : Node { token }
         , m_condition { condition }
         , m_body { body } {
@@ -514,10 +511,10 @@ protected:
 
 class AttrAssignNode : public CallNode {
 public:
-    AttrAssignNode(Token *token, Node *receiver, SharedPtr<String> message)
+    AttrAssignNode(const Token &token, Node *receiver, SharedPtr<String> message)
         : CallNode { token, receiver, message } { }
 
-    AttrAssignNode(Token *token, CallNode &node)
+    AttrAssignNode(const Token &token, CallNode &node)
         : CallNode { token, node } { }
 
     virtual Type type() override { return Type::AttrAssign; }
@@ -525,10 +522,10 @@ public:
 
 class SafeCallNode : public CallNode {
 public:
-    SafeCallNode(Token *token, Node *receiver, SharedPtr<String> message)
+    SafeCallNode(const Token &token, Node *receiver, SharedPtr<String> message)
         : CallNode { token, receiver, message } { }
 
-    SafeCallNode(Token *token, CallNode &node)
+    SafeCallNode(const Token &token, CallNode &node)
         : CallNode { token, node } { }
 
     virtual Type type() override { return Type::SafeCall; }
@@ -538,7 +535,7 @@ class ConstantNode;
 
 class ClassNode : public Node {
 public:
-    ClassNode(Token *token, ConstantNode *name, Node *superclass, BlockNode *body)
+    ClassNode(const Token &token, ConstantNode *name, Node *superclass, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_superclass { superclass }
@@ -560,7 +557,7 @@ protected:
 
 class Colon2Node : public Node {
 public:
-    Colon2Node(Token *token, Node *left, SharedPtr<String> name)
+    Colon2Node(const Token &token, Node *left, SharedPtr<String> name)
         : Node { token }
         , m_left { left }
         , m_name { name } {
@@ -584,7 +581,7 @@ protected:
 
 class Colon3Node : public Node {
 public:
-    Colon3Node(Token *token, SharedPtr<String> name)
+    Colon3Node(const Token &token, SharedPtr<String> name)
         : Node { token }
         , m_name { name } { }
 
@@ -598,17 +595,17 @@ protected:
 
 class ConstantNode : public Node {
 public:
-    ConstantNode(Token *token)
+    ConstantNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Constant; }
 
-    SharedPtr<String> name() const { return m_token->literal_string(); }
+    SharedPtr<String> name() const { return m_token.literal_string(); }
 };
 
 class IntegerNode : public Node {
 public:
-    IntegerNode(Token *token, long long number)
+    IntegerNode(const Token &token, long long number)
         : Node { token }
         , m_number { number } { }
 
@@ -622,7 +619,7 @@ protected:
 
 class FloatNode : public Node {
 public:
-    FloatNode(Token *token, double number)
+    FloatNode(const Token &token, double number)
         : Node { token }
         , m_number { number } { }
 
@@ -636,7 +633,7 @@ protected:
 
 class DefinedNode : public Node {
 public:
-    DefinedNode(Token *token, Node *arg)
+    DefinedNode(const Token &token, Node *arg)
         : Node { token }
         , m_arg { arg } {
         assert(arg);
@@ -656,13 +653,13 @@ protected:
 
 class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
+    DefNode(const Token &token, Node *self_node, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
         , m_body { body } { }
 
-    DefNode(Token *token, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
+    DefNode(const Token &token, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_name { name }
         , m_body { body } { }
@@ -686,7 +683,7 @@ protected:
 
 class EvaluateToStringNode : public Node {
 public:
-    EvaluateToStringNode(Token *token, Node *node)
+    EvaluateToStringNode(const Token &token, Node *node)
         : Node { token }
         , m_node { node } { }
 
@@ -704,7 +701,7 @@ protected:
 
 class FalseNode : public Node {
 public:
-    FalseNode(Token *token)
+    FalseNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::False; }
@@ -712,7 +709,7 @@ public:
 
 class HashNode : public Node {
 public:
-    HashNode(Token *token)
+    HashNode(const Token &token)
         : Node { token } { }
 
     ~HashNode() {
@@ -734,20 +731,20 @@ protected:
 
 class IdentifierNode : public Node {
 public:
-    IdentifierNode(Token *token, bool is_lvar)
+    IdentifierNode(const Token &token, bool is_lvar)
         : Node { token }
         , m_is_lvar { is_lvar } { }
 
     virtual Type type() override { return Type::Identifier; }
 
-    Token::Type token_type() const { return m_token->type(); }
+    Token::Type token_type() const { return m_token.type(); }
 
-    SharedPtr<String> name() const { return m_token->literal_string(); }
+    SharedPtr<String> name() const { return m_token.literal_string(); }
 
     void append_to_name(char c) {
-        auto literal = m_token->literal_string();
+        auto literal = m_token.literal_string();
         literal->append_char(c);
-        m_token->set_literal(literal);
+        m_token.set_literal(literal);
     }
 
     virtual bool is_callable() const override {
@@ -795,7 +792,7 @@ protected:
 
 class IfNode : public Node {
 public:
-    IfNode(Token *token, Node *condition, Node *true_expr, Node *false_expr)
+    IfNode(const Token &token, Node *condition, Node *true_expr, Node *false_expr)
         : Node { token }
         , m_condition { condition }
         , m_true_expr { true_expr }
@@ -825,7 +822,7 @@ protected:
 
 class IterNode : public NodeWithArgs {
 public:
-    IterNode(Token *token, Node *call, Vector<Node *> &args, BlockNode *body)
+    IterNode(const Token &token, Node *call, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_call { call }
         , m_body { body } {
@@ -850,7 +847,7 @@ protected:
 
 class InterpolatedNode : public Node {
 public:
-    InterpolatedNode(Token *token)
+    InterpolatedNode(const Token &token)
         : Node { token } { }
 
     ~InterpolatedNode() {
@@ -868,7 +865,7 @@ protected:
 
 class InterpolatedRegexpNode : public InterpolatedNode {
 public:
-    InterpolatedRegexpNode(Token *token)
+    InterpolatedRegexpNode(const Token &token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedRegexp; }
@@ -882,7 +879,7 @@ private:
 
 class InterpolatedShellNode : public InterpolatedNode {
 public:
-    InterpolatedShellNode(Token *token)
+    InterpolatedShellNode(const Token &token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedShell; }
@@ -890,7 +887,7 @@ public:
 
 class InterpolatedStringNode : public InterpolatedNode {
 public:
-    InterpolatedStringNode(Token *token)
+    InterpolatedStringNode(const Token &token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedString; }
@@ -898,7 +895,7 @@ public:
 
 class KeywordArgNode : public ArgNode {
 public:
-    KeywordArgNode(Token *token, SharedPtr<String> name)
+    KeywordArgNode(const Token &token, SharedPtr<String> name)
         : ArgNode { token, name } { }
 
     virtual Type type() override { return Type::KeywordArg; }
@@ -906,10 +903,10 @@ public:
 
 class KeywordSplatNode : public Node {
 public:
-    KeywordSplatNode(Token *token)
+    KeywordSplatNode(const Token &token)
         : Node { token } { }
 
-    KeywordSplatNode(Token *token, Node *node)
+    KeywordSplatNode(const Token &token, Node *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -929,7 +926,7 @@ protected:
 
 class LogicalAndNode : public Node {
 public:
-    LogicalAndNode(Token *token, Node *left, Node *right)
+    LogicalAndNode(const Token &token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
         , m_right { right } {
@@ -954,7 +951,7 @@ protected:
 
 class LogicalOrNode : public Node {
 public:
-    LogicalOrNode(Token *token, Node *left, Node *right)
+    LogicalOrNode(const Token &token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
         , m_right { right } {
@@ -981,7 +978,7 @@ class RegexpNode;
 
 class MatchNode : public Node {
 public:
-    MatchNode(Token *token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
+    MatchNode(const Token &token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
         : Node { token }
         , m_regexp { regexp }
         , m_arg { arg }
@@ -1003,7 +1000,7 @@ protected:
 
 class ModuleNode : public Node {
 public:
-    ModuleNode(Token *token, ConstantNode *name, BlockNode *body)
+    ModuleNode(const Token &token, ConstantNode *name, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_body { body } { }
@@ -1025,7 +1022,7 @@ protected:
 
 class MultipleAssignmentNode : public ArrayNode {
 public:
-    MultipleAssignmentNode(Token *token)
+    MultipleAssignmentNode(const Token &token)
         : ArrayNode { token } { }
 
     virtual Type type() override { return Type::MultipleAssignment; }
@@ -1035,7 +1032,7 @@ public:
 
 class NextNode : public Node {
 public:
-    NextNode(Token *token, Node *arg = nullptr)
+    NextNode(const Token &token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
 
@@ -1053,7 +1050,7 @@ protected:
 
 class NilNode : public Node {
 public:
-    NilNode(Token *token)
+    NilNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Nil; }
@@ -1061,7 +1058,7 @@ public:
 
 class NotNode : public Node {
 public:
-    NotNode(Token *token, Node *expression)
+    NotNode(const Token &token, Node *expression)
         : Node { token }
         , m_expression { expression } {
         assert(m_expression);
@@ -1081,7 +1078,7 @@ protected:
 
 class NilSexpNode : public Node {
 public:
-    NilSexpNode(Token *token)
+    NilSexpNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::NilSexp; }
@@ -1089,7 +1086,7 @@ public:
 
 class OpAssignNode : public Node {
 public:
-    OpAssignNode(Token *token, IdentifierNode *name, Node *value)
+    OpAssignNode(const Token &token, IdentifierNode *name, Node *value)
         : Node { token }
         , m_name { name }
         , m_value { value } {
@@ -1097,7 +1094,7 @@ public:
         assert(m_value);
     }
 
-    OpAssignNode(Token *token, SharedPtr<String> op, IdentifierNode *name, Node *value)
+    OpAssignNode(const Token &token, SharedPtr<String> op, IdentifierNode *name, Node *value)
         : Node { token }
         , m_op { op }
         , m_name { name }
@@ -1126,7 +1123,7 @@ protected:
 
 class OpAssignAccessorNode : public NodeWithArgs {
 public:
-    OpAssignAccessorNode(Token *token, SharedPtr<String> op, Node *receiver, SharedPtr<String> message, Node *value, Vector<Node *> &args)
+    OpAssignAccessorNode(const Token &token, SharedPtr<String> op, Node *receiver, SharedPtr<String> message, Node *value, Vector<Node *> &args)
         : NodeWithArgs { token, args }
         , m_op { op }
         , m_receiver { receiver }
@@ -1159,7 +1156,7 @@ protected:
 
 class OpAssignAndNode : public OpAssignNode {
 public:
-    OpAssignAndNode(Token *token, IdentifierNode *name, Node *value)
+    OpAssignAndNode(const Token &token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
     virtual Type type() override { return Type::OpAssignAnd; }
@@ -1167,7 +1164,7 @@ public:
 
 class OpAssignOrNode : public OpAssignNode {
 public:
-    OpAssignOrNode(Token *token, IdentifierNode *name, Node *value)
+    OpAssignOrNode(const Token &token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
     virtual Type type() override { return Type::OpAssignOr; }
@@ -1175,7 +1172,7 @@ public:
 
 class RangeNode : public Node {
 public:
-    RangeNode(Token *token, Node *first, Node *last, bool exclude_end)
+    RangeNode(const Token &token, Node *first, Node *last, bool exclude_end)
         : Node { token }
         , m_first { first }
         , m_last { last }
@@ -1203,7 +1200,7 @@ protected:
 
 class RegexpNode : public Node {
 public:
-    RegexpNode(Token *token, SharedPtr<String> pattern)
+    RegexpNode(const Token &token, SharedPtr<String> pattern)
         : Node { token }
         , m_pattern { pattern } {
         assert(m_pattern);
@@ -1223,7 +1220,7 @@ protected:
 
 class ReturnNode : public Node {
 public:
-    ReturnNode(Token *token, Node *arg = nullptr)
+    ReturnNode(const Token &token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
 
@@ -1241,7 +1238,7 @@ protected:
 
 class SclassNode : public Node {
 public:
-    SclassNode(Token *token, Node *klass, BlockNode *body)
+    SclassNode(const Token &token, Node *klass, BlockNode *body)
         : Node { token }
         , m_klass { klass }
         , m_body { body } { }
@@ -1263,7 +1260,7 @@ protected:
 
 class SelfNode : public Node {
 public:
-    SelfNode(Token *token)
+    SelfNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Self; }
@@ -1271,7 +1268,7 @@ public:
 
 class ShellNode : public Node {
 public:
-    ShellNode(Token *token, SharedPtr<String> string)
+    ShellNode(const Token &token, SharedPtr<String> string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1287,10 +1284,10 @@ protected:
 
 class SplatAssignmentNode : public Node {
 public:
-    SplatAssignmentNode(Token *token)
+    SplatAssignmentNode(const Token &token)
         : Node { token } { }
 
-    SplatAssignmentNode(Token *token, IdentifierNode *node)
+    SplatAssignmentNode(const Token &token, IdentifierNode *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -1310,10 +1307,10 @@ protected:
 
 class SplatNode : public Node {
 public:
-    SplatNode(Token *token)
+    SplatNode(const Token &token)
         : Node { token } { }
 
-    SplatNode(Token *token, Node *node)
+    SplatNode(const Token &token, Node *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -1340,7 +1337,7 @@ public:
 
 class StringNode : public Node {
 public:
-    StringNode(Token *token, SharedPtr<String> string)
+    StringNode(const Token &token, SharedPtr<String> string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1356,7 +1353,7 @@ protected:
 
 class SymbolNode : public Node {
 public:
-    SymbolNode(Token *token, SharedPtr<String> name)
+    SymbolNode(const Token &token, SharedPtr<String> name)
         : Node { token }
         , m_name { name } { }
 
@@ -1370,7 +1367,7 @@ protected:
 
 class TrueNode : public Node {
 public:
-    TrueNode(Token *token)
+    TrueNode(const Token &token)
         : Node { token } { }
 
     virtual Type type() override { return Type::True; }
@@ -1378,7 +1375,7 @@ public:
 
 class SuperNode : public NodeWithArgs {
 public:
-    SuperNode(Token *token)
+    SuperNode(const Token &token)
         : NodeWithArgs { token } { }
 
     virtual Type type() override { return Type::Super; }
@@ -1394,7 +1391,7 @@ protected:
 
 class WhileNode : public Node {
 public:
-    WhileNode(Token *token, Node *condition, BlockNode *body, bool pre)
+    WhileNode(const Token &token, Node *condition, BlockNode *body, bool pre)
         : Node { token }
         , m_condition { condition }
         , m_body { body }
@@ -1422,7 +1419,7 @@ protected:
 
 class UntilNode : public WhileNode {
 public:
-    UntilNode(Token *token, Node *condition, BlockNode *body, bool pre)
+    UntilNode(const Token &token, Node *condition, BlockNode *body, bool pre)
         : WhileNode { token, condition, body, pre } { }
 
     virtual Type type() override { return Type::Until; }
@@ -1430,7 +1427,7 @@ public:
 
 class YieldNode : public NodeWithArgs {
 public:
-    YieldNode(Token *token)
+    YieldNode(const Token &token)
         : NodeWithArgs { token } { }
 
     virtual Type type() override { return Type::Yield; }

@@ -12,6 +12,7 @@ using namespace TM;
 class Token {
 public:
     enum class Type {
+        Invalid, // must be first
         AliasKeyword,
         And,
         AndEqual,
@@ -78,7 +79,6 @@ public:
         InterpolatedShellEnd,
         InterpolatedStringBegin,
         InterpolatedStringEnd,
-        Invalid,
         LCurlyBrace,
         LBracket,
         LBracketRBracket,
@@ -144,6 +144,8 @@ public:
         YieldKeyword,
     };
 
+    Token() { }
+
     Token(Type type, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_file { file }
@@ -199,31 +201,26 @@ public:
         assert(file);
     }
 
-    ~Token() {
-        // everything we have is a SharedPtr :-)
-    }
+    static Token invalid() { return Token {}; }
 
-    Token(const Token &) = delete;
-    Token &operator=(const Token &) = delete;
+    operator bool() const { return is_valid(); }
 
-    static Token *invalid() { return new Token { Token::Type::Invalid, nullptr, 0, 0 }; }
-
-    Type type() { return m_type; }
+    Type type() const { return m_type; }
     void set_type(Token::Type type) { m_type = type; }
 
-    const char *literal() {
+    const char *literal() const {
         if (!m_literal)
             return nullptr;
         return m_literal.value()->c_str();
     }
 
-    const char *literal_or_blank() {
+    const char *literal_or_blank() const {
         if (!m_literal)
             return "";
         return m_literal.value()->c_str();
     }
 
-    SharedPtr<String> literal_string() {
+    SharedPtr<String> literal_string() const {
         assert(m_literal);
         return m_literal.value();
     }
@@ -238,7 +235,7 @@ public:
     long long get_integer() const { return m_integer; }
     double get_double() const { return m_double; }
 
-    const char *type_value() {
+    const char *type_value() const {
         switch (m_type) {
         case Type::AliasKeyword:
             return "alias";
@@ -549,24 +546,24 @@ public:
         }
     }
 
-    bool is_bare_name() { return m_type == Type::BareName; }
-    bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
-    bool is_comma() { return m_type == Type::Comma; }
-    bool is_comment() { return m_type == Type::Comment; }
-    bool is_else_keyword() { return m_type == Type::ElseKeyword; }
-    bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
-    bool is_end_keyword() { return m_type == Type::EndKeyword; }
-    bool is_end_of_expression() { return m_type == Type::EndKeyword || m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
-    bool is_eof() { return m_type == Type::Eof; }
-    bool is_eol() { return m_type == Type::Eol; }
-    bool is_expression_modifier() { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
-    bool is_lparen() { return m_type == Type::LParen; }
-    bool is_newline() { return m_type == Type::Eol; }
-    bool is_rparen() { return m_type == Type::RParen; }
-    bool is_semicolon() { return m_type == Type::Semicolon; }
-    bool is_splat() { return m_type == Type::Multiply || m_type == Type::Exponent; }
-    bool is_valid() { return m_type != Type::Invalid; }
-    bool is_when_keyword() { return m_type == Type::WhenKeyword; }
+    bool is_bare_name() const { return m_type == Type::BareName; }
+    bool is_closing_token() const { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
+    bool is_comma() const { return m_type == Type::Comma; }
+    bool is_comment() const { return m_type == Type::Comment; }
+    bool is_else_keyword() const { return m_type == Type::ElseKeyword; }
+    bool is_elsif_keyword() const { return m_type == Type::ElsifKeyword; }
+    bool is_end_keyword() const { return m_type == Type::EndKeyword; }
+    bool is_end_of_expression() const { return m_type == Type::EndKeyword || m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
+    bool is_eof() const { return m_type == Type::Eof; }
+    bool is_eol() const { return m_type == Type::Eol; }
+    bool is_expression_modifier() const { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
+    bool is_lparen() const { return m_type == Type::LParen; }
+    bool is_newline() const { return m_type == Type::Eol; }
+    bool is_rparen() const { return m_type == Type::RParen; }
+    bool is_semicolon() const { return m_type == Type::Semicolon; }
+    bool is_splat() const { return m_type == Type::Multiply || m_type == Type::Exponent; }
+    bool is_valid() const { return m_type != Type::Invalid; }
+    bool is_when_keyword() const { return m_type == Type::WhenKeyword; }
 
     void validate();
 
@@ -631,7 +628,7 @@ public:
     bool has_sign() const { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
-    SharedPtr<String> file() { return m_file; }
+    SharedPtr<String> file() const { return m_file; }
     size_t line() const { return m_line; }
     size_t column() const { return m_column; }
 

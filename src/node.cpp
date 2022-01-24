@@ -39,7 +39,7 @@ Node *BeginRescueNode::name_to_node() {
         token(),
         m_name,
         new IdentifierNode {
-            new Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
+            Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
             false },
     };
 }

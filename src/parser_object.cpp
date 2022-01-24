@@ -39,11 +39,9 @@ Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numb
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();
     for (auto token : *the_tokens) {
-        auto token_value = token_to_ruby(env, *token, include_line_and_column_numbers);
+        auto token_value = token_to_ruby(env, token, include_line_and_column_numbers);
         if (token_value->is_truthy())
             array->push(token_value);
-        // FIXME: store Token directly in Vector so we don't have to do this...
-        delete token;
     }
     return array;
 }
@@ -342,7 +340,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             constant_node,
             {
                 "const"_s,
-                SymbolObject::intern(*constant_node->token()->literal_string()),
+                SymbolObject::intern(*constant_node->token().literal_string()),
             }
         };
     }
