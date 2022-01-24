@@ -1,16 +1,16 @@
 #pragma once
 
-#include "natalie/gc.hpp"
+#include "tm/macros.hpp"
 #include "tm/optional.hpp"
 #include "tm/shared_ptr.hpp"
 #include "tm/string.hpp"
 
 namespace Natalie {
 
-class Token : public Cell {
-public:
-    NAT_MAKE_NONCOPYABLE(Token);
+using namespace TM;
 
+class Token {
+public:
     enum class Type {
         AliasKeyword,
         And,
@@ -199,6 +199,13 @@ public:
         assert(file);
     }
 
+    ~Token() {
+        // everything we have is a SharedPtr :-)
+    }
+
+    Token(const Token &) = delete;
+    Token &operator=(const Token &) = delete;
+
     static Token *invalid() { return new Token { Token::Type::Invalid, nullptr, 0, 0 }; }
 
     Type type() { return m_type; }
@@ -298,7 +305,7 @@ public:
         case Type::Dot:
             return ".";
         case Type::DoubleQuotedString:
-            NAT_UNREACHABLE(); // converted to InterpolatedStringBegin/InterpolatedStringEnd
+            TM_UNREACHABLE(); // converted to InterpolatedStringBegin/InterpolatedStringEnd
         case Type::ElseKeyword:
             return "else";
         case Type::ElsifKeyword:
@@ -440,7 +447,7 @@ public:
         case Type::RedoKeyword:
             return "redo";
         case Type::Regexp:
-            NAT_UNREACHABLE(); // converted to InterpolatedRegexpBegin/InterpolatedRegexpEnd
+            TM_UNREACHABLE(); // converted to InterpolatedRegexpBegin/InterpolatedRegexpEnd
         case Type::RescueKeyword:
             return "rescue";
         case Type::RetryKeyword:
@@ -458,7 +465,7 @@ public:
         case Type::SelfKeyword:
             return "self";
         case Type::Shell:
-            NAT_UNREACHABLE(); // converted to InterpolatedShellBegin/InterpolatedShellEnd
+            TM_UNREACHABLE(); // converted to InterpolatedShellBegin/InterpolatedShellEnd
         case Type::Semicolon:
             return ";";
         case Type::String:
@@ -494,7 +501,7 @@ public:
         case Type::YieldKeyword:
             return "yield";
         }
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 
     bool is_assignable() const {
@@ -685,17 +692,6 @@ public:
         default:
             return false;
         }
-    }
-
-    virtual void gc_inspect(char *buf, size_t len) const override final {
-        snprintf(buf, len,
-            "<Token %p type=%d literal='%s' m_integer=%lli m_double=%f m_has_sign=%d>",
-            this,
-            (int)m_type,
-            m_literal ? m_literal.value()->c_str() : "",
-            m_integer,
-            m_double,
-            m_has_sign);
     }
 
 private:

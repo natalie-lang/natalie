@@ -2,20 +2,35 @@
 
 namespace Natalie {
 
-void AliasNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_new_name);
-    visitor.visit(m_existing_name);
+AliasNode::~AliasNode() {
+    delete m_new_name;
+    delete m_existing_name;
 }
 
-void BeginNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_body);
-    visitor.visit(m_else_body);
-    visitor.visit(m_ensure_body);
-    for (auto node : m_rescue_nodes) {
-        visitor.visit(node);
-    }
+BeginNode::~BeginNode() {
+    delete m_body;
+    delete m_else_body;
+    delete m_ensure_body;
+    for (auto node : m_rescue_nodes)
+        delete node;
+}
+
+BeginRescueNode::~BeginRescueNode() {
+    delete m_name;
+    delete m_body;
+    for (auto node : m_exceptions)
+        delete node;
+}
+
+ClassNode::~ClassNode() {
+    delete m_name;
+    delete m_superclass;
+    delete m_body;
+}
+
+MatchNode::~MatchNode() {
+    delete m_regexp;
+    delete m_arg;
 }
 
 Node *BeginRescueNode::name_to_node() {
@@ -27,34 +42,6 @@ Node *BeginRescueNode::name_to_node() {
             new Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
             false },
     };
-}
-
-void BeginRescueNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_name);
-    visitor.visit(m_body);
-    for (auto node : m_exceptions) {
-        visitor.visit(node);
-    }
-}
-
-void ClassNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_name);
-    visitor.visit(m_superclass);
-    visitor.visit(m_body);
-}
-
-void DefNode::visit_children(Visitor &visitor) {
-    NodeWithArgs::visit_children(visitor);
-    visitor.visit(m_self_node);
-    visitor.visit(m_body);
-}
-
-void MatchNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_regexp);
-    visitor.visit(m_arg);
 }
 
 void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {

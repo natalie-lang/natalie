@@ -1185,7 +1185,9 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
         }
         break;
     case Node::Type::StabbyProc:
-        *args = static_cast<StabbyProcNode *>(left)->args();
+        for (auto arg : static_cast<StabbyProcNode *>(left)->args()) {
+            args->push(arg->clone());
+        }
         break;
     default:
         throw_unexpected(left->token(), "call for left side of iter");

@@ -9,7 +9,7 @@ namespace Natalie {
 
 using namespace TM;
 
-class Parser : public Cell {
+class Parser {
 public:
     class SyntaxError {
     public:
@@ -37,6 +37,13 @@ public:
         : m_code { code }
         , m_file { file } {
         m_tokens = Lexer { m_code, m_file }.tokens();
+    }
+
+    ~Parser() {
+        for (auto token : *m_tokens) {
+            // FIXME: store Token directly in Vector so we don't have to do this...
+            // delete token;
+        }
     }
 
     using LocalsHashmap = TM::Hashmap<const char *>;
@@ -78,10 +85,6 @@ public:
     };
 
     Node *tree();
-
-    virtual void visit_children(Visitor &visitor) override {
-        visitor.visit(m_tokens);
-    }
 
 private:
     bool higher_precedence(Token *token, Node *left, Precedence current_precedence) {
@@ -308,6 +311,6 @@ private:
     SharedPtr<String> m_code;
     SharedPtr<String> m_file;
     size_t m_index { 0 };
-    ManagedVector<Token *> *m_tokens { nullptr };
+    SharedPtr<Vector<Token *>> m_tokens {};
 };
 }

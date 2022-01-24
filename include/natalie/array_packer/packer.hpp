@@ -20,6 +20,8 @@ namespace ArrayPacker {
             , m_directives { Tokenizer { directives }.tokenize() }
             , m_encoding { Encoding::ASCII_8BIT } { }
 
+        ~Packer() { delete m_directives; }
+
         StringObject *pack(Env *env) {
             signed char directive = 0;
             for (auto token : *m_directives) {

@@ -24,7 +24,9 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
     } catch (Parser::SyntaxError &e) {
         env->raise("SyntaxError", e.message());
     }
-    return node_to_ruby(env, tree);
+    auto ast = node_to_ruby(env, tree);
+    delete tree;
+    return ast;
 }
 
 Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numbers) {
@@ -40,6 +42,8 @@ Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numb
         auto token_value = token_to_ruby(env, *token, include_line_and_column_numbers);
         if (token_value->is_truthy())
             array->push(token_value);
+        // FIXME: store Token directly in Vector so we don't have to do this...
+        delete token;
     }
     return array;
 }

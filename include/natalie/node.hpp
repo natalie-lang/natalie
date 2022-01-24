@@ -1,15 +1,16 @@
 #pragma once
 
 #include "natalie/gc.hpp"
-#include "natalie/managed_vector.hpp"
 #include "natalie/token.hpp"
+#include "tm/shared_ptr.hpp"
 #include "tm/string.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
 
 using namespace TM;
 
-class Node : public Cell {
+class Node {
 public:
     NAT_MAKE_NONCOPYABLE(Node);
 
@@ -81,19 +82,25 @@ public:
     Node(Token *token)
         : m_token { token } { }
 
+    virtual ~Node() {
+        // FIXME: copy the Token
+        // delete m_token;
+    }
+
     virtual Type type() = 0;
 
     virtual bool is_callable() const { return false; }
+
+    virtual Node *clone() const {
+        printf("Need to implement Node::clone() in a subclass...\n");
+        NAT_UNREACHABLE();
+    }
 
     SharedPtr<String> file() const { return m_token->file(); }
     size_t line() const { return m_token->line(); }
     size_t column() const { return m_token->column(); }
 
     Token *token() const { return m_token; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        visitor.visit(m_token);
-    }
 
 protected:
     Token *m_token { nullptr };
@@ -110,18 +117,16 @@ public:
             add_arg(arg);
     }
 
+    ~NodeWithArgs() {
+        for (auto arg : m_args)
+            delete arg;
+    }
+
     void add_arg(Node *arg) {
         m_args.push(arg);
     }
 
     Vector<Node *> &args() { return m_args; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        for (auto node : m_args) {
-            visitor.visit(node);
-        }
-    }
 
 protected:
     Vector<Node *> m_args {};
@@ -136,9 +141,9 @@ public:
         , m_new_name { new_name }
         , m_existing_name { existing_name } { }
 
-    virtual Type type() override { return Type::Alias; }
+    ~AliasNode();
 
-    virtual void visit_children(Visitor &visitor) override;
+    virtual Type type() override { return Type::Alias; }
 
     SymbolNode *new_name() const { return m_new_name; }
     SymbolNode *existing_name() const { return m_existing_name; }
@@ -156,6 +161,22 @@ public:
     ArgNode(Token *token, SharedPtr<String> name)
         : Node { token }
         , m_name { name } { }
+
+    ArgNode(const ArgNode &other)
+        : Node { other.m_token }
+        , m_name { other.m_name }
+        , m_block_arg { other.m_block_arg }
+        , m_splat { other.m_splat }
+        , m_kwsplat { other.m_kwsplat }
+        , m_value { other.m_value } { }
+
+    ~ArgNode() {
+        delete m_value;
+    }
+
+    virtual Node *clone() const override {
+        return new ArgNode(*this);
+    }
 
     virtual Type type() override { return Type::Arg; }
 
@@ -177,11 +198,6 @@ public:
         locals.set(m_name->c_str());
     }
 
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_value);
-    }
-
 protected:
     SharedPtr<String> m_name {};
     bool m_block_arg { false };
@@ -195,6 +211,21 @@ public:
     ArrayNode(Token *token)
         : Node { token } { }
 
+    ArrayNode(const ArrayNode &other)
+        : Node { other.m_token } {
+        for (auto node : other.m_nodes)
+            m_nodes.push(node);
+    }
+
+    ~ArrayNode() {
+        for (auto node : m_nodes)
+            delete node;
+    }
+
+    virtual Node *clone() const override {
+        return new ArrayNode(*this);
+    }
+
     virtual Type type() override { return Type::Array; }
 
     void add_node(Node *node) {
@@ -202,13 +233,6 @@ public:
     }
 
     Vector<Node *> &nodes() { return m_nodes; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        for (auto node : m_nodes) {
-            visitor.visit(node);
-        }
-    }
 
 protected:
     Vector<Node *> m_nodes {};
@@ -222,12 +246,11 @@ public:
         assert(m_node);
     }
 
-    virtual Type type() override { return Type::BlockPass; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_node);
+    ~BlockPassNode() {
+        delete m_node;
     }
+
+    virtual Type type() override { return Type::BlockPass; }
 
     Node *node() const { return m_node; }
 
@@ -241,12 +264,11 @@ public:
         : NodeWithArgs { token }
         , m_arg { arg } { }
 
-    virtual Type type() override { return Type::Break; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        NodeWithArgs::visit_children(visitor);
-        visitor.visit(m_arg);
+    ~BreakNode() {
+        delete m_arg;
     }
+
+    virtual Type type() override { return Type::Break; }
 
     Node *arg() const { return m_arg; }
 
@@ -266,13 +288,12 @@ public:
         assert(m_value);
     }
 
-    virtual Type type() override { return Type::Assignment; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_identifier);
-        visitor.visit(m_value);
+    ~AssignmentNode() {
+        delete m_identifier;
+        delete m_value;
     }
+
+    virtual Type type() override { return Type::Assignment; }
 
     Node *identifier() const { return m_identifier; }
     Node *value() const { return m_value; }
@@ -293,6 +314,8 @@ public:
         assert(m_body);
     }
 
+    ~BeginNode();
+
     virtual Type type() override { return Type::Begin; }
 
     void add_rescue_node(BeginRescueNode *node) { m_rescue_nodes.push(node); }
@@ -308,8 +331,6 @@ public:
 
     Vector<BeginRescueNode *> &rescue_nodes() { return m_rescue_nodes; }
 
-    virtual void visit_children(Visitor &visitor) override;
-
 protected:
     BlockNode *m_body { nullptr };
     BlockNode *m_else_body { nullptr };
@@ -321,6 +342,8 @@ class BeginRescueNode : public Node {
 public:
     BeginRescueNode(Token *token)
         : Node { token } { }
+
+    ~BeginRescueNode();
 
     virtual Type type() override { return Type::BeginRescue; }
 
@@ -335,8 +358,6 @@ public:
     void set_body(BlockNode *body) { m_body = body; }
 
     Node *name_to_node();
-
-    virtual void visit_children(Visitor &visitor) override;
 
     IdentifierNode *name() const { return m_name; }
     Vector<Node *> &exceptions() { return m_exceptions; }
@@ -358,6 +379,11 @@ public:
         add_node(single_node);
     }
 
+    ~BlockNode() {
+        for (auto node : m_nodes)
+            delete node;
+    }
+
     void add_node(Node *node) {
         m_nodes.push(node);
     }
@@ -374,13 +400,6 @@ public:
             return m_nodes[0];
         else
             return this;
-    }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        for (auto node : m_nodes) {
-            visitor.visit(node);
-        }
     }
 
 protected:
@@ -406,6 +425,10 @@ public:
         }
     }
 
+    ~CallNode() {
+        delete m_receiver;
+    }
+
     virtual Type type() override { return Type::Call; }
 
     virtual bool is_callable() const override { return true; }
@@ -424,11 +447,6 @@ public:
         m_message = new String(message);
     }
 
-    virtual void visit_children(Visitor &visitor) override {
-        NodeWithArgs::visit_children(visitor);
-        visitor.visit(m_receiver);
-    }
-
 protected:
     Node *m_receiver { nullptr };
     SharedPtr<String> m_message {};
@@ -440,6 +458,13 @@ public:
         : Node { token }
         , m_subject { subject } {
         assert(m_subject);
+    }
+
+    ~CaseNode() {
+        delete m_subject;
+        for (auto node : m_when_nodes)
+            delete node;
+        delete m_else_node;
     }
 
     virtual Type type() override { return Type::Case; }
@@ -455,15 +480,6 @@ public:
     Node *subject() const { return m_subject; }
     Vector<Node *> &when_nodes() { return m_when_nodes; }
     BlockNode *else_node() const { return m_else_node; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_subject);
-        visitor.visit(m_else_node);
-        for (auto node : m_when_nodes) {
-            visitor.visit(node);
-        }
-    }
 
 protected:
     Node *m_subject { nullptr };
@@ -481,16 +497,15 @@ public:
         assert(m_body);
     }
 
+    ~CaseWhenNode() {
+        delete m_condition;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::CaseWhen; }
 
     Node *condition() const { return m_condition; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_condition);
-        visitor.visit(m_body);
-    }
 
 protected:
     Node *m_condition { nullptr };
@@ -529,13 +544,13 @@ public:
         , m_superclass { superclass }
         , m_body { body } { }
 
+    ~ClassNode();
+
     virtual Type type() override { return Type::Class; }
 
     ConstantNode *name() const { return m_name; }
     Node *superclass() const { return m_superclass; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override;
 
 protected:
     ConstantNode *m_name { nullptr };
@@ -553,15 +568,14 @@ public:
         assert(m_name);
     }
 
+    ~Colon2Node() {
+        delete m_left;
+    }
+
     virtual Type type() override { return Type::Colon2; }
 
     Node *left() const { return m_left; }
     SharedPtr<String> name() const { return m_name; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_left);
-    }
 
 protected:
     Node *m_left { nullptr };
@@ -577,10 +591,6 @@ public:
     virtual Type type() override { return Type::Colon3; }
 
     SharedPtr<String> name() const { return m_name; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-    }
 
 protected:
     SharedPtr<String> m_name {};
@@ -632,14 +642,13 @@ public:
         assert(arg);
     }
 
+    ~DefinedNode() {
+        delete m_arg;
+    }
+
     virtual Type type() override { return Type::Defined; }
 
     Node *arg() const { return m_arg; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_arg);
-    }
 
 protected:
     Node *m_arg { nullptr };
@@ -658,13 +667,16 @@ public:
         , m_name { name }
         , m_body { body } { }
 
+    ~DefNode() {
+        delete m_self_node;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::Def; }
 
     Node *self_node() const { return m_self_node; }
     SharedPtr<String> name() const { return m_name; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override;
 
 protected:
     Node *m_self_node { nullptr };
@@ -678,12 +690,11 @@ public:
         : Node { token }
         , m_node { node } { }
 
-    virtual Type type() override { return Type::EvaluateToString; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_node);
+    ~EvaluateToStringNode() {
+        delete m_node;
     }
+
+    virtual Type type() override { return Type::EvaluateToString; }
 
     Node *node() const { return m_node; }
 
@@ -704,6 +715,11 @@ public:
     HashNode(Token *token)
         : Node { token } { }
 
+    ~HashNode() {
+        for (auto node : m_nodes)
+            delete node;
+    }
+
     virtual Type type() override { return Type::Hash; }
 
     void add_node(Node *node) {
@@ -711,13 +727,6 @@ public:
     }
 
     Vector<Node *> &nodes() { return m_nodes; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        for (auto node : m_nodes) {
-            visitor.visit(node);
-        }
-    }
 
 protected:
     Vector<Node *> m_nodes {};
@@ -796,18 +805,17 @@ public:
         assert(m_false_expr);
     }
 
+    ~IfNode() {
+        delete m_condition;
+        delete m_true_expr;
+        delete m_false_expr;
+    }
+
     virtual Type type() override { return Type::If; }
 
     Node *condition() const { return m_condition; }
     Node *true_expr() const { return m_true_expr; }
     Node *false_expr() const { return m_false_expr; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_condition);
-        visitor.visit(m_true_expr);
-        visitor.visit(m_false_expr);
-    }
 
 protected:
     Node *m_condition { nullptr };
@@ -825,16 +833,15 @@ public:
         assert(m_body);
     }
 
+    ~IterNode() {
+        delete m_call;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::Iter; }
 
     Node *call() const { return m_call; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        NodeWithArgs::visit_children(visitor);
-        visitor.visit(m_call);
-        visitor.visit(m_body);
-    }
 
 protected:
     Node *m_call { nullptr };
@@ -846,16 +853,14 @@ public:
     InterpolatedNode(Token *token)
         : Node { token } { }
 
+    ~InterpolatedNode() {
+        for (auto node : m_nodes)
+            delete node;
+    }
+
     void add_node(Node *node) { m_nodes.push(node); };
 
     Vector<Node *> &nodes() { return m_nodes; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        for (auto node : m_nodes) {
-            visitor.visit(node);
-        }
-    }
 
 protected:
     Vector<Node *> m_nodes {};
@@ -910,14 +915,13 @@ public:
         assert(m_node);
     }
 
+    ~KeywordSplatNode() {
+        delete m_node;
+    }
+
     virtual Type type() override { return Type::KeywordSplat; }
 
     Node *node() const { return m_node; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_node);
-    }
 
 protected:
     Node *m_node { nullptr };
@@ -933,16 +937,15 @@ public:
         assert(m_right);
     }
 
+    ~LogicalAndNode() {
+        delete m_left;
+        delete m_right;
+    }
+
     virtual Type type() override { return Type::LogicalAnd; }
 
     Node *left() const { return m_left; }
     Node *right() const { return m_right; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_left);
-        visitor.visit(m_right);
-    }
 
 protected:
     Node *m_left { nullptr };
@@ -959,16 +962,15 @@ public:
         assert(m_right);
     }
 
+    ~LogicalOrNode() {
+        delete m_left;
+        delete m_right;
+    }
+
     virtual Type type() override { return Type::LogicalOr; }
 
     Node *left() const { return m_left; }
     Node *right() const { return m_right; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_left);
-        visitor.visit(m_right);
-    }
 
 protected:
     Node *m_left { nullptr };
@@ -985,13 +987,13 @@ public:
         , m_arg { arg }
         , m_regexp_on_left { regexp_on_left } { }
 
+    ~MatchNode();
+
     virtual Type type() override { return Type::Match; }
 
     RegexpNode *regexp() const { return m_regexp; }
     Node *arg() const { return m_arg; }
     bool regexp_on_left() const { return m_regexp_on_left; }
-
-    virtual void visit_children(Visitor &visitor) override;
 
 protected:
     RegexpNode *m_regexp { nullptr };
@@ -1006,16 +1008,15 @@ public:
         , m_name { name }
         , m_body { body } { }
 
+    ~ModuleNode() {
+        delete m_name;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::Module; }
 
     ConstantNode *name() const { return m_name; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_name);
-        visitor.visit(m_body);
-    }
 
 protected:
     ConstantNode *m_name { nullptr };
@@ -1038,12 +1039,11 @@ public:
         : Node { token }
         , m_arg { arg } { }
 
-    virtual Type type() override { return Type::Next; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_arg);
+    ~NextNode() {
+        delete m_arg;
     }
+
+    virtual Type type() override { return Type::Next; }
 
     Node *arg() const { return m_arg; }
 
@@ -1067,12 +1067,11 @@ public:
         assert(m_expression);
     }
 
-    virtual Type type() override { return Type::Not; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_expression);
+    ~NotNode() {
+        delete m_expression;
     }
+
+    virtual Type type() override { return Type::Not; }
 
     Node *expression() const { return m_expression; }
 
@@ -1108,17 +1107,16 @@ public:
         assert(m_value);
     }
 
+    ~OpAssignNode() {
+        delete m_name;
+        delete m_value;
+    }
+
     virtual Type type() override { return Type::OpAssign; }
 
     SharedPtr<String> op() const { return m_op; }
     IdentifierNode *name() const { return m_name; }
     Node *value() const { return m_value; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_name);
-        visitor.visit(m_value);
-    }
 
 protected:
     SharedPtr<String> m_op {};
@@ -1140,18 +1138,17 @@ public:
         assert(m_value);
     }
 
+    ~OpAssignAccessorNode() {
+        delete m_receiver;
+        delete m_value;
+    }
+
     virtual Type type() override { return Type::OpAssignAccessor; }
 
     SharedPtr<String> op() const { return m_op; }
     Node *receiver() const { return m_receiver; }
     SharedPtr<String> message() const { return m_message; }
     Node *value() const { return m_value; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        NodeWithArgs::visit_children(visitor);
-        visitor.visit(m_receiver);
-        visitor.visit(m_value);
-    }
 
 protected:
     SharedPtr<String> m_op {};
@@ -1187,17 +1184,16 @@ public:
         assert(m_last);
     }
 
+    ~RangeNode() {
+        delete m_first;
+        delete m_last;
+    }
+
     virtual Type type() override { return Type::Range; }
 
     Node *first() const { return m_first; }
     Node *last() const { return m_last; }
     bool exclude_end() const { return m_exclude_end; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_first);
-        visitor.visit(m_last);
-    }
 
 protected:
     Node *m_first { nullptr };
@@ -1231,14 +1227,13 @@ public:
         : Node { token }
         , m_arg { arg } { }
 
+    ~ReturnNode() {
+        delete m_arg;
+    }
+
     virtual Type type() override { return Type::Return; }
 
     Node *arg() const { return m_arg; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_arg);
-    }
 
 protected:
     Node *m_arg { nullptr };
@@ -1251,16 +1246,15 @@ public:
         , m_klass { klass }
         , m_body { body } { }
 
+    ~SclassNode() {
+        delete m_klass;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::Sclass; }
 
     Node *klass() const { return m_klass; }
     BlockNode *body() const { return m_body; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_klass);
-        visitor.visit(m_body);
-    }
 
 protected:
     Node *m_klass { nullptr };
@@ -1302,14 +1296,13 @@ public:
         assert(m_node);
     }
 
+    ~SplatAssignmentNode() {
+        delete m_node;
+    }
+
     virtual Type type() override { return Type::SplatAssignment; }
 
     IdentifierNode *node() const { return m_node; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_node);
-    }
 
 protected:
     IdentifierNode *m_node { nullptr };
@@ -1326,14 +1319,13 @@ public:
         assert(m_node);
     }
 
+    ~SplatNode() {
+        delete m_node;
+    }
+
     virtual Type type() override { return Type::Splat; }
 
     Node *node() const { return m_node; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_node);
-    }
 
 protected:
     Node *m_node { nullptr };
@@ -1411,17 +1403,16 @@ public:
         assert(m_body);
     }
 
+    ~WhileNode() {
+        delete m_condition;
+        delete m_body;
+    }
+
     virtual Type type() override { return Type::While; }
 
     Node *condition() const { return m_condition; }
     BlockNode *body() const { return m_body; }
     bool pre() const { return m_pre; }
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_condition);
-        visitor.visit(m_body);
-    }
 
 protected:
     Node *m_condition { nullptr };

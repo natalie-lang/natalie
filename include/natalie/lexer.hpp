@@ -1,19 +1,20 @@
 #pragma once
 
 #include "natalie/gc.hpp"
-#include "natalie/managed_vector.hpp"
 #include "natalie/token.hpp"
+#include "tm/shared_ptr.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
 
-class Lexer : public Cell {
+class Lexer {
 public:
     Lexer(SharedPtr<String> input, SharedPtr<String> file)
         : m_input { input }
         , m_file { file }
         , m_size { input->length() } { }
 
-    ManagedVector<Token *> *tokens();
+    SharedPtr<Vector<Token *>> tokens();
 
     Token *next_token() {
         m_whitespace_precedes = skip_whitespace();
@@ -1215,10 +1216,6 @@ private:
 
     // the previously-matched token
     Token *m_last_token { nullptr };
-
-    virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(m_last_token);
-    }
 };
 
 class InterpolatedStringLexer {
@@ -1230,8 +1227,8 @@ public:
         , m_column { token->column() }
         , m_size { strlen(token->literal()) } { }
 
-    ManagedVector<Token *> *tokens() {
-        auto tokens = new ManagedVector<Token *> {};
+    SharedPtr<Vector<Token *>> tokens() {
+        SharedPtr<Vector<Token *>> tokens = new Vector<Token *> {};
         SharedPtr<String> raw = new String("");
         while (m_index < m_size) {
             char c = current_char();
@@ -1253,7 +1250,7 @@ public:
     }
 
 private:
-    void tokenize_interpolation(Vector<Token *> *);
+    void tokenize_interpolation(SharedPtr<Vector<Token *>>);
 
     char current_char() {
         if (m_index >= m_size)

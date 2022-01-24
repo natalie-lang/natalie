@@ -4,8 +4,8 @@
 
 namespace Natalie {
 
-ManagedVector<Token *> *Lexer::tokens() {
-    auto tokens = new ManagedVector<Token *> {};
+SharedPtr<Vector<Token *>> Lexer::tokens() {
+    SharedPtr<Vector<Token *>> tokens = new Vector<Token *> {};
     bool skip_next_newline = false;
     for (;;) {
         auto token = next_token();
@@ -39,7 +39,8 @@ ManagedVector<Token *> *Lexer::tokens() {
             }
             auto string_lexer = InterpolatedStringLexer { token };
             tokens->push(new Token { begin_token_type, token->file(), token->line(), token->column() });
-            for (auto token : *string_lexer.tokens()) {
+            auto string_tokens = string_lexer.tokens();
+            for (auto token : *string_tokens) {
                 tokens->push(token);
             }
             auto end_token = new Token { end_token_type, token->file(), token->line(), token->column() };
@@ -61,7 +62,7 @@ ManagedVector<Token *> *Lexer::tokens() {
     NAT_UNREACHABLE();
 }
 
-void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
+void InterpolatedStringLexer::tokenize_interpolation(SharedPtr<Vector<Token *>> tokens) {
     size_t start_index = m_index;
     size_t curly_brace_count = 1;
     while (m_index < m_size && curly_brace_count > 0) {
@@ -91,7 +92,8 @@ void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
     auto part = m_input->substring(start_index, len);
     auto lexer = new Lexer { new String(part), m_file };
     tokens->push(new Token { Token::Type::EvaluateToStringBegin, m_file, m_line, m_column });
-    for (auto token : *lexer->tokens()) {
+    auto part_tokens = lexer->tokens();
+    for (auto token : *part_tokens) {
         if (token->is_eof()) {
             tokens->push(new Token { Token::Type::Eol, m_file, m_line, m_column });
             break;
