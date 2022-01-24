@@ -63,6 +63,14 @@ public:
         return { count, count, data };
     }
 
+    Vector &operator=(Vector &other) {
+        clear();
+        grow_at_least(other.m_size);
+        memcpy(m_data, other.m_data, sizeof(T) * other.m_size);
+        m_size = other.m_size;
+        return *this;
+    }
+
     Vector &operator=(Vector &&other) {
         delete[] m_data;
         m_size = other.m_size;

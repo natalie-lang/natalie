@@ -104,7 +104,7 @@ public:
     NodeWithArgs(Token *token)
         : Node { token } { }
 
-    NodeWithArgs(Token *token, ManagedVector<Node *> &args)
+    NodeWithArgs(Token *token, Vector<Node *> &args)
         : Node { token } {
         for (auto arg : args)
             add_arg(arg);
@@ -115,10 +115,6 @@ public:
     }
 
     Vector<Node *> &args() { return m_args; }
-
-    ManagedVector<Node *> *managed_args() {
-        return new ManagedVector<Node *> { m_args };
-    }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -651,13 +647,13 @@ protected:
 
 class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, SharedPtr<String> name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
         , m_body { body } { }
 
-    DefNode(Token *token, SharedPtr<String> name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, SharedPtr<String> name, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_name { name }
         , m_body { body } { }
@@ -821,7 +817,7 @@ protected:
 
 class IterNode : public NodeWithArgs {
 public:
-    IterNode(Token *token, Node *call, ManagedVector<Node *> &args, BlockNode *body)
+    IterNode(Token *token, Node *call, Vector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_call { call }
         , m_body { body } {
@@ -1132,7 +1128,7 @@ protected:
 
 class OpAssignAccessorNode : public NodeWithArgs {
 public:
-    OpAssignAccessorNode(Token *token, SharedPtr<String> op, Node *receiver, SharedPtr<String> message, Node *value, ManagedVector<Node *> &args)
+    OpAssignAccessorNode(Token *token, SharedPtr<String> op, Node *receiver, SharedPtr<String> message, Node *value, Vector<Node *> &args)
         : NodeWithArgs { token, args }
         , m_op { op }
         , m_receiver { receiver }

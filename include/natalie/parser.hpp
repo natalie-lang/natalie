@@ -216,7 +216,7 @@ private:
     Node *parse_constant(LocalsHashmap &);
     Node *parse_def(LocalsHashmap &);
     Node *parse_defined(LocalsHashmap &);
-    ManagedVector<Node *> *parse_def_args(LocalsHashmap &);
+    SharedPtr<Vector<Node *>> parse_def_args(LocalsHashmap &);
     Node *parse_def_single_arg(LocalsHashmap &);
     Node *parse_file_constant(LocalsHashmap &);
     Node *parse_group(LocalsHashmap &);
@@ -262,7 +262,7 @@ private:
     Node *parse_infix_expression(Node *, LocalsHashmap &);
     Node *parse_proc_call_expression(Node *, LocalsHashmap &);
     Node *parse_iter_expression(Node *, LocalsHashmap &);
-    ManagedVector<Node *> *parse_iter_args(LocalsHashmap &);
+    SharedPtr<Vector<Node *>> parse_iter_args(LocalsHashmap &);
     Node *parse_logical_expression(Node *, LocalsHashmap &);
     Node *parse_match_expression(Node *, LocalsHashmap &);
     Node *parse_modifier_expression(Node *, LocalsHashmap &);

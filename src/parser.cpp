@@ -474,11 +474,10 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
         advance();
         name->append_char('=');
     }
-    ManagedVector<Node *> *args;
+    SharedPtr<Vector<Node *>> args = new Vector<Node *> {};
     if (current_token()->is_lparen()) {
         advance();
         if (current_token()->is_rparen()) {
-            args = new ManagedVector<Node *> {};
             advance();
         } else {
             args = parse_def_args(our_locals);
@@ -487,8 +486,6 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
         }
     } else if (current_token()->is_bare_name() || current_token()->is_splat()) {
         args = parse_def_args(our_locals);
-    } else {
-        args = new ManagedVector<Node *> {};
     }
     auto body = parse_def_body(our_locals);
     expect(Token::Type::EndKeyword, "def end");
@@ -503,8 +500,8 @@ Node *Parser::parse_defined(LocalsHashmap &locals) {
     return new DefinedNode { token, arg };
 }
 
-ManagedVector<Node *> *Parser::parse_def_args(LocalsHashmap &locals) {
-    auto args = new ManagedVector<Node *> {};
+SharedPtr<Vector<Node *>> Parser::parse_def_args(LocalsHashmap &locals) {
+    SharedPtr<Vector<Node *>> args = new Vector<Node *> {};
     args->push(parse_def_single_arg(locals));
     while (current_token()->is_comma()) {
         advance();
@@ -981,7 +978,7 @@ Node *Parser::parse_splat(LocalsHashmap &locals) {
 Node *Parser::parse_stabby_proc(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    ManagedVector<Node *> *args;
+    SharedPtr<Vector<Node *>> args = new Vector<Node *> {};
     if (current_token()->is_lparen()) {
         advance();
         args = parse_def_args(locals);
@@ -989,8 +986,6 @@ Node *Parser::parse_stabby_proc(LocalsHashmap &locals) {
         advance();
     } else if (current_token()->is_bare_name()) {
         args = parse_def_args(locals);
-    } else {
-        args = new ManagedVector<Node *> {};
     }
     if (current_token()->type() != Token::Type::DoKeyword && current_token()->type() != Token::Type::LCurlyBrace)
         throw_unexpected("block");
@@ -1178,7 +1173,7 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
     LocalsHashmap our_locals { locals }; // copy!
     bool curly_brace = current_token()->type() == Token::Type::LCurlyBrace;
     advance();
-    ManagedVector<Node *> *args;
+    SharedPtr<Vector<Node *>> args = new Vector<Node *> {};
     switch (left->type()) {
     case Node::Type::Identifier:
     case Node::Type::Call:
@@ -1187,12 +1182,10 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
             args = parse_iter_args(our_locals);
             expect(Token::Type::BitwiseOr, "end of block args");
             advance();
-        } else {
-            args = new ManagedVector<Node *> {};
         }
         break;
     case Node::Type::StabbyProc:
-        args = static_cast<StabbyProcNode *>(left)->managed_args();
+        *args = static_cast<StabbyProcNode *>(left)->args();
         break;
     default:
         throw_unexpected(left->token(), "call for left side of iter");
@@ -1204,7 +1197,7 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
     return new IterNode { token, left, *args, body };
 }
 
-ManagedVector<Node *> *Parser::parse_iter_args(LocalsHashmap &locals) {
+SharedPtr<Vector<Node *>> Parser::parse_iter_args(LocalsHashmap &locals) {
     return parse_def_args(locals);
 }
 
@@ -1457,7 +1450,7 @@ Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsHashmap &locals)
         left_call->receiver(),
         message,
         parse_expression(OPASSIGNMENT, locals),
-        *left_call->managed_args(),
+        left_call->args(),
     };
 }
 
