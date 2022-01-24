@@ -225,6 +225,7 @@ private:
     Node *parse_if(LocalsHashmap &);
     void parse_interpolated_body(LocalsHashmap &, InterpolatedNode *, Token::Type);
     Node *parse_interpolated_regexp(LocalsHashmap &);
+    int parse_regexp_options(String &);
     Node *parse_interpolated_shell(LocalsHashmap &);
     Node *parse_interpolated_string(LocalsHashmap &);
     Node *parse_lit(LocalsHashmap &);

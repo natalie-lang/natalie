@@ -757,14 +757,33 @@ Node *Parser::parse_interpolated_regexp(LocalsHashmap &locals) {
         parse_interpolated_body(locals, interpolated_regexp, Token::Type::InterpolatedRegexpEnd);
         auto options = current_token()->options();
         if (options) {
-            int temp_options = 0;
-            RegexpObject::parse_options(options.value().ref(), &temp_options);
-            interpolated_regexp->set_options(temp_options);
+            int options_int = parse_regexp_options(options.value().ref());
+            interpolated_regexp->set_options(options_int);
         }
         advance();
         return interpolated_regexp;
     }
 };
+
+int Parser::parse_regexp_options(String &options_string) {
+    int options = 0;
+    for (char *c = const_cast<char *>(options_string.c_str()); *c != '\0'; ++c) {
+        switch (*c) {
+        case 'i': // ignore case
+            options |= 1;
+            break;
+        case 'x': // extended
+            options |= 2;
+            break;
+        case 'm': // multiline
+            options |= 4;
+            break;
+        default:
+            break;
+        }
+    }
+    return options;
+}
 
 Node *Parser::parse_interpolated_shell(LocalsHashmap &locals) {
     auto token = current_token();
@@ -807,7 +826,6 @@ Node *Parser::parse_interpolated_string(LocalsHashmap &locals) {
 };
 
 Node *Parser::parse_lit(LocalsHashmap &locals) {
-    Value value;
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::Integer:
@@ -1431,7 +1449,7 @@ Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsHashmap &locals)
     advance();
     auto op = new String(token->type_value());
     op->chomp();
-    SharedPtr<String> message = new String(*left_call->message());
+    SharedPtr<String> message = new String(left_call->message().ref());
     message->append_char('=');
     return new OpAssignAccessorNode {
         token,
@@ -1822,15 +1840,15 @@ void Parser::throw_unexpected(Token *token, const char *expected) {
     auto type = token->type_value();
     auto literal = token->literal();
     if (token->type() == Token::Type::Invalid)
-        throw SyntaxError { ManagedString::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, token->literal(), expected) };
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, token->literal(), expected) };
     else if (!type)
-        throw SyntaxError { ManagedString::format("{}#{}: syntax error, expected '{}' (token type: {})", file, line, expected, (long long)token->type()) };
+        throw SyntaxError { String::format("{}#{}: syntax error, expected '{}' (token type: {})", file, line, expected, (long long)token->type()) };
     else if (strcmp(type, "EOF") == 0)
-        throw SyntaxError { ManagedString::format("{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected) };
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected) };
     else if (literal)
-        throw SyntaxError { ManagedString::format("{}#{}: syntax error, unexpected {} '{}' (expected: '{}')", file, line, type, literal, expected) };
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected {} '{}' (expected: '{}')", file, line, type, literal, expected) };
     else
-        throw SyntaxError { ManagedString::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, type, expected) };
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, type, expected) };
 }
 
 void Parser::throw_unexpected(const char *expected) {

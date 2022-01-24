@@ -1,15 +1,9 @@
 #pragma once
 
-#include "natalie/float_object.hpp"
 #include "natalie/gc.hpp"
-#include "natalie/hash_object.hpp"
-#include "natalie/integer_object.hpp"
-#include "natalie/object.hpp"
-#include "natalie/regexp_object.hpp"
-#include "natalie/sexp_object.hpp"
-#include "natalie/string_object.hpp"
-#include "natalie/symbol_object.hpp"
 #include "tm/optional.hpp"
+#include "tm/shared_ptr.hpp"
+#include "tm/string.hpp"
 
 namespace Natalie {
 
@@ -187,7 +181,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, nat_int_t integer, SharedPtr<String> file, size_t line, size_t column)
+    Token(Type type, long long integer, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
         , m_file { file }
@@ -234,7 +228,7 @@ public:
     Optional<SharedPtr<String>> options() { return m_options; }
     void set_options(SharedPtr<String> options) { m_options = options; }
 
-    nat_int_t get_integer() const { return m_integer; }
+    long long get_integer() const { return m_integer; }
     double get_double() const { return m_double; }
 
     const char *type_value() {
@@ -503,51 +497,6 @@ public:
         NAT_UNREACHABLE();
     }
 
-    Value to_ruby(Env *env, bool with_line_and_column_numbers = false) {
-        if (m_type == Type::Eof)
-            return NilObject::the();
-        validate_or_raise(env);
-        const char *type = type_value();
-        auto hash = new HashObject {};
-        hash->put(env, "type"_s, SymbolObject::intern(type));
-        switch (m_type) {
-        case Type::PercentLowerI:
-        case Type::PercentUpperI:
-        case Type::PercentLowerW:
-        case Type::PercentUpperW:
-        case Type::Regexp:
-        case Type::String:
-            hash->put(env, "literal"_s, new StringObject { literal_or_blank() });
-            break;
-        case Type::BareName:
-        case Type::ClassVariable:
-        case Type::Constant:
-        case Type::GlobalVariable:
-        case Type::InstanceVariable:
-        case Type::Symbol:
-        case Type::SymbolKey:
-            hash->put(env, "literal"_s, SymbolObject::intern(literal_or_blank()));
-            break;
-        case Type::Float:
-            hash->put(env, "literal"_s, new FloatObject { m_double });
-            break;
-        case Type::Integer:
-            hash->put(env, "literal"_s, Value::integer(m_integer));
-            break;
-        case Type::InterpolatedRegexpEnd:
-            if (m_options)
-                hash->put(env, "options"_s, new StringObject { *m_options.value() });
-            break;
-        default:
-            void();
-        }
-        if (with_line_and_column_numbers) {
-            hash->put(env, "line"_s, Value::integer(static_cast<nat_int_t>(m_line)));
-            hash->put(env, "column"_s, Value::integer(static_cast<nat_int_t>(m_column)));
-        }
-        return hash;
-    }
-
     bool is_assignable() const {
         switch (m_type) {
         case Type::BareName:
@@ -613,7 +562,6 @@ public:
     bool is_when_keyword() { return m_type == Type::WhenKeyword; }
 
     void validate();
-    void validate_or_raise(Env *env);
 
     bool can_follow_collapsible_newline() {
         return m_type == Token::Type::Dot
@@ -754,7 +702,7 @@ private:
     Type m_type { Type::Invalid };
     Optional<SharedPtr<String>> m_literal {};
     Optional<SharedPtr<String>> m_options {};
-    nat_int_t m_integer { 0 };
+    long long m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
     SharedPtr<String> m_file;

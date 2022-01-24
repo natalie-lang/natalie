@@ -98,6 +98,15 @@ public:
         return *this;
     }
 
+    String &operator=(const char *other) {
+        if (other[0] == '\0') {
+            truncate(0);
+            return *this;
+        }
+        set_str(other);
+        return *this;
+    }
+
     char at(size_t index) const {
         assert(index < m_length);
         return m_str[index];

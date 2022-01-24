@@ -18,12 +18,4 @@ void Token::validate() {
     }
 }
 
-void Token::validate_or_raise(Env *env) {
-    try {
-        validate();
-    } catch (Parser::SyntaxError &e) {
-        env->raise("SyntaxError", e.message());
-    }
-}
-
 }

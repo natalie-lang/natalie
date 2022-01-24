@@ -905,7 +905,7 @@ private:
 
     Token *consume_numeric(bool negative = false) {
         size_t start_index = m_index;
-        nat_int_t number = 0;
+        long long number = 0;
         if (current_char() == '0') {
             switch (peek()) {
             case 'd':
@@ -1237,7 +1237,7 @@ public:
             char c = current_char();
             if (c == '#' && peek() == '{') {
                 if (!raw->is_empty() || tokens->is_empty()) {
-                    tokens->push(new Token { Token::Type::String, new String(*raw), m_file, m_line, m_column });
+                    tokens->push(new Token { Token::Type::String, new String(raw.ref()), m_file, m_line, m_column });
                     *raw = "";
                 }
                 m_index += 2;
