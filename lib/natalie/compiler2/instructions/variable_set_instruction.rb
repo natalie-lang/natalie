@@ -14,6 +14,7 @@ module Natalie
       end
 
       def generate(transform)
+        value = transform.pop
         if (var = transform.vars[name])
           index = var[:index]
         else
@@ -23,9 +24,12 @@ module Natalie
           # TODO: not all variables need to be captured
           transform.vars[name] = { name: name, index: index, captured: true }
         end
-
-        value = transform.pop
-        transform.exec("env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
+        if (index == nil)
+          throw "Not indexed variable #{name} is captured" if var[:captured]
+          transform.exec("#{var[:name]} = #{value}")
+        else
+          transform.exec("env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
+        end
       end
 
       def execute(vm)

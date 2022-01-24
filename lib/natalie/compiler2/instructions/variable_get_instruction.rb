@@ -17,8 +17,12 @@ module Natalie
         var = transform.vars[@name]
         raise "unknown variable #{@name}" if var.nil?
 
-        index = var[:index]
-        transform.push("env->var_get(#{@name.to_s.inspect}, #{index})")
+        if var[:captured]
+          index = var[:index]
+          transform.push("env->var_get(#{@name.to_s.inspect}, #{index})")
+        else
+          transform.push(var[:name])
+        end
       end
 
       def execute(vm)
