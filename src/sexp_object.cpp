@@ -1,6 +1,5 @@
 #include "natalie/sexp_object.hpp"
 #include "natalie.hpp"
-#include "natalie/node.hpp"
 
 namespace Natalie {
 

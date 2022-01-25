@@ -5,10 +5,14 @@
 #include <sys/stat.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/node.hpp"
 #include "natalie/object.hpp"
+#include "natalie_parser/lexer.hpp"
+#include "natalie_parser/node.hpp"
+#include "natalie_parser/parser.hpp"
 
 namespace Natalie {
+
+using namespace NatalieParser;
 
 class ParserObject : public Object {
 public:

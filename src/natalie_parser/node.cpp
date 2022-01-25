@@ -1,6 +1,6 @@
-#include "natalie/node.hpp"
+#include "natalie_parser/node.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 AliasNode::~AliasNode() {
     delete m_new_name;
@@ -64,7 +64,7 @@ void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {
             static_cast<MultipleAssignmentNode *>(node)->add_locals(locals);
             break;
         default:
-            NAT_UNREACHABLE();
+            TM_UNREACHABLE();
         }
     }
 }

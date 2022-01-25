@@ -1,11 +1,10 @@
 #pragma once
 
-#include "natalie/gc.hpp"
-#include "natalie/token.hpp"
+#include "natalie_parser/token.hpp"
 #include "tm/shared_ptr.hpp"
 #include "tm/vector.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 class Lexer {
 public:
@@ -745,7 +744,7 @@ private:
                 return token;
             }
         }
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 
     Token consume_symbol() {

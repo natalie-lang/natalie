@@ -1,19 +1,17 @@
 #pragma once
 
-#include "natalie/gc.hpp"
-#include "natalie/token.hpp"
+#include "natalie_parser/token.hpp"
+#include "tm/hashmap.hpp"
 #include "tm/shared_ptr.hpp"
 #include "tm/string.hpp"
 #include "tm/vector.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 using namespace TM;
 
 class Node {
 public:
-    NAT_MAKE_NONCOPYABLE(Node);
-
     enum class Type {
         Alias,
         Arg,
@@ -82,6 +80,9 @@ public:
     Node(const Token &token)
         : m_token { token } { }
 
+    Node(const Node &) = delete;
+    Node &operator=(const Node &) = delete;
+
     virtual ~Node() { }
 
     virtual Type type() = 0;
@@ -90,7 +91,7 @@ public:
 
     virtual Node *clone() const {
         printf("Need to implement Node::clone() in a subclass...\n");
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 
     SharedPtr<String> file() const { return m_token.file(); }

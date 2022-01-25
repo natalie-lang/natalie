@@ -5,7 +5,7 @@
 #include "tm/shared_ptr.hpp"
 #include "tm/string.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 using namespace TM;
 

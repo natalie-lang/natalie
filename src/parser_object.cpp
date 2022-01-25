@@ -1,8 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/array_object.hpp"
 #include "natalie/env.hpp"
-#include "natalie/lexer.hpp"
-#include "natalie/parser.hpp"
 #include "natalie/symbol_object.hpp"
 
 namespace Natalie {

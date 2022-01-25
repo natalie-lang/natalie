@@ -1,11 +1,10 @@
 #pragma once
 
-#include "natalie/gc.hpp"
-#include "natalie/lexer.hpp"
-#include "natalie/node.hpp"
-#include "natalie/token.hpp"
+#include "natalie_parser/lexer.hpp"
+#include "natalie_parser/node.hpp"
+#include "natalie_parser/token.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 using namespace TM;
 
@@ -13,8 +12,6 @@ class Parser {
 public:
     class SyntaxError {
     public:
-        NAT_MAKE_NONCOPYABLE(SyntaxError);
-
         SyntaxError(const char *message)
             : m_message { strdup(message) } {
             assert(m_message);
@@ -27,7 +24,12 @@ public:
             free(m_message);
         }
 
-        const char *message() { return m_message; }
+        SyntaxError(const SyntaxError &) = delete;
+        SyntaxError &operator=(const SyntaxError &) = delete;
+
+        const char
+            *
+            message() { return m_message; }
 
     private:
         char *m_message { nullptr };

@@ -1,6 +1,6 @@
-#include "natalie/parser.hpp"
+#include "natalie_parser/parser.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 Node *Parser::parse_expression(Parser::Precedence precedence, LocalsHashmap &locals) {
     skip_newlines();
@@ -278,7 +278,7 @@ Node *Parser::parse_block_pass(LocalsHashmap &locals) {
     default:
         expect(Token::Type::BareName, "block");
     }
-    NAT_UNREACHABLE();
+    TM_UNREACHABLE();
 }
 
 Node *Parser::parse_bool(LocalsHashmap &) {
@@ -291,7 +291,7 @@ Node *Parser::parse_bool(LocalsHashmap &) {
         advance();
         return new FalseNode { token };
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 }
 
@@ -604,7 +604,7 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
         return new IfNode { token, condition, new NilNode { token }, left };
     }
     default:
-        NAT_NOT_YET_IMPLEMENTED();
+        TM_NOT_YET_IMPLEMENTED();
     }
 }
 
@@ -725,11 +725,11 @@ void Parser::parse_interpolated_body(LocalsHashmap &locals, InterpolatedNode *no
             advance();
             break;
         default:
-            NAT_UNREACHABLE();
+            TM_UNREACHABLE();
         }
     }
     if (current_token().type() != end_token)
-        NAT_UNREACHABLE() // this shouldn't happen -- if it does, there is a bug in the Lexer
+        TM_UNREACHABLE() // this shouldn't happen -- if it does, there is a bug in the Lexer
 };
 
 Node *Parser::parse_interpolated_regexp(LocalsHashmap &locals) {
@@ -833,7 +833,7 @@ Node *Parser::parse_lit(LocalsHashmap &locals) {
         advance();
         return new FloatNode { token, token.get_double() };
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 };
 
@@ -1057,7 +1057,7 @@ Node *Parser::parse_unary_operator(LocalsHashmap &locals) {
         *message = "+@";
         break;
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
     auto node = new CallNode {
         token,
@@ -1222,7 +1222,7 @@ Node *Parser::parse_call_expression_with_parens(Node *left, LocalsHashmap &local
         call_node = static_cast<SafeCallNode *>(left);
         break;
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
     advance();
     if (!current_token().is_rparen())
@@ -1273,7 +1273,7 @@ Node *Parser::parse_call_expression_without_parens(Node *left, LocalsHashmap &lo
         call_node = static_cast<SafeCallNode *>(left);
         break;
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
     switch (current_token().type()) {
     case Token::Type::Comma:
@@ -1374,7 +1374,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
         }
     }
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 }
 
@@ -1433,7 +1433,7 @@ Node *Parser::parse_op_assign_expression(Node *left, LocalsHashmap &locals) {
     case Token::Type::OrEqual:
         return new OpAssignOrNode { token, left_identifier, parse_expression(ASSIGNMENT, locals) };
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 }
 
@@ -1590,7 +1590,7 @@ Node *Parser::parse_while(LocalsHashmap &locals) {
     case Token::Type::WhileKeyword:
         return new WhileNode { token, condition, body, true };
     default:
-        NAT_UNREACHABLE();
+        TM_UNREACHABLE();
     }
 }
 

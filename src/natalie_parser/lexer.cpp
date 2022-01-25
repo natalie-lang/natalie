@@ -1,8 +1,7 @@
-#include "natalie/lexer.hpp"
-#include "natalie.hpp"
-#include "natalie/token.hpp"
+#include "natalie_parser/lexer.hpp"
+#include "natalie_parser/token.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 SharedPtr<Vector<Token>> Lexer::tokens() {
     SharedPtr<Vector<Token>> tokens = new Vector<Token> {};
@@ -59,7 +58,7 @@ SharedPtr<Vector<Token>> Lexer::tokens() {
         if (token.can_precede_collapsible_newline())
             skip_next_newline = true;
     };
-    NAT_UNREACHABLE();
+    TM_UNREACHABLE();
 }
 
 void InterpolatedStringLexer::tokenize_interpolation(SharedPtr<Vector<Token>> tokens) {

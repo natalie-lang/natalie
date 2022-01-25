@@ -14,6 +14,7 @@ task :clean do
   rm_rf 'build/build.log'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
+  rm_rf 'build/natalie_parser'
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -131,8 +132,11 @@ HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
+PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
+RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%f.o')
+SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
 OBJECT_FILES =
-  PRIMARY_SOURCES.pathmap('build/%f.o') + RUBY_SOURCES.pathmap('build/generated/%f.o') + SPECIAL_SOURCES.pathmap('%p.o')
+  PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
 
 require 'tempfile'
 
@@ -151,20 +155,21 @@ task libnatalie: [
        :build_dir,
        'build/onigmo/lib/libonigmo.a',
        'build/generated/numbers.rb',
-       :primary_sources,
-       :ruby_sources,
-       :special_sources,
+       :primary_objects,
+       :ruby_objects,
+       :special_objects,
        'build/libnatalie.a',
        :write_compile_database,
      ]
 
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
+  mkdir_p 'build/natalie_parser' unless File.exist?('build/natalie_parser')
 end
 
-multitask primary_sources: PRIMARY_SOURCES.pathmap('build/%f.o')
-multitask ruby_sources: RUBY_SOURCES.pathmap('build/generated/%f.o')
-multitask special_sources: SPECIAL_SOURCES.pathmap('build/generated/%f.o')
+multitask primary_objects: PRIMARY_OBJECT_FILES
+multitask ruby_objects: RUBY_OBJECT_FILES
+multitask special_objects: SPECIAL_OBJECT_FILES
 
 file 'build/libnatalie.a' => %w[build/libnatalie_base.a build/onigmo/lib/libonigmo.a] do |t|
   if RUBY_PLATFORM =~ /darwin/
@@ -240,6 +245,10 @@ end
 
 rule '.c.o' => 'src/%n' do |t|
   sh "#{cc} -g -fPIC -c -o #{t.name} #{t.source}"
+end
+
+rule %r{natalie_parser/.*\.cpp\.o$} => ['src/natalie_parser/%n'] + HEADERS do |t|
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
 rule '.cpp.o' => ['src/%n'] + HEADERS do |t|

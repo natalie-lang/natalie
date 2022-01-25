@@ -1,8 +1,8 @@
-#include "natalie/token.hpp"
-#include "natalie/parser.hpp"
+#include "natalie_parser/token.hpp"
+#include "natalie_parser/parser.hpp"
 #include "tm/string.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 void Token::validate() {
     switch (m_type) {
