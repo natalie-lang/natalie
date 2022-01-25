@@ -15,6 +15,8 @@ jobs:
         with:
           bundler-cache: true
       - run: rake bootstrap
-      - run: bash -c 'bundle exec ruby test/all.rb || :'
+      - run: bash -c 'bundle exec ruby test/all.rb | tee >(egrep "[0-9]+ runs, [0-9]+ assertions" > out.log) || :'
         env:
           NAT_BINARY: bin/nat
+          REPORTER: none
+      - run: bash -c 'cat out.log | bundle exec ruby test/support/post_minitest_stats_to_api.rb'
