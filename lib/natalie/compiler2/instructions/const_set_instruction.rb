@@ -2,7 +2,7 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler2
-    class ConstFindInstruction < BaseInstruction
+    class ConstSetInstruction < BaseInstruction
       def initialize(name)
         @name = name.to_s
       end
@@ -10,18 +10,19 @@ module Natalie
       attr_reader :name
 
       def to_s
-        "const_find #{@name}"
+        "const_set #{@name}"
       end
 
       def generate(transform)
         namespace = transform.pop
-        transform.push("#{namespace}->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)")
+        value = transform.pop
+        transform.exec_and_push(:const_set, "#{namespace}->const_set(#{@name.inspect}_s, #{value})")
       end
 
       def execute(vm)
         namespace = vm.pop
-        namespace = namespace.class unless namespace.respond_to?(:const_get)
-        vm.push namespace.const_get(@name)
+        value = vm.pop
+        vm.push(namespace.const_set(@name, value))
       end
     end
   end

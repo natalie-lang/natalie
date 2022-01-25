@@ -34,6 +34,21 @@ module Natalie
         instructions
       end
 
+      def constant_name(instructions, name)
+        if name.is_a?(Symbol)
+          instructions << PushSelfInstruction.new
+        elsif name.sexp_type == :colon2
+          _, namespace, name = name
+          instructions << transform_expression(namespace, used: true)
+        elsif name.sexp_type == :colon3
+          _, name = name
+          instructions << PushObjectClassInstruction.new
+        else
+          raise "Unknown constant name type #{name.sexp_type.inspect}"
+        end
+        name
+      end
+
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
@@ -147,14 +162,24 @@ module Natalie
         instructions
       end
 
+      def transform_cdecl(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true)]
+        name = constant_name(instructions, name)
+        instructions << ConstSetInstruction.new(name)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
         instructions = []
         if superclass
           instructions << transform_expression(superclass, used: true)
         else
-          instructions << ConstFindInstruction.new('Object')
+          instructions << PushObjectClassInstruction.new
         end
+        name = constant_name(instructions, name)
         instructions << DefineClassInstruction.new(name: name)
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
@@ -162,10 +187,26 @@ module Natalie
         instructions
       end
 
+      def transform_colon2(exp, used:)
+        _, namespace, name = exp
+        instructions = [
+          transform_expression(namespace, used: true),
+          ConstFindInstruction.new(name),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_colon3(exp, used:)
+        return [] unless used
+        _, name = exp
+        [PushObjectClassInstruction.new, ConstFindInstruction.new(name)]
+      end
+
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
-        ConstFindInstruction.new(name)
+        [PushSelfInstruction.new, ConstFindInstruction.new(name)]
       end
 
       def transform_defn(exp, used:)
