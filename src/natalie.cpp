@@ -209,7 +209,7 @@ Env *build_top_env() {
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     Natalie::ManagedString *ruby_revision_short = new Natalie::ManagedString { ruby_revision, 10 };
-    StringObject *RUBY_DESCRIPTION = StringObject::format(env, "natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
+    StringObject *RUBY_DESCRIPTION = StringObject::format("natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
     Value RUBY_ENGINE = new StringObject { "natalie" };
@@ -722,20 +722,6 @@ void set_status_object(Env *env, int pid, int status) {
     status_obj->ivar_set(env, "@exitstatus"_s, Value::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, "@pid"_s, Value::integer(pid));
     env->global_set("$?"_s, status_obj);
-}
-
-const ManagedString *int_to_hex_string(nat_int_t num, bool capitalize) {
-    if (num == 0) {
-        return new ManagedString("0");
-    } else {
-        char buf[100]; // ought to be enough for anybody ;-)
-        if (capitalize) {
-            snprintf(buf, 100, "0X%llX", num);
-        } else {
-            snprintf(buf, 100, "0x%llx", num);
-        }
-        return new ManagedString(buf);
-    }
 }
 
 Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/gc.hpp"
+#include "tm/shared_ptr.hpp"
 #include "tm/string.hpp"
 
 namespace Natalie {
@@ -71,6 +72,9 @@ public:
     void append(const char *str) { String::append(str); }
     void append(const String &str) { String::append(str); }
     void append(size_t n, char c) { String::append(n, c); }
+    void append(SharedPtr<String> str) { String::append(*str); }
+
+    String to_low_level_string() const { return String(*this); }
 };
 
 }

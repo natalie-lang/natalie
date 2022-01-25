@@ -96,17 +96,22 @@ public:
 
     int options() const { return m_options; }
 
-    int options(Env *env) {
+    int options(Env *env) const {
         assert_initialized(env);
         return m_options;
     }
 
     void set_options(const ManagedString *options) {
+        auto str = options->to_low_level_string();
+        set_options(str);
+    }
+
+    void set_options(String &options) {
         parse_options(options, &m_options);
     }
 
-    static void parse_options(const ManagedString *options_string, int *options) {
-        for (char *c = const_cast<char *>(options_string->c_str()); *c != '\0'; ++c) {
+    static void parse_options(String &options_string, int *options) {
+        for (char *c = const_cast<char *>(options_string.c_str()); *c != '\0'; ++c) {
             switch (*c) {
             case 'i':
                 *options |= RegexOpts::IgnoreCase;

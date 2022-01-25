@@ -50,7 +50,7 @@ ArrayObject *EncodingObject::names(Env *env) {
 }
 
 Value EncodingObject::inspect(Env *env) {
-    return StringObject::format(env, "#<Encoding:{}>", name());
+    return StringObject::format("#<Encoding:{}>", name());
 }
 
 void EncodingObject::visit_children(Visitor &visitor) {

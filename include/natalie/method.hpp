@@ -59,8 +59,8 @@ public:
         return result;
     }
 
-    const ManagedString *name() { return &m_name; }
-    ModuleObject *owner() { return m_owner; }
+    ManagedString *name() const { return new ManagedString(m_name); }
+    ModuleObject *owner() const { return m_owner; }
 
     int arity() const { return m_arity; }
 
@@ -74,7 +74,7 @@ public:
     }
 
 private:
-    ManagedString m_name {};
+    String m_name {};
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
     int m_arity { 0 };

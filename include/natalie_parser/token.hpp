@@ -1,23 +1,18 @@
 #pragma once
 
-#include "natalie/float_object.hpp"
-#include "natalie/gc.hpp"
-#include "natalie/hash_object.hpp"
-#include "natalie/integer_object.hpp"
-#include "natalie/object.hpp"
-#include "natalie/regexp_object.hpp"
-#include "natalie/sexp_object.hpp"
-#include "natalie/string_object.hpp"
-#include "natalie/symbol_object.hpp"
+#include "tm/macros.hpp"
 #include "tm/optional.hpp"
+#include "tm/shared_ptr.hpp"
+#include "tm/string.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
-class Token : public Cell {
+using namespace TM;
+
+class Token {
 public:
-    NAT_MAKE_NONCOPYABLE(Token);
-
     enum class Type {
+        Invalid, // must be first
         AliasKeyword,
         And,
         AndEqual,
@@ -84,7 +79,6 @@ public:
         InterpolatedShellEnd,
         InterpolatedStringBegin,
         InterpolatedStringEnd,
-        Invalid,
         LCurlyBrace,
         LBracket,
         LBracketRBracket,
@@ -150,7 +144,9 @@ public:
         YieldKeyword,
     };
 
-    Token(Type type, const ManagedString *file, size_t line, size_t column)
+    Token() { }
+
+    Token(Type type, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_file { file }
         , m_line { line }
@@ -158,9 +154,9 @@ public:
         assert(file);
     }
 
-    Token(Type type, const char *literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, const char *literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new ManagedString(literal) }
+        , m_literal { new String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
@@ -168,7 +164,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, const ManagedString *literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, SharedPtr<String> literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_literal { literal }
         , m_file { file }
@@ -178,16 +174,16 @@ public:
         assert(file);
     }
 
-    Token(Type type, char literal, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, char literal, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new ManagedString(literal) }
+        , m_literal { new String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
         assert(file);
     }
 
-    Token(Type type, nat_int_t integer, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, long long integer, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
         , m_file { file }
@@ -196,7 +192,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, double dbl, const ManagedString *file, size_t line, size_t column)
+    Token(Type type, double dbl, SharedPtr<String> file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
         , m_file { file }
@@ -205,38 +201,41 @@ public:
         assert(file);
     }
 
-    static Token *invalid() { return new Token { Token::Type::Invalid, nullptr, 0, 0 }; }
+    static Token invalid() { return Token {}; }
 
-    Type type() { return m_type; }
+    operator bool() const { return is_valid(); }
+
+    Type type() const { return m_type; }
     void set_type(Token::Type type) { m_type = type; }
 
-    const char *literal() {
+    const char *literal() const {
         if (!m_literal)
             return nullptr;
         return m_literal.value()->c_str();
     }
 
-    const char *literal_or_blank() {
+    const char *literal_or_blank() const {
         if (!m_literal)
             return "";
         return m_literal.value()->c_str();
     }
 
-    const ManagedString *literal_string() {
+    SharedPtr<String> literal_string() const {
         assert(m_literal);
         return m_literal.value();
     }
 
-    void set_literal(const char *literal) { m_literal = new ManagedString(literal); }
-    void set_literal(const ManagedString *literal) { m_literal = literal; }
+    void set_literal(const char *literal) { m_literal = new String(literal); }
+    void set_literal(SharedPtr<String> literal) { m_literal = literal; }
+    void set_literal(String literal) { m_literal = new String(literal); }
 
-    const ManagedString *options() { return m_options ? m_options.value() : nullptr; }
-    void set_options(const ManagedString *options) { m_options = options; }
+    Optional<SharedPtr<String>> options() { return m_options; }
+    void set_options(SharedPtr<String> options) { m_options = options; }
 
-    nat_int_t get_integer() const { return m_integer; }
+    long long get_integer() const { return m_integer; }
     double get_double() const { return m_double; }
 
-    const char *type_value() {
+    const char *type_value() const {
         switch (m_type) {
         case Type::AliasKeyword:
             return "alias";
@@ -303,7 +302,7 @@ public:
         case Type::Dot:
             return ".";
         case Type::DoubleQuotedString:
-            NAT_UNREACHABLE(); // converted to InterpolatedStringBegin/InterpolatedStringEnd
+            TM_UNREACHABLE(); // converted to InterpolatedStringBegin/InterpolatedStringEnd
         case Type::ElseKeyword:
             return "else";
         case Type::ElsifKeyword:
@@ -445,7 +444,7 @@ public:
         case Type::RedoKeyword:
             return "redo";
         case Type::Regexp:
-            NAT_UNREACHABLE(); // converted to InterpolatedRegexpBegin/InterpolatedRegexpEnd
+            TM_UNREACHABLE(); // converted to InterpolatedRegexpBegin/InterpolatedRegexpEnd
         case Type::RescueKeyword:
             return "rescue";
         case Type::RetryKeyword:
@@ -463,7 +462,7 @@ public:
         case Type::SelfKeyword:
             return "self";
         case Type::Shell:
-            NAT_UNREACHABLE(); // converted to InterpolatedShellBegin/InterpolatedShellEnd
+            TM_UNREACHABLE(); // converted to InterpolatedShellBegin/InterpolatedShellEnd
         case Type::Semicolon:
             return ";";
         case Type::String:
@@ -499,52 +498,7 @@ public:
         case Type::YieldKeyword:
             return "yield";
         }
-        NAT_UNREACHABLE();
-    }
-
-    Value to_ruby(Env *env, bool with_line_and_column_numbers = false) {
-        if (m_type == Type::Eof)
-            return NilObject::the();
-        validate_or_raise(env);
-        const char *type = type_value();
-        auto hash = new HashObject {};
-        hash->put(env, "type"_s, SymbolObject::intern(type));
-        switch (m_type) {
-        case Type::PercentLowerI:
-        case Type::PercentUpperI:
-        case Type::PercentLowerW:
-        case Type::PercentUpperW:
-        case Type::Regexp:
-        case Type::String:
-            hash->put(env, "literal"_s, new StringObject { literal_or_blank() });
-            break;
-        case Type::BareName:
-        case Type::ClassVariable:
-        case Type::Constant:
-        case Type::GlobalVariable:
-        case Type::InstanceVariable:
-        case Type::Symbol:
-        case Type::SymbolKey:
-            hash->put(env, "literal"_s, SymbolObject::intern(literal_or_blank()));
-            break;
-        case Type::Float:
-            hash->put(env, "literal"_s, new FloatObject { m_double });
-            break;
-        case Type::Integer:
-            hash->put(env, "literal"_s, Value::integer(m_integer));
-            break;
-        case Type::InterpolatedRegexpEnd:
-            if (m_options)
-                hash->put(env, "options"_s, new StringObject { m_options.value() });
-            break;
-        default:
-            void();
-        }
-        if (with_line_and_column_numbers) {
-            hash->put(env, "line"_s, Value::integer(static_cast<nat_int_t>(m_line)));
-            hash->put(env, "column"_s, Value::integer(static_cast<nat_int_t>(m_column)));
-        }
-        return hash;
+        TM_UNREACHABLE();
     }
 
     bool is_assignable() const {
@@ -592,27 +546,26 @@ public:
         }
     }
 
-    bool is_bare_name() { return m_type == Type::BareName; }
-    bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
-    bool is_comma() { return m_type == Type::Comma; }
-    bool is_comment() { return m_type == Type::Comment; }
-    bool is_else_keyword() { return m_type == Type::ElseKeyword; }
-    bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
-    bool is_end_keyword() { return m_type == Type::EndKeyword; }
-    bool is_end_of_expression() { return m_type == Type::EndKeyword || m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
-    bool is_eof() { return m_type == Type::Eof; }
-    bool is_eol() { return m_type == Type::Eol; }
-    bool is_expression_modifier() { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
-    bool is_lparen() { return m_type == Type::LParen; }
-    bool is_newline() { return m_type == Type::Eol; }
-    bool is_rparen() { return m_type == Type::RParen; }
-    bool is_semicolon() { return m_type == Type::Semicolon; }
-    bool is_splat() { return m_type == Type::Multiply || m_type == Type::Exponent; }
-    bool is_valid() { return m_type != Type::Invalid; }
-    bool is_when_keyword() { return m_type == Type::WhenKeyword; }
+    bool is_bare_name() const { return m_type == Type::BareName; }
+    bool is_closing_token() const { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
+    bool is_comma() const { return m_type == Type::Comma; }
+    bool is_comment() const { return m_type == Type::Comment; }
+    bool is_else_keyword() const { return m_type == Type::ElseKeyword; }
+    bool is_elsif_keyword() const { return m_type == Type::ElsifKeyword; }
+    bool is_end_keyword() const { return m_type == Type::EndKeyword; }
+    bool is_end_of_expression() const { return m_type == Type::EndKeyword || m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
+    bool is_eof() const { return m_type == Type::Eof; }
+    bool is_eol() const { return m_type == Type::Eol; }
+    bool is_expression_modifier() const { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
+    bool is_lparen() const { return m_type == Type::LParen; }
+    bool is_newline() const { return m_type == Type::Eol; }
+    bool is_rparen() const { return m_type == Type::RParen; }
+    bool is_semicolon() const { return m_type == Type::Semicolon; }
+    bool is_splat() const { return m_type == Type::Multiply || m_type == Type::Exponent; }
+    bool is_valid() const { return m_type != Type::Invalid; }
+    bool is_when_keyword() const { return m_type == Type::WhenKeyword; }
 
     void validate();
-    void validate_or_raise(Env *env);
 
     bool can_follow_collapsible_newline() {
         return m_type == Token::Type::Dot
@@ -675,7 +628,7 @@ public:
     bool has_sign() const { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
-    const ManagedString *file() { return m_file; }
+    SharedPtr<String> file() const { return m_file; }
     size_t line() const { return m_line; }
     size_t column() const { return m_column; }
 
@@ -738,33 +691,14 @@ public:
         }
     }
 
-    virtual void gc_inspect(char *buf, size_t len) const override final {
-        snprintf(buf, len,
-            "<Token %p type=%d literal='%s' m_integer=%lli m_double=%f m_has_sign=%d>",
-            this,
-            (int)m_type,
-            m_literal ? m_literal.value()->c_str() : "",
-            m_integer,
-            m_double,
-            m_has_sign);
-    }
-
-    virtual void visit_children(Visitor &visitor) override final {
-        if (m_literal)
-            visitor.visit(m_literal.value());
-        if (m_options)
-            visitor.visit(m_options.value());
-        visitor.visit(m_file);
-    }
-
 private:
     Type m_type { Type::Invalid };
-    Optional<const ManagedString *> m_literal {};
-    Optional<const ManagedString *> m_options {};
-    nat_int_t m_integer { 0 };
+    Optional<SharedPtr<String>> m_literal {};
+    Optional<SharedPtr<String>> m_options {};
+    long long m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_file;
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };

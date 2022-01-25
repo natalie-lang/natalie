@@ -16,9 +16,9 @@ public:
     Value inspect(Env *env) {
         auto the_owner = owner();
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
-            return StringObject::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
+            return StringObject::format("#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
         else
-            return StringObject::format(env, "#<Method: {}#{}(*)>", owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), m_method->name());
     }
 
     virtual ProcObject *to_proc(Env *env) override {

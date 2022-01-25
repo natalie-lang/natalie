@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -13,11 +14,9 @@ namespace TM {
 
 class String {
 public:
-    const int STRING_GROW_FACTOR = 2;
+    static constexpr int STRING_GROW_FACTOR = 2;
 
-    String() {
-        set_str("");
-    }
+    String() { }
 
     String(const char *str) {
         assert(str);
@@ -70,12 +69,41 @@ public:
         set_str(buf);
     }
 
+    enum class HexFormat {
+        UppercaseAndPrefixed,
+        Uppercase,
+        LowercaseAndPrefixed,
+        Lowercase,
+    };
+
+    static String hex(long long number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
+        bool uppercase = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::Uppercase;
+        bool prefixed = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::LowercaseAndPrefixed;
+        const char *format_str = uppercase ? "%llX" : "%llx";
+        int length = snprintf(NULL, 0, format_str, number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, format_str, number);
+        auto str = String(buf);
+        if (prefixed)
+            str.prepend(uppercase ? "0X" : "0x");
+        return str;
+    }
+
     virtual ~String() {
         delete[] m_str;
     }
 
     String &operator=(const String &other) {
         set_str(other.c_str(), other.length());
+        return *this;
+    }
+
+    String &operator=(const char *other) {
+        if (other[0] == '\0') {
+            truncate(0);
+            return *this;
+        }
+        set_str(other);
         return *this;
     }
 
@@ -112,7 +140,7 @@ public:
         return substring(start, m_length - start);
     }
 
-    const char *c_str() const { return m_str; }
+    const char *c_str() const { return m_str ? m_str : ""; }
     size_t bytesize() const { return m_length; }
     size_t length() const { return m_length; }
     size_t size() const { return m_length; }
@@ -161,7 +189,7 @@ public:
         size_t new_length = strlen(str);
         if (new_length == 0) return;
         char buf[m_length + 1];
-        memcpy(buf, m_str, sizeof(char) * (m_length + 1));
+        memcpy(buf, c_str(), sizeof(char) * (m_length + 1));
         set_str(str);
         append(buf);
     }
@@ -170,8 +198,8 @@ public:
         size_t new_length = str.length();
         if (new_length == 0) return;
         char buf[new_length + m_length + 1];
-        memcpy(buf, str.m_str, sizeof(char) * new_length);
-        memcpy(buf + new_length, m_str, sizeof(char) * (m_length + 1));
+        memcpy(buf, str.c_str(), sizeof(char) * new_length);
+        memcpy(buf + new_length, c_str(), sizeof(char) * (m_length + 1));
         set_str(buf);
     }
 
@@ -256,7 +284,7 @@ public:
         if (str.length() == 0) return;
         size_t total_length = m_length + str.length();
         grow_at_least(total_length);
-        memcpy(m_str + m_length, str.m_str, sizeof(char) * str.length());
+        memcpy(m_str + m_length, str.c_str(), sizeof(char) * str.length());
         m_length = total_length;
     }
 
@@ -271,14 +299,14 @@ public:
     bool operator==(const String &other) const {
         if (length() != other.length())
             return false;
-        return memcmp(m_str, other.c_str(), sizeof(char) * m_length) == 0;
+        return memcmp(c_str(), other.c_str(), sizeof(char) * m_length) == 0;
     }
 
     bool operator==(const char *other) const {
         assert(other);
         if (length() != strlen(other))
             return false;
-        return memcmp(m_str, other, sizeof(char) * m_length) == 0;
+        return memcmp(c_str(), other, sizeof(char) * m_length) == 0;
     }
 
     bool operator!=(const String &other) const {
@@ -286,16 +314,17 @@ public:
     }
 
     bool operator>(const String &other) const {
-        return strcmp(m_str, other.c_str()) > 0;
+        return strcmp(c_str(), other.c_str()) > 0;
     }
 
     bool operator<(const String &other) const {
-        return strcmp(m_str, other.c_str()) < 0;
+        return strcmp(c_str(), other.c_str()) < 0;
     }
 
     ssize_t find(const String &needle) const {
-        if (m_length < needle.length())
+        if (m_length < needle.length() || needle.is_empty())
             return -1;
+        assert(m_str);
         size_t max_index = m_length - needle.length();
         size_t byte_count = sizeof(char) * needle.length();
         for (size_t index = 0; index <= max_index; ++index) {
@@ -314,13 +343,22 @@ public:
 
     void truncate(size_t length) {
         assert(length <= m_length);
-        m_str[length] = 0;
-        m_length = length;
+        if (length == 0) {
+            m_str = nullptr;
+            m_length = 0;
+            m_capacity = 0;
+        } else {
+            m_str[length] = 0;
+            m_length = length;
+        }
     }
 
     void clear() { truncate(0); }
 
-    void chomp() { truncate(m_length - 1); }
+    void chomp() {
+        if (m_length == 0) return;
+        truncate(m_length - 1);
+    }
 
     void strip_trailing_whitespace() {
         while (m_length > 0) {
@@ -349,6 +387,7 @@ public:
     void remove(char character) {
         size_t i;
         int offset = 0;
+        assert(m_str);
         for (i = 0; i < m_length; ++i) {
             if (m_str[i] == character) {
                 for (size_t j = i; j < m_length; ++j)
@@ -365,6 +404,7 @@ public:
 
     String successive() {
         auto result = String { *this };
+        assert(m_length > 0);
         size_t index = length() - 1;
         char last_char = m_str[index];
         if (last_char == 'z') {
@@ -427,7 +467,10 @@ private:
         assert(new_capacity >= m_length);
         auto old_str = m_str;
         m_str = new char[new_capacity + 1];
-        memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
+        if (old_str)
+            memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
+        else
+            m_str[0] = '\0';
         delete[] old_str;
         m_capacity = new_capacity;
     }

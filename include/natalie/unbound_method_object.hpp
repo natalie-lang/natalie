@@ -29,9 +29,9 @@ public:
 
     Value inspect(Env *env) {
         if (owner() != m_module_or_class) {
-            return StringObject::format(env, "#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_str(), owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}({})#{}(*)>", m_module_or_class->inspect_str(), owner()->inspect_str(), m_method->name());
         } else {
-            return StringObject::format(env, "#<UnboundMethod: {}#{}(*)>", owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<UnboundMethod: {}#{}(*)>", owner()->inspect_str(), m_method->name());
         }
     }
 

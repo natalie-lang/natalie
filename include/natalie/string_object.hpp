@@ -14,6 +14,8 @@
 
 namespace Natalie {
 
+using namespace TM;
+
 class StringObject : public Object {
 public:
     const int STRING_GROW_FACTOR = 2;
@@ -186,9 +188,33 @@ public:
     Value convert_float();
 
     template <typename... Args>
-    static StringObject *format(Env *env, const char *fmt, Args... args) {
-        auto str = ManagedString::format(fmt, args...);
-        return new StringObject { *str };
+    static StringObject *format(const char *fmt, Args... args) {
+        String out;
+        format(out, fmt, args...);
+        return new StringObject { out };
+    }
+
+    static void format(String &out, const char *fmt) {
+        for (const char *c = fmt; *c != 0; c++) {
+            out.append_char(*c);
+        }
+    }
+
+    template <typename T, typename... Args>
+    static void format(String &out, const char *fmt, T first, Args... rest) {
+        for (const char *c = fmt; *c != 0; c++) {
+            if (*c == '{' && *(c + 1) == '}') {
+                c++;
+                if constexpr (std::is_same<T, const StringObject *>::value || std::is_same<T, StringObject *>::value)
+                    out.append(first->to_low_level_string());
+                else
+                    out.append(first);
+                format(out, c + 1, rest...);
+                return;
+            } else {
+                out.append_char(*c);
+            }
+        }
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -203,8 +229,7 @@ private:
 
     void raise_encoding_invalid_byte_sequence_error(Env *, size_t) const;
 
-    // TODO: just us a TM::String
-    ManagedString m_string {};
+    String m_string {};
     Encoding m_encoding { Encoding::UTF_8 };
 };
 }

@@ -52,20 +52,15 @@ public:
     static bool file(Env *env, Value path);
     static bool directory(Env *env, Value path);
 
-    const ManagedString *path() { return m_path; }
-    void set_path(ManagedString *path) { m_path = path; };
+    const ManagedString *path() const { return new ManagedString(m_path); }
+    void set_path(const ManagedString *path) { m_path = path->to_low_level_string(); };
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileObject %p>", this);
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        Object::visit_children(visitor);
-        visitor.visit(m_path);
-    }
-
 private:
-    const ManagedString *m_path { nullptr };
+    String m_path {};
 };
 
 }

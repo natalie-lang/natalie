@@ -17,6 +17,10 @@ SymbolObject *SymbolObject::intern(const ManagedString *name) {
     return intern(name->c_str(), Ownedness::DuplicatedString);
 }
 
+SymbolObject *SymbolObject::intern(const String &name) {
+    return intern(name.c_str(), Ownedness::DuplicatedString);
+}
+
 ArrayObject *SymbolObject::all_symbols(Env *env) {
     ArrayObject *array = new ArrayObject(s_symbols.size());
     for (auto pair : s_symbols) {

@@ -1,20 +1,17 @@
 #pragma once
 
-#include "natalie/gc.hpp"
-#include "natalie/lexer.hpp"
-#include "natalie/node.hpp"
-#include "natalie/token.hpp"
+#include "natalie_parser/lexer.hpp"
+#include "natalie_parser/node.hpp"
+#include "natalie_parser/token.hpp"
 
-namespace Natalie {
+namespace NatalieParser {
 
 using namespace TM;
 
-class Parser : public Cell {
+class Parser {
 public:
     class SyntaxError {
     public:
-        NAT_MAKE_NONCOPYABLE(SyntaxError);
-
         SyntaxError(const char *message)
             : m_message { strdup(message) } {
             assert(m_message);
@@ -27,17 +24,25 @@ public:
             free(m_message);
         }
 
-        const char *message() { return m_message; }
+        SyntaxError(const SyntaxError &) = delete;
+        SyntaxError &operator=(const SyntaxError &) = delete;
+
+        const char
+            *
+            message() { return m_message; }
 
     private:
         char *m_message { nullptr };
     };
 
-    Parser(const ManagedString *code, const ManagedString *file)
+    Parser(SharedPtr<String> code, SharedPtr<String> file)
         : m_code { code }
         , m_file { file } {
-        assert(m_code);
         m_tokens = Lexer { m_code, m_file }.tokens();
+    }
+
+    ~Parser() {
+        // SharedPtr ftw
     }
 
     using LocalsHashmap = TM::Hashmap<const char *>;
@@ -80,14 +85,8 @@ public:
 
     Node *tree();
 
-    virtual void visit_children(Visitor &visitor) override {
-        visitor.visit(m_tokens);
-        visitor.visit(m_code);
-        visitor.visit(m_file);
-    }
-
 private:
-    bool higher_precedence(Token *token, Node *left, Precedence current_precedence) {
+    bool higher_precedence(Token &token, Node *left, Precedence current_precedence) {
         auto next_precedence = get_precedence(token, left);
         // trick to make chained assignment right-to-left
         if (current_precedence == ASSIGNMENT && next_precedence == ASSIGNMENT)
@@ -95,14 +94,14 @@ private:
         return next_precedence > current_precedence;
     }
 
-    Precedence get_precedence(Token *token, Node *left = nullptr) {
-        switch (token->type()) {
+    Precedence get_precedence(Token &token, Node *left = nullptr) {
+        switch (token.type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
             return SUM;
         case Token::Type::Integer:
         case Token::Type::Float:
-            if (current_token()->has_sign())
+            if (current_token().has_sign())
                 return SUM;
             break;
         case Token::Type::Equal:
@@ -176,10 +175,12 @@ private:
         case Token::Type::DotDotDot:
             return RANGE;
         case Token::Type::LBracket:
-        case Token::Type::LBracketRBracket:
-            if (left && treat_left_bracket_as_element_reference(left, current_token()))
+        case Token::Type::LBracketRBracket: {
+            auto current = current_token();
+            if (left && treat_left_bracket_as_element_reference(left, current))
                 return REF;
             break;
+        }
         case Token::Type::TernaryQuestion:
         case Token::Type::TernaryColon:
             return TERNARY;
@@ -188,12 +189,13 @@ private:
         default:
             break;
         }
-        if (left && is_first_arg_of_call_without_parens(current_token(), left))
+        auto current = current_token();
+        if (left && is_first_arg_of_call_without_parens(left, current))
             return CALL;
         return LOWEST;
     }
 
-    bool is_first_arg_of_call_without_parens(Token *, Node *);
+    bool is_first_arg_of_call_without_parens(Node *, Token &);
 
     Node *parse_expression(Precedence, LocalsHashmap &);
 
@@ -219,7 +221,7 @@ private:
     Node *parse_constant(LocalsHashmap &);
     Node *parse_def(LocalsHashmap &);
     Node *parse_defined(LocalsHashmap &);
-    ManagedVector<Node *> *parse_def_args(LocalsHashmap &);
+    SharedPtr<Vector<Node *>> parse_def_args(LocalsHashmap &);
     Node *parse_def_single_arg(LocalsHashmap &);
     Node *parse_file_constant(LocalsHashmap &);
     Node *parse_group(LocalsHashmap &);
@@ -228,12 +230,13 @@ private:
     Node *parse_if(LocalsHashmap &);
     void parse_interpolated_body(LocalsHashmap &, InterpolatedNode *, Token::Type);
     Node *parse_interpolated_regexp(LocalsHashmap &);
+    int parse_regexp_options(String &);
     Node *parse_interpolated_shell(LocalsHashmap &);
     Node *parse_interpolated_string(LocalsHashmap &);
     Node *parse_lit(LocalsHashmap &);
     Node *parse_keyword_args(LocalsHashmap &);
     Node *parse_keyword_splat(LocalsHashmap &);
-    ManagedString *parse_method_name(LocalsHashmap &);
+    SharedPtr<String> parse_method_name(LocalsHashmap &);
     Node *parse_module(LocalsHashmap &);
     Node *parse_next(LocalsHashmap &);
     Node *parse_nil(LocalsHashmap &);
@@ -264,7 +267,7 @@ private:
     Node *parse_infix_expression(Node *, LocalsHashmap &);
     Node *parse_proc_call_expression(Node *, LocalsHashmap &);
     Node *parse_iter_expression(Node *, LocalsHashmap &);
-    ManagedVector<Node *> *parse_iter_args(LocalsHashmap &);
+    SharedPtr<Vector<Node *>> parse_iter_args(LocalsHashmap &);
     Node *parse_logical_expression(Node *, LocalsHashmap &);
     Node *parse_match_expression(Node *, LocalsHashmap &);
     Node *parse_modifier_expression(Node *, LocalsHashmap &);
@@ -281,35 +284,36 @@ private:
     using parse_left_fn = Node *(Parser::*)(Node *, LocalsHashmap &);
 
     parse_null_fn null_denotation(Token::Type, Precedence);
-    parse_left_fn left_denotation(Token *, Node *);
+    parse_left_fn left_denotation(Token &, Node *);
 
-    bool treat_left_bracket_as_element_reference(Node *left, Token *token) {
-        return !token->whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
+    bool treat_left_bracket_as_element_reference(Node *left, Token &token) {
+        return !token.whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
     }
 
     // convert ((x and y) and z) to (x and (y and z))
     template <typename T>
-    Node *regroup(Token *token, Node *left, Node *right) {
+    Node *regroup(Token &token, Node *left, Node *right) {
         auto left_node = static_cast<T *>(left);
         return new T { left_node->token(), left_node->left(), new T { token, left_node->right(), right } };
     };
 
-    Token *current_token();
-    Token *peek_token();
+    // FIXME: return a Token&
+    Token current_token() const;
+    Token peek_token() const;
 
     void next_expression();
     void skip_newlines();
 
     void expect(Token::Type, const char *);
-    [[noreturn]] void throw_unexpected(Token *, const char *);
+    [[noreturn]] void throw_unexpected(const Token &, const char *);
     [[noreturn]] void throw_unexpected(const char *);
 
     void advance() { m_index++; }
     void rewind() { m_index--; }
 
-    const ManagedString *m_code { nullptr };
-    const ManagedString *m_file { nullptr };
+    SharedPtr<String> m_code;
+    SharedPtr<String> m_file;
     size_t m_index { 0 };
-    ManagedVector<Token *> *m_tokens { nullptr };
+    SharedPtr<Vector<Token>> m_tokens {};
 };
 }

@@ -13,8 +13,7 @@ public:
         , m_value { value } { }
 
     Optional()
-        : m_present { false }
-        , m_value { nullptr } { }
+        : m_present { false } { }
 
     Optional(const Optional &other)
         : m_present { other.m_present } {
@@ -56,20 +55,15 @@ public:
 
     void clear() { m_present = false; }
 
-    operator bool() const {
-        if (!m_present) assert(!m_value); // TODO: remove this once we fix our GC bugs
-        return m_present;
-    }
+    operator bool() const { return m_present; }
 
-    bool present() const {
-        return m_present;
-    }
+    bool present() const { return m_present; }
 
 private:
     bool m_present;
 
     union {
-        T m_value;
+        T m_value {};
     };
 };
 }

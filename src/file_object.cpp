@@ -56,12 +56,12 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     } else if (root) {
         root->assert_type(env, Object::Type::String, "String");
         root = expand_path(env, root, nullptr);
-        merged = StringObject::format(env, "{}/{}", root->as_string(), path->as_string());
+        merged = StringObject::format("{}/{}", root->as_string(), path->as_string());
     } else {
         char root[MAXPATHLEN + 1];
         if (!getcwd(root, MAXPATHLEN + 1))
             env->raise_errno();
-        merged = StringObject::format(env, "{}/{}", root, path->as_string());
+        merged = StringObject::format("{}/{}", root, path->as_string());
     }
     // collapse ..
     RegexpObject dotdot { env, "[^/]*/\\.\\.(/|\\z)" };

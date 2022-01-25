@@ -22,6 +22,7 @@ public:
 
     static SymbolObject *intern(const char *, Ownedness ownedness = Ownedness::DuplicatedString);
     static SymbolObject *intern(const ManagedString *);
+    static SymbolObject *intern(const String &);
 
     virtual ~SymbolObject() {
         if (m_owned_string) free(const_cast<char *>(m_name));

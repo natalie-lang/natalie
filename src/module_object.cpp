@@ -451,12 +451,12 @@ const ManagedString *ModuleObject::inspect_str() {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
             return ManagedString::format("{}::{}", owner()->inspect_str(), m_class_name.value());
         } else {
-            return m_class_name.value();
+            return new ManagedString(m_class_name.value());
         }
     } else if (is_class()) {
         return ManagedString::format("#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return m_class_name.value();
+        return new ManagedString(m_class_name.value());
     } else {
         return ManagedString::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
@@ -468,7 +468,7 @@ Value ModuleObject::inspect(Env *env) {
 
 Value ModuleObject::name(Env *env) {
     if (m_class_name) {
-        return new StringObject { *m_class_name.value() };
+        return new StringObject { m_class_name.value() };
     } else {
         return NilObject::the();
     }
@@ -496,7 +496,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, size_t argc, Valu
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
     return self->ivar_get(env, ivar_name->to_symbol(env));
 }
 
@@ -525,7 +525,7 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, size_t argc, Valu
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
     self->ivar_set(env, ivar_name->to_symbol(env), val);
     return val;
 }
@@ -759,8 +759,6 @@ void ModuleObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_env);
     visitor.visit(m_superclass);
-    if (m_class_name)
-        visitor.visit(m_class_name.value());
     for (auto pair : m_constants) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);
