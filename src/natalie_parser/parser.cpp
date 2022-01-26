@@ -1250,7 +1250,10 @@ void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bar
     while (current_token().is_comma()) {
         advance();
         auto token = current_token();
-        if ((token.type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || token.type() == Token::Type::SymbolKey) {
+        if (token.is_rparen()) {
+            // trailing comma with no additional arg
+            break;
+        } else if ((token.type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || token.type() == Token::Type::SymbolKey) {
             auto hash = parse_keyword_args(locals);
             node->add_arg(hash);
             break;

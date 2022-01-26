@@ -444,6 +444,8 @@ describe 'Parser' do
       Parser.parse('foo() + bar()').should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo(1, 'baz')").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, 'baz')))
       Parser.parse('foo(a, b)').should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
+      Parser.parse('foo(a, b,)').should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
+      Parser.parse("foo(a,\nb,\n)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should ==
         s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, 'baz')))
       Parser.parse('foo(1, a: 2)').should ==
