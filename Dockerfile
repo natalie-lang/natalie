@@ -27,7 +27,7 @@ COPY examples examples
 COPY lib lib
 COPY src src
 COPY include include
-RUN rake
+RUN rake build build/parser_c_ext.so
 
 COPY spec spec
 COPY test test
