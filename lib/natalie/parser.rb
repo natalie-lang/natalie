@@ -13,6 +13,7 @@ module Natalie
             puts 'Error: You must build parser_c_ext.so by running: rake build/parser_c_ext.so'
             exit 1
           end
+          require_relative '../../lib/sexp_stub_for_use_by_c_ext'
         else
           require 'ruby_parser'
         end

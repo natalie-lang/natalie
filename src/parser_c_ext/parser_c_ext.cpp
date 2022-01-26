@@ -1,7 +1,6 @@
 #include "extconf.h"
 #include "natalie.hpp"
-#include "natalie/managed_string.hpp"
-#include "natalie/parser.hpp"
+#include "natalie_parser/parser.hpp"
 #include "ruby.h"
 #include "ruby/intern.h"
 #include "stdio.h"
@@ -46,6 +45,7 @@ VALUE to_mri_ruby(Natalie::Value value) {
 
 VALUE initialize(int argc, VALUE *argv, VALUE self) {
     if (argc < 1 || argc > 2) {
+        // FIXME: use rb_eSyntaxError
         VALUE SyntaxError = rb_const_get(rb_cObject, rb_intern("SyntaxError"));
         rb_raise(SyntaxError, "wrong number of arguments (given %d, expected 1..2)", argc);
     }
@@ -65,11 +65,12 @@ VALUE parse_on_instance(VALUE self) {
     auto code_nat_string = new Natalie::String { StringValueCStr(code) };
     auto path_nat_string = new Natalie::String { StringValueCStr(path) };
     auto parser = Natalie::Parser { code_nat_string, path_nat_string };
+    Natalie::ParserObject parser_object;
     Natalie::Node *tree;
     Natalie::Value tree_value;
     try {
         tree = parser.tree();
-        tree_value = tree->to_ruby(env);
+        tree_value = parser_object.node_to_ruby(env, tree);
         return to_mri_ruby(tree_value);
     } catch (Natalie::ExceptionObject *exception) {
         rb_raise(rb_eSyntaxError, "%s", exception->message()->c_str());

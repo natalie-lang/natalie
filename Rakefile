@@ -135,8 +135,7 @@ SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generate
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
 RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%f.o')
 SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
-OBJECT_FILES =
-  PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
+OBJECT_FILES = PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
 
 require 'tempfile'
 
@@ -271,7 +270,7 @@ file 'build/parser_c_ext.so' => :libnatalie do
     cd #{build_dir} && \
     ruby extconf.rb && \
     make && \
-    cp parser_c_ext.so ..
+    cp parser_c_ext.* ..
   SH
 end
 
