@@ -562,6 +562,7 @@ begin
   gen.binding('Hash', 'values', 'HashObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
   gen.undefine_singleton_method('Integer', 'new')
+  gen.static_binding('Integer', 'sqrt', 'IntegerObject', 'sqrt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Integer', '%', 'IntegerObject', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Integer', '&', 'IntegerObject', 'bitwise_and', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Integer', '*', 'IntegerObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

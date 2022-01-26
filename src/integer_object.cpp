@@ -801,4 +801,40 @@ Value IntegerObject::numerator() {
 Value IntegerObject::complement(Env *env) const {
     return Value::integer(~m_integer);
 }
+
+Value IntegerObject::sqrt(Env *env, Value arg) {
+    nat_int_t nat_int;
+
+    auto raise_domain_error = [env]() -> void {
+        auto domain_error = find_nested_const(env, { "Math"_s, "DomainError"_s });
+        auto message = new StringObject { "Numerical argument is out of domain - \"isqrt\"" };
+        auto exception = new ExceptionObject { domain_error->as_class(), message };
+        env->raise_exception(exception);
+    };
+
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else {
+        arg.unguard();
+
+        if (!arg->is_integer() && arg->respond_to(env, "to_int"_s)) {
+            arg = arg->send(env, "to_int"_s);
+        }
+        arg->assert_type(env, Type::Integer, "Integer");
+
+        auto integer = arg->as_integer();
+        if (integer->is_bignum()) {
+            if (integer->to_bigint() < 0)
+                raise_domain_error();
+
+            return new BignumObject { ::sqrt(integer->to_bigint()) };
+        }
+        nat_int = arg->as_integer()->to_nat_int_t();
+    }
+
+    if (nat_int < 0)
+        raise_domain_error();
+
+    return Value::integer(::sqrt(nat_int));
+}
 }
