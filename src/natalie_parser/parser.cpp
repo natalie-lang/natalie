@@ -603,6 +603,18 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
         auto condition = parse_expression(LOWEST, locals);
         return new IfNode { token, condition, new NilNode { token }, left };
     }
+    case Token::Type::UntilKeyword: {
+        advance();
+        auto condition = parse_expression(LOWEST, locals);
+        auto body = new BlockNode { token, left };
+        return new UntilNode { token, condition, body, true };
+    }
+    case Token::Type::WhileKeyword: {
+        advance();
+        auto condition = parse_expression(LOWEST, locals);
+        auto body = new BlockNode { token, left };
+        return new WhileNode { token, condition, body, true };
+    }
     default:
         TM_NOT_YET_IMPLEMENTED();
     }

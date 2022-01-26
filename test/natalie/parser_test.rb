@@ -612,6 +612,18 @@ describe 'Parser' do
         s(:block, s(:until, s(:true), s(:rescue, s(:lit, 1), s(:resbody, s(:array), s(:lit, 2))), false))
       Parser.parse('begin; 1; ensure; 2; end until true').should ==
         s(:block, s(:until, s(:true), s(:ensure, s(:lit, 1), s(:lit, 2)), false))
+      Parser.parse('x = 10; x -= 1 until x.zero?').should ==
+        s(
+          :block,
+          s(:lasgn, :x, s(:lit, 10)),
+          s(:until, s(:call, s(:lvar, :x), :zero?), s(:lasgn, :x, s(:call, s(:lvar, :x), :-, s(:lit, 1))), true),
+        )
+      Parser.parse('x = 10; x -= 1 while x.positive?').should ==
+        s(
+          :block,
+          s(:lasgn, :x, s(:lit, 10)),
+          s(:while, s(:call, s(:lvar, :x), :positive?), s(:lasgn, :x, s(:call, s(:lvar, :x), :-, s(:lit, 1))), true),
+        )
     end
 
     it 'parses post-conditional if/unless' do
