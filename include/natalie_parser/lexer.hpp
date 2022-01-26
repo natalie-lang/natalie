@@ -287,6 +287,23 @@ private:
                 default:
                     return Token { Token::Type::Modulus, m_file, m_token_line, m_token_column };
                 }
+            case 'r':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_regexp('/');
+                case '[':
+                    advance(2);
+                    return consume_regexp(']');
+                case '{':
+                    advance(2);
+                    return consume_regexp('}');
+                case '(':
+                    advance(2);
+                    return consume_regexp(')');
+                default:
+                    return Token { Token::Type::Modulus, m_file, m_token_line, m_token_column };
+                }
             case 'x':
                 switch (peek()) {
                 case '/': {
