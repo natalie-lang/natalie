@@ -1144,6 +1144,12 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
         auto value = parse_expression(ASSIGNMENT, locals);
         return new AssignmentNode { token, left, value };
     }
+    case Node::Type::Colon3: {
+        auto colon3_node = static_cast<Colon3Node *>(left);
+        advance();
+        auto value = parse_expression(ASSIGNMENT, locals);
+        return new AssignmentNode { token, left, value };
+    }
     case Node::Type::MultipleAssignment: {
         static_cast<MultipleAssignmentNode *>(left)->add_locals(locals);
         advance();

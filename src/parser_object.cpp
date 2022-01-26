@@ -160,6 +160,15 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             sexp->push(value);
             return sexp;
         }
+        case Node::Type::Colon3: {
+            return new SexpObject {
+                env,
+                assignment_node,
+                { "cdecl"_s,
+                    node_to_ruby(env, assignment_node->identifier()),
+                    node_to_ruby(env, assignment_node->value()) }
+            };
+        }
         case Node::Type::Identifier: {
             auto sexp = build_assignment_sexp(env, assignment_node, static_cast<IdentifierNode *>(assignment_node->identifier()));
             sexp->push(node_to_ruby(env, assignment_node->value()));

@@ -416,6 +416,7 @@ describe 'Parser' do
         s(:block, s(:attrasgn, s(:const, :Foo), :bar=, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       Parser.parse('Foo::bar x, y').should ==
         s(:block, s(:call, s(:const, :Foo), :bar, s(:call, nil, :x), s(:call, nil, :y)))
+      Parser.parse('::FOO = 1').should == s(:block, s(:cdecl, s(:colon3, :FOO), s(:lit, 1)))
     end
 
     it 'parses global variables' do
@@ -773,7 +774,7 @@ describe 'Parser' do
       Parser.parse('(4..)').should == s(:block, s(:dot2, s(:lit, 4), nil))
       Parser.parse("4..\n5").should == s(:block, s(:lit, 4..5))
       Parser.parse("4..\nfoo").should == s(:block, s(:dot2, s(:lit, 4), s(:call, nil, :foo)))
-      Parser.parse("(4..) * 5").should == s(:block, s(:call, s(:dot2, s(:lit, 4), nil), :*, s(:lit, 5)))
+      Parser.parse('(4..) * 5').should == s(:block, s(:call, s(:dot2, s(:lit, 4), nil), :*, s(:lit, 5)))
       Parser.parse('x = (4..)').should == s(:block, s(:lasgn, :x, s(:dot2, s(:lit, 4), nil)))
     end
 
