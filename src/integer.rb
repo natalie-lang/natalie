@@ -102,6 +102,10 @@ class Integer
     true
   end
 
+  def rationalize(_ = nil)
+    to_r
+  end
+
   def to_r
     Rational(self)
   end
