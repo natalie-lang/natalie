@@ -20,6 +20,8 @@ VALUE to_mri_ruby(Natalie::Value value) {
         return sexp;
         break;
     }
+    case Natalie::Object::Type::Float:
+        return rb_float_new(value->as_float()->to_double());
     case Natalie::Object::Type::Integer:
         return rb_int_new(value->as_integer()->to_nat_int_t());
     case Natalie::Object::Type::Nil:
