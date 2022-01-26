@@ -46,11 +46,8 @@ VALUE to_mri_ruby(Natalie::Value value) {
 }
 
 VALUE initialize(int argc, VALUE *argv, VALUE self) {
-    if (argc < 1 || argc > 2) {
-        // FIXME: use rb_eSyntaxError
-        VALUE SyntaxError = rb_const_get(rb_cObject, rb_intern("SyntaxError"));
-        rb_raise(SyntaxError, "wrong number of arguments (given %d, expected 1..2)", argc);
-    }
+    if (argc < 1 || argc > 2)
+        rb_raise(rb_eSyntaxError, "wrong number of arguments (given %d, expected 1..2)", argc);
     rb_ivar_set(self, rb_intern("@code"), argv[0]);
     VALUE path;
     if (argc > 1)
@@ -74,8 +71,8 @@ VALUE parse_on_instance(VALUE self) {
         tree = parser.tree();
         tree_value = parser_object.node_to_ruby(env, tree);
         return to_mri_ruby(tree_value);
-    } catch (Natalie::ExceptionObject *exception) {
-        rb_raise(rb_eSyntaxError, "%s", exception->message()->c_str());
+    } catch (NatalieParser::Parser::SyntaxError &error) {
+        rb_raise(rb_eSyntaxError, "%s", error.message());
     }
 }
 

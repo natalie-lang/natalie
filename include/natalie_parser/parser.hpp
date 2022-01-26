@@ -21,15 +21,13 @@ public:
             : SyntaxError { message.c_str() } { }
 
         ~SyntaxError() {
-            free(m_message);
+            delete m_message;
         }
 
         SyntaxError(const SyntaxError &) = delete;
         SyntaxError &operator=(const SyntaxError &) = delete;
 
-        const char
-            *
-            message() { return m_message; }
+        const char *message() { return m_message; }
 
     private:
         char *m_message { nullptr };
