@@ -766,13 +766,19 @@ private:
             } while (is_identifier_char(c));
             break;
         case '+':
-        case '-':
-        case '/':
+        case '-': {
+            c = gobble(c);
+            if (c == '@') gobble(c);
+            break;
+        }
+        case '/': {
             gobble(c);
             break;
+        }
         case '*':
             c = gobble(c);
-            if (c == '*') gobble(c);
+            if (c == '*')
+                gobble(c);
             break;
         case '=':
             c = gobble(c);
