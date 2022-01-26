@@ -101,4 +101,8 @@ class Integer
   def integer?
     true
   end
+
+  def to_r
+    Rational(self)
+  end
 end
