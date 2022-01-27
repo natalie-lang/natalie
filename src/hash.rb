@@ -140,6 +140,14 @@ class Hash
     new_hash
   end
 
+  def transform_values!
+    return enum_for(:transform_values!) { size } unless block_given?
+
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    each { |key, value| self[key] = yield(value) }
+  end
+
   def to_proc
     lambda { |arg| self[*arg] }
   end
