@@ -502,6 +502,8 @@ describe 'Parser' do
       Parser.parse('self.class').should == s(:block, s(:call, s(:self), :class))
       Parser.parse('self.begin').should == s(:block, s(:call, s(:self), :begin))
       Parser.parse('self.end').should == s(:block, s(:call, s(:self), :end))
+      Parser.parse("describe :enumeratorize, shared: true").should == s(:block, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))))
+      Parser.parse("describe :enumeratorize, shared: true do\nnil\nend").should == s(:block, s(:iter, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))), 0, s(:nil)))
     end
 
     it 'parses operator method calls' do

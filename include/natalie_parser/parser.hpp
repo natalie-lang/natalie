@@ -232,7 +232,7 @@ private:
     Node *parse_interpolated_shell(LocalsHashmap &);
     Node *parse_interpolated_string(LocalsHashmap &);
     Node *parse_lit(LocalsHashmap &);
-    Node *parse_keyword_args(LocalsHashmap &);
+    Node *parse_keyword_args(LocalsHashmap &, bool);
     Node *parse_keyword_splat(LocalsHashmap &);
     SharedPtr<String> parse_method_name(LocalsHashmap &);
     Node *parse_module(LocalsHashmap &);

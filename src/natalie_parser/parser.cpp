@@ -849,26 +849,27 @@ Node *Parser::parse_lit(LocalsHashmap &locals) {
     }
 };
 
-Node *Parser::parse_keyword_args(LocalsHashmap &locals) {
+Node *Parser::parse_keyword_args(LocalsHashmap &locals, bool bare) {
+    auto precedence = bare ? BARECALLARGS : CALLARGS;
     auto hash = new HashNode { current_token() };
     if (current_token().type() == Token::Type::SymbolKey) {
         hash->add_node(parse_symbol(locals));
     } else {
-        hash->add_node(parse_expression(HASH, locals));
+        hash->add_node(parse_expression(precedence, locals));
         expect(Token::Type::HashRocket, "hash rocket");
         advance();
     }
-    hash->add_node(parse_expression(HASH, locals));
+    hash->add_node(parse_expression(precedence, locals));
     while (current_token().type() == Token::Type::Comma) {
         advance();
         if (current_token().type() == Token::Type::SymbolKey) {
             hash->add_node(parse_symbol(locals));
         } else {
-            hash->add_node(parse_expression(HASH, locals));
+            hash->add_node(parse_expression(precedence, locals));
             expect(Token::Type::HashRocket, "hash rocket");
             advance();
         }
-        hash->add_node(parse_expression(HASH, locals));
+        hash->add_node(parse_expression(precedence, locals));
     }
     return hash;
 }
@@ -1252,7 +1253,7 @@ Node *Parser::parse_call_expression_with_parens(Node *left, LocalsHashmap &local
 
 void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bare) {
     if ((current_token().type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || current_token().type() == Token::Type::SymbolKey) {
-        auto hash = parse_keyword_args(locals);
+        auto hash = parse_keyword_args(locals, bare);
         node->add_arg(hash);
     } else {
         auto arg = parse_expression(bare ? BARECALLARGS : CALLARGS, locals);
@@ -1266,7 +1267,7 @@ void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bar
             // trailing comma with no additional arg
             break;
         } else if ((token.type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || token.type() == Token::Type::SymbolKey) {
-            auto hash = parse_keyword_args(locals);
+            auto hash = parse_keyword_args(locals, bare);
             node->add_arg(hash);
             break;
         } else {
@@ -1296,7 +1297,7 @@ Node *Parser::parse_call_expression_without_parens(Node *left, LocalsHashmap &lo
     default:
         TM_UNREACHABLE();
     }
-    switch (current_token().type()) {
+    switch (token.type()) {
     case Token::Type::Comma:
     case Token::Type::Eof:
     case Token::Type::Eol:
