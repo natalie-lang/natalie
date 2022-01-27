@@ -426,13 +426,13 @@ class BeCloseExpectation
   end
 
   def match(subject)
-    if subject.abs - @target.abs > @tolerance
+    if (subject - @target).abs > @tolerance
       raise SpecFailedException, "#{subject.inspect} should be within #{@tolerance} of #{@target}"
     end
   end
 
   def inverted_match(subject)
-    if subject.abs - @target.abs <= @tolerance
+    if (subject - @target).abs <= @tolerance
       raise SpecFailedException, "#{subject.inspect} should not be within #{@tolerance} of #{@target}"
     end
   end
