@@ -97,6 +97,15 @@ void ParserObject::validate_token(Env *env, Token &token) {
     }
 }
 
+Value ParserObject::class_or_module_name_to_ruby(Env *env, Node *name) {
+    if (name->type() == Node::Type::Identifier) {
+        auto identifier = static_cast<IdentifierNode *>(name);
+        return SymbolObject::intern(identifier->name().ref());
+    } else {
+        return node_to_ruby(env, name);
+    }
+}
+
 Value ParserObject::node_to_ruby(Env *env, Node *node) {
     switch (node->type()) {
     case Node::Type::Alias: {
@@ -308,7 +317,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     }
     case Node::Type::Class: {
         auto class_node = static_cast<ClassNode *>(node);
-        auto sexp = new SexpObject { env, class_node, { "class"_s, SymbolObject::intern(class_node->name()->name().ref()), node_to_ruby(env, class_node->superclass()) } };
+        auto sexp = new SexpObject { env, class_node, { "class"_s, class_or_module_name_to_ruby(env, class_node->name()), node_to_ruby(env, class_node->superclass()) } };
         if (!class_node->body()->is_empty()) {
             for (auto node : class_node->body()->nodes()) {
                 sexp->push(node_to_ruby(env, node));
@@ -583,7 +592,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     }
     case Node::Type::Module: {
         auto module_node = static_cast<ModuleNode *>(node);
-        auto sexp = new SexpObject { env, module_node, { "module"_s, SymbolObject::intern(*module_node->name()->name()) } };
+        auto sexp = new SexpObject { env, module_node, { "module"_s, class_or_module_name_to_ruby(env, module_node->name()) } };
         if (!module_node->body()->is_empty()) {
             for (auto node : module_node->body()->nodes()) {
                 sexp->push(node_to_ruby(env, node));
