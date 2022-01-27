@@ -27,6 +27,13 @@ Value RationalObject::numerator(Env *env) {
     return m_numerator;
 }
 
+Value RationalObject::to_i(Env *env) {
+    if (m_numerator->is_negative()) {
+        return m_numerator->negate(env)->as_integer()->div(env, m_denominator)->as_integer()->negate(env);
+    }
+    return m_numerator->div(env, m_denominator);
+}
+
 Value RationalObject::to_s(Env *env) {
     return StringObject::format("{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
