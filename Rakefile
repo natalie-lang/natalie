@@ -35,7 +35,8 @@ desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for the Natalie Parser'
-task parser_c_ext: 'build/parser_c_ext.so'
+so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+task parser_c_ext: "build/parser_c_ext.#{so_ext}"
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -265,7 +266,6 @@ rule '.rb.cpp' => 'src/%n' do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
 file "build/parser_c_ext.#{so_ext}" => 'src/parser_c_ext/parser_c_ext.cpp' do |t|
   build_dir = File.expand_path('build/parser_c_ext', __dir__)
   cp_r 'src/parser_c_ext', build_dir
