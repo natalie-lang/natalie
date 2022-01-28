@@ -1289,28 +1289,38 @@ Node *Parser::parse_call_expression_with_parens(Node *left, LocalsHashmap &local
     return call_node;
 }
 
-void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bare) {
+Node *Parser::parse_call_arg(LocalsHashmap &locals, bool bare, bool *keyword_args) {
     if ((current_token().type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || current_token().type() == Token::Type::SymbolKey) {
         auto hash = parse_keyword_args(locals, bare);
-        node->add_arg(hash);
+        *keyword_args = true;
+        return hash;
     } else {
         auto arg = parse_expression(bare ? BARECALLARGS : CALLARGS, locals);
-        node->add_arg(arg);
+        *keyword_args = false;
+        if (current_token().type() == Token::Type::Equal) {
+            return parse_assignment_expression(arg, locals);
+        } else {
+            return arg;
+        }
     }
+}
 
+void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bare) {
+    bool keyword_args;
+    node->add_arg(parse_call_arg(locals, bare, &keyword_args));
+    if (keyword_args) {
+        return;
+    }
     while (current_token().is_comma()) {
         advance();
         auto token = current_token();
         if (token.is_rparen()) {
             // trailing comma with no additional arg
             break;
-        } else if ((token.type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || token.type() == Token::Type::SymbolKey) {
-            auto hash = parse_keyword_args(locals, bare);
-            node->add_arg(hash);
+        }
+        node->add_arg(parse_call_arg(locals, bare, &keyword_args));
+        if (keyword_args) {
             break;
-        } else {
-            auto arg = parse_expression(bare ? BARECALLARGS : CALLARGS, locals);
-            node->add_arg(arg);
         }
     }
 }

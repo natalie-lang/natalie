@@ -257,6 +257,7 @@ private:
     Node *parse_assignment_expression(Node *, LocalsHashmap &);
     Node *parse_call_expression_without_parens(Node *, LocalsHashmap &);
     Node *parse_call_expression_with_parens(Node *, LocalsHashmap &);
+    Node *parse_call_arg(LocalsHashmap &, bool, bool *);
     void parse_call_args(NodeWithArgs *, LocalsHashmap &, bool = false);
     Node *parse_constant_resolution_expression(Node *, LocalsHashmap &);
     Node *parse_infix_expression(Node *, LocalsHashmap &);

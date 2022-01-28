@@ -323,6 +323,7 @@ describe 'Parser' do
       Parser.parse('b=1; foo(a, *b, c)').should == s(:block, s(:lasgn, :b, s(:lit, 1)), s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:lvar, :b)), s(:call, nil, :c)))
       Parser.parse('foo.()').should == s(:block, s(:call, s(:call, nil, :foo), :call))
       Parser.parse('foo.(1, 2)').should == s(:block, s(:call, s(:call, nil, :foo), :call, s(:lit, 1), s(:lit, 2)))
+      Parser.parse('foo(a = b, c)').should == s(:block, s(:call, nil, :foo, s(:lasgn, :a, s(:call, nil, :b)), s(:call, nil, :c)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse('foo(') }.should raise_error(
                                              SyntaxError,
@@ -352,6 +353,7 @@ describe 'Parser' do
       Parser.parse('self.end').should == s(:block, s(:call, s(:self), :end))
       Parser.parse('describe :enumeratorize, shared: true').should == s(:block, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))))
       Parser.parse("describe :enumeratorize, shared: true do\nnil\nend").should == s(:block, s(:iter, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))), 0, s(:nil)))
+      Parser.parse('foo a = b, c').should == s(:block, s(:call, nil, :foo, s(:lasgn, :a, s(:call, nil, :b)), s(:call, nil, :c)))
     end
 
     it 'parses operator method calls' do
