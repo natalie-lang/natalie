@@ -1,9 +1,11 @@
 #include "extconf.h"
-#include "natalie.hpp"
-#include "natalie_parser/parser.hpp"
 #include "ruby.h"
 #include "ruby/intern.h"
 #include "stdio.h"
+
+// these includes MUST come after
+#include "natalie.hpp"
+#include "natalie_parser/parser.hpp"
 
 Natalie::Env *env;
 VALUE Parser;
