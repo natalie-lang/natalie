@@ -29,8 +29,8 @@ describe 'string' do
 
   describe '#length' do
     it 'returns the number of characters in the string' do
-      '😉😉😉'.encode('utf-8').size.should == 3
-      'foo bar'.size.should == 7
+      '😉😉😉'.encode('utf-8').length.should == 3
+      'foo bar'.length.should == 7
     end
   end
 
