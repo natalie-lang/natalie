@@ -41,7 +41,7 @@ describe "Hash#transform_values" do
   end
 end
 
-xdescribe "Hash#transform_values!" do
+describe "Hash#transform_values!" do
   before :each do
     @hash = { a: 1, b: 2, c: 3 }
     @initial_pairs = @hash.dup
