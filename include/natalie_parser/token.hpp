@@ -627,9 +627,6 @@ public:
             || m_type == Token::Type::TernaryQuestion;
     }
 
-    bool has_sign() const { return m_has_sign; }
-    void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
-
     SharedPtr<String> file() const { return m_file; }
     size_t line() const { return m_line; }
     size_t column() const { return m_column; }
@@ -699,7 +696,6 @@ private:
     Optional<SharedPtr<String>> m_options {};
     long long m_integer { 0 };
     double m_double { 0 };
-    bool m_has_sign { false };
     SharedPtr<String> m_file;
     size_t m_line { 0 };
     size_t m_column { 0 };

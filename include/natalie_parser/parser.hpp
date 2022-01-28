@@ -74,8 +74,9 @@ public:
         PRODUCT, // * / %
         PREFIX, // -1 +1
         CONSTANTRESOLUTION, // ::
-        UNARY, // ! ~ + -
+        UNARY_MINUS, // -
         EXPONENT, // **
+        UNARY_PLUS, // ! ~ +
         DOT, // foo.bar foo&.bar
         CALL, // foo()
         REF, // foo[1] / foo[1] = 2
@@ -95,13 +96,9 @@ private:
     Precedence get_precedence(Token &token, Node *left = nullptr) {
         switch (token.type()) {
         case Token::Type::Plus:
+            return left ? SUM : UNARY_PLUS;
         case Token::Type::Minus:
-            return SUM;
-        case Token::Type::Integer:
-        case Token::Type::Float:
-            if (current_token().has_sign())
-                return SUM;
-            break;
+            return left ? SUM : UNARY_MINUS;
         case Token::Type::Equal:
             return ASSIGNMENT;
         case Token::Type::AndEqual:
@@ -183,7 +180,7 @@ private:
         case Token::Type::TernaryColon:
             return TERNARY;
         case Token::Type::Not:
-            return UNARY;
+            return UNARY_PLUS;
         default:
             break;
         }

@@ -29,6 +29,8 @@ describe 'Parser' do
       Parser.parse('1').should == s(:block, s(:lit, 1))
       Parser.parse(' 1234').should == s(:block, s(:lit, 1234))
       Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
+      Parser.parse('-1').should == s(:block, s(:lit, -1))
+      Parser.parse('-1.5').should == s(:block, s(:lit, -1.5))
     end
 
     it 'parses operator expressions' do
@@ -90,6 +92,9 @@ describe 'Parser' do
       Parser.parse('-(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :-@))
       Parser.parse('+(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :+@))
       Parser.parse('foo <=> bar').should == s(:block, s(:call, s(:call, nil, :foo), :<=>, s(:call, nil, :bar)))
+      Parser.parse('1**2').should == s(:block, s(:call, s(:lit, 1), :**, s(:lit, 2)))
+      Parser.parse('+1**2').should == s(:block, s(:call, s(:lit, 1), :**, s(:lit, 2)))
+      Parser.parse('-1**2').should == s(:block, s(:call, s(:call, s(:lit, 1), :**, s(:lit, 2)), :-@))
     end
 
     it 'parses and/or' do
