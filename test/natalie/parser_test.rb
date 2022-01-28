@@ -658,8 +658,11 @@ describe 'Parser' do
 
     it 'parses case/when/else' do
       Parser.parse("case 1\nwhen 1\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nwhen 1 then :a\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a)), nil))
       Parser.parse("case 1\nwhen 1\n:a\n:b\nwhen 2, 3\n:c\nelse\n:d\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a), s(:lit, :b)), s(:when, s(:array, s(:lit, 2), s(:lit, 3)), s(:lit, :c)), s(:lit, :d)))
+      Parser.parse("case 1\nwhen 1 then :a\n:b\nwhen 2, 3 then :c\nelse :d\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a), s(:lit, :b)), s(:when, s(:array, s(:lit, 2), s(:lit, 3)), s(:lit, :c)), s(:lit, :d)))
       Parser.parse("case\nwhen true\n:a\nelse\n:b\nend").should == s(:block, s(:case, nil, s(:when, s(:array, s(:true)), s(:lit, :a)), s(:lit, :b)))
+      Parser.parse("case\nwhen true then :a\nelse :b\nend").should == s(:block, s(:case, nil, s(:when, s(:array, s(:true)), s(:lit, :a)), s(:lit, :b)))
     end
 
     it 'parses begin/rescue/else/ensure' do

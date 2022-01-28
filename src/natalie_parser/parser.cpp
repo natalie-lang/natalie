@@ -335,7 +335,12 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
             advance();
             auto condition_array = new ArrayNode { token };
             parse_comma_separated_expressions(condition_array, locals);
-            next_expression();
+            if (current_token().type() == Token::Type::ThenKeyword) {
+                advance();
+                skip_newlines();
+            } else {
+                next_expression();
+            }
             auto body = parse_case_when_body(locals);
             auto when_node = new CaseWhenNode { token, condition_array, body };
             node->add_when_node(when_node);
@@ -343,7 +348,7 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
         }
         case Token::Type::ElseKeyword: {
             advance();
-            next_expression();
+            skip_newlines();
             BlockNode *body = parse_body(locals, LOWEST);
             node->set_else_node(body);
             expect(Token::Type::EndKeyword, "case end");
