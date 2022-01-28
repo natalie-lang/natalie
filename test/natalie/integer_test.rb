@@ -15,6 +15,7 @@ describe 'integer' do
       (6 % 3).should == 0
       (6 % 4).should == 2
       (6 % 5).should == 1
+      (-2 % 10).should == 8
     end
 
     it 'handles bignums correctly' do
@@ -25,6 +26,7 @@ describe 'integer' do
       (bignum % -1009).should == -817
       (-bignum % 999).should == 919
       (-bignum % -999).should == -80
+      (-2 % bignum).should == bignum - 2
     end
 
     it 'handles modulo with float as argument correctly' do

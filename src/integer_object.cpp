@@ -229,7 +229,11 @@ Value IntegerObject::mod(Env *env, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto nat_int = arg->as_integer()->to_nat_int_t();
+    auto integer = arg->as_integer();
+    if (integer->is_bignum())
+        return new BignumObject { to_bigint() % integer->to_bigint() };
+
+    auto nat_int = integer->to_nat_int_t();
     if (nat_int == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
