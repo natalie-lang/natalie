@@ -502,8 +502,13 @@ describe 'Parser' do
       Parser.parse('self.class').should == s(:block, s(:call, s(:self), :class))
       Parser.parse('self.begin').should == s(:block, s(:call, s(:self), :begin))
       Parser.parse('self.end').should == s(:block, s(:call, s(:self), :end))
-      Parser.parse("describe :enumeratorize, shared: true").should == s(:block, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))))
-      Parser.parse("describe :enumeratorize, shared: true do\nnil\nend").should == s(:block, s(:iter, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))), 0, s(:nil)))
+      Parser.parse('describe :enumeratorize, shared: true').should ==
+        s(:block, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))))
+      Parser.parse("describe :enumeratorize, shared: true do\nnil\nend").should ==
+        s(
+          :block,
+          s(:iter, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))), 0, s(:nil)),
+        )
     end
 
     it 'parses operator method calls' do
@@ -792,7 +797,8 @@ describe 'Parser' do
       Parser.parse("4..\nfoo").should == s(:block, s(:dot2, s(:lit, 4), s(:call, nil, :foo)))
       Parser.parse('(4..) * 5').should == s(:block, s(:call, s(:dot2, s(:lit, 4), nil), :*, s(:lit, 5)))
       Parser.parse('x = (4..)').should == s(:block, s(:lasgn, :x, s(:dot2, s(:lit, 4), nil)))
-      Parser.parse("ruby_version_is ''...'3.0' do\nend").should == s(:block, s(:iter, s(:call, nil, :ruby_version_is, s(:dot3, s(:str, ""), s(:str, "3.0"))), 0))
+      Parser.parse("ruby_version_is ''...'3.0' do\nend").should ==
+        s(:block, s(:iter, s(:call, nil, :ruby_version_is, s(:dot3, s(:str, ''), s(:str, '3.0'))), 0))
     end
 
     it 'parses return' do
@@ -866,6 +872,14 @@ describe 'Parser' do
         s(:block, s(:iter, s(:call, nil, :get, s(:str, 'foo'), s(:call, nil, :bar)), 0, s(:str, 'baz')))
       Parser.parse("get 'foo', bar do 'baz' end").should ==
         s(:block, s(:iter, s(:call, nil, :get, s(:str, 'foo'), s(:call, nil, :bar)), 0, s(:str, 'baz')))
+      if RUBY_ENGINE == 'natalie'
+        # I don't like how the RubyParser gem appends a nil on the args array; there's no reason for it.
+        Parser.parse('bar { |a, | a }').should ==
+          s(:block, s(:iter, s(:call, nil, :bar), s(:args, :a), s(:lvar, :a)))
+      else
+        Parser.parse('bar { |a, | a }').should ==
+          s(:block, s(:iter, s(:call, nil, :bar), s(:args, :a, nil), s(:lvar, :a)))
+      end
     end
 
     it 'parses block pass (ampersand operator)' do

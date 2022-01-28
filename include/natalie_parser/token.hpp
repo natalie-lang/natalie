@@ -547,6 +547,7 @@ public:
     }
 
     bool is_bare_name() const { return m_type == Type::BareName; }
+    bool is_block_arg_delimiter() const { return m_type == Type::BitwiseOr; }
     bool is_closing_token() const { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
     bool is_comma() const { return m_type == Type::Comma; }
     bool is_comment() const { return m_type == Type::Comment; }

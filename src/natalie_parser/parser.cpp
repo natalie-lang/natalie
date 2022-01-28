@@ -1197,7 +1197,7 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
     switch (left->type()) {
     case Node::Type::Identifier:
     case Node::Type::Call:
-        if (current_token().type() == Token::Type::BitwiseOr) {
+        if (current_token().is_block_arg_delimiter()) {
             advance();
             args = parse_iter_args(our_locals);
             expect(Token::Type::BitwiseOr, "end of block args");
@@ -1220,7 +1220,17 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
 }
 
 SharedPtr<Vector<Node *>> Parser::parse_iter_args(LocalsHashmap &locals) {
-    return parse_def_args(locals);
+    SharedPtr<Vector<Node *>> args = new Vector<Node *> {};
+    args->push(parse_def_single_arg(locals));
+    while (current_token().is_comma()) {
+        advance();
+        if (current_token().is_block_arg_delimiter()) {
+            // trailing comma with no additional arg
+            break;
+        }
+        args->push(parse_def_single_arg(locals));
+    }
+    return args;
 }
 
 Node *Parser::parse_call_expression_with_parens(Node *left, LocalsHashmap &locals) {
