@@ -124,6 +124,43 @@ class TestCompiler2 < TestCase
     true || fail
   end
 
+  def test_case
+    foo = :bar
+    case foo
+    when :baz
+      fail
+    when :bar
+      foo = :foo
+    else
+      fail
+    end
+    assert_eq(foo, :foo)
+
+    case foo
+    when :foo, fail
+      foo = :bar
+    when fail
+      # pass
+    else
+      fail
+    end
+    assert_eq(foo, :bar)
+
+    case
+    when false
+      fail
+    when nil
+      fail
+    when 1 + 1 == 2
+      foo = :foo
+    end
+    assert_eq(foo, :foo)
+
+    case_result = case 0;when 1; end
+    assert_eq(case_result, nil)
+    
+  end
+
   private
 
   def ary

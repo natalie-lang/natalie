@@ -320,8 +320,13 @@ Node *Parser::parse_break(LocalsHashmap &locals) {
 Node *Parser::parse_case(LocalsHashmap &locals) {
     auto case_token = current_token();
     advance();
-    auto subject = parse_expression(CASE, locals);
-    next_expression();
+    Node *subject;
+    if (current_token().type() == Token::Type::WhenKeyword) {
+        subject = new NilNode { case_token };
+    } else {
+        subject = parse_expression(CASE, locals);
+        next_expression();
+    }
     auto node = new CaseNode { case_token, subject };
     while (!current_token().is_end_keyword()) {
         auto token = current_token();

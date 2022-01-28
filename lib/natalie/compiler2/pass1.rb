@@ -78,6 +78,67 @@ module Natalie
         instructions
       end
 
+      def transform_case(exp, used:)
+        _, var, *whens, else_block = exp
+        return transform_expression(else_block, used: used) if whens.empty?
+        instructions = []
+        if var
+          instructions << transform_expression(var, used: true)
+          whens.each do |when_statement|
+            # case a
+            # when b, c, d
+            # =>
+            # if (a === b || a === c || a === d)
+            _, options_array, body = when_statement
+            _, *options = options_array
+            options.each do |option|
+              option_instructions = transform_expression(option, used: true)
+              instructions << option_instructions
+              instructions << PushArgcInstruction.new(1)
+              instructions << DupRelInstruction.new(2)
+              instructions << SendInstruction.new(:===, with_block: false)
+              instructions << IfInstruction.new
+              instructions << PushTrueInstruction.new
+              instructions << ElseInstruction.new
+            end
+            instructions << PushFalseInstruction.new
+            instructions << [EndInstruction.new(:if)] * options.length
+            instructions << IfInstruction.new
+            instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
+            instructions << ElseInstruction.new
+          end
+        else
+          # glorified if-else
+          whens.each do |when_statement|
+            # case
+            # when a == b, b == c, c == d
+            # =>
+            # if (a == b || b == c || c == d)
+            _, options, body = when_statement
+
+            # s(:array, option1, option2, ...)
+            # =>
+            # s(:or, option1, s(:or, option2, ...))
+            options = options[2..].reduce(options[1]) { |prev, option| s(:or, prev, option) }
+            instructions << transform_expression(options, used: true)
+            instructions << IfInstruction.new
+            instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
+            instructions << ElseInstruction.new
+          end
+        end
+
+        instructions << (else_block.nil? ? PushNilInstruction.new : transform_expression(else_block, used: true))
+
+        instructions << [EndInstruction.new(:if)] * whens.length
+
+        # We might need to pop out the var from the stack, due to it always
+        # being used after duplication
+        instructions << [SwapInstruction.new, PopInstruction.new] if var
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
         instructions = []
@@ -202,11 +263,7 @@ module Natalie
         when Symbol
           PushSymbolInstruction.new(lit)
         when Range
-          [
-            lit_instructions(lit.end),
-            lit_instructions(lit.begin),
-            PushRangeInstruction.new(lit.exclude_end?),
-          ]
+          [lit_instructions(lit.end), lit_instructions(lit.begin), PushRangeInstruction.new(lit.exclude_end?)]
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end
@@ -255,7 +312,6 @@ module Natalie
         return [] unless used
         PushTrueInstruction.new
       end
-
     end
   end
 end

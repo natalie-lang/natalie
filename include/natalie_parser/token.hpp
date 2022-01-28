@@ -584,6 +584,7 @@ public:
             || m_type == Token::Type::BinaryOnesComplement
             || m_type == Token::Type::BitwiseOr
             || m_type == Token::Type::BitwiseXor
+            || m_type == Token::Type::CaseKeyword
             || m_type == Token::Type::Comma
             || m_type == Token::Type::Comparison
             || m_type == Token::Type::ConstantResolution
