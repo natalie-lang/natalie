@@ -255,6 +255,8 @@ private:
     Node *parse_yield(LocalsHashmap &);
 
     Node *parse_assignment_expression(Node *, LocalsHashmap &);
+    Node *parse_assignment_expression(Node *, LocalsHashmap &, bool);
+    Node *parse_assignment_expression_value(bool, LocalsHashmap &, bool);
     Node *parse_call_expression_without_parens(Node *, LocalsHashmap &);
     Node *parse_call_expression_with_parens(Node *, LocalsHashmap &);
     Node *parse_call_arg(LocalsHashmap &, bool, bool *);

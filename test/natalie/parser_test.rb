@@ -202,6 +202,11 @@ describe 'Parser' do
       Parser.parse('x = foo.bar').should == s(:block, s(:lasgn, :x, s(:call, s(:call, nil, :foo), :bar)))
       Parser.parse('x = y = 2').should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lit, 2))))
       Parser.parse('x = y = z = 2').should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lasgn, :z, s(:lit, 2)))))
+      Parser.parse('x = 1, 2').should == s(:block, s(:lasgn, :x, s(:svalue, s(:array, s(:lit, 1), s(:lit, 2)))))
+      Parser.parse('x, y = 1, 2').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('x, y = 1').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:lit, 1))))
+      Parser.parse('x = *[1, 2]').should == s(:block, s(:lasgn, :x, s(:svalue, s(:splat, s(:array, s(:lit, 1), s(:lit, 2))))))
+      Parser.parse('x, y = *[1, 2]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:splat, s(:array, s(:lit, 1), s(:lit, 2)))))
     end
 
     it 'parses attr assignment' do

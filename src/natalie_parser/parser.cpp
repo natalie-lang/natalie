@@ -1176,25 +1176,29 @@ Node *Parser::parse_yield(LocalsHashmap &locals) {
 };
 
 Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
+    return parse_assignment_expression(left, locals, true);
+}
+
+Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, bool allow_multiple) {
     auto token = current_token();
     switch (left->type()) {
     case Node::Type::Identifier: {
         auto left_identifier = static_cast<IdentifierNode *>(left);
         left_identifier->add_to_locals(locals);
         advance();
-        auto value = parse_expression(ASSIGNMENT, locals);
+        auto value = parse_assignment_expression_value(false, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
     }
     case Node::Type::Colon3: {
         auto colon3_node = static_cast<Colon3Node *>(left);
         advance();
-        auto value = parse_expression(ASSIGNMENT, locals);
+        auto value = parse_assignment_expression_value(false, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
     }
     case Node::Type::MultipleAssignment: {
         static_cast<MultipleAssignmentNode *>(left)->add_locals(locals);
         advance();
-        auto value = parse_expression(ASSIGNMENT, locals);
+        auto value = parse_assignment_expression_value(true, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
     }
     case Node::Type::Call: {
@@ -1202,12 +1206,12 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
         auto attr_assign_node = new AttrAssignNode { token, *static_cast<CallNode *>(left) };
         if (*attr_assign_node->message() == "[]") {
             attr_assign_node->set_message(new String("[]="));
-            attr_assign_node->add_arg(parse_expression(ASSIGNMENT, locals));
+            attr_assign_node->add_arg(parse_assignment_expression_value(false, locals, allow_multiple));
         } else {
             auto message = attr_assign_node->message();
             message->append_char('=');
             attr_assign_node->set_message(message);
-            attr_assign_node->add_arg(parse_expression(ASSIGNMENT, locals));
+            attr_assign_node->add_arg(parse_assignment_expression_value(false, locals, allow_multiple));
         }
         return attr_assign_node;
     }
@@ -1215,6 +1219,41 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
         throw_unexpected(left->token(), "left side of assignment");
     }
 };
+
+Node *Parser::parse_assignment_expression_value(bool to_array, LocalsHashmap &locals, bool allow_multiple) {
+    auto token = current_token();
+    auto value = parse_expression(ASSIGNMENT, locals);
+    bool is_splat;
+
+    if (allow_multiple && current_token().type() == Token::Type::Comma) {
+        auto array = new ArrayNode { token };
+        array->add_node(value);
+        while (current_token().type() == Token::Type::Comma) {
+            advance();
+            array->add_node(parse_expression(ASSIGNMENT, locals));
+        }
+        value = array;
+        is_splat = true;
+    } else if (value->type() == Node::Type::Splat) {
+        is_splat = true;
+    } else {
+        is_splat = false;
+    }
+
+    if (is_splat) {
+        if (to_array) {
+            return value;
+        } else {
+            return new SplatValueNode { token, value };
+        }
+    } else {
+        if (to_array) {
+            return new ToArrayNode { token, value };
+        } else {
+            return value;
+        }
+    }
+}
 
 Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
@@ -1298,7 +1337,7 @@ Node *Parser::parse_call_arg(LocalsHashmap &locals, bool bare, bool *keyword_arg
         auto arg = parse_expression(bare ? BARECALLARGS : CALLARGS, locals);
         *keyword_args = false;
         if (current_token().type() == Token::Type::Equal) {
-            return parse_assignment_expression(arg, locals);
+            return parse_assignment_expression(arg, locals, false);
         } else {
             return arg;
         }
