@@ -14,7 +14,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - run: rake bootstrap build/parser_c_ext.so
+      - run: rake bootstrap
       - run: bash -c 'bundle exec ruby test/all.rb | tee >(egrep "[0-9]+ runs, [0-9]+ assertions" > out.log) || :'
         env:
           NAT_BINARY: bin/nat

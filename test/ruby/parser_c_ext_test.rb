@@ -4,7 +4,7 @@ require 'minitest/autorun'
 begin
   require_relative '../../build/parser_c_ext'
 rescue LoadError
-  puts 'Error: You must build parser_c_ext.so by running: rake build/parser_c_ext.so'
+  puts 'Error: You must build parser_c_ext.so by running: rake parser_c_ext'
   exit 1
 end
 require_relative '../../lib/sexp_stub_for_use_by_c_ext'

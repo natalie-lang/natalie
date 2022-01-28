@@ -4,10 +4,10 @@ desc 'Build Natalie (same as build_debug)'
 task build: :build_debug
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie]
+task build_debug: %i[set_build_debug libnatalie parser_c_ext]
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie]
+task build_release: %i[set_build_release libnatalie parser_c_ext]
 
 desc 'Remove temporary files created during build'
 task :clean do
@@ -15,6 +15,7 @@ task :clean do
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf 'build/natalie_parser'
+  rm_rf 'build/parser_c_ext'
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -32,6 +33,9 @@ end
 
 desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
+
+desc 'Build MRI C Extension for the Natalie Parser'
+task parser_c_ext: 'build/parser_c_ext.so'
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -262,15 +266,15 @@ rule '.rb.cpp' => 'src/%n' do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file 'build/parser_c_ext.so' => :libnatalie do
+so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+file "build/parser_c_ext.#{so_ext}" => 'src/parser_c_ext/parser_c_ext.cpp' do |t|
   build_dir = File.expand_path('build/parser_c_ext', __dir__)
-  rm_rf build_dir
   cp_r 'src/parser_c_ext', build_dir
   sh <<-SH
     cd #{build_dir} && \
     ruby extconf.rb && \
     make && \
-    cp parser_c_ext.* ..
+    cp parser_c_ext.#{so_ext} ..
   SH
 end
 
