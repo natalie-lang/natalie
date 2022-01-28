@@ -792,6 +792,7 @@ describe 'Parser' do
       Parser.parse("4..\nfoo").should == s(:block, s(:dot2, s(:lit, 4), s(:call, nil, :foo)))
       Parser.parse('(4..) * 5').should == s(:block, s(:call, s(:dot2, s(:lit, 4), nil), :*, s(:lit, 5)))
       Parser.parse('x = (4..)').should == s(:block, s(:lasgn, :x, s(:dot2, s(:lit, 4), nil)))
+      Parser.parse("ruby_version_is ''...'3.0' do\nend").should == s(:block, s(:iter, s(:call, nil, :ruby_version_is, s(:dot3, s(:str, ""), s(:str, "3.0"))), 0))
     end
 
     it 'parses return' do

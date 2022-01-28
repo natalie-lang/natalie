@@ -1500,7 +1500,7 @@ Node *Parser::parse_range_expression(Node *left, LocalsHashmap &locals) {
     advance();
     Node *right;
     try {
-        right = parse_expression(LOWEST, locals);
+        right = parse_expression(RANGE, locals);
     } catch (SyntaxError &e) {
         // NOTE: I'm not sure if this is the "right" way to handle an endless range,
         // but it seems to be effective for the tests I threw at it. ¯\_(ツ)_/¯
