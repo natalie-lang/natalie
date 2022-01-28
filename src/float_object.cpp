@@ -360,7 +360,17 @@ Value FloatObject::mod(Env *env, Value rhs) {
 
     if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
 
-    return Value { fmod(dividend, divisor) };
+    bool negative = false;
+    if (divisor < 0) {
+        negative = true;
+    }
+
+    auto result = fmod(dividend, divisor);
+    if (negative) {
+        result += divisor;
+    }
+
+    return Value { result };
 }
 
 Value FloatObject::divmod(Env *env, Value arg) {

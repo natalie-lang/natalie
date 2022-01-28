@@ -26,6 +26,15 @@ describe 'integer' do
       (-bignum % 999).should == 919
       (-bignum % -999).should == -80
     end
+
+    it 'handles modulo with float as argument correctly' do
+      (6 % 3.5).should == 2.5
+      (6 % -3.5).should == -1.0
+      (6 % 7.5).should == 6.0
+      (6 % 1.5).should == 0.0
+      (bignum_value % 4.5).should == 3.5
+      (bignum_value % -4.5).should == -1.0
+    end
   end
 
   describe '** (exponentiation)' do

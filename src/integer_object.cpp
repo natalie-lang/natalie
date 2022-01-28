@@ -225,7 +225,7 @@ Value IntegerObject::mod(Env *env, Value arg) {
     arg.unguard();
 
     if (arg->is_float())
-        arg = Value::integer(arg->as_float()->to_double());
+        return FloatObject { to_nat_int_t() }.send(env, "%"_s, { arg });
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
