@@ -55,9 +55,8 @@ describe "Integer#/" do
       (-(10**50) / -(10**40 + 1)).should == 9999999999
       ((10**50) / (10**40 + 1)).should == 9999999999
 
-      # NATFIXME: BigInt (the lib we use) returns -9999999999 instead
-      # ((-10**50) / (10**40 + 1)).should == -10000000000
-      # ((10**50) / -(10**40 + 1)).should == -10000000000
+      ((-10**50) / (10**40 + 1)).should == -10000000000
+      ((10**50) / -(10**40 + 1)).should == -10000000000
     end
 
     it "returns self divided by Float" do

@@ -1258,8 +1258,12 @@ BigInt BigInt::operator/(const BigInt &num) const {
     // Attempted division by zero
     assert(num != 0);
 
-    if (abs_dividend < abs_divisor)
-        return BigInt(0);
+    if (abs_dividend < abs_divisor) {
+        // Correct division result downwards if up-rounding happened,
+        // (for non-zero remainder of sign different than the divisor).
+        bool corr = (*this != 0 && ((*this < 0) != (num < 0)));
+        return BigInt(0 - corr);
+    }
     if (num == 1)
         return *this;
     if (num == -1)
@@ -1308,7 +1312,11 @@ BigInt BigInt::operator/(const BigInt &num) const {
     else
         quotient.sign = '-';
 
-    return quotient;
+    // Correct division result downwards if up-rounding happened,
+    // (for non-zero remainder of sign different than the divisor).
+    auto remainder = *this - quotient * num;
+    bool corr = (remainder != 0 && ((remainder < 0) != (num < 0)));
+    return quotient - corr;
 }
 
 /*
