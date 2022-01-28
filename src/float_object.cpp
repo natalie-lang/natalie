@@ -32,7 +32,12 @@ bool FloatObject::eq(Env *env, Value other) {
         return m_double == other.get_fast_float();
 
     if (other->is_integer()) {
-        return m_double == other->as_integer()->to_nat_int_t();
+        auto integer = other->as_integer();
+        if (integer->is_bignum()) {
+            return m_double == integer->to_bigint().to_double();
+        } else {
+            return m_double == integer->to_nat_int_t();
+        }
     }
     if (other->is_float()) {
         auto *f = other->as_float();
