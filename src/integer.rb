@@ -25,6 +25,10 @@ class Integer
     end
   end
 
+  def divmod(other)
+    [div(other), self % other]
+  end
+
   def downto(n)
     return enum_for(:downto, n) { self >= n ? (self - n + 1) : 0 } unless block_given?
 
