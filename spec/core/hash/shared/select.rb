@@ -21,8 +21,7 @@ describe :hash_select, shared: true do
     a_pairs.sort.should == [['c', 4], ['d', 2]]
   end
 
-  # NATFIXME: Implement Hash#reject
-  xit "processes entries with the same order as reject" do
+  it "processes entries with the same order as reject" do
     h = { a: 9, c: 4, b: 5, d: 2 }
 
     select_pairs = []
