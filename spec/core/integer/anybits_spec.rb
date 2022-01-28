@@ -8,8 +8,7 @@ describe "Integer#anybits?" do
     0b1000_0010.anybits?(0b0010_1100).should == false
   end
 
-  # NATFIXME: Implement Bignum
-  xit "returns true if and only if all the bits of the argument are set in the receiver" do
+  it "returns true if and only if all the bits of the argument are set in the receiver" do
     different_bignum = (2 * bignum_value) & (~bignum_value)
     (0b1010_1010 | different_bignum).anybits?(0b1000_0010 | bignum_value).should == true
     (0b1010_1010 | different_bignum).anybits?(0b0010_1100 | bignum_value).should == true
@@ -22,8 +21,7 @@ describe "Integer#anybits?" do
     (~0b100).anybits?(~0b1).should == true
   end
 
-  # NATFIXME: Implement Bignum
-  xit "handles negative values using two's complement notation" do
+  it "handles negative values using two's complement notation" do
     (~(0b100 | bignum_value)).anybits?(~(0b1 | bignum_value)).should == true
   end
 

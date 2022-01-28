@@ -16,9 +16,8 @@ describe "Math.gamma" do
     Math.gamma(0.5).should be_close(Math.sqrt(Math::PI), TOLERANCE)
   end
 
-  # NATFIXME: Implement Bignum
   # stop at n == 23 because 23! cannot be exactly represented by IEEE 754 double
-  xit "returns exactly (n-1)! given n for n between 2 and 23" do
+  it "returns exactly (n-1)! given n for n between 2 and 23" do
     fact = 1
     2.upto(23) do |n|
       fact *= (n - 1)
