@@ -13,7 +13,35 @@ class Integer
         nil
       end
     end
+  end
 
+  def digits(radix = 10)
+    if self < 0
+      raise Math::DomainError, 'out of domain'
+    end
+
+    if !radix.is_a?(Integer) && radix.respond_to?(:to_int)
+      radix = radix.to_int
+    end
+
+    unless radix.is_a?(Integer)
+      raise TypeError, "no implicit conversion of #{radix.class} into Integer"
+    end
+
+    if radix < 0
+      raise ArgumentError, 'negative radix'
+    elsif radix < 2
+      raise ArgumentError, "invalid radix 0"
+    end
+
+    quotient = self
+    ary = []
+    loop do
+      quotient, remainder = quotient.divmod(radix)
+      ary << remainder
+      break if quotient == 0
+    end
+    ary
   end
 
   def div(n)
@@ -23,6 +51,10 @@ class Integer
     else
       super
     end
+  end
+
+  def divmod(other)
+    [div(other), self % other]
   end
 
   def downto(n)

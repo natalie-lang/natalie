@@ -100,7 +100,7 @@ Value BignumObject::div(Env *env, Value arg) {
 
 Value BignumObject::mod(Env *env, Value arg) {
     if (arg->is_float())
-        arg = Value::integer(arg->as_float()->to_double());
+        return FloatObject { m_bigint->to_double() }.send(env, "%"_s, { arg });
 
     if (!arg->is_integer())
         arg = Natalie::coerce(env, arg, this).second;

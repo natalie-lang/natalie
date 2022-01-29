@@ -79,9 +79,8 @@ describe "Integer#div" do
       (-(10**50)).div(-(10**40 + 1)).should == 9999999999
       (10**50).div(10**40 + 1).should == 9999999999
 
-      # NATFIXME: BigInt (the lib we use) returns -9999999999 instead
-      # (-10**50).div(10**40 + 1).should == -10000000000
-      # (10**50).div(-(10**40 + 1)).should == -10000000000
+      (-10**50).div(10**40 + 1).should == -10000000000
+      (10**50).div(-(10**40 + 1)).should == -10000000000
     end
 
     it "handles fixnum_min / -1" do

@@ -186,7 +186,7 @@ module Math
       }
       int exponent;
       auto significand = std::frexp(value->to_double(), &exponent);
-      return new ArrayObject { { Value::integer(significand), Value::integer(exponent) } };
+      return new ArrayObject { { Value { significand }, Value::integer(exponent) } };
     END
 
     __function__('::tgamma', ['double'], 'double')
