@@ -106,21 +106,21 @@ class TestCompiler2 < TestCase
   end
 
   def test_and
-    assert_eq(true && true, true)
-    assert_eq(true && false, false)
-    assert_eq(true && nil, nil)
-    assert_eq(false && nil, false)
-    assert_eq(nil && false, nil)
+    assert_eq(true, true && true)
+    assert_eq(false, true && false)
+    assert_eq(nil, true && nil)
+    assert_eq(false, false && nil)
+    assert_eq(nil, nil && false)
     false && fail
   end
 
   def test_or
-    assert_eq(false || true, true)
-    assert_eq(false || false, false)
-    assert_eq(false || nil, nil)
-    assert_eq(true || nil, true)
-    assert_eq(false || 1337, 1337)
-    assert_eq(nil || :foo, :foo)
+    assert_eq(true, false || true)
+    assert_eq(false, false || false)
+    assert_eq(nil, false || nil)
+    assert_eq(true, true || nil)
+    assert_eq(1337, false || 1337)
+    assert_eq(:foo, nil || :foo)
     true || fail
   end
 
