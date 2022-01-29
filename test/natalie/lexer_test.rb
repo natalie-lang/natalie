@@ -113,6 +113,7 @@ describe 'Parser' do
         { type: :string, literal: 'foo ' },
         { type: :evstr },
         { type: :integer, literal: 1 },
+        { type: :'+' },
         { type: :integer, literal: 1 },
         { type: :"\n" },
         { type: :evstrend },
@@ -207,8 +208,10 @@ describe 'Parser' do
       Parser.tokens('1 123 +1 -456 - 0 100_000_000 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
         { type: :integer, literal: 1 },
         { type: :integer, literal: 123 },
+        { type: :'+' },
         { type: :integer, literal: 1 },
-        { type: :integer, literal: -456 },
+        { type: :'-' },
+        { type: :integer, literal: 456 },
         { type: :'-' },
         { type: :integer, literal: 0 },
         { type: :integer, literal: 100_000_000 },
@@ -230,9 +233,9 @@ describe 'Parser' do
       ]
       -> { Parser.tokens('1x') }.should raise_error(SyntaxError)
       Parser.tokens('1.234').should == [{ type: :float, literal: 1.234 }]
-      Parser.tokens('-1.234').should == [{ type: :float, literal: -1.234 }]
+      Parser.tokens('-1.234').should == [{ type: :'-' }, { type: :float, literal: 1.234 }]
       Parser.tokens('0.1').should == [{ type: :float, literal: 0.1 }]
-      Parser.tokens('-0.1').should == [{ type: :float, literal: -0.1 }]
+      Parser.tokens('-0.1').should == [{ type: :'-' }, { type: :float, literal: 0.1 }]
       Parser.tokens('123_456.00').should == [{ type: :float, literal: 123456.0 }]
       -> { Parser.tokens('0.1a') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'a'")
       -> { Parser.tokens('0bb') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'b'")

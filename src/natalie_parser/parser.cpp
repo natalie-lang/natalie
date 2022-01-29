@@ -1071,23 +1071,41 @@ Node *Parser::parse_unary_operator(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto precedence = get_precedence(token);
-    SharedPtr<String> message = new String("");
-    switch (token.type()) {
-    case Token::Type::Minus:
-        *message = "-@";
-        break;
-    case Token::Type::Plus:
-        *message = "+@";
-        break;
-    default:
-        TM_UNREACHABLE();
+    auto receiver = parse_expression(precedence, locals);
+    switch (receiver->type()) {
+    case Node::Type::Integer: {
+        auto number = static_cast<IntegerNode *>(receiver)->number();
+        if (token.type() == Token::Type::Minus)
+            number = -number;
+        return new IntegerNode {
+            Token { Token::Type::Integer, number, token.file(), token.line(), token.column() },
+            number,
+        };
     }
-    auto node = new CallNode {
-        token,
-        parse_expression(precedence, locals),
-        message,
-    };
-    return node;
+    case Node::Type::Float: {
+        auto number = static_cast<FloatNode *>(receiver)->number();
+        if (token.type() == Token::Type::Minus)
+            number = -number;
+        return new FloatNode {
+            Token { Token::Type::Float, number, token.file(), token.line(), token.column() },
+            number,
+        };
+    }
+    default: {
+        SharedPtr<String> message = new String("");
+        switch (token.type()) {
+        case Token::Type::Minus:
+            *message = "-@";
+            break;
+        case Token::Type::Plus:
+            *message = "+@";
+            break;
+        default:
+            TM_UNREACHABLE();
+        }
+        return new CallNode { token, receiver, message };
+    }
+    }
 }
 
 Node *Parser::parse_word_array(LocalsHashmap &locals) {
@@ -1355,18 +1373,7 @@ Node *Parser::parse_infix_expression(Node *left, LocalsHashmap &locals) {
     auto op = current_token();
     auto precedence = get_precedence(token, left);
     advance();
-    Node *right = nullptr;
-    if (op.type() == Token::Type::Integer) {
-        bool is_negative = op.get_integer() < 0;
-        right = new IntegerNode { token, op.get_integer() * (is_negative ? -1 : 1) };
-        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
-    } else if (op.type() == Token::Type::Float) {
-        bool is_negative = op.get_double() < 0;
-        right = new FloatNode { token, op.get_double() * (is_negative ? -1 : 1) };
-        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
-    } else {
-        right = parse_expression(precedence, locals);
-    }
+    auto right = parse_expression(precedence, locals);
     auto *node = new CallNode {
         token,
         left,
@@ -1770,14 +1777,6 @@ Parser::parse_left_fn Parser::left_denotation(Token &token, Node *left) {
     case Type::Plus:
     case Type::RightShift:
         return &Parser::parse_infix_expression;
-    case Type::Integer:
-        if (current_token().has_sign())
-            return &Parser::parse_infix_expression;
-        break;
-    case Type::Float:
-        if (current_token().has_sign())
-            return &Parser::parse_infix_expression;
-        break;
     case Type::DoKeyword:
     case Type::LCurlyBrace:
         return &Parser::parse_iter_expression;
