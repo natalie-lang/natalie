@@ -23,8 +23,10 @@ module Natalie
         attr_reader :stack
 
         def transform(result_prefix = nil)
-          @instructions.walk { |instruction| instruction.generate(self) }
-          @code << @stack.flatten.last
+          @instructions.walk do |instruction|
+            instruction.generate(self)
+          end
+          @code << @stack.pop
           consume(@code, result_prefix)
         end
 

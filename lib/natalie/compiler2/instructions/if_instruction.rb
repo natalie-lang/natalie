@@ -19,10 +19,20 @@ module Natalie
         code = []
         code << "Value #{result}"
         code << "if (#{condition}->is_truthy()) {"
-        code << transform.with_same_scope(true_body) { |t| t.transform("#{result} =") }
+        stack_sizes = []
+        transform.with_same_scope(true_body) do |t|
+          code << t.transform("#{result} =")
+          stack_sizes << t.stack.size
+        end
         code << '} else {'
-        code << transform.with_same_scope(false_body) { |t| t.transform("#{result} =") }
+        transform.with_same_scope(false_body) do |t|
+          code << t.transform("#{result} =")
+          stack_sizes << t.stack.size
+        end
         code << '}'
+        # truncate resulting stack to minimum size of either branch's stack above
+        stack_sizes << transform.stack.size
+        transform.stack[stack_sizes.min..] = []
         transform.exec(code)
         transform.push(result)
       end
