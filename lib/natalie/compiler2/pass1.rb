@@ -42,12 +42,9 @@ module Natalie
         rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
           lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          PopInstruction.new,
+          AndInstruction.new,
           rhs_instructions,
-          ElseInstruction.new,
-          EndInstruction.new(:if),
+          EndInstruction.new(:and),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -286,12 +283,9 @@ module Natalie
         rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
           lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          ElseInstruction.new,
-          PopInstruction.new,
+          OrInstruction.new,
           rhs_instructions,
-          EndInstruction.new(:if),
+          EndInstruction.new(:or),
         ]
         instructions << PopInstruction.new unless used
         instructions
