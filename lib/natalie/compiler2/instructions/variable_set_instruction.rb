@@ -5,7 +5,6 @@ module Natalie
     class VariableSetInstruction < BaseInstruction
       def initialize(name, local_only: false)
         @name = name.to_sym
-        @local_only = false
         @local_only = local_only
       end
 
