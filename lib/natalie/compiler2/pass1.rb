@@ -210,6 +210,15 @@ module Natalie
         PushFalseInstruction.new
       end
 
+      def transform_hash(exp, used:)
+        _, *items = exp
+        raise 'odd number of hash items' if items.size.odd?
+        instructions = items.map { |item| transform_expression(item, used: true) }
+        instructions << CreateHashInstruction.new(count: items.size / 2)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = transform_expression(true_expression || s(:nil), used: true)

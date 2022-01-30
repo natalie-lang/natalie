@@ -34,6 +34,17 @@ public:
     HashObject()
         : HashObject { GlobalEnv::the()->Hash() } { }
 
+    HashObject(Env *env, std::initializer_list<Value> items)
+        : HashObject {} {
+        assert(items.size() % 2 == 0);
+        for (auto it = items.begin(); it != items.end(); it++) {
+            auto key = *it;
+            it++;
+            auto value = *it;
+            put(env, key, value);
+        }
+    }
+
     HashObject(ClassObject *klass)
         : Object { Object::Type::Hash, klass }
         , m_default_value { NilObject::the() } { }

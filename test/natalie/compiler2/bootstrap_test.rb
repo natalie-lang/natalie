@@ -35,6 +35,13 @@ class TestCompiler2 < TestCase
     assert_eq(1.56, f)
   end
 
+  def test_hash
+    h = { 1 => 2, 3 => 4 }
+    assert_eq(2, h.size)
+    assert_eq(2, h[1])
+    assert_eq(4, h[3])
+  end
+
   def test_if
     t = nil
     if 1
