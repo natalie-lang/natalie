@@ -81,28 +81,28 @@ class TestCompiler2 < TestCase
     assert_eq(true, r.exclude_end?)
   end
 
-  def test_splat_args
-    assert_eq([[1, 2], 3], splat_left(1, 2, 3))
-    assert_eq([1, [2, 3], 4, 5], splat_middle(1, 2, 3, 4, 5))
-    assert_eq([1, [2, 3]], splat_right(1, 2, 3))
+  def test_arg_splat_args
+    assert_eq([[1, 2], 3], arg_splat_left(1, 2, 3))
+    assert_eq([1, [2, 3], 4, 5], arg_splat_middle(1, 2, 3, 4, 5))
+    assert_eq([1, [2, 3]], arg_splat_right(1, 2, 3))
   end
 
-  def test_destructure_args
-    assert_eq([1, 2, 3, 4], destructure_left([[1, 2, :ignored], 3, :ignored], 4))
-    assert_eq([1, 2, 3, 4, 5, 6], destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
-    assert_eq([1, 2, 3, 4], destructure_right(1, [2, [3, 4, :ignored], :ignored]))
+  def test_arg_destructure_args
+    assert_eq([1, 2, 3, 4], arg_destructure_left([[1, 2, :ignored], 3, :ignored], 4))
+    assert_eq([1, 2, 3, 4, 5, 6], arg_destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
+    assert_eq([1, 2, 3, 4], arg_destructure_right(1, [2, [3, 4, :ignored], :ignored]))
   end
 
-  def test_optional_args
-    assert_eq([1, 2], optional_left(1, 2))
-    assert_eq([nil, 2], optional_left(nil, 2))
-    assert_eq([:default, 1], optional_left(1))
-    assert_eq([1, 2, 3], optional_middle(1, 2, 3))
-    assert_eq([1, nil, 3], optional_middle(1, nil, 3))
-    assert_eq([1, :default, 2], optional_middle(1, 2))
-    assert_eq([1, 2], optional_right(1, 2))
-    assert_eq([1, nil], optional_right(1, nil))
-    assert_eq([1, :default], optional_right(1))
+  def test_arg_optional_args
+    assert_eq([1, 2], arg_optional_left(1, 2))
+    assert_eq([nil, 2], arg_optional_left(nil, 2))
+    assert_eq([:default, 1], arg_optional_left(1))
+    assert_eq([1, 2, 3], arg_optional_middle(1, 2, 3))
+    assert_eq([1, nil, 3], arg_optional_middle(1, nil, 3))
+    assert_eq([1, :default, 2], arg_optional_middle(1, 2))
+    assert_eq([1, 2], arg_optional_right(1, 2))
+    assert_eq([1, nil], arg_optional_right(1, nil))
+    assert_eq([1, :default], arg_optional_right(1))
   end
 
   def test_and
@@ -185,39 +185,39 @@ class TestCompiler2 < TestCase
     [1, 2, 3]
   end
 
-  def splat_left(*a, b)
+  def arg_splat_left(*a, b)
     [a, b]
   end
 
-  def splat_middle(a, *b, c, d)
+  def arg_splat_middle(a, *b, c, d)
     [a, b, c, d]
   end
 
-  def splat_right(a, *b)
+  def arg_splat_right(a, *b)
     [a, b]
   end
 
-  def destructure_left(((a, b), c), d)
+  def arg_destructure_left(((a, b), c), d)
     [a, b, c, d]
   end
 
-  def destructure_middle(a, (b, (c, d), e), f)
+  def arg_destructure_middle(a, (b, (c, d), e), f)
     [a, b, c, d, e, f]
   end
 
-  def destructure_right(a, (b, (c, d)))
+  def arg_destructure_right(a, (b, (c, d)))
     [a, b, c, d]
   end
 
-  def optional_left(x = :default, y)
+  def arg_optional_left(x = :default, y)
     [x, y]
   end
 
-  def optional_middle(x, y = :default, z)
+  def arg_optional_middle(x, y = :default, z)
     [x, y, z]
   end
 
-  def optional_right(x, y = :default)
+  def arg_optional_right(x, y = :default)
     [x, y]
   end
 end
