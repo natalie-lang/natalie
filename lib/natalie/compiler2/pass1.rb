@@ -64,6 +64,11 @@ module Natalie
         transform_body(body, used: used)
       end
 
+      def transform_block_args(exp, used:)
+        # TODO: might need separate logic?
+        transform_defn_args(exp, used: used)
+      end
+
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
         instructions = args.map { |arg| transform_expression(arg, used: true) }
@@ -185,23 +190,7 @@ module Natalie
         end
       end
 
-      # TODO: might need separate logic?
-      alias transform_block_args transform_defn_args
-
-      def transform_false(_, used:)
-        return [] unless used
-        PushFalseInstruction.new
-      end
-
-      def transform_dot2(exp, used:)
-        range_instructions(exp, used, exclude_end: false)
-      end
-
-      def transform_dot3(exp, used:)
-        range_instructions(exp, used, exclude_end: true)
-      end
-
-      def range_instructions(exp, used, exclude_end:)
+      def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp
         instructions = [
           transform_expression(ending || s(:nil), used: true),
@@ -210,6 +199,15 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_dot3(exp, used:)
+        transform_dot2(exp, used: used, exclude_end: true)
+      end
+
+      def transform_false(_, used:)
+        return [] unless used
+        PushFalseInstruction.new
       end
 
       def transform_if(exp, used:)
@@ -250,11 +248,11 @@ module Natalie
 
       def transform_lit(exp, used:)
         return [] unless used
-        _, lit = exp
-        lit_instructions(lit)
-      end
-
-      def lit_instructions(lit)
+        lit = if exp.is_a?(Sexp)
+                exp[1]
+              else
+                exp
+              end
         case lit
         when Integer
           PushIntInstruction.new(lit)
@@ -263,7 +261,9 @@ module Natalie
         when Symbol
           PushSymbolInstruction.new(lit)
         when Range
-          [lit_instructions(lit.end), lit_instructions(lit.begin), PushRangeInstruction.new(lit.exclude_end?)]
+          [transform_lit(lit.end, used: true),
+           transform_lit(lit.begin, used: true),
+           PushRangeInstruction.new(lit.exclude_end?)]
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end
