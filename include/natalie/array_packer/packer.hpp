@@ -96,7 +96,7 @@ namespace ArrayPacker {
                     // TODO
                     break;
                 case '@': {
-                    auto count = (token.count < 0) ? 1 : token.count; 
+                    auto count = (token.count < 0) ? 1 : token.count;
                     auto missing_chars = static_cast<nat_int_t>(count) - static_cast<nat_int_t>(m_packed.size());
                     if (missing_chars > 0) {
                         for (nat_int_t i = 0; i < missing_chars; ++i)
