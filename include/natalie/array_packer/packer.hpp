@@ -95,6 +95,17 @@ namespace ArrayPacker {
                 case 'x':
                     // TODO
                     break;
+                case '@': {
+                    auto count = (token.count < 0) ? 1 : token.count; 
+                    auto missing_chars = static_cast<nat_int_t>(count) - static_cast<nat_int_t>(m_packed.size());
+                    if (missing_chars > 0) {
+                        for (nat_int_t i = 0; i < missing_chars; ++i)
+                            m_packed.append_char('\0');
+                        break;
+                    }
+                    m_packed.truncate(count);
+                    break;
+                }
                 default: {
                     char buf[2] = { d, '\0' };
                     env->raise("StandardError", "unknown directive: {}", buf); // FIXME
