@@ -81,6 +81,16 @@ namespace ArrayPacker {
                     return 0;
                 c = m_directives[++m_index];
             }
+            if (c == '#') {
+                while (c != '\n') {
+                    if (m_index + 1 >= m_directives.length())
+                        return 0;
+                    c = m_directives[++m_index];
+                }
+                if (m_index + 1 >= m_directives.length())
+                    return 0;
+                c = m_directives[++m_index];
+            }
             return c;
         }
 
