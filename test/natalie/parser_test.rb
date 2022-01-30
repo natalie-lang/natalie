@@ -202,6 +202,11 @@ describe 'Parser' do
       Parser.parse('x = foo.bar').should == s(:block, s(:lasgn, :x, s(:call, s(:call, nil, :foo), :bar)))
       Parser.parse('x = y = 2').should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lit, 2))))
       Parser.parse('x = y = z = 2').should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lasgn, :z, s(:lit, 2)))))
+      Parser.parse('x = 1, 2').should == s(:block, s(:lasgn, :x, s(:svalue, s(:array, s(:lit, 1), s(:lit, 2)))))
+      Parser.parse('x, y = 1, 2').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('x, y = 1').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:lit, 1))))
+      Parser.parse('x = *[1, 2]').should == s(:block, s(:lasgn, :x, s(:svalue, s(:splat, s(:array, s(:lit, 1), s(:lit, 2))))))
+      Parser.parse('x, y = *[1, 2]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:splat, s(:array, s(:lit, 1), s(:lit, 2)))))
     end
 
     it 'parses attr assignment' do
@@ -323,6 +328,7 @@ describe 'Parser' do
       Parser.parse('b=1; foo(a, *b, c)').should == s(:block, s(:lasgn, :b, s(:lit, 1)), s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:lvar, :b)), s(:call, nil, :c)))
       Parser.parse('foo.()').should == s(:block, s(:call, s(:call, nil, :foo), :call))
       Parser.parse('foo.(1, 2)').should == s(:block, s(:call, s(:call, nil, :foo), :call, s(:lit, 1), s(:lit, 2)))
+      Parser.parse('foo(a = b, c)').should == s(:block, s(:call, nil, :foo, s(:lasgn, :a, s(:call, nil, :b)), s(:call, nil, :c)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse('foo(') }.should raise_error(
                                              SyntaxError,
@@ -352,6 +358,7 @@ describe 'Parser' do
       Parser.parse('self.end').should == s(:block, s(:call, s(:self), :end))
       Parser.parse('describe :enumeratorize, shared: true').should == s(:block, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))))
       Parser.parse("describe :enumeratorize, shared: true do\nnil\nend").should == s(:block, s(:iter, s(:call, nil, :describe, s(:lit, :enumeratorize), s(:hash, s(:lit, :shared), s(:true))), 0, s(:nil)))
+      Parser.parse('foo a = b, c').should == s(:block, s(:call, nil, :foo, s(:lasgn, :a, s(:call, nil, :b)), s(:call, nil, :c)))
     end
 
     it 'parses operator method calls' do

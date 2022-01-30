@@ -67,10 +67,12 @@ public:
         Shell,
         Splat,
         SplatAssignment,
+        SplatValue,
         StabbyProc,
         String,
         Super,
         Symbol,
+        ToArray,
         True,
         Until,
         While,
@@ -1329,6 +1331,24 @@ protected:
     Node *m_node { nullptr };
 };
 
+class SplatValueNode : public Node {
+public:
+    SplatValueNode(const Token &token, Node *value)
+        : Node { token }
+        , m_value { value } { }
+
+    ~SplatValueNode() {
+        delete m_value;
+    }
+
+    virtual Type type() override { return Type::SplatValue; }
+
+    Node *value() const { return m_value; }
+
+protected:
+    Node *m_value { nullptr };
+};
+
 class StabbyProcNode : public NodeWithArgs {
 public:
     using NodeWithArgs::NodeWithArgs;
@@ -1364,6 +1384,24 @@ public:
 
 protected:
     SharedPtr<String> m_name {};
+};
+
+class ToArrayNode : public Node {
+public:
+    ToArrayNode(const Token &token, Node *value)
+        : Node { token }
+        , m_value { value } { }
+
+    ~ToArrayNode() {
+        delete m_value;
+    }
+
+    virtual Type type() override { return Type::ToArray; }
+
+    Node *value() const { return m_value; }
+
+protected:
+    Node *m_value { nullptr };
 };
 
 class TrueNode : public Node {

@@ -155,8 +155,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
         case Node::Type::MultipleAssignment: {
             auto masgn = static_cast<MultipleAssignmentNode *>(assignment_node->identifier());
             auto sexp = multiple_assignment_to_ruby_with_array(env, masgn);
-            auto value = new SexpObject { env, node, { "to_ary"_s } };
-            value->push(node_to_ruby(env, assignment_node->value()));
+            auto value = node_to_ruby(env, assignment_node->value());
             sexp->push(value);
             return sexp;
         }
@@ -797,6 +796,10 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             sexp->push(node_to_ruby(env, splat_node->node()));
         return sexp;
     }
+    case Node::Type::SplatValue: {
+        auto splat_value_node = static_cast<SplatValueNode *>(node);
+        return new SexpObject { env, splat_value_node, { "svalue"_s, node_to_ruby(env, splat_value_node->value()) } };
+    }
     case Node::Type::StabbyProc: {
         auto stabby_proc_node = static_cast<StabbyProcNode *>(node);
         return new SexpObject { env, stabby_proc_node, { "lambda"_s } };
@@ -808,6 +811,10 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     case Node::Type::Symbol: {
         auto symbol_node = static_cast<SymbolNode *>(node);
         return new SexpObject { env, symbol_node, { "lit"_s, SymbolObject::intern(symbol_node->name().ref()) } };
+    }
+    case Node::Type::ToArray: {
+        auto to_array_node = static_cast<ToArrayNode *>(node);
+        return new SexpObject { env, to_array_node, { "to_ary"_s, node_to_ruby(env, to_array_node->value()) } };
     }
     case Node::Type::True: {
         auto true_node = static_cast<TrueNode *>(node);
