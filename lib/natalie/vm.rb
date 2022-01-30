@@ -5,7 +5,7 @@ module Natalie
     def initialize(instructions)
       @instructions = Compiler2::InstructionManager.new(instructions)
       @stack = []
-      @call_stack = [{ vars: {} }]
+      @call_stack = [{ scope: { vars: {} } }]
       @self = MainObject.new
       @method_visibility = :public
     end
@@ -51,8 +51,8 @@ module Natalie
       @stack.pop
     end
 
-    def push_call(return_ip:, args:)
-      @call_stack.push(return_ip: return_ip, args: args, vars: {})
+    def push_call(return_ip:, args:, scope:)
+      @call_stack.push(return_ip: return_ip, args: args, scope: scope)
     end
 
     def pop_call
@@ -67,10 +67,24 @@ module Natalie
       @call_stack.last[:args]
     end
 
-    def vars
+    def scope
       raise 'out of call stack' if @call_stack.empty?
 
-      @call_stack.last[:vars]
+      @call_stack.last[:scope]
+    end
+
+    def find_var(name, local_only: false)
+      s = scope
+      loop do
+        if s[:vars].key?(name)
+          return s.dig(:vars, name)
+        end
+        if s[:parent] && !local_only
+          s = s[:parent]
+        else
+          break
+        end
+      end
     end
 
     def with_self(obj)

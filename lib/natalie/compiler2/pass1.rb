@@ -181,7 +181,7 @@ module Natalie
         end
 
         args.each_with_index.flat_map do |name, index|
-          [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
+          [PushArgInstruction.new(index), VariableSetInstruction.new(name, local_only: true)]
         end
       end
 

@@ -158,7 +158,25 @@ class TestCompiler2 < TestCase
 
     case_result = case 0;when 1; end
     assert_eq(case_result, nil)
-    
+  end
+
+  def test_block_scope
+    y = 1
+    2.times do
+      y += 2
+      3.times do
+        y += 3
+      end
+    end
+    assert_eq(23, y)
+  end
+
+  def test_block_arg_does_not_overwrite_outer_scope_arg
+    z = 0
+    [1].each do |z|
+      assert_eq(1, z)
+    end
+    assert_eq(0, z)
   end
 
   private

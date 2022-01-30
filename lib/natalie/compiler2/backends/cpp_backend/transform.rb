@@ -2,7 +2,7 @@ module Natalie
   class Compiler2
     class CppBackend
       class Transform
-        def initialize(instructions, stack: [], top:, compiler_context:, env: nil, parent_env: nil)
+        def initialize(instructions, stack: [], top:, compiler_context:, env: nil, outer_env: nil, block: true)
           @instructions = InstructionManager.new(instructions)
           @result_stack = []
           @top = top
@@ -11,7 +11,7 @@ module Natalie
           if env
             @env = env
           else
-            @env = { vars: {}, parent: parent_env }
+            @env = { vars: {}, outer: outer_env, block: block }
           end
           @stack = stack
         end
@@ -67,15 +67,31 @@ module Natalie
         end
 
         def push_scope
-          @env = { parent: @env, vars: {} }
+          @env = { outer: @env, vars: {} }
         end
 
         def pop_scope
-          @env = @env[:parent]
+          @env = @env[:outer]
         end
 
         def vars
           @env[:vars]
+        end
+
+        def find_var(name, local_only: false)
+          env = @env
+          depth = 0
+          loop do
+            if env[:vars].key?(name)
+              return [depth, env.dig(:vars, name)]
+            end
+            if env[:block] && env[:outer] && !local_only
+              env = env[:outer]
+              depth += 1
+            else
+              break
+            end
+          end
         end
 
         def fetch_block_of_instructions(until_instruction: EndInstruction, expected_label: nil)
@@ -89,7 +105,7 @@ module Natalie
         end
 
         def with_new_scope(instructions)
-          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, parent_env: @env)
+          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, outer_env: @env, block: true)
           yield(t)
         end
 

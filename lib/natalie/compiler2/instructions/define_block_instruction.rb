@@ -33,12 +33,14 @@ module Natalie
       def execute(vm)
         start_ip = vm.ip
         vm.skip_block_of_instructions(expected_label: :define_block)
+        parent_scope = vm.scope
         captured_self = vm.self
         block_proc =
           proc do |*args|
             self_was = vm.self
             vm.self = captured_self
-            vm.push_call(return_ip: vm.ip, args: args)
+            scope = { vars: {}, parent: parent_scope }
+            vm.push_call(return_ip: vm.ip, args: args, scope: scope)
             vm.ip = start_ip
             vm.run
             vm.ip = vm.pop_call[:return_ip]

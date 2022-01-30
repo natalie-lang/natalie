@@ -14,16 +14,19 @@ module Natalie
       end
 
       def generate(transform)
-        var = transform.vars[@name]
+        (depth, var) = transform.find_var(@name)
         raise "unknown variable #{@name}" if var.nil?
 
+        env = 'env'
+        depth.times { env << '->outer()' }
         index = var[:index]
-        transform.push("env->var_get(#{@name.to_s.inspect}, #{index})")
+
+        transform.push("#{env}->var_get(#{@name.to_s.inspect}, #{index})")
       end
 
       def execute(vm)
-        if vm.vars.key?(@name)
-          vm.push(vm.vars[@name])
+        if (var = vm.find_var(@name))
+          vm.push(var.fetch(:value))
         else
           raise "unknown variable #{@name}"
         end

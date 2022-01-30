@@ -38,7 +38,8 @@ module Natalie
         vm
           .self
           .define_method(@name) do |*args|
-            vm.push_call(return_ip: vm.ip, args: args)
+            scope = { vars: {} }
+            vm.push_call(return_ip: vm.ip, args: args, scope: scope)
             vm.ip = start_ip
             vm.run
             vm.ip = vm.pop_call[:return_ip]

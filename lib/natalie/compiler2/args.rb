@@ -60,19 +60,19 @@ module Natalie
         _, name, default_value = arg
         @instructions << @pass.transform_expression(default_value, used: true)
         shift_or_pop_next_arg_with_default
-        @instructions << VariableSetInstruction.new(name)
+        @instructions << VariableSetInstruction.new(name, local_only: true)
       end
 
       def transform_splat_arg(arg)
         name = arg[1..-1]
-        @instructions << VariableSetInstruction.new(name)
+        @instructions << VariableSetInstruction.new(name, local_only: true)
         @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
         :reverse
       end
 
       def transform_required_arg(arg)
         shift_or_pop_next_arg
-        @instructions << VariableSetInstruction.new(arg)
+        @instructions << VariableSetInstruction.new(arg, local_only: true)
       end
 
       def shift_or_pop_next_arg
