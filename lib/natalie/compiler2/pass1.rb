@@ -57,6 +57,8 @@ module Natalie
         _, *items = exp
         instructions = items.map { |item| transform_expression(item, used: true) }
         instructions << CreateArrayInstruction.new(count: items.size)
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_block(exp, used:)
