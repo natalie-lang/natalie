@@ -6,6 +6,7 @@ module Natalie
       end
 
       def transform(exp)
+        @keyword_arg_hash_on_stack = false
         @from_side = :left
         @instructions = []
         _, *@args = exp
@@ -18,6 +19,7 @@ module Natalie
             transform_arg(arg)
           end
         end
+        @instructions << PopInstruction.new if @keyword_arg_hash_on_stack
         @instructions << PopInstruction.new
       end
 
@@ -26,10 +28,12 @@ module Natalie
       def transform_arg(arg)
         if arg.is_a?(Sexp)
           case arg.sexp_type
-          when :masgn
-            transform_destructured_arg(arg)
+          when :kwarg
+            transform_keyword_arg(arg)
           when :lasgn
             transform_optional_arg(arg)
+          when :masgn
+            transform_destructured_arg(arg)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
@@ -48,6 +52,22 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         sub_processor = Args.new(@pass)
         @instructions << sub_processor.transform(arg)
+      end
+
+      def transform_keyword_arg(arg)
+        _, name, default = arg
+        unless @keyword_arg_hash_on_stack
+          @instructions << CreateHashInstruction.new(count: 0)
+          @instructions << ArrayPopWithDefaultInstruction.new
+          @keyword_arg_hash_on_stack = true
+        end
+        if default
+          @instructions << @pass.transform_expression(default, used: true)
+          @instructions << HashDeleteWithDefaultInstruction.new(name)
+        else
+          @instructions << HashDeleteInstruction.new(name)
+        end
+        @instructions << VariableSetInstruction.new(name, local_only: true)
       end
 
       def transform_optional_arg(arg)

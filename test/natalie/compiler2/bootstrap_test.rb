@@ -112,6 +112,15 @@ class TestCompiler2 < TestCase
     assert_eq([1, :default], arg_optional_right(1))
   end
 
+  def test_keyword_args
+    assert_eq([3, 4], arg_keyword_optional(x: 3, y: 4))
+    assert_eq([nil, :default], arg_keyword_optional)
+    assert_eq([nil, nil], arg_keyword_optional(x: nil, y: nil))
+    assert_eq([1, 2], arg_keyword_optional_after_positional(1, y: 2))
+    assert_eq([1, :default], arg_keyword_optional_after_positional(1))
+    # TODO: required keyword args
+  end
+
   def test_and
     assert_eq(true, true && true)
     assert_eq(false, true && false)
@@ -225,6 +234,14 @@ class TestCompiler2 < TestCase
   end
 
   def arg_optional_right(x, y = :default)
+    [x, y]
+  end
+
+  def arg_keyword_optional(x: nil, y: :default)
+    [x, y]
+  end
+
+  def arg_keyword_optional_after_positional(x, y: :default)
     [x, y]
   end
 end
