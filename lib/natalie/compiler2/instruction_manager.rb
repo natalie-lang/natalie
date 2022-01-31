@@ -10,10 +10,15 @@ module Natalie
 
       def walk
         while @ip < @instructions.size
-          instruction = @instructions[@ip]
-          @ip += 1
+          instruction = self.next
           yield instruction
         end
+      end
+
+      def next
+        instruction = @instructions[@ip]
+        @ip += 1
+        instruction
       end
 
       def fetch_block(until_instruction: EndInstruction, expected_label: nil)

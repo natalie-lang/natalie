@@ -747,4 +747,11 @@ void clean_up_and_exit(int status) {
     exit(status);
 }
 
+Value bool_value(bool b) {
+    if (b)
+        return TrueObject::the();
+    else
+        return FalseObject::the();
+}
+
 }

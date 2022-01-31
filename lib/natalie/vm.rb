@@ -10,7 +10,7 @@ module Natalie
       @method_visibility = :public
     end
 
-    attr_accessor :self, :method_visibility
+    attr_accessor :self, :method_visibility, :exception
 
     attr_reader :stack
 
@@ -27,6 +27,11 @@ module Natalie
         result = instruction.execute(self)
         break if result == :halt
       end
+    end
+
+    def run_next_instruction
+      instruction = @instructions.next
+      instruction.execute(self)
     end
 
     def skip_block_of_instructions(until_instruction: Compiler2::EndInstruction, expected_label: nil)

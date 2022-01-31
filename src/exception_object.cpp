@@ -35,6 +35,14 @@ Value ExceptionObject::backtrace(Env *env) {
     return m_backtrace ? m_backtrace->dup(env) : NilObject::the();
 }
 
+Value ExceptionObject::match_rescue_array(Env *env, ArrayObject *ary) {
+    for (auto klass : *ary) {
+        if (klass->send(env, "==="_s, { this })->is_truthy())
+            return TrueObject::the();
+    }
+    return FalseObject::the();
+}
+
 void ExceptionObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_message);

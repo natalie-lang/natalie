@@ -3,13 +3,22 @@
 class TestCase
   def assert_eq(expected, actual)
     if expected != actual
-      print 'expected: '
-      p expected
-      print '  actual: '
-      p actual
-      raise 'test failed'
+      puts 'expected: ' + expected.inspect
+      puts '  actual: ' + actual.inspect
+      fail
     end
   end
+
+  #def assert_raises(exception)
+    #begin
+      #yield
+    #rescue exception
+      ## good
+    #else
+      #puts 'expected to raise: ' + exception.inspect
+      #fail
+    #end
+  #end
 
   def fail
     raise 'test failed'
@@ -174,6 +183,27 @@ class TestCompiler2 < TestCase
 
     case_result = case 0;when 1; end
     assert_eq(case_result, nil)
+  end
+
+  def test_rescue
+    x = begin
+          1
+        rescue ArgumentError
+          2
+        end
+    assert_eq(1, x)
+    y = begin
+          send() # missing args
+        rescue ArgumentError
+          2
+        end
+    assert_eq(2, y)
+    z = begin
+          non_existent_method
+        rescue
+          3
+        end
+    assert_eq(3, z)
   end
 
   def test_block_scope
