@@ -88,19 +88,19 @@ class TestCompiler2 < TestCase
     assert_eq(true, r.exclude_end?)
   end
 
-  def test_arg_splat_args
+  def test_splat_args
     assert_eq([[1, 2], 3], arg_splat_left(1, 2, 3))
     assert_eq([1, [2, 3], 4, 5], arg_splat_middle(1, 2, 3, 4, 5))
     assert_eq([1, [2, 3]], arg_splat_right(1, 2, 3))
   end
 
-  def test_arg_destructure_args
+  def test_destructure_args
     assert_eq([1, 2, 3, 4], arg_destructure_left([[1, 2, :ignored], 3, :ignored], 4))
     assert_eq([1, 2, 3, 4, 5, 6], arg_destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
     assert_eq([1, 2, 3, 4], arg_destructure_right(1, [2, [3, 4, :ignored], :ignored]))
   end
 
-  def test_arg_optional_args
+  def test_optional_args
     assert_eq([1, 2], arg_optional_left(1, 2))
     assert_eq([nil, 2], arg_optional_left(nil, 2))
     assert_eq([:default, 1], arg_optional_left(1))
