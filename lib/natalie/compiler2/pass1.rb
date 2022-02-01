@@ -1,5 +1,6 @@
 require_relative './base_pass'
 require_relative './args'
+require_relative './rescue'
 
 module Natalie
   class Compiler2
@@ -309,26 +310,7 @@ module Natalie
       end
 
       def transform_rescue(exp, used:)
-        # s(:rescue,
-        #   s(:lit, 1),
-        #   s(:resbody, s(:array, s(:const, :ArgumentError)),
-        #     s(:lit, 2)))
-        _, body, rescue_expr = exp
-        _, exceptions_array, rescue_body = rescue_expr
-        exceptions_array << s(:const, :StandardError) if exceptions_array.size == 1 # empty array
-        instructions = [
-          TryInstruction.new,
-          transform_expression(body, used: true),
-          CatchInstruction.new,
-          transform_expression(exceptions_array, used: true),
-          MatchExceptionInstruction.new,
-          IfInstruction.new,
-          transform_expression(rescue_body, used: true),
-          ElseInstruction.new,
-          ReraiseInstruction.new,
-          EndInstruction.new(:if),
-          EndInstruction.new(:try),
-        ]
+        instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
         instructions
       end

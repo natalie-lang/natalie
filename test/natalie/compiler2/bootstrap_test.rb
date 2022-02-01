@@ -194,6 +194,8 @@ class TestCompiler2 < TestCase
     assert_eq(1, x)
     y = begin
           send() # missing args
+        rescue NoMethodError
+          1
         rescue ArgumentError
           2
         end
