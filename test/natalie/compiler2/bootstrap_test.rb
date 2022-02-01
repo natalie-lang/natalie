@@ -208,6 +208,25 @@ class TestCompiler2 < TestCase
     assert_eq(3, z)
   end
 
+  def test_rescue_else
+    x = begin
+          1
+        rescue
+          2
+        else
+          3
+        end
+    assert_eq(3, x)
+    y = begin
+          non_existent_method
+        rescue
+          2
+        else
+          3
+        end
+    assert_eq(2, y)
+  end
+
   def test_block_scope
     y = 1
     2.times do
