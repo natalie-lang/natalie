@@ -379,7 +379,13 @@ BlockNode *Parser::parse_case_when_body(LocalsHashmap &locals) {
 }
 
 Node *Parser::parse_class_or_module_name(LocalsHashmap &locals) {
-    if (current_token().type() != Token::Type::Constant)
+    Token name_token;
+    if (current_token().type() == Token::Type::ConstantResolution) {
+        name_token = peek_token();
+    } else {
+        name_token = current_token();
+    }
+    if (name_token.type() != Token::Type::Constant)
         throw SyntaxError { "class/module name must be CONSTANT" };
     return parse_expression(LESSGREATER, locals);
 }
