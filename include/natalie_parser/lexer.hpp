@@ -753,6 +753,10 @@ private:
             if (c == '@') gobble(c);
             break;
         }
+        case '&':
+        case '|':
+        case '^':
+        case '%':
         case '/': {
             gobble(c);
             break;
