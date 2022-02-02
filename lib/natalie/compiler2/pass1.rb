@@ -213,6 +213,19 @@ module Natalie
         PushFalseInstruction.new
       end
 
+      def transform_gasgn(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
+        instructions << GlobalVariableGetInstruction.new(name) if used
+        instructions
+      end
+
+      def transform_gvar(exp, used:)
+        return [] unless used
+        _, name = exp
+        GlobalVariableGetInstruction.new(name)
+      end
+
       def transform_hash(exp, used:)
         _, *items = exp
         raise 'odd number of hash items' if items.size.odd?
