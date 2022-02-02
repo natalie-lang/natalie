@@ -288,6 +288,7 @@ describe 'Parser' do
       Parser.parse('Foo::bar = 1 + 2').should == s(:block, s(:attrasgn, s(:const, :Foo), :bar=, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       Parser.parse('Foo::bar x, y').should == s(:block, s(:call, s(:const, :Foo), :bar, s(:call, nil, :x), s(:call, nil, :y)))
       Parser.parse('::FOO = 1').should == s(:block, s(:cdecl, s(:colon3, :FOO), s(:lit, 1)))
+      Parser.parse('Foo::BAR = 1').should == s(:block, s(:cdecl, s(:colon2, s(:const, :Foo), :BAR), s(:lit, 1)))
     end
 
     it 'parses global variables' do

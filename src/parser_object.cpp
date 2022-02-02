@@ -168,6 +168,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             sexp->push(value);
             return sexp;
         }
+        case Node::Type::Colon2:
         case Node::Type::Colon3: {
             return new SexpObject {
                 env,

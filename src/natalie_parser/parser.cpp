@@ -1197,8 +1197,8 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, boo
         auto value = parse_assignment_expression_value(false, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
     }
+    case Node::Type::Colon2:
     case Node::Type::Colon3: {
-        auto colon3_node = static_cast<Colon3Node *>(left);
         advance();
         auto value = parse_assignment_expression_value(false, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
