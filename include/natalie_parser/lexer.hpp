@@ -848,6 +848,15 @@ private:
         }
     }
 
+    bool is_valid_heredoc(bool with_dash, SharedPtr<String> doc, String heredoc_name) {
+        if (!doc->ends_with(heredoc_name))
+            return false;
+        if (doc->length() - heredoc_name.length() == 0)
+            return true;
+        auto prefix = (*doc)[doc->length() - heredoc_name.length() - 1];
+        return with_dash ? isspace(prefix) : prefix == '\n';
+    }
+
     Token consume_heredoc() {
         bool with_dash = false;
         if (current_char() == '-') {
@@ -869,22 +878,15 @@ private:
 
         // consume the heredoc until we find the delimiter, either '\n' (if << was used) or any whitespace (if <<- was used) followed by "DELIM\n"
         for (;;) {
-            if (heredoc_index >= m_size)
+            if (heredoc_index >= m_size) {
+                if (is_valid_heredoc(with_dash, doc, heredoc_name))
+                    break;
                 return Token { Token::Type::UnterminatedString, doc, m_file, m_token_line, m_token_column };
+            }
             char c = get_char();
             heredoc_index++;
-            if (c == '\n' && doc->ends_with(heredoc_name)) {
-                if (doc->length() - heredoc_name.length() == 0)
-                    break;
-                auto prefix = (*doc)[doc->length() - heredoc_name.length() - 1];
-                if (with_dash) {
-                    if (isspace(prefix))
-                        break;
-                } else {
-                    if (prefix == '\n')
-                        break;
-                }
-            }
+            if (c == '\n' && is_valid_heredoc(with_dash, doc, heredoc_name))
+                break;
             doc->append_char(c);
         }
 

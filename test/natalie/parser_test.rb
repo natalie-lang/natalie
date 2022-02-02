@@ -712,6 +712,7 @@ describe 'Parser' do
     end
 
     it 'parses heredocs' do
+      Parser.parse("<<FOO\nFOO").should == s(:block, s(:str, ""))
       doc1 = <<END
 foo = <<FOO_BAR
  1
