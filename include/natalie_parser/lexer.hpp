@@ -788,6 +788,16 @@ private:
                 break;
             }
             break;
+        case '>':
+            c = gobble(c);
+            switch (c) {
+            case '=':
+            case '>':
+                gobble(c);
+            default:
+                break;
+            }
+            break;
         case '[':
             if (peek() == ']') {
                 c = gobble(c);
