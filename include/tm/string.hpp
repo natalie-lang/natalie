@@ -462,6 +462,12 @@ public:
         return new_str;
     }
 
+    bool ends_with(const String &needle) {
+        if (m_length < needle.m_length)
+            return false;
+        return memcmp(m_str + m_length - needle.m_length, needle.m_str, needle.m_length) == 0;
+    }
+
 private:
     void grow(size_t new_capacity) {
         assert(new_capacity >= m_length);

@@ -732,6 +732,12 @@ END
 FOO
 END
       Parser.parse(doc3).should == s(:block, s(:dstr, '  ', s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, "\n")))
+      doc4 = <<END
+<<-BAR
+FOOBAR
+  BAR
+END
+      Parser.parse(doc4).should == s(:block, s(:str, "FOOBAR\n"))
     end
   end
 end

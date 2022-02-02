@@ -854,7 +854,7 @@ private:
             advance();
             with_dash = true;
         }
-        auto heredoc_name = consume_word(Token::Type::BareName);
+        auto heredoc_name = String(consume_word(Token::Type::BareName).literal());
         SharedPtr<String> doc = new String("");
         size_t heredoc_index = m_index;
         auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
@@ -867,20 +867,29 @@ private:
         }
         heredoc_index++;
 
-        // consume the heredoc until we find the delimiter, either "\nDELIM\n" (if << was used) or "DELIM\n" (if <<- was used)
-        auto delimiter = String(heredoc_name.literal());
-        delimiter.append_char('\n');
-        if (!with_dash)
-            delimiter.prepend_char('\n');
-        while (doc->find(delimiter) == -1) {
+        // consume the heredoc until we find the delimiter, either '\n' (if << was used) or any whitespace (if <<- was used) followed by "DELIM\n"
+        for (;;) {
             if (heredoc_index >= m_size)
                 return Token { Token::Type::UnterminatedString, doc, m_file, m_token_line, m_token_column };
-            doc->append_char(get_char());
+            char c = get_char();
             heredoc_index++;
+            if (c == '\n' && doc->ends_with(heredoc_name)) {
+                if (doc->length() - heredoc_name.length() == 0)
+                    break;
+                auto prefix = (*doc)[doc->length() - heredoc_name.length() - 1];
+                if (with_dash) {
+                    if (isspace(prefix))
+                        break;
+                } else {
+                    if (prefix == '\n')
+                        break;
+                }
+            }
+            doc->append_char(c);
         }
 
         // chop the delimiter and any trailing space off the string
-        doc->truncate(doc->length() - delimiter.length() + (with_dash ? 0 : 1));
+        doc->truncate(doc->length() - heredoc_name.length());
         doc->strip_trailing_spaces();
 
         // we have to keep tokenizing on the line where the heredoc was started, and then jump to the line after the heredoc
