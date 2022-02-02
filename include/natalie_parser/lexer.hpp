@@ -763,8 +763,19 @@ private:
                 gobble(c);
             break;
         case '=':
-            c = gobble(c);
-            if (c == '=') gobble(c);
+            switch (peek()) {
+            case '=':
+                c = gobble(c);
+                c = gobble(c);
+                if (c == '=') gobble(c);
+                break;
+            case '~':
+                c = gobble(c);
+                gobble(c);
+                break;
+            default:
+                return Token { Token::Type::Invalid, c, m_file, m_token_line, m_token_column };
+            }
             break;
         case '[':
             if (peek() == ']') {
