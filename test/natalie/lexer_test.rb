@@ -374,6 +374,10 @@ describe 'Parser' do
         ':>' => :>,
         ':>=' => :>=,
         ':>>' => :>>,
+        ':<' => :<,
+        ':<=' => :<=,
+        ':<=>' => :<=>,
+        ':<<' => :<<,
       }.each { |token, symbol| Parser.tokens(token).should == [{ type: :symbol, literal: symbol }] }
     end
 

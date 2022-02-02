@@ -798,6 +798,19 @@ private:
                 break;
             }
             break;
+        case '<':
+            c = gobble(c);
+            switch (c) {
+            case '=':
+                c = gobble(c);
+                if (c == '>') gobble(c);
+                break;
+            case '<':
+                gobble(c);
+            default:
+                break;
+            }
+            break;
         case '[':
             if (peek() == ']') {
                 c = gobble(c);
