@@ -637,7 +637,7 @@ gen.module_function_binding('Kernel', 'p', 'KernelModule', 'p', argc: :any, pass
 gen.module_function_binding('Kernel', 'print', 'KernelModule', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'proc', 'KernelModule', 'proc', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'puts', 'KernelModule', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_function_binding('Kernel', 'raise', 'KernelModule', 'raise', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'raise', 'KernelModule', 'raise', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'Rational', 'KernelModule', 'Rational', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)

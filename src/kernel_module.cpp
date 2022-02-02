@@ -346,6 +346,8 @@ Value KernelModule::puts(Env *env, size_t argc, Value *args) {
 }
 
 Value KernelModule::raise(Env *env, Value klass, Value message) {
+    if (!klass)
+        return raise(env, env->global_get("$!"_s), nullptr);
     if (!message) {
         Value arg = klass;
         if (arg->is_class()) {
