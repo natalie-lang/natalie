@@ -534,11 +534,9 @@ public:
     virtual Type type() override { return Type::SafeCall; }
 };
 
-class ConstantNode;
-
 class ClassNode : public Node {
 public:
-    ClassNode(const Token &token, ConstantNode *name, Node *superclass, BlockNode *body)
+    ClassNode(const Token &token, Node *name, Node *superclass, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_superclass { superclass }
@@ -548,12 +546,12 @@ public:
 
     virtual Type type() override { return Type::Class; }
 
-    ConstantNode *name() const { return m_name; }
+    Node *name() const { return m_name; }
     Node *superclass() const { return m_superclass; }
     BlockNode *body() const { return m_body; }
 
 protected:
-    ConstantNode *m_name { nullptr };
+    Node *m_name { nullptr };
     Node *m_superclass { nullptr };
     BlockNode *m_body { nullptr };
 };
@@ -1003,7 +1001,7 @@ protected:
 
 class ModuleNode : public Node {
 public:
-    ModuleNode(const Token &token, ConstantNode *name, BlockNode *body)
+    ModuleNode(const Token &token, Node *name, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_body { body } { }
@@ -1015,11 +1013,11 @@ public:
 
     virtual Type type() override { return Type::Module; }
 
-    ConstantNode *name() const { return m_name; }
+    Node *name() const { return m_name; }
     BlockNode *body() const { return m_body; }
 
 protected:
-    ConstantNode *m_name { nullptr };
+    Node *m_name { nullptr };
     BlockNode *m_body { nullptr };
 };
 

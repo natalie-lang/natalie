@@ -210,6 +210,7 @@ private:
     Node *parse_bool(LocalsHashmap &);
     Node *parse_break(LocalsHashmap &);
     Node *parse_class(LocalsHashmap &);
+    Node *parse_class_or_module_name(LocalsHashmap &);
     Node *parse_case(LocalsHashmap &);
     Node *parse_comma_separated_identifiers(LocalsHashmap &);
     void parse_comma_separated_expressions(ArrayNode *, LocalsHashmap &);

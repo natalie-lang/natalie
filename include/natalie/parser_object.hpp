@@ -24,6 +24,7 @@ public:
 private:
     Value token_to_ruby(Env *env, Token &token, bool with_line_and_column_numbers = false);
     void validate_token(Env *env, Token &token);
+    Value class_or_module_name_to_ruby(Env *env, Node *name);
 
     SexpObject *build_args_sexp(Env *env, Node *parent, Vector<Node *> &args);
     SexpObject *build_assignment_sexp(Env *env, Node *parent, IdentifierNode *identifier);
