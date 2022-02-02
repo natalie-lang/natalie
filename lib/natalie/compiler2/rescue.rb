@@ -28,7 +28,10 @@ module Natalie
 
       def transform_catch_body(rescue_exprs)
         # [
-        #   s(:resbody, s(:array, s(:const, :NoMethodError)),
+        #   s(:resbody,
+        #     s(:array,
+        #       s(:const, :NoMethodError),
+        #       s(:lasgn, :e, s(:gvar, :$!))),
         #     s(:lit, 2)),
         #   s(:resbody, s(:array, s(:const, :ArgumentError)),
         #     s(:lit, 3))
@@ -37,11 +40,12 @@ module Natalie
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
             _, exceptions_array, rescue_body = rescue_expr
-            exceptions_array << s(:const, :StandardError) if exceptions_array.size == 1 # empty array
+            variable_set, match_array = split_exceptions_array(exceptions_array)
             instr + [
-              @pass.transform_expression(exceptions_array, used: true),
+              @pass.transform_expression(match_array, used: true),
               MatchExceptionInstruction.new,
               IfInstruction.new,
+              variable_set ? @pass.transform_expression(variable_set, used: false) : [],
               @pass.transform_expression(rescue_body, used: true),
               ElseInstruction.new,
             ]
@@ -72,6 +76,22 @@ module Natalie
         else
           nil
         end
+      end
+
+      def split_exceptions_array(array)
+        _, *items = array
+
+        # rescue => e
+        if items.any? && items.last.sexp_type == :lasgn
+          variable_set = items.pop
+        end
+
+        # empty array, so let's rescue StandardError
+        if items.none?
+          items = [s(:const, :StandardError)]
+        end
+
+        [variable_set, s(:array, *items)]
       end
     end
   end

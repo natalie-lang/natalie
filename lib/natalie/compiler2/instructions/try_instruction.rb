@@ -24,6 +24,7 @@ module Natalie
           stack_sizes << t.stack.size
         end
         code << '} catch(ExceptionObject *exception) {'
+        code << 'env->global_set("$!"_s, exception);'
         transform.with_same_scope(catch_body) do |t|
           code << t.transform("#{result} =")
           stack_sizes << t.stack.size
@@ -47,11 +48,11 @@ module Natalie
           vm.run
           vm.ip = end_ip
         rescue => e
-          vm.exception = e
+          vm.global_variables[:$!] = e
           vm.ip = catch_ip
           vm.run
           vm.ip = end_ip
-          vm.exception = nil
+          vm.global_variables.delete(:$!)
         end
       end
     end

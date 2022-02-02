@@ -11,7 +11,7 @@ module Natalie
       @global_variables = {}
     end
 
-    attr_accessor :self, :method_visibility, :exception, :global_variables
+    attr_accessor :self, :method_visibility, :global_variables
 
     attr_reader :stack
 

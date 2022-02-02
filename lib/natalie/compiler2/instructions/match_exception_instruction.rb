@@ -16,7 +16,7 @@ module Natalie
 
       def execute(vm)
         ary = vm.pop
-        vm.push(ary.any? { |e| e === vm.exception })
+        vm.push(ary.any? { |e| e === vm.global_variables[:$!] })
       end
     end
   end

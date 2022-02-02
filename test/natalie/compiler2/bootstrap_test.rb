@@ -208,6 +208,17 @@ class TestCompiler2 < TestCase
     assert_eq(3, z)
   end
 
+  def test_rescue_get_exception
+    begin
+      send()
+    rescue NoMethodError => e
+      fail # should not be here
+    rescue ArgumentError => e
+      assert_eq(ArgumentError, e.class)
+      assert_eq('no method name given', e.message)
+    end
+  end
+
   def test_rescue_else
     x = begin
           1
