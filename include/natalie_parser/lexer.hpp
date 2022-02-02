@@ -777,6 +777,17 @@ private:
                 return Token { Token::Type::Invalid, c, m_file, m_token_line, m_token_column };
             }
             break;
+        case '!':
+            c = gobble(c);
+            switch (c) {
+            case '=':
+            case '~':
+            case '@':
+                gobble(c);
+            default:
+                break;
+            }
+            break;
         case '[':
             if (peek() == ']') {
                 c = gobble(c);
