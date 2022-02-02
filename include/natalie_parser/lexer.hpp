@@ -747,6 +747,10 @@ private:
                 c = gobble(c);
             } while (is_identifier_char(c));
             break;
+        case '~':
+            c = gobble(c);
+            if (c == '@') advance();
+            break;
         case '+':
         case '-': {
             c = gobble(c);
