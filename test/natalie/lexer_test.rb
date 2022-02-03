@@ -616,6 +616,32 @@ END
         { type: :name, literal: :bar },
         { type: :"\n" },
       ]
+      Parser.tokens("<<'FOO BAR'\n\#{foo}\nFOO BAR").should == [
+        { type: :string, literal: "\#{foo}\n"},
+        { type: :"\n"},
+      ]
+      Parser.tokens(%(<<"FOO BAR"\n\#{foo}\nFOO BAR)).should == [
+        { type: :dstr},
+        { type: :string, literal: ""},
+        { type: :evstr},
+        { type: :name, literal: :foo},
+        { type: :"\n"},
+        { type: :evstrend},
+        { type: :string, literal: "\n"},
+        { type: :dstrend},
+        { type: :"\n"},
+      ]
+      Parser.tokens("<<`FOO BAR`\n\#{foo}\nFOO BAR").should == [
+        { type: :dxstr},
+        { type: :string, literal: ""},
+        { type: :evstr},
+        { type: :name, literal: :foo},
+        { type: :"\n"},
+        { type: :evstrend},
+        { type: :string, literal: "\n"},
+        { type: :dxstrend},
+        { type: :"\n"},
+      ]
     end
 
     it 'stores line and column numbers with each token' do
