@@ -747,12 +747,20 @@ private:
                 c = gobble(c);
             } while (is_identifier_char(c));
             break;
+        case '~':
+            c = gobble(c);
+            if (c == '@') advance();
+            break;
         case '+':
         case '-': {
             c = gobble(c);
             if (c == '@') gobble(c);
             break;
         }
+        case '&':
+        case '|':
+        case '^':
+        case '%':
         case '/': {
             gobble(c);
             break;
@@ -763,8 +771,53 @@ private:
                 gobble(c);
             break;
         case '=':
+            switch (peek()) {
+            case '=':
+                c = gobble(c);
+                c = gobble(c);
+                if (c == '=') gobble(c);
+                break;
+            case '~':
+                c = gobble(c);
+                gobble(c);
+                break;
+            default:
+                return Token { Token::Type::Invalid, c, m_file, m_token_line, m_token_column };
+            }
+            break;
+        case '!':
             c = gobble(c);
-            if (c == '=') gobble(c);
+            switch (c) {
+            case '=':
+            case '~':
+            case '@':
+                gobble(c);
+            default:
+                break;
+            }
+            break;
+        case '>':
+            c = gobble(c);
+            switch (c) {
+            case '=':
+            case '>':
+                gobble(c);
+            default:
+                break;
+            }
+            break;
+        case '<':
+            c = gobble(c);
+            switch (c) {
+            case '=':
+                c = gobble(c);
+                if (c == '>') gobble(c);
+                break;
+            case '<':
+                gobble(c);
+            default:
+                break;
+            }
             break;
         case '[':
             if (peek() == ']') {
