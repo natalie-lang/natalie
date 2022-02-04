@@ -330,6 +330,15 @@ module Natalie
         return [] unless used
         PushTrueInstruction.new
       end
+
+      def transform_yield(exp, used:)
+        _, *args = exp
+        instructions = args.map { |arg| transform_expression(arg, used: true) }
+        instructions << PushArgcInstruction.new(args.size)
+        instructions << YieldInstruction.new
+        instructions << PopInstruction.new unless used
+        instructions
+      end
     end
   end
 end

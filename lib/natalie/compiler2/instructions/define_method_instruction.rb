@@ -37,9 +37,9 @@ module Natalie
         vm.skip_block_of_instructions(expected_label: :define_method)
         vm
           .self
-          .define_method(@name) do |*args|
+          .define_method(@name) do |*args, &block|
             scope = { vars: {} }
-            vm.push_call(return_ip: vm.ip, args: args, scope: scope)
+            vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: block)
             vm.ip = start_ip
             vm.run
             vm.ip = vm.pop_call[:return_ip]

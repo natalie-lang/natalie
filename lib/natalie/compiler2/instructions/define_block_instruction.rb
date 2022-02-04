@@ -40,7 +40,7 @@ module Natalie
             self_was = vm.self
             vm.self = captured_self
             scope = { vars: {}, parent: parent_scope }
-            vm.push_call(return_ip: vm.ip, args: args, scope: scope)
+            vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: nil)
             vm.ip = start_ip
             vm.run
             vm.ip = vm.pop_call[:return_ip]

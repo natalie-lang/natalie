@@ -246,6 +246,13 @@ class TestCompiler2 < TestCase
     assert_eq(0, z)
   end
 
+  def test_yield
+    result = block_yield0 { :hi }
+    assert_eq(:hi, result)
+    result = block_yield2(1, 2) { |x, y| [x, y] }
+    assert_eq([1, 2], result)
+  end
+
   private
 
   def ary
@@ -294,6 +301,14 @@ class TestCompiler2 < TestCase
 
   def arg_keyword_optional_after_positional(x, y: :default)
     [x, y]
+  end
+
+  def block_yield0
+    yield
+  end
+
+  def block_yield2(a, b)
+    yield a, b
   end
 end
 
