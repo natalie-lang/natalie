@@ -781,6 +781,7 @@ gen.binding('Range', 'to_s', 'RangeObject', 'to_s', argc: 0, pass_env: true, pas
 gen.undefine_singleton_method('Rational', 'new')
 gen.binding('Rational', '==', 'RationalObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Rational', '===', 'RationalObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Rational', 'coerce', 'RationalObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'denominator', 'RationalObject', 'denominator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'inspect', 'RationalObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'numerator', 'RationalObject', 'numerator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

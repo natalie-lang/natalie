@@ -2,6 +2,18 @@
 
 namespace Natalie {
 
+Value RationalObject::coerce(Env *env, Value other) {
+    if (other->is_integer()) {
+        return new ArrayObject { new RationalObject(other->as_integer(), new IntegerObject { 1 }), this };
+    } else if (other->is_float()) {
+        return new ArrayObject { other, this->to_f(env) };
+    } else if (other->is_rational()) {
+        return new ArrayObject { other, this };
+    }
+
+    env->raise("TypeError", "{} can't be coerced into {}", other->klass()->inspect_str(), this->klass()->inspect_str());
+}
+
 Value RationalObject::denominator(Env *env) {
     return m_denominator;
 }
