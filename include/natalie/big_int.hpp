@@ -171,3 +171,8 @@ public:
 BigInt pow(const BigInt &base, long long exp);
 BigInt gcd(const BigInt &num1, const BigInt &num2);
 BigInt sqrt(const BigInt &num);
+BigInt operator+(const long long &lhs, const BigInt &rhs);
+BigInt operator-(const long long &lhs, const BigInt &rhs);
+BigInt operator*(const long long &lhs, const BigInt &rhs);
+BigInt operator/(const long long &lhs, const BigInt &rhs);
+BigInt operator%(const long long &lhs, const BigInt &rhs);
