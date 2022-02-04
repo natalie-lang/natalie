@@ -73,4 +73,14 @@ describe 'Proc' do
       l.to_proc.lambda?.should == true # does not change to false
     end
   end
+
+  describe 'passing a block to a proc' do
+    it 'works' do
+      block_to_proc = ->(a, b, &block) {
+        block && block.call(a, b)
+      }
+      (block_to_proc.call(1, 2) { |a, b| [a * 2, b * 2] }).should == [2, 4]
+      block_to_proc.call(1, 2).should == nil
+    end
+  end
 end

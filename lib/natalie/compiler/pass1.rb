@@ -419,7 +419,8 @@ module Natalie
 
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcObject, 'block'))
+          arg_name = args.pop.to_s[1..-1]
+          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
