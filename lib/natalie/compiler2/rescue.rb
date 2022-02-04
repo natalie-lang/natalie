@@ -12,15 +12,16 @@ module Natalie
         #     s(:lit, 2)),
         #   s(:resbody, s(:array, s(:const, :ArgumentError)),
         #     s(:lit, 3)))
-        _, body, *rescue_exprs = exp
+        _, *rescue_exprs = exp
+        body = shift_body(rescue_exprs)
         else_body = pop_else_body(rescue_exprs)
         [
           TryInstruction.new,
-          @pass.transform_expression(body, used: true),
-          transform_else_body(else_body),
+          transform_body(body),
           CatchInstruction.new,
           transform_catch_body(rescue_exprs),
           EndInstruction.new(:try),
+          transform_else_body(else_body),
         ]
       end
 
@@ -40,6 +41,7 @@ module Natalie
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
             _, exceptions_array, rescue_body = rescue_expr
+            rescue_body ||= s(:nil)
             variable_set, match_array = split_exceptions_array(exceptions_array)
             instr + [
               @pass.transform_expression(match_array, used: true),
@@ -61,13 +63,31 @@ module Natalie
         catch_body + ends
       end
 
+      def transform_body(body)
+        body ||= s(:nil)
+        @pass.transform_expression(body, used: true)
+      end
+
       def transform_else_body(else_body)
         return [] unless else_body
 
         [
+          PushRescuedInstruction.new,
+          IfInstruction.new,
+          # noop
+          ElseInstruction.new(:if),
           PopInstruction.new, # we don't want the result of the try
-          @pass.transform_expression(else_body, used: true)
+          @pass.transform_expression(else_body, used: true),
+          EndInstruction.new(:if),
         ]
+      end
+
+      def shift_body(rescue_exprs)
+        if rescue_exprs.first.sexp_type != :resbody
+          rescue_exprs.shift
+        else
+          nil
+        end
       end
 
       def pop_else_body(rescue_exprs)

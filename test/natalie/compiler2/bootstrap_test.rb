@@ -9,17 +9,6 @@ class TestCase
     end
   end
 
-  #def assert_raises(exception)
-    #begin
-      #yield
-    #rescue exception
-      ## good
-    #else
-      #puts 'expected to raise: ' + exception.inspect
-      #fail
-    #end
-  #end
-
   def fail
     raise 'test failed'
   end
@@ -236,6 +225,17 @@ class TestCompiler2 < TestCase
           3
         end
     assert_eq(2, y)
+    begin
+      begin
+        # noop
+      rescue
+        raise 'should not be reached'
+      else
+        raise 'this is the error'
+      end
+    rescue => e
+      assert_eq('this is the error', e.message)
+    end
   end
 
   def test_block_scope

@@ -23,7 +23,9 @@ module Natalie
           code << t.transform("#{result} =")
           stack_sizes << t.stack.size
         end
+        code << 'GlobalEnv::the()->set_rescued(false);'
         code << '} catch(ExceptionObject *exception) {'
+        code << 'GlobalEnv::the()->set_rescued(true);'
         code << 'env->global_set("$!"_s, exception);'
         transform.with_same_scope(catch_body) do |t|
           code << t.transform("#{result} =")
@@ -47,7 +49,9 @@ module Natalie
           vm.ip = start_ip
           vm.run
           vm.ip = end_ip
+          vm.rescued = false
         rescue => e
+          vm.rescued = true
           vm.global_variables[:$!] = e
           vm.ip = catch_ip
           vm.run

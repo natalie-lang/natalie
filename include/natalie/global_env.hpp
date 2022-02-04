@@ -75,6 +75,9 @@ public:
     MethodMissingReason method_missing_reason() const { return m_method_missing_reason; }
     void set_method_missing_reason(MethodMissingReason reason) { m_method_missing_reason = reason; }
 
+    bool rescued() const { return m_rescued; }
+    void set_rescued(bool rescued) { m_rescued = rescued; }
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -107,5 +110,7 @@ private:
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
+
+    bool m_rescued { false };
 };
 }

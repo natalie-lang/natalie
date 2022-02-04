@@ -151,4 +151,6 @@ inline Value find_nested_const(Env *env, std::initializer_list<SymbolObject *> n
     return c;
 }
 
+Value bool_object(bool b);
+
 }
