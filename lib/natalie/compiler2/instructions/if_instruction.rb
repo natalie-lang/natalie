@@ -12,7 +12,7 @@ module Natalie
       end
 
       def generate(transform)
-        true_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction)
+        true_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction, expected_label: :if)
         false_body = transform.fetch_block_of_instructions(expected_label: :if)
         condition = transform.pop
         result = transform.temp('if_result')
@@ -39,7 +39,7 @@ module Natalie
 
       def execute(vm)
         start_ip = vm.ip
-        vm.skip_block_of_instructions(until_instruction: ElseInstruction)
+        vm.skip_block_of_instructions(until_instruction: ElseInstruction, expected_label: :if)
         else_ip = vm.ip
         vm.skip_block_of_instructions(expected_label: :if)
         end_ip = vm.ip

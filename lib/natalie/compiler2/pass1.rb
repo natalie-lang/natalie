@@ -47,7 +47,7 @@ module Natalie
           IfInstruction.new,
           PopInstruction.new,
           rhs_instructions,
-          ElseInstruction.new,
+          ElseInstruction.new(:if),
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
@@ -107,13 +107,13 @@ module Natalie
               instructions << SendInstruction.new(:===, with_block: false)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new
-              instructions << ElseInstruction.new
+              instructions << ElseInstruction.new(:if)
             end
             instructions << PushFalseInstruction.new
             instructions << [EndInstruction.new(:if)] * options.length
             instructions << IfInstruction.new
             instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
-            instructions << ElseInstruction.new
+            instructions << ElseInstruction.new(:if)
           end
         else
           # glorified if-else
@@ -131,7 +131,7 @@ module Natalie
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
             instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
-            instructions << ElseInstruction.new
+            instructions << ElseInstruction.new(:if)
           end
         end
 
@@ -243,7 +243,7 @@ module Natalie
           transform_expression(condition, used: true),
           IfInstruction.new,
           true_instructions,
-          ElseInstruction.new,
+          ElseInstruction.new(:if),
           false_instructions,
           EndInstruction.new(:if),
         ]
@@ -313,7 +313,7 @@ module Natalie
           lhs_instructions,
           DupInstruction.new,
           IfInstruction.new,
-          ElseInstruction.new,
+          ElseInstruction.new(:if),
           PopInstruction.new,
           rhs_instructions,
           EndInstruction.new(:if),

@@ -47,7 +47,7 @@ module Natalie
               IfInstruction.new,
               variable_set ? @pass.transform_expression(variable_set, used: false) : [],
               @pass.transform_expression(rescue_body, used: true),
-              ElseInstruction.new,
+              ElseInstruction.new(:if),
             ]
           else
             raise "unknown expr: #{rescue_expr.inspect}"
