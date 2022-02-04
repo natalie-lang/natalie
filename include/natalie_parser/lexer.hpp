@@ -397,9 +397,15 @@ private:
                 switch (current_char()) {
                 case '-': {
                     auto next = peek();
-                    if (isalpha(next) || next == '_') {
+                    if (isalpha(next))
                         return consume_heredoc();
-                    } else {
+                    switch (next) {
+                    case '_':
+                    case '"':
+                    case '`':
+                    case '\'':
+                        return consume_heredoc();
+                    default:
                         return Token { Token::Type::LeftShift, m_file, m_token_line, m_token_column };
                     }
                 }
@@ -407,9 +413,15 @@ private:
                     advance();
                     return Token { Token::Type::LeftShiftEqual, m_file, m_token_line, m_token_column };
                 default:
-                    if (isalpha(current_char()) || current_char() == '_') {
+                    if (isalpha(current_char()))
                         return consume_heredoc();
-                    } else {
+                    switch (current_char()) {
+                    case '_':
+                    case '"':
+                    case '`':
+                    case '\'':
+                        return consume_heredoc();
+                    default:
                         return Token { Token::Type::LeftShift, m_file, m_token_line, m_token_column };
                     }
                 }
@@ -916,7 +928,46 @@ private:
             advance();
             with_dash = true;
         }
-        auto heredoc_name = String(consume_word(Token::Type::BareName).literal());
+
+        Token::Type type;
+        char delimiter = 0;
+        String heredoc_name = "";
+        switch (current_char()) {
+        case '"':
+            type = Token::Type::DoubleQuotedString;
+            delimiter = '"';
+            break;
+        case '`':
+            type = Token::Type::Shell;
+            delimiter = '`';
+            break;
+        case '\'':
+            type = Token::Type::String;
+            delimiter = '\'';
+            break;
+        default:
+            type = Token::Type::DoubleQuotedString;
+            heredoc_name = String(consume_word(Token::Type::BareName).literal());
+        }
+
+        if (delimiter) {
+            advance();
+            char c = current_char();
+            while (c != delimiter) {
+                switch (c) {
+                case '\n':
+                case '\r':
+                case 0:
+                    return Token { Token::Type::UnterminatedString, "heredoc identifier", m_file, m_token_line, m_token_column };
+                default:
+                    advance();
+                    heredoc_name.append_char(c);
+                    c = current_char();
+                }
+            }
+            advance();
+        }
+
         SharedPtr<String> doc = new String("");
         size_t heredoc_index = m_index;
         auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
@@ -951,7 +1002,7 @@ private:
         // this index is used to do that
         m_index_after_heredoc = heredoc_index;
 
-        auto token = Token { Token::Type::DoubleQuotedString, doc, m_file, m_token_line, m_token_column };
+        auto token = Token { type, doc, m_file, m_token_line, m_token_column };
         return token;
     }
 
