@@ -267,4 +267,48 @@ bool BignumObject::gte(Env *env, Value other) {
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
+
+Value BignumObject::round(Env *env, Value ndigits, Value kwargs) {
+    int digits = 0;
+    if (!ndigits) return this;
+
+    digits = IntegerObject::convert_to_int(env, ndigits);
+
+    RoundingMode rounding_mode = rounding_mode_from_kwargs(env, kwargs);
+
+    if (digits >= 0) return this;
+
+    digits *= -1;
+
+    auto result = to_bigint();
+    BigInt dividend = big_pow10(digits);
+    auto half = dividend / 2;
+    auto remainder = result.c_mod(dividend);
+    auto remainder_abs = ::abs(remainder);
+
+    if (remainder_abs < half) {
+        result -= remainder;
+    } else if (remainder_abs > half) {
+        result += dividend - remainder;
+    } else {
+        switch (rounding_mode) {
+        case RoundingMode::Up:
+            result += remainder;
+            break;
+        case RoundingMode::Down:
+            result -= remainder;
+            break;
+        case RoundingMode::Even:
+            auto digit = result.to_string()[result.to_string().length() - digits - 1] - '0';
+            if (digit % 2 == 0) {
+                result -= remainder;
+            } else {
+                result += remainder;
+            }
+            break;
+        }
+    }
+
+    return BignumObject::create_if_needed(result);
+}
 }

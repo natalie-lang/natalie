@@ -830,6 +830,54 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
     return Value::integer(::sqrt(nat_int));
 }
 
+Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
+    int digits = 0;
+    if (!ndigits) return this;
+
+    digits = IntegerObject::convert_to_int(env, ndigits);
+
+    RoundingMode rounding_mode = rounding_mode_from_kwargs(env, kwargs);
+
+    if (digits >= 0)
+        return this;
+
+    auto result = to_nat_int_t();
+    auto dividend_big = big_pow10(-digits);
+    if (dividend_big > NAT_MAX_FIXNUM)
+        return Value::integer(0);
+
+    nat_int_t dividend = dividend_big.to_long_long();
+
+    auto half = dividend / 2;
+    auto remainder = (result % dividend);
+    auto remainder_abs = ::abs(remainder);
+
+    if (remainder_abs < half) {
+        result -= remainder;
+    } else if (remainder_abs > half) {
+        result += dividend - remainder;
+    } else {
+        switch (rounding_mode) {
+        case RoundingMode::Up:
+            result += remainder;
+            break;
+        case RoundingMode::Down:
+            result -= remainder;
+            break;
+        case RoundingMode::Even:
+            auto digit = result % (dividend * 10) / dividend;
+            if (digit % 2 == 0) {
+                result -= remainder;
+            } else {
+                result += remainder;
+            }
+            break;
+        }
+    }
+
+    return Value::integer(result);
+}
+
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return arg.get_fast_integer();

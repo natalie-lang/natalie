@@ -10,6 +10,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
+#include "natalie/rounding_mode.hpp"
 #include "natalie/types.hpp"
 
 namespace Natalie {
@@ -82,6 +83,7 @@ public:
     virtual Value complement(Env *) const;
     Value ord() { return this; }
     Value denominator() { return Value::integer(1); }
+    virtual Value round(Env *, Value, Value);
 
     virtual bool eq(Env *, Value);
     virtual bool lt(Env *, Value);

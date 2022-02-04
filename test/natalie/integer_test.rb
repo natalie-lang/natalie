@@ -253,6 +253,28 @@ describe 'integer' do
     end
   end
 
+  describe '#round' do
+    it 'returns zero if 10^-ndigits > NAT_MAX_FIXNUM' do
+      fixnum_max.round(-71).should == 0
+    end
+
+    it 'works with bigints' do
+      (25 * 10**70).round(-71, half: :up).should eql(30 * 10**70)
+      (25 * 10**70).round(-71, half: :down).should eql(20 * 10**70)
+      (25 * 10**70).round(-71, half: :even).should eql(20 * 10**70)
+      (25 * 10**70).round(-71, half: nil).should eql(30 * 10**70)
+      (35 * 10**70).round(-71, half: :up).should eql(40 * 10**70)
+      (35 * 10**70).round(-71, half: :down).should eql(30 * 10**70)
+      (35 * 10**70).round(-71, half: :even).should eql(40 * 10**70)
+      (35 * 10**70).round(-71, half: nil).should eql(40 * 10**70)
+
+      (-25 * 10**70).round(-71, half: :up).should eql(-30 * 10**70)
+      (-25 * 10**70).round(-71, half: :down).should eql(-20 * 10**70)
+      (-25 * 10**70).round(-71, half: :even).should eql(-20 * 10**70)
+      (-25 * 10**70).round(-71, half: nil).should eql(-30 * 10**70)
+    end
+  end
+
   describe '#times' do
     it 'handles bignums correctly' do
       bignum_value.times.size.should == bignum_value
