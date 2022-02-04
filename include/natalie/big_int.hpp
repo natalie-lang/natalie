@@ -176,3 +176,6 @@ BigInt operator-(const long long &lhs, const BigInt &rhs);
 BigInt operator*(const long long &lhs, const BigInt &rhs);
 BigInt operator/(const long long &lhs, const BigInt &rhs);
 BigInt operator%(const long long &lhs, const BigInt &rhs);
+
+BigInt abs(const BigInt &num);
+BigInt big_pow10(size_t exp);
