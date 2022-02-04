@@ -870,4 +870,24 @@ ArrayObject *Object::to_ary(Env *env) {
         val->klass()->inspect_str());
 }
 
+IntegerObject *Object::to_int(Env *env) {
+    if (is_integer()) return as_integer();
+
+    auto to_int = "to_int"_s;
+    if (!respond_to(env, to_int)) {
+        assert_type(env, Type::Integer, "Integer");
+    }
+
+    auto result = send(env, to_int);
+
+    if (result->is_integer())
+        return result->as_integer();
+
+    env->raise(
+        "TypeError", "can't convert {} to Integer ({}#to_int gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
 }
