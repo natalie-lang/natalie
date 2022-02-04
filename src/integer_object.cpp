@@ -742,17 +742,6 @@ Value IntegerObject::gcd(Env *env, Value divisor) {
     return gcd_fast(m_integer, other->to_nat_int_t());
 }
 
-bool IntegerObject::eql(Env *env, Value other) {
-    if (other.is_fast_integer())
-        return m_integer == other.get_fast_integer();
-    if (other.is_fast_float())
-        return false;
-
-    other.unguard();
-
-    return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
-}
-
 Value IntegerObject::abs(Env *env) {
     auto number = to_nat_int_t();
     if (number < 0) {
@@ -786,7 +775,6 @@ bool IntegerObject::optimized_method(SymbolObject *method_name) {
         s_optimized_methods.set(">"_s);
         s_optimized_methods.set(">="_s);
         s_optimized_methods.set("==="_s);
-        s_optimized_methods.set("eql?"_s);
         s_optimized_methods.set("succ"_s);
         s_optimized_methods.set("chr"_s);
         s_optimized_methods.set("~"_s);

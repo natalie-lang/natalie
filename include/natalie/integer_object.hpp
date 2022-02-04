@@ -81,7 +81,6 @@ public:
     Value denominator() { return Value::integer(1); }
 
     virtual bool eq(Env *, Value);
-    virtual bool eql(Env *, Value);
     virtual bool lt(Env *, Value);
     virtual bool lte(Env *, Value);
     virtual bool gt(Env *, Value);
