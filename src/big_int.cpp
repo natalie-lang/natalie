@@ -1319,14 +1319,7 @@ BigInt BigInt::operator/(const BigInt &num) const {
     return quotient - corr;
 }
 
-/*
-    BigInt % BigInt
-    ---------------
-    Computes the modulo (remainder on division) of two BigInts.
-    The operand on the RHS of the modulo (the divisor) is `num`.
-*/
-
-BigInt BigInt::operator%(const BigInt &num) const {
+BigInt BigInt::c_mod(const BigInt &num) const {
     BigInt abs_dividend = abs(*this);
     BigInt abs_divisor = abs(num);
 
@@ -1349,10 +1342,22 @@ BigInt BigInt::operator%(const BigInt &num) const {
     }
     strip_leading_zeroes(remainder.value);
 
-    // remainder has the same sign as that of the dividend
     remainder.sign = this->sign;
-    if (remainder.value == "0") // except if its zero
+    if (remainder.value == "0")
         remainder.sign = '+';
+
+    return remainder;
+}
+
+/*
+    BigInt % BigInt
+    ---------------
+    Computes the modulo (remainder on division) of two BigInts.
+    The operand on the RHS of the modulo (the divisor) is `num`.
+*/
+
+BigInt BigInt::operator%(const BigInt &num) const {
+    BigInt remainder = c_mod(num);
 
     if (num.sign != this->sign)
         remainder += num;

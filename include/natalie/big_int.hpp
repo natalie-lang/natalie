@@ -81,6 +81,7 @@ public:
     BigInt operator*(const BigInt &) const;
     BigInt operator/(const BigInt &) const;
     BigInt operator%(const BigInt &) const;
+    BigInt c_mod(const BigInt &) const;
     BigInt operator+(const long long &) const;
     BigInt operator-(const long long &) const;
     BigInt operator*(const long long &) const;
