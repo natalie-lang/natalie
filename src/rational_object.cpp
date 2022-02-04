@@ -27,6 +27,10 @@ Value RationalObject::numerator(Env *env) {
     return m_numerator;
 }
 
+Value RationalObject::to_f(Env *env) {
+    return m_numerator->send(env, "fdiv"_s, { m_denominator });
+}
+
 Value RationalObject::to_i(Env *env) {
     if (m_numerator->is_negative()) {
         return m_numerator->negate(env)->as_integer()->div(env, m_denominator)->as_integer()->negate(env);
