@@ -829,4 +829,25 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
 
     return Value::integer(::sqrt(nat_int));
 }
+
+nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
+    if (arg.is_fast_integer())
+        return arg.get_fast_integer();
+
+    auto integer = arg->to_int(env);
+    integer->assert_fixnum(env);
+    return integer->to_nat_int_t();
+}
+
+int IntegerObject::convert_to_int(Env *env, Value arg) {
+    auto result = convert_to_nat_int_t(env, arg);
+
+    if (result < std::numeric_limits<int>::min())
+        env->raise("RangeError", "integer {} too small to convert to `int'");
+    else if (result > std::numeric_limits<int>::max())
+        env->raise("RangeError", "integer {} too big to convert to `int'");
+
+    return (int)result;
+}
+
 }

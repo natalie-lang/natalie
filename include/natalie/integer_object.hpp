@@ -45,6 +45,9 @@ public:
         return Value::integer(static_cast<nat_int_t>(number));
     }
 
+    static nat_int_t convert_to_nat_int_t(Env *, Value);
+    static int convert_to_int(Env *, Value);
+
     static Value sqrt(Env *, Value);
 
     Value inspect(Env *env) { return to_s(env); }
