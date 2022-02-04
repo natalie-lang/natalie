@@ -17,6 +17,7 @@ public:
     bool eq(Env *, Value);
     Value inspect(Env *);
     Value numerator(Env *);
+    Value to_f(Env *);
     Value to_i(Env *);
     Value to_r() { return this; }
     Value to_s(Env *);
