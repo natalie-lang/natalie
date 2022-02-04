@@ -892,13 +892,29 @@ module Enumerable
     broken_value
   end
 
-  def tally
-    hash = {}
+  def tally(hash = nil)
+    if hash
+      hash = hash.to_hash
+      if hash.frozen?
+        raise FrozenError, "can't modify frozen #{hash.class.name}: #{hash.inspect}"
+      end
+    else
+      hash = {}
+    end
+
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
     each do |*item|
-      hash[gather.(item)] ||= 0
-      hash[gather.(item)] += 1
+      key = gather.(item)
+      if hash.key?(key)
+        value = hash[key]
+        unless value.is_a?(Integer)
+          raise TypeError, "wrong argument type #{value.class.name} (expected Integer)"
+        end
+        hash[key] = value + 1
+      else
+        hash[key] = 1
+      end
     end
 
     hash
