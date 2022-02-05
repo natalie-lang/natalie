@@ -16,7 +16,7 @@ module Natalie
       def generate(transform)
         beginning = transform.pop
         ending = transform.pop
-        transform.push("(new RangeObject(#{beginning}, #{ending}, #{@exclude_end}))")
+        transform.push("Value(new RangeObject(#{beginning}, #{ending}, #{@exclude_end}))")
       end
 
       def execute(vm)

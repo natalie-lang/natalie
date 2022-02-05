@@ -282,6 +282,11 @@ class TestCompiler2 < TestCase
     assert_eq(nil, $non_existent_global)
   end
 
+  def test_send
+    assert_eq('pub', ClassWithPrivateMethod.new.pub)
+    assert_raises(NoMethodError) { ClassWithPrivateMethod.new.priv }
+  end
+
   private
 
   def ary
@@ -342,6 +347,12 @@ class TestCompiler2 < TestCase
 
   def method_raises
     raise 'foo'
+  end
+
+  class ClassWithPrivateMethod
+    def pub; 'pub'; end
+    private
+    def priv; 'priv'; end
   end
 end
 

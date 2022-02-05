@@ -91,6 +91,10 @@ public:
 
     Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
+    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return public_send(env, name, args.size(), const_cast<Value *>(std::data(args)), block);
+    }
+
     Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {

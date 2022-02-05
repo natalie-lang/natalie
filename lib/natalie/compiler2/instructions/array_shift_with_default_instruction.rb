@@ -10,7 +10,7 @@ module Natalie
       def generate(transform)
         default = transform.pop
         ary = transform.memoize(:ary, transform.peek)
-        code = "(#{ary}->is_empty() ? #{default} : #{ary}->as_array()->shift())"
+        code = "(#{ary}->as_array()->is_empty() ? #{default} : #{ary}->as_array()->shift())"
         transform.exec_and_push(:first_item_of_array, code)
       end
 

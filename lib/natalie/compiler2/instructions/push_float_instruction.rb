@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("(new FloatObject(#{@float}))")
+        transform.push("Value(new FloatObject(#{@float}))")
       end
 
       def execute(vm)

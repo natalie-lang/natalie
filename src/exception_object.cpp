@@ -35,8 +35,8 @@ Value ExceptionObject::backtrace(Env *env) {
     return m_backtrace ? m_backtrace->dup(env) : NilObject::the();
 }
 
-Value ExceptionObject::match_rescue_array(Env *env, ArrayObject *ary) {
-    for (auto klass : *ary) {
+Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
+    for (auto klass : *ary->as_array()) {
         if (klass->send(env, "==="_s, { this })->is_truthy())
             return TrueObject::the();
     }

@@ -17,7 +17,7 @@ module Natalie
           items.unshift(transform.pop)
           items.unshift(transform.pop)
         end
-        transform.push("(new HashObject(env, { #{items.join(', ')} }))")
+        transform.push("Value(new HashObject(env, { #{items.join(', ')} }))")
       end
 
       def execute(vm)

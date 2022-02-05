@@ -3,13 +3,15 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class SendInstruction < BaseInstruction
-      def initialize(message, with_block:)
+      def initialize(message, receiver_is_self:, with_block:)
         @message = message.to_sym
+        @receiver_is_self = receiver_is_self
         @with_block = with_block
       end
 
       def to_s
-        s = "send #{@message}"
+        s = "send #{@message.inspect}"
+        s << ' to self' if @receiver_is_self
         s << ' with block' if @with_block
         s
       end
@@ -22,8 +24,7 @@ module Natalie
         block = @with_block ? transform.pop : 'nullptr'
         result = transform.temp("send_#{@message}")
         transform.exec(
-          # FIXME: use public_send unless receiver == :self
-          "auto #{result} = #{receiver}.send(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})",
+          "auto #{result} = #{receiver}.#{method}(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})",
         )
         transform.push(result)
       end
@@ -45,13 +46,23 @@ module Natalie
           if @with_block
             block = vm.pop
             # FIXME: use public_send unless receiver == :self
-            receiver.send(@message, *args, &block)
+            receiver.send(method, @message, *args, &block)
           else
             # FIXME: use public_send unless receiver == :self
-            receiver.send(@message, *args)
+            receiver.send(method, @message, *args)
           end
         vm.push result
         vm.self = self_was
+      end
+
+      private
+
+      def method
+        if @receiver_is_self
+          :send
+        else
+          :public_send
+        end
       end
     end
   end

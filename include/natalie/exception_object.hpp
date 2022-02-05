@@ -57,7 +57,7 @@ public:
     void set_local_jump_error_type(LocalJumpErrorType type) { m_local_jump_error_type = type; }
     LocalJumpErrorType local_jump_error_type() { return m_local_jump_error_type; }
 
-    Value match_rescue_array(Env *env, ArrayObject *ary);
+    Value match_rescue_array(Env *env, Value ary);
 
 private:
     StringObject *m_message { nullptr };

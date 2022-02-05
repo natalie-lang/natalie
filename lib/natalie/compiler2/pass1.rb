@@ -81,7 +81,7 @@ module Natalie
         else
           instructions << transform_expression(receiver, used: true)
         end
-        instructions << SendInstruction.new(message, with_block: with_block)
+        instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -104,7 +104,7 @@ module Natalie
               instructions << option_instructions
               instructions << PushArgcInstruction.new(1)
               instructions << DupRelInstruction.new(2)
-              instructions << SendInstruction.new(:===, with_block: false)
+              instructions << SendInstruction.new(:===, receiver_is_self: false, with_block: false)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new
               instructions << ElseInstruction.new(:if)

@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         args = transform.temp('args')
-        transform.exec("auto #{args} = new ArrayObject(argc, args)")
+        transform.exec("auto #{args} = Value(new ArrayObject(argc, args))")
         transform.push(args)
       end
 

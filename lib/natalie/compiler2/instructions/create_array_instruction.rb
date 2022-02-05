@@ -14,7 +14,7 @@ module Natalie
       def generate(transform)
         items = []
         @count.times { items.unshift(transform.pop) }
-        transform.push("(new ArrayObject({ #{items.join(', ')} }))")
+        transform.push("Value(new ArrayObject({ #{items.join(', ')} }))")
       end
 
       def execute(vm)
