@@ -210,6 +210,7 @@ public:
     }
 
     Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
+    Value public_send(Env *, size_t, Value *, Block *);
 
     Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
     Value send(Env *, size_t, Value *, Block *);

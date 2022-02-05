@@ -564,6 +564,11 @@ Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args
     return send(env, name, argc, args, block, MethodVisibility::Public);
 }
 
+Value Object::public_send(Env *env, size_t argc, Value *args, Block *block) {
+    auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
+    return public_send(env->caller(), name, argc - 1, args + 1, block);
+}
+
 Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
     return send(env, name, argc, args, block, MethodVisibility::Private);
 }
