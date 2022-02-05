@@ -148,7 +148,7 @@ def infinity_value
 end
 
 def bignum_value(plus = 0)
-  0x8000_0000_0000_0000 + plus
+  (2 ** 64) + plus
 end
 
 def fixnum_max
