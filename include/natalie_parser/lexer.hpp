@@ -34,9 +34,6 @@ private:
         return m_input->at(m_index + 1);
     }
 
-    bool is_identifier_char(char c);
-    bool is_message_suffix(char c);
-    bool is_identifier_char_or_message_suffix(char c);
     bool skip_whitespace();
     Token build_next_token();
     Token consume_symbol();

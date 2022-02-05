@@ -70,6 +70,20 @@ Token Lexer::next_token() {
     return token;
 }
 
+bool is_identifier_char(char c) {
+    if (!c) return false;
+    return isalnum(c) || c == '_';
+}
+
+bool is_message_suffix(char c) {
+    if (!c) return false;
+    return c == '?' || c == '!';
+}
+
+bool is_identifier_char_or_message_suffix(char c) {
+    return is_identifier_char(c) || is_message_suffix(c);
+}
+
 bool Lexer::match(size_t bytes, const char *compare) {
     if (m_index + bytes > m_size)
         return false;
@@ -104,20 +118,6 @@ void Lexer::rewind(size_t bytes) {
     current_char();
     m_cursor_column -= bytes;
     m_index -= bytes;
-}
-
-bool Lexer::is_identifier_char(char c) {
-    if (!c) return false;
-    return isalnum(c) || c == '_';
-}
-
-bool Lexer::is_message_suffix(char c) {
-    if (!c) return false;
-    return c == '?' || c == '!';
-}
-
-bool Lexer::is_identifier_char_or_message_suffix(char c) {
-    return is_identifier_char(c) || is_message_suffix(c);
 }
 
 bool Lexer::skip_whitespace() {
