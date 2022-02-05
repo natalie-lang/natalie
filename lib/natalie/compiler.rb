@@ -211,7 +211,7 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-pthread -O1'
+    RELEASE_FLAGS = '-pthread -g -O2'
     DEBUG_FLAGS =
       '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
