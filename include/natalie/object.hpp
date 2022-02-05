@@ -276,6 +276,7 @@ public:
     virtual void gc_inspect(char *buf, size_t len) const override;
 
     ArrayObject *to_ary(Env *env);
+    IntegerObject *to_int(Env *env);
 
 protected:
     ClassObject *m_klass { nullptr };

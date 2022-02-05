@@ -74,7 +74,8 @@ describe "Float#round" do
   end
 
   # redmine #5272
-  it "returns rounded values for big values" do
+  # NATFIXME: Support big number precision values
+  xit "returns rounded values for big values" do
     +2.4e20.round(-20).should   eql( +2 * 10 ** 20  )
     -2.4e20.round(-20).should   eql( -2 * 10 ** 20  )
     +2.5e200.round(-200).should eql( +3 * 10 ** 200 )

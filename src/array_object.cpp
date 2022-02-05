@@ -32,16 +32,11 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         }
     }
 
-    auto to_int = "to_int"_s;
-    if (!size->is_integer() && size->respond_to(env, to_int))
-        size = size->send(env, to_int);
-
-    size->assert_type(env, Object::Type::Integer, "Integer");
-
-    if (size->as_integer()->is_bignum())
+    auto size_integer = size->to_int(env);
+    if (size_integer->is_bignum())
         env->raise("ArgumentError", "array size too big");
 
-    auto s = size->as_integer()->to_nat_int_t();
+    auto s = size_integer->to_nat_int_t();
 
     if (s < 0)
         env->raise("ArgumentError", "negative argument");
@@ -199,7 +194,6 @@ Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
 
 Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     this->assert_not_frozen(env);
-    auto to_int = "to_int"_s;
     nat_int_t start, width;
     if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
@@ -212,11 +206,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         if (begin_obj->is_nil()) {
             start = 0;
         } else {
-            if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
-                begin_obj = begin_obj->send(env, to_int);
-            begin_obj->assert_type(env, Object::Type::Integer, "Integer");
-
-            start = begin_obj->as_integer()->to_nat_int_t();
+            start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
             if (start < 0) {
                 if ((size_t)(-start) > this->size()) {
                     env->raise("RangeError", "{} out of range", range->inspect_str(env));
@@ -230,11 +220,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         if (end_obj->is_nil()) {
             end = this->size();
         } else {
-            if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
-                end_obj = end_obj->send(env, to_int);
-            end_obj->assert_type(env, Object::Type::Integer, "Integer");
-
-            end = end_obj->as_integer()->to_nat_int_t();
+            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
             if (end < 0) {
                 end = this->size() + end;
             }
@@ -248,11 +234,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
             width = this->size() - start;
         }
     } else {
-        if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
-            index_obj = index_obj->send(env, to_int);
-        index_obj->assert_type(env, ObjectType::Integer, "Integer");
-
-        start = index_obj->as_integer()->to_nat_int_t();
+        start = IntegerObject::convert_to_nat_int_t(env, index_obj);
         if (start < 0) {
             if ((size_t)(-start) > this->size()) {
                 env->raise("IndexError", "index {} too small for array; minimum: -{}", start, this->size());
@@ -272,11 +254,7 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
             return val;
         }
 
-        if (!size->is_integer() && size->respond_to(env, to_int))
-            size = size->send(env, to_int);
-
-        size->assert_type(env, Object::Type::Integer, "Integer");
-        width = size->as_integer()->to_nat_int_t();
+        width = IntegerObject::convert_to_nat_int_t(env, size);
         if (width < 0) {
             env->raise("IndexError", "negative length ({})", width);
             return nullptr;
@@ -480,7 +458,6 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
         start_obj = obj;
     }
 
-    auto to_int = "to_int"_s;
     nat_int_t start = 0;
     nat_int_t max = size();
 
@@ -488,11 +465,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
         if (!length_obj && start_obj->is_range()) {
             Value begin = start_obj->as_range()->begin();
             if (!begin->is_nil()) {
-                if (!begin->is_integer() && begin->respond_to(env, to_int)) {
-                    begin = begin->send(env, to_int);
-                }
-                begin->assert_type(env, Type::Integer, "Integer");
-                start = begin->as_integer()->to_nat_int_t();
+                start = IntegerObject::convert_to_nat_int_t(env, begin);
 
                 if (start < 0)
                     start += size();
@@ -503,11 +476,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             auto end = start_obj->as_range()->end();
 
             if (!end->is_nil()) {
-                if (!end->is_integer() && end->respond_to(env, to_int)) {
-                    end = end->send(env, to_int);
-                }
-                end->assert_type(env, Type::Integer, "Integer");
-                max = end->as_integer()->to_nat_int_t();
+                max = IntegerObject::convert_to_nat_int_t(env, end);
 
                 if (max < 0)
                     max += size();
@@ -515,11 +484,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                     ++max;
             }
         } else {
-            if (!start_obj->is_integer() && start_obj->respond_to(env, to_int)) {
-                start_obj = start_obj->send(env, to_int);
-            }
-            start_obj->assert_type(env, Type::Integer, "Integer");
-            start = start_obj->as_integer()->to_nat_int_t();
+            start = IntegerObject::convert_to_nat_int_t(env, start_obj);
 
             if (start < 0)
                 start += size();
@@ -527,12 +492,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                 start = 0;
 
             if (length_obj && !length_obj->is_nil()) {
-                if (!length_obj->is_integer() && length_obj->respond_to(env, to_int)) {
-                    length_obj = length_obj->send(env, to_int);
-                }
-                length_obj->assert_type(env, Type::Integer, "Integer");
-                length_obj->as_integer()->assert_fixnum(env);
-                auto length = length_obj->as_integer()->to_nat_int_t();
+                auto length = IntegerObject::convert_to_nat_int_t(env, length_obj);
 
                 if (length <= 0)
                     return this;
@@ -568,15 +528,7 @@ Value ArrayObject::first(Env *env, Value n) {
         return (*this)[0];
     }
 
-    auto to_int = "to_int"_s;
-    if (!n->is_integer() && n->respond_to(env, to_int))
-        n = n->send(env, to_int);
-
-    n->assert_type(env, Object::Type::Integer, "Integer");
-
-    n->as_integer()->assert_fixnum(env);
-
-    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+    nat_int_t n_value = IntegerObject::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -606,22 +558,7 @@ Value ArrayObject::flatten_in_place(Env *env, Value depth) {
 
     auto has_depth = depth != nullptr;
     if (has_depth) {
-        auto sym_to_i = "to_i"_s;
-        auto sym_to_int = "to_int"_s;
-        if (!depth->is_integer()) {
-            if (depth->respond_to(env, sym_to_i)) {
-                depth = depth.send(env, sym_to_i);
-            } else if (depth->respond_to(env, sym_to_int)) {
-                depth = depth.send(env, sym_to_int);
-            } else {
-                env->raise("TypeError", "no implicit conversion of {} into Integer", depth->klass()->inspect_str());
-                return nullptr;
-            }
-        }
-
-        depth->assert_type(env, Object::Type::Integer, "Integer");
-        nat_int_t depth_value = depth->as_integer()->to_nat_int_t();
-
+        auto depth_value = IntegerObject::convert_to_nat_int_t(env, depth);
         changed = _flatten_in_place(env, depth_value);
     } else {
         changed = _flatten_in_place(env, -1);
@@ -687,15 +624,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
 Value ArrayObject::delete_at(Env *env, Value n) {
     this->assert_not_frozen(env);
 
-    auto to_int = "to_int"_s;
-    if (!n->is_integer() && n->respond_to(env, to_int))
-        n = n->send(env, to_int);
-
-    if (!n->is_integer())
-        env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
-
-    nat_int_t nat_resolved_index = _resolve_index(n->as_integer()->to_nat_int_t());
-
+    auto nat_resolved_index = _resolve_index(IntegerObject::convert_to_nat_int_t(env, n));
     if (nat_resolved_index < 0)
         return NilObject::the();
 
@@ -781,13 +710,7 @@ Value ArrayObject::dig(Env *env, size_t argc, Value *args) {
 }
 
 Value ArrayObject::drop(Env *env, Value n) {
-    auto to_int = "to_int"_s;
-    if (!n->is_integer() && n->respond_to(env, to_int))
-        n = n->send(env, to_int);
-
-    n->assert_type(env, Object::Type::Integer, "Integer");
-
-    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+    auto n_value = IntegerObject::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "attempt to drop negative size");
@@ -839,12 +762,7 @@ Value ArrayObject::last(Env *env, Value n) {
         return (*this)[size() - 1];
     }
 
-    auto to_int = "to_int"_s;
-    if (!n->is_integer() && n->respond_to(env, to_int))
-        n = n->send(env, to_int);
-
-    n->assert_type(env, Object::Type::Integer, "Integer");
-    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+    auto n_value = IntegerObject::convert_to_nat_int_t(env, n);
 
     if (n_value < 0) {
         env->raise("ArgumentError", "negative array size");
@@ -891,14 +809,7 @@ Value ArrayObject::shift(Env *env, Value count) {
     size_t shift_count = 1;
     Value result = nullptr;
     if (has_count) {
-        auto sym_to_int = "to_int"_s;
-        if (count->respond_to(env, sym_to_int)) {
-            count = count.send(env, sym_to_int);
-        }
-
-        count->assert_type(env, Object::Type::Integer, "Integer");
-
-        auto count_signed = count->as_integer()->to_nat_int_t();
+        auto count_signed = IntegerObject::convert_to_nat_int_t(env, count);
 
         if (count_signed < 0)
             env->raise("ArgumentError", "negative array size");
@@ -1050,13 +961,7 @@ Value ArrayObject::pop(Env *env, Value count) {
     this->assert_not_frozen(env);
 
     if (count) {
-        auto to_int = "to_int"_s;
-
-        if (!count->is_integer() && count->respond_to(env, to_int))
-            count = count.send(env, to_int);
-
-        count->assert_type(env, ObjectType::Integer, "Integer");
-        auto c = count->as_integer()->to_nat_int_t();
+        auto c = IntegerObject::convert_to_nat_int_t(env, count);
 
         if (c < 0)
             env->raise("ArgumentError", "negative array size");
@@ -1239,7 +1144,6 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
         return NilObject::the();
 
-    auto to_int = "to_int"_s;
     auto is_more = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, "<=>"_s, { min });
@@ -1251,10 +1155,8 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
                 item->klass()->inspect_str(),
                 min->klass()->inspect_str());
 
-        if (!compare->is_integer() && compare->respond_to(env, to_int))
-            compare = compare.send(env, to_int);
-
-        return compare->as_integer()->to_nat_int_t() > 0;
+        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        return nat_int > 0;
     };
 
     auto has_implicit_count = !count || count->is_nil();
@@ -1263,10 +1165,7 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
     if (has_implicit_count) {
         c = 1;
     } else {
-        if (!count->is_integer() && count->respond_to(env, to_int))
-            count = count.send(env, to_int);
-
-        auto c_nat_int = count->as_integer()->to_nat_int_t();
+        auto c_nat_int = IntegerObject::convert_to_nat_int_t(env, count);
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1295,7 +1194,6 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
         return NilObject::the();
 
-    auto to_int = "to_int"_s;
     auto is_less = [&](Value item, Value min) -> bool {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, "<=>"_s, { min });
@@ -1307,10 +1205,8 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
                 item->klass()->inspect_str(),
                 min->klass()->inspect_str());
 
-        if (!compare->is_integer() && compare->respond_to(env, to_int))
-            compare = compare.send(env, to_int);
-
-        return compare->as_integer()->to_nat_int_t() < 0;
+        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        return nat_int < 0;
     };
 
     auto has_implicit_count = !count || count->is_nil();
@@ -1319,10 +1215,7 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
     if (has_implicit_count) {
         c = 1;
     } else {
-        if (!count->is_integer() && count->respond_to(env, to_int))
-            count = count.send(env, to_int);
-
-        auto c_nat_int = count->as_integer()->to_nat_int_t();
+        auto c_nat_int = IntegerObject::convert_to_nat_int_t(env, count);
         if (c_nat_int < 0)
             env->raise("ArgumentError", "negative size ({})", c_nat_int);
 
@@ -1351,7 +1244,6 @@ Value ArrayObject::minmax(Env *env, Block *block) {
     if (m_vector.size() == 0)
         return new ArrayObject { NilObject::the(), NilObject::the() };
 
-    auto to_int = "to_int"_s;
     auto compare = [&](Value item, Value min) -> nat_int_t {
         Value block_args[] = { item, min };
         Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, "<=>"_s, { min });
@@ -1363,10 +1255,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
                 item->klass()->inspect_str(),
                 min->klass()->inspect_str());
 
-        if (!compare->is_integer() && compare->respond_to(env, to_int))
-            compare = compare.send(env, to_int);
-
-        return compare->as_integer()->to_nat_int_t();
+        auto nat_int = IntegerObject::convert_to_nat_int_t(env, compare);
+        return nat_int;
     };
 
     Value max;
@@ -1391,29 +1281,17 @@ Value ArrayObject::multiply(Env *env, Value factor) {
         return join(env, factor);
     }
 
-    auto to_int = "to_int"_s;
+    auto times = IntegerObject::convert_to_nat_int_t(env, factor);
+    if (times < 0)
+        env->raise("ArgumentError", "negative argument");
 
-    if (!factor->is_integer() && factor->respond_to(env, to_int))
-        factor = factor.send(env, to_int);
+    auto accumulator = new ArrayObject { times * size() };
+    accumulator->m_klass = klass();
 
-    if (factor->is_integer()) {
-        auto times = factor->as_integer()->to_nat_int_t();
+    for (nat_int_t i = 0; i < times; ++i)
+        accumulator->push_splat(env, this);
 
-        if (times < 0)
-            env->raise("ArgumentError", "negative argument");
-
-        auto accumulator = new ArrayObject { times * size() };
-        accumulator->m_klass = klass();
-
-        for (nat_int_t i = 0; i < times; ++i)
-            accumulator->push_splat(env, this);
-
-        return accumulator;
-    }
-
-    env->raise("TypeError", "no implicit conversion of {} into Integer", factor->klass()->inspect_str());
-
-    return this;
+    return accumulator;
 }
 
 Value ArrayObject::compact(Env *env) {
@@ -1591,7 +1469,6 @@ Value ArrayObject::hash(Env *env) {
 
         HashBuilder hash {};
         auto hash_method = "hash"_s;
-        auto to_int = "to_int"_s;
 
         for (size_t i = 0; i < size(); ++i) {
             auto item = (*this)[i];
@@ -1606,10 +1483,8 @@ Value ArrayObject::hash(Env *env) {
             if (item->is_array() && size() == item->as_array()->size() && eql(env, item))
                 continue;
 
-            if (!item_hash->is_integer() && item_hash->respond_to(env, to_int))
-                item_hash = item_hash->send(env, to_int);
-
-            hash.append(item_hash->as_integer()->to_nat_int_t());
+            auto nat_int = IntegerObject::convert_to_nat_int_t(env, item_hash);
+            hash.append(nat_int);
         }
 
         return Value::integer(hash.digest());
@@ -1624,18 +1499,7 @@ Value ArrayObject::insert(Env *env, size_t argc, Value *args) {
 
     auto index_ptr = args[0];
 
-    if (!index_ptr->is_integer()) {
-        auto sym_to_int = "to_int"_s;
-
-        if (index_ptr->respond_to(env, sym_to_int)) {
-            index_ptr = index_ptr->send(env, sym_to_int);
-        }
-    }
-
-    if (!index_ptr->is_integer())
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index_ptr->klass()->inspect_str());
-
-    auto index = index_ptr->as_integer()->to_nat_int_t();
+    auto index = IntegerObject::convert_to_nat_int_t(env, index_ptr);
     auto should_append = index < 0;
 
     if (index < 0)
@@ -1819,22 +1683,8 @@ Value ArrayObject::rindex(Env *env, Value object, Block *block) {
 }
 
 Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *block) {
-    auto to_int = "to_int"_s;
-    Value index_obj = arg_index;
-
-    if (!arg_index->is_integer()) {
-        if (arg_index->respond_to(env, to_int)) {
-            index_obj = arg_index->send(env, to_int);
-            if (!index_obj->is_integer()) {
-                auto arg_index_class = arg_index->klass()->inspect_str();
-                env->raise("TypeError", "can't convert {} to Integer ({}#to_int gives {})", arg_index_class, arg_index_class, index_obj->klass()->inspect_str());
-            }
-        }
-    }
-    index_obj->assert_type(env, Type::Integer, "Integer");
-
     Value value;
-    auto index_val = index_obj->as_integer()->to_nat_int_t();
+    auto index_val = IntegerObject::convert_to_nat_int_t(env, arg_index);
     auto index = _resolve_index(index_val);
     if (index < 0) {
         if (block) {
@@ -1949,15 +1799,8 @@ Value ArrayObject::rotate(Env *env, Value val) {
 Value ArrayObject::rotate_in_place(Env *env, Value val) {
     assert_not_frozen(env);
     nat_int_t count = 1;
-    auto to_int = "to_int"_s;
     if (val) {
-        if (!val->is_integer() && val->respond_to(env, to_int)) {
-            val = val->send(env, to_int);
-        } else if (!val->is_integer()) {
-            env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->inspect_str());
-            return nullptr;
-        }
-        count = val->as_integer()->to_nat_int_t();
+        count = IntegerObject::convert_to_nat_int_t(env, val);
     }
 
     if (size() == 0) {
@@ -1996,18 +1839,10 @@ Value ArrayObject::rotate_in_place(Env *env, Value val) {
 
 Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
-    auto to_int = "to_int"_s;
 
     if (size) {
-        if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
-            index_obj = index_obj.send(env, to_int);
-
-        index_obj->assert_type(env, ObjectType::Integer, "Integer");
-
-        if (!size->is_integer() && size->respond_to(env, to_int))
-            size = size.send(env, to_int);
-
-        size->assert_type(env, ObjectType::Integer, "Integer");
+        index_obj = index_obj->to_int(env);
+        size = size->to_int(env);
 
         size->as_integer()->assert_fixnum(env);
     }
@@ -2054,13 +1889,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         if (begin_obj->is_nil()) {
             start = 0;
         } else {
-            if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
-                begin_obj = begin_obj.send(env, to_int);
-
-            begin_obj->assert_type(env, ObjectType::Integer, "Integer");
-            begin_obj->as_integer()->assert_fixnum(env);
-
-            start = begin_obj->as_integer()->to_nat_int_t();
+            start = IntegerObject::convert_to_nat_int_t(env, begin_obj);
         }
 
         Value end_obj = range->end();
@@ -2070,23 +1899,13 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         if (end_obj->is_nil()) {
             end = this->size();
         } else {
-            if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
-                end_obj = end_obj.send(env, to_int);
-
-            end_obj->assert_type(env, Type::Integer, "Integer");
-            end_obj->as_integer()->assert_fixnum(env);
-            end = end_obj->as_integer()->to_nat_int_t();
+            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
         }
 
         return _slice_in_place(start, end, range->exclude_end());
     }
 
-    if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
-        index_obj = index_obj.send(env, to_int);
-
-    index_obj->assert_type(env, ObjectType::Integer, "Integer");
-
-    return slice_in_place(env, index_obj, size);
+    return slice_in_place(env, index_obj->to_int(env), size);
 }
 
 Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
@@ -2177,15 +1996,6 @@ Value ArrayObject::try_convert(Env *env, Value val) {
 Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
     TM::Vector<nat_int_t> indices;
 
-    auto to_int = "to_int"_s;
-    auto convert_to_int = [&](Value arg) -> nat_int_t {
-        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
-            arg = arg.send(env, to_int);
-        }
-        arg->assert_type(env, Type::Integer, "Integer");
-        return arg->as_integer()->to_nat_int_t();
-    };
-
     for (size_t i = 0; i < argc; ++i) {
         auto arg = args[i];
         if (arg->is_range()) {
@@ -2196,7 +2006,7 @@ Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
             if (begin_value->is_nil()) {
                 begin = 0;
             } else {
-                begin = convert_to_int(begin_value);
+                begin = IntegerObject::convert_to_nat_int_t(env, begin_value);
                 if (begin < 0)
                     break;
             }
@@ -2204,7 +2014,7 @@ Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
             if (end_value->is_nil()) {
                 end = size();
             } else {
-                end = convert_to_int(end_value);
+                end = IntegerObject::convert_to_nat_int_t(env, end_value);
                 if (!arg->as_range()->exclude_end())
                     end += 1;
                 if (end < 0)
@@ -2216,7 +2026,7 @@ Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
             for (nat_int_t j = begin; j < end; ++j)
                 indices.push(j);
         } else {
-            indices.push(convert_to_int(arg));
+            indices.push(IntegerObject::convert_to_nat_int_t(env, arg));
         }
     }
 

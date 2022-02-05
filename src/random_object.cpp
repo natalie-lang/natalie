@@ -10,13 +10,8 @@ Value RandomObject::initialize(Env *env, Value seed) {
         if (seed->is_float()) {
             seed = seed->as_float()->to_i(env);
         }
-        if (!seed->is_integer() && seed->respond_to(env, "to_int"_s)) {
-            seed = seed.send(env, "to_int"_s);
-        }
 
-        seed->assert_type(env, Type::Integer, "Integer");
-
-        m_seed = seed->as_integer()->to_nat_int_t();
+        m_seed = IntegerObject::convert_to_nat_int_t(env, seed);
     }
 
     if (m_generator) delete m_generator;
@@ -69,12 +64,9 @@ Value RandomObject::rand(Env *env, Value arg) {
                 }
             }
             env->raise("ArgumentError", "bad value for range");
-        } else if (!arg->is_integer() && arg->respond_to(env, "to_int"_s)) {
-            arg = arg->send(env, "to_int"_s);
         }
-        arg->assert_type(env, Type::Integer, "Integer");
 
-        nat_int_t max = arg->as_integer()->to_nat_int_t();
+        nat_int_t max = IntegerObject::convert_to_nat_int_t(env, arg);
         if (max <= 0) {
             env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
         }

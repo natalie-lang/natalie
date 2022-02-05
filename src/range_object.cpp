@@ -68,12 +68,7 @@ Value RangeObject::first(Env *env, Value n) {
         env->raise("RangeError", "cannot get the first element of beginless range");
     }
     if (n) {
-        if (n->respond_to(env, "to_int"_s)) {
-            n = n->send(env, "to_int"_s);
-        }
-        n->assert_type(env, Object::Type::Integer, "Integer");
-
-        nat_int_t count = n->as_integer()->to_nat_int_t();
+        nat_int_t count = IntegerObject::convert_to_nat_int_t(env, n);
         if (count < 0) {
             env->raise("ArgumentError", "negative array size (or size too big)");
             return nullptr;

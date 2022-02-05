@@ -81,6 +81,7 @@ public:
     BigInt operator*(const BigInt &) const;
     BigInt operator/(const BigInt &) const;
     BigInt operator%(const BigInt &) const;
+    BigInt c_mod(const BigInt &) const;
     BigInt operator+(const long long &) const;
     BigInt operator-(const long long &) const;
     BigInt operator*(const long long &) const;
@@ -171,3 +172,11 @@ public:
 BigInt pow(const BigInt &base, long long exp);
 BigInt gcd(const BigInt &num1, const BigInt &num2);
 BigInt sqrt(const BigInt &num);
+BigInt operator+(const long long &lhs, const BigInt &rhs);
+BigInt operator-(const long long &lhs, const BigInt &rhs);
+BigInt operator*(const long long &lhs, const BigInt &rhs);
+BigInt operator/(const long long &lhs, const BigInt &rhs);
+BigInt operator%(const long long &lhs, const BigInt &rhs);
+
+BigInt abs(const BigInt &num);
+BigInt big_pow10(size_t exp);
