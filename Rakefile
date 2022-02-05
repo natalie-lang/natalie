@@ -4,10 +4,14 @@ desc 'Build Natalie (same as build_debug)'
 task build: :build_debug
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie parser_c_ext]
+task build_debug: %i[set_build_debug libnatalie parser_c_ext] do
+  puts 'Build mode: debug'
+end
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie parser_c_ext]
+task build_release: %i[set_build_release libnatalie parser_c_ext] do
+  puts 'Build mode: release'
+end
 
 desc 'Remove temporary files created during build'
 task :clean do
