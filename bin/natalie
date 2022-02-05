@@ -94,11 +94,15 @@ OptionParser.new do |opts|
   opts.on('--extra-optimizations', 'Enables additional compiler optimizations that may decrease compatibility with Ruby') do
     options[:optimizations] = true
   end
-  
+
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
     options[:log_load_error] = true
   end
-  
+
+  opts.on('--print-objects', 'Disabled GC and prints all allocated objects on program termination') do
+    options[:print_objects] = true
+  end
+
   opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
     options[:experimental_repl_v2] = true
   end
@@ -167,6 +171,10 @@ class Runner
     if options[:profile]
       compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
     end
+    if options[:print_objects]
+      compiler.cxx_flags << '-DNAT_PRINT_OBJECTS'
+    end
+
     case options[:debug]
     when 'gdb', 'lldb'
       compiler.compile
