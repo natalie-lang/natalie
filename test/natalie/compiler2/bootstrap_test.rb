@@ -9,6 +9,18 @@ class TestCase
     end
   end
 
+  def assert_raises(klass, message = nil)
+    begin
+      yield
+    rescue klass => e
+      # good
+      assert_eq(message, e.message) if message
+    else
+      puts 'expected to raise: ' + klass.name
+      fail
+    end
+  end
+
   def fail
     raise 'test failed'
   end
@@ -217,6 +229,7 @@ class TestCompiler2 < TestCase
           3
         end
     assert_eq(3, x)
+
     y = begin
           non_existent_method
         rescue
@@ -225,7 +238,8 @@ class TestCompiler2 < TestCase
           3
         end
     assert_eq(2, y)
-    begin
+
+    assert_raises(RuntimeError, 'this is the error') do
       begin
         # noop
       rescue
@@ -233,8 +247,6 @@ class TestCompiler2 < TestCase
       else
         raise 'this is the error'
       end
-    rescue => e
-      assert_eq('this is the error', e.message)
     end
   end
 
