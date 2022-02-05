@@ -202,9 +202,9 @@ class TestCompiler2 < TestCase
         end
     assert_eq(2, y)
     z = begin
-          non_existent_method
+          method_raises
         rescue
-          3
+          y + 1
         end
     assert_eq(3, z)
   end
@@ -338,6 +338,10 @@ class TestCompiler2 < TestCase
 
   def block_yield2(a, b)
     yield a, b
+  end
+
+  def method_raises
+    raise 'foo'
   end
 end
 

@@ -41,8 +41,11 @@ module Natalie
             scope = { vars: {} }
             vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: block)
             vm.ip = start_ip
-            vm.run
-            vm.ip = vm.pop_call[:return_ip]
+            begin
+              vm.run
+            ensure
+              vm.ip = vm.pop_call[:return_ip]
+            end
             vm.pop # result must be returned to SendInstruction
           end
         case vm.method_visibility
