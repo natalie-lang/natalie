@@ -68,19 +68,7 @@ namespace ArrayPacker {
                 case 'c':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
-                        IntegerObject *integer;
-                        auto item = m_source->at(m_index);
-                        if (item->is_nil()) { // TODO check if it is already implemented by the else branch at the end
-                            env->raise("TypeError", "no implicit conversion of nil into Integer");
-                        } else if (item->respond_to(env, "to_int"_s)) {
-                            auto num = item->send(env, "to_int"_s);
-                            num->assert_type(env, Object::Type::Integer, "Integer");
-                            integer = num->as_integer();
-                        } else {
-                            env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->inspect_str());
-                            NAT_UNREACHABLE();
-                        }
-
+                        auto integer = m_source->at(m_index)->to_int(env);
                         auto packer = IntegerHandler { integer, token };
                         m_packed.append(packer.pack(env));
                     });

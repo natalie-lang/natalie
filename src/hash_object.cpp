@@ -590,7 +590,6 @@ Value HashObject::hash(Env *env) {
 
         HashBuilder hash { 10889, false };
         auto hash_method = "hash"_s;
-        auto to_int = "to_int"_s;
 
         for (HashObject::Key &node : *this) {
             HashBuilder entry_hash {};
@@ -601,10 +600,7 @@ Value HashObject::hash(Env *env) {
                 auto value_hash = value->send(env, hash_method);
 
                 if (!value_hash->is_nil()) {
-                    if (!value_hash->is_integer() && value_hash->respond_to(env, to_int))
-                        value_hash = value_hash->send(env, to_int);
-
-                    entry_hash.append(value_hash->as_integer()->to_nat_int_t());
+                    entry_hash.append(IntegerObject::convert_to_nat_int_t(env, value_hash));
                     any_change = true;
                 }
             }
@@ -614,10 +610,7 @@ Value HashObject::hash(Env *env) {
                 auto key_hash = key->send(env, hash_method);
 
                 if (!key_hash->is_nil()) {
-                    if (!key_hash->is_integer() && key_hash->respond_to(env, to_int))
-                        key_hash = key_hash->send(env, to_int);
-
-                    entry_hash.append(key_hash->as_integer()->to_nat_int_t());
+                    entry_hash.append(IntegerObject::convert_to_nat_int_t(env, key_hash));
                     any_change = true;
                 }
             }

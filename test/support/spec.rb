@@ -169,7 +169,6 @@ end
 def min_long
   # -(2**(0.size * 8 - 1))
   # NATFIXME: Support Integer#size
-  # NATFIXME: Make Integer#** spec compliant with bignums
   -((2**(8 * 8 - 2)) * 2)
 end
 

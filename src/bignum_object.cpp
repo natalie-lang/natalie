@@ -60,7 +60,7 @@ Value BignumObject::sub(Env *env, Value arg) {
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto other = arg->as_integer();
-    return new BignumObject { to_bigint() - other->to_bigint() };
+    return BignumObject::create_if_needed(to_bigint() - other->to_bigint());
 }
 
 Value BignumObject::mul(Env *env, Value arg) {

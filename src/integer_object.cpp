@@ -97,7 +97,7 @@ Value sub_fast(nat_int_t a, nat_int_t b) {
         overflowed = true;
     if (overflowed) {
         auto result = BigInt(a) - BigInt(b);
-        return new BignumObject { result };
+        return BignumObject::create_if_needed(result);
     }
 
     return Value::integer(result);
@@ -122,7 +122,7 @@ Value IntegerObject::sub(Env *env, Value arg) {
     auto other = arg->as_integer();
     if (other->is_bignum()) {
         auto result = to_bigint() - other->to_bigint();
-        return new BignumObject { result };
+        return BignumObject::create_if_needed(result);
     }
 
     return sub_fast(m_integer, other->to_nat_int_t());
@@ -567,13 +567,7 @@ Value IntegerObject::left_shift(Env *env, Value arg) {
     if (arg.is_fast_integer()) {
         nat_int = arg.get_fast_integer();
     } else {
-        auto to_int = "to_int"_s;
-        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
-            arg = arg->send(env, to_int);
-        }
-        arg->assert_type(env, Object::Type::Integer, "Integer");
-        auto integer = arg->as_integer();
-
+        auto integer = arg->to_int(env);
         if (integer->is_bignum())
             return Value::integer(0);
 
@@ -605,13 +599,7 @@ Value IntegerObject::right_shift(Env *env, Value arg) {
     if (arg.is_fast_integer()) {
         nat_int = arg.get_fast_integer();
     } else {
-        auto to_int = "to_int"_s;
-        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
-            arg = arg->send(env, to_int);
-        }
-        arg->assert_type(env, Object::Type::Integer, "Integer");
-        auto integer = arg->as_integer();
-
+        auto integer = arg->to_int(env);
         if (integer->is_bignum())
             return Value::integer(0);
 
@@ -809,19 +797,14 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
     } else {
         arg.unguard();
 
-        if (!arg->is_integer() && arg->respond_to(env, "to_int"_s)) {
-            arg = arg->send(env, "to_int"_s);
-        }
-        arg->assert_type(env, Type::Integer, "Integer");
-
-        auto integer = arg->as_integer();
+        auto integer = arg->to_int(env);
         if (integer->is_bignum()) {
             if (integer->to_bigint() < 0)
                 raise_domain_error();
 
             return new BignumObject { ::sqrt(integer->to_bigint()) };
         }
-        nat_int = arg->as_integer()->to_nat_int_t();
+        nat_int = integer->to_nat_int_t();
     }
 
     if (nat_int < 0)
