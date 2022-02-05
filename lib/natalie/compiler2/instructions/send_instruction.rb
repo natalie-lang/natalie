@@ -22,7 +22,8 @@ module Natalie
         block = @with_block ? transform.pop : 'nullptr'
         result = transform.temp("send_#{@message}")
         transform.exec(
-          "auto #{result} = #{receiver}->send(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})",
+          # FIXME: use public_send unless receiver == :self
+          "auto #{result} = #{receiver}.send(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})",
         )
         transform.push(result)
       end
@@ -43,8 +44,10 @@ module Natalie
         result =
           if @with_block
             block = vm.pop
+            # FIXME: use public_send unless receiver == :self
             receiver.send(@message, *args, &block)
           else
+            # FIXME: use public_send unless receiver == :self
             receiver.send(@message, *args)
           end
         vm.push result
