@@ -477,17 +477,17 @@ Value ModuleObject::name(Env *env) {
 Value ModuleObject::attr_reader(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; i++) {
         Value name_obj = args[i];
-        if (name_obj->type() == Object::Type::String) {
+        if (name_obj->type() == Object::Type::Symbol) {
             // we're good!
-        } else if (name_obj->type() == Object::Type::Symbol) {
-            name_obj = name_obj->as_symbol()->to_s(env);
+        } else if (name_obj->type() == Object::Type::String) {
+            name_obj = SymbolObject::intern(name_obj->as_string()->string());
         } else {
             env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
         auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleObject::attr_reader_block_fn, 0 };
-        define_method(env, name_obj->as_string()->to_symbol(env), attr_block);
+        define_method(env, name_obj->as_symbol(), attr_block);
     }
     return NilObject::the();
 }
@@ -495,27 +495,26 @@ Value ModuleObject::attr_reader(Env *env, size_t argc, Value *args) {
 Value ModuleObject::attr_reader_block_fn(Env *env, Value self, size_t argc, Value *args, Block *block) {
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
-    return self->ivar_get(env, ivar_name->to_symbol(env));
+    assert(name_obj->is_symbol());
+    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->c_str()));
+    return self->ivar_get(env, ivar_name);
 }
 
 Value ModuleObject::attr_writer(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; i++) {
         Value name_obj = args[i];
-        if (name_obj->type() == Object::Type::String) {
+        if (name_obj->type() == Object::Type::Symbol) {
             // we're good!
-        } else if (name_obj->type() == Object::Type::Symbol) {
-            name_obj = name_obj->as_symbol()->to_s(env);
+        } else if (name_obj->type() == Object::Type::String) {
+            name_obj = SymbolObject::intern(name_obj->as_string()->string());
         } else {
             env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
-        StringObject *method_name = new StringObject { name_obj->as_string()->c_str() };
-        method_name->append_char('=');
+        TM::String method_name = TM::String::format("{}=", name_obj->as_symbol()->c_str());
         auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 0 };
-        define_method(env, method_name->to_symbol(env), attr_block);
+        define_method(env, SymbolObject::intern(method_name), attr_block);
     }
     return NilObject::the();
 }
@@ -524,9 +523,9 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, size_t argc, Valu
     Value val = args[0];
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    assert(name_obj->is_string());
-    StringObject *ivar_name = StringObject::format("@{}", name_obj->as_string());
-    self->ivar_set(env, ivar_name->to_symbol(env), val);
+    assert(name_obj->is_symbol());
+    SymbolObject *ivar_name = SymbolObject::intern(TM::String::format("@{}", name_obj->as_symbol()->c_str()));
+    self->ivar_set(env, ivar_name, val);
     return val;
 }
 

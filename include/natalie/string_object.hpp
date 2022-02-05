@@ -60,6 +60,7 @@ public:
     }
 
     ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
+    const String &string() const { return m_string; }
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
