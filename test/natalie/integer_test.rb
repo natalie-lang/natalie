@@ -20,12 +20,12 @@ describe 'integer' do
 
     it 'handles bignums correctly' do
       bignum = bignum_value
-      (bignum % -50).should == -42
-      (bignum % -500).should == -192
-      (bignum % -999).should == -919
-      (bignum % -1009).should == -817
-      (-bignum % 999).should == 919
-      (-bignum % -999).should == -80
+      (bignum % -50).should == -34
+      (bignum % -500).should == -384
+      (bignum % -999).should == -839
+      (bignum % -1009).should == -625
+      (-bignum % 999).should == 839
+      (-bignum % -999).should == -160
       (-2 % bignum).should == bignum - 2
     end
 
@@ -34,8 +34,8 @@ describe 'integer' do
       (6 % -3.5).should == -1.0
       (6 % 7.5).should == 6.0
       (6 % 1.5).should == 0.0
-      (bignum_value % 4.5).should == 3.5
-      (bignum_value % -4.5).should == -1.0
+      (bignum_value % 4.5).should == 2.5
+      (bignum_value % -4.5).should == -2.0
     end
   end
 
