@@ -33,6 +33,7 @@ enum class Parser::Precedence {
     UNARY_MINUS, // -
     EXPONENT, // **
     UNARY_PLUS, // ! ~ +
+    ASSIGNMENTIDENTIFIER,
     CONSTANTRESOLUTION, // ::
     DOT, // foo.bar foo&.bar
     CALL, // foo()
@@ -561,9 +562,10 @@ Node *Parser::parse_comma_separated_identifiers(LocalsHashmap &locals) {
         case Token::Type::BareName:
         case Token::Type::ClassVariable:
         case Token::Type::Constant:
+        case Token::Type::ConstantResolution:
         case Token::Type::GlobalVariable:
         case Token::Type::InstanceVariable:
-            list->add_node(parse_identifier(locals));
+            list->add_node(parse_expression(Precedence::ASSIGNMENTIDENTIFIER, locals));
             break;
         case Token::Type::LParen:
             advance();

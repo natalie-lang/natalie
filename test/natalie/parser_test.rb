@@ -207,6 +207,16 @@ describe 'Parser' do
       Parser.parse('x, y = 1').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:lit, 1))))
       Parser.parse('x = *[1, 2]').should == s(:block, s(:lasgn, :x, s(:svalue, s(:splat, s(:array, s(:lit, 1), s(:lit, 2))))))
       Parser.parse('x, y = *[1, 2]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:splat, s(:array, s(:lit, 1), s(:lit, 2)))))
+      Parser.parse('::FOO = 1').should == s(:block, s(:cdecl, s(:colon3, :FOO), s(:lit, 1)))
+      Parser.parse('Foo::BAR = 1').should == s(:block, s(:cdecl, s(:colon2, s(:const, :Foo), :BAR), s(:lit, 1)))
+      if RUBY_ENGINE == 'natalie'
+        # We replace :const with :cdecl to be consistent with single-assignment.
+        Parser.parse('A, B::C = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:cdecl, s(:colon2, s(:const, :B), :C))), s(:array, s(:lit, 1), s(:lit, 2))))
+        Parser.parse('A, ::B = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:cdecl, s(:colon3, :B))), s(:array, s(:lit, 1), s(:lit, 2))))
+      else
+        Parser.parse('A, B::C = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:const, s(:colon2, s(:const, :B), :C))), s(:array, s(:lit, 1), s(:lit, 2))))
+        Parser.parse('A, ::B = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:const, s(:colon3, :B))), s(:array, s(:lit, 1), s(:lit, 2))))
+      end
     end
 
     it 'parses attr assignment' do
@@ -287,8 +297,6 @@ describe 'Parser' do
       Parser.parse('Foo::bar').should == s(:block, s(:call, s(:const, :Foo), :bar))
       Parser.parse('Foo::bar = 1 + 2').should == s(:block, s(:attrasgn, s(:const, :Foo), :bar=, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       Parser.parse('Foo::bar x, y').should == s(:block, s(:call, s(:const, :Foo), :bar, s(:call, nil, :x), s(:call, nil, :y)))
-      Parser.parse('::FOO = 1').should == s(:block, s(:cdecl, s(:colon3, :FOO), s(:lit, 1)))
-      Parser.parse('Foo::BAR = 1').should == s(:block, s(:cdecl, s(:colon2, s(:const, :Foo), :BAR), s(:lit, 1)))
       Parser.parse('-Foo::BAR').should == s(:block, s(:call, s(:colon2, s(:const, :Foo), :BAR), :-@))
     end
 

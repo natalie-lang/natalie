@@ -27,7 +27,7 @@ private:
     Value class_or_module_name_to_ruby(Env *env, Node *name);
 
     SexpObject *build_args_sexp(Env *env, Node *parent, Vector<Node *> &args);
-    SexpObject *build_assignment_sexp(Env *env, Node *parent, IdentifierNode *identifier);
+    SexpObject *build_assignment_sexp(Env *env, Node *parent, Node *identifier);
     SexpObject *multiple_assignment_to_ruby_with_array(Env *env, MultipleAssignmentNode *node);
 };
 

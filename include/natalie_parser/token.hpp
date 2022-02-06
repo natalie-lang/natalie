@@ -506,6 +506,7 @@ public:
         case Type::BareName:
         case Type::ClassVariable:
         case Type::Constant:
+        case Type::ConstantResolution:
         case Type::GlobalVariable:
         case Type::InstanceVariable:
             return true;
