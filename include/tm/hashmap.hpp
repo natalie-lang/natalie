@@ -8,18 +8,33 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "tm/macros.hpp"
+#include "tm/string.hpp"
+
 namespace TM {
 
 enum class HashType {
     Pointer,
     String,
+    TMString,
+};
+
+struct HashmapUtils {
+    static size_t hashmap_hash_ptr(uintptr_t ptr) {
+        // https://stackoverflow.com/a/12996028/197498
+        auto x = (size_t)ptr;
+        x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+        x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
+        x = x ^ (x >> 31);
+        return x;
+    }
 };
 
 template <typename KeyT, typename T = void *>
 class Hashmap {
 public:
-    using HashFn = size_t(const void *);
-    using CompareFn = bool(const void *, const void *, void *);
+    using HashFn = size_t(KeyT &);
+    using CompareFn = bool(KeyT &, KeyT &, void *);
 
     static constexpr size_t HASHMAP_MIN_LOAD_FACTOR = 25;
     static constexpr size_t HASHMAP_TARGET_LOAD_FACTOR = 50;
@@ -48,33 +63,57 @@ public:
             m_hash_fn = &Hashmap::hash_str;
             m_compare_fn = &Hashmap::compare_str;
             break;
+        case HashType::TMString:
+            m_hash_fn = &Hashmap::hash_tm_str;
+            m_compare_fn = &Hashmap::compare_tm_str;
+            break;
+        default:
+            TM_UNREACHABLE();
         }
     }
 
     // HashType::Pointer
-    static size_t hash_ptr(const void *ptr) {
-        // https://stackoverflow.com/a/12996028/197498
-        auto x = (size_t)ptr;
-        x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-        x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
-        x = x ^ (x >> 31);
-        return x;
+    static size_t hash_ptr(KeyT &ptr) {
+        if constexpr (std::is_pointer_v<KeyT>)
+            return HashmapUtils::hashmap_hash_ptr((uintptr_t)ptr);
+        else
+            return 0;
     }
-    static bool compare_ptr(const void *a, const void *b, void *) { return a == b; }
+    static bool compare_ptr(KeyT &a, KeyT &b, void *) {
+        return a == b;
+    }
 
     // HashType::String
-    static size_t hash_str(const void *ptr) {
-        // djb2 hash algorithm by Dan Bernstein
-        auto str = static_cast<const char *>(ptr);
-        size_t hash = 5381;
-        int c;
-        while ((c = *str++))
-            hash = ((hash << 5) + hash) + c;
-        return hash;
+    static size_t hash_str(KeyT &ptr) {
+        if constexpr (std::is_pointer_v<KeyT>) {
+            auto str = String((const char *)(ptr));
+            return str.djb2_hash();
+        } else {
+            return 0;
+        }
+    }
+    static bool compare_str(KeyT &a, KeyT &b, void *) {
+        if constexpr (std::is_pointer_v<KeyT>)
+            return strcmp((const char *)(a), (const char *)(b)) == 0;
+        else
+            return false;
     }
 
-    static bool compare_str(const void *a, const void *b, void *) {
-        return strcmp(static_cast<const char *>(a), static_cast<const char *>(b)) == 0;
+    // HashType::TMString
+    static size_t hash_tm_str(KeyT &ptr) {
+        if constexpr (std::is_pointer_v<KeyT>) {
+            return 0;
+        } else {
+            auto str = (const String &)(ptr);
+            return str.djb2_hash();
+        }
+    }
+    static bool compare_tm_str(KeyT &a, KeyT &b, void *) {
+        if constexpr (std::is_pointer_v<KeyT>) {
+            return false;
+        } else {
+            return ((const String &)a) == ((const String &)b);
+        }
     }
 
     Hashmap(const Hashmap &other)
@@ -160,8 +199,8 @@ public:
             return;
         }
         auto index = index_for_hash(hash);
-        key = duplicate_key(key);
-        auto new_item = new Item { key, value, hash };
+        auto new_key = duplicate_key(key);
+        auto new_item = new Item { new_key, value, hash };
         insert_item(m_map, index, new_item);
         m_size++;
     }
@@ -384,17 +423,17 @@ private:
         }
     }
 
-    KeyT duplicate_key(KeyT key) {
-        if constexpr (std::is_same_v<const char *, KeyT>) {
+    KeyT duplicate_key(KeyT &key) {
+        if constexpr (std::is_same_v<char *&, KeyT>) {
             return strdup(key);
         } else {
             return key;
         }
     }
 
-    void free_key(KeyT key) {
-        if constexpr (std::is_same_v<const char *, KeyT>) {
-            free((char *)key);
+    void free_key(KeyT &key) {
+        if constexpr (std::is_same_v<char *&, KeyT>) {
+            free(key);
         } else {
             (void)key; // don't warn/error about unused parameter
         }

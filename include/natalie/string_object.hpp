@@ -48,18 +48,21 @@ public:
         set_str(other.c_str(), other.length());
     }
 
-    StringObject(const ManagedString &str)
+    StringObject(const String &str)
         : Object { Object::Type::String, GlobalEnv::the()->String() } {
         m_string = str;
     }
 
-    StringObject(const ManagedString &str, Encoding encoding)
+    StringObject(const String &str, Encoding encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         m_string = str;
     }
 
+    const String &as_tm_string() const { return m_string; }
+
     ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
+
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
@@ -86,6 +89,7 @@ public:
     void append(Env *, const char *);
     void append(Env *, const StringObject *);
     void append(Env *, const ManagedString *);
+    void append(Env *, const String &);
     void append(Env *, Value);
 
     void append_sprintf(const char *format, ...) {

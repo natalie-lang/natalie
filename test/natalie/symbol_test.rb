@@ -5,6 +5,10 @@ describe 'symbol' do
     :"foo #{1 + 1}".should == :'foo 2'
   end
 
+  it 'can contain a null character' do
+    "foo\0bar".to_sym.to_s.should == "foo\0bar"
+  end
+
   describe '#inspect' do
     it 'returns a code representation of the symbol' do
       :foo.inspect.should == ':foo'

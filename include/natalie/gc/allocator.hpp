@@ -109,8 +109,8 @@ private:
 
     size_t m_cell_size;
     size_t m_free_cells { 0 };
-    Hashmap<HeapBlock *> m_blocks;
-    Vector<HeapBlock *> m_free_blocks;
+    Hashmap<HeapBlock *> m_blocks {};
+    Vector<HeapBlock *> m_free_blocks {};
 };
 
 }

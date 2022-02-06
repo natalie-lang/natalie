@@ -75,8 +75,8 @@ public:
         return self->as_hash()->size(env);
     }
 
-    static size_t hash(const void *);
-    static bool compare(const void *, const void *, void *);
+    static size_t hash(Key *&);
+    static bool compare(Key *&, Key *&, void *);
 
     size_t size() const { return m_hashmap.size(); }
     Value size(Env *) const;

@@ -95,7 +95,7 @@ Value StringObject::chr(Env *env) {
 }
 
 SymbolObject *StringObject::to_symbol(Env *env) const {
-    return SymbolObject::intern(c_str());
+    return SymbolObject::intern(m_string);
 }
 
 Value StringObject::to_sym(Env *env) const {
@@ -200,15 +200,15 @@ Value StringObject::ltlt(Env *env, Value arg) {
 }
 
 Value StringObject::add(Env *env, Value arg) const {
-    const char *str;
+    String str;
     if (arg->is_string()) {
-        str = arg->as_string()->c_str();
+        str = arg->as_string()->as_tm_string();
     } else {
         StringObject *str_obj = arg.send(env, "to_s"_s)->as_string();
         str_obj->assert_type(env, Object::Type::String, "String");
-        str = str_obj->c_str();
+        str = str_obj->as_string()->as_tm_string();
     }
-    StringObject *new_string = new StringObject { c_str() };
+    StringObject *new_string = new StringObject { m_string };
     new_string->append(env, str);
     return new_string;
 }
@@ -589,11 +589,13 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         replacement_from_block->assert_type(env, Object::Type::String, "String");
         *expanded_replacement = replacement_from_block->as_string();
         out->append(env, *expanded_replacement);
-        out->append(env, &c_str()[index + length]);
+        if (index + length < m_string.length())
+            out->append(env, m_string.substring(index + length));
     } else {
         *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
         out->append(env, *expanded_replacement);
-        out->append(env, &c_str()[index + length]);
+        if (index + length < m_string.length())
+            out->append(env, m_string.substring(index + length));
     }
     return out;
 }
@@ -940,11 +942,15 @@ void StringObject::append(Env *, const char *str) {
 }
 
 void StringObject::append(Env *, const StringObject *str) {
-    m_string.append(str->c_str());
+    m_string.append(str->as_tm_string());
 }
 
 void StringObject::append(Env *, const ManagedString *str) {
-    m_string.append(str->c_str());
+    m_string.append(str);
+}
+
+void StringObject::append(Env *, const String &str) {
+    m_string.append(str);
 }
 
 void StringObject::append(Env *env, Value val) {

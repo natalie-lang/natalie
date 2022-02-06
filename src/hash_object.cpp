@@ -5,20 +5,18 @@
 namespace Natalie {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-size_t HashObject::hash(const void *key) {
-    return static_cast<const HashObject::Key *>(key)->hash;
+size_t HashObject::hash(Key *&key) {
+    return key->hash;
 }
 
 // this is used by the hashmap library to compare keys
-bool HashObject::compare(const void *a, const void *b, void *env) {
+bool HashObject::compare(Key *&a, Key *&b, void *env) {
     assert(env);
-    Key *a_p = (Key *)a;
-    Key *b_p = (Key *)b;
 
-    if (a_p->key->object_id() == b_p->key->object_id() && a_p->hash == b_p->hash)
+    if (a->key->object_id() == b->key->object_id() && a->hash == b->hash)
         return true;
 
-    return a_p->key.send((Env *)env, "eql?"_s, { b_p->key })->is_truthy();
+    return a->key.send((Env *)env, "eql?"_s, { b->key })->is_truthy();
 }
 
 Value HashObject::compare_by_identity(Env *env) {
@@ -45,7 +43,8 @@ Value HashObject::get(Env *env, Value key) {
 
 nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     if (m_is_comparing_by_identity) {
-        return TM::Hashmap<void *>::hash_ptr(key.object());
+        auto obj = key.object();
+        return TM::HashmapUtils::hashmap_hash_ptr((uintptr_t)obj);
     } else {
         return key.send(env, "hash"_s)->as_integer()->to_nat_int_t();
     }

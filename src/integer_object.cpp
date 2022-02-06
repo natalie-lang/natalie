@@ -740,10 +740,11 @@ Value IntegerObject::abs(Env *env) {
 }
 
 Value IntegerObject::chr(Env *env) const {
-    char c = static_cast<char>(to_nat_int_t());
-    char str[] = " ";
-    str[0] = c;
-    return new StringObject { str };
+    if (m_integer < 0 || m_integer > 255)
+        env->raise("RangeError", "{} out of char range", m_integer);
+    auto c = static_cast<char>(to_nat_int_t());
+    char str[2] = { c, 0 };
+    return new StringObject { str, 1 };
 }
 
 bool IntegerObject::optimized_method(SymbolObject *method_name) {
