@@ -2,6 +2,148 @@
 
 namespace NatalieParser {
 
+enum class Parser::Precedence {
+    LOWEST,
+    ARRAY, // []
+    HASH, // {}
+    EXPRMODIFIER, // if/unless/while/until
+    CASE, // case/when/else
+    SPLAT, // *args, **kwargs
+    ASSIGNMENT, // =
+    CALLARGS, // foo(a, b)
+    COMPOSITION, // and/or
+    OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
+    TERNARY, // ? :
+    ITER_BLOCK, // do |n| ... end
+    BARECALLARGS, // foo a, b
+    RANGE, // ..
+    ITER_CURLY, // { |n| ... }
+    LOGICALNOT, // not
+    LOGICALOR, // ||
+    LOGICALAND, // &&
+    EQUALITY, // <=> == === != =~ !~
+    LESSGREATER, // <= < > >=
+    BITWISEOR, // ^ |
+    BITWISEAND, // &
+    BITWISESHIFT, // << >>
+    DEFARGS, // def foo(a, b) and { |a, b| ... }
+    SUM, // + -
+    PRODUCT, // * / %
+    PREFIX, // -1 +1
+    CONSTANTRESOLUTION, // ::
+    UNARY_MINUS, // -
+    EXPONENT, // **
+    UNARY_PLUS, // ! ~ +
+    DOT, // foo.bar foo&.bar
+    CALL, // foo()
+    REF, // foo[1] / foo[1] = 2
+};
+
+bool Parser::higher_precedence(Token &token, Node *left, Precedence current_precedence) {
+    auto next_precedence = get_precedence(token, left);
+    // trick to make chained assignment right-to-left
+    if (current_precedence == Precedence::ASSIGNMENT && next_precedence == Precedence::ASSIGNMENT)
+        return true;
+    return next_precedence > current_precedence;
+}
+
+Parser::Precedence Parser::get_precedence(Token &token, Node *left) {
+    switch (token.type()) {
+    case Token::Type::Plus:
+        return left ? Precedence::SUM : Precedence::UNARY_PLUS;
+    case Token::Type::Minus:
+        return left ? Precedence::SUM : Precedence::UNARY_MINUS;
+    case Token::Type::Equal:
+        return Precedence::ASSIGNMENT;
+    case Token::Type::AndEqual:
+    case Token::Type::BitwiseAndEqual:
+    case Token::Type::BitwiseOrEqual:
+    case Token::Type::BitwiseXorEqual:
+    case Token::Type::DivideEqual:
+    case Token::Type::ExponentEqual:
+    case Token::Type::LeftShiftEqual:
+    case Token::Type::MinusEqual:
+    case Token::Type::ModulusEqual:
+    case Token::Type::MultiplyEqual:
+    case Token::Type::OrEqual:
+    case Token::Type::PlusEqual:
+    case Token::Type::RightShiftEqual:
+        return Precedence::OPASSIGNMENT;
+    case Token::Type::BitwiseAnd:
+        return Precedence::BITWISEAND;
+    case Token::Type::BitwiseOr:
+    case Token::Type::BitwiseXor:
+        return Precedence::BITWISEOR;
+    case Token::Type::LeftShift:
+    case Token::Type::RightShift:
+        return Precedence::BITWISESHIFT;
+    case Token::Type::LParen:
+        return Precedence::CALL;
+    case Token::Type::AndKeyword:
+    case Token::Type::OrKeyword:
+        return Precedence::COMPOSITION;
+    case Token::Type::ConstantResolution:
+        return Precedence::CONSTANTRESOLUTION;
+    case Token::Type::Dot:
+    case Token::Type::SafeNavigation:
+        return Precedence::DOT;
+    case Token::Type::EqualEqual:
+    case Token::Type::EqualEqualEqual:
+    case Token::Type::NotEqual:
+    case Token::Type::Match:
+    case Token::Type::NotMatch:
+        return Precedence::EQUALITY;
+    case Token::Type::Exponent:
+        return Precedence::EXPONENT;
+    case Token::Type::IfKeyword:
+    case Token::Type::UnlessKeyword:
+    case Token::Type::WhileKeyword:
+    case Token::Type::UntilKeyword:
+        return Precedence::EXPRMODIFIER;
+    case Token::Type::DoKeyword:
+        return Precedence::ITER_BLOCK;
+    case Token::Type::LCurlyBrace:
+        return Precedence::ITER_CURLY;
+    case Token::Type::Comparison:
+    case Token::Type::LessThan:
+    case Token::Type::LessThanOrEqual:
+    case Token::Type::GreaterThan:
+    case Token::Type::GreaterThanOrEqual:
+        return Precedence::LESSGREATER;
+    case Token::Type::And:
+        return Precedence::LOGICALAND;
+    case Token::Type::NotKeyword:
+        return Precedence::LOGICALNOT;
+    case Token::Type::Or:
+        return Precedence::LOGICALOR;
+    case Token::Type::Divide:
+    case Token::Type::Modulus:
+    case Token::Type::Multiply:
+        return Precedence::PRODUCT;
+    case Token::Type::DotDot:
+    case Token::Type::DotDotDot:
+        return Precedence::RANGE;
+    case Token::Type::LBracket:
+    case Token::Type::LBracketRBracket: {
+        auto current = current_token();
+        if (left && treat_left_bracket_as_element_reference(left, current))
+            return Precedence::REF;
+        break;
+    }
+    case Token::Type::TernaryQuestion:
+    case Token::Type::TernaryColon:
+        return Precedence::TERNARY;
+    case Token::Type::Not:
+        return Precedence::UNARY_PLUS;
+    default:
+        break;
+    }
+    auto current = current_token();
+    if (left && is_first_arg_of_call_without_parens(left, current))
+        return Precedence::CALL;
+    return Precedence::LOWEST;
+}
+
 Node *Parser::parse_expression(Parser::Precedence precedence, LocalsHashmap &locals) {
     skip_newlines();
 
@@ -30,7 +172,7 @@ Node *Parser::tree() {
     LocalsHashmap locals { TM::HashType::String };
     skip_newlines();
     while (!current_token().is_eof()) {
-        auto exp = parse_expression(LOWEST, locals);
+        auto exp = parse_expression(Precedence::LOWEST, locals);
         tree->add_node(exp);
         current_token().validate();
         next_expression();
@@ -91,7 +233,7 @@ BlockNode *Parser::parse_def_body(LocalsHashmap &locals) {
             rewind(); // so the 'end' keyword can be consumed by parse_def
             return new BlockNode { token, begin_node };
         }
-        auto exp = parse_expression(LOWEST, locals);
+        auto exp = parse_expression(Precedence::LOWEST, locals);
         body->add_node(exp);
         next_expression();
     }
@@ -147,12 +289,12 @@ Node *Parser::parse_array(LocalsHashmap &locals) {
     }
     advance();
     if (current_token().type() != Token::Type::RBracket) {
-        array->add_node(parse_expression(ARRAY, locals));
+        array->add_node(parse_expression(Precedence::ARRAY, locals));
         while (current_token().type() == Token::Type::Comma) {
             advance();
             if (current_token().type() == Token::Type::RBracket)
                 break;
-            array->add_node(parse_expression(ARRAY, locals));
+            array->add_node(parse_expression(Precedence::ARRAY, locals));
         }
     }
     expect(Token::Type::RBracket, "array closing bracket");
@@ -161,10 +303,10 @@ Node *Parser::parse_array(LocalsHashmap &locals) {
 }
 
 void Parser::parse_comma_separated_expressions(ArrayNode *array, LocalsHashmap &locals) {
-    array->add_node(parse_expression(ARRAY, locals));
+    array->add_node(parse_expression(Precedence::ARRAY, locals));
     while (current_token().type() == Token::Type::Comma) {
         advance();
-        array->add_node(parse_expression(ARRAY, locals));
+        array->add_node(parse_expression(Precedence::ARRAY, locals));
     }
 }
 
@@ -173,7 +315,7 @@ Node *Parser::parse_begin(LocalsHashmap &locals) {
     advance();
     next_expression();
     auto begin_ending_tokens = Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
-    auto body = parse_body(locals, LOWEST, begin_ending_tokens, "case: rescue, else, ensure, or end");
+    auto body = parse_body(locals, Precedence::LOWEST, begin_ending_tokens, "case: rescue, else, ensure, or end");
 
     auto begin_node = new BeginNode { token, body };
     parse_rest_of_begin(begin_node, locals);
@@ -182,7 +324,7 @@ Node *Parser::parse_begin(LocalsHashmap &locals) {
     switch (token.type()) {
     case Token::Type::UntilKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         BlockNode *body;
         if (begin_node->no_rescue_nodes() && !begin_node->has_ensure_body())
             body = begin_node->body();
@@ -192,7 +334,7 @@ Node *Parser::parse_begin(LocalsHashmap &locals) {
     }
     case Token::Type::WhileKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         BlockNode *body;
         if (begin_node->no_rescue_nodes() && !begin_node->has_ensure_body())
             body = begin_node->body();
@@ -214,11 +356,11 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
             auto rescue_node = new BeginRescueNode { current_token() };
             advance();
             if (!current_token().is_eol() && current_token().type() != Token::Type::HashRocket) {
-                auto name = parse_expression(BARECALLARGS, locals);
+                auto name = parse_expression(Precedence::BARECALLARGS, locals);
                 rescue_node->add_exception_node(name);
                 while (current_token().is_comma()) {
                     advance();
-                    auto name = parse_expression(BARECALLARGS, locals);
+                    auto name = parse_expression(Precedence::BARECALLARGS, locals);
                     rescue_node->add_exception_node(name);
                 }
             }
@@ -229,7 +371,7 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
                 rescue_node->set_exception_name(name);
             }
             next_expression();
-            auto body = parse_body(locals, LOWEST, rescue_ending_tokens, "case: rescue, else, ensure, or end");
+            auto body = parse_body(locals, Precedence::LOWEST, rescue_ending_tokens, "case: rescue, else, ensure, or end");
             rescue_node->set_body(body);
             begin_node->add_rescue_node(rescue_node);
             break;
@@ -237,14 +379,14 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
         case Token::Type::ElseKeyword: {
             advance();
             next_expression();
-            auto body = parse_body(locals, LOWEST, else_ending_tokens, "case: ensure or end");
+            auto body = parse_body(locals, Precedence::LOWEST, else_ending_tokens, "case: ensure or end");
             begin_node->set_else_body(body);
             break;
         }
         case Token::Type::EnsureKeyword: {
             advance();
             next_expression();
-            auto body = parse_body(locals, LOWEST);
+            auto body = parse_body(locals, Precedence::LOWEST);
             begin_node->set_ensure_body(body);
             break;
         }
@@ -259,7 +401,7 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
 Node *Parser::parse_beginless_range(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new RangeNode { token, new NilNode { token }, parse_expression(LOWEST, locals), token.type() == Token::Type::DotDotDot };
+    return new RangeNode { token, new NilNode { token }, parse_expression(Precedence::LOWEST, locals), token.type() == Token::Type::DotDotDot };
 }
 
 Node *Parser::parse_block_pass(LocalsHashmap &locals) {
@@ -272,7 +414,7 @@ Node *Parser::parse_block_pass(LocalsHashmap &locals) {
     case Token::Type::GlobalVariable:
     case Token::Type::InstanceVariable:
     case Token::Type::NilKeyword:
-        return new BlockPassNode { token, parse_expression(LOWEST, locals) };
+        return new BlockPassNode { token, parse_expression(Precedence::LOWEST, locals) };
     case Token::Type::Symbol:
         return new BlockPassNode { token, parse_symbol(locals) };
     default:
@@ -304,7 +446,7 @@ Node *Parser::parse_break(LocalsHashmap &locals) {
             advance();
             return new BreakNode { token, new NilSexpNode { token } };
         } else {
-            auto arg = parse_expression(BARECALLARGS, locals);
+            auto arg = parse_expression(Precedence::BARECALLARGS, locals);
             expect(Token::Type::RParen, "break closing paren");
             advance();
             return new BreakNode { token, arg };
@@ -324,7 +466,7 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
     if (current_token().type() == Token::Type::WhenKeyword) {
         subject = new NilNode { case_token };
     } else {
-        subject = parse_expression(CASE, locals);
+        subject = parse_expression(Precedence::CASE, locals);
         next_expression();
     }
     auto node = new CaseNode { case_token, subject };
@@ -349,7 +491,7 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
         case Token::Type::ElseKeyword: {
             advance();
             skip_newlines();
-            BlockNode *body = parse_body(locals, LOWEST);
+            BlockNode *body = parse_body(locals, Precedence::LOWEST);
             node->set_else_node(body);
             expect(Token::Type::EndKeyword, "case end");
             break;
@@ -368,7 +510,7 @@ BlockNode *Parser::parse_case_when_body(LocalsHashmap &locals) {
     current_token().validate();
     skip_newlines();
     while (!current_token().is_eof() && !current_token().is_when_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword()) {
-        auto exp = parse_expression(LOWEST, locals);
+        auto exp = parse_expression(Precedence::LOWEST, locals);
         body->add_node(exp);
         current_token().validate();
         next_expression();
@@ -387,7 +529,7 @@ Node *Parser::parse_class_or_module_name(LocalsHashmap &locals) {
     }
     if (name_token.type() != Token::Type::Constant)
         throw SyntaxError { "class/module name must be CONSTANT" };
-    return parse_expression(LESSGREATER, locals);
+    return parse_expression(Precedence::LESSGREATER, locals);
 }
 
 Node *Parser::parse_class(LocalsHashmap &locals) {
@@ -400,11 +542,11 @@ Node *Parser::parse_class(LocalsHashmap &locals) {
     Node *superclass;
     if (current_token().type() == Token::Type::LessThan) {
         advance();
-        superclass = parse_expression(LOWEST, our_locals);
+        superclass = parse_expression(Precedence::LOWEST, our_locals);
     } else {
         superclass = new NilNode { token };
     }
-    auto body = parse_body(our_locals, LOWEST);
+    auto body = parse_body(our_locals, Precedence::LOWEST);
     expect(Token::Type::EndKeyword, "class end");
     advance();
     return new ClassNode { token, name, superclass, body };
@@ -517,7 +659,7 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
 Node *Parser::parse_defined(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto arg = parse_expression(BARECALLARGS, locals);
+    auto arg = parse_expression(Precedence::BARECALLARGS, locals);
     return new DefinedNode { token, arg };
 }
 
@@ -540,7 +682,7 @@ Node *Parser::parse_def_single_arg(LocalsHashmap &locals) {
         arg->add_to_locals(locals);
         if (current_token().type() == Token::Type::Equal) {
             advance();
-            arg->set_value(parse_expression(DEFARGS, locals));
+            arg->set_value(parse_expression(Precedence::DEFARGS, locals));
         }
         return arg;
     }
@@ -600,7 +742,7 @@ Node *Parser::parse_def_single_arg(LocalsHashmap &locals) {
         case Token::Type::BitwiseOr:
             break;
         default:
-            arg->set_value(parse_expression(DEFARGS, locals));
+            arg->set_value(parse_expression(Precedence::DEFARGS, locals));
         }
         arg->add_to_locals(locals);
         return arg;
@@ -615,23 +757,23 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
     switch (token.type()) {
     case Token::Type::IfKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         return new IfNode { token, condition, left, new NilNode { token } };
     }
     case Token::Type::UnlessKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         return new IfNode { token, condition, new NilNode { token }, left };
     }
     case Token::Type::UntilKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         auto body = new BlockNode { token, left };
         return new UntilNode { token, condition, body, true };
     }
     case Token::Type::WhileKeyword: {
         advance();
-        auto condition = parse_expression(LOWEST, locals);
+        auto condition = parse_expression(Precedence::LOWEST, locals);
         auto body = new BlockNode { token, left };
         return new WhileNode { token, condition, body, true };
     }
@@ -648,7 +790,7 @@ Node *Parser::parse_file_constant(LocalsHashmap &locals) {
 
 Node *Parser::parse_group(LocalsHashmap &locals) {
     advance();
-    auto exp = parse_expression(LOWEST, locals);
+    auto exp = parse_expression(Precedence::LOWEST, locals);
     expect(Token::Type::RParen, "group closing paren");
     advance();
     return exp;
@@ -662,11 +804,11 @@ Node *Parser::parse_hash(LocalsHashmap &locals) {
         if (current_token().type() == Token::Type::SymbolKey) {
             hash->add_node(parse_symbol(locals));
         } else {
-            hash->add_node(parse_expression(HASH, locals));
+            hash->add_node(parse_expression(Precedence::HASH, locals));
             expect(Token::Type::HashRocket, "hash rocket");
             advance();
         }
-        hash->add_node(parse_expression(HASH, locals));
+        hash->add_node(parse_expression(Precedence::HASH, locals));
         while (current_token().type() == Token::Type::Comma) {
             advance();
             if (current_token().type() == Token::Type::RCurlyBrace)
@@ -674,11 +816,11 @@ Node *Parser::parse_hash(LocalsHashmap &locals) {
             if (current_token().type() == Token::Type::SymbolKey) {
                 hash->add_node(parse_symbol(locals));
             } else {
-                hash->add_node(parse_expression(HASH, locals));
+                hash->add_node(parse_expression(Precedence::HASH, locals));
                 expect(Token::Type::HashRocket, "hash rocket");
                 advance();
             }
-            hash->add_node(parse_expression(HASH, locals));
+            hash->add_node(parse_expression(Precedence::HASH, locals));
         }
     }
     expect(Token::Type::RCurlyBrace, "hash closing curly brace");
@@ -697,7 +839,7 @@ Node *Parser::parse_identifier(LocalsHashmap &locals) {
 Node *Parser::parse_if(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto condition = parse_expression(LOWEST, locals);
+    auto condition = parse_expression(Precedence::LOWEST, locals);
     next_expression();
     auto true_expr = parse_if_body(locals);
     Node *false_expr;
@@ -722,7 +864,7 @@ Node *Parser::parse_if_body(LocalsHashmap &locals) {
     current_token().validate();
     skip_newlines();
     while (!current_token().is_eof() && !current_token().is_elsif_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword()) {
-        auto exp = parse_expression(LOWEST, locals);
+        auto exp = parse_expression(Precedence::LOWEST, locals);
         body->add_node(exp);
         current_token().validate();
         next_expression();
@@ -739,7 +881,7 @@ void Parser::parse_interpolated_body(LocalsHashmap &locals, InterpolatedNode *no
             advance();
             auto block = new BlockNode { current_token() };
             while (current_token().type() != Token::Type::EvaluateToStringEnd) {
-                block->add_node(parse_expression(LOWEST, locals));
+                block->add_node(parse_expression(Precedence::LOWEST, locals));
                 skip_newlines();
             }
             advance();
@@ -870,7 +1012,7 @@ Node *Parser::parse_lit(LocalsHashmap &locals) {
 };
 
 Node *Parser::parse_keyword_args(LocalsHashmap &locals, bool bare) {
-    auto precedence = bare ? BARECALLARGS : CALLARGS;
+    auto precedence = bare ? Precedence::BARECALLARGS : Precedence::CALLARGS;
     auto hash = new HashNode { current_token() };
     if (current_token().type() == Token::Type::SymbolKey) {
         hash->add_node(parse_symbol(locals));
@@ -897,7 +1039,7 @@ Node *Parser::parse_keyword_args(LocalsHashmap &locals, bool bare) {
 Node *Parser::parse_keyword_splat(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new KeywordSplatNode { token, parse_expression(SPLAT, locals) };
+    return new KeywordSplatNode { token, parse_expression(Precedence::SPLAT, locals) };
 }
 
 SharedPtr<String> Parser::parse_method_name(LocalsHashmap &) {
@@ -922,7 +1064,7 @@ Node *Parser::parse_module(LocalsHashmap &) {
     advance();
     LocalsHashmap our_locals { TM::HashType::String };
     auto name = parse_class_or_module_name(our_locals);
-    auto body = parse_body(our_locals, LOWEST);
+    auto body = parse_body(our_locals, Precedence::LOWEST);
     expect(Token::Type::EndKeyword, "module end");
     advance();
     return new ModuleNode { token, name, body };
@@ -937,7 +1079,7 @@ Node *Parser::parse_next(LocalsHashmap &locals) {
             advance();
             return new NextNode { token, new NilSexpNode { token } };
         } else {
-            auto arg = parse_expression(BARECALLARGS, locals);
+            auto arg = parse_expression(Precedence::BARECALLARGS, locals);
             expect(Token::Type::RParen, "break closing paren");
             advance();
             return new NextNode { token, arg };
@@ -981,15 +1123,15 @@ Node *Parser::parse_return(LocalsHashmap &locals) {
     advance();
     if (current_token().is_end_of_expression())
         return new ReturnNode { token };
-    return new ReturnNode { token, parse_expression(BARECALLARGS, locals) };
+    return new ReturnNode { token, parse_expression(Precedence::BARECALLARGS, locals) };
 };
 
 Node *Parser::parse_sclass(LocalsHashmap &locals) {
     auto token = current_token();
     advance(); // class
     advance(); // <<
-    auto klass = parse_expression(BARECALLARGS, locals);
-    auto body = parse_body(locals, LOWEST);
+    auto klass = parse_expression(Precedence::BARECALLARGS, locals);
+    auto body = parse_body(locals, Precedence::LOWEST);
     expect(Token::Type::EndKeyword, "sclass end");
     advance();
     return new SclassNode { token, klass, body };
@@ -1004,7 +1146,7 @@ Node *Parser::parse_self(LocalsHashmap &locals) {
 Node *Parser::parse_splat(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new SplatNode { token, parse_expression(SPLAT, locals) };
+    return new SplatNode { token, parse_expression(Precedence::SPLAT, locals) };
 };
 
 Node *Parser::parse_stabby_proc(LocalsHashmap &locals) {
@@ -1230,7 +1372,7 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, boo
 
 Node *Parser::parse_assignment_expression_value(bool to_array, LocalsHashmap &locals, bool allow_multiple) {
     auto token = current_token();
-    auto value = parse_expression(ASSIGNMENT, locals);
+    auto value = parse_expression(Precedence::ASSIGNMENT, locals);
     bool is_splat;
 
     if (allow_multiple && current_token().type() == Token::Type::Comma) {
@@ -1238,7 +1380,7 @@ Node *Parser::parse_assignment_expression_value(bool to_array, LocalsHashmap &lo
         array->add_node(value);
         while (current_token().type() == Token::Type::Comma) {
             advance();
-            array->add_node(parse_expression(ASSIGNMENT, locals));
+            array->add_node(parse_expression(Precedence::ASSIGNMENT, locals));
         }
         value = array;
         is_splat = true;
@@ -1288,7 +1430,7 @@ Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
         throw_unexpected(left->token(), "call for left side of iter");
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
-    auto body = parse_body(our_locals, LOWEST, end_token_type);
+    auto body = parse_body(our_locals, Precedence::LOWEST, end_token_type);
     expect(end_token_type, "block end");
     advance();
     return new IterNode { token, left, *args, body };
@@ -1342,7 +1484,7 @@ Node *Parser::parse_call_arg(LocalsHashmap &locals, bool bare, bool *keyword_arg
         *keyword_args = true;
         return hash;
     } else {
-        auto arg = parse_expression(bare ? BARECALLARGS : CALLARGS, locals);
+        auto arg = parse_expression(bare ? Precedence::BARECALLARGS : Precedence::CALLARGS, locals);
         *keyword_args = false;
         if (current_token().type() == Token::Type::Equal) {
             return parse_assignment_expression(arg, locals, false);
@@ -1445,7 +1587,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
     switch (token.type()) {
     case Token::Type::And: {
         advance();
-        auto right = parse_expression(LOGICALAND, locals);
+        auto right = parse_expression(Precedence::LOGICALAND, locals);
         if (left->type() == Node::Type::LogicalAnd) {
             return regroup<LogicalAndNode>(token, left, right);
         } else {
@@ -1454,7 +1596,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
     }
     case Token::Type::AndKeyword: {
         advance();
-        auto right = parse_expression(COMPOSITION, locals);
+        auto right = parse_expression(Precedence::COMPOSITION, locals);
         if (left->type() == Node::Type::LogicalAnd) {
             return regroup<LogicalAndNode>(token, left, right);
         } else {
@@ -1463,7 +1605,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
     }
     case Token::Type::Or: {
         advance();
-        auto right = parse_expression(LOGICALOR, locals);
+        auto right = parse_expression(Precedence::LOGICALOR, locals);
         if (left->type() == Node::Type::LogicalOr) {
             return regroup<LogicalOrNode>(token, left, right);
         } else {
@@ -1472,7 +1614,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
     }
     case Token::Type::OrKeyword: {
         advance();
-        auto right = parse_expression(COMPOSITION, locals);
+        auto right = parse_expression(Precedence::COMPOSITION, locals);
         if (left->type() == Node::Type::LogicalOr) {
             return regroup<LogicalOrNode>(token, left, right);
         } else {
@@ -1487,7 +1629,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_match_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto arg = parse_expression(EQUALITY, locals);
+    auto arg = parse_expression(Precedence::EQUALITY, locals);
     if (left->type() == Node::Type::Regexp) {
         return new MatchNode { token, static_cast<RegexpNode *>(left), arg, true };
     } else if (arg->type() == Node::Type::Regexp) {
@@ -1520,7 +1662,7 @@ Node *Parser::parse_op_assign_expression(Node *left, LocalsHashmap &locals) {
     advance();
     switch (token.type()) {
     case Token::Type::AndEqual:
-        return new OpAssignAndNode { token, left_identifier, parse_expression(ASSIGNMENT, locals) };
+        return new OpAssignAndNode { token, left_identifier, parse_expression(Precedence::ASSIGNMENT, locals) };
     case Token::Type::BitwiseAndEqual:
     case Token::Type::BitwiseOrEqual:
     case Token::Type::BitwiseXorEqual:
@@ -1534,10 +1676,10 @@ Node *Parser::parse_op_assign_expression(Node *left, LocalsHashmap &locals) {
     case Token::Type::RightShiftEqual: {
         auto op = new String(token.type_value());
         op->chomp();
-        return new OpAssignNode { token, op, left_identifier, parse_expression(ASSIGNMENT, locals) };
+        return new OpAssignNode { token, op, left_identifier, parse_expression(Precedence::ASSIGNMENT, locals) };
     }
     case Token::Type::OrEqual:
-        return new OpAssignOrNode { token, left_identifier, parse_expression(ASSIGNMENT, locals) };
+        return new OpAssignOrNode { token, left_identifier, parse_expression(Precedence::ASSIGNMENT, locals) };
     default:
         TM_UNREACHABLE();
     }
@@ -1558,7 +1700,7 @@ Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsHashmap &locals)
         op,
         left_call->receiver(),
         message,
-        parse_expression(OPASSIGNMENT, locals),
+        parse_expression(Precedence::OPASSIGNMENT, locals),
         left_call->args(),
     };
 }
@@ -1584,7 +1726,7 @@ Node *Parser::parse_range_expression(Node *left, LocalsHashmap &locals) {
     advance();
     Node *right;
     try {
-        right = parse_expression(RANGE, locals);
+        right = parse_expression(Precedence::RANGE, locals);
     } catch (SyntaxError &e) {
         // NOTE: I'm not sure if this is the "right" way to handle an endless range,
         // but it seems to be effective for the tests I threw at it. ¯\_(ツ)_/¯
@@ -1657,17 +1799,17 @@ Node *Parser::parse_ternary_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     expect(Token::Type::TernaryQuestion, "ternary question");
     advance();
-    auto true_expr = parse_expression(TERNARY, locals);
+    auto true_expr = parse_expression(Precedence::TERNARY, locals);
     expect(Token::Type::TernaryColon, "ternary colon");
     advance();
-    auto false_expr = parse_expression(TERNARY, locals);
+    auto false_expr = parse_expression(Precedence::TERNARY, locals);
     return new IfNode { token, left, true_expr, false_expr };
 }
 
 Node *Parser::parse_unless(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto condition = parse_expression(LOWEST, locals);
+    auto condition = parse_expression(Precedence::LOWEST, locals);
     next_expression();
     auto false_expr = parse_if_body(locals);
     Node *true_expr;
@@ -1685,9 +1827,9 @@ Node *Parser::parse_unless(LocalsHashmap &locals) {
 Node *Parser::parse_while(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto condition = parse_expression(LOWEST, locals);
+    auto condition = parse_expression(Precedence::LOWEST, locals);
     next_expression();
-    auto body = parse_body(locals, LOWEST);
+    auto body = parse_body(locals, Precedence::LOWEST);
     expect(Token::Type::EndKeyword, "while end");
     advance();
     switch (token.type()) {
@@ -1739,7 +1881,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Constant:
     case Type::GlobalVariable:
     case Type::InstanceVariable:
-        if (peek_token().is_comma() && precedence == LOWEST) {
+        if (peek_token().is_comma() && precedence == Precedence::LOWEST) {
             return &Parser::parse_comma_separated_identifiers;
         } else {
             return &Parser::parse_identifier;
