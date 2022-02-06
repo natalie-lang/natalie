@@ -277,12 +277,12 @@ module Natalie
           block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
         end
         if args.any?
-          args_name = temp('args_as_array')
+          args_name = temp('args_as_vector')
           method_args = MethodArgs.new(args, args_name)
           assign_args =
             s(
               :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'argc')), :'auto &'),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'argc')), :'auto&'),
               s(:args_to_vector, args_name, s(:l, 'argc'), s(:l, 'args')),
               process(method_args.set_args),
             )
@@ -435,12 +435,12 @@ module Natalie
           raise 'cannot add block to call!'
         end
         if args.any?
-          args_name = temp('args_as_array')
+          args_name = temp('args_as_vector')
           method_args = MethodArgs.new(args, args_name, is_proc: is_proc)
           assign_args =
             s(
               :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto &'),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto&'),
               s(:block_args_to_vector, :env, args_name, args.size, s(:l, 'argc'), s(:l, 'args')),
               process(method_args.set_args),
             )
