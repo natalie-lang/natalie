@@ -38,8 +38,8 @@ Value RegexpObject::inspect(Env *env) {
     if (!is_initialized())
         return KernelModule::inspect(env, this);
     StringObject *out = new StringObject { "/" };
-    const char *str = pattern();
-    size_t len = strlen(str);
+    auto str = pattern();
+    size_t len = str.length();
     for (size_t i = 0; i < len; i++) {
         char c = str[i];
         switch (c) {
@@ -183,8 +183,8 @@ Value RegexpObject::to_s(Env *env) {
     auto is_i = options() & RegexOpts::IgnoreCase;
     auto is_x = options() & RegexOpts::Extended;
 
-    const char *str = pattern();
-    size_t len = strlen(str);
+    auto str = pattern();
+    size_t len = str.length();
     size_t start = 0;
 
     auto maybe_parse_opts = [&]() {

@@ -255,11 +255,18 @@ public:
 
     void append(const char *str) {
         if (!str) return;
-        size_t new_length = strlen(str);
-        if (new_length == 0) return;
-        size_t total_length = m_length + new_length;
+        size_t length = strlen(str);
+        if (length == 0) return;
+        append(str, length);
+    }
+
+    void append(const char *str, size_t length) {
+        if (!str) return;
+        if (length == 0) return;
+        size_t total_length = m_length + length;
         grow_at_least(total_length);
-        strncat(m_str, str, total_length - m_length);
+        memcpy(m_str + m_length, str, length);
+        m_str[total_length] = 0;
         m_length = total_length;
     }
 
@@ -286,6 +293,7 @@ public:
         grow_at_least(total_length);
         memcpy(m_str + m_length, str.c_str(), sizeof(char) * str.length());
         m_length = total_length;
+        m_str[m_length] = 0;
     }
 
     void append(size_t n, char c) {
@@ -314,11 +322,31 @@ public:
     }
 
     bool operator>(const String &other) const {
+        // FIXME: cannot use strcmp here
         return strcmp(c_str(), other.c_str()) > 0;
     }
 
     bool operator<(const String &other) const {
+        // FIXME: cannot use strcmp here
         return strcmp(c_str(), other.c_str()) < 0;
+    }
+
+    int cmp(const String &other) const {
+        if (m_length == 0) {
+            if (other.m_length == 0)
+                return 0;
+            return -1;
+        }
+        size_t i;
+        for (i = 0; i < std::min(m_length, other.m_length); ++i) {
+            if (this[i] < other[i])
+                return -1;
+            else if (this[i] > other[i])
+                return 1;
+        }
+        // "x" (len 1) <=> "xx" (len 2)
+        // 1 - 2 = -1
+        return m_length - other.m_length;
     }
 
     ssize_t find(const String &needle) const {
@@ -466,6 +494,24 @@ public:
         if (m_length < needle.m_length)
             return false;
         return memcmp(m_str + m_length - needle.m_length, needle.m_str, needle.m_length) == 0;
+    }
+
+    // djb2 hash algorithm by Dan Bernstein
+    size_t djb2_hash() const {
+        size_t hash = 5381;
+        int c;
+        for (size_t i = 0; i < m_length; ++i) {
+            c = (*this)[i];
+            hash = ((hash << 5) + hash) + c;
+        }
+        return hash;
+    }
+
+    void print() const {
+        for (size_t i = 0; i < m_length; ++i) {
+            printf("%c", (*this)[i]);
+        }
+        printf("\n");
     }
 
 private:
