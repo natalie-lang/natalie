@@ -52,6 +52,8 @@ void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {
             identifier->add_to_locals(locals);
             break;
         }
+        case Node::Type::Colon2:
+        case Node::Type::Colon3:
         case Node::Type::Splat:
             break;
         case Node::Type::SplatAssignment: {
