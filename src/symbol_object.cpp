@@ -78,18 +78,7 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, size_t argc, Va
 Value SymbolObject::cmp(Env *env, Value other_value) {
     if (!other_value->is_symbol()) return NilObject::the();
     SymbolObject *other = other_value->as_symbol();
-    if (this == other)
-        return Value::integer(0);
-    int diff = m_name.cmp(other->m_name);
-    int result;
-    if (diff < 0) {
-        result = -1;
-    } else if (diff > 0) {
-        result = 1;
-    } else {
-        NAT_UNREACHABLE();
-    }
-    return Value::integer(result);
+    return Value::integer(m_name.cmp(other->m_name));
 }
 
 bool SymbolObject::start_with(Env *env, Value needle) {

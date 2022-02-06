@@ -339,9 +339,10 @@ public:
         }
         size_t i;
         for (i = 0; i < std::min(m_length, other.m_length); ++i) {
-            if (this[i] < other[i])
+            auto c1 = (unsigned char)(*this)[i], c2 = (unsigned char)other[i];
+            if (c1 < c2)
                 return -1;
-            else if (this[i] > other[i])
+            else if (c1 > c2)
                 return 1;
         }
         // "x" (len 1) <=> "xx" (len 2)
