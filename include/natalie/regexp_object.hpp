@@ -86,7 +86,7 @@ public:
         m_options = options;
     }
 
-    bool is_initialized() const { return m_pattern.length() != 0; }
+    bool is_initialized() const { return m_options > -1; }
 
     void assert_initialized(Env *env) const {
         if (!is_initialized())
@@ -187,7 +187,7 @@ public:
 
 private:
     regex_t *m_regex { nullptr };
-    int m_options { 0 };
+    int m_options { -1 };
     String m_pattern {};
 };
 
