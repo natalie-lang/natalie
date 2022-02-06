@@ -355,17 +355,22 @@ Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_siz
     auto default_value = options.default_value ?: NilObject::the();
     bool defaults_on_left = !options.defaults_on_right;
     int required_count = options.total_count - options.default_count;
-    Value return_value = options.value;
+    auto &arguments = options.value;
+    Value return_value = nullptr;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
 
         if (options.splat && i == path_size - 1) {
             va_end(args);
-            return splat_value(env, return_value, index, options.offset_from_end, options.has_kwargs);
+            Value splat_args = return_value ?: args_to_array(env, arguments);
+            return splat_value(env, splat_args, index, options.offset_from_end, options.has_kwargs);
         } else {
-            if (return_value->is_array()) {
-                assert(return_value->as_array()->size() <= NAT_INT_MAX);
-                nat_int_t ary_len = return_value->as_array()->size();
+            if (!return_value || return_value->is_array()) {
+                nat_int_t ary_len;
+                if (return_value)
+                    ary_len = return_value->as_array()->size();
+                else
+                    ary_len = arguments.size();
 
                 int first_required = options.default_count;
                 int remain = ary_len - required_count;
@@ -404,7 +409,10 @@ Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_siz
 
                 } else if (index < ary_len) {
                     // value available, yay!
-                    return_value = (*return_value->as_array())[index];
+                    if (return_value)
+                        return_value = return_value->as_array()->at(index);
+                    else
+                        return_value = arguments[index];
 
                     if (has_default && options.has_kwargs && i == path_size - 1) {
                         if (return_value->is_hash()) {
@@ -416,11 +424,9 @@ Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_siz
                     // index past the end of the array, so use default
                     return_value = default_value;
                 }
-
             } else if (index == 0) {
                 // not an array, so nothing to do (the object itself is returned)
                 // no-op
-
             } else {
                 // not an array, and index isn't zero
                 return_value = default_value;
@@ -521,6 +527,21 @@ ArrayObject *args_to_array(Env *env, size_t argc, Value *args) {
     return ary;
 }
 
+ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args) {
+    ArrayObject *ary = new ArrayObject { args.size() };
+    for (auto val : args) {
+        ary->push(val);
+    }
+    return ary;
+}
+
+void args_to_vector(TM::Vector<Value> &target, size_t argc, Value *args) {
+    target.set_capacity(argc);
+    for (size_t i = 0; i < argc; ++i) {
+        target.push(args[i]);
+    }
+}
+
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
 ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args) {
@@ -528,6 +549,18 @@ ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, V
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
+}
+
+void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, size_t argc, Value *args) {
+    if (argc == 1 && signature_size > 1) {
+        auto ary = to_ary(env, args[0], true);
+        target.set_capacity(ary->size());
+        for (size_t i = 0; i < ary->size(); ++i) {
+            target.push(ary->at(i));
+        }
+        return;
+    }
+    args_to_vector(target, argc, args);
 }
 
 void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...) {
@@ -753,5 +786,4 @@ Value bool_object(bool b) {
     else
         return FalseObject::the();
 }
-
 }

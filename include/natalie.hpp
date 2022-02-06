@@ -84,7 +84,7 @@ void handle_top_level_exception(Env *, ExceptionObject *, bool);
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array);
 
 struct ArgValueByPathOptions {
-    Value value;
+    TM::Vector<Value> &value;
     Value default_value;
     bool splat;
     bool has_kwargs;
@@ -109,7 +109,10 @@ Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_
 Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value);
 
 ArrayObject *args_to_array(Env *env, size_t argc, Value *args);
+ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args);
+void args_to_vector(TM::Vector<Value> &target, size_t argc, Value *args);
 ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args);
+void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, size_t argc, Value *args);
 
 void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...);
 

@@ -282,7 +282,8 @@ module Natalie
           assign_args =
             s(
               :block,
-              s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'argc')), :'auto &'),
+              s(:args_to_vector, args_name, s(:l, 'argc'), s(:l, 'args')),
               process(method_args.set_args),
             )
           arity = method_args.arity
@@ -439,7 +440,8 @@ module Natalie
           assign_args =
             s(
               :block,
-              s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto &'),
+              s(:block_args_to_vector, :env, args_name, args.size, s(:l, 'argc'), s(:l, 'args')),
               process(method_args.set_args),
             )
           arity = method_args.arity
