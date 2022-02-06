@@ -30,10 +30,10 @@ enum class Parser::Precedence {
     SUM, // + -
     PRODUCT, // * / %
     PREFIX, // -1 +1
-    CONSTANTRESOLUTION, // ::
     UNARY_MINUS, // -
     EXPONENT, // **
     UNARY_PLUS, // ! ~ +
+    CONSTANTRESOLUTION, // ::
     DOT, // foo.bar foo&.bar
     CALL, // foo()
     REF, // foo[1] / foo[1] = 2
