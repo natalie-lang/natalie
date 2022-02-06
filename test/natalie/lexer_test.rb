@@ -642,6 +642,12 @@ END
         { type: :dxstrend},
         { type: :"\n"},
       ]
+      Parser.tokens("<<~FOO\n foo\n  bar\n   \nFOO").should == [
+        { type: :dstr},
+        { type: :string, literal: "foo\n bar\n  \n"},
+        { type: :dstrend},
+        { type: :"\n"}
+      ]
     end
 
     it 'stores line and column numbers with each token' do

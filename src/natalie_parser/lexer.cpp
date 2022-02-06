@@ -428,6 +428,7 @@ Token Lexer::build_next_token() {
         case '<': {
             advance();
             switch (current_char()) {
+            case '~':
             case '-': {
                 auto next = peek();
                 if (isalpha(next))
@@ -955,11 +956,63 @@ bool is_valid_heredoc(bool with_dash, SharedPtr<String> doc, String heredoc_name
     return with_dash ? isspace(prefix) : prefix == '\n';
 }
 
+size_t get_heredoc_indent(SharedPtr<String> doc) {
+    if (doc->is_empty())
+        return 0;
+    size_t heredoc_indent = std::numeric_limits<size_t>::max();
+    size_t line_begin = 0;
+    size_t line_indent = 0;
+    bool maybe_blank_line = true;
+    for (size_t i = 0; i < doc->length(); i++) {
+        char c = (*doc)[i];
+        if (c == '\n') {
+            if (!maybe_blank_line && line_indent < heredoc_indent)
+                heredoc_indent = line_indent;
+            line_begin = i + 1;
+            line_indent = 0;
+            maybe_blank_line = true;
+        } else if (isspace(c)) {
+            if (maybe_blank_line)
+                line_indent++;
+        } else {
+            maybe_blank_line = false;
+        }
+    }
+    return heredoc_indent;
+}
+
+void dedent_heredoc(SharedPtr<String> &doc) {
+    size_t heredoc_indent = get_heredoc_indent(doc);
+    if (heredoc_indent == 0)
+        return;
+    SharedPtr<String> new_doc = new String("");
+    size_t line_begin = 0;
+    for (size_t i = 0; i < doc->length(); i++) {
+        char c = (*doc)[i];
+        if (c == '\n') {
+            line_begin += heredoc_indent;
+            if (line_begin < i)
+                new_doc->append(doc->substring(line_begin, i - line_begin));
+            new_doc->append_char('\n');
+            line_begin = i + 1;
+        }
+    }
+    doc = new_doc;
+}
+
 Token Lexer::consume_heredoc() {
     bool with_dash = false;
-    if (current_char() == '-') {
+    bool should_dedent = false;
+    switch (current_char()) {
+    case '-':
         advance();
         with_dash = true;
+        break;
+    case '~':
+        advance();
+        with_dash = true;
+        should_dedent = true;
+        break;
     }
 
     Token::Type type;
@@ -1030,6 +1083,9 @@ Token Lexer::consume_heredoc() {
     // chop the delimiter and any trailing space off the string
     doc->truncate(doc->length() - heredoc_name.length());
     doc->strip_trailing_spaces();
+
+    if (should_dedent)
+        dedent_heredoc(doc);
 
     // we have to keep tokenizing on the line where the heredoc was started, and then jump to the line after the heredoc
     // this index is used to do that
