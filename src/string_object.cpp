@@ -202,11 +202,11 @@ Value StringObject::ltlt(Env *env, Value arg) {
 Value StringObject::add(Env *env, Value arg) const {
     String str;
     if (arg->is_string()) {
-        str = arg->as_string()->as_tm_string();
+        str = arg->as_string()->string();
     } else {
         StringObject *str_obj = arg.send(env, "to_s"_s)->as_string();
         str_obj->assert_type(env, Object::Type::String, "String");
-        str = str_obj->as_string()->as_tm_string();
+        str = str_obj->as_string()->string();
     }
     StringObject *new_string = new StringObject { m_string };
     new_string->append(env, str);
@@ -942,7 +942,7 @@ void StringObject::append(Env *, const char *str) {
 }
 
 void StringObject::append(Env *, const StringObject *str) {
-    m_string.append(str->as_tm_string());
+    m_string.append(str->string());
 }
 
 void StringObject::append(Env *, const ManagedString *str) {

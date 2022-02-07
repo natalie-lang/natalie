@@ -60,7 +60,7 @@ public:
 
     Value ref(Env *, Value);
 
-    const String &as_tm_string() const { return m_name; }
+    const String &string() const { return m_name; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         // NOTE: this won't properly print the null character '\0', but since this is only used

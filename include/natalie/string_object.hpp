@@ -59,9 +59,8 @@ public:
         m_string = str;
     }
 
-    const String &as_tm_string() const { return m_string; }
-
     ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
+    const String &string() const { return m_string; }
 
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
