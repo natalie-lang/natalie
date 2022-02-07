@@ -34,19 +34,18 @@ module Natalie
         instructions
       end
 
-      def constant_name(instructions, name)
+      def constant_name(name)
         if name.is_a?(Symbol)
-          instructions << PushSelfInstruction.new
+          [PushSelfInstruction.new, name]
         elsif name.sexp_type == :colon2
           _, namespace, name = name
-          instructions << transform_expression(namespace, used: true)
+          [transform_expression(namespace, used: true), name]
         elsif name.sexp_type == :colon3
           _, name = name
-          instructions << PushObjectClassInstruction.new
+          [PushObjectClassInstruction.new, name]
         else
           raise "Unknown constant name type #{name.sexp_type.inspect}"
         end
-        name
       end
 
       # INDIVIDUAL EXPRESSIONS = = = = =
@@ -165,7 +164,8 @@ module Natalie
       def transform_cdecl(exp, used:)
         _, name, value = exp
         instructions = [transform_expression(value, used: true)]
-        name = constant_name(instructions, name)
+        (prep_instruction, name) = constant_name(name)
+        instructions << prep_instruction
         instructions << ConstSetInstruction.new(name)
         instructions << PopInstruction.new unless used
         instructions
@@ -179,7 +179,8 @@ module Natalie
         else
           instructions << PushObjectClassInstruction.new
         end
-        name = constant_name(instructions, name)
+        (prep_instruction, name) = constant_name(name)
+        instructions << prep_instruction
         instructions << DefineClassInstruction.new(name: name)
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
