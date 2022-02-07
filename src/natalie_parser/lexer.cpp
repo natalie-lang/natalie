@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "natalie_parser/lexer.hpp"
 #include "natalie_parser/token.hpp"
 
