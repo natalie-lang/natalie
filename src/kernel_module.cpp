@@ -350,9 +350,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
         if (env->exception())
             return raise(env, env->exception(), nullptr);
         else
-            // FIXME should raise a blank RuntimeError,
-            // but this type of usage is rare and I'm trying to track down a bug...
-            NAT_UNREACHABLE();
+            return raise(env, find_top_level_const(env, "RuntimeError"_s), nullptr);
     }
     if (!message) {
         Value arg = klass;
