@@ -23,14 +23,15 @@ module Natalie
           code << t.transform("#{result} =")
           stack_sizes << t.stack.size
         end
-        code << 'GlobalEnv::the()->set_rescued(false);'
+        code << 'GlobalEnv::the()->set_rescued(false)'
         code << '} catch(ExceptionObject *exception) {'
-        code << 'GlobalEnv::the()->set_rescued(true);'
-        code << 'env->global_set("$!"_s, exception);'
+        code << 'GlobalEnv::the()->set_rescued(true)'
+        code << 'env->set_exception(exception)'
         transform.with_same_scope(catch_body) do |t|
           code << t.transform("#{result} =")
           stack_sizes << t.stack.size
         end
+        code << 'env->clear_exception()'
         code << '}'
         # truncate resulting stack to minimum size of either branch's stack above
         stack_sizes << transform.stack.size

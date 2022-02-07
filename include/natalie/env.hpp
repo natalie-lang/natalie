@@ -119,6 +119,11 @@ public:
     void set_match(Value match) { m_match = match; }
     void clear_match() { m_match = nullptr; }
 
+    Value exception_object();
+    ExceptionObject *exception();
+    void set_exception(ExceptionObject *exception) { m_exception = exception; }
+    void clear_exception() { m_exception = nullptr; }
+
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -137,5 +142,6 @@ private:
     size_t m_line { 0 };
     Method *m_method { nullptr };
     Value m_match { nullptr };
+    ExceptionObject *m_exception { nullptr };
 };
 }

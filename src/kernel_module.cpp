@@ -346,8 +346,14 @@ Value KernelModule::puts(Env *env, size_t argc, Value *args) {
 }
 
 Value KernelModule::raise(Env *env, Value klass, Value message) {
-    if (!klass)
-        return raise(env, env->global_get("$!"_s), nullptr);
+    if (!klass) {
+        if (env->exception())
+            return raise(env, env->exception(), nullptr);
+        else
+            // FIXME should raise a blank RuntimeError,
+            // but this type of usage is rare and I'm trying to track down a bug...
+            NAT_UNREACHABLE();
+    }
     if (!message) {
         Value arg = klass;
         if (arg->is_class()) {

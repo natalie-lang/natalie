@@ -14,11 +14,19 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("env->global_get(#{@name.to_s.inspect}_s)")
+        if @name == :$!
+          transform.push("env->exception_object()")
+        else
+          transform.push("env->global_get(#{@name.to_s.inspect}_s)")
+        end
       end
 
       def execute(vm)
-        vm.push(vm.global_variables[@name])
+        if @name == :$!
+          vm.push($!)
+        else
+          vm.push(vm.global_variables[@name])
+        end
       end
     end
   end

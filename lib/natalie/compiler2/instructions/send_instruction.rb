@@ -45,10 +45,8 @@ module Natalie
         result =
           if @with_block
             block = vm.pop
-            # FIXME: use public_send unless receiver == :self
             receiver.send(method, @message, *args, &block)
           else
-            # FIXME: use public_send unless receiver == :self
             receiver.send(method, @message, *args)
           end
         vm.push result

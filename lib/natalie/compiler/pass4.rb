@@ -75,6 +75,7 @@ module Natalie
         define_method
         define_singleton_method
         eval_body
+        exception_object
         freeze
         get
         global_get
@@ -576,11 +577,17 @@ module Natalie
           c += @decl
           c << "#{result_name} = #{result};" unless result.empty?
           c << '} catch (ExceptionObject *exception) {'
-          c << 'env->global_set("$!"_s, exception);'
+          c << 'auto exception_was = env->exception();'
+          c << 'env->set_exception(exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
           c << "#{result_name} = #{result};" unless result.empty?
+
+          # FIXME: this is gross, but currently necessary because we don't properly create a new Env for each rescue
+          c << 'if (exception_was) env->set_exception(exception_was);'
+          c << 'else env->clear_exception();'
+
           c << '}'
         end
         decl c

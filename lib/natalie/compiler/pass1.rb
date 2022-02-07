@@ -386,7 +386,14 @@ module Natalie
 
       def process_gvar(exp)
         _, name = exp
-        name == :$~ ? exp.new(:last_match, :env) : exp.new(:global_get, :env, s(:intern, name))
+        case name
+        when :$~
+          exp.new(:last_match, :env)
+        when :$!
+          exp.new(:exception_object, :env)
+        else
+          exp.new(:global_get, :env, s(:intern, name))
+        end
       end
 
       def process_hash(exp)
