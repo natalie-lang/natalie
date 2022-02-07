@@ -122,7 +122,7 @@ describe 'begin/rescue/else' do
       rescue
         $!.message.should == 'bar'
       end
-      $!.message.should == 'foo' # this is currently returning 'bar' instead of 'foo'
+      $!.message.should == 'foo'
     end
   end
 end
