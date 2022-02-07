@@ -61,6 +61,7 @@ public:
     Value round(Env *, Value, Value) override;
     Value to_f() const override;
     Value to_s(Env *, Value = nullptr) override;
+    Value truncate(Env *, Value) override;
 
     bool eq(Env *, Value) override;
     bool lt(Env *, Value) override;

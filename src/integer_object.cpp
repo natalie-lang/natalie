@@ -815,11 +815,10 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
 }
 
 Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
-    int digits = 0;
-    if (!ndigits) return this;
+    if (!ndigits)
+        return this;
 
-    digits = IntegerObject::convert_to_int(env, ndigits);
-
+    int digits = IntegerObject::convert_to_int(env, ndigits);
     RoundingMode rounding_mode = rounding_mode_from_kwargs(env, kwargs);
 
     if (digits >= 0)
@@ -860,6 +859,26 @@ Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
     }
 
     return Value::integer(result);
+}
+
+Value IntegerObject::truncate(Env *env, Value ndigits) {
+    if (!ndigits)
+        return this;
+
+    int digits = IntegerObject::convert_to_int(env, ndigits);
+
+    if (digits >= 0)
+        return this;
+
+    auto result = to_nat_int_t();
+    auto dividend_big = big_pow10(-digits);
+    if (dividend_big > NAT_MAX_FIXNUM)
+        return Value::integer(0);
+
+    nat_int_t dividend = dividend_big.to_long_long();
+    auto remainder = result % dividend;
+
+    return Value::integer(result - remainder);
 }
 
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {

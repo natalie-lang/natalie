@@ -605,6 +605,7 @@ gen.binding('Integer', 'to_f', 'IntegerObject', 'to_f', argc: 0, pass_env: false
 gen.binding('Integer', 'to_i', 'IntegerObject', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'to_int', 'IntegerObject', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'to_s', 'IntegerObject', 'to_s', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Integer', 'truncate', 'IntegerObject', 'truncate', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', '|', 'IntegerObject', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'zero?', 'IntegerObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
