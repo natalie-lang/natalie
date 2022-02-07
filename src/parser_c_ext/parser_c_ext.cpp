@@ -35,7 +35,7 @@ VALUE to_mri_ruby(Natalie::Value value) {
             value->as_range()->exclude_end());
     case Natalie::Object::Type::Regexp: {
         auto re = value->as_regexp();
-        return rb_reg_new(re->pattern(), strlen(re->pattern()), re->options());
+        return rb_reg_new(re->pattern().c_str(), re->pattern().length(), re->options());
     }
     case Natalie::Object::Type::String:
         return rb_str_new_cstr(value->as_string()->c_str());

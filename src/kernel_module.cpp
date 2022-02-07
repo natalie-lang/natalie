@@ -199,12 +199,12 @@ Value KernelModule::hash(Env *env) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Type::String:
-        return Value::integer(TM::Hashmap<void *>::hash_str(as_string()->c_str()));
+        return Value::integer(as_string()->string().djb2_hash());
     case Type::Symbol:
-        return Value::integer(TM::Hashmap<void *>::hash_str(as_symbol()->c_str()));
+        return Value::integer(as_symbol()->string().djb2_hash());
     default: {
         StringObject *inspected = send(env, "inspect"_s)->as_string();
-        nat_int_t hash_value = TM::Hashmap<void *>::hash_str(inspected->c_str());
+        nat_int_t hash_value = inspected->string().djb2_hash();
         return Value::integer(hash_value);
     }
     }

@@ -199,7 +199,7 @@ public:
 
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
-    nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
+    nat_int_t object_id() const { return reinterpret_cast<nat_int_t>(this); }
 
     Value itself() { return this; }
 

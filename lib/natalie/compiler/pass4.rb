@@ -620,8 +620,7 @@ module Natalie
 
       def process_s(exp)
         _, string = exp
-        c_chars =
-          string.to_s.bytes.map do |byte|
+        c_chars = string.to_s.bytes.map do |byte|
             case byte
             when 9
               "\\t"
@@ -771,7 +770,7 @@ module Natalie
       end
 
       def init_symbols
-        @symbols.map { |name, index| "#{symbols_var_name}[#{index}] = #{name.to_s.inspect}_s;" }
+        @symbols.map { |name, index| "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{process(s(:s, name.to_s))}, #{name.to_s.length});" }
       end
 
       def set_dollar_zero_global_in_main_to_c

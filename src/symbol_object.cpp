@@ -2,23 +2,23 @@
 
 namespace Natalie {
 
-SymbolObject *SymbolObject::intern(const char *name, Ownedness ownedness) {
+SymbolObject *SymbolObject::intern(const char *name, size_t length) {
     assert(name);
-    SymbolObject *symbol = s_symbols.get(name);
-    if (symbol)
-        return symbol;
-    symbol = new SymbolObject { name, ownedness };
-    s_symbols.put(name, symbol);
-    return symbol;
+    return intern(String(name, length));
 }
 
 SymbolObject *SymbolObject::intern(const ManagedString *name) {
     assert(name);
-    return intern(name->c_str(), Ownedness::DuplicatedString);
+    return intern(*name);
 }
 
 SymbolObject *SymbolObject::intern(const String &name) {
-    return intern(name.c_str(), Ownedness::DuplicatedString);
+    SymbolObject *symbol = s_symbols.get(name);
+    if (symbol)
+        return symbol;
+    symbol = new SymbolObject { name };
+    s_symbols.put(name, symbol);
+    return symbol;
 }
 
 ArrayObject *SymbolObject::all_symbols(Env *env) {
@@ -32,8 +32,14 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = new StringObject { ":" };
-    auto quote_regex = new RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
-    bool quote = quote_regex->match(env, new StringObject { m_name })->is_falsey();
+    // FIXME: surely we can do this without a regex
+    auto quote_regex = RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
+    bool quote = quote_regex.match(env, new StringObject { m_name })->is_falsey();
+    for (size_t i = 0; i < m_name.length(); ++i) {
+        auto c = m_name[i];
+        if (c < 33 || c > 126) // FIXME: probably can be a smaller range
+            quote = true;
+    }
     if (quote) {
         StringObject *quoted = StringObject { m_name }.inspect(env);
         string->append(env, quoted);
@@ -72,18 +78,7 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, size_t argc, Va
 Value SymbolObject::cmp(Env *env, Value other_value) {
     if (!other_value->is_symbol()) return NilObject::the();
     SymbolObject *other = other_value->as_symbol();
-    if (this == other)
-        return Value::integer(0);
-    int diff = strcmp(m_name, other->m_name);
-    int result;
-    if (diff < 0) {
-        result = -1;
-    } else if (diff > 0) {
-        result = 1;
-    } else {
-        NAT_UNREACHABLE();
-    }
-    return Value::integer(result);
+    return Value::integer(m_name.cmp(other->m_name));
 }
 
 bool SymbolObject::start_with(Env *env, Value needle) {

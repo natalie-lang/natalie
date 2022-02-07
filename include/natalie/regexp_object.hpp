@@ -9,6 +9,7 @@
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/string_object.hpp"
+#include "tm/string.hpp"
 
 extern "C" {
 #include "onigmo.h"
@@ -22,6 +23,8 @@ extern "C" {
     C(NoEncoding, NOENCODING, 32)
 
 namespace Natalie {
+
+using namespace TM;
 
 enum RegexOpts {
 #define REGEX_OPTS_ENUM_VALUES(cpp_name, ruby_name, bits) cpp_name = bits,
@@ -37,15 +40,13 @@ public:
     RegexpObject(ClassObject *klass)
         : Object { Object::Type::Regexp, klass } { }
 
-    RegexpObject(Env *env, const char *pattern, int options = 0)
+    RegexpObject(Env *env, const String &pattern, int options = 0)
         : Object { Object::Type::Regexp, GlobalEnv::the()->Regexp() } {
-        assert(pattern);
         initialize(env, pattern, options);
     }
 
     virtual ~RegexpObject() {
         onig_free(m_regex);
-        free(const_cast<char *>(m_pattern));
     }
 
     static Value compile(Env *env, Value pattern, Value flags, ClassObject *klass) {
@@ -65,16 +66,16 @@ public:
 
     Value hash(Env *env) {
         assert_initialized(env);
-        auto hash = (m_options & ~RegexOpts::NoEncoding) + TM::Hashmap<void *>::hash_str(m_pattern);
+        auto hash = (m_options & ~RegexOpts::NoEncoding) + m_pattern.djb2_hash();
         return Value::integer(hash);
     }
 
-    void initialize(Env *env, const char *pattern, int options = 0) {
+    void initialize(Env *env, const String &pattern, int options = 0) {
         regex_t *regex;
         OnigErrorInfo einfo;
-        m_pattern = strdup(pattern);
-        UChar *pat = (UChar *)m_pattern;
-        int result = onig_new(&regex, pat, pat + strlen(m_pattern),
+        m_pattern = pattern;
+        UChar *pat = (UChar *)(m_pattern.c_str());
+        int result = onig_new(&regex, pat, pat + m_pattern.length(),
             options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
         if (result != ONIG_NORMAL) {
             OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -85,14 +86,14 @@ public:
         m_options = options;
     }
 
-    bool is_initialized() const { return m_pattern != nullptr; }
+    bool is_initialized() const { return m_options > -1; }
 
     void assert_initialized(Env *env) const {
         if (!is_initialized())
             env->raise("TypeError", "uninitialized Regexp");
     }
 
-    const char *pattern() { return m_pattern; }
+    const String &pattern() { return m_pattern; }
 
     int options() const { return m_options; }
 
@@ -129,7 +130,7 @@ public:
     }
 
     bool operator==(const RegexpObject &other) const {
-        return strcmp(m_pattern, other.m_pattern) == 0 && (m_options | RegexOpts::NoEncoding) == (other.m_options | RegexOpts::NoEncoding);
+        return m_pattern == other.m_pattern && (m_options | RegexOpts::NoEncoding) == (other.m_options | RegexOpts::NoEncoding);
         // /n encoding option is ignored when doing == in ruby MRI
     }
 
@@ -186,8 +187,8 @@ public:
 
 private:
     regex_t *m_regex { nullptr };
-    int m_options { 0 };
-    const char *m_pattern { nullptr };
+    int m_options { -1 };
+    String m_pattern {};
 };
 
 }
