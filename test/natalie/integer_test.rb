@@ -306,4 +306,13 @@ describe 'integer' do
       -1981.to_s(16).should == '-7bd'
     end
   end
+
+  describe '#truncate' do
+    it 'works with bignums' do
+      (21 * 10**70).truncate(-71).should eql(20 * 10**70)
+      (28 * 10**70).truncate(-71).should eql(20 * 10**70)
+      (-21 * 10**70).truncate(-71).should eql(-20 * 10**70)
+      (-28 * 10**70).truncate(-71).should eql(-20 * 10**70)
+    end
+  end
 end

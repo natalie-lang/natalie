@@ -269,14 +269,14 @@ bool BignumObject::gte(Env *env, Value other) {
 }
 
 Value BignumObject::round(Env *env, Value ndigits, Value kwargs) {
-    int digits = 0;
-    if (!ndigits) return this;
+    if (!ndigits)
+        return this;
 
-    digits = IntegerObject::convert_to_int(env, ndigits);
-
+    int digits = IntegerObject::convert_to_int(env, ndigits);
     RoundingMode rounding_mode = rounding_mode_from_kwargs(env, kwargs);
 
-    if (digits >= 0) return this;
+    if (digits >= 0)
+        return this;
 
     digits *= -1;
 
@@ -310,5 +310,21 @@ Value BignumObject::round(Env *env, Value ndigits, Value kwargs) {
     }
 
     return BignumObject::create_if_needed(result);
+}
+
+Value BignumObject::truncate(Env *env, Value ndigits) {
+    if (!ndigits)
+        return this;
+
+    int digits = IntegerObject::convert_to_int(env, ndigits);
+
+    if (digits >= 0)
+        return this;
+
+    auto result = to_bigint();
+    auto dividend = big_pow10(-digits);
+    auto remainder = result.c_mod(dividend);
+
+    return BignumObject::create_if_needed(result - remainder);
 }
 }
