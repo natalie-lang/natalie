@@ -386,13 +386,12 @@ module Natalie
       # returns a pair of [name, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
       def constant_name(name)
-        if name.is_a?(Symbol)
+        case name
+        in Symbol
           [name, PushSelfInstruction.new]
-        elsif name.sexp_type == :colon2
-          _, namespace, name = name
+        in [:colon2, namespace, name]
           [name, transform_expression(namespace, used: true)]
-        elsif name.sexp_type == :colon3
-          _, name = name
+        in [:colon3, name]
           [name, PushObjectClassInstruction.new]
         else
           raise "Unknown constant name type #{name.sexp_type.inspect}"
