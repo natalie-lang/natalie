@@ -43,6 +43,7 @@ class TestCompiler2 < TestCase
   def test_constant
     assert_eq(:toplevel, CONSTANT)
     assert_eq(:toplevel, ::CONSTANT)
+    assert_eq(:toplevel2, ::CONSTANT2)
     assert_eq(:namespaced, Constants::CONSTANT)
     assert_eq(:nested, Constants::Nested::CONSTANT)
   end
@@ -372,5 +373,7 @@ class TestCompiler2 < TestCase
     CONSTANT = :nested
   end
 end
+
+CONSTANT2 = :toplevel2
 
 TestCompiler2.new.run
