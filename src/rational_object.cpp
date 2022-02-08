@@ -2,6 +2,29 @@
 
 namespace Natalie {
 
+Value RationalObject::cmp(Env *env, Value other) {
+    if (other->is_integer()) {
+        if (m_denominator->eq(env, Value::integer(1))) {
+            return m_numerator->cmp(env, other->as_integer());
+        }
+        other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
+    }
+    if (other->is_rational()) {
+        auto rational = other->as_rational();
+        auto num1 = m_numerator->mul(env, rational->denominator(env));
+        auto num2 = m_denominator->mul(env, rational->numerator(env));
+        return num1->as_integer()->sub(env, num2)->as_integer()->cmp(env, Value::integer(0));
+    }
+    if (other->is_float()) {
+        return to_f(env)->as_float()->cmp(env, other->as_float());
+    }
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "<=>"_s, { result.second });
+    }
+    return NilObject::the();
+}
+
 Value RationalObject::coerce(Env *env, Value other) {
     if (other->is_integer()) {
         return new ArrayObject { new RationalObject(other->as_integer(), new IntegerObject { 1 }), this };
