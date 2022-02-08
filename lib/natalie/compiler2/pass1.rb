@@ -34,20 +34,6 @@ module Natalie
         instructions
       end
 
-      def constant_name(name)
-        if name.is_a?(Symbol)
-          [PushSelfInstruction.new, name]
-        elsif name.sexp_type == :colon2
-          _, namespace, name = name
-          [transform_expression(namespace, used: true), name]
-        elsif name.sexp_type == :colon3
-          _, name = name
-          [PushObjectClassInstruction.new, name]
-        else
-          raise "Unknown constant name type #{name.sexp_type.inspect}"
-        end
-      end
-
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
@@ -164,7 +150,7 @@ module Natalie
       def transform_cdecl(exp, used:)
         _, name, value = exp
         instructions = [transform_expression(value, used: true)]
-        (prep_instruction, name) = constant_name(name)
+        name, prep_instruction = constant_name(name)
         instructions << prep_instruction
         instructions << ConstSetInstruction.new(name)
         instructions << PopInstruction.new unless used
@@ -179,7 +165,7 @@ module Natalie
         else
           instructions << PushObjectClassInstruction.new
         end
-        (prep_instruction, name) = constant_name(name)
+        name, prep_instruction = constant_name(name)
         instructions << prep_instruction
         instructions << DefineClassInstruction.new(name: name)
         instructions += transform_body(body, used: true)
@@ -393,6 +379,24 @@ module Natalie
         instructions << YieldInstruction.new
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      # HELPERS = = = = = = = = = = = = =
+
+      # returns a pair of [name, prep_instruction]
+      # prep_instruction being the instruction(s) needed to get the owner of the constant
+      def constant_name(name)
+        if name.is_a?(Symbol)
+          [name, PushSelfInstruction.new]
+        elsif name.sexp_type == :colon2
+          _, namespace, name = name
+          [name, transform_expression(namespace, used: true)]
+        elsif name.sexp_type == :colon3
+          _, name = name
+          [name, PushObjectClassInstruction.new]
+        else
+          raise "Unknown constant name type #{name.sexp_type.inspect}"
+        end
       end
     end
   end
