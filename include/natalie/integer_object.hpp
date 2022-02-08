@@ -85,6 +85,7 @@ public:
     Value denominator() { return Value::integer(1); }
     virtual Value round(Env *, Value, Value);
     virtual Value truncate(Env *, Value);
+    virtual Value ref(Env *, Value, Value);
 
     virtual bool eq(Env *, Value);
     virtual bool lt(Env *, Value);
