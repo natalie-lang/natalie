@@ -228,6 +228,10 @@ Value FloatObject::coerce(Env *env, Value arg) {
 }
 
 Value FloatObject::to_i(Env *env) const {
+    if (is_infinity()) {
+        env->raise("FloatDomainError", to_s(env)->as_string()->string());
+    }
+
     return f_to_i_or_bigint(::floor(m_double));
 }
 
