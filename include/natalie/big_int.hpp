@@ -161,6 +161,7 @@ public:
 
     // Conversion functions:
     TM::String to_string() const;
+    TM::String to_binary() const;
     long to_long() const;
     long long to_long_long() const;
     double to_double() const;
