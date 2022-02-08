@@ -19,8 +19,7 @@ public:
         , m_data { array_of_size(VECTOR_MIN_CAPACITY) } { }
 
     Vector(size_t initial_capacity)
-        : m_size { initial_capacity }
-        , m_capacity { initial_capacity }
+        : m_capacity { initial_capacity }
         , m_data { array_of_size(initial_capacity) } { }
 
     Vector(size_t initial_capacity, T filler)

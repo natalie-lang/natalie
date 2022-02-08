@@ -24,7 +24,9 @@ module Natalie
         add_redo_flag
         alias
         append
+        args_to_vector
         array_expand_with_nil
+        block_args_to_vector
         ensure_argc_between
         ensure_argc_is
         ensure_argc_at_least
@@ -689,6 +691,8 @@ module Natalie
             type = TYPES[fn] || 'Value '
             decl "#{type}#{result_name} = #{process_atom obj}->#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           else
+            type = 'TM::Vector<Value> ' if fn == :'TM::Vector<Value>'
+
             decl "#{type}#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           end
           result_name

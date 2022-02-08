@@ -70,6 +70,8 @@ public:
         m_gc_enabled = false;
     }
 
+    void dump();
+
     template <typename F>
     auto with_gc_disabled(F func) {
         bool was_enabled = m_gc_enabled;

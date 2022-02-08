@@ -82,7 +82,7 @@ module Natalie
                 value = s(:arg_value_by_path, :env, options, path.size, *path)
                 masgn_set(name.last, value)
               when :kwsplat
-                value = s(:kwarg_hash, @value_name)
+                value = s(:kwarg_hash, s(:args_to_array, :env, s(:l, @value_name)))
                 masgn_set(name.last, value)
               when :kwarg
                 if name[2]
@@ -90,7 +90,7 @@ module Natalie
                 else
                   default_value = 'nullptr'
                 end
-                value = s(:kwarg_value_by_name, :env, @value_name, s(:s, name[1]), default_value)
+                value = s(:kwarg_value_by_name, :env, s(:args_to_array, :env, s(:l, @value_name)), s(:s, name[1]), default_value)
                 masgn_set(name, value)
               else
                 if name.size == 3

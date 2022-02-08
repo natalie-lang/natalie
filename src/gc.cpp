@@ -165,6 +165,20 @@ void Heap::return_cell_to_free_list(Cell *cell) {
     block->return_cell_to_free_list(cell);
 }
 
+void Heap::dump() {
+    nat_int_t allocation_count = 0;
+    for (auto allocator : m_allocators) {
+        for (auto block_pair : *allocator) {
+            auto *block = block_pair.first;
+            for (auto cell : *block) {
+                cell->gc_print();
+                allocation_count++;
+            }
+        }
+    }
+    printf("Total allocations: %lld\n", allocation_count);
+}
+
 Cell *HeapBlock::find_next_free_cell() {
     assert(has_free());
     --m_free_count;

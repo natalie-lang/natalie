@@ -2,6 +2,10 @@
 
 using namespace Natalie;
 
+#ifdef NAT_PRINT_OBJECTS
+#define NAT_GC_DISABLE
+#endif
+
 /*NAT_DECLARATIONS*/
 
 extern "C" Env *build_top_env() {
@@ -69,6 +73,9 @@ int main(int argc, char *argv[]) {
 
 #ifdef NAT_NATIVE_PROFILER
     NativeProfiler::the()->dump();
+#endif
+#ifdef NAT_PRINT_OBJECTS
+    Heap::the().dump();
 #endif
     clean_up_and_exit(return_code);
 }
