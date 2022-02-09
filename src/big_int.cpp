@@ -1993,8 +1993,12 @@ BigInt BigInt::operator>>(const size_t &num) const {
     TM::String binary = to_binary();
     TM::String complete_string;
 
-    if (num > binary.size())
-        return BigInt(0);
+    if (num > binary.size()) {
+        if (is_negative())
+            return BigInt(-1);
+        else
+            return BigInt(0);
+    }
 
     for (size_t i = 0; i < binary.size() - num; ++i) {
         complete_string.append_char(binary[i]);

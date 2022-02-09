@@ -568,8 +568,12 @@ Value IntegerObject::left_shift(Env *env, Value arg) {
         nat_int = arg.get_fast_integer();
     } else {
         auto integer = arg->to_int(env);
-        if (integer->is_bignum())
-            return Value::integer(0);
+        if (integer->is_bignum()) {
+            if (is_negative())
+                return Value::integer(-1);
+            else
+                return Value::integer(0);
+        }
 
         nat_int = integer->to_nat_int_t();
     }
@@ -600,8 +604,12 @@ Value IntegerObject::right_shift(Env *env, Value arg) {
         nat_int = arg.get_fast_integer();
     } else {
         auto integer = arg->to_int(env);
-        if (integer->is_bignum())
-            return Value::integer(0);
+        if (integer->is_bignum()) {
+            if (is_negative())
+                return Value::integer(-1);
+            else
+                return Value::integer(0);
+        }
 
         nat_int = integer->to_nat_int_t();
     }
@@ -610,21 +618,15 @@ Value IntegerObject::right_shift(Env *env, Value arg) {
         return left_shift(env, Value::integer(-nat_int));
     }
 
-    BigInt max = ::pow(BigInt(2), nat_int);
-    if (is_bignum()) {
-        auto bigint = to_bigint();
-        if (bigint > 0 && bigint < max)
-            return Value::integer(0);
-        else if (bigint < 0 && bigint > max)
-            return Value::integer(-1);
-    } else if (m_integer > 0 && max > m_integer) {
-        return Value::integer(0);
-    } else if (m_integer < 0 && max > -m_integer) {
-        return Value::integer(-1);
-    }
-
     if (is_bignum())
         return BignumObject::create_if_needed(to_bigint() >> nat_int);
+
+    if (nat_int > (nat_int_t)sizeof(nat_int_t)) {
+        if (is_negative())
+            return Value::integer(-1);
+        else
+            return Value::integer(0);
+    }
 
     return Value::integer(to_nat_int_t() >> nat_int);
 }
