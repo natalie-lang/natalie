@@ -881,6 +881,101 @@ Value IntegerObject::truncate(Env *env, Value ndigits) {
     return Value::integer(result - remainder);
 }
 
+Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
+    auto from_offset_and_size = [this, env](Optional<nat_int_t> offset_or_empty, Optional<nat_int_t> size_or_empty = {}) -> Value {
+        auto offset = offset_or_empty.value_or(0);
+
+        if (!size_or_empty.present() && offset < 0)
+            return Value::integer(0);
+
+        auto size = size_or_empty.value_or(1);
+
+        if (is_fixnum()) {
+            nat_int_t result;
+            if (offset < 0)
+                result = to_nat_int_t() << -offset;
+            else
+                result = to_nat_int_t() >> offset;
+
+            if (size >= 0)
+                result &= (1 << size) - 1;
+
+            if (result != 0 && !offset_or_empty.present())
+                env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
+
+            return Value::integer(result);
+        } else {
+            BigInt result;
+            if (offset < 0)
+                result = to_bigint() << -offset;
+            else
+                result = to_bigint() >> offset;
+
+            if (size >= 0)
+                result = result & ((1 << size) - 1);
+
+            if (result != 0 && !offset_or_empty.present())
+                env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
+
+            return BignumObject::create_if_needed(result);
+        }
+    };
+
+    if (!size_obj && !offset_obj.is_fast_integer() && offset_obj->is_range()) {
+        auto range = offset_obj->as_range();
+
+        Optional<nat_int_t> begin;
+        if (range->begin().is_fast_integer()) {
+            begin = range->begin().get_fast_integer();
+        } else if (!range->begin()->is_nil()) {
+            auto begin_obj = range->begin()->to_int(env);
+            begin = begin_obj->to_nat_int_t();
+        }
+
+        Optional<nat_int_t> end;
+        if (range->end().is_fast_integer()) {
+            end = range->end().get_fast_integer();
+        } else if (!range->end()->is_nil()) {
+            auto end_obj = range->end()->to_int(env);
+            end = end_obj->to_nat_int_t();
+        }
+
+        Optional<nat_int_t> size;
+        if (!end || (begin && end.value() < begin.value()))
+            size = -1;
+        else if (end)
+            size = end.value() - begin.value_or(0) + 1;
+
+        return from_offset_and_size(begin, size);
+    } else {
+        nat_int_t offset;
+        if (offset_obj.is_fast_integer()) {
+            offset = offset_obj.get_fast_integer();
+        } else {
+            auto *offset_integer = offset_obj->to_int(env);
+            if (offset_integer->is_bignum())
+                return Value::integer(0);
+
+            offset = offset_integer->to_nat_int_t();
+        }
+
+        Optional<nat_int_t> size;
+        if (size_obj) {
+            if (size_obj.is_fast_integer()) {
+                size = size_obj.get_fast_integer();
+            } else {
+                IntegerObject *size_integer = size_obj->to_int(env);
+                if (size_integer->is_bignum())
+                    env->raise("RangeError", "shift width too big");
+
+                size = size_integer->to_nat_int_t();
+            }
+        }
+
+        return from_offset_and_size(offset, size);
+    }
+}
+
 nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return arg.get_fast_integer();

@@ -1784,8 +1784,8 @@ BigInt BigInt::operator--(int) {
     Converts a BigInt to a binary string.
 */
 
-TM::String to_binary(const BigInt &num) {
-    BigInt copy_num(num);
+TM::String BigInt::to_binary() const {
+    BigInt copy_num(*this);
     TM::String binary_num;
 
     if (copy_num < 0) {
@@ -1801,7 +1801,7 @@ TM::String to_binary(const BigInt &num) {
         copy_num /= 2;
     }
 
-    if (num < 0) {
+    if (*this < 0) {
         for (int i = binary_num.size() - 1; i >= 0; i--) {
             if (binary_num[i] == '0') {
                 binary_num[i] = '1';
@@ -1822,7 +1822,7 @@ TM::String to_binary(const BigInt &num) {
         }
 
         binary_num.prepend_char('1');
-    } else if (num > 0) {
+    } else if (*this > 0) {
         binary_num.prepend_char('0');
     } else {
         binary_num = "0";
@@ -1887,8 +1887,8 @@ std::tuple<TM::String, TM::String> sign_extend_binary(const TM::String &num1, co
 
 BigInt BigInt::operator&(const BigInt &num) const {
     TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary(*this);
-    rhs_binary = to_binary(num);
+    lhs_binary = to_binary();
+    rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -1913,8 +1913,8 @@ BigInt BigInt::operator&(const BigInt &num) const {
 
 BigInt BigInt::operator|(const BigInt &num) const {
     TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary(*this);
-    rhs_binary = to_binary(num);
+    lhs_binary = to_binary();
+    rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -1939,8 +1939,8 @@ BigInt BigInt::operator|(const BigInt &num) const {
 
 BigInt BigInt::operator^(const BigInt &num) const {
     TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary(*this);
-    rhs_binary = to_binary(num);
+    lhs_binary = to_binary();
+    rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -1965,7 +1965,7 @@ BigInt BigInt::operator^(const BigInt &num) const {
 
 BigInt BigInt::operator~() const {
     TM::String lhs_binary;
-    lhs_binary = to_binary(*this);
+    lhs_binary = to_binary();
 
     TM::String complete_string;
     for (size_t i = 0; i < lhs_binary.size(); i++) {
@@ -1980,7 +1980,7 @@ BigInt BigInt::operator~() const {
 }
 
 BigInt BigInt::operator<<(const size_t &num) const {
-    TM::String binary = to_binary(*this);
+    TM::String binary = to_binary();
 
     for (size_t i = 0; i < num; ++i) {
         binary.append_char('0');
@@ -1990,8 +1990,11 @@ BigInt BigInt::operator<<(const size_t &num) const {
 }
 
 BigInt BigInt::operator>>(const size_t &num) const {
-    TM::String binary = to_binary(*this);
+    TM::String binary = to_binary();
     TM::String complete_string;
+
+    if (num > binary.size())
+        return BigInt(0);
 
     for (size_t i = 0; i < binary.size() - num; ++i) {
         complete_string.append_char(binary[i]);

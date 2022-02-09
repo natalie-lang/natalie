@@ -42,6 +42,13 @@ public:
         return m_value;
     }
 
+    T const &value_or(const T &fallback) const {
+        if (present())
+            return value();
+        else
+            return fallback;
+    }
+
     T operator*() {
         assert(m_present);
         return m_value;
