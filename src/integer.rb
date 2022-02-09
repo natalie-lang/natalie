@@ -138,6 +138,13 @@ class Integer
     to_r
   end
 
+  def remainder(other)
+    remainder = self % other
+    return remainder if remainder == 0
+    return remainder - other if (self < 0 && other > 0) || (self > 0 && other < 0)
+    remainder
+  end
+
   def to_r
     Rational(self)
   end
