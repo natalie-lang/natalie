@@ -202,6 +202,9 @@ def ruby_version_is(version)
   end
 end
 
+# We do not want replicate ruby bugs
+def ruby_bug(*); end
+
 def slow_test
   yield if ENV['ENABLE_SLOW_TESTS']
 end
