@@ -3,14 +3,14 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class EndInstruction < BaseInstruction
-      def initialize(label)
-        @label = label
+      def initialize(matching_label)
+        @matching_label = matching_label
       end
 
-      attr_reader :label
+      attr_reader :matching_label
 
       def to_s
-        "end #{@label}"
+        "end #{@matching_label}"
       end
 
       def generate(_)

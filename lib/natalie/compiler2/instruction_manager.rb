@@ -37,8 +37,8 @@ module Natalie
           instructions += fetch_block(expected_label: instruction.label) if instruction.has_body?
         end
 
-        unless expected_label.nil? || instruction.label == expected_label
-          raise "unexpected instruction (expected: #{expected_label}, actual: #{instruction.label})"
+        unless expected_label.nil? || instruction.matching_label == expected_label
+          raise "unexpected instruction (expected: #{expected_label}, actual: #{instruction.matching_label})"
         end
 
         instructions
