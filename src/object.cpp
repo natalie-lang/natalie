@@ -498,30 +498,22 @@ SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
-    if (!is_main_object()) {
-        printf("tried to call define_method on something that has no methods\n");
-        abort();
-    }
     m_klass->define_method(env, name, fn, arity);
     return name;
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, Block *block) {
-    if (!is_main_object()) {
-        printf("tried to call define_method on something that has no methods\n");
-        abort();
-    }
     m_klass->define_method(env, name, block);
     return name;
 }
 
 SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
-    if (!is_main_object()) {
-        printf("tried to call undefine_method on something that has no methods\n");
-        abort();
-    }
     m_klass->undefine_method(env, name);
     return name;
+}
+
+Value Object::main_obj_define_method(Env *env, Value name, Value proc_or_unbound_method, Block *block) {
+    return m_klass->define_method(env, name, proc_or_unbound_method, block);
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {

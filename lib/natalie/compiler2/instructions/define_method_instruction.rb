@@ -35,24 +35,24 @@ module Natalie
       def execute(vm)
         start_ip = vm.ip
         vm.skip_block_of_instructions(expected_label: :define_method)
-        vm
-          .self
-          .define_method(@name) do |*args, &block|
-            scope = { vars: {} }
-            vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: block)
-            vm.ip = start_ip
-            begin
-              vm.run
-            ensure
-              vm.ip = vm.pop_call[:return_ip]
-            end
-            vm.pop # result must be returned to SendInstruction
+        owner = vm.self
+        owner = owner.class unless owner.respond_to?(:define_method)
+        owner.define_method(@name) do |*args, &block|
+          scope = { vars: {} }
+          vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: block)
+          vm.ip = start_ip
+          begin
+            vm.run
+          ensure
+            vm.ip = vm.pop_call[:return_ip]
           end
+          vm.pop # result must be returned to SendInstruction
+        end
         case vm.method_visibility
         when :private
-          vm.self.send(:private, @name)
+          owner.send(:private, @name)
         when :protected
-          vm.self.send(:protected, @name)
+          owner.send(:protected, @name)
         end
         vm.push(@name)
       end

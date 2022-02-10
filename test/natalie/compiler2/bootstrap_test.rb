@@ -276,6 +276,16 @@ class TestCompiler2 < TestCase
     assert_eq([1, 2], result)
   end
 
+  def test_method_in_method
+    x = 1
+    def should_not_see_outer_scope
+      assert_raises(NameError) { x }
+      x = 2
+    end
+    assert_eq(2, should_not_see_outer_scope)
+    assert_eq(1, x)
+  end
+
   def test_global_variable
     $global = 1
     assert_eq(1, $global)

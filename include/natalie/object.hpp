@@ -189,6 +189,8 @@ public:
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
+    Value main_obj_define_method(Env *, Value, Value, Block *);
+
     virtual Value private_method(Env *, size_t, Value *);
     virtual Value protected_method(Env *, size_t, Value *);
     virtual Value module_function(Env *, size_t, Value *);

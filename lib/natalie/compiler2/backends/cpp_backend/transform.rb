@@ -104,8 +104,8 @@ module Natalie
           "#{@compiler_context[:var_prefix]}#{name}#{n}"
         end
 
-        def with_new_scope(instructions)
-          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, outer_env: @env, block: true)
+        def with_new_scope(instructions, block: false)
+          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, outer_env: @env, block: block)
           yield(t)
         end
 
