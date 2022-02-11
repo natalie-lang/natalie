@@ -107,8 +107,15 @@ module Natalie
       RUBY_PLATFORM =~ /msys/ ? '.exe' : ''
     end
 
-    def print_instructions(instructions)
-      instructions.each_with_index { |i, index| puts "#{index} #{i}" }
+    def print_instructions(instructions, with_env: false)
+      instructions.each_with_index do |instruction, index|
+        desc = "#{index} #{instruction}"
+        if with_env
+          desc << " vars=#{instruction.env[:vars].keys.inspect}"
+          desc << " block=true" if instruction.env[:block]
+        end
+        puts desc
+      end
     end
 
     def instructions
@@ -173,7 +180,7 @@ module Natalie
 
       instructions = Pass2.new(instructions).transform
       if debug == 'p2'
-        print_instructions(instructions)
+        print_instructions(instructions, with_env: true)
         exit
       end
 
