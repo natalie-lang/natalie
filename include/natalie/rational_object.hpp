@@ -18,6 +18,7 @@ public:
     Value denominator(Env *);
     bool eq(Env *, Value);
     Value inspect(Env *);
+    Value mul(Env *, Value);
     Value numerator(Env *);
     Value to_f(Env *);
     Value to_i(Env *);
