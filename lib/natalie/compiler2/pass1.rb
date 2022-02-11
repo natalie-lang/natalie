@@ -147,14 +147,26 @@ module Natalie
         instructions
       end
 
+      def transform_cdecl(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true)]
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
+        instructions << ConstSetInstruction.new(name)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
         instructions = []
         if superclass
           instructions << transform_expression(superclass, used: true)
         else
-          instructions << ConstFindInstruction.new('Object')
+          instructions << PushObjectClassInstruction.new
         end
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
         instructions << DefineClassInstruction.new(name: name)
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
@@ -162,10 +174,26 @@ module Natalie
         instructions
       end
 
+      def transform_colon2(exp, used:)
+        _, namespace, name = exp
+        instructions = [
+          transform_expression(namespace, used: true),
+          ConstFindInstruction.new(name),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_colon3(exp, used:)
+        return [] unless used
+        _, name = exp
+        [PushObjectClassInstruction.new, ConstFindInstruction.new(name)]
+      end
+
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
-        ConstFindInstruction.new(name)
+        [PushSelfInstruction.new, ConstFindInstruction.new(name)]
       end
 
       def transform_defn(exp, used:)
@@ -351,6 +379,23 @@ module Natalie
         instructions << YieldInstruction.new
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      # HELPERS = = = = = = = = = = = = =
+
+      # returns a pair of [name, prep_instruction]
+      # prep_instruction being the instruction(s) needed to get the owner of the constant
+      def constant_name(name)
+        case name
+        in Symbol
+          [name, PushSelfInstruction.new]
+        in [:colon2, namespace, name]
+          [name, transform_expression(namespace, used: true)]
+        in [:colon3, name]
+          [name, PushObjectClassInstruction.new]
+        else
+          raise "Unknown constant name type #{name.sexp_type.inspect}"
+        end
       end
     end
   end

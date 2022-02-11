@@ -111,6 +111,20 @@ describe 'begin/rescue/else' do
     test_until1.should == 'break in until works: bar'
     test_until2.should == 'break in if in until works'
   end
+
+  it 'sets the magic $! global' do
+    begin
+      raise 'foo'
+    rescue
+      $!.message.should == 'foo'
+      begin
+        raise 'bar'
+      rescue
+        $!.message.should == 'bar'
+      end
+      $!.message.should == 'foo'
+    end
+  end
 end
 
 describe 'raise' do
@@ -148,6 +162,20 @@ describe 'raise' do
     r =
       begin
         raise MyException.new('foo')
+      rescue => e
+        e
+      end
+    r.message.should == 'foo'
+  end
+
+  it 'can re-raise the current exception' do
+    r =
+      begin
+        begin
+          raise 'foo'
+        rescue
+          raise
+        end
       rescue => e
         e
       end

@@ -14,11 +14,14 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("self->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)")
+        namespace = transform.pop
+        transform.push("#{namespace}->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)")
       end
 
       def execute(vm)
-        vm.push Object.const_get(@name)
+        namespace = vm.pop
+        namespace = namespace.class unless namespace.respond_to?(:const_get)
+        vm.push namespace.const_get(@name)
       end
     end
   end

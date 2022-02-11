@@ -40,6 +40,14 @@ class TestCompiler2 < TestCase
     assert_eq([2, 4, 6], result)
   end
 
+  def test_constant
+    assert_eq(:toplevel, CONSTANT)
+    assert_eq(:toplevel, ::CONSTANT)
+    assert_eq(:toplevel2, ::CONSTANT2)
+    assert_eq(:namespaced, Constants::CONSTANT)
+    assert_eq(:nested, Constants::Nested::CONSTANT)
+  end
+
   def test_float
     f = 1.56
     assert_eq(1.56, f)
@@ -364,6 +372,18 @@ class TestCompiler2 < TestCase
     private
     def priv; 'priv'; end
   end
+
+  ::CONSTANT = :toplevel
+
+  class Constants
+    CONSTANT = :namespaced
+  end
+
+  class Constants::Nested
+    CONSTANT = :nested
+  end
 end
+
+CONSTANT2 = :toplevel2
 
 TestCompiler2.new.run

@@ -180,6 +180,25 @@ void Env::set_last_match(Value match) {
     non_block_env()->set_match(match);
 }
 
+Value Env::exception_object() {
+    auto e = exception();
+    if (!e)
+        return NilObject::the();
+    return e;
+}
+
+ExceptionObject *Env::exception() {
+    auto e = this;
+    for (;;) {
+        if (e->m_exception)
+            return e->m_exception;
+        if (!e->m_caller)
+            break;
+        e = e->m_caller;
+    }
+    return nullptr;
+}
+
 Value Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size())
         return NilObject::the();
@@ -226,5 +245,6 @@ void Env::visit_children(Visitor &visitor) {
     visitor.visit(m_caller);
     visitor.visit(m_method);
     visitor.visit(m_match);
+    visitor.visit(m_exception);
 }
 }

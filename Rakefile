@@ -106,9 +106,9 @@ task docker_test_release: :docker_build do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie clean build_release test"
 end
 
-# NOTE: this tests that Natalie can be hosted by MRI 3.0 -- not Natalie under Ruby 3 specs
+# NOTE: this tests that Natalie can be hosted by MRI 2.7 -- not Natalie under Ruby 3 specs
 task docker_test_ruby27: :docker_build_ruby27 do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
+  sh "docker run -e RUBYOPT=-W:no-experimental #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
 end
 
 # # # # Build Compile Database # # # #

@@ -28,18 +28,21 @@ module Natalie
           transform.top(fn_code)
         end
         klass = transform.temp('class')
+        namespace = transform.pop
         superclass = transform.pop
         code = []
         code << "auto #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
-        code << "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
+        code << "#{namespace}->const_set(#{@name.to_s.inspect}_s, #{klass})"
         code << "#{klass}->eval_body(env, #{fn})"
         transform.exec_and_push(:result_of_define_class, code)
       end
 
       def execute(vm)
+        namespace = vm.pop
+        namespace = namespace.class unless namespace.respond_to?(:const_set)
         superclass = vm.pop
         klass = Class.new(superclass)
-        Object.const_set(@name, klass)
+        namespace.const_set(@name, klass)
         vm.method_visibility = :public
         vm.with_self(klass) { vm.run }
       end
