@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class ElseInstruction < BaseInstruction
       def initialize(matching_label)
-        @matching_label = matching_label
+        @matching_label = matching_label.to_sym
       end
 
       attr_reader :matching_label

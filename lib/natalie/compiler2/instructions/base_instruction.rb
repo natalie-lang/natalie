@@ -14,6 +14,8 @@ module Natalie
         nil
       end
 
+      attr_accessor :env
+
       private
 
       def underscore(name)

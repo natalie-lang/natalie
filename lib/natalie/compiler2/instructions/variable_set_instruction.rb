@@ -8,7 +8,9 @@ module Natalie
         @local_only = local_only
       end
 
-      attr_reader :name
+      attr_reader :name, :local_only
+
+      attr_accessor :meta
 
       def to_s
         s = "variable_set #{@name}"
@@ -16,25 +18,24 @@ module Natalie
         s
       end
 
+      # TODO: how to use @meta or captured? info...
       def generate(transform)
-        if ((depth, var) = transform.find_var(name, local_only: @local_only))
-          index = var[:index]
-        else
-          # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
-          index = transform.vars.size
-
-          # TODO: not all variables need to be captured
-          transform.vars[name] = { name: name, index: index, captured: true }
-
-          depth = 0
-        end
+        ((depth, var) = transform.find_var(name, local_only: @local_only))
+        index = var.fetch(:index)
 
         env = 'env'
         depth.times { env << '->outer()' }
 
         value = transform.pop
 
-        transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
+        if @meta.fetch(:captured)
+          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
+        elsif @meta.fetch(:declared)
+          transform.exec("#{@meta[:name]} = #{value}")
+        else
+          @meta[:declared] = true
+          transform.exec("Value #{@meta[:name]} = #{value}")
+        end
       end
 
       def execute(vm)

@@ -13,6 +13,7 @@ module Natalie
           instruction = self.next
           yield instruction
         end
+        @instructions
       end
 
       def next

@@ -9,6 +9,8 @@ module Natalie
 
       attr_reader :name
 
+      attr_accessor :meta
+
       def to_s
         "variable_get #{@name}"
       end
@@ -21,7 +23,11 @@ module Natalie
         depth.times { env << '->outer()' }
         index = var[:index]
 
-        transform.push("#{env}->var_get(#{@name.to_s.inspect}, #{index})")
+        if @meta.fetch(:captured)
+          transform.push("#{env}->var_get(#{@name.to_s.inspect}, #{index})")
+        else
+          transform.push(@meta.fetch(:name))
+        end
       end
 
       def execute(vm)

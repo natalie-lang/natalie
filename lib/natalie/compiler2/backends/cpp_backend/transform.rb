@@ -2,17 +2,12 @@ module Natalie
   class Compiler2
     class CppBackend
       class Transform
-        def initialize(instructions, stack: [], top:, compiler_context:, env: nil, outer_env: nil, block: true)
+        def initialize(instructions, stack: [], top:, compiler_context:)
           @instructions = InstructionManager.new(instructions)
           @result_stack = []
           @top = top
           @code = []
           @compiler_context = compiler_context
-          if env
-            @env = env
-          else
-            @env = { vars: {}, outer: outer_env, block: block }
-          end
           @stack = stack
         end
 
@@ -24,6 +19,7 @@ module Natalie
 
         def transform(result_prefix = nil)
           @instructions.walk do |instruction|
+            @env = instruction.env
             instruction.generate(self)
           end
           @code << @stack.pop
@@ -66,32 +62,29 @@ module Natalie
           @stack.last
         end
 
-        def push_scope
-          @env = { outer: @env, vars: {} }
-        end
-
-        def pop_scope
-          @env = @env[:outer]
-        end
-
         def vars
           @env[:vars]
         end
 
         def find_var(name, local_only: false)
           env = @env
+          env = env[:outer] while env[:hoist]
+
           depth = 0
           loop do
-            if env[:vars].key?(name)
-              return [depth, env.dig(:vars, name)]
+            if env.fetch(:vars).key?(name)
+              var = env.dig(:vars, name)
+              return [depth, var]
             end
-            if env[:block] && env[:outer] && !local_only
-              env = env[:outer]
+            if env[:block] && !local_only && (outer = env.fetch(:outer))
+              env = outer
               depth += 1
             else
               break
             end
           end
+
+          raise "unknown variable #{name}"
         end
 
         def fetch_block_of_instructions(until_instruction: EndInstruction, expected_label: nil)
@@ -104,14 +97,26 @@ module Natalie
           "#{@compiler_context[:var_prefix]}#{name}#{n}"
         end
 
-        def with_new_scope(instructions, block: false)
-          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, outer_env: @env, block: block)
+        def with_new_scope(instructions)
+          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context)
           yield(t)
         end
 
         def with_same_scope(instructions)
-          t = Transform.new(instructions, stack: @stack.dup, top: @top, compiler_context: @compiler_context, env: @env)
+          stack = @stack.dup
+          t = Transform.new(instructions, stack: stack, top: @top, compiler_context: @compiler_context)
           yield(t)
+          @stack_sizes << stack.size
+        end
+
+        # truncate resulting stack to minimum size of any
+        # code branch within this block
+        def normalize_stack
+          @stack_sizes = []
+          yield
+          @stack_sizes << stack.size
+          @stack[@stack_sizes.min..] = []
+          @stack_sizes = nil
         end
 
         def consume(lines, result_prefix = nil)

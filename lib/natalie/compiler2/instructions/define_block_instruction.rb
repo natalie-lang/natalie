@@ -20,7 +20,7 @@ module Natalie
       def generate(transform)
         body = transform.fetch_block_of_instructions(expected_label: :define_block)
         fn = transform.temp('block')
-        transform.with_new_scope(body, block: true) do |t|
+        transform.with_new_scope(body) do |t|
           body = []
           body << "Value #{fn}(Env *env, Value self, size_t argc, Value *args, Block *block) {"
           body << t.transform('return')

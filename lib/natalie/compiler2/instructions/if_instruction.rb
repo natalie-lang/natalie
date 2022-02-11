@@ -17,22 +17,28 @@ module Natalie
         condition = transform.pop
         result = transform.temp('if_result')
         code = []
+
+        # hoisted variables need to be set to nil here
+        (@env[:hoisted_vars] || {}).each do |_, var|
+          code << "Value #{var.fetch(:name)} = NilObject::the()"
+          var[:declared] = true
+        end
+
         code << "Value #{result}"
-        code << "if (#{condition}->is_truthy()) {"
-        stack_sizes = []
-        transform.with_same_scope(true_body) do |t|
-          code << t.transform("#{result} =")
-          stack_sizes << t.stack.size
+
+        transform.normalize_stack do
+          code << "if (#{condition}->is_truthy()) {"
+          transform.with_same_scope(true_body) do |t|
+            code << t.transform("#{result} =")
+          end
+
+          code << '} else {'
+          transform.with_same_scope(false_body) do |t|
+            code << t.transform("#{result} =")
+          end
+          code << '}'
         end
-        code << '} else {'
-        transform.with_same_scope(false_body) do |t|
-          code << t.transform("#{result} =")
-          stack_sizes << t.stack.size
-        end
-        code << '}'
-        # truncate resulting stack to minimum size of either branch's stack above
-        stack_sizes << transform.stack.size
-        transform.stack[stack_sizes.min..] = []
+
         transform.exec(code)
         transform.push(result)
       end

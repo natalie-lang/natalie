@@ -16,26 +16,34 @@ module Natalie
         catch_body = transform.fetch_block_of_instructions(expected_label: :try) # or else or ensure?
         result = transform.temp('try_result')
         code = []
+
+        # hoisted variables need to be set to nil here
+        (@env[:hoisted_vars] || {}).each do |_, var|
+          code << "Value #{var.fetch(:name)} = NilObject::the()"
+          var[:declared] = true
+        end
+
         code << "Value #{result}"
-        code << 'try {'
-        stack_sizes = []
-        transform.with_same_scope(body) do |t|
-          code << t.transform("#{result} =")
-          stack_sizes << t.stack.size
+
+        transform.normalize_stack do
+          code << 'try {'
+          transform.with_same_scope(body) do |t|
+            code << t.transform("#{result} =")
+          end
+
+          code << 'GlobalEnv::the()->set_rescued(false);'
+          code << '} catch(ExceptionObject *exception) {'
+          code << 'GlobalEnv::the()->set_rescued(true);'
+          code << 'env->set_exception(exception)'
+
+          transform.with_same_scope(catch_body) do |t|
+            code << t.transform("#{result} =")
+          end
+
+          code << 'env->clear_exception()'
+          code << '}'
         end
-        code << 'GlobalEnv::the()->set_rescued(false)'
-        code << '} catch(ExceptionObject *exception) {'
-        code << 'GlobalEnv::the()->set_rescued(true)'
-        code << 'env->set_exception(exception)'
-        transform.with_same_scope(catch_body) do |t|
-          code << t.transform("#{result} =")
-          stack_sizes << t.stack.size
-        end
-        code << 'env->clear_exception()'
-        code << '}'
-        # truncate resulting stack to minimum size of either branch's stack above
-        stack_sizes << transform.stack.size
-        transform.stack[stack_sizes.min..] = []
+
         transform.exec(code)
         transform.push(result)
       end
