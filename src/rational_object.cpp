@@ -58,6 +58,28 @@ Value RationalObject::inspect(Env *env) {
     return StringObject::format("({}/{})", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
+Value RationalObject::mul(Env *env, Value other) {
+    if (other->is_integer()) {
+        other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
+    }
+    if (other->is_rational()) {
+        auto num1 = other->as_rational()->numerator(env)->as_integer();
+        auto den1 = other->as_rational()->denominator(env)->as_integer();
+        auto gcd1 = m_numerator->gcd(env, den1);
+        auto gcd2 = m_denominator->gcd(env, num1);
+        auto num2 = m_numerator->div(env, gcd1)->as_integer()->mul(env, num1->div(env, gcd2));
+        auto den2 = m_denominator->div(env, gcd2)->as_integer()->mul(env, den1->div(env, gcd1));
+        return new RationalObject { num2->as_integer(), den2->as_integer() };
+    } else if (other->is_float()) {
+        return this->to_f(env)->as_float()->mul(env, other);
+    } else if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "*"_s, { result.second });
+    } else {
+        env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
+    }
+}
+
 Value RationalObject::numerator(Env *env) {
     return m_numerator;
 }
