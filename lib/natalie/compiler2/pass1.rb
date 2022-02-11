@@ -4,6 +4,9 @@ require_relative './rescue'
 
 module Natalie
   class Compiler2
+    # This compiler pass transforms AST from the Parser into Intermediate
+    # Representation, which we implement using Instructions.
+    # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
       def initialize(ast)
         @ast = ast
