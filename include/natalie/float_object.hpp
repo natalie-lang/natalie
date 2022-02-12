@@ -4,7 +4,6 @@
 #include <float.h>
 #include <math.h>
 
-#include "natalie/bignum_object.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"

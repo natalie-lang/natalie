@@ -1244,14 +1244,7 @@ std::tuple<BigInt, BigInt> divide(const BigInt &dividend, const BigInt &divisor)
     return std::make_tuple(quotient, remainder);
 }
 
-/*
-    BigInt / BigInt
-    ---------------
-    Computes the quotient of two BigInts using the long-division method.
-    The operand on the RHS of the division (the divisor) is `num`.
-*/
-
-BigInt BigInt::operator/(const BigInt &num) const {
+BigInt BigInt::c_div(const BigInt &num) const {
     BigInt abs_dividend = abs(*this);
     BigInt abs_divisor = abs(num);
 
@@ -1312,10 +1305,24 @@ BigInt BigInt::operator/(const BigInt &num) const {
     else
         quotient.sign = '-';
 
+    return quotient;
+}
+
+/*
+    BigInt / BigInt
+    ---------------
+    Computes the quotient of two BigInts using the long-division method.
+    The operand on the RHS of the division (the divisor) is `num`.
+*/
+
+BigInt BigInt::operator/(const BigInt &num) const {
+    auto quotient = c_div(num);
+
     // Correct division result downwards if up-rounding happened,
     // (for non-zero remainder of sign different than the divisor).
     auto remainder = *this - quotient * num;
     bool corr = (remainder != 0 && ((remainder < 0) != (num < 0)));
+
     return quotient - corr;
 }
 
@@ -1359,7 +1366,7 @@ BigInt BigInt::c_mod(const BigInt &num) const {
 BigInt BigInt::operator%(const BigInt &num) const {
     BigInt remainder = c_mod(num);
 
-    if (num.sign != this->sign)
+    if (num.sign != remainder.sign)
         remainder += num;
 
     return remainder;

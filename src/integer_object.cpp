@@ -4,20 +4,32 @@
 
 namespace Natalie {
 
+Value IntegerObject::create(const Integer &integer) {
+    if (integer.is_bignum())
+        return new IntegerObject { integer };
+    return Value::integer(integer.to_nat_int_t());
+}
+Value IntegerObject::create(const char *string) {
+    return new IntegerObject { BigInt(string) };
+};
+
 Value IntegerObject::to_s(Env *env, Value base_value) {
     if (m_integer == 0)
         return new StringObject { "0" };
+    if (m_integer.is_bignum())
+        return new StringObject { m_integer.to_string() };
     auto str = new StringObject {};
     nat_int_t base = 10;
+    // FIXME: What if base or self are bignums
     if (base_value) {
         base_value->assert_type(env, Object::Type::Integer, "Integer");
-        base = base_value->as_integer()->to_nat_int_t();
+        base = base_value->as_integer()->integer().to_nat_int_t();
 
         if (base < 2 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
         }
     }
-    auto num = m_integer;
+    auto num = m_integer.to_nat_int_t();
     bool negative = false;
     if (num < 0) {
         negative = true;
@@ -43,126 +55,55 @@ Value IntegerObject::to_i() {
 }
 
 Value IntegerObject::to_f() const {
-    return Value { static_cast<double>(m_integer) };
-}
-
-Value add_fast(nat_int_t a, nat_int_t b) {
-    nat_int_t result = a + b;
-
-    bool overflowed = false;
-    if (a < 0 && b < 0 && result > 0)
-        overflowed = true;
-    if (a > 0 && b > 0 && result < 0)
-        overflowed = true;
-    if (overflowed) {
-        auto result = BigInt(a) + BigInt(b);
-        return new BignumObject { result };
-    }
-
-    return Value::integer(result);
+    return Value { m_integer.to_double() };
 }
 
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg.is_fast_integer())
-        return add_fast(m_integer, arg.get_fast_integer());
+        return create(m_integer + arg.get_fast_integer());
     if (arg.is_fast_float())
         return Value { m_integer + arg.get_fast_float() };
-
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = to_nat_int_t() + arg->as_float()->to_double();
-        return new FloatObject { result };
+        return Value { m_integer + arg->as_float()->to_double() };
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
-        auto result = to_bigint() + other->to_bigint();
-        return new BignumObject { result };
-    }
-
-    return add_fast(m_integer, other->to_nat_int_t());
-}
-
-Value sub_fast(nat_int_t a, nat_int_t b) {
-    nat_int_t result = a - b;
-
-    bool overflowed = false;
-    if (a > 0 && b < 0 && result < 0)
-        overflowed = true;
-    if (a < 0 && b > 0 && result > 0)
-        overflowed = true;
-    if (overflowed) {
-        auto result = BigInt(a) - BigInt(b);
-        return BignumObject::create_if_needed(result);
-    }
-
-    return Value::integer(result);
+    return create(m_integer + arg->as_integer()->integer());
 }
 
 Value IntegerObject::sub(Env *env, Value arg) {
     if (arg.is_fast_integer())
-        return sub_fast(m_integer, arg.get_fast_integer());
+        return create(m_integer - arg.get_fast_integer());
     if (arg.is_fast_float())
         return Value { m_integer - arg.get_fast_float() };
 
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = to_nat_int_t() - arg->as_float()->to_double();
+        double result = m_integer.to_double() - arg->as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
-        auto result = to_bigint() - other->to_bigint();
-        return BignumObject::create_if_needed(result);
-    }
-
-    return sub_fast(m_integer, other->to_nat_int_t());
+    return create(m_integer - arg->as_integer()->integer());
 }
 
-bool will_multiplication_overflow(nat_int_t a, nat_int_t b) {
-    if (a == b) {
-        return a > NAT_MAX_FIXNUM_SQRT || a < -NAT_MAX_FIXNUM_SQRT;
-    }
-
-    auto min_fraction = (NAT_MIN_FIXNUM) / b;
-    auto max_fraction = (NAT_MAX_FIXNUM) / b;
-
-    return ((a > 0 && b > 0 && max_fraction <= a)
-        || (a > 0 && b < 0 && min_fraction <= a)
-        || (a < 0 && b > 0 && min_fraction >= a)
-        || (a < 0 && b < 0 && max_fraction >= a));
-}
-
-Value mul_fast(nat_int_t a, nat_int_t b) {
-    if (a == 0 || b == 0)
-        return Value::integer(0);
-
-    if (will_multiplication_overflow(a, b)) {
-        auto result = BigInt(a) * BigInt(b);
-        return new BignumObject { result };
-    }
-
-    return Value::integer(a * b);
-}
 Value IntegerObject::mul(Env *env, Value arg) {
     if (arg.is_fast_integer())
-        return mul_fast(m_integer, arg.get_fast_integer());
+        return create(m_integer * arg.get_fast_integer());
     if (arg.is_fast_float())
         return Value { m_integer * arg.get_fast_float() };
 
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = to_nat_int_t() * arg->as_float()->to_double();
+        double result = m_integer.to_double() * arg->as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
@@ -170,133 +111,62 @@ Value IntegerObject::mul(Env *env, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    if (m_integer == 0 || arg->as_integer()->to_nat_int_t() == 0)
+    if (m_integer == 0 || arg->as_integer()->integer() == 0)
         return Value::integer(0);
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
-        auto result = to_bigint() * other->to_bigint();
-        return new BignumObject { result };
-    }
-
-    return mul_fast(m_integer, other->to_nat_int_t());
-}
-
-Value div_fast(nat_int_t a, nat_int_t b) {
-    nat_int_t res = a / b;
-    nat_int_t rem = a % b;
-    // Correct division result downwards if up-rounding happened,
-    // (for non-zero remainder of sign different than the divisor).
-    bool corr = (rem != 0 && ((rem < 0) != (b < 0)));
-    return Value::integer(res - corr);
+    return create(m_integer * arg->as_integer()->integer());
 }
 
 Value IntegerObject::div(Env *env, Value arg) {
     if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
-        return div_fast(m_integer, arg.get_fast_integer());
+        return create(m_integer / arg.get_fast_integer());
     if (arg.is_fast_float())
         return Value { m_integer / arg.get_fast_float() };
 
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = to_nat_int_t() / arg->as_float()->to_double();
+        double result = m_integer.to_double() / arg->as_float()->to_double();
         return new FloatObject { result };
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
-        auto other = arg->as_integer();
-        auto result = to_bigint() / other->to_bigint();
-        return new BignumObject { result };
-    }
-
-    if (other->to_nat_int_t() == 0)
+    auto other = arg->as_integer()->integer();
+    if (other == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    return div_fast(m_integer, other->to_nat_int_t());
+    return create(m_integer / other);
 }
 
 Value IntegerObject::mod(Env *env, Value arg) {
-    // FIXME: add mod_fast, like div_fast
-    arg.unguard();
+    Integer argument;
+    if (arg.is_fast_integer()) {
+        argument = arg.get_fast_integer();
+    } else if (arg.is_fast_float() || arg->is_float()) {
+        return FloatObject { m_integer.to_double() }.mod(env, arg);
+    } else {
+        arg.unguard();
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+        argument = arg->as_integer()->integer();
+    }
 
-    if (arg->is_float())
-        return FloatObject { to_nat_int_t() }.send(env, "%"_s, { arg });
-
-    arg->assert_type(env, Object::Type::Integer, "Integer");
-
-    auto integer = arg->as_integer();
-    if (integer->is_bignum())
-        return new BignumObject { to_bigint() % integer->to_bigint() };
-
-    auto nat_int = integer->to_nat_int_t();
-    if (nat_int == 0)
+    if (argument == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    // Cast operands to floats to get decimal result from division.
-    auto f = ::floor((float)m_integer / (float)nat_int);
-    auto result = m_integer - (nat_int * f);
-
-    return Value::integer(result);
-}
-
-Value pow_fast(Env *env, nat_int_t a, nat_int_t b) {
-    if (b == 0)
-        return Value::integer(1);
-    if (b == 1)
-        return Value::integer(a);
-    if (a == 0)
-        return Value::integer(0);
-
-    auto handle_overflow = [env, &a, &b](nat_int_t last_result, bool should_be_negative) -> Value {
-        auto result = BignumObject(a).pow(env, Value::integer(b));
-
-        // Check if the bignum pow overflowed.
-        if (result->is_float() && result->as_float()->is_infinite(env)) {
-            return result;
-        }
-
-        result = result->as_integer()->mul(env, Value::integer(should_be_negative ? -last_result : last_result));
-        return result;
-    };
-
-    nat_int_t result = 1;
-
-    bool negative = a < 0;
-    if (negative) a = -a;
-    negative = negative && (b % 2);
-
-    while (b != 0) {
-        while (b % 2 == 0) {
-            if (a > NAT_MAX_FIXNUM_SQRT) {
-                return handle_overflow(result, negative);
-            }
-            b >>= 1;
-            a *= a;
-        }
-
-        if (will_multiplication_overflow(result, a)) {
-            return handle_overflow(result, negative);
-        }
-        result *= a;
-        --b;
-    }
-    return Value::integer(negative ? -result : result);
+    return create(m_integer % argument);
 }
 
 Value IntegerObject::pow(Env *env, Value arg) {
-    nat_int_t nat_int;
+    Integer arg_int;
     if (arg.is_fast_integer()) {
-        nat_int = arg.get_fast_integer();
+        arg_int = arg.get_fast_integer();
     } else {
         arg.unguard();
 
         if (arg->is_float())
-            return FloatObject { to_nat_int_t() }.pow(env, arg);
+            return FloatObject { m_integer.to_double() }.pow(env, arg);
 
         if (!arg->is_integer()) {
             auto coerced = Natalie::coerce(env, arg, this);
@@ -308,20 +178,38 @@ Value IntegerObject::pow(Env *env, Value arg) {
 
         arg->assert_type(env, Object::Type::Integer, "Integer");
 
-        if (arg->as_integer()->is_bignum())
-            return BignumObject { to_nat_int_t() }.pow(env, arg);
-
-        nat_int = arg->as_integer()->to_nat_int_t();
+        arg_int = arg->as_integer()->integer();
     }
 
-    if (m_integer == 0 && nat_int < 0)
+    if (m_integer == 0 && arg_int < 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
     // NATFIXME: If a negative number is passed we want to return a Rational
-    if (nat_int < 0)
+    if (arg_int < 0)
         NAT_NOT_YET_IMPLEMENTED();
 
-    return pow_fast(env, m_integer, nat_int);
+    if (arg_int == 0)
+        return Value::integer(1);
+    else if (arg_int == 1)
+        return create(m_integer);
+
+    if (m_integer == 0)
+        return Value::integer(0);
+    else if (m_integer == 1)
+        return Value::integer(1);
+    else if (m_integer == -1)
+        return Value::integer(arg_int % 2 ? 1 : -1);
+
+    // NATFIXME: Ruby has a really weird max bignum value that is calculated by the words needed to store a bignum
+    // The calculation that we do is pretty much guessed to be in the direction of ruby. However, we should do more research about this limit...
+    size_t length = m_integer.to_string().length();
+    constexpr const size_t BIGINT_LIMIT = 8 * 1024 * 1024;
+    if (length > BIGINT_LIMIT || length * arg_int > (nat_int_t)BIGINT_LIMIT) {
+        env->warn("in a**b, b may be too big");
+        return FloatObject { m_integer.to_double() }.pow(env, arg);
+    }
+
+    return create(Natalie::pow(m_integer, arg_int));
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
@@ -354,19 +242,15 @@ bool IntegerObject::eq(Env *env, Value other) {
 
     other.unguard();
 
-    if (other->is_float()) {
-        return to_nat_int_t() == other->as_float()->to_double();
-    }
+    if (other->is_float())
+        return m_integer.to_nat_int_t() == other->as_float()->to_double();
 
-    if (!other->is_integer()) {
+    if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
-    }
 
-    if (other->is_integer()) {
-        if (other->as_integer()->is_bignum())
-            return to_bigint() == other->as_integer()->to_bigint();
-        return to_nat_int_t() == other->as_integer()->to_nat_int_t();
-    }
+    if (other->is_integer())
+        return m_integer == other->as_integer()->integer();
+
     return other->send(env, "=="_s, { this })->is_truthy();
 }
 
@@ -378,43 +262,35 @@ bool IntegerObject::lt(Env *env, Value other) {
 
     other.unguard();
 
-    if (other->is_float()) {
-        return to_nat_int_t() < other->as_float()->to_double();
-    }
+    if (other->is_float())
+        return m_integer < other->as_float()->to_double();
 
-    if (!other->is_integer()) {
+    if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
-    }
 
-    if (other->is_integer()) {
-        if (other->as_integer()->is_bignum())
-            return to_bigint() < other->as_integer()->to_bigint();
-        return to_nat_int_t() < other->as_integer()->to_nat_int_t();
-    }
+    if (other->is_integer())
+        return m_integer < other->as_integer()->integer();
+
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerObject::lte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer <= other.get_fast_integer();
-    if (other.is_fast_float())
+    else if (other.is_fast_float())
         return m_integer <= other.get_fast_float();
 
     other.unguard();
 
-    if (other->is_float()) {
-        return to_nat_int_t() <= other->as_float()->to_double();
-    }
+    if (other->is_float())
+        return m_integer <= other->as_float()->to_double();
 
-    if (!other->is_integer()) {
+    if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
-    }
 
-    if (other->is_integer()) {
-        if (other->as_integer()->is_bignum())
-            return to_bigint() <= other->as_integer()->to_bigint();
-        return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
-    }
+    if (other->is_integer())
+        return m_integer <= other->as_integer()->integer();
+
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
@@ -426,19 +302,15 @@ bool IntegerObject::gt(Env *env, Value other) {
 
     other.unguard();
 
-    if (other->is_float()) {
-        return to_nat_int_t() > other->as_float()->to_double();
-    }
+    if (other->is_float())
+        return m_integer > other->as_float()->to_double();
 
-    if (!other->is_integer()) {
+    if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
-    }
 
-    if (other->is_integer()) {
-        if (other->as_integer()->is_bignum())
-            return to_bigint() > other->as_integer()->to_bigint();
-        return to_nat_int_t() > other->as_integer()->to_nat_int_t();
-    }
+    if (other->is_integer())
+        return m_integer > other->as_integer()->integer();
+
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
@@ -450,50 +322,38 @@ bool IntegerObject::gte(Env *env, Value other) {
 
     other.unguard();
 
-    if (other->is_float()) {
-        return to_nat_int_t() >= other->as_float()->to_double();
-    }
+    if (other->is_float())
+        return m_integer >= other->as_float()->to_double();
 
-    if (!other->is_integer()) {
+    if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
-    }
 
-    if (other->is_integer()) {
-        if (other->as_integer()->is_bignum())
-            return to_bigint() >= other->as_integer()->to_bigint();
-        return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
-    }
+    if (other->is_integer())
+        return m_integer >= other->as_integer()->integer();
+
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 Value IntegerObject::times(Env *env, Block *block) {
-    auto val = to_nat_int_t();
     if (!block) {
         auto enumerator = send(env, "enum_for"_s, { "times"_s });
-        enumerator->ivar_set(env, "@size"_s, val < 0 ? Value::integer(0) : this);
+        enumerator->ivar_set(env, "@size"_s, m_integer < 0 ? Value::integer(0) : this);
         return enumerator;
     }
 
-    if (val <= 0)
+    if (m_integer <= 0)
         return this;
 
-    for (nat_int_t i = 0; i < val; i++) {
-        Value num = Value::integer(i);
+    for (Integer i = 0; i < m_integer; ++i) {
+        Value num = create(i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
     }
     return this;
 }
 
-Value bitwise_and_fast(IntegerObject *self, nat_int_t arg) {
-    if (self->is_bignum()) {
-        return BignumObject::create_if_needed(self->to_bigint() & arg);
-    }
-    return Value::integer(self->to_nat_int_t() & arg);
-}
-
 Value IntegerObject::bitwise_and(Env *env, Value arg) {
     if (arg.is_fast_integer()) {
-        return bitwise_and_fast(this, arg.get_fast_integer());
+        return create(m_integer & arg.get_fast_integer());
     } else if (!arg->is_integer()) {
         auto result = Natalie::coerce(env, arg, this);
         result.second->assert_type(env, Object::Type::Integer, "Integer");
@@ -502,18 +362,13 @@ Value IntegerObject::bitwise_and(Env *env, Value arg) {
     arg.unguard();
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto integer = arg->as_integer();
-    if (integer->is_bignum()) {
-        return BignumObject::create_if_needed(to_bigint() & integer->to_bigint());
-    }
-
-    return bitwise_and_fast(this, integer->to_nat_int_t());
+    return create(m_integer & arg->as_integer()->integer());
 }
 
 Value IntegerObject::bitwise_or(Env *env, Value arg) {
-    nat_int_t nat_int;
+    Integer argument;
     if (arg.is_fast_integer()) {
-        nat_int = arg.get_fast_integer();
+        argument = arg.get_fast_integer();
     } else if (!arg->is_integer()) {
         auto result = Natalie::coerce(env, arg, this);
         result.second->assert_type(env, Object::Type::Integer, "Integer");
@@ -521,25 +376,16 @@ Value IntegerObject::bitwise_or(Env *env, Value arg) {
     } else {
         arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
-        auto integer = arg->as_integer();
-        if (integer->is_bignum()) {
-            return BignumObject::create_if_needed(to_bigint() | integer->to_bigint());
-        }
-
-        nat_int = integer->to_nat_int_t();
+        argument = arg->as_integer()->integer();
     }
 
-    if (is_bignum()) {
-        return BignumObject::create_if_needed(to_bigint() | nat_int);
-    }
-
-    return Value::integer(to_nat_int_t() | nat_int);
+    return create(m_integer | argument);
 }
 
 Value IntegerObject::bitwise_xor(Env *env, Value arg) {
-    nat_int_t nat_int;
+    Integer argument;
     if (arg.is_fast_integer()) {
-        nat_int = arg.get_fast_integer();
+        argument = arg.get_fast_integer();
     } else if (!arg->is_integer()) {
         auto result = Natalie::coerce(env, arg, this);
         result.second->assert_type(env, Object::Type::Integer, "Integer");
@@ -547,19 +393,10 @@ Value IntegerObject::bitwise_xor(Env *env, Value arg) {
     } else {
         arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
-        auto integer = arg->as_integer();
-        if (integer->is_bignum()) {
-            return BignumObject::create_if_needed(to_bigint() ^ integer->to_bigint());
-        }
-
-        nat_int = integer->to_nat_int_t();
+        argument = arg->as_integer()->integer();
     }
 
-    if (is_bignum()) {
-        return BignumObject::create_if_needed(to_bigint() ^ nat_int);
-    }
-
-    return Value::integer(to_nat_int_t() ^ nat_int);
+    return create(m_integer ^ argument);
 }
 
 Value IntegerObject::left_shift(Env *env, Value arg) {
@@ -575,27 +412,13 @@ Value IntegerObject::left_shift(Env *env, Value arg) {
                 return Value::integer(0);
         }
 
-        nat_int = integer->to_nat_int_t();
+        nat_int = integer->integer().to_nat_int_t();
     }
 
-    if (nat_int < 0) {
+    if (nat_int < 0)
         return right_shift(env, Value::integer(-nat_int));
-    }
 
-    bool overflow = is_bignum();
-    if (!overflow) {
-        auto pow = pow_fast(env, 2, nat_int);
-        if (!pow.is_fast_integer()) {
-            overflow = true;
-        } else {
-            overflow = will_multiplication_overflow(m_integer, pow.get_fast_integer());
-        }
-    }
-
-    if (overflow)
-        return BignumObject::create_if_needed(to_bigint() << nat_int);
-
-    return Value::integer(m_integer << nat_int);
+    return create(m_integer << nat_int);
 }
 
 Value IntegerObject::right_shift(Env *env, Value arg) {
@@ -611,24 +434,13 @@ Value IntegerObject::right_shift(Env *env, Value arg) {
                 return Value::integer(0);
         }
 
-        nat_int = integer->to_nat_int_t();
+        nat_int = integer->integer().to_nat_int_t();
     }
 
-    if (nat_int < 0) {
+    if (nat_int < 0)
         return left_shift(env, Value::integer(-nat_int));
-    }
 
-    if (is_bignum())
-        return BignumObject::create_if_needed(to_bigint() >> nat_int);
-
-    if (nat_int > (nat_int_t)sizeof(nat_int_t)) {
-        if (is_negative())
-            return Value::integer(-1);
-        else
-            return Value::integer(0);
-    }
-
-    return Value::integer(to_nat_int_t() >> nat_int);
+    return create(m_integer >> nat_int);
 }
 
 Value IntegerObject::pred(Env *env) {
@@ -637,7 +449,7 @@ Value IntegerObject::pred(Env *env) {
 
 Value IntegerObject::size(Env *env) {
     // NATFIXME: add Bignum support.
-    return Value::integer(sizeof m_integer);
+    return Value::integer(sizeof(nat_int_t));
 }
 
 Value IntegerObject::succ(Env *env) {
@@ -677,12 +489,12 @@ Value IntegerObject::ceil(Env *env, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->to_nat_int_t();
+    auto precision = arg->as_integer()->integer().to_nat_int_t();
     if (precision >= 0)
         return this;
 
     double f = ::pow(10, precision);
-    auto result = ::ceil(to_nat_int_t() * f) / f;
+    auto result = ::ceil(m_integer.to_nat_int_t() * f) / f;
 
     return Value::integer(result);
 }
@@ -693,58 +505,34 @@ Value IntegerObject::floor(Env *env, Value arg) {
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    auto precision = arg->as_integer()->to_nat_int_t();
+    auto precision = arg->as_integer()->integer().to_nat_int_t();
     if (precision >= 0)
         return this;
 
     double f = ::pow(10, precision);
-    auto result = ::floor(to_nat_int_t() * f) / f;
+    auto result = ::floor(m_integer.to_nat_int_t() * f) / f;
 
     return Value::integer(result);
 }
 
-Value gcd_fast(nat_int_t a, nat_int_t b) {
-    auto this_abs = ::abs(a);
-    auto divisor_abs = ::abs(b);
-    auto remainder = divisor_abs;
-
-    while (remainder != 0) {
-        remainder = this_abs % divisor_abs;
-        this_abs = divisor_abs;
-        divisor_abs = remainder;
-    }
-
-    return Value::integer(this_abs);
-}
-
 Value IntegerObject::gcd(Env *env, Value divisor) {
     if (divisor.is_fast_integer())
-        return gcd_fast(m_integer, divisor.get_fast_integer());
+        return create(Natalie::gcd(m_integer, divisor.get_fast_integer()));
 
     divisor->assert_type(env, Object::Type::Integer, "Integer");
-
-    auto other = divisor->as_integer();
-    if (other->is_bignum()) {
-        auto result = ::gcd(to_bigint(), other->to_bigint());
-        return new BignumObject { result };
-    }
-
-    return gcd_fast(m_integer, other->to_nat_int_t());
+    return create(Natalie::gcd(m_integer, divisor->as_integer()->integer()));
 }
 
 Value IntegerObject::abs(Env *env) {
-    auto number = to_nat_int_t();
-    if (number < 0) {
-        return Value::integer(-1 * number);
-    } else {
-        return this;
-    }
+    if (m_integer.is_negative())
+        return create(-m_integer);
+    return this;
 }
 
 Value IntegerObject::chr(Env *env) const {
     if (m_integer < 0 || m_integer > 255)
-        env->raise("RangeError", "{} out of char range", m_integer);
-    auto c = static_cast<char>(to_nat_int_t());
+        env->raise("RangeError", "{} out of char range", m_integer.to_nat_int_t());
+    auto c = static_cast<char>(m_integer.to_nat_int_t());
     char str[2] = { c, 0 };
     return new StringObject { str, 1 };
 }
@@ -774,7 +562,7 @@ bool IntegerObject::optimized_method(SymbolObject *method_name) {
 }
 
 Value IntegerObject::negate(Env *env) {
-    return Value::integer(-1 * m_integer);
+    return create(-m_integer);
 }
 
 Value IntegerObject::numerator() {
@@ -782,38 +570,26 @@ Value IntegerObject::numerator() {
 }
 
 Value IntegerObject::complement(Env *env) const {
-    return Value::integer(~m_integer);
+    return create(~m_integer);
 }
 
 Value IntegerObject::sqrt(Env *env, Value arg) {
-    nat_int_t nat_int;
+    Integer argument;
+    if (arg.is_fast_integer()) {
+        argument = arg.get_fast_integer();
+    } else {
+        arg.unguard();
+        argument = arg->to_int(env)->integer();
+    }
 
-    auto raise_domain_error = [env]() -> void {
+    if (argument < 0) {
         auto domain_error = find_nested_const(env, { "Math"_s, "DomainError"_s });
         auto message = new StringObject { "Numerical argument is out of domain - \"isqrt\"" };
         auto exception = new ExceptionObject { domain_error->as_class(), message };
         env->raise_exception(exception);
-    };
-
-    if (arg.is_fast_integer()) {
-        nat_int = arg.get_fast_integer();
-    } else {
-        arg.unguard();
-
-        auto integer = arg->to_int(env);
-        if (integer->is_bignum()) {
-            if (integer->to_bigint() < 0)
-                raise_domain_error();
-
-            return new BignumObject { ::sqrt(integer->to_bigint()) };
-        }
-        nat_int = integer->to_nat_int_t();
     }
 
-    if (nat_int < 0)
-        raise_domain_error();
-
-    return Value::integer(::sqrt(nat_int));
+    return create(Natalie::sqrt(argument));
 }
 
 Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
@@ -826,16 +602,12 @@ Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
     if (digits >= 0)
         return this;
 
-    auto result = to_nat_int_t();
-    auto dividend_big = big_pow10(-digits);
-    if (dividend_big > NAT_MAX_FIXNUM)
-        return Value::integer(0);
-
-    nat_int_t dividend = dividend_big.to_long_long();
+    auto result = m_integer;
+    auto dividend = Natalie::pow(Integer(10), -digits);
 
     auto half = dividend / 2;
-    auto remainder = (result % dividend);
-    auto remainder_abs = ::abs(remainder);
+    auto remainder = result.modulo_c(dividend);
+    auto remainder_abs = Natalie::abs(remainder);
 
     if (remainder_abs < half) {
         result -= remainder;
@@ -850,7 +622,7 @@ Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
             result -= remainder;
             break;
         case RoundingMode::Even:
-            auto digit = result % (dividend * 10) / dividend;
+            auto digit = result.modulo_c(dividend * 10).div_c(dividend);
             if (digit % 2 == 0) {
                 result -= remainder;
             } else {
@@ -860,7 +632,7 @@ Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
         }
     }
 
-    return Value::integer(result);
+    return create(result);
 }
 
 Value IntegerObject::truncate(Env *env, Value ndigits) {
@@ -872,15 +644,11 @@ Value IntegerObject::truncate(Env *env, Value ndigits) {
     if (digits >= 0)
         return this;
 
-    auto result = to_nat_int_t();
-    auto dividend_big = big_pow10(-digits);
-    if (dividend_big > NAT_MAX_FIXNUM)
-        return Value::integer(0);
+    auto result = m_integer;
+    auto dividend = Natalie::pow(Integer(10), -digits);
+    auto remainder = result.modulo_c(dividend);
 
-    nat_int_t dividend = dividend_big.to_long_long();
-    auto remainder = result % dividend;
-
-    return Value::integer(result - remainder);
+    return create(result - remainder);
 }
 
 Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
@@ -892,35 +660,19 @@ Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
 
         auto size = size_or_empty.value_or(1);
 
-        if (is_fixnum()) {
-            nat_int_t result;
-            if (offset < 0)
-                result = to_nat_int_t() << -offset;
-            else
-                result = to_nat_int_t() >> offset;
+        Integer result;
+        if (offset < 0)
+            result = m_integer << -offset;
+        else
+            result = m_integer >> offset;
 
-            if (size >= 0)
-                result &= (1 << size) - 1;
+        if (size >= 0)
+            result = result & ((1 << size) - 1);
 
-            if (result != 0 && !offset_or_empty.present())
-                env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
+        if (result != 0 && !offset_or_empty.present())
+            env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
 
-            return Value::integer(result);
-        } else {
-            BigInt result;
-            if (offset < 0)
-                result = to_bigint() << -offset;
-            else
-                result = to_bigint() >> offset;
-
-            if (size >= 0)
-                result = result & ((1 << size) - 1);
-
-            if (result != 0 && !offset_or_empty.present())
-                env->raise("ArgumentError", "The beginless range for Integer#[] results in infinity");
-
-            return BignumObject::create_if_needed(result);
-        }
+        return create(result);
     };
 
     if (!size_obj && !offset_obj.is_fast_integer() && offset_obj->is_range()) {
@@ -931,7 +683,7 @@ Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
             begin = range->begin().get_fast_integer();
         } else if (!range->begin()->is_nil()) {
             auto begin_obj = range->begin()->to_int(env);
-            begin = begin_obj->to_nat_int_t();
+            begin = begin_obj->integer().to_nat_int_t();
         }
 
         Optional<nat_int_t> end;
@@ -939,7 +691,7 @@ Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
             end = range->end().get_fast_integer();
         } else if (!range->end()->is_nil()) {
             auto end_obj = range->end()->to_int(env);
-            end = end_obj->to_nat_int_t();
+            end = end_obj->integer().to_nat_int_t();
         }
 
         Optional<nat_int_t> size;
@@ -958,7 +710,7 @@ Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
             if (offset_integer->is_bignum())
                 return Value::integer(0);
 
-            offset = offset_integer->to_nat_int_t();
+            offset = offset_integer->integer().to_nat_int_t();
         }
 
         Optional<nat_int_t> size;
@@ -970,7 +722,7 @@ Value IntegerObject::ref(Env *env, Value offset_obj, Value size_obj) {
                 if (size_integer->is_bignum())
                     env->raise("RangeError", "shift width too big");
 
-                size = size_integer->to_nat_int_t();
+                size = size_integer->integer().to_nat_int_t();
             }
         }
 
@@ -984,7 +736,7 @@ nat_int_t IntegerObject::convert_to_nat_int_t(Env *env, Value arg) {
 
     auto integer = arg->to_int(env);
     integer->assert_fixnum(env);
-    return integer->to_nat_int_t();
+    return integer->integer().to_nat_int_t();
 }
 
 int IntegerObject::convert_to_int(Env *env, Value arg) {
@@ -997,5 +749,4 @@ int IntegerObject::convert_to_int(Env *env, Value arg) {
 
     return (int)result;
 }
-
 }
