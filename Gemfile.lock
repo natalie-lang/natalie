@@ -12,9 +12,9 @@ GEM
       ruby-progressbar
     rake (13.0.6)
     ruby-progressbar (1.11.0)
-    ruby_parser (3.16.0)
-      sexp_processor (~> 4.15, >= 4.15.1)
-    sexp_processor (4.15.3)
+    ruby_parser (3.18.1)
+      sexp_processor (~> 4.16)
+    sexp_processor (4.16.0)
 
 PLATFORMS
   ruby

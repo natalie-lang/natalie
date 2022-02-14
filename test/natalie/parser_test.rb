@@ -158,7 +158,7 @@ describe 'Parser' do
       Parser.parse('/foo #{1+1}/').should == s(:block, s(:dregx, 'foo ', s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
       Parser.parse('/^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/').should == s(:block, s(:lit, /^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/))
       Parser.parse("/\\n\\\\n/").should == s(:block, s(:lit, /\n\\n/))
-      Parser.parse("/\\/\\* foo \\*\\//").should == s(:block, s(:lit, Regexp.new("\\/\\* foo \\*\\/")))
+      Parser.parse("/\\/\\* foo \\*\\//").should == s(:block, s(:lit, Regexp.new("/\\* foo \\*/")))
       Parser.parse("/\\&\\a\\b/").should == s(:block, s(:lit, /\&\a\b/))
     end
 
@@ -180,7 +180,7 @@ describe 'Parser' do
                                                 "(string)#1: syntax error, unexpected '[' (expected: 'left side of assignment')",
                                               )
       else
-        -> { Parser.parse('x =') }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
+        -> { Parser.parse('x =') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "$" ($end)')
         -> { Parser.parse('[1] = 2') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "=" (tEQL)')
       end
       Parser.parse('@foo = 1').should == s(:block, s(:iasgn, :@foo, s(:lit, 1)))
@@ -345,7 +345,7 @@ describe 'Parser' do
                                              "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')",
                                            )
       else
-        -> { Parser.parse('foo(') }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
+        -> { Parser.parse('foo(') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "$" ($end)')
       end
     end
 
