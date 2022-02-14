@@ -1350,9 +1350,17 @@ Token Lexer::consume_regexp(char delimiter) {
     char c = current_char();
     while (c) {
         if (c == '\\') {
-            buf->append_char(c);
             advance();
-            buf->append_char(current_char());
+            c = current_char();
+            switch (c) {
+            case '/':
+                buf->append_char(c);
+                break;
+            default:
+                buf->append_char('\\');
+                buf->append_char(c);
+                break;
+            }
         } else if (c == delimiter) {
             advance();
             SharedPtr<String> options = new String("");

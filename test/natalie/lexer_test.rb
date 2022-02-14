@@ -105,7 +105,7 @@ describe 'Parser' do
       Parser.tokens('/foo/').should == [{ type: :dregx }, { type: :string, literal: 'foo' }, { type: :dregxend }]
       Parser.tokens('/\/\*\/\n/').should == [
         { type: :dregx },
-        { type: :string, literal: "\\/\\*\\/\\n" },
+        { type: :string, literal: "/\\*/\\n" }, # eliminates unneeded \\
         { type: :dregxend },
       ]
       Parser.tokens('/foo #{1+1} bar/').should == [
