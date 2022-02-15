@@ -283,13 +283,28 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
                 node_to_ruby(env, case_node->subject()),
             }
         };
-        for (auto when_node : case_node->when_nodes()) {
+        for (auto when_node : case_node->nodes()) {
             sexp->push(node_to_ruby(env, when_node));
         }
         if (case_node->else_node()) {
             sexp->push(node_to_ruby(env, case_node->else_node()->without_unnecessary_nesting()));
         } else {
             sexp->push(NilObject::the());
+        }
+        return sexp;
+    }
+    case Node::Type::CaseIn: {
+        auto case_in_node = static_cast<CaseInNode *>(node);
+        auto sexp = new SexpObject {
+            env,
+            case_in_node,
+            {
+                "in"_s,
+                node_to_ruby(env, case_in_node->pattern()),
+            }
+        };
+        for (auto node : case_in_node->body()->nodes()) {
+            sexp->push(node_to_ruby(env, node));
         }
         return sexp;
     }

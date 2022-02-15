@@ -486,7 +486,21 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
             }
             auto body = parse_case_when_body(locals);
             auto when_node = new CaseWhenNode { token, condition_array, body };
-            node->add_when_node(when_node);
+            node->add_node(when_node);
+            break;
+        }
+        case Token::Type::InKeyword: {
+            advance();
+            auto pattern = parse_case_in_patterns(locals);
+            if (current_token().type() == Token::Type::ThenKeyword) {
+                advance();
+                skip_newlines();
+            } else {
+                next_expression();
+            }
+            auto body = parse_case_in_body(locals);
+            auto in_node = new CaseInNode { token, pattern, body };
+            node->add_node(in_node);
             break;
         }
         case Token::Type::ElseKeyword: {
@@ -504,6 +518,44 @@ Node *Parser::parse_case(LocalsHashmap &locals) {
     expect(Token::Type::EndKeyword, "case end");
     advance();
     return node;
+}
+
+BlockNode *Parser::parse_case_in_body(LocalsHashmap &locals) {
+    return parse_case_when_body(locals);
+}
+
+Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
+    auto token = current_token();
+    switch (token.type()) {
+    case Token::Type::BareName:
+        advance();
+        return new IdentifierNode(token, true);
+    default:
+        printf("TODO: implement token type %d in Parser::parse_case_in_pattern()\n", (int)token.type());
+        abort();
+    }
+}
+
+Node *Parser::parse_case_in_patterns(LocalsHashmap &locals) {
+    Vector<Node *> patterns;
+    patterns.push(parse_case_in_pattern(locals));
+    while (current_token().type() == Token::Type::BitwiseOr) {
+        advance();
+        patterns.push(parse_case_in_pattern(locals));
+    }
+    assert(patterns.size() > 0);
+    if (patterns.size() == 1) {
+        return patterns.first();
+    } else {
+        auto first = patterns.pop_front();
+        auto second = patterns.pop_front();
+        auto pattern = new LogicalOrNode { first->token(), first, second };
+        while (!patterns.is_empty()) {
+            auto next = patterns.pop_front();
+            pattern = new LogicalOrNode { next->token(), pattern, next };
+        }
+        return pattern;
+    }
 }
 
 BlockNode *Parser::parse_case_when_body(LocalsHashmap &locals) {

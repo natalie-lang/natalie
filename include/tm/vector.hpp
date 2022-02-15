@@ -90,6 +90,11 @@ public:
         return m_data[index];
     }
 
+    T first() {
+        assert(m_size != 0);
+        return m_data[0];
+    }
+
     T last() {
         assert(m_size != 0);
         return m_data[m_size - 1];

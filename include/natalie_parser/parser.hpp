@@ -60,6 +60,7 @@ private:
 
     BlockNode *parse_body(LocalsHashmap &, Precedence, Token::Type = Token::Type::EndKeyword);
     BlockNode *parse_body(LocalsHashmap &, Precedence, Vector<Token::Type> &, const char *);
+    BlockNode *parse_case_in_body(LocalsHashmap &);
     BlockNode *parse_case_when_body(LocalsHashmap &);
     Node *parse_if_body(LocalsHashmap &);
     BlockNode *parse_def_body(LocalsHashmap &);
@@ -76,6 +77,8 @@ private:
     Node *parse_class(LocalsHashmap &);
     Node *parse_class_or_module_name(LocalsHashmap &);
     Node *parse_case(LocalsHashmap &);
+    Node *parse_case_in_pattern(LocalsHashmap &);
+    Node *parse_case_in_patterns(LocalsHashmap &);
     Node *parse_comma_separated_identifiers(LocalsHashmap &);
     void parse_comma_separated_expressions(ArrayNode *, LocalsHashmap &);
     Node *parse_constant(LocalsHashmap &);

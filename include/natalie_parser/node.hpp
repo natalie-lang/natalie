@@ -25,6 +25,7 @@ public:
         Break,
         Call,
         Case,
+        CaseIn,
         CaseWhen,
         Class,
         Colon2,
@@ -462,15 +463,15 @@ public:
 
     ~CaseNode() {
         delete m_subject;
-        for (auto node : m_when_nodes)
+        for (auto node : m_nodes)
             delete node;
         delete m_else_node;
     }
 
     virtual Type type() override { return Type::Case; }
 
-    void add_when_node(Node *node) {
-        m_when_nodes.push(node);
+    void add_node(Node *node) {
+        m_nodes.push(node);
     }
 
     void set_else_node(BlockNode *node) {
@@ -478,13 +479,38 @@ public:
     }
 
     Node *subject() const { return m_subject; }
-    Vector<Node *> &when_nodes() { return m_when_nodes; }
+    Vector<Node *> &nodes() { return m_nodes; }
     BlockNode *else_node() const { return m_else_node; }
 
 protected:
     Node *m_subject { nullptr };
-    Vector<Node *> m_when_nodes {};
+    Vector<Node *> m_nodes {};
     BlockNode *m_else_node { nullptr };
+};
+
+class CaseInNode : public Node {
+public:
+    CaseInNode(const Token &token, Node *pattern, BlockNode *body)
+        : Node { token }
+        , m_pattern { pattern }
+        , m_body { body } {
+        assert(m_pattern);
+        assert(m_body);
+    }
+
+    ~CaseInNode() {
+        delete m_pattern;
+        delete m_body;
+    }
+
+    virtual Type type() override { return Type::CaseIn; }
+
+    Node *pattern() const { return m_pattern; }
+    BlockNode *body() const { return m_body; }
+
+protected:
+    Node *m_pattern { nullptr };
+    BlockNode *m_body { nullptr };
 };
 
 class CaseWhenNode : public Node {
