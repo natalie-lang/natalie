@@ -157,6 +157,14 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
         }
         return sexp;
     }
+    case Node::Type::ArrayPattern: {
+        auto array_node = static_cast<ArrayNode *>(node);
+        auto sexp = new SexpObject { env, node, { "array_pat"_s } };
+        for (auto item_node : array_node->nodes()) {
+            sexp->push(node_to_ruby(env, item_node));
+        }
+        return sexp;
+    }
     case Node::Type::Assignment: {
         auto assignment_node = static_cast<AssignmentNode *>(node);
         Value left;

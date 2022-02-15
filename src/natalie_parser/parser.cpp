@@ -291,7 +291,7 @@ Node *Parser::parse_array(LocalsHashmap &locals) {
     advance();
     if (current_token().type() != Token::Type::RBracket) {
         array->add_node(parse_expression(Precedence::ARRAY, locals));
-        while (current_token().type() == Token::Type::Comma) {
+        while (current_token().is_comma()) {
             advance();
             if (current_token().type() == Token::Type::RBracket)
                 break;
@@ -529,7 +529,26 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
     switch (token.type()) {
     case Token::Type::BareName:
         advance();
-        return new IdentifierNode(token, true);
+        return new IdentifierNode { token, true };
+    case Token::Type::LBracketRBracket:
+        advance();
+        return new ArrayPatternNode { token };
+    case Token::Type::LBracket: {
+        // TODO: might need to keep track of and pass along precedence value?
+        advance();
+        auto array = new ArrayPatternNode { token };
+        array->add_node(new NilNode { token }); // NOTE: I don't know what this nil represents
+        array->add_node(parse_case_in_pattern(locals));
+        while (current_token().is_comma()) {
+            advance();
+            array->add_node(parse_case_in_pattern(locals));
+        }
+        expect(Token::Type::RBracket, "array pattern closing bracket");
+        advance();
+        return array;
+    }
+    case Token::Type::Symbol:
+        return parse_symbol(locals);
     default:
         printf("TODO: implement token type %d in Parser::parse_case_in_pattern()\n", (int)token.type());
         abort();

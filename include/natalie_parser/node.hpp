@@ -16,6 +16,7 @@ public:
         Alias,
         Arg,
         Array,
+        ArrayPattern,
         Assignment,
         AttrAssign,
         Begin,
@@ -237,6 +238,14 @@ public:
 
 protected:
     Vector<Node *> m_nodes {};
+};
+
+class ArrayPatternNode : public ArrayNode {
+public:
+    ArrayPatternNode(const Token &token)
+        : ArrayNode { token } { }
+
+    virtual Type type() override { return Type::ArrayPattern; }
 };
 
 class BlockPassNode : public Node {

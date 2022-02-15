@@ -695,6 +695,8 @@ describe 'Parser' do
       Parser.parse("case 1\nin x\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lvar, :x), s(:lit, :a)), nil))
       Parser.parse("case 1\nin x then :a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lvar, :x), s(:lit, :a)), nil))
       Parser.parse("case 1\nin x | y\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:or, s(:lvar, :x), s(:lvar, :y)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin []\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [:x, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, :x), s(:lvar, :x)), s(:lit, :a)), nil))
     end
 
     it 'parses begin/rescue/else/ensure' do
