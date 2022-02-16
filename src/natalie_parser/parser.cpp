@@ -549,6 +549,11 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
     }
     case Token::Type::Symbol:
         return parse_symbol(locals);
+    case Token::Type::Integer:
+    case Token::Type::Float:
+        return parse_lit(locals);
+    case Token::Type::String:
+        return parse_string(locals);
     default:
         printf("TODO: implement token type %d in Parser::parse_case_in_pattern()\n", (int)token.type());
         abort();

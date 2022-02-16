@@ -697,6 +697,9 @@ describe 'Parser' do
       Parser.parse("case 1\nin x | y\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:or, s(:lvar, :x), s(:lvar, :y)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin []\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [:x, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, :x), s(:lvar, :x)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [1, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1), s(:lvar, :x)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [1.2, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1.2), s(:lvar, :x)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin ['one', x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:str, 'one'), s(:lvar, :x)), s(:lit, :a)), nil))
     end
 
     it 'parses begin/rescue/else/ensure' do
