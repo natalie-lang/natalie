@@ -526,13 +526,16 @@ BlockNode *Parser::parse_case_in_body(LocalsHashmap &locals) {
 
 Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
     auto token = current_token();
+    Node *node;
     switch (token.type()) {
     case Token::Type::BareName:
         advance();
-        return new IdentifierNode { token, true };
+        node = new IdentifierNode { token, true };
+        break;
     case Token::Type::LBracketRBracket:
         advance();
-        return new ArrayPatternNode { token };
+        node = new ArrayPatternNode { token };
+        break;
     case Token::Type::LBracket: {
         // TODO: might need to keep track of and pass along precedence value?
         advance();
@@ -545,19 +548,33 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
         }
         expect(Token::Type::RBracket, "array pattern closing bracket");
         advance();
-        return array;
+        node = array;
+        break;
     }
     case Token::Type::Symbol:
-        return parse_symbol(locals);
+        node = parse_symbol(locals);
+        break;
     case Token::Type::Integer:
     case Token::Type::Float:
-        return parse_lit(locals);
+        node = parse_lit(locals);
+        break;
     case Token::Type::String:
-        return parse_string(locals);
+        node = parse_string(locals);
+        break;
     default:
         printf("TODO: implement token type %d in Parser::parse_case_in_pattern()\n", (int)token.type());
         abort();
     }
+    token = current_token();
+    if (token.is_hash_rocket()) {
+        advance();
+        expect(Token::Type::BareName, "pattern name");
+        token = current_token();
+        advance();
+        auto identifier = new IdentifierNode { token, true };
+        node = new AssignmentNode { token, identifier, node };
+    }
+    return node;
 }
 
 Node *Parser::parse_case_in_patterns(LocalsHashmap &locals) {

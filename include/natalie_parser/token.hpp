@@ -559,6 +559,7 @@ public:
     bool is_eof() const { return m_type == Type::Eof; }
     bool is_eol() const { return m_type == Type::Eol; }
     bool is_expression_modifier() const { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
+    bool is_hash_rocket() const { return m_type == Type::HashRocket; }
     bool is_lparen() const { return m_type == Type::LParen; }
     bool is_newline() const { return m_type == Type::Eol; }
     bool is_rparen() const { return m_type == Type::RParen; }

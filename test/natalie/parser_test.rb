@@ -700,6 +700,8 @@ describe 'Parser' do
       Parser.parse("case 1\nin [1, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1.2, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1.2), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin ['one', x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:str, 'one'), s(:lvar, :x)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [1, 2] => a\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lasgn, :a, s(:array_pat, nil, s(:lit, 1), s(:lit, 2))), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [1 => a] => b\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lasgn, :b, s(:array_pat, nil, s(:lasgn, :a, s(:lit, 1)))), s(:lit, :a)), nil))
     end
 
     it 'parses begin/rescue/else/ensure' do
