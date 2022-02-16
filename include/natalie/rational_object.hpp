@@ -20,6 +20,7 @@ public:
     Value inspect(Env *);
     Value mul(Env *, Value);
     Value numerator(Env *);
+    Value sub(Env *, Value);
     Value to_f(Env *);
     Value to_i(Env *);
     Value to_r() { return this; }
