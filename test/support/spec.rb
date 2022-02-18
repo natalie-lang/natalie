@@ -281,20 +281,30 @@ class Matcher
   def eq(other)
     if @subject != other
       if @subject.is_a?(String) && other.is_a?(String) && (@subject.size > 50 || other.size > 50)
-        subject_file = Tempfile.create('subject')
-        subject_file.write(@subject)
-        subject_file.close
-        other_file = Tempfile.create('other')
-        other_file.write(other)
-        other_file.close
-        puts `diff #{other_file.path} #{subject_file.path}`
-        File.unlink(subject_file.path)
-        File.unlink(other_file.path)
+        diff(@subject, other)
         raise SpecFailedException, 'two strings should match'
+      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size > 1 || other.size > 1)
+        diff(
+          "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
+          "[\n" + other.map(&:inspect).join("\n") + "\n]",
+        )
+        raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
       else
         raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
       end
     end
+  end
+
+  def diff(actual, expected)
+    actual_file = Tempfile.create('actual')
+    actual_file.write(actual)
+    actual_file.close
+    expected_file = Tempfile.create('expected')
+    expected_file.write(expected)
+    expected_file.close
+    puts `diff #{expected_file.path} #{actual_file.path}`
+    File.unlink(actual_file.path)
+    File.unlink(expected_file.path)
   end
 
   def !=(other)
