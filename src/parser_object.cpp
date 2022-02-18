@@ -160,6 +160,8 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     case Node::Type::ArrayPattern: {
         auto array_node = static_cast<ArrayNode *>(node);
         auto sexp = new SexpObject { env, node, { "array_pat"_s } };
+        if (!array_node->nodes().is_empty())
+            sexp->push(NilObject::the()); // NOTE: I don't know what this nil is for
         for (auto item_node : array_node->nodes()) {
             sexp->push(node_to_ruby(env, item_node));
         }
@@ -431,6 +433,15 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     case Node::Type::Hash: {
         auto hash_node = static_cast<HashNode *>(node);
         auto sexp = new SexpObject { env, hash_node, { "hash"_s } };
+        for (auto node : hash_node->nodes()) {
+            sexp->push(node_to_ruby(env, node));
+        }
+        return sexp;
+    }
+    case Node::Type::HashPattern: {
+        auto hash_node = static_cast<HashNode *>(node);
+        auto sexp = new SexpObject { env, hash_node, { "hash_pat"_s } };
+        sexp->push(NilObject::the()); // NOTE: I don't know what this nil is for
         for (auto node : hash_node->nodes()) {
             sexp->push(node_to_ruby(env, node));
         }

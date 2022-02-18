@@ -696,12 +696,16 @@ describe 'Parser' do
       Parser.parse("case 1\nin x then :a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lvar, :x), s(:lit, :a)), nil))
       Parser.parse("case 1\nin x | y\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:or, s(:lvar, :x), s(:lvar, :y)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin []\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [ ]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [:x, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, :x), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1.2, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1.2), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin ['one', x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:str, 'one'), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1, 2] => a\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lasgn, :a, s(:array_pat, nil, s(:lit, 1), s(:lit, 2))), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1 => a] => b\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lasgn, :b, s(:array_pat, nil, s(:lasgn, :a, s(:lit, 1)))), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin {}\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:hash_pat, nil), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin { x: x }\nx\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:hash_pat, nil, s(:lit, :x), s(:lvar, :x)), s(:call, nil, :x)), nil))
+      Parser.parse("case 1\nin { x: [:a, a] => b } => y\nx\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:lasgn, :y, s(:hash_pat, nil, s(:lit, :x), s(:lasgn, :b, s(:array_pat, nil, s(:lit, :a), s(:lvar, :a))))), s(:call, nil, :x)), nil))
     end
 
     it 'parses begin/rescue/else/ensure' do

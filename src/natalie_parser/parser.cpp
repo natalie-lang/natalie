@@ -540,7 +540,11 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
         // TODO: might need to keep track of and pass along precedence value?
         advance();
         auto array = new ArrayPatternNode { token };
-        array->add_node(new NilNode { token }); // NOTE: I don't know what this nil represents
+        if (current_token().type() == Token::Type::RBracket) {
+            advance();
+            node = array;
+            break;
+        }
         array->add_node(parse_case_in_pattern(locals));
         while (current_token().is_comma()) {
             advance();
@@ -549,6 +553,27 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
         expect(Token::Type::RBracket, "array pattern closing bracket");
         advance();
         node = array;
+        break;
+    }
+    case Token::Type::LCurlyBrace: {
+        advance();
+        auto hash = new HashPatternNode { token };
+        if (current_token().type() == Token::Type::RCurlyBrace) {
+            advance();
+            node = hash;
+            break;
+        }
+        expect(Token::Type::SymbolKey, "hash pattern symbol key");
+        hash->add_node(parse_symbol(locals));
+        hash->add_node(parse_case_in_pattern(locals));
+        while (current_token().is_comma()) {
+            advance();
+            hash->add_node(parse_symbol(locals));
+            hash->add_node(parse_case_in_pattern(locals));
+        }
+        expect(Token::Type::RCurlyBrace, "hash pattern closing brace");
+        advance();
+        node = hash;
         break;
     }
     case Token::Type::Symbol:

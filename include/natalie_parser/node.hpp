@@ -38,6 +38,7 @@ public:
         False,
         Float,
         Hash,
+        HashPattern,
         Identifier,
         If,
         Integer,
@@ -763,6 +764,14 @@ public:
 
 protected:
     Vector<Node *> m_nodes {};
+};
+
+class HashPatternNode : public HashNode {
+public:
+    HashPatternNode(const Token &token)
+        : HashNode { token } { }
+
+    virtual Type type() override { return Type::HashPattern; }
 };
 
 class IdentifierNode : public Node {
