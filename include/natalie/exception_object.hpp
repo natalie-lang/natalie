@@ -42,8 +42,8 @@ public:
     }
 
     const ArrayObject *backtrace() { return m_backtrace; }
+    void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
     Value backtrace(Env *);
-    void build_backtrace(Env *);
 
     virtual void visit_children(Visitor &) override final;
 

@@ -38,6 +38,7 @@ public:
     static Value abort_method(Env *env, Value message);
     static Value at_exit(Env *env, Block *block);
     static Value binding(Env *env);
+    static Value caller(Env *env);
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);
     static Value Float(Env *env, Value value, Value kwargs);

@@ -124,6 +124,8 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     void clear_exception() { m_exception = nullptr; }
 
+    ArrayObject *backtrace();
+
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
     virtual void visit_children(Visitor &visitor) override final;

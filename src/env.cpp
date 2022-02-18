@@ -199,6 +199,19 @@ ExceptionObject *Env::exception() {
     return nullptr;
 }
 
+ArrayObject *Env::backtrace() {
+    auto ary = new ArrayObject {};
+    Env *bt_env = this;
+    do {
+        if (bt_env->file()) {
+            auto method_name = build_code_location_name(bt_env);
+            ary->push(StringObject::format("{}:{}:in `{}'", bt_env->file(), bt_env->line(), method_name));
+        }
+        bt_env = bt_env->caller();
+    } while (bt_env);
+    return ary;
+}
+
 Value Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size())
         return NilObject::the();

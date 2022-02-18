@@ -73,6 +73,13 @@ Value KernelModule::binding(Env *env) {
     return new BindingObject { env };
 }
 
+Value KernelModule::caller(Env *env) {
+    auto ary = env->backtrace();
+    ary->shift(); // remove the frame for Kernel#caller itself
+    ary->shift(); // remove the frame for the call site of Kernel#caller
+    return ary;
+}
+
 Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
