@@ -143,6 +143,7 @@ module Natalie
           value_name = temp('case_value')
           cond = s(:cond)
           whens.each do |when_exp|
+            raise "TODO: pattern matching with case/in" if when_exp.sexp_type == :in
             _, (_, *matchers), *when_body = when_exp
             when_body = when_body.map { |w| process(w) }
             when_body = [s(:nil)] if when_body == [nil]
