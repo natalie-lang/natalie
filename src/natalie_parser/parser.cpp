@@ -532,6 +532,12 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
         advance();
         node = new IdentifierNode { token, true };
         break;
+    case Token::Type::BitwiseXor: // caret (^)
+        advance();
+        expect(Token::Type::BareName, "pinned variable name");
+        node = new PinNode { token, new IdentifierNode { current_token(), true } };
+        advance();
+        break;
     case Token::Type::LBracketRBracket:
         advance();
         node = new ArrayPatternNode { token };
@@ -576,15 +582,15 @@ Node *Parser::parse_case_in_pattern(LocalsHashmap &locals) {
         node = hash;
         break;
     }
-    case Token::Type::Symbol:
-        node = parse_symbol(locals);
-        break;
     case Token::Type::Integer:
     case Token::Type::Float:
         node = parse_lit(locals);
         break;
     case Token::Type::String:
         node = parse_string(locals);
+        break;
+    case Token::Type::Symbol:
+        node = parse_symbol(locals);
         break;
     default:
         printf("TODO: implement token type %d in Parser::parse_case_in_pattern()\n", (int)token.type());

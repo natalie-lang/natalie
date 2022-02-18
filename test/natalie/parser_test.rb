@@ -698,6 +698,11 @@ describe 'Parser' do
       Parser.parse("case 1\nin []\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [ ]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [:x, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, :x), s(:lvar, :x)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nin [a, a]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lvar, :a), s(:lvar, :a)), s(:lit, :a)), nil))
+      if RUBY_ENGINE == 'natalie'
+        # pinned variables not supported in ruby_parser yet
+        Parser.parse("case 1\nin [^a, a]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:pin, s(:lvar, :a)), s(:lvar, :a)), s(:lit, :a)), nil))
+      end
       Parser.parse("case 1\nin [1, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin [1.2, x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:lit, 1.2), s(:lvar, :x)), s(:lit, :a)), nil))
       Parser.parse("case 1\nin ['one', x]\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:in, s(:array_pat, nil, s(:str, 'one'), s(:lvar, :x)), s(:lit, :a)), nil))

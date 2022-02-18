@@ -743,6 +743,12 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             },
         };
     }
+    case Node::Type::Pin: {
+        auto pin_node = static_cast<PinNode *>(node);
+        auto sexp = new SexpObject { env, node, { "pin"_s } };
+        sexp->push(node_to_ruby(env, pin_node->identifier()));
+        return sexp;
+    }
     case Node::Type::Range: {
         auto range_node = static_cast<RangeNode *>(node);
         if (range_node->first()->type() == Node::Type::Integer && range_node->last()->type() == Node::Type::Integer) {

@@ -61,6 +61,7 @@ public:
         OpAssignAccessor,
         OpAssignAnd,
         OpAssignOr,
+        Pin,
         Range,
         Regexp,
         Return,
@@ -1213,6 +1214,26 @@ public:
         : OpAssignNode { token, name, value } { }
 
     virtual Type type() override { return Type::OpAssignOr; }
+};
+
+class PinNode : public Node {
+public:
+    PinNode(const Token &token, Node *identifier)
+        : Node { token }
+        , m_identifier { identifier } {
+        assert(m_identifier);
+    }
+
+    ~PinNode() {
+        delete m_identifier;
+    }
+
+    virtual Type type() override { return Type::Pin; }
+
+    Node *identifier() const { return m_identifier; }
+
+protected:
+    Node *m_identifier { nullptr };
 };
 
 class RangeNode : public Node {
