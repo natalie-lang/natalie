@@ -311,6 +311,20 @@ class TestCompiler2 < TestCase
     assert_raises(NoMethodError) { ClassWithPrivateMethod.new.priv }
   end
 
+  def test_string
+    s1 = 'hello world'
+    assert_eq(11, s1.size)
+    s2 = 'hello ' + 'world'
+    assert_eq(s1, s2)
+    s3 = 'world'
+    s4 = "hello #{s3}"
+    assert_eq(s1, s4)
+    s5 = "hello #{:world}"
+    assert_eq(s1, s5)
+    s6 = "#{1 + 2} = 3"
+    assert_eq("3 = 3", s6)
+  end
+
   private
 
   def ary

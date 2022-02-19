@@ -239,6 +239,26 @@ module Natalie
         transform_dot2(exp, used: used, exclude_end: true)
       end
 
+      def transform_dstr(exp, used:)
+        _, start, *rest = exp
+        instructions = [PushStringInstruction.new(start, start.size)]
+        rest.each do |segment|
+          case segment.sexp_type
+          when :evstr
+            _, value = segment
+            instructions << transform_expression(value, used: true)
+            instructions << StringAppendInstruction.new
+          when :str
+            instructions << transform_expression(segment, used: true)
+            instructions << StringAppendInstruction.new
+          else
+            raise "unknown dstr segment: #{segment.inspect}"
+          end
+        end
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_false(_, used:)
         return [] unless used
         PushFalseInstruction.new

@@ -957,7 +957,7 @@ void StringObject::append(Env *env, Value val) {
     if (val->is_string())
         append(env, val->as_string()->c_str());
     else
-        append(env, val->inspect_str(env));
+        append(env, val.send(env, "to_s"_s));
 }
 
 Value StringObject::convert_float() {
