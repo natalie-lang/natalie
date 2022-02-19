@@ -20,6 +20,7 @@ task :clean do
   rm_rf 'build/libnatalie_base.a'
   rm_rf 'build/natalie_parser'
   rm_rf 'build/parser_c_ext'
+  rm_rf 'build/parser_c_ext.so'
   rm_rf Rake::FileList['build/*.o']
 end
 
