@@ -392,6 +392,13 @@ module Natalie
         instructions
       end
 
+      def transform_return(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        instructions = [transform_expression(value, used: true)]
+        instructions << ReturnInstruction.new
+      end
+
       def transform_self(_, used:)
         return [] unless used
         PushSelfInstruction.new

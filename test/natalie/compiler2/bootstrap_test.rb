@@ -294,6 +294,19 @@ class TestCompiler2 < TestCase
     assert_eq(1, x)
   end
 
+  def test_return
+    def should_return_1
+      return 1
+      2
+    end
+    assert_eq(1, should_return_1)
+    def should_return_nil
+      return
+      3
+    end
+    assert_eq(nil, should_return_nil)
+  end
+
   def test_global_variable
     $global = 1
     assert_eq(1, $global)
