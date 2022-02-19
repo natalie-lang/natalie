@@ -660,6 +660,13 @@ Block *proc_to_block_arg(Env *env, Value proc_or_nil) {
     return proc_or_nil->to_proc(env)->block();
 }
 
+Block *to_block(Env *env, Value proc_or_nil) {
+    if (proc_or_nil->is_nil()) {
+        return nullptr;
+    }
+    return proc_or_nil->to_proc(env)->block();
+}
+
 #define NAT_SHELL_READ_BYTES 1024
 
 Value shell_backticks(Env *env, Value command) {

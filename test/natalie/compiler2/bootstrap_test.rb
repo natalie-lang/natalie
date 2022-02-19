@@ -269,6 +269,18 @@ class TestCompiler2 < TestCase
     assert_eq(23, y)
   end
 
+  def test_block_arg_and_pass
+    x = 1
+    block_call do
+      x = 2
+    end
+    assert_eq(2, x)
+    block_pass do
+      x = 3
+    end
+    assert_eq(3, x)
+  end
+
   def test_block_arg_does_not_overwrite_outer_scope_arg
     z = 0
     [1].each do |z|
@@ -415,6 +427,14 @@ class TestCompiler2 < TestCase
 
   def block_yield2(a, b)
     yield a, b
+  end
+
+  def block_call(&block)
+    block.call
+  end
+
+  def block_pass(&block)
+    block_call(&block)
   end
 
   def method_raises

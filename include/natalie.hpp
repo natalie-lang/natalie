@@ -126,6 +126,8 @@ std::pair<Value, Value> coerce(Env *, Value, Value, CoerceInvalidReturnValueMode
 char *zero_string(int);
 
 Block *proc_to_block_arg(Env *, Value);
+Block *to_block(Env *, Value);
+inline Block *to_block(Env *, Block *block) { return block; }
 
 Value shell_backticks(Env *, Value);
 

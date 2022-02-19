@@ -78,13 +78,26 @@ module Natalie
 
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
-        instructions = args.map { |arg| transform_expression(arg, used: true) }
+
+        instructions = []
+
+        if args.last&.sexp_type == :block_pass
+          with_block = true
+          _, block = args.pop
+          instructions << transform_expression(block, used: true)
+        end
+
+        args.each do |arg|
+          instructions << transform_expression(arg, used: true)
+        end
         instructions << PushArgcInstruction.new(args.size)
+
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
           instructions << transform_expression(receiver, used: true)
         end
+
         instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block)
         instructions << PopInstruction.new unless used
         instructions
@@ -216,13 +229,26 @@ module Natalie
         return [] unless used
         _, *args = exp
 
-        if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
-          return [PushArgsInstruction.new, Args.new(self).transform(exp)].flatten
+        instructions = []
+
+        if args.last.is_a?(Symbol) && args.last.start_with?('&')
+          name = args.pop[1..-1]
+          instructions << PushBlockInstruction.new
+          instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
-        args.each_with_index.flat_map do |name, index|
-          [PushArgInstruction.new(index), VariableSetInstruction.new(name, local_only: true)]
+        if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
+          instructions << PushArgsInstruction.new
+          instructions << Args.new(self).transform(exp)
+          return instructions
         end
+
+        args.each_with_index do |name, index|
+          instructions << PushArgInstruction.new(index)
+          instructions << VariableSetInstruction.new(name, local_only: true)
+        end
+
+        instructions
       end
 
       def transform_dot2(exp, used:, exclude_end: false)
