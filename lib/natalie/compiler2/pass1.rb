@@ -1,5 +1,6 @@
 require_relative './base_pass'
 require_relative './args'
+require_relative './multiple_assignment'
 require_relative './rescue'
 
 module Natalie
@@ -369,6 +370,22 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_masgn(exp, used:)
+        # s(:masgn,
+        #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
+        #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
+        _, names_array, values = exp
+        raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
+        raise "Unexpected masgn values: #{values.inspect}" unless values.sexp_type == :to_ary
+        instructions = [
+          transform_expression(values, used: true),
+          DupObjectInstruction.new,
+          MultipleAssignment.new(self).transform(names_array)
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_or(exp, used:)
         _, lhs, rhs = exp
         lhs_instructions = transform_expression(lhs, used: true)
@@ -408,6 +425,15 @@ module Natalie
         return [] unless used
         _, str = exp
         PushStringInstruction.new(str, str.size)
+      end
+
+      def transform_to_ary(exp, used:)
+        _, value = exp
+        instructions = [PushArgcInstruction.new(0)]
+        instructions << transform_expression(value, used: true)
+        instructions << SendInstruction.new(:to_ary, receiver_is_self: false, with_block: false)
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_true(_, used:)

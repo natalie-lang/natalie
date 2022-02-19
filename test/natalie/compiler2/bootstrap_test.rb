@@ -307,6 +307,27 @@ class TestCompiler2 < TestCase
     assert_eq(nil, should_return_nil)
   end
 
+  def test_multiple_assignment
+    a, b = [1, 2]
+    assert_eq(1, a)
+    assert_eq(2, b)
+    ((a, b), c) = [[1, 2], 3]
+    assert_eq(1, a)
+    assert_eq(2, b)
+    assert_eq(3, c)
+    ((a, *b), c) = [[1, 2, 3], 3]
+    assert_eq([2, 3], b)
+    ary = [1, 2, 3]
+    a, *@b = ary
+    assert_eq([2, 3], @b)
+    a, *$b = ary
+    assert_eq([2, 3], $b)
+    def returns_whole_thing
+      d, e = [4, 5]
+    end
+    assert_eq([4, 5], returns_whole_thing)
+  end
+
   def test_global_variable
     $global = 1
     assert_eq(1, $global)
