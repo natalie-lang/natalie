@@ -192,6 +192,8 @@ describe 'Parser' do
       Parser.parse('@x, $y, Z = foo').should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
       Parser.parse('(@x, $y, Z) = foo').should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
       Parser.parse('(a, (b, c)) = [1, [2, 3]]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
+      Parser.parse('(a, b), c = [[1, 2], 3]').should == s(:block, s(:masgn, s(:array, s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b))), s(:lasgn, :c)), s(:to_ary, s(:array, s(:array, s(:lit, 1), s(:lit, 2)), s(:lit, 3)))))
+      Parser.parse('((a, b), c) = [[1, 2], 3]').should == s(:block, s(:masgn, s(:array, s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b))), s(:lasgn, :c)), s(:to_ary, s(:array, s(:array, s(:lit, 1), s(:lit, 2)), s(:lit, 3)))))
       Parser.parse('a, (b, c) = [1, [2, 3]]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
       Parser.parse('a, (b, *c) = [1, [2, 3, 4]]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:splat, s(:lasgn, :c))))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3), s(:lit, 4))))))
       Parser.parse('a, (b, *@c) = [1, [2, 3, 4]]').should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:splat, s(:iasgn, :@c))))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3), s(:lit, 4))))))

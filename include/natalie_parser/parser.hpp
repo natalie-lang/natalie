@@ -79,7 +79,6 @@ private:
     Node *parse_case(LocalsHashmap &);
     Node *parse_case_in_pattern(LocalsHashmap &);
     Node *parse_case_in_patterns(LocalsHashmap &);
-    Node *parse_comma_separated_identifiers(LocalsHashmap &);
     void parse_comma_separated_expressions(ArrayNode *, LocalsHashmap &);
     Node *parse_constant(LocalsHashmap &);
     Node *parse_def(LocalsHashmap &);
@@ -137,6 +136,7 @@ private:
     Node *parse_logical_expression(Node *, LocalsHashmap &);
     Node *parse_match_expression(Node *, LocalsHashmap &);
     Node *parse_modifier_expression(Node *, LocalsHashmap &);
+    Node *parse_multiple_assignment_expression(Node *, LocalsHashmap &);
     Node *parse_not_match_expression(Node *, LocalsHashmap &);
     Node *parse_op_assign_expression(Node *, LocalsHashmap &);
     Node *parse_op_attr_assign_expression(Node *, LocalsHashmap &);

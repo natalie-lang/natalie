@@ -75,6 +75,9 @@ Parser::Precedence Parser::get_precedence(Token &token, Node *left) {
     case Token::Type::BitwiseOr:
     case Token::Type::BitwiseXor:
         return Precedence::BITWISEOR;
+    case Token::Type::Comma:
+        // NOTE: the only time this precedence is used is for multiple assignment
+        return Precedence::ARRAY;
     case Token::Type::LeftShift:
     case Token::Type::RightShift:
         return Precedence::BITWISESHIFT;
@@ -677,9 +680,9 @@ Node *Parser::parse_class(LocalsHashmap &locals) {
     return new ClassNode { token, name, superclass, body };
 };
 
-Node *Parser::parse_comma_separated_identifiers(LocalsHashmap &locals) {
-    auto list = new MultipleAssignmentNode { current_token() };
-    list->add_node(parse_identifier(locals));
+Node *Parser::parse_multiple_assignment_expression(Node *left, LocalsHashmap &locals) {
+    auto list = new MultipleAssignmentNode { left->token() };
+    list->add_node(left);
     while (current_token().is_comma()) {
         advance();
         switch (current_token().type()) {
@@ -692,10 +695,7 @@ Node *Parser::parse_comma_separated_identifiers(LocalsHashmap &locals) {
             list->add_node(parse_expression(Precedence::ASSIGNMENTIDENTIFIER, locals));
             break;
         case Token::Type::LParen:
-            advance();
-            list->add_node(parse_comma_separated_identifiers(locals));
-            expect(Token::Type::RParen, "multiple assignment closing paren");
-            advance();
+            list->add_node(parse_group(locals));
             break;
         case Token::Type::Multiply: {
             auto splat_token = current_token();
@@ -2007,11 +2007,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Constant:
     case Type::GlobalVariable:
     case Type::InstanceVariable:
-        if (peek_token().is_comma() && precedence == Precedence::LOWEST) {
-            return &Parser::parse_comma_separated_identifiers;
-        } else {
-            return &Parser::parse_identifier;
-        }
+        return &Parser::parse_identifier;
     case Type::IfKeyword:
         return &Parser::parse_if;
     case Type::InterpolatedRegexpBegin:
@@ -2102,6 +2098,8 @@ Parser::parse_left_fn Parser::left_denotation(Token &token, Node *left) {
     case Type::Plus:
     case Type::RightShift:
         return &Parser::parse_infix_expression;
+    case Type::Comma:
+        return &Parser::parse_multiple_assignment_expression;
     case Type::DoKeyword:
     case Type::LCurlyBrace:
         return &Parser::parse_iter_expression;
