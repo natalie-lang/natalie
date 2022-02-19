@@ -300,6 +300,12 @@ class TestCompiler2 < TestCase
     assert_eq(nil, $non_existent_global)
   end
 
+  def test_instance_variable
+    @ivar = 2
+    assert_eq(2, @ivar)
+    assert_eq(nil, @non_existent_ivar)
+  end
+
   def test_send
     assert_eq('pub', ClassWithPrivateMethod.new.pub)
     assert_raises(NoMethodError) { ClassWithPrivateMethod.new.priv }

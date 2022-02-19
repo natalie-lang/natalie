@@ -266,6 +266,13 @@ module Natalie
         instructions
       end
 
+      def transform_iasgn(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true), InstanceVariableSetInstruction.new(name)]
+        instructions << InstanceVariableGetInstruction.new(name) if used
+        instructions
+      end
+
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = transform_expression(true_expression || s(:nil), used: true)
@@ -293,6 +300,12 @@ module Natalie
         raise 'unexpected call' unless call.sexp_type == :call
         instructions << transform_call(call, used: used, with_block: true)
         instructions
+      end
+
+      def transform_ivar(exp, used:)
+        return [] unless used
+        _, name = exp
+        InstanceVariableGetInstruction.new(name)
       end
 
       def transform_lasgn(exp, used:)
