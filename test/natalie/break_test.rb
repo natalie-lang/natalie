@@ -47,8 +47,7 @@ describe 'break' do
     result.should == nil
   end
 
-  # FIXME
-  xit 'breaks from a block in a method' do
+  it 'breaks from a block in a method' do
     break_in_while_in_method.should == 3
     break_in_until_in_method.should == 3
     break_in_iter_in_method.should == 3
