@@ -312,6 +312,13 @@ class TestCompiler2 < TestCase
       2
     end
     assert_eq(1, should_return_1)
+
+    def should_return_ary
+      return 1, 2
+      3
+    end
+    assert_eq([1, 2], should_return_ary)
+
     def should_return_nil
       return
       3

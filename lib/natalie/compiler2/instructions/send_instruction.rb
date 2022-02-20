@@ -22,11 +22,10 @@ module Natalie
         args = []
         arg_count.times { args.unshift transform.pop }
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
-        result = transform.temp("send_#{@message}")
-        transform.exec(
-          "auto #{result} = #{receiver}.#{method}(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})",
+        transform.exec_and_push(
+          "send_#{@message}",
+          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})"
         )
-        transform.push(result)
       end
 
       def execute(vm)

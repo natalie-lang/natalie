@@ -3,7 +3,7 @@ require_relative './base_pass'
 module Natalie
   class Compiler2
     # This compiler pass marks VariableGet and VariabletSet instructions as
-    # captured if they are used in a block (closure). It also builds a 'env'
+    # captured if they are used in a block (closure). It also builds the 'env'
     # hierarchy used by the C++ backend to determine variable scope.
     # You can debug this pass with the `-d p2` CLI flag.
     class Pass2 < BasePass
