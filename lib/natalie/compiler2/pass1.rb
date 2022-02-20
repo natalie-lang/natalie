@@ -493,6 +493,13 @@ module Natalie
           raise "Unknown constant name type #{name.sexp_type.inspect}"
         end
       end
+
+      def self.debug_instructions(instructions)
+        instructions.each_with_index do |instruction, index|
+          desc = "#{index} #{instruction}"
+          puts desc
+        end
+      end
     end
   end
 end

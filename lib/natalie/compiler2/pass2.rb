@@ -100,6 +100,32 @@ module Natalie
 
         var
       end
+
+      def self.debug_instructions(instructions)
+        env = nil
+        instructions.each_with_index do |instruction, index|
+          desc = "#{index} #{instruction}"
+          if instruction.is_a?(EndInstruction)
+            puts desc
+          end
+          unless env.equal?(instruction.env)
+            env = instruction.env
+            e = env
+            vars = e[:vars].keys.sort.map { |v| "#{v} (mine)" }
+            while e[:hoist] && e = e[:outer]
+              vars += e[:vars].keys.sort
+            end
+            puts
+            puts "== SCOPE " \
+                 "vars=[#{vars.join(', ')}] " \
+                 "#{env[:block] ? 'is_block ' : ''}" \
+                 "=="
+          end
+          unless instruction.is_a?(EndInstruction)
+            puts desc
+          end
+        end
+      end
     end
   end
 end
