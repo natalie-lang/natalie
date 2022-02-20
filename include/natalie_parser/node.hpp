@@ -1286,20 +1286,22 @@ protected:
 
 class ReturnNode : public Node {
 public:
-    ReturnNode(const Token &token, Node *arg = nullptr)
+    ReturnNode(const Token &token, Node *value)
         : Node { token }
-        , m_arg { arg } { }
+        , m_value { value } {
+        assert(m_value);
+    }
 
     ~ReturnNode() {
-        delete m_arg;
+        delete m_value;
     }
 
     virtual Type type() override { return Type::Return; }
 
-    Node *arg() const { return m_arg; }
+    Node *value() const { return m_value; }
 
 protected:
-    Node *m_arg { nullptr };
+    Node *m_value { nullptr };
 };
 
 class SclassNode : public Node {

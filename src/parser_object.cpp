@@ -779,10 +779,11 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
     }
     case Node::Type::Return: {
         auto return_node = static_cast<ReturnNode *>(node);
-        if (return_node->arg()) {
-            return new SexpObject { env, return_node, { "return"_s, node_to_ruby(env, return_node->arg()) } };
-        }
-        return new SexpObject { env, return_node, { "return"_s } };
+        auto sexp = new SexpObject { env, return_node, { "return"_s } };
+        auto value = return_node->value();
+        if (value->type() != Node::Type::Nil)
+            sexp->push(node_to_ruby(env, value));
+        return sexp;
     }
     case Node::Type::SafeCall: {
         auto safe_call_node = static_cast<SafeCallNode *>(node);

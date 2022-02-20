@@ -1247,9 +1247,22 @@ Node *Parser::parse_regexp(LocalsHashmap &locals) {
 Node *Parser::parse_return(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    if (current_token().is_end_of_expression())
-        return new ReturnNode { token };
-    return new ReturnNode { token, parse_expression(Precedence::BARECALLARGS, locals) };
+    Node *value;
+    if (current_token().is_end_of_expression()) {
+        value = new NilNode { token };
+    } else {
+        value = parse_expression(Precedence::BARECALLARGS, locals);
+    }
+    if (current_token().is_comma()) {
+        auto array = new ArrayNode { current_token() };
+        array->add_node(value);
+        while (current_token().is_comma()) {
+            advance();
+            array->add_node(parse_expression(Precedence::BARECALLARGS, locals));
+        }
+        value = array;
+    }
+    return new ReturnNode { token, value };
 };
 
 Node *Parser::parse_sclass(LocalsHashmap &locals) {
