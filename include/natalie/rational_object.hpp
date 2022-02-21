@@ -13,6 +13,7 @@ public:
         , m_numerator { numerator }
         , m_denominator { denominator } { }
 
+    Value add(Env *, Value);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);
     Value denominator(Env *);

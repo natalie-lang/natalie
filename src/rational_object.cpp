@@ -2,6 +2,31 @@
 
 namespace Natalie {
 
+Value RationalObject::add(Env *env, Value other) {
+    if (other->is_integer()) {
+        auto numerator = m_numerator->add(env, m_denominator->mul(env, other))->as_integer();
+        return new RationalObject { numerator, m_denominator };
+    } else if (other->is_float()) {
+        return this->to_f(env)->as_float()->add(env, other);
+    } else if (other->is_rational()) {
+        auto num1 = other->as_rational()->numerator(env)->as_integer();
+        auto den1 = other->as_rational()->denominator(env)->as_integer();
+        auto gcd1 = m_denominator->gcd(env, den1);
+        auto a = den1->div(env, gcd1)->as_integer()->mul(env, m_numerator);
+        auto b = m_denominator->div(env, gcd1)->as_integer()->mul(env, num1);
+        auto c = a->as_integer()->add(env, b)->as_integer();
+        auto gcd2 = c->gcd(env, gcd1);
+        auto num2 = c->div(env, gcd2);
+        auto den2 = den1->div(env, gcd2)->as_integer()->mul(env, m_denominator->div(env, gcd1));
+        return new RationalObject { num2->as_integer(), den2->as_integer() };
+    } else if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "+"_s, { result.second });
+    } else {
+        env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
+    }
+}
+
 Value RationalObject::cmp(Env *env, Value other) {
     if (other->is_integer()) {
         if (m_denominator->eq(env, Value::integer(1))) {
