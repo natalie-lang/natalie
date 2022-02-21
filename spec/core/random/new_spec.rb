@@ -23,8 +23,7 @@ describe "Random.new" do
     Random.new(3.4).seed.should == 3
   end
 
-  # NATFIXME: Implement Rational
-  xit "accepts (and converts to Integer) a Rational seed value as an argument" do
+  it "accepts (and converts to Integer) a Rational seed value as an argument" do
     Random.new(Rational(20,2)).seed.should == 10
   end
 
