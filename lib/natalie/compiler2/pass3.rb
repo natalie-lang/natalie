@@ -2,8 +2,8 @@ require_relative './base_pass'
 
 module Natalie
   class Compiler2
-    # This compiler pass sets needed break points on SendInstructions in order
-    # to handle `break` from a block.
+    # This compiler pass sets up needed break points to handle `break` from a block.
+    # You can debug this pass with the `-d p3` CLI flag.
     class Pass3 < BasePass
       def initialize(instructions)
         @instructions = InstructionManager.new(instructions)
@@ -19,6 +19,8 @@ module Natalie
             send(method, instruction)
           end
         end
+        # FIXME: I don't like this. Is there a way we can avoid running pass2 again? :-/
+        Pass2.new(@instructions).transform
       end
 
       private
@@ -33,8 +35,22 @@ module Natalie
       def transform_end_define_block(_)
         # TODO: how to handle procs/lambdas?
         if (break_point = @env[:has_break])
-          _, send_instruction = @instructions.find_next(SendInstruction)
-          send_instruction.break_point = break_point
+          @instructions.insert_after(TryInstruction.new)
+          ip, send_instruction = @instructions.find_next(SendInstruction)
+          @instructions.insert_at(ip + 1, [
+            CatchInstruction.new,
+            MatchBreakPointInstruction.new(break_point),
+            IfInstruction.new,
+            PushArgcInstruction.new(0),
+            GlobalVariableGetInstruction.new(:$!),
+            SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false),
+            ElseInstruction.new(:if),
+            PushArgcInstruction.new(0),
+            PushNilInstruction.new,
+            SendInstruction.new(:raise, receiver_is_self: false, with_block: false),
+            EndInstruction.new(:if),
+            EndInstruction.new(:try),
+          ])
         end
       end
 

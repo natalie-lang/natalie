@@ -58,7 +58,7 @@ public:
     LocalJumpErrorType local_jump_error_type() { return m_local_jump_error_type; }
 
     Value match_rescue_array(Env *env, Value ary);
-    bool is_local_jump_error_with_break_point(Env *env, nat_int_t match_break_point);
+    Value is_local_jump_error_with_break_point(Env *env, nat_int_t match_break_point);
 
 private:
     StringObject *m_message { nullptr };
