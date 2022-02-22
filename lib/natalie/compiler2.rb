@@ -1,6 +1,7 @@
 require 'tempfile'
 require_relative './compiler2/pass1'
 require_relative './compiler2/pass2'
+require_relative './compiler2/pass3'
 require_relative './compiler2/instruction_manager'
 require_relative './compiler2/backends/cpp_backend'
 
@@ -170,6 +171,12 @@ module Natalie
       instructions = Pass2.new(instructions).transform
       if debug == 'p2'
         Pass2.debug_instructions(instructions)
+        exit
+      end
+
+      instructions = Pass3.new(instructions).transform
+      if debug == 'p3'
+        Pass3.debug_instructions(instructions)
         exit
       end
 

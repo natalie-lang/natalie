@@ -22,6 +22,10 @@ module Natalie
         instruction
       end
 
+      def insert_after(instruction)
+        @instructions.insert(@ip, instruction)
+      end
+
       def fetch_block(until_instruction: EndInstruction, expected_label: nil)
         instructions = []
 
@@ -43,6 +47,18 @@ module Natalie
         end
 
         instructions
+      end
+
+      def find_next(instruction_klass)
+        ip = @ip
+        while ip < @instructions.size
+          instruction = @instructions[ip]
+          ip += 1
+          if instruction.is_a?(instruction_klass)
+            return ip, instruction
+          end
+        end
+        raise 'ran out of instructions'
       end
     end
   end

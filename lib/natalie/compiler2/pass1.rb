@@ -76,6 +76,15 @@ module Natalie
         transform_defn_args(exp, used: used)
       end
 
+      def transform_break(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        [
+          transform_expression(value, used: true),
+          BreakInstruction.new,
+        ]
+      end
+
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
 

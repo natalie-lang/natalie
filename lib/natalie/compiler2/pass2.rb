@@ -16,10 +16,11 @@ module Natalie
         @instructions.walk do |instruction|
           method = "transform_#{instruction.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
+          instruction.env = @env if instruction.is_a?(EndInstruction)
           if respond_to?(method, true)
             send(method, instruction)
           end
-          instruction.env = @env
+          instruction.env ||= @env
         end
       end
 

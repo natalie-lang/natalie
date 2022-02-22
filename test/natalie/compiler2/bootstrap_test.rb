@@ -289,6 +289,13 @@ class TestCompiler2 < TestCase
     assert_eq(0, z)
   end
 
+  def test_break_from_block
+    result = block_yield3(1, 2, 3) do
+      break 100
+    end
+    assert_eq(100, result)
+  end
+
   def test_yield
     result = block_yield0 { :hi }
     assert_eq(:hi, result)
@@ -434,6 +441,11 @@ class TestCompiler2 < TestCase
 
   def block_yield2(a, b)
     yield a, b
+  end
+
+  def block_yield3(a, b, c, &block)
+    block_yield2(a, b, &block)
+    c
   end
 
   def block_call(&block)
