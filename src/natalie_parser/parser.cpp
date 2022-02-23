@@ -456,9 +456,17 @@ Node *Parser::parse_break(LocalsHashmap &locals) {
             return new BreakNode { token, arg };
         }
     } else if (!current_token().is_end_of_expression()) {
-        auto array = new ArrayNode { token };
-        parse_comma_separated_expressions(array, locals);
-        return new BreakNode { token, array };
+        auto value = parse_expression(Precedence::BARECALLARGS, locals);
+        if (current_token().is_comma()) {
+            auto array = new ArrayNode { token };
+            array->add_node(value);
+            while (current_token().is_comma()) {
+                advance();
+                array->add_node(parse_expression(Precedence::BARECALLARGS, locals));
+            }
+            value = array;
+        }
+        return new BreakNode { token, value };
     }
     return new BreakNode { token };
 }
