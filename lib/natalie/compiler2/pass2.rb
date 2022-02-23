@@ -1,10 +1,10 @@
 require_relative './base_pass'
+require_relative './env_builder'
 
 module Natalie
   class Compiler2
     # This compiler pass marks VariableGet and VariabletSet instructions as
-    # captured if they are used in a block (closure). It also builds the 'env'
-    # hierarchy used by the C++ backend to determine variable scope.
+    # captured if they are used in a block (closure).
     # You can debug this pass with the `-d p2` CLI flag.
     class Pass2 < BasePass
       def initialize(instructions)
@@ -13,44 +13,25 @@ module Natalie
       end
 
       def transform
+        EnvBuilder.new(@instructions).process
         @instructions.walk do |instruction|
           method = "transform_#{instruction.label}"
-          method << "_#{instruction.matching_label}" if instruction.matching_label
-          instruction.env = @env if instruction.is_a?(EndInstruction)
-          if respond_to?(method, true)
-            send(method, instruction)
-          end
-          instruction.env ||= @env
+          send(method, instruction) if respond_to?(method, true)
         end
       end
 
       private
 
-      def transform_define_block(_) @env = { vars: {}, outer: @env, block: true } end
-      def transform_end_define_block(_) @env = @env[:outer] end
-
-      def transform_define_class(_) @env = { vars: {}, outer: @env } end
-      def transform_end_define_class(_) @env = @env[:outer] end
-
-      def transform_define_method(_) @env = { vars: {}, outer: @env } end
-      def transform_end_define_method(_) @env = @env[:outer] end
-
-      def transform_if(_) @env = { vars: {}, outer: @env, hoist: true } end
-      def transform_end_if(_) @env = @env[:outer] end
-
-      def transform_try(_) @env = { vars: {}, outer: @env, hoist: true } end
-      def transform_end_try(_) @env = @env[:outer] end
-
       def transform_variable_get(instruction)
-        instruction.meta = find_or_create_var(instruction.name)
+        instruction.meta = find_or_create_var(instruction.env, instruction.name)
       end
 
       def transform_variable_set(instruction)
-        instruction.meta = find_or_create_var(instruction.name, local_only: instruction.local_only)
+        instruction.meta = find_or_create_var(instruction.env, instruction.name, local_only: instruction.local_only)
       end
 
-      def find_or_create_var(name, local_only: false)
-        owning_env = @env
+      def find_or_create_var(env, name, local_only: false)
+        owning_env = env
 
         # "hoisted" envs don't ever own a variable
         while owning_env[:hoist]

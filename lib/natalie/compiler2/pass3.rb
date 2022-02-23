@@ -1,4 +1,5 @@
 require_relative './base_pass'
+require_relative './env_builder'
 
 module Natalie
   class Compiler2
@@ -19,8 +20,8 @@ module Natalie
             send(method, instruction)
           end
         end
-        # FIXME: I don't like this. Is there a way we can avoid running pass2 again? :-/
-        Pass2.new(@instructions).transform
+        # add envs to newly-added instructions
+        EnvBuilder.new(@instructions).process
       end
 
       private
