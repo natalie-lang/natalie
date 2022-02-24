@@ -2,7 +2,7 @@ require_relative '../../spec_helper'
 
 require 'base64'
 
-describe "Base64#urlsafe_decode64" do
+xdescribe "Base64#urlsafe_decode64" do
   it "uses '_' instead of '/'" do
     decoded = Base64.urlsafe_decode64("V2hlcmUgYW0gST8gV2hvIGFtIEk_IEFtIEk_IEk_")
     decoded.should == 'Where am I? Who am I? Am I? I?'

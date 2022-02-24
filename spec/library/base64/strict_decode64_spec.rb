@@ -2,7 +2,7 @@ require_relative '../../spec_helper'
 
 require 'base64'
 
-describe "Base64#strict_decode64" do
+xdescribe "Base64#strict_decode64" do
   it "returns the Base64-decoded version of the given string" do
     Base64.strict_decode64("U2VuZCByZWluZm9yY2VtZW50cw==").should == "Send reinforcements"
   end
