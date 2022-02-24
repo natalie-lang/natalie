@@ -13,6 +13,10 @@ module Observable
     @observer_peers[observer] = callback
   end
 
+  def count_observers
+    return @observer_peers.size if defined? @observer_peers else 0
+  end
+
   def notify_observers(*arg)
     if defined? @observer_state and @observer_state
       if defined? @observer_peers
