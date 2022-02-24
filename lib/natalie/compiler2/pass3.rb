@@ -3,7 +3,7 @@ require_relative './env_builder'
 
 module Natalie
   class Compiler2
-    # This compiler pass sets up needed break points to handle `break` from a block.
+    # This compiler pass sets up needed break points to handle `break` from a block or lambda.
     # You can debug this pass with the `-d p3` CLI flag.
     class Pass3 < BasePass
       def initialize(instructions)

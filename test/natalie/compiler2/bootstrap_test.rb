@@ -306,6 +306,34 @@ class TestCompiler2 < TestCase
     assert_eq(100, result)
   end
 
+  def test_break_from_loop
+    result = loop do
+      break 200
+    end
+    assert_eq(200, result)
+  end
+
+  def test_break_from_proc
+    the_proc = proc do
+      break 300
+    end
+    assert_raises(LocalJumpError, 'break from proc-closure') do
+      the_proc.call
+    end
+  end
+
+  # TODO
+  def xtest_break_from_lambda
+    l1 = -> do
+      break 400
+    end
+    assert_eq(400, 400)
+    l2 = lambda do
+      break 500
+    end
+    assert_eq(500, l2.call)
+  end
+
   def test_yield
     result = block_yield0 { :hi }
     assert_eq(:hi, result)

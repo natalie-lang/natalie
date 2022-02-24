@@ -22,7 +22,7 @@ module Natalie
       def execute(vm)
         raise 'no break point set' unless @break_point
 
-        error = LocalJumpError.new('break')
+        error = LocalJumpError.new('break from proc-closure')
         error.instance_variable_set(:@break_point, @break_point)
         error.instance_variable_set(:@exit_value, vm.pop)
         raise error
