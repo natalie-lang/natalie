@@ -753,6 +753,7 @@ gen.binding('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pa
 gen.singleton_binding('Parser', 'parse', 'ParserObject', 'parse', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('Parser', 'tokens', 'ParserObject', 'tokens', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.binding('Proc', '[]', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Proc', 'initialize', 'ProcObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
