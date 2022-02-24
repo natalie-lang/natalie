@@ -353,8 +353,14 @@ module Natalie
         instructions << transform_defn_args(args, used: true)
         instructions << transform_expression(body, used: true)
         instructions << EndInstruction.new(:define_block)
-        raise 'unexpected call' unless call.sexp_type == :call
-        instructions << transform_call(call, used: used, with_block: true)
+        case call.sexp_type
+        when :call
+          instructions << transform_call(call, used: used, with_block: true)
+        when :lambda
+          instructions << transform_lambda(call, used: used)
+        else
+          raise "unexpected call: #{call.sexp_type.inspect}" unless call.sexp_type == :call
+        end
         instructions
       end
 
@@ -362,6 +368,10 @@ module Natalie
         return [] unless used
         _, name = exp
         InstanceVariableGetInstruction.new(name)
+      end
+
+      def transform_lambda(_, used:)
+        CreateLambdaInstruction.new
       end
 
       def transform_lasgn(exp, used:)

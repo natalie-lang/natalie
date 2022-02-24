@@ -84,6 +84,16 @@ class TestCompiler2 < TestCase
     assert_eq('x', x)
   end
 
+  def test_lambda
+    l1 = -> { 1 }
+    assert_eq(1, l1.call)
+    assert_eq(1, l1.())
+    l2 = ->(x) { x }
+    assert_eq(2, l2[2])
+    l3 = lambda { |x, y| y }
+    assert_eq(3, l3.call(2, 3))
+  end
+
   def test_range
     r = 1..3
     assert_eq(1, r.begin)
