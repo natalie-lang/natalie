@@ -162,7 +162,7 @@ namespace ArrayPacker {
             return six_bit == 0 ? '`' : (six_bit + 32);
         }
 
-        std::array<char, 4> encode_triplet(char a, char b, char c) {
+        std::array<char, 4> base64_encode_triplet(char a, char b, char c) {
             static constexpr char encode_table[] = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
                 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
@@ -200,7 +200,7 @@ namespace ArrayPacker {
                 auto second = next();
                 auto third = next();
 
-                auto base64_chars = encode_triplet(first, second, third);
+                auto base64_chars = base64_encode_triplet(first, second, third);
 
                 push(base64_chars[0]);
                 push(base64_chars[1]);
@@ -210,14 +210,14 @@ namespace ArrayPacker {
 
             auto const remaining = size - (triples * 3);
             if (! at_end() && remaining == 2) {
-                auto base64_chars = encode_triplet(next(), next(), 0x00);
+                auto base64_chars = base64_encode_triplet(next(), next(), 0x00);
 
                 push(base64_chars[0]);
                 push(base64_chars[1]);
                 push(base64_chars[2]);
                 push('=');
             } else {
-                auto base64_chars = encode_triplet(next(), 0x00, 0x00);
+                auto base64_chars = base64_encode_triplet(next(), 0x00, 0x00);
 
                 push(base64_chars[0]);
                 push(base64_chars[1]);
