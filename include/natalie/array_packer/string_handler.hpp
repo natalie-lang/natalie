@@ -189,10 +189,10 @@ namespace ArrayPacker {
             auto size = (int)m_source.size();
             auto triples = size / 3;
             auto push = [&](char b64) {
+                m_packed.append_char(b64);
+
                 if (m_packed.size() == count)
                     m_packed.append_char('\n');
-
-                m_packed.append_char(b64);
             };
 
             for (auto i = 0; i < triples; ++i) {
@@ -225,7 +225,8 @@ namespace ArrayPacker {
                 push('=');
             }
 
-            m_packed.append_char('\n');
+            if (count > 0)
+                m_packed.append_char('\n');
         }
 
         void pack_u() {
