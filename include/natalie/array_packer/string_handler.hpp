@@ -3,6 +3,7 @@
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
 #include "tm/string.hpp"
+#include <array>
 
 namespace Natalie {
 
@@ -34,6 +35,9 @@ namespace ArrayPacker {
                 break;
             case 'H':
                 pack_with_loop(&StringHandler::pack_H);
+                break;
+            case 'm':
+                pack_m();
                 break;
             case 'u':
                 pack_u();
@@ -156,6 +160,73 @@ namespace ArrayPacker {
             constexpr unsigned char six_bit_mask = 0b00111111;
             unsigned char six_bit = ascii & six_bit_mask;
             return six_bit == 0 ? '`' : (six_bit + 32);
+        }
+
+        std::array<char, 4> base64_encode_triplet(char a, char b, char c) {
+            static constexpr char encode_table[] = {
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+                'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+                'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+                'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2',
+                '3', '4', '5', '6', '7', '8', '9', '+', '/'
+            };
+
+            auto const bits = (a << 16) | (b << 8) | c;
+
+            auto const b64_first = encode_table[(bits >> 18) & 0b0011'1111];
+            auto const b64_second = encode_table[(bits >> 12) & 0b0011'1111];
+            auto const b64_third = encode_table[(bits >> 6) & 0b0011'1111];
+            auto const b64_fourth = encode_table[bits & 0b0011'1111];
+
+            return { b64_first, b64_second, b64_third, b64_fourth };
+        }
+
+        void pack_m() {
+            bool has_valid_count = !m_token.star && m_token.count >= 0;
+            size_t count = has_valid_count ? m_token.count : 60;
+
+            auto size = (int)m_source.size();
+            auto triples = size / 3;
+            auto push = [&](char b64) {
+                m_packed.append_char(b64);
+
+                if (m_packed.size() == count)
+                    m_packed.append_char('\n');
+            };
+
+            for (auto i = 0; i < triples; ++i) {
+                auto first = next();
+                auto second = next();
+                auto third = next();
+
+                auto base64_chars = base64_encode_triplet(first, second, third);
+
+                push(base64_chars[0]);
+                push(base64_chars[1]);
+                push(base64_chars[2]);
+                push(base64_chars[3]);
+            }
+
+            auto const remaining = size - (triples * 3);
+            if (! at_end() && remaining == 2) {
+                auto base64_chars = base64_encode_triplet(next(), next(), 0x00);
+
+                push(base64_chars[0]);
+                push(base64_chars[1]);
+                push(base64_chars[2]);
+                push('=');
+            } else {
+                auto base64_chars = base64_encode_triplet(next(), 0x00, 0x00);
+
+                push(base64_chars[0]);
+                push(base64_chars[1]);
+                push('=');
+                push('=');
+            }
+
+            if (count > 0)
+                m_packed.append_char('\n');
         }
 
         void pack_u() {
