@@ -213,6 +213,9 @@ Value IntegerObject::pow(Env *env, Value arg) {
 }
 
 Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
+    if (exponent->is_integer() && exponent->as_integer()->to_nat_int_t() < 0 && mod)
+        env->raise("RangeError", "2nd argument not allowed when first argument is negative");
+
     auto powd = pow(env, exponent);
 
     if (! mod)
@@ -220,9 +223,6 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
 
     if (! mod->is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
-
-    if (IntegerObject::convert_to_nat_int_t(env, exponent) < 0)
-        env->raise("RangeError", "2nd argument not allowed when first argument is negative");
 
     return powd->as_integer()->mod(env, mod);
 }

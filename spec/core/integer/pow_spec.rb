@@ -44,8 +44,7 @@ describe "Integer#pow" do
       -> { 2.pow(5, 0) }.should raise_error(ZeroDivisionError)
     end
 
-    # NATFIXME: Implement Rational
-    xit "raises a RangeError when the first argument is negative and the second argument is present" do
+    it "raises a RangeError when the first argument is negative and the second argument is present" do
       -> { 2.pow(-5, 1) }.should raise_error(RangeError)
     end
   end
