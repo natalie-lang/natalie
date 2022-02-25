@@ -1478,6 +1478,7 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, boo
         auto value = parse_assignment_expression_value(false, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
     }
+    case Node::Type::Call:
     case Node::Type::Colon2:
     case Node::Type::Colon3: {
         advance();
@@ -1489,20 +1490,6 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, boo
         advance();
         auto value = parse_assignment_expression_value(true, locals, allow_multiple);
         return new AssignmentNode { token, left, value };
-    }
-    case Node::Type::Call: {
-        advance();
-        auto attr_assign_node = new AttrAssignNode { token, *static_cast<CallNode *>(left) };
-        if (*attr_assign_node->message() == "[]") {
-            attr_assign_node->set_message(new String("[]="));
-            attr_assign_node->add_arg(parse_assignment_expression_value(false, locals, allow_multiple));
-        } else {
-            auto message = attr_assign_node->message();
-            message->append_char('=');
-            attr_assign_node->set_message(message);
-            attr_assign_node->add_arg(parse_assignment_expression_value(false, locals, allow_multiple));
-        }
-        return attr_assign_node;
     }
     default:
         throw_unexpected(left->token(), "left side of assignment");

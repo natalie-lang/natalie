@@ -18,7 +18,6 @@ public:
         Array,
         ArrayPattern,
         Assignment,
-        AttrAssign,
         Begin,
         BeginRescue,
         Block,
@@ -547,17 +546,6 @@ public:
 protected:
     Node *m_condition { nullptr };
     BlockNode *m_body { nullptr };
-};
-
-class AttrAssignNode : public CallNode {
-public:
-    AttrAssignNode(const Token &token, Node *receiver, SharedPtr<String> message)
-        : CallNode { token, receiver, message } { }
-
-    AttrAssignNode(const Token &token, CallNode &node)
-        : CallNode { token, node } { }
-
-    virtual Type type() override { return Type::AttrAssign; }
 };
 
 class SafeCallNode : public CallNode {

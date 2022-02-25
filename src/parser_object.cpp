@@ -178,6 +178,7 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
             sexp->push(value);
             return sexp;
         }
+        case Node::Type::Call:
         case Node::Type::Colon2:
         case Node::Type::Colon3:
         case Node::Type::Identifier: {
@@ -188,22 +189,6 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
         default:
             NAT_UNREACHABLE();
         }
-    }
-    case Node::Type::AttrAssign: {
-        auto attr_assign_node = static_cast<AttrAssignNode *>(node);
-        auto sexp = new SexpObject {
-            env,
-            node,
-            {
-                "attrasgn"_s,
-                node_to_ruby(env, attr_assign_node->receiver()),
-                SymbolObject::intern(attr_assign_node->message().ref()),
-            }
-        };
-        for (auto arg : attr_assign_node->args()) {
-            sexp->push(node_to_ruby(env, arg));
-        }
-        return sexp;
     }
     case Node::Type::Begin: {
         auto begin_node = static_cast<BeginNode *>(node);
@@ -931,6 +916,34 @@ SexpObject *ParserObject::build_args_sexp(Env *env, Node *parent, Vector<Node *>
 }
 
 SexpObject *ParserObject::build_assignment_sexp(Env *env, Node *parent, Node *identifier) {
+    Value name;
+    switch (identifier->type()) {
+    case Node::Type::Call: {
+        auto call_node = static_cast<CallNode *>(identifier);
+        auto sexp = new SexpObject {
+            env,
+            parent,
+            {
+                "attrasgn"_s,
+                node_to_ruby(env, call_node->receiver()),
+                SymbolObject::intern(String::format("{}=", call_node->message().ref())),
+            }
+        };
+        for (auto arg : call_node->args()) {
+            sexp->push(node_to_ruby(env, arg));
+        }
+        return sexp;
+    }
+    case Node::Type::Colon2:
+    case Node::Type::Colon3:
+        name = node_to_ruby(env, identifier);
+        break;
+    case Node::Type::Identifier:
+        name = SymbolObject::intern(static_cast<IdentifierNode *>(identifier)->name().ref());
+        break;
+    default:
+        NAT_NOT_YET_IMPLEMENTED("node type %d", (int)identifier->type());
+    }
     SymbolObject *type;
     switch (identifier->token().type()) {
     case Token::Type::BareName:
@@ -953,18 +966,6 @@ SexpObject *ParserObject::build_assignment_sexp(Env *env, Node *parent, Node *id
         printf("got token type %d\n", (int)identifier->token().type());
         NAT_UNREACHABLE();
     }
-    Value name;
-    switch (identifier->type()) {
-    case Node::Type::Colon2:
-    case Node::Type::Colon3:
-        name = node_to_ruby(env, identifier);
-        break;
-    case Node::Type::Identifier:
-        name = SymbolObject::intern(static_cast<IdentifierNode *>(identifier)->name().ref());
-        break;
-    default:
-        NAT_NOT_YET_IMPLEMENTED("node type %d", (int)identifier->type());
-    }
     return new SexpObject {
         env,
         parent,
@@ -977,6 +978,7 @@ SexpObject *ParserObject::multiple_assignment_to_ruby_with_array(Env *env, Multi
     auto array = new SexpObject { env, node, { "array"_s } };
     for (auto identifier : node->nodes()) {
         switch (identifier->type()) {
+        case Node::Type::Call:
         case Node::Type::Colon2:
         case Node::Type::Colon3:
         case Node::Type::Identifier:

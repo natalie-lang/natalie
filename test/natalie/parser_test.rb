@@ -219,6 +219,8 @@ describe 'Parser' do
         Parser.parse('A, B::C = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:const, s(:colon2, s(:const, :B), :C))), s(:array, s(:lit, 1), s(:lit, 2))))
         Parser.parse('A, ::B = 1, 2').should == s(:block, s(:masgn, s(:array, s(:cdecl, :A), s(:const, s(:colon3, :B))), s(:array, s(:lit, 1), s(:lit, 2))))
       end
+      Parser.parse('a.b, c = 1, 2').should == s(:block, s(:masgn, s(:array, s(:attrasgn, s(:call, nil, :a), :b=), s(:lasgn, :c)), s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('a, b.c = 1, 2').should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:attrasgn, s(:call, nil, :b), :c=)), s(:array, s(:lit, 1), s(:lit, 2))))
     end
 
     it 'parses attr assignment' do
