@@ -638,6 +638,7 @@ describe 'Parser' do
     it 'parses break, next, super, and yield' do
       Parser.parse('break').should == s(:block, s(:break))
       Parser.parse('break()').should == s(:block, s(:break, s(:nil)))
+      Parser.parse('break 1').should == s(:block, s(:break, s(:lit, 1)))
       Parser.parse('break 1, 2').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break([1, 2])').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break if true').should == s(:block, s(:if, s(:true), s(:break), nil))

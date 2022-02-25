@@ -73,12 +73,14 @@ void Env::raise_key_error(Value receiver, Value key) {
     this->raise_exception(exception);
 }
 
-void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
+void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type, nat_int_t break_point) {
     auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
     auto lje_class = find_top_level_const(this, "LocalJumpError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { lje_class, message };
     exception->set_local_jump_error_type(type);
     exception->ivar_set(this, "@exit_value"_s, exit_value);
+    if (break_point != 0)
+        exception->set_break_point(break_point);
     if (type == LocalJumpErrorType::Break) {
         assert(m_this_block);
         exception->set_local_jump_error_env(m_this_block->calling_env());

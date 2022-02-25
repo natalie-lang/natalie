@@ -76,8 +76,27 @@ module Natalie
         transform_defn_args(exp, used: used)
       end
 
+      def transform_break(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        [
+          transform_expression(value, used: true),
+          BreakInstruction.new,
+        ]
+      end
+
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
+
+        if receiver == nil && message == :lambda && args.empty?
+          # NOTE: We need Kernel#lambda to behave just like the stabby
+          # lambda (->) operator so we can attach the "break point" to
+          # it. I realize this is a bit of a hack and if someone wants
+          # to alias Kernel#lambda, then their method will create a
+          # broken lambda, i.e. calling `break` won't work correctly.
+          # Maybe someday we can think of a better way to handle this...
+          return transform_lambda(exp.new(:lambda), used: used)
+        end
 
         instructions = []
 
@@ -344,8 +363,14 @@ module Natalie
         instructions << transform_defn_args(args, used: true)
         instructions << transform_expression(body, used: true)
         instructions << EndInstruction.new(:define_block)
-        raise 'unexpected call' unless call.sexp_type == :call
-        instructions << transform_call(call, used: used, with_block: true)
+        case call.sexp_type
+        when :call
+          instructions << transform_call(call, used: used, with_block: true)
+        when :lambda
+          instructions << transform_lambda(call, used: used)
+        else
+          raise "unexpected call: #{call.sexp_type.inspect}" unless call.sexp_type == :call
+        end
         instructions
       end
 
@@ -353,6 +378,12 @@ module Natalie
         return [] unless used
         _, name = exp
         InstanceVariableGetInstruction.new(name)
+      end
+
+      def transform_lambda(_, used:)
+        instructions = [CreateLambdaInstruction.new]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_lasgn(exp, used:)
@@ -491,6 +522,13 @@ module Natalie
           [name, PushObjectClassInstruction.new]
         else
           raise "Unknown constant name type #{name.sexp_type.inspect}"
+        end
+      end
+
+      def self.debug_instructions(instructions)
+        instructions.each_with_index do |instruction, index|
+          desc = "#{index} #{instruction}"
+          puts desc
         end
       end
     end

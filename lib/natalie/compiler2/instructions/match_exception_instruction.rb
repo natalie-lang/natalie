@@ -9,9 +9,8 @@ module Natalie
 
       def generate(transform)
         ary = transform.pop
-        result = transform.temp('match_exception_result')
         code = "exception->match_rescue_array(env, #{ary})"
-        transform.exec_and_push(result, code)
+        transform.exec_and_push(:match_exception_result, code)
       end
 
       def execute(vm)

@@ -1,6 +1,7 @@
 require 'tempfile'
 require_relative './compiler2/pass1'
 require_relative './compiler2/pass2'
+require_relative './compiler2/pass3'
 require_relative './compiler2/instruction_manager'
 require_relative './compiler2/backends/cpp_backend'
 
@@ -107,17 +108,6 @@ module Natalie
       RUBY_PLATFORM =~ /msys/ ? '.exe' : ''
     end
 
-    def print_instructions(instructions, with_env: false)
-      instructions.each_with_index do |instruction, index|
-        desc = "#{index} #{instruction}"
-        if with_env
-          desc << " vars=#{instruction.env[:vars].keys.inspect}"
-          desc << " block=true" if instruction.env[:block]
-        end
-        puts desc
-      end
-    end
-
     def instructions
       @instructions ||= transform
     end
@@ -174,13 +164,19 @@ module Natalie
 
       instructions = Pass1.new(ast).transform
       if debug == 'p1'
-        print_instructions(instructions)
+        Pass1.debug_instructions(instructions)
         exit
       end
 
       instructions = Pass2.new(instructions).transform
       if debug == 'p2'
-        print_instructions(instructions, with_env: true)
+        Pass2.debug_instructions(instructions)
+        exit
+      end
+
+      instructions = Pass3.new(instructions).transform
+      if debug == 'p3'
+        Pass3.debug_instructions(instructions)
         exit
       end
 

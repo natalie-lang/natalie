@@ -35,8 +35,8 @@ module Natalie
         vm.skip_block_of_instructions(expected_label: :define_block)
         parent_scope = vm.scope
         captured_self = vm.self
-        block_proc =
-          proc do |*args|
+        block_lambda =
+          lambda do |*args|
             self_was = vm.self
             vm.self = captured_self
             scope = { vars: {}, parent: parent_scope }
@@ -50,7 +50,7 @@ module Natalie
             end
             vm.pop # result must be returned from proc
           end
-        vm.push(block_proc)
+        vm.push(block_lambda)
       end
     end
   end

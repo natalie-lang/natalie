@@ -2,7 +2,11 @@ module Natalie
   class Compiler2
     class InstructionManager
       def initialize(instructions)
-        @instructions = instructions
+        if instructions.is_a?(InstructionManager)
+          @instructions = instructions.instance_variable_get(:@instructions)
+        else
+          @instructions = instructions
+        end
         @ip = 0
       end
 
@@ -20,6 +24,18 @@ module Natalie
         instruction = @instructions[@ip]
         @ip += 1
         instruction
+      end
+
+      def peek
+        @instructions[@ip]
+      end
+
+      def insert_after(instructions)
+        insert_at(@ip, instructions)
+      end
+
+      def insert_at(ip, instructions)
+        @instructions.insert(ip, *Array(instructions))
       end
 
       def fetch_block(until_instruction: EndInstruction, expected_label: nil)
@@ -43,6 +59,18 @@ module Natalie
         end
 
         instructions
+      end
+
+      def find_next(instruction_klass)
+        ip = @ip
+        while ip < @instructions.size
+          instruction = @instructions[ip]
+          if instruction.is_a?(instruction_klass)
+            return ip, instruction
+          end
+          ip += 1
+        end
+        raise 'ran out of instructions'
       end
     end
   end

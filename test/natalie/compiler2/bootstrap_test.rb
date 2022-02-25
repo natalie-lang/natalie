@@ -84,6 +84,16 @@ class TestCompiler2 < TestCase
     assert_eq('x', x)
   end
 
+  def test_lambda
+    l1 = -> { 1 }
+    assert_eq(1, l1.call)
+    assert_eq(1, l1.())
+    l2 = ->(x) { x }
+    assert_eq(2, l2[2])
+    l3 = lambda { |x, y| y }
+    assert_eq(3, l3.call(2, 3))
+  end
+
   def test_range
     r = 1..3
     assert_eq(1, r.begin)
@@ -289,6 +299,40 @@ class TestCompiler2 < TestCase
     assert_eq(0, z)
   end
 
+  def test_break_from_block
+    result = block_yield3(1, 2, 3) do
+      break 100
+    end
+    assert_eq(100, result)
+  end
+
+  def test_break_from_loop
+    result = loop do
+      break 200
+    end
+    assert_eq(200, result)
+  end
+
+  def test_break_from_proc
+    the_proc = proc do
+      break 300
+    end
+    assert_raises(LocalJumpError, 'break from proc-closure') do
+      the_proc.call
+    end
+  end
+
+  def test_break_from_lambda
+    l1 = -> do
+      break 400
+    end
+    assert_eq(400, l1.call)
+    l2 = lambda do
+      break 500
+    end
+    assert_eq(500, l2.call)
+  end
+
   def test_yield
     result = block_yield0 { :hi }
     assert_eq(:hi, result)
@@ -434,6 +478,11 @@ class TestCompiler2 < TestCase
 
   def block_yield2(a, b)
     yield a, b
+  end
+
+  def block_yield3(a, b, c, &block)
+    block_yield2(a, b, &block)
+    c
   end
 
   def block_call(&block)
