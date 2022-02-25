@@ -25,10 +25,11 @@ public:
     ProcObject(ClassObject *klass)
         : Object { Object::Type::Proc, klass } { }
 
-    ProcObject(Block *block, ProcType type = ProcType::Proc)
+    ProcObject(Block *block, ProcType type = ProcType::Proc, nat_int_t break_point = 0)
         : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() }
         , m_block { block }
-        , m_type { type } {
+        , m_type { type }
+        , m_break_point { break_point } {
         assert(m_block);
     }
 
@@ -66,6 +67,7 @@ public:
 private:
     Block *m_block { nullptr };
     ProcType m_type { ProcType::Proc };
+    nat_int_t m_break_point { 0 };
 };
 
 }

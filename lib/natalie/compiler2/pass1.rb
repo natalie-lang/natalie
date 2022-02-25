@@ -88,6 +88,16 @@ module Natalie
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
 
+        if receiver == nil && message == :lambda && args.empty?
+          # NOTE: We need Kernel#lambda to behave just like the stabby
+          # lambda (->) operator so we can attach the "break point" to
+          # it. I realize this is a bit of a hack and if someone wants
+          # to alias Kernel#lambda, then their method will create a
+          # broken lambda, i.e. calling `break` won't work correctly.
+          # Maybe someday we can think of a better way to handle this...
+          return transform_lambda(exp.new(:lambda), used: used)
+        end
+
         instructions = []
 
         if args.last&.sexp_type == :block_pass
@@ -371,7 +381,9 @@ module Natalie
       end
 
       def transform_lambda(_, used:)
-        CreateLambdaInstruction.new
+        instructions = [CreateLambdaInstruction.new]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_lasgn(exp, used:)

@@ -322,12 +322,11 @@ class TestCompiler2 < TestCase
     end
   end
 
-  # TODO
-  def xtest_break_from_lambda
+  def test_break_from_lambda
     l1 = -> do
       break 400
     end
-    assert_eq(400, 400)
+    assert_eq(400, l1.call)
     l2 = lambda do
       break 500
     end

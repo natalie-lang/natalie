@@ -26,6 +26,10 @@ module Natalie
         instruction
       end
 
+      def peek
+        @instructions[@ip]
+      end
+
       def insert_after(instructions)
         insert_at(@ip, instructions)
       end

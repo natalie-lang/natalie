@@ -36,6 +36,10 @@ module Natalie
       def transform_end_define_block(_)
         # TODO: how to handle procs/lambdas?
         if (break_point = @env[:has_break])
+          if @instructions.peek.is_a?(CreateLambdaInstruction)
+            @instructions.peek.break_point = break_point
+            return
+          end
           @instructions.insert_after(TryInstruction.new)
           ip, send_instruction = @instructions.find_next(SendInstruction)
           @instructions.insert_at(ip + 1, [

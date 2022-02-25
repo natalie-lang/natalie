@@ -33,11 +33,8 @@ Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
 
 Value ExceptionObject::is_local_jump_error_with_break_point(Env *env, nat_int_t match_break_point) {
     if (m_local_jump_error_type != LocalJumpErrorType::Break) return FalseObject::the();
-    auto break_point = ivar_get(env, "@break_point"_s);
-    if (!break_point || !break_point->is_integer()) return FalseObject::the();
-    auto break_point_integer = break_point->as_integer();
-    if (!break_point_integer->is_fixnum()) return FalseObject::the();
-    return bool_object(break_point->as_integer()->to_nat_int_t() == match_break_point);
+    if (m_break_point == 0) return FalseObject::the();
+    return bool_object(m_break_point == match_break_point);
 }
 
 void ExceptionObject::visit_children(Visitor &visitor) {
