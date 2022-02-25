@@ -55,12 +55,13 @@ void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {
         case Node::Type::Call:
         case Node::Type::Colon2:
         case Node::Type::Colon3:
-        case Node::Type::Splat:
             break;
-        case Node::Type::SplatAssignment: {
-            auto splat = static_cast<SplatAssignmentNode *>(node);
-            if (splat->node())
-                splat->node()->add_to_locals(locals);
+        case Node::Type::Splat: {
+            auto splat = static_cast<SplatNode *>(node);
+            if (splat->node() && splat->node()->type() == Node::Type::Identifier) {
+                auto identifier = static_cast<IdentifierNode *>(splat->node());
+                identifier->add_to_locals(locals);
+            }
             break;
         }
         case Node::Type::MultipleAssignment:

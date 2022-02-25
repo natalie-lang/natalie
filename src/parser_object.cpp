@@ -810,13 +810,6 @@ Value ParserObject::node_to_ruby(Env *env, Node *node) {
         auto shell_node = static_cast<ShellNode *>(node);
         return new SexpObject { env, shell_node, { "xstr"_s, new StringObject(shell_node->string().ref()) } };
     }
-    case Node::Type::SplatAssignment: {
-        auto splat_assignment_node = static_cast<SplatAssignmentNode *>(node);
-        auto sexp = new SexpObject { env, splat_assignment_node, { "splat"_s } };
-        if (splat_assignment_node->node())
-            sexp->push(build_assignment_sexp(env, splat_assignment_node, splat_assignment_node->node()));
-        return sexp;
-    }
     case Node::Type::Splat: {
         auto splat_node = static_cast<SplatNode *>(node);
         auto sexp = new SexpObject { env, splat_node, { "splat"_s } };
@@ -941,6 +934,13 @@ SexpObject *ParserObject::build_assignment_sexp(Env *env, Node *parent, Node *id
     case Node::Type::Identifier:
         name = SymbolObject::intern(static_cast<IdentifierNode *>(identifier)->name().ref());
         break;
+    case Node::Type::Splat: {
+        auto splat_node = static_cast<SplatNode *>(identifier);
+        auto sexp = new SexpObject { env, parent, { "splat"_s } };
+        if (splat_node->node())
+            sexp->push(build_assignment_sexp(env, splat_node, splat_node->node()));
+        return sexp;
+    }
     default:
         NAT_NOT_YET_IMPLEMENTED("node type %d", (int)identifier->type());
     }
@@ -982,11 +982,8 @@ SexpObject *ParserObject::multiple_assignment_to_ruby_with_array(Env *env, Multi
         case Node::Type::Colon2:
         case Node::Type::Colon3:
         case Node::Type::Identifier:
-            array->push(build_assignment_sexp(env, node, identifier));
-            break;
         case Node::Type::Splat:
-        case Node::Type::SplatAssignment:
-            array->push(node_to_ruby(env, identifier));
+            array->push(build_assignment_sexp(env, node, identifier));
             break;
         case Node::Type::MultipleAssignment:
             array->push(multiple_assignment_to_ruby_with_array(env, static_cast<MultipleAssignmentNode *>(identifier)));
