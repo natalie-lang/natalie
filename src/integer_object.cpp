@@ -212,6 +212,15 @@ Value IntegerObject::pow(Env *env, Value arg) {
     return create(Natalie::pow(m_integer, arg_int));
 }
 
+Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
+    auto powd = pow(env, exponent);
+
+    if (! mod)
+        return powd;
+        
+    return powd->as_integer()->mod(env, mod);
+}
+
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
         return arg.is_fast_integer() || arg.is_fast_float() || arg->is_integer() || arg->is_float();

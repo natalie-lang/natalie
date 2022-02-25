@@ -70,6 +70,7 @@ public:
     Value div(Env *, Value);
     Value mod(Env *, Value);
     Value pow(Env *, Value);
+    Value powmod(Env *, Value, Value);
     Value cmp(Env *, Value);
     Value times(Env *, Block *);
     Value bitwise_and(Env *, Value);
