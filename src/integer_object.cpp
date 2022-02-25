@@ -224,7 +224,19 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
     if (! mod->is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
-    return powd->as_integer()->mod(env, mod);
+    auto modi = mod->as_integer();
+    if (modi->to_nat_int_t() == 0)
+        env->raise("ZeroDivisionError", "cannot divide by zero");
+
+    auto powi = powd->as_integer();
+    
+    if (powi->is_bignum())
+        return new BignumObject { powi->to_bigint() % modi->to_bigint() };
+
+    if (powi->to_nat_int_t() < 0 || modi->to_nat_int_t() < 0)
+        return powi->mod(env, mod);
+
+    return Value::integer(powi->to_nat_int_t() % modi->to_nat_int_t());
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
