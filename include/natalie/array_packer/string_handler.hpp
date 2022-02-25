@@ -209,7 +209,7 @@ namespace ArrayPacker {
             }
 
             auto const remaining = size - (triples * 3);
-            if (! at_end() && remaining == 2) {
+            if (!at_end() && remaining == 2) {
                 auto base64_chars = base64_encode_triplet(next(), next(), 0x00);
 
                 push(base64_chars[0]);
