@@ -37,6 +37,9 @@ module Natalie
           when :splat
             _, name = arg
             transform_splat_arg(name)
+          when :attrasgn
+            _, receiver, message = arg
+            transform_attr_assign_arg(receiver, message)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
@@ -47,6 +50,14 @@ module Natalie
 
       def remaining_required_args
         @args.reject { |arg| arg.is_a?(Sexp) && arg.sexp_type == :lasgn }
+      end
+
+      def transform_attr_assign_arg(receiver, message)
+        shift_or_pop_next_arg
+        @instructions << PushArgcInstruction.new(1)
+        @instructions << @pass.transform_expression(receiver, used: true)
+        @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false)
+        @instructions << PopInstruction.new
       end
 
       def transform_destructured_arg(arg)
@@ -98,6 +109,11 @@ module Natalie
           _, name = arg
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name)
+        when :attrasgn
+          _, receiver, message = arg
+          @instructions << PushArgcInstruction.new(1)
+          @instructions << @pass.transform_expression(receiver, used: true)
+          @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false)
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
         end

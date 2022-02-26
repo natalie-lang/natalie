@@ -2,6 +2,12 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler2
+    # use:
+    # push(block) if block
+    # push(*args)
+    # push(argc)
+    # push(receiver)
+    # send(message)
     class SendInstruction < BaseInstruction
       def initialize(message, receiver_is_self:, with_block:)
         @message = message.to_sym

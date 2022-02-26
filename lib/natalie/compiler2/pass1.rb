@@ -66,6 +66,11 @@ module Natalie
         instructions
       end
 
+      def transform_attrasgn(exp, used:)
+        _, receiver, message, value = exp
+        transform_call(exp.new(:call, receiver, message, value), used: used)
+      end
+
       def transform_block(exp, used:)
         _, *body = exp
         transform_body(body, used: used)
@@ -433,7 +438,7 @@ module Natalie
         #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
         _, names_array, values = exp
         raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
-        raise "Unexpected masgn values: #{values.inspect}" unless values.sexp_type == :to_ary
+        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary].include?(values.sexp_type)
         instructions = [
           transform_expression(values, used: true),
           DupObjectInstruction.new,

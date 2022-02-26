@@ -425,25 +425,49 @@ class TestCompiler2 < TestCase
     assert_eq(:nope, should_return_in_if(false))
   end
 
+  def test_attr_assignment
+    a = AttrAssignTest.new
+
+    a.foo = 1
+    assert_eq(1, a.foo)
+
+    #AttrAssignTest.bar = 4
+    #assert_eq(4, AttrAssignTest.bar)
+  end
+
   def test_multiple_assignment
     a, b = [1, 2]
     assert_eq(1, a)
     assert_eq(2, b)
+
     ((a, b), c) = [[1, 2], 3]
     assert_eq(1, a)
     assert_eq(2, b)
     assert_eq(3, c)
+
     ((a, *b), c) = [[1, 2, 3], 3]
     assert_eq([2, 3], b)
+
     ary = [1, 2, 3]
     a, *@b = ary
     assert_eq([2, 3], @b)
+
     a, *$b = ary
     assert_eq([2, 3], $b)
+
     def returns_whole_thing
       d, e = [4, 5]
     end
     assert_eq([4, 5], returns_whole_thing)
+
+    a = AttrAssignTest.new
+    a.foo, b = 2, 3
+    assert_eq(2, a.foo)
+    assert_eq(3, b)
+
+    *a.foo, b = 2, 3, 4
+    assert_eq([2, 3], a.foo)
+    assert_eq(4, b)
   end
 
   def test_global_variable
@@ -602,6 +626,13 @@ class TestCompiler2 < TestCase
 
   class Constants::Nested
     CONSTANT = :nested
+  end
+
+  class AttrAssignTest
+    attr_accessor :foo
+    #class << self
+      #attr_accessor :bar
+    #end
   end
 end
 
