@@ -218,10 +218,10 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
 
     auto powd = pow(env, exponent);
 
-    if (! mod)
+    if (!mod)
         return powd;
 
-    if (! mod->is_integer())
+    if (!mod->is_integer())
         env->raise("TypeError", "2nd argument not allowed unless all arguments are integers");
 
     auto modi = mod->as_integer();
@@ -229,7 +229,7 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
         env->raise("ZeroDivisionError", "cannot divide by zero");
 
     auto powi = powd->as_integer();
-    
+
     if (powi->is_bignum())
         return new IntegerObject { powi->to_bigint() % modi->to_bigint() };
 
