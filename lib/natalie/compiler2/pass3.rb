@@ -27,9 +27,11 @@ module Natalie
       private
 
       def transform_break(instruction)
-        raise 'TODO' unless @env[:block]
+        env = @env
+        env = env[:outer] while env[:hoist]
+        raise 'unexpected env for break' unless env[:block]
         break_point = (@break_point += 1)
-        @env[:has_break] = break_point
+        env[:has_break] = break_point
         instruction.break_point = break_point
       end
 

@@ -351,6 +351,18 @@ class TestCompiler2 < TestCase
     assert_eq([1, 2], result)
   end
 
+  def test_next
+    result = []
+    i = 0
+    loop do
+      i += 1
+      next if i < 5
+      result << i
+      break if result.size >= 3
+    end
+    assert_eq([5, 6, 7], result)
+  end
+
   def test_method_in_method
     x = 1
     def should_not_see_outer_scope

@@ -52,12 +52,15 @@ module Natalie
         condition = vm.pop
         if condition
           vm.ip = start_ip
-          vm.run
+          result = vm.run
           vm.ip = end_ip
         else
           vm.ip = else_ip
-          vm.run
+          result = vm.run
           vm.ip = end_ip
+        end
+        unless result == :halt
+          result
         end
       end
     end

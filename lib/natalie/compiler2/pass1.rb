@@ -443,6 +443,15 @@ module Natalie
         instructions
       end
 
+      def transform_next(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        [
+          transform_expression(value, used: true),
+          NextInstruction.new,
+        ]
+      end
+
       def transform_or(exp, used:)
         _, lhs, rhs = exp
         lhs_instructions = transform_expression(lhs, used: true)
