@@ -503,7 +503,7 @@ module Natalie
         when Integer
           if lit > MAX_FIXNUM || lit < MIN_FIXNUM
             str = lit.to_s
-            exp.new(:new, :BignumObject, s(:s, str))
+            exp.new(:'IntegerObject::create', s(:s, str))
           else
             exp.new(:'Value::integer', lit)
           end

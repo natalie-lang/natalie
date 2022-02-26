@@ -20,8 +20,7 @@ describe "Integer#even?" do
     end
   end
 
-  # NATFIXME: need to work on IntegerObject::pow() so it handles Bignum
-  xcontext "bignum" do
+  context "bignum" do
     it "returns true if self is even and positive" do
       (10000**10).even?.should be_true
     end

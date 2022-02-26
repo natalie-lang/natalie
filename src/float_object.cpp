@@ -7,12 +7,7 @@ namespace Natalie {
 
 Value f_to_i_or_bigint(double value) {
     assert(value == ::round(value));
-    if (value >= (double)NAT_INT_MAX || value <= (double)NAT_INT_MAX) {
-        auto *bignum = new BignumObject { value };
-        if (bignum->has_to_be_bignum())
-            return bignum;
-    }
-    return Value::integer(value);
+    return IntegerObject::create(Integer(value));
 }
 
 Value FloatObject::is_infinite(Env *env) const {
@@ -33,11 +28,7 @@ bool FloatObject::eq(Env *env, Value other) {
 
     if (other->is_integer()) {
         auto integer = other->as_integer();
-        if (integer->is_bignum()) {
-            return m_double == integer->to_bigint().to_double();
-        } else {
-            return m_double == integer->to_nat_int_t();
-        }
+        return integer->integer() == m_double;
     }
     if (other->is_float()) {
         auto *f = other->as_float();
