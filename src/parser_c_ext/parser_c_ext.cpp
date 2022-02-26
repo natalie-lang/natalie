@@ -22,6 +22,8 @@ VALUE to_mri_ruby(Natalie::Value value) {
         return sexp;
         break;
     }
+    case Natalie::Object::Type::False:
+        return Qfalse;
     case Natalie::Object::Type::Float:
         return rb_float_new(value->as_float()->to_double());
     case Natalie::Object::Type::Integer:
@@ -41,6 +43,8 @@ VALUE to_mri_ruby(Natalie::Value value) {
         return rb_str_new_cstr(value->as_string()->c_str());
     case Natalie::Object::Type::Symbol:
         return ID2SYM(rb_intern(value->as_symbol()->c_str()));
+    case Natalie::Object::Type::True:
+        return Qtrue;
     default:
         printf("Unknown Natalie value type: %d\n", (int)value->type());
         abort();
