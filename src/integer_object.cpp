@@ -231,7 +231,7 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
     auto powi = powd->as_integer();
     
     if (powi->is_bignum())
-        return new BignumObject { powi->to_bigint() % modi->to_bigint() };
+        return new IntegerObject { powi->to_bigint() % modi->to_bigint() };
 
     if (powi->to_nat_int_t() < 0 || modi->to_nat_int_t() < 0)
         return powi->mod(env, mod);
