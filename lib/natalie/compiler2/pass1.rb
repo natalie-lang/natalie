@@ -237,16 +237,24 @@ module Natalie
         [PushSelfInstruction.new, ConstFindInstruction.new(name)]
       end
 
-      def transform_defn(exp, used:)
+      def transform_def(exp, used:)
         _, name, args, *body = exp
         arity = args.size - 1 # FIXME: way more complicated than this :-)
-        instructions = []
-        instructions << DefineMethodInstruction.new(name: name, arity: arity)
-        instructions << transform_defn_args(args, used: true)
-        instructions += transform_body(body, used: true)
-        instructions << EndInstruction.new(:define_method)
-        instructions << PopInstruction.new unless used
+        instructions = [
+          DefineMethodInstruction.new(name: name, arity: arity),
+          transform_defn_args(args, used: true),
+          transform_body(body, used: true),
+          EndInstruction.new(:define_method),
+        ]
+        instructions << PushSymbolInstruction.new(name) if used
         instructions
+      end
+
+      def transform_defn(exp, used:)
+        [
+          PushSelfInstruction.new,
+          transform_def(exp, used: used)
+        ]
       end
 
       def transform_defn_args(exp, used:)
@@ -274,6 +282,16 @@ module Natalie
 
         instructions
       end
+
+      def transform_defs(exp, used:)
+        _, owner, name, args, *body = exp
+        [
+          transform_expression(owner, used: true),
+          SingletonClassInstruction.new,
+          transform_def(exp.new(:defn, name, args, *body), used: used)
+        ]
+      end
+
 
       def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp

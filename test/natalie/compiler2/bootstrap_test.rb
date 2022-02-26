@@ -431,8 +431,8 @@ class TestCompiler2 < TestCase
     a.foo = 1
     assert_eq(1, a.foo)
 
-    #AttrAssignTest.bar = 4
-    #assert_eq(4, AttrAssignTest.bar)
+    AttrAssignTest.bar = 4
+    assert_eq(4, AttrAssignTest.bar)
   end
 
   def test_multiple_assignment
@@ -630,9 +630,8 @@ class TestCompiler2 < TestCase
 
   class AttrAssignTest
     attr_accessor :foo
-    #class << self
-      #attr_accessor :bar
-    #end
+    def self.bar; @bar; end
+    def self.bar=(bar); @bar = bar; end
   end
 end
 
