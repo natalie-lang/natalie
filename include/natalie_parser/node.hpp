@@ -69,7 +69,6 @@ public:
         Self,
         Shell,
         Splat,
-        SplatAssignment,
         SplatValue,
         StabbyProc,
         String,
@@ -1336,29 +1335,6 @@ public:
 
 protected:
     SharedPtr<String> m_string {};
-};
-
-class SplatAssignmentNode : public Node {
-public:
-    SplatAssignmentNode(const Token &token)
-        : Node { token } { }
-
-    SplatAssignmentNode(const Token &token, IdentifierNode *node)
-        : Node { token }
-        , m_node { node } {
-        assert(m_node);
-    }
-
-    ~SplatAssignmentNode() {
-        delete m_node;
-    }
-
-    virtual Type type() override { return Type::SplatAssignment; }
-
-    IdentifierNode *node() const { return m_node; }
-
-protected:
-    IdentifierNode *m_node { nullptr };
 };
 
 class SplatNode : public Node {

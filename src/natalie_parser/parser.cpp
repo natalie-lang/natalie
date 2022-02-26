@@ -8,8 +8,8 @@ enum class Parser::Precedence {
     HASH, // {}
     EXPRMODIFIER, // if/unless/while/until
     CASE, // case/when/else
-    SPLAT, // *args, **kwargs
     ASSIGNMENT, // =
+    SPLAT, // *args, **kwargs
     CALLARGS, // foo(a, b)
     COMPOSITION, // and/or
     OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
@@ -708,12 +708,9 @@ Node *Parser::parse_multiple_assignment_expression(Node *left, LocalsHashmap &lo
         case Token::Type::Multiply: {
             auto splat_token = current_token();
             advance();
-            ArgNode *n;
             if (current_token().is_assignable()) {
-                auto identifier = static_cast<IdentifierNode *>(parse_identifier(locals));
-                identifier->set_is_lvar(true);
-                list->add_node(new SplatAssignmentNode { splat_token, identifier });
-                identifier->add_to_locals(locals);
+                auto node = parse_expression(Precedence::ASSIGNMENTIDENTIFIER, locals);
+                list->add_node(new SplatNode { splat_token, node });
             } else {
                 list->add_node(new SplatNode { splat_token });
             }
@@ -1486,6 +1483,9 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
 
 Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals, bool allow_multiple) {
     auto token = current_token();
+    if (left->type() == Node::Type::Splat) {
+        left = parse_multiple_assignment_expression(left, locals);
+    }
     switch (left->type()) {
     case Node::Type::Identifier: {
         auto left_identifier = static_cast<IdentifierNode *>(left);
