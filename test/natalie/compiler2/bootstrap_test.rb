@@ -26,7 +26,18 @@ class TestCase
   end
 
   def run
-    tests = methods.select { |m| m.start_with?('test_') }
+    focused_tests = methods.select { |m| m.start_with?('ftest_') }
+    if focused_tests.any?
+      run_tests(focused_tests)
+    else
+      tests = methods.select { |m| m.start_with?('test_') }
+      run_tests(tests)
+    end
+  end
+
+  private
+
+  def run_tests(tests)
     tests.each do |method|
       send(method)
     end
