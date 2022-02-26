@@ -600,6 +600,7 @@ gen.binding('Integer', 'ord', 'IntegerObject', 'ord', argc: 0, pass_env: false, 
 gen.binding('Integer', 'round', 'IntegerObject', 'round', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'size', 'IntegerObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'succ', 'IntegerObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Integer', 'pow', 'IntegerObject', 'powmod', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'pred', 'IntegerObject', 'pred', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'times', 'IntegerObject', 'times', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Integer', 'to_f', 'IntegerObject', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
