@@ -374,11 +374,13 @@ class TestCompiler2 < TestCase
   end
 
   def test_return
+    x = 0
     def should_return_1
       return 1
-      2
+      x = 2
     end
     assert_eq(1, should_return_1)
+    assert_eq(0, x)
 
     def should_return_ary
       return 1, 2
@@ -391,6 +393,13 @@ class TestCompiler2 < TestCase
       3
     end
     assert_eq(nil, should_return_nil)
+
+    def should_return_in_if(ret)
+      return ret if ret
+      :nope
+    end
+    assert_eq(true, should_return_in_if(true))
+    assert_eq(:nope, should_return_in_if(false))
   end
 
   def test_multiple_assignment

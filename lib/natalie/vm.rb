@@ -26,7 +26,7 @@ module Natalie
     def run
       @instructions.walk do |instruction|
         result = instruction.execute(self)
-        if %i[halt next].include?(result)
+        if %i[halt next return].include?(result)
           break result
         end
       end

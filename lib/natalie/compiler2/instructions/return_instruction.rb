@@ -9,10 +9,11 @@ module Natalie
 
       def generate(transform)
         transform.exec("return #{transform.pop}")
+        transform.push('Value(NilObject::the())')
       end
 
       def execute(vm)
-        :halt
+        :return
       end
     end
   end
