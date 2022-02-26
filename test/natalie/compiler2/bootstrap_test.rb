@@ -315,6 +315,10 @@ class TestCompiler2 < TestCase
       break 100
     end
     assert_eq(100, result)
+    result = block_yield3(1, 2, 3) do
+      break
+    end
+    assert_eq(nil, result)
   end
 
   def test_break_from_loop
@@ -322,6 +326,21 @@ class TestCompiler2 < TestCase
       break 200
     end
     assert_eq(200, result)
+    result = loop do
+      break
+    end
+    assert_eq(nil, result)
+  end
+
+  def test_break_from_while
+    result = while true
+      break 200
+    end
+    assert_eq(200, result)
+    result = while true
+      break
+    end
+    assert_eq(nil, result)
   end
 
   def test_break_from_proc
@@ -342,6 +361,10 @@ class TestCompiler2 < TestCase
       break 500
     end
     assert_eq(500, l2.call)
+    l3 = lambda do
+      break
+    end
+    assert_eq(nil, l3.call)
   end
 
   def test_yield
@@ -452,6 +475,42 @@ class TestCompiler2 < TestCase
     assert_eq(s1, s5)
     s6 = "#{1 + 2} = 3"
     assert_eq("3 = 3", s6)
+  end
+
+  def test_while
+    x = 0
+    while x < 3
+      x += 1
+    end
+    assert_eq(3, x)
+
+    x = 0
+    x += 1 while x < 3
+    assert_eq(3, x)
+
+    x = 0
+    begin
+      x += 1
+    end while false
+    assert_eq(1, x)
+  end
+
+  def test_until
+    y = 0
+    until y >= 3
+      y += 1
+    end
+    assert_eq(3, y)
+
+    y = 0
+    y += 1 until y >= 3
+    assert_eq(3, y)
+
+    y = 0
+    begin
+      y += 1
+    end until true
+    assert_eq(1, y)
   end
 
   private

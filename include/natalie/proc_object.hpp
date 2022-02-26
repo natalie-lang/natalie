@@ -49,7 +49,7 @@ public:
         return this;
     }
 
-    Value call(Env *, size_t, Value *, Block *);
+    Value call(Env *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
     Env *env() { return m_block->env(); }
 

@@ -507,6 +507,29 @@ module Natalie
         PushTrueInstruction.new
       end
 
+      def transform_until(exp, used:)
+        _, condition, body, pre = exp
+        transform_while(exp.new(:while, s(:call, condition, :!), body, pre), used: used)
+      end
+
+      def transform_while(exp, used:)
+        # s(:while, s(:call, s(:lvar, :x), :<, s(:lit, 3)), s(:lasgn, :x, s(:call, s(:lvar, :x), :+, s(:lit, 1))), true)
+        _, condition, body, pre = exp
+        body ||= s(:nil)
+
+        instructions = [
+          DefineBlockInstruction.new(arity: 0),
+          transform_expression(condition, used: true),
+          EndInstruction.new(:define_block),
+          CreateLambdaInstruction.new,
+          WhileInstruction.new(pre: pre),
+          transform_expression(body, used: true),
+          EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_yield(exp, used:)
         _, *args = exp
         instructions = args.map { |arg| transform_expression(arg, used: true) }

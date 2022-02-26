@@ -9,6 +9,8 @@ module Natalie
 
       attr_reader :matching_label
 
+      attr_accessor :matching_instruction
+
       def to_s
         "end #{@matching_label}"
       end

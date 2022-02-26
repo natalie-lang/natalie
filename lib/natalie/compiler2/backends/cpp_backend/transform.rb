@@ -106,7 +106,7 @@ module Natalie
           stack = @stack.dup
           t = Transform.new(instructions, stack: stack, top: @top, compiler_context: @compiler_context)
           yield(t)
-          @stack_sizes << stack.size
+          @stack_sizes << stack.size if @stack_sizes
         end
 
         # truncate resulting stack to minimum size of any

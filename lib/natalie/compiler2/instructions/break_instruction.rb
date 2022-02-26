@@ -9,13 +9,20 @@ module Natalie
         s
       end
 
-      attr_accessor :break_point
+      attr_accessor :break_point, :break_point_instruction
 
       def generate(transform)
         raise 'no break point set' unless @break_point
 
         value = transform.pop
-        transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::Break, #{@break_point})")
+
+        if (i = break_point_instruction).is_a?(WhileInstruction)
+          transform.exec("#{i.result_name} = #{value}")
+          transform.exec("break")
+        else
+          transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::Break, #{@break_point})")
+        end
+
         transform.push("NilObject::the()")
       end
 

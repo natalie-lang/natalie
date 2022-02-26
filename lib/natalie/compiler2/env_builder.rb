@@ -5,13 +5,21 @@ module Natalie
       def initialize(instructions)
         @instructions = InstructionManager.new(instructions)
         @env = { vars: {}, outer: nil }
+        @instruction_stack = []
       end
 
       def process
         @instructions.walk do |instruction|
           method = "process_#{instruction.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
-          instruction.env = @env if instruction.is_a?(EndInstruction)
+
+          @instruction_stack << instruction if instruction.has_body?
+
+          if instruction.is_a?(EndInstruction)
+            instruction.matching_instruction = @instruction_stack.pop
+            instruction.env = @env
+          end
+
           if respond_to?(method, true)
             send(method, instruction)
           end
@@ -35,6 +43,9 @@ module Natalie
 
       def process_try(_) @env = { vars: {}, outer: @env, hoist: true } end
       def process_end_try(_) @env = @env[:outer] end
+
+      def process_while(_) @env = { vars: {}, outer: @env, hoist: true, while: true } end
+      def process_end_while(_) @env = @env[:outer] end
     end
   end
 end
