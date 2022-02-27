@@ -630,7 +630,9 @@ class TestCompiler2 < TestCase
 
   class AttrAssignTest
     attr_accessor :foo
-    def self.bar; @bar; end
+    class << self
+      def bar; @bar; end
+    end
     def self.bar=(bar); @bar = bar; end
   end
 end

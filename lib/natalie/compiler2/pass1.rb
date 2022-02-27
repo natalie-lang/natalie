@@ -505,6 +505,19 @@ module Natalie
         instructions << ReturnInstruction.new
       end
 
+      def transform_sclass(exp, used:)
+        _, owner, *body = exp
+        instructions = [
+          transform_expression(owner, used: true),
+          SingletonClassInstruction.new,
+          WithSelfInstruction.new,
+          transform_body(body, used: true),
+          EndInstruction.new(:with_self),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_self(_, used:)
         return [] unless used
         PushSelfInstruction.new
