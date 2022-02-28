@@ -111,10 +111,7 @@ module Natalie
           instructions << transform_expression(block, used: true)
         end
 
-        args.each do |arg|
-          instructions << transform_expression(arg, used: true)
-        end
-        instructions << PushArgcInstruction.new(args.size)
+        instructions += transform_call_args(args)
 
         if receiver.nil?
           instructions << PushSelfInstruction.new
@@ -125,6 +122,45 @@ module Natalie
         instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block)
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_call_args(args)
+        if args.any? { |a| a.sexp_type == :splat }
+          return transform_call_splat_args(args)
+        end
+
+        instructions = []
+        args.each do |arg|
+          instructions << transform_expression(arg, used: true)
+        end
+        instructions << PushArgcInstruction.new(args.size)
+      end
+
+      def transform_call_splat_args(args)
+        instructions = []
+
+        # create array from args before the splat
+        prior_to_splat_count = 0
+        while args.any? && args.first.sexp_type != :splat
+          instructions << transform_expression(args.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
+
+        # now add to the array the first splat arg and everything after
+        args.each do |arg|
+          if arg.sexp_type == :splat
+            _, value = arg
+            instructions << transform_expression(value, used: true)
+            instructions << ArrayConcatInstruction.new
+          else
+            instructions << transform_expression(arg, used: true)
+            instructions << ArrayPushInstruction.new
+          end
+        end
+
+        # -1 indicates the args are already an array on the stack
+        instructions << PushArgcInstruction.new(-1)
       end
 
       def transform_case(exp, used:)

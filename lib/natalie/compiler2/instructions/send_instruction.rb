@@ -24,13 +24,20 @@ module Natalie
 
       def generate(transform)
         receiver = transform.pop
-        arg_count = transform.pop
-        args = []
-        arg_count.times { args.unshift transform.pop }
+
+        if (arg_count = transform.pop) == -1
+          args = "#{transform.pop}->as_array()"
+          args_array = "#{args}->size(), #{args}->data()"
+        else
+          args = []
+          arg_count.times { args.unshift transform.pop }
+          args_array = "{ #{args.join(', ')} }"
+        end
+
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
           "send_#{@message}",
-          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})"
+          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_array}, #{block})"
         )
       end
 
@@ -43,8 +50,13 @@ module Natalie
           return
         end
 
-        args = []
-        arg_count.times { args.unshift vm.pop }
+        if arg_count == -1
+          args = vm.pop
+        else
+          args = []
+          arg_count.times { args.unshift vm.pop }
+        end
+
         self_was = vm.self
         vm.self = receiver
         result =

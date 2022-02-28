@@ -13,8 +13,12 @@ module Natalie
 
       def generate(transform)
         items = []
-        @count.times { items.unshift(transform.pop) }
-        transform.push("Value(new ArrayObject({ #{items.join(', ')} }))")
+        if @count.zero?
+          transform.exec_and_push(:array, "Value(new ArrayObject)")
+        else
+          @count.times { items.unshift(transform.pop) }
+          transform.exec_and_push(:array, "Value(new ArrayObject({ #{items.join(', ')} }))")
+        end
       end
 
       def execute(vm)

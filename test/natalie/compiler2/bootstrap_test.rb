@@ -131,6 +131,12 @@ class TestCompiler2 < TestCase
     assert_eq([[1, 2], 3], arg_splat_left(1, 2, 3))
     assert_eq([1, [2, 3], 4, 5], arg_splat_middle(1, 2, 3, 4, 5))
     assert_eq([1, [2, 3]], arg_splat_right(1, 2, 3))
+
+    ary = [1, 2, 3]
+    assert_eq([1, 2, 3], arg_splat(*ary))
+    assert_eq([0, 1, 2, 3], arg_splat(0, *ary))
+    assert_eq([1, 2, 3, 4], arg_splat(*ary, 4))
+    assert_eq([0, 1, 2, 3, 4], arg_splat(0, *[1, 2, 3], 4))
   end
 
   def test_destructure_args
@@ -549,6 +555,10 @@ class TestCompiler2 < TestCase
 
   def arg_splat_middle(a, *b, c, d)
     [a, b, c, d]
+  end
+
+  def arg_splat(*args)
+    args
   end
 
   def arg_splat_right(a, *b)

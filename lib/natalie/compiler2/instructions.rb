@@ -1,5 +1,7 @@
+require_relative './instructions/array_concat_instruction'
 require_relative './instructions/array_pop_instruction'
 require_relative './instructions/array_pop_with_default_instruction'
+require_relative './instructions/array_push_instruction'
 require_relative './instructions/array_shift_instruction'
 require_relative './instructions/array_shift_with_default_instruction'
 require_relative './instructions/break_instruction'
