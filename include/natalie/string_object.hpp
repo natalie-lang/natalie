@@ -156,6 +156,7 @@ public:
     Value add(Env *, Value) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
+    Value center(Env *, Value, Value);
     Value chr(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, size_t argc, Value *args);
