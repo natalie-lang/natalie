@@ -763,7 +763,7 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     }
     block->set_self(this);
     GlobalEnv::the()->set_instance_evaling(true);
-    Defer done_instance_evaling([&]() { GlobalEnv::the()->set_instance_evaling(false); });
+    Defer done_instance_evaling([]() { GlobalEnv::the()->set_instance_evaling(false); });
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
 }
 
