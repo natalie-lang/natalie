@@ -54,6 +54,7 @@ public:
     Value const_get(Env *, Value);
     Value const_set(Env *, Value, Value);
 
+    void make_alias(Env *, SymbolObject *, SymbolObject *);
     virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
 
     Value eval_body(Env *, Value (*)(Env *, Value));

@@ -471,11 +471,11 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
         env->raise("TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
-        m_klass->alias(env, new_name, old_name);
+        m_klass->make_alias(env, new_name, old_name);
     } else if (is_module()) {
         as_module()->alias(env, new_name, old_name);
     } else {
-        singleton_class(env)->alias(env, new_name, old_name);
+        singleton_class(env)->make_alias(env, new_name, old_name);
     }
 }
 
@@ -761,15 +761,11 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
-    if (is_module()) {
-        // I *think* this is right... instance_eval, when called on a class/module,
-        // evals with self set to the singleton class
-        block->set_self(singleton_class(env));
-    } else {
-        block->set_self(this);
-    }
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return NilObject::the();
+    Value self = this;
+    block->set_self(self);
+    GlobalEnv::the()->set_instance_evaling(true);
+    Defer done_instance_evaling([]() { GlobalEnv::the()->set_instance_evaling(false); });
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {

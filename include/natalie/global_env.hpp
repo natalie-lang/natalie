@@ -75,6 +75,9 @@ public:
     MethodMissingReason method_missing_reason() const { return m_method_missing_reason; }
     void set_method_missing_reason(MethodMissingReason reason) { m_method_missing_reason = reason; }
 
+    bool instance_evaling() { return m_instance_evaling; }
+    void set_instance_evaling(bool instance_evaling) { m_instance_evaling = instance_evaling; }
+
     bool rescued() const { return m_rescued; }
     void set_rescued(bool rescued) { m_rescued = rescued; }
 
@@ -110,7 +113,7 @@ private:
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
-
+    bool m_instance_evaling { false };
     bool m_rescued { false };
 };
 }
