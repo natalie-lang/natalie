@@ -461,6 +461,12 @@ class TestCompiler2 < TestCase
     a, *$b = ary
     assert_eq([2, 3], $b)
 
+    *a = *ary
+    assert_eq(ary, a)
+
+    a = [0, *ary, 4]
+    assert_eq([0, 1, 2, 3, 4], a)
+
     def returns_whole_thing
       d, e = [4, 5]
     end

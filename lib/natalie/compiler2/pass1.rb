@@ -60,9 +60,43 @@ module Natalie
 
       def transform_array(exp, used:)
         _, *items = exp
-        instructions = items.map { |item| transform_expression(item, used: true) }
-        instructions << CreateArrayInstruction.new(count: items.size)
+        instructions = []
+        if items.any? { |a| a.sexp_type == :splat }
+          instructions += transform_array_with_splat(items)
+        else
+          items.each do |item|
+            instructions << transform_expression(item, used: true)
+          end
+          instructions << CreateArrayInstruction.new(count: items.size)
+        end
         instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_array_with_splat(items)
+        items = items.dup
+        instructions = []
+
+        # create array from items before the splat
+        prior_to_splat_count = 0
+        while items.any? && items.first.sexp_type != :splat
+          instructions << transform_expression(items.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
+
+        # now add to the array the first splat item and everything after
+        items.each do |arg|
+          if arg.sexp_type == :splat
+            _, value = arg
+            instructions << transform_expression(value, used: true)
+            instructions << ArrayConcatInstruction.new
+          else
+            instructions << transform_expression(arg, used: true)
+            instructions << ArrayPushInstruction.new
+          end
+        end
+
         instructions
       end
 
@@ -126,7 +160,10 @@ module Natalie
 
       def transform_call_args(args)
         if args.any? { |a| a.sexp_type == :splat }
-          return transform_call_splat_args(args)
+          return [
+            transform_array_with_splat(args),
+            PushArgcInstruction.new(-1) # -1 indicates the args are already an array on the stack
+          ]
         end
 
         instructions = []
@@ -134,33 +171,6 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
         instructions << PushArgcInstruction.new(args.size)
-      end
-
-      def transform_call_splat_args(args)
-        instructions = []
-
-        # create array from args before the splat
-        prior_to_splat_count = 0
-        while args.any? && args.first.sexp_type != :splat
-          instructions << transform_expression(args.shift, used: true)
-          prior_to_splat_count += 1
-        end
-        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
-
-        # now add to the array the first splat arg and everything after
-        args.each do |arg|
-          if arg.sexp_type == :splat
-            _, value = arg
-            instructions << transform_expression(value, used: true)
-            instructions << ArrayConcatInstruction.new
-          else
-            instructions << transform_expression(arg, used: true)
-            instructions << ArrayPushInstruction.new
-          end
-        end
-
-        # -1 indicates the args are already an array on the stack
-        instructions << PushArgcInstruction.new(-1)
       end
 
       def transform_case(exp, used:)
@@ -492,7 +502,7 @@ module Natalie
         #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
         _, names_array, values = exp
         raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
-        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary].include?(values.sexp_type)
+        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary splat].include?(values.sexp_type)
         instructions = [
           transform_expression(values, used: true),
           DupObjectInstruction.new,
@@ -557,6 +567,11 @@ module Natalie
       def transform_self(_, used:)
         return [] unless used
         PushSelfInstruction.new
+      end
+
+      def transform_splat(exp, used:)
+        _, value = exp
+        transform_expression(value, used: used)
       end
 
       def transform_str(exp, used:)
