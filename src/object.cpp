@@ -475,7 +475,7 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     } else if (is_module()) {
         as_module()->alias(env, new_name, old_name);
     } else {
-        singleton_class(env)->alias(env, new_name, old_name);
+        singleton_class(env)->make_alias(env, new_name, old_name);
     }
 }
 

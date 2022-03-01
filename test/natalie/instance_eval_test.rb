@@ -16,7 +16,11 @@ describe 'instance_eval' do
     Foo.instance_eval { self }.should == Foo
   end
 
-  it 'works' do
+  it 'passes self as parameter' do
+    Foo.instance_eval { |foo| foo }.should == Foo
+  end
+
+  it 'works on singleton class' do
     klass = @foo.singleton_class
     klass.instance_eval do |foo|
       self.should == klass
@@ -30,12 +34,12 @@ describe 'instance_eval' do
       Foo.instance_eval { alias bar2 bar }.should == nil
     end
 
-    it 'works' do
+    it 'works on object' do
       @foo.instance_eval { alias foo2 foo }.should == nil
       -> { @foo.instance_eval { alias bar2 bar } }.should raise_error(NameError)
     end
 
-    it 'works' do
+    it 'works on singleton class' do
       klass = @foo.singleton_class
       -> { klass.instance_eval { alias foo2 foo } }.should raise_error(NameError)
       klass.instance_eval { alias bar2 bar }.should == nil
@@ -48,7 +52,7 @@ describe 'instance_eval' do
       -> { Foo.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
     end
 
-    it 'works' do
+    it 'works on singleton class' do
       klass = @foo.singleton_class
       klass.instance_eval { alias_method :foo2, :foo }.should == :foo2
       -> { klass.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
