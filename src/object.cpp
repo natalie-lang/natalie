@@ -471,7 +471,7 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
         env->raise("TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
-        m_klass->alias(env, new_name, old_name);
+        m_klass->make_alias(env, new_name, old_name);
     } else if (is_module()) {
         as_module()->alias(env, new_name, old_name);
     } else {
