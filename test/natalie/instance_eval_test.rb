@@ -8,14 +8,37 @@ describe 'instance_eval' do
     def self.bar; end
   end
 
+  before :each do
+    @foo = Foo.new
+  end
+
   it 'sets self inside the block' do
     Foo.instance_eval { self }.should == Foo
   end
 
+  it 'works' do
+    klass = @foo.singleton_class
+    klass.instance_eval do |foo|
+      self.should == klass
+      foo.should == klass
+    end
+  end
+
   describe 'alias' do
     it 'operates on the singleton class' do
-      #-> { Foo.instance_eval { alias foo2 foo } }.should raise_error(NameError)
+      -> { Foo.instance_eval { alias foo2 foo } }.should raise_error(NameError)
       Foo.instance_eval { alias bar2 bar }.should == nil
+    end
+
+    it 'works' do
+      @foo.instance_eval { alias foo2 foo }.should == nil
+      -> { @foo.instance_eval { alias bar2 bar } }.should raise_error(NameError)
+    end
+
+    it 'works' do
+      klass = @foo.singleton_class
+      -> { klass.instance_eval { alias foo2 foo } }.should raise_error(NameError)
+      klass.instance_eval { alias bar2 bar }.should == nil
     end
   end
 
@@ -23,6 +46,12 @@ describe 'instance_eval' do
     it 'operates on the class' do
       Foo.instance_eval { alias_method :foo2, :foo }.should == :foo2
       -> { Foo.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
+    end
+
+    it 'works' do
+      klass = @foo.singleton_class
+      klass.instance_eval { alias_method :foo2, :foo }.should == :foo2
+      -> { klass.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
     end
   end
 end
