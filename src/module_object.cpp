@@ -152,7 +152,11 @@ void make_alias(Env *env, ModuleObject *module_or_class, SymbolObject *new_name,
 
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     if (GlobalEnv::the()->instance_evaling()) {
-        make_alias(env, singleton_class(env), new_name, old_name);
+        if (is_class() && as_class()->is_singleton()) {
+            make_alias(env, this, new_name, old_name);
+        } else {
+            make_alias(env, singleton_class(env), new_name, old_name);
+        }
         return;
     }
     make_alias(env, this, new_name, old_name);
