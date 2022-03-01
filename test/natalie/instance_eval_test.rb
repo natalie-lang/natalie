@@ -29,30 +29,30 @@ describe 'instance_eval' do
   describe 'alias' do
     it 'operates on the singleton class' do
       -> { Foo.instance_eval { alias foo2 foo } }.should raise_error(NameError)
-      Foo.instance_eval { alias bar2 bar }.should == nil
+      -> { Foo.instance_eval { alias bar2 bar } }.should_not raise_error
     end
 
     it 'works on object' do
-      @foo.instance_eval { alias foo2 foo }.should == nil
+      -> { @foo.instance_eval { alias foo2 foo } }.should_not raise_error
       -> { @foo.instance_eval { alias bar2 bar } }.should raise_error(NameError)
     end
 
     it 'works on singleton class' do
       klass = @foo.singleton_class
       -> { klass.instance_eval { alias foo2 foo } }.should raise_error(NameError)
-      klass.instance_eval { alias bar2 bar }.should == nil
+      -> { klass.instance_eval { alias bar2 bar } }.should_not raise_error
     end
   end
 
   describe 'alias_method' do
     it 'operates on the class' do
-      Foo.instance_eval { alias_method :foo2, :foo }.should == :foo2
+      -> { Foo.instance_eval { alias_method :foo2, :foo } }.should_not raise_error
       -> { Foo.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
     end
 
     it 'works on singleton class' do
       klass = @foo.singleton_class
-      klass.instance_eval { alias_method :foo2, :foo }.should == :foo2
+      -> { klass.instance_eval { alias_method :foo2, :foo } }.should_not raise_error
       -> { klass.instance_eval { alias_method :bar2, :bar } }.should raise_error(NameError)
     end
   end
