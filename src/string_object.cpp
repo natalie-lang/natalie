@@ -101,33 +101,19 @@ String create_padding(String padding, size_t length) {
 }
 
 Value StringObject::center(Env *env, Value length, Value padstr) {
-    nat_int_t length_i;
-    auto to_int = "to_int"_s;
-
-    if (length->is_integer()) {
-        length_i = length->as_integer()->to_nat_int_t();
-    } else if (length->respond_to(env, to_int)) {
-        auto result = length->send(env, to_int);
-
-        if (!result->is_integer())
-            env->raise("TypeError", "length can't be converted to an integer");
-        
-        length_i = result->as_integer()->to_nat_int_t();
-    } else {
-        env->raise("TypeError", "length can't be converted to an integer.");
-    }
+    nat_int_t length_i = length->to_int(env)->to_nat_int_t();
 
     auto to_str = "to_str"_s;
     String pad;
 
-    if (! padstr) {
+    if (!padstr) {
         pad = new String { " " };
     } else if (padstr->is_string()) {
         pad = padstr->as_string()->string();
     } else if (padstr->respond_to(env, to_str)) {
         auto result = padstr->send(env, to_str);
 
-        if (! result->is_string())
+        if (!result->is_string())
             env->raise("TypeError", "padstr can't be converted to a string");
 
         pad = result->as_string()->string();
