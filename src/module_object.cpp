@@ -144,10 +144,18 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
     return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
 }
 
+void make_alias(Env *env, ModuleObject *module_or_class, SymbolObject *new_name, SymbolObject *old_name) {
+    Method *method = module_or_class->find_method(env, old_name);
+    module_or_class->assert_method_defined(env, old_name, method);
+    module_or_class->define_method(env, new_name, method, module_or_class->get_method_visibility(env, old_name));
+};
+
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    Method *method = find_method(env, old_name);
-    assert_method_defined(env, old_name, method);
-    define_method(env, new_name, method, get_method_visibility(env, old_name));
+    if (GlobalEnv::the()->instance_evaling()) {
+        make_alias(env, singleton_class(env), new_name, old_name);
+        return;
+    }
+    make_alias(env, this, new_name, old_name);
 }
 
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
@@ -727,8 +735,8 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
     if (!old_name) {
         env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
     }
-    alias(env, new_name, old_name);
-    return this;
+    make_alias(env, this, new_name, old_name);
+    return new_name;
 }
 
 Value ModuleObject::remove_method(Env *env, size_t argc, Value *args) {

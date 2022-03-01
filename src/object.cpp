@@ -761,9 +761,11 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
-    Value self = this;
-    block->set_self(self);
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    block->set_self(this);
+    GlobalEnv::the()->set_instance_evaling(true);
+    auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+    GlobalEnv::the()->set_instance_evaling(false);
+    return result;
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {
