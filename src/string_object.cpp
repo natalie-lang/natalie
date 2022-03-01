@@ -84,6 +84,60 @@ ArrayObject *StringObject::chars(Env *env) {
     return ary;
 }
 
+String create_padding(String padding, size_t length) {
+    size_t quotient = ::floor(length / padding.size());
+    size_t remainder = length % padding.size();
+    auto buffer = new String { "" };
+
+    for (size_t i = 0; i < quotient; ++i) {
+        buffer->append(padding);
+    }
+
+    for (size_t j = 0; j < remainder; ++j) {
+        buffer->append_char(padding[j]);
+    }
+
+    return buffer;
+}
+
+Value StringObject::center(Env *env, Value length, Value padstr) {
+    nat_int_t length_i = length->to_int(env)->to_nat_int_t();
+
+    auto to_str = "to_str"_s;
+    String pad;
+
+    if (!padstr) {
+        pad = new String { " " };
+    } else if (padstr->is_string()) {
+        pad = padstr->as_string()->string();
+    } else if (padstr->respond_to(env, to_str)) {
+        auto result = padstr->send(env, to_str);
+
+        if (!result->is_string())
+            env->raise("TypeError", "padstr can't be converted to a string");
+
+        pad = result->as_string()->string();
+    } else {
+        env->raise("TypeError", "padstr can't be converted to a string");
+    }
+
+    if (pad.is_empty())
+        env->raise("ArgumentError", "padstr can't be empty");
+
+    if (length_i <= (nat_int_t)m_string.size())
+        return this;
+
+    double split = (length_i - m_string.size()) / 2.0;
+    auto left_split = ::floor(split);
+    auto right_split = ::ceil(split);
+
+    auto result = new String { m_string };
+    result->prepend(create_padding(pad, left_split));
+    result->append(create_padding(pad, right_split));
+
+    return new StringObject { result, m_encoding };
+}
+
 Value StringObject::chr(Env *env) {
     if (this->is_empty()) {
         return new StringObject { "", m_encoding };
