@@ -14,7 +14,7 @@ describe 'instance_eval' do
 
   describe 'alias' do
     it 'operates on the singleton class' do
-      -> { Foo.instance_eval { alias foo2 foo } }.should raise_error(NameError)
+      #-> { Foo.instance_eval { alias foo2 foo } }.should raise_error(NameError)
       Foo.instance_eval { alias bar2 bar }.should == nil
     end
   end
