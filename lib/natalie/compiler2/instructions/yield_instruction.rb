@@ -20,6 +20,7 @@ module Natalie
         arg_count = vm.pop
         args = []
         arg_count.times { args.unshift vm.pop }
+        raise LocalJumpError.new('no block given') unless vm.block
         result = vm.block.call(*args)
         vm.push result
       end
