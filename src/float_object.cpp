@@ -68,7 +68,7 @@ bool FloatObject::eql(Value other) const {
             env->raise("FloatDomainError", this->inspect_str(env));              \
                                                                                  \
         if (is_infinity())                                                       \
-            return Value { m_double };                                           \
+            return Value::floatingpoint(m_double);                               \
                                                                                  \
         FloatObject *result;                                                     \
         if (precision == 0)                                                      \
@@ -77,7 +77,7 @@ bool FloatObject::eql(Value other) const {
         double f = ::pow(10, precision);                                         \
         double rounded = ::libm_name(m_double * f) / f;                          \
         if (isinf(f) || isinf(rounded)) {                                        \
-            return Value { m_double };                                           \
+            return Value::floatingpoint(m_double);                               \
         }                                                                        \
         if (precision < 0)                                                       \
             return f_to_i_or_bigint(rounded);                                    \
@@ -239,10 +239,10 @@ Value FloatObject::to_i(Env *env) const {
 
 Value FloatObject::add(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
-        return Value { m_double + rhs.get_fast_integer() };
+        return Value::floatingpoint(m_double + rhs.get_fast_integer());
     }
     if (rhs.is_fast_float()) {
-        return Value { m_double + rhs.get_fast_float() };
+        return Value::floatingpoint(m_double + rhs.get_fast_float());
     }
     rhs.unguard();
 
@@ -259,15 +259,15 @@ Value FloatObject::add(Env *env, Value rhs) {
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
-    return Value { addend1 + addend2 };
+    return Value::floatingpoint(addend1 + addend2);
 }
 
 Value FloatObject::sub(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
-        return Value { m_double - rhs.get_fast_integer() };
+        return Value::floatingpoint(m_double - rhs.get_fast_integer());
     }
     if (rhs.is_fast_float()) {
-        return Value { m_double - rhs.get_fast_float() };
+        return Value::floatingpoint(m_double - rhs.get_fast_float());
     }
     rhs.unguard();
 
@@ -284,15 +284,15 @@ Value FloatObject::sub(Env *env, Value rhs) {
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
-    return Value { minuend - subtrahend };
+    return Value::floatingpoint(minuend - subtrahend);
 }
 
 Value FloatObject::mul(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
-        return Value { m_double * rhs.get_fast_integer() };
+        return Value::floatingpoint(m_double * rhs.get_fast_integer());
     }
     if (rhs.is_fast_float()) {
-        return Value { m_double * rhs.get_fast_float() };
+        return Value::floatingpoint(m_double * rhs.get_fast_float());
     }
     rhs.unguard();
 
@@ -309,15 +309,15 @@ Value FloatObject::mul(Env *env, Value rhs) {
 
     double multiplicand = to_double();
     double multiplier = rhs->as_float()->to_double();
-    return Value { multiplicand * multiplier };
+    return Value::floatingpoint(multiplicand * multiplier);
 }
 
 Value FloatObject::div(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
-        return Value { m_double / rhs.get_fast_integer() };
+        return Value::floatingpoint(m_double / rhs.get_fast_integer());
     }
     if (rhs.is_fast_float()) {
-        return Value { m_double / rhs.get_fast_float() };
+        return Value::floatingpoint(m_double / rhs.get_fast_float());
     }
     rhs.unguard();
 
@@ -335,18 +335,18 @@ Value FloatObject::div(Env *env, Value rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    return Value { dividend / divisor };
+    return Value::floatingpoint(dividend / divisor);
 }
 
 Value FloatObject::mod(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
         if (rhs.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        return Value { fmod(m_double, rhs.get_fast_integer()) };
+        return Value::floatingpoint(fmod(m_double, rhs.get_fast_integer()));
     }
     if (rhs.is_fast_float()) {
         if (rhs.get_fast_float() == 0) env->raise("ZeroDivisionError", "divided by 0");
         if (rhs.get_fast_float() == -INFINITY) return rhs;
-        return Value { fmod(m_double, rhs.get_fast_float()) };
+        return Value::floatingpoint(fmod(m_double, rhs.get_fast_float()));
     }
     rhs.unguard();
 
@@ -376,7 +376,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
         result += divisor;
     }
 
-    return Value { result };
+    return Value::floatingpoint(result);
 }
 
 Value FloatObject::divmod(Env *env, Value arg) {
@@ -387,7 +387,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
         if (arg.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
         return new ArrayObject {
             Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_integer())) },
-            Value { ::fmod(m_double, arg.get_fast_integer()) }
+            Value::floatingpoint(::fmod(m_double, arg.get_fast_integer()))
         };
     }
     if (arg.is_fast_float()) {
@@ -395,7 +395,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
         if (isnan(arg.get_fast_float())) env->raise("FloatDomainError", "NaN");
         return new ArrayObject {
             Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_float())) },
-            Value { arg.get_fast_float() == -INFINITY ? -INFINITY : ::fmod(m_double, arg.get_fast_integer()) }
+            Value::floatingpoint(arg.get_fast_float() == -INFINITY ? -INFINITY : ::fmod(m_double, arg.get_fast_integer()))
         };
     }
     arg.unguard();
@@ -416,10 +416,10 @@ Value FloatObject::divmod(Env *env, Value arg) {
 
 Value FloatObject::pow(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
-        return Value { ::pow(m_double, rhs.get_fast_integer()) };
+        return Value::floatingpoint(::pow(m_double, rhs.get_fast_integer()));
     }
     if (rhs.is_fast_float()) {
-        return Value { ::pow(m_double, rhs.get_fast_float()) };
+        return Value::floatingpoint(::pow(m_double, rhs.get_fast_float()));
     }
     rhs.unguard();
 
@@ -437,19 +437,19 @@ Value FloatObject::pow(Env *env, Value rhs) {
     double base = to_double();
     double exponent = rhs->as_float()->to_double();
 
-    return Value { ::pow(base, exponent) };
+    return Value::floatingpoint(::pow(base, exponent));
 }
 
 Value FloatObject::abs(Env *env) const {
-    return Value { fabs(m_double) };
+    return Value::floatingpoint(fabs(m_double));
 }
 
 Value FloatObject::next_float(Env *env) const {
-    return Value { ::nextafter(to_double(), HUGE_VAL) };
+    return Value::floatingpoint(::nextafter(to_double(), HUGE_VAL));
 }
 
 Value FloatObject::prev_float(Env *env) const {
-    return Value { ::nextafter(to_double(), -HUGE_VAL) };
+    return Value::floatingpoint(::nextafter(to_double(), -HUGE_VAL));
 }
 
 Value FloatObject::arg(Env *env) {

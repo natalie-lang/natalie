@@ -56,18 +56,19 @@ Value IntegerObject::to_i() {
 }
 
 Value IntegerObject::to_f() const {
-    return Value { m_integer.to_double() };
+    return Value::floatingpoint(m_integer.to_double());
 }
 
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return create(m_integer + arg.get_fast_integer());
     if (arg.is_fast_float())
-        return Value { m_integer + arg.get_fast_float() };
+        return Value::floatingpoint(m_integer + arg.get_fast_float());
+
     arg.unguard();
 
     if (arg->is_float()) {
-        return Value { m_integer + arg->as_float()->to_double() };
+        return Value::floatingpoint(m_integer + arg->as_float()->to_double());
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
@@ -80,13 +81,13 @@ Value IntegerObject::sub(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return create(m_integer - arg.get_fast_integer());
     if (arg.is_fast_float())
-        return Value { m_integer - arg.get_fast_float() };
+        return Value::floatingpoint(m_integer - arg.get_fast_float());
 
     arg.unguard();
 
     if (arg->is_float()) {
         double result = m_integer.to_double() - arg->as_float()->to_double();
-        return new FloatObject { result };
+        return Value::floatingpoint(result);
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
@@ -99,7 +100,7 @@ Value IntegerObject::mul(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return create(m_integer * arg.get_fast_integer());
     if (arg.is_fast_float())
-        return Value { m_integer * arg.get_fast_float() };
+        return Value::floatingpoint(m_integer * arg.get_fast_float());
 
     arg.unguard();
 
@@ -122,13 +123,15 @@ Value IntegerObject::div(Env *env, Value arg) {
     if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
         return create(m_integer / arg.get_fast_integer());
     if (arg.is_fast_float())
-        return Value { m_integer / arg.get_fast_float() };
+        return Value::floatingpoint(m_integer / arg.get_fast_float());
 
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = m_integer.to_double() / arg->as_float()->to_double();
-        return new FloatObject { result };
+        double result = to_nat_int_t() / arg->as_float()->to_double();
+        if (isnan(result))
+            return FloatObject::nan();
+        return Value::floatingpoint(result);
     } else if (arg->is_rational()) {
         return RationalObject(this, new IntegerObject { 1 }).div(env, arg);
     } else if (!arg->is_integer()) {

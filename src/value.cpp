@@ -2,6 +2,12 @@
 
 namespace Natalie {
 
+Value Value::floatingpoint(double value) {
+    if (isnan(value))
+        return FloatObject::nan();
+    return Value { value };
+}
+
 #define PROFILED_SEND(type)                                                                     \
     static auto is_profiled = NativeProfiler::the()->enabled();                                 \
     NativeProfilerEvent *event;                                                                 \
