@@ -28,8 +28,10 @@ public:
         : Object { Object::Type::Float, other.klass() }
         , m_double { other.m_double } { }
 
-    static FloatObject *nan(Env *env) {
-        return new FloatObject { 0.0 / 0.0 };
+    static FloatObject *nan() {
+        if (!s_nan)
+            s_nan = new FloatObject { 0.0 / 0.0 };
+        return s_nan;
     }
 
     static FloatObject *positive_infinity(Env *env) {
@@ -136,11 +138,11 @@ public:
     bool gte(Env *, Value);
 
     Value uminus() const {
-        return Value { -m_double };
+        return Value::floatingpoint(-m_double);
     }
 
     Value uplus() const {
-        return Value { m_double };
+        return Value::floatingpoint(m_double);
     }
 
     static void build_constants(Env *env, ClassObject *klass) {
@@ -154,8 +156,7 @@ public:
         klass->const_set("MIN"_s, FloatObject::min(env));
         klass->const_set("MIN_10_EXP"_s, new FloatObject { double { DBL_MIN_10_EXP } });
         klass->const_set("MIN_EXP"_s, new FloatObject { double { DBL_MIN_EXP } });
-        klass->const_set("NAN"_s, FloatObject::nan(env));
-        klass->const_set("NAN"_s, FloatObject::nan(env));
+        klass->const_set("NAN"_s, FloatObject::nan());
         klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
@@ -166,6 +167,7 @@ public:
 
 private:
     inline static Hashmap<SymbolObject *> s_optimized_methods {};
+    inline static FloatObject *s_nan { nullptr };
 
     double m_double { 0.0 };
 };

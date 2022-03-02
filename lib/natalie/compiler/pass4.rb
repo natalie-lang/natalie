@@ -204,7 +204,7 @@ module Natalie
         cast_value_from_cpp = ->(v, t) do
           case t
           when 'double'
-            "Value { #{v} }"
+            "Value::floatingpoint(#{v})"
           else
             raise "I don't yet know how to cast return type #{t}"
           end
@@ -682,7 +682,7 @@ module Natalie
         fn, *args = exp
 
         return "Value::integer(#{args.map { |a| process_atom(a) }.join(', ')})" if fn == :'Value::integer'
-        return "Value::floatingpoint(#{args.map { |a| process_atom(a) }.join(', ')})" if fn == :'Value::integer'
+        return "Value::floatingpoint(#{args.map { |a| process_atom(a) }.join(', ')})" if fn == :'Value::floatingpoint'
 
         if VOID_FUNCTIONS.include?(fn)
           if METHODS.include?(fn)

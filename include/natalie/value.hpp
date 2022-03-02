@@ -28,22 +28,13 @@ public:
     explicit Value(nat_int_t integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
-    explicit Value(double value)
-        : m_type { Type::Double }
-        , m_double { value } { }
 
     static Value integer(nat_int_t integer) {
         // This is required, beacause initialization by a literal is often
         // ambiguous.
         return Value { integer };
     }
-    static Value floatingpoint(double value) {
-        // This is used in the code gen
-        // auto v =  Value { value };
-        // v.hydrate();
-        // return v;
-        return Value { value };
-    }
+    static Value floatingpoint(double value);
 
     Object &operator*() {
         auto_hydrate();
@@ -154,6 +145,10 @@ public:
     }
 
 private:
+    explicit Value(double value)
+        : m_type { Type::Double }
+        , m_double { value } { }
+
     void auto_hydrate() {
         if (m_guarded) {
             printf("%p is a guarded Value, which means you must call unguard() on it before using the arrow operator.\n", this);
