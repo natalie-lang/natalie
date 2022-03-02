@@ -46,6 +46,10 @@ class TestCase
 end
 
 class TestCompiler2 < TestCase
+  def test_class
+    assert_eq :foo, ClassWithInitialize.new.foo
+  end
+
   def test_array
     result = ary.map { |i| i * 2 }
     assert_eq([2, 4, 6], result)
@@ -626,6 +630,14 @@ class TestCompiler2 < TestCase
 
   def method_raises
     raise 'foo'
+  end
+
+  class ClassWithInitialize
+    def initialize
+      @foo = :foo
+    end
+
+    attr_reader :foo
   end
 
   class ClassWithPrivateMethod

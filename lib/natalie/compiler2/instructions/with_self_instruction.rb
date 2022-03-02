@@ -28,6 +28,7 @@ module Natalie
       def execute(vm)
         new_self = vm.pop
         vm.with_self(new_self) { vm.run }
+        :no_halt
       end
     end
   end

@@ -37,18 +37,17 @@ module Natalie
         captured_self = vm.self
         block_lambda =
           lambda do |*args|
-            self_was = vm.self
-            vm.self = captured_self
-            scope = { vars: {}, parent: parent_scope }
-            vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: nil)
-            vm.ip = start_ip
-            begin
-              vm.run
-            ensure
-              vm.ip = vm.pop_call[:return_ip]
-              vm.self = self_was
+            vm.with_self(captured_self) do
+              scope = { vars: {}, parent: parent_scope }
+              vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: nil)
+              vm.ip = start_ip
+              begin
+                vm.run
+              ensure
+                vm.ip = vm.pop_call[:return_ip]
+              end
+              vm.pop # result must be returned from proc
             end
-            vm.pop # result must be returned from proc
           end
         vm.push(block_lambda)
       end

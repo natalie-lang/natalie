@@ -112,6 +112,7 @@ module Natalie
       self_was = @self
       @self = obj
       yield
+    ensure
       @self = self_was
     end
   end
