@@ -35,11 +35,12 @@ module Natalie
         vm.skip_block_of_instructions(expected_label: :define_block)
         parent_scope = vm.scope
         captured_self = vm.self
+        captured_block = vm.block
         block_lambda =
           lambda do |*args|
             vm.with_self(captured_self) do
               scope = { vars: {}, parent: parent_scope }
-              vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: nil)
+              vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: captured_block)
               vm.ip = start_ip
               begin
                 vm.run

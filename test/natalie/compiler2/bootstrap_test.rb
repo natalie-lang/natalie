@@ -382,6 +382,8 @@ class TestCompiler2 < TestCase
     assert_eq(:hi, result)
     result = block_yield2(1, 2) { |x, y| [x, y] }
     assert_eq([1, 2], result)
+    result = block_yield_in_block { |i| i * 2 }
+    assert_eq([2], result)
   end
 
   def test_next
@@ -618,6 +620,12 @@ class TestCompiler2 < TestCase
   def block_yield3(a, b, c, &block)
     block_yield2(a, b, &block)
     c
+  end
+
+  def block_yield_in_block
+    [1].map do |i|
+      yield i
+    end
   end
 
   def block_call(&block)
