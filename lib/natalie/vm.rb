@@ -2,13 +2,16 @@ require_relative 'vm/main_object'
 
 module Natalie
   class VM
-    def initialize(instructions)
+    def initialize(instructions, path:)
       @instructions = Compiler2::InstructionManager.new(instructions)
       @stack = []
       @call_stack = [{ scope: { vars: {} } }]
       @self = MainObject.new
       @method_visibility = :public
-      @global_variables = {}
+      @path = path
+      @global_variables = {
+        "$0": @path,
+      }
     end
 
     attr_accessor :self, :method_visibility, :global_variables, :rescued

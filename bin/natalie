@@ -191,7 +191,7 @@ class Runner
       exec('kcachegrind', callgrind_out.path)
     else
       if options[:interpret]
-        Natalie::VM.new(compiler.instructions).run
+        Natalie::VM.new(compiler.instructions, path: source_path).run
       else
         compiler.compile
         begin
