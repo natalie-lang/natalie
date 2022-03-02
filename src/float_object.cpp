@@ -344,9 +344,15 @@ Value FloatObject::mod(Env *env, Value rhs) {
         return Value::floatingpoint(fmod(m_double, rhs.get_fast_integer()));
     }
     if (rhs.is_fast_float()) {
-        if (rhs.get_fast_float() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        if (rhs.get_fast_float() == -INFINITY) return rhs;
-        return Value::floatingpoint(fmod(m_double, rhs.get_fast_float()));
+        auto dividend = m_double;
+        auto divisor = rhs.get_fast_float();
+        if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
+        if (divisor == -INFINITY) return rhs;
+        auto result = fmod(dividend, divisor);
+        if (signbit(dividend) != signbit(divisor)) {
+            result += divisor;
+        }
+        return Value::floatingpoint(result);
     }
     rhs.unguard();
 
@@ -395,7 +401,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
         if (isnan(arg.get_fast_float())) env->raise("FloatDomainError", "NaN");
         return new ArrayObject {
             Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_float())) },
-            Value::floatingpoint(arg.get_fast_float() == -INFINITY ? -INFINITY : ::fmod(m_double, arg.get_fast_integer()))
+            Value::floatingpoint(::fmod(m_double, arg.get_fast_float()))
         };
     }
     arg.unguard();
