@@ -507,21 +507,6 @@ module Natalie
         VariableGetInstruction.new(name)
       end
 
-      def transform_match2(exp, used:)
-        _, regexp, string = exp
-        transform_call(exp.new(:call, regexp, :=~, string), used: used)
-      end
-
-      def transform_match3(exp, used:)
-        _, string, regexp = exp
-        transform_call(exp.new(:call, regexp, :=~, string), used: used)
-      end
-
-      def transform_nil(_, used:)
-        return [] unless used
-        PushNilInstruction.new
-      end
-
       def transform_masgn(exp, used:)
         # s(:masgn,
         #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
@@ -538,6 +523,16 @@ module Natalie
         instructions
       end
 
+      def transform_match2(exp, used:)
+        _, regexp, string = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
+      end
+
+      def transform_match3(exp, used:)
+        _, string, regexp = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
+      end
+
       def transform_next(exp, used:)
         _, value = exp
         value ||= s(:nil)
@@ -545,6 +540,11 @@ module Natalie
           transform_expression(value, used: true),
           NextInstruction.new,
         ]
+      end
+
+      def transform_nil(_, used:)
+        return [] unless used
+        PushNilInstruction.new
       end
 
       def transform_or(exp, used:)
