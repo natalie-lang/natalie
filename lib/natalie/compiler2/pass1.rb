@@ -153,7 +153,7 @@ module Natalie
           instructions << transform_expression(receiver, used: true)
         end
 
-        instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block)
+        instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block, file: exp.file, line: exp.line)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -191,7 +191,7 @@ module Natalie
               instructions << option_instructions
               instructions << PushArgcInstruction.new(1)
               instructions << DupRelInstruction.new(2)
-              instructions << SendInstruction.new(:===, receiver_is_self: false, with_block: false)
+              instructions << SendInstruction.new(:===, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new
               instructions << ElseInstruction.new(:if)
@@ -317,7 +317,7 @@ module Natalie
 
         if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
           instructions << PushArgsInstruction.new
-          instructions << Args.new(self).transform(exp)
+          instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp)
           return instructions
         end
 
@@ -506,7 +506,7 @@ module Natalie
         instructions = [
           transform_expression(values, used: true),
           DupObjectInstruction.new,
-          MultipleAssignment.new(self).transform(names_array)
+          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array)
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -584,7 +584,7 @@ module Natalie
         _, value = exp
         instructions = [PushArgcInstruction.new(0)]
         instructions << transform_expression(value, used: true)
-        instructions << SendInstruction.new(:to_ary, receiver_is_self: false, with_block: false)
+        instructions << SendInstruction.new(:to_ary, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
         instructions << PopInstruction.new unless used
         instructions
       end

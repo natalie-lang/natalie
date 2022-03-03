@@ -1,8 +1,10 @@
 module Natalie
   class Compiler2
     class MultipleAssignment
-      def initialize(pass)
+      def initialize(pass, file:, line:)
         @pass = pass
+        @file = file
+        @line = line
       end
 
       def transform(exp)
@@ -56,13 +58,13 @@ module Natalie
         shift_or_pop_next_arg
         @instructions << PushArgcInstruction.new(1)
         @instructions << @pass.transform_expression(receiver, used: true)
-        @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false)
+        @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
         @instructions << PopInstruction.new
       end
 
       def transform_destructured_arg(arg)
         @instructions << ArrayShiftInstruction.new
-        sub_processor = self.class.new(@pass)
+        sub_processor = self.class.new(@pass, file: @file, line: @line)
         @instructions << sub_processor.transform(arg)
       end
 
@@ -113,7 +115,7 @@ module Natalie
           _, receiver, message = arg
           @instructions << PushArgcInstruction.new(1)
           @instructions << @pass.transform_expression(receiver, used: true)
-          @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false)
+          @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
         end

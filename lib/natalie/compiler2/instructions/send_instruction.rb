@@ -9,11 +9,15 @@ module Natalie
     # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:)
+      def initialize(message, receiver_is_self:, with_block:, file:, line:)
         @message = message.to_sym
         @receiver_is_self = receiver_is_self
         @with_block = with_block
+        @file = file
+        @line = line
       end
+
+      attr_reader :file, :line
 
       def to_s
         s = "send #{@message.inspect}"
@@ -33,6 +37,9 @@ module Natalie
           arg_count.times { args.unshift transform.pop }
           args_array = "{ #{args.join(', ')} }"
         end
+
+        transform.exec("env->set_file(#{@file.inspect})") if @file
+        transform.exec("env->set_line(#{@line.inspect})") if @line
 
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(

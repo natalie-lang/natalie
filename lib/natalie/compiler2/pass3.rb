@@ -63,11 +63,11 @@ module Natalie
           IfInstruction.new,
           PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
-          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false),
+          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: send_instruction.file, line: send_instruction.line),
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
           PushNilInstruction.new,
-          SendInstruction.new(:raise, receiver_is_self: false, with_block: false),
+          SendInstruction.new(:raise, receiver_is_self: false, with_block: false, file: send_instruction.file, line: send_instruction.line),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
         ])
