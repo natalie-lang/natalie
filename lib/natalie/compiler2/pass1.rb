@@ -358,6 +358,16 @@ module Natalie
         transform_dot2(exp, used: used, exclude_end: true)
       end
 
+      def transform_dregx(exp, used:)
+        options = exp.pop if exp.last.is_a?(Integer)
+        instructions = [
+          transform_dstr(exp, used: true),
+          StringToRegexpInstruction.new(options: options),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_dstr(exp, used:)
         _, start, *rest = exp
         instructions = [PushStringInstruction.new(start, start.size)]
@@ -484,6 +494,8 @@ module Natalie
           [transform_lit(lit.end, used: true),
            transform_lit(lit.begin, used: true),
            PushRangeInstruction.new(lit.exclude_end?)]
+        when Regexp
+          PushRegexpInstruction.new(lit)
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end
@@ -493,6 +505,16 @@ module Natalie
         return [] unless used
         _, name = exp
         VariableGetInstruction.new(name)
+      end
+
+      def transform_match2(exp, used:)
+        _, regexp, string = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
+      end
+
+      def transform_match3(exp, used:)
+        _, string, regexp = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
       end
 
       def transform_nil(_, used:)

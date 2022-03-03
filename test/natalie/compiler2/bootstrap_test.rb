@@ -542,6 +542,13 @@ class TestCompiler2 < TestCase
     assert_eq("3 = 3", s6)
   end
 
+  def test_regex
+    assert_eq(0, 'foo' =~ /foo/)
+    assert_eq(0, /F../i =~ 'foo')
+    s = 'FOO'
+    assert_eq(0, /#{s}/i =~ 'foo')
+  end
+
   def test_while
     x = 0
     while x < 3
