@@ -70,9 +70,11 @@ class TestCompiler2 < TestCase
 
   def test_hash
     h = { 1 => 2, 3 => 4 }
-    assert_eq(2, h.size)
+    h[5] = 6
+    assert_eq(3, h.size)
     assert_eq(2, h[1])
     assert_eq(4, h[3])
+    assert_eq(6, h[5])
   end
 
   def test_if

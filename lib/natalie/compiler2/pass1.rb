@@ -101,8 +101,8 @@ module Natalie
       end
 
       def transform_attrasgn(exp, used:)
-        _, receiver, message, value = exp
-        transform_call(exp.new(:call, receiver, message, value), used: used)
+        _, receiver, message, *args = exp
+        transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
       def transform_block(exp, used:)
