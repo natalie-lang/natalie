@@ -856,6 +856,7 @@ gen.binding('String', 'include?', 'StringObject', 'include', argc: 1, pass_env: 
 gen.binding('String', 'index', 'StringObject', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'intern', 'StringObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'length', 'StringObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'ljust', 'StringObject', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'lstrip', 'StringObject', 'lstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
