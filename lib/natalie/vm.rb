@@ -11,6 +11,8 @@ module Natalie
       @path = path
       @global_variables = {
         "$0": @path,
+        "$stderr": $stderr,
+        "$stdout": $stdout,
       }
     end
 
