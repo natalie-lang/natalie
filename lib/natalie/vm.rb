@@ -30,9 +30,10 @@ module Natalie
       @instructions.walk do |instruction|
         result = instruction.execute(self)
         if %i[halt next return].include?(result)
-          break result
+          return result
         end
       end
+      result
     end
 
     def run_next_instruction
@@ -114,6 +115,11 @@ module Natalie
       yield
     ensure
       @self = self_was
+    end
+
+    def self.compile_and_run(ast)
+      compiler = Compiler2.new(ast, '-e', interpret: true)
+      VM.new(compiler.instructions, path: '-e').run
     end
   end
 end
