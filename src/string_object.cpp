@@ -286,6 +286,10 @@ Value StringObject::mul(Env *env, Value arg) const {
 }
 
 Value StringObject::clear(Env *env) {
+    assert_not_frozen(env);
+    
+    m_string.clear();
+
     return this;
 }
 
