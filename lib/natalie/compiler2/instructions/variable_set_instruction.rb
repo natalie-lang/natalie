@@ -29,6 +29,7 @@ module Natalie
         value = transform.pop
 
         if @meta.fetch(:captured)
+          @meta[:declared] = true
           transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
         elsif @meta.fetch(:declared)
           transform.exec("#{@meta[:name]} = #{value}")

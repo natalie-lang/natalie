@@ -460,6 +460,20 @@ class TestCompiler2 < TestCase
     assert_eq(:nope, should_return_in_if(false))
   end
 
+  def test_assignment
+    x ||= 1
+    x ||= 2
+    assert_eq(1, x)
+
+    @y ||= 3
+    @y ||= 4
+    assert_eq(3, @y)
+
+    $z ||= 5
+    $z ||= 6
+    assert_eq(5, $z)
+  end
+
   def test_attr_assignment
     a = AttrAssignTest.new
 

@@ -547,6 +547,26 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_op_asgn_or(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = if variable.sexp_type == :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          var_instruction,
+          ElseInstruction.new(:if),
+          transform_expression(assignment, used: true),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_or(exp, used:)
         _, lhs, rhs = exp
         lhs_instructions = transform_expression(lhs, used: true)
@@ -626,7 +646,6 @@ module Natalie
       end
 
       def transform_while(exp, used:)
-        # s(:while, s(:call, s(:lvar, :x), :<, s(:lit, 3)), s(:lasgn, :x, s(:call, s(:lvar, :x), :+, s(:lit, 1))), true)
         _, condition, body, pre = exp
         body ||= s(:nil)
 
