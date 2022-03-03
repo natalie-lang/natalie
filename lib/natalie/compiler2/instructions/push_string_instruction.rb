@@ -17,7 +17,7 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push(@string)
+        vm.push(@string.dup)
       end
     end
   end
