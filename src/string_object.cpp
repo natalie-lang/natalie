@@ -198,9 +198,21 @@ StringObject *StringObject::successive(Env *env) {
     return new StringObject { str };
 }
 
-bool StringObject::start_with(Env *env, Value needle) const {
+bool StringObject::internal_start_with(Env *env, Value needle) const {
     nat_int_t i = index_int(env, needle, 0);
+
     return i == 0;
+}
+
+bool StringObject::start_with(Env *env, size_t argc, Value *args) const {
+    for (size_t i = 0; i < argc; ++i) {
+        auto arg = args[i];
+
+        if (internal_start_with(env, arg))
+            return true;
+    }
+    
+    return false;
 }
 
 bool StringObject::end_with(Env *env, Value needle) const {
@@ -233,8 +245,9 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
 }
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
-    needle->assert_type(env, Object::Type::String, "String");
-    const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
+    auto needle_str = needle->to_str(env)->as_string()->c_str();
+
+    const char *ptr = strstr(c_str() + start, needle_str);
     if (ptr == nullptr)
         return -1;
     return ptr - c_str();

@@ -82,7 +82,7 @@ Value SymbolObject::cmp(Env *env, Value other_value) {
 }
 
 bool SymbolObject::start_with(Env *env, Value needle) {
-    return to_s(env)->start_with(env, needle);
+    return to_s(env)->internal_start_with(env, needle);
 }
 
 Value SymbolObject::ref(Env *env, Value index_obj) {

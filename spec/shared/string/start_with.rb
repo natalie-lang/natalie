@@ -41,7 +41,8 @@ describe :start_with, shared: true do
     "céréale".send(@method).should.start_with?("cér")
   end
 
-  it "supports regexps" do
+  # NATFIXME: Add support for regexps
+  xit "supports regexps" do
     regexp = /[h1]/
     "hello".send(@method).should.start_with?(regexp)
     "1337".send(@method).should.start_with?(regexp)
@@ -49,7 +50,8 @@ describe :start_with, shared: true do
     "chunky\n12bacon".send(@method).should_not.start_with?(/12/)
   end
 
-  it "supports regexps with ^ and $ modifiers" do
+  # NATFIXME: Add support for regexps
+  xit "supports regexps with ^ and $ modifiers" do
     regexp1 = /^\d{2}/
     regexp2 = /\d{2}$/
     "12test".send(@method).should.start_with?(regexp1)
@@ -58,7 +60,8 @@ describe :start_with, shared: true do
     "test12".send(@method).should_not.start_with?(regexp2)
   end
 
-  it "sets Regexp.last_match if it returns true" do
+  # NATFIXME: Add support for regexps
+  xit "sets Regexp.last_match if it returns true" do
     regexp = /test-(\d+)/
     "test-1337".send(@method).start_with?(regexp).should be_true
     Regexp.last_match.should_not be_nil

@@ -146,7 +146,8 @@ public:
         return this;
     }
 
-    bool start_with(Env *, Value) const;
+    bool internal_start_with(Env *, Value) const;
+    bool start_with(Env *, size_t, Value *) const;
     bool end_with(Env *, Value) const;
     bool is_empty() const { return m_string.is_empty(); }
 
