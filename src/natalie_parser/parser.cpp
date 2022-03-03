@@ -1800,6 +1800,7 @@ Node *Parser::parse_op_assign_expression(Node *left, LocalsHashmap &locals) {
         throw_unexpected(left->token(), "identifier");
     auto left_identifier = static_cast<IdentifierNode *>(left);
     left_identifier->set_is_lvar(true);
+    left_identifier->add_to_locals(locals);
     auto token = current_token();
     advance();
     switch (token.type()) {

@@ -291,6 +291,7 @@ describe 'Parser' do
       Parser.parse('foo').should == s(:block, s(:call, nil, :foo))
       Parser.parse('foo?').should == s(:block, s(:call, nil, :foo?))
       Parser.parse('foo = 1; foo').should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:lvar, :foo))
+      Parser.parse('foo ||= 1; foo').should == s(:block, s(:op_asgn_or, s(:lvar, :foo), s(:lasgn, :foo, s(:lit, 1))), s(:lvar, :foo))
       Parser.parse('foo = 1; def bar; foo; end').should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:defn, :bar, s(:args), s(:call, nil, :foo)))
       Parser.parse('@foo = 1; foo').should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
       Parser.parse('foo, bar = [1, 2]; foo; bar').should == s(:block, s(:masgn, s(:array, s(:lasgn, :foo), s(:lasgn, :bar)), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2)))), s(:lvar, :foo), s(:lvar, :bar))
