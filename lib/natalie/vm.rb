@@ -119,9 +119,9 @@ module Natalie
       @self = self_was
     end
 
-    def self.compile_and_run(ast)
-      compiler = Compiler2.new(ast, '-e', interpret: true)
-      VM.new(compiler.instructions, path: '-e').run
+    def self.compile_and_run(ast, path:)
+      compiler = Compiler2.new(ast, path, interpret: true)
+      VM.new(compiler.instructions, path: path).run
     end
   end
 end

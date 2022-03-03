@@ -31,6 +31,7 @@ module Natalie
       @path = path
       @options = options
       @cxx_flags = []
+      @macros = {}
     end
 
     attr_accessor :ast,
@@ -43,6 +44,7 @@ module Natalie
                   :options,
                   :c_path,
                   :inline_cpp_enabled,
+                  :macros_enabled,
                   :cxx_flags
 
     attr_writer :load_path
@@ -92,6 +94,7 @@ module Natalie
         repl: repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
+        macros_enabled: macros_enabled,
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
@@ -289,7 +292,15 @@ module Natalie
       return false unless node.is_a?(Sexp)
       if node[0..1] == s(:call, nil)
         _, _, name = node
-        MACROS.include?(name) && name
+        if MACROS.include?(name)
+          name
+        elsif @macros_enabled
+          if name == :macro!
+            name
+          elsif @macros.key?(name)
+            :user_macro
+          end
+        end
       elsif node.sexp_type == :iter
         macro?(node[1])
       end
@@ -299,6 +310,20 @@ module Natalie
       send("macro_#{macro_name}", expr: expr, current_path: current_path)
     end
 
+    def macro_user_macro(expr:, current_path:)
+      _, _, name = expr
+      macro = @macros[name]
+      new_ast = VM.compile_and_run(macro, path: 'macro')
+      expand_macros(new_ast, path: current_path)
+    end
+
+    def macro_macro!(expr:, current_path:)
+      _, call, _, block = expr
+      _, name = call.last
+      @macros[name] = block
+      s(:block)
+    end
+
     def macro_require(expr:, current_path:)
       args = expr[3..]
       node = args.first
@@ -306,6 +331,10 @@ module Natalie
       name = node[1]
       if name == 'natalie/inline'
         @inline_cpp_enabled = true
+        return s(:block)
+      end
+      if name == 'natalie/macros'
+        @macros_enabled = true
         return s(:block)
       end
       if (full_path = find_full_path("#{name}.rb", base: Dir.pwd, search: true))
