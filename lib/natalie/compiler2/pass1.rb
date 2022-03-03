@@ -111,8 +111,7 @@ module Natalie
       end
 
       def transform_block_args(exp, used:)
-        # TODO: might need separate logic?
-        transform_defn_args(exp, used: used)
+        transform_defn_args(exp, for_block: true, used: used)
       end
 
       def transform_break(exp, used:)
@@ -303,9 +302,11 @@ module Natalie
         ]
       end
 
-      def transform_defn_args(exp, used:)
+      def transform_defn_args(exp, for_block: false, used:)
         return [] unless used
         _, *args = exp
+
+        arity = args.size # FIXME: need a way more complicated calculation
 
         instructions = []
 
@@ -315,8 +316,11 @@ module Natalie
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
-        if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
-          instructions << PushArgsInstruction.new
+        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
+        may_need_to_destructure_args_for_block = for_block && arity > 1
+
+        if has_complicated_args || may_need_to_destructure_args_for_block
+          instructions << PushArgsInstruction.new(for_block: for_block, arity: arity)
           instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp)
           return instructions
         end
@@ -429,7 +433,7 @@ module Natalie
         arity = args.size - 1 # FIXME: way more complicated than this :-)
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
-        instructions << transform_defn_args(args, used: true)
+        instructions << transform_block_args(args, used: true)
         instructions << transform_expression(body, used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type

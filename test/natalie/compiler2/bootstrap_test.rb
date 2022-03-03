@@ -302,6 +302,27 @@ class TestCompiler2 < TestCase
     assert_eq(23, y)
   end
 
+  def test_block_arg_destructure
+    [
+      [1, 2],
+    ].each do |(x, y)|
+      assert_eq(1, x)
+      assert_eq(2, y)
+    end
+    [
+      [3, 4],
+    ].each do |x, y|
+      assert_eq(3, x)
+      assert_eq(4, y)
+    end
+    [
+      5
+    ].each do |x, y|
+      assert_eq(5, x)
+      assert_eq(nil, y)
+    end
+  end
+
   def test_block_arg_and_pass
     x = 1
     block_call do
