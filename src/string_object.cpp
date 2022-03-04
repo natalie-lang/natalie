@@ -298,6 +298,14 @@ Value StringObject::mul(Env *env, Value arg) const {
     return new_string;
 }
 
+Value StringObject::clear(Env *env) {
+    assert_not_frozen(env);
+    
+    m_string.clear();
+
+    return this;
+}
+
 Value StringObject::cmp(Env *env, Value other) const {
     if (other->type() != Object::Type::String) return NilObject::the();
     auto *str = c_str();

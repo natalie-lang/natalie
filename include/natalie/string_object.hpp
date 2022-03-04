@@ -159,6 +159,7 @@ public:
     Value bytes(Env *, Block *);
     Value center(Env *, Value, Value);
     Value chr(Env *);
+    Value clear(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, size_t argc, Value *args);
     Value downcase(Env *);

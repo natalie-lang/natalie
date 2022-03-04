@@ -841,6 +841,7 @@ gen.binding('String', 'bytesize', 'StringObject', 'bytesize', argc: 0, pass_env:
 gen.binding('String', 'center', 'StringObject', 'center', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chars', 'StringObject', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chr', 'StringObject', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'clear', 'StringObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'concat', 'StringObject', 'concat', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'downcase', 'StringObject', 'downcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'each_byte', 'StringObject', 'each_byte', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
