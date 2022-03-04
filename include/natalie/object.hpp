@@ -279,6 +279,7 @@ public:
 
     ArrayObject *to_ary(Env *env);
     IntegerObject *to_int(Env *env);
+    StringObject *to_str(Env *env);
 
 protected:
     ClassObject *m_klass { nullptr };

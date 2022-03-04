@@ -878,4 +878,24 @@ IntegerObject *Object::to_int(Env *env) {
         result->klass()->inspect_str());
 }
 
+StringObject *Object::to_str(Env *env) {
+    if (is_string()) return as_string();
+
+    auto to_str = "to_str"_s;
+    if (! respond_to(env, to_str)) {
+        assert_type(env, Type::String, "String");
+    }
+
+    auto result = send(env, to_str);
+
+    if (result->is_string())
+        return result->as_string();
+
+    env->raise(
+       "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
 }
