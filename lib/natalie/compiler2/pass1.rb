@@ -551,6 +551,18 @@ module Natalie
         transform_call(exp.new(:call, regexp, :=~, string), used: used)
       end
 
+      def transform_module(exp, used:)
+        _, name, *body = exp
+        instructions = []
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
+        instructions << DefineModuleInstruction.new(name: name)
+        instructions += transform_body(body, used: true)
+        instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_next(exp, used:)
         _, value = exp
         value ||= s(:nil)

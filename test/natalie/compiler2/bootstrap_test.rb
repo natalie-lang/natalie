@@ -355,6 +355,11 @@ class TestCompiler2 < TestCase
     assert_eq(1, x)
   end
 
+  def test_module
+    assert_eq :bar, ModuleToTest.bar
+    assert_eq :foo, ClassIncludingModule.new.foo
+  end
+
   def test_multiple_assignment
     a, b = [1, 2]
     assert_eq(1, a)
@@ -731,6 +736,22 @@ class TestCompiler2 < TestCase
       'foo'
     end
     alias bar foo
+  end
+
+  module ModuleToTest
+    def foo
+      :foo
+    end
+
+    class << self
+      def bar
+        :bar
+      end
+    end
+  end
+
+  class ClassIncludingModule
+    include ModuleToTest
   end
 end
 
