@@ -46,112 +46,31 @@ class TestCase
 end
 
 class TestCompiler2 < TestCase
-  def test_class
-    assert_eq :foo, ClassWithInitialize.new.foo
+  def test_and
+    assert_eq(true, true && true)
+    assert_eq(false, true && false)
+    assert_eq(nil, true && nil)
+    assert_eq(false, false && nil)
+    assert_eq(nil, nil && false)
+    false && fail
   end
 
-  def test_array
-    result = ary.map { |i| i * 2 }
-    assert_eq([2, 4, 6], result)
-  end
-
-  def test_constant
-    assert_eq(:toplevel, CONSTANT)
-    assert_eq(:toplevel, ::CONSTANT)
-    assert_eq(:toplevel2, ::CONSTANT2)
-    assert_eq(:namespaced, Constants::CONSTANT)
-    assert_eq(:nested, Constants::Nested::CONSTANT)
-  end
-
-  def test_float
-    f = 1.56
-    assert_eq(1.56, f)
-  end
-
-  def test_hash
-    h = { 1 => 2, 3 => 4 }
-    h[5] = 6
-    assert_eq(3, h.size)
-    assert_eq(2, h[1])
-    assert_eq(4, h[3])
-    assert_eq(6, h[5])
-  end
-
-  def test_if
-    t = nil
-    if 1
-      t = 't'
-    else
-      t = 'f'
-    end
-    f = nil
-    if nil
-      f = 't'
-    else
-      f = 'f'
-    end
-    assert_eq(%w[t f], [t, f])
-
-    x = nil
-    if nil
-      # do nothing
-    else
-      x = 'x'
-    end
-    assert_eq('x', x)
-  end
-
-  def test_lambda
-    l1 = -> { 1 }
-    assert_eq(1, l1.call)
-    assert_eq(1, l1.())
-    l2 = ->(x) { x }
-    assert_eq(2, l2[2])
-    l3 = lambda { |x, y| y }
-    assert_eq(3, l3.call(2, 3))
-  end
-
-  def test_range
-    r = 1..3
-    assert_eq(1, r.begin)
-    assert_eq(3, r.end)
-    assert_eq(false, r.exclude_end?)
-
-    r = 1...3
-    assert_eq(1, r.begin)
-    assert_eq(3, r.end)
-    assert_eq(true, r.exclude_end?)
-
-    r = (..3)
-    assert_eq(nil, r.begin)
-    assert_eq(3, r.end)
-    assert_eq(false, r.exclude_end?)
-
-    r = (1...)
-    assert_eq(1, r.begin)
-    assert_eq(nil, r.end)
-    assert_eq(true, r.exclude_end?)
-  end
-
-  def test_splat_args
-    assert_eq([[1, 2], 3], arg_splat_left(1, 2, 3))
-    assert_eq([1, [2, 3], 4, 5], arg_splat_middle(1, 2, 3, 4, 5))
-    assert_eq([1, [2, 3]], arg_splat_right(1, 2, 3))
-
-    ary = [1, 2, 3]
-    assert_eq([1, 2, 3], arg_splat(*ary))
-    assert_eq([0, 1, 2, 3], arg_splat(0, *ary))
-    assert_eq([1, 2, 3, 4], arg_splat(*ary, 4))
-    assert_eq([0, 1, 2, 3, 4], arg_splat(0, *[1, 2, 3], 4))
-  end
-
-  def test_destructure_args
+  def test_args_destructured
     assert_eq([1, 2, 3, 4], arg_destructure_left([[1, 2, :ignored], 3, :ignored], 4))
     assert_eq([1, 2, 3, 4, 5, 6], arg_destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
     assert_eq([1, 2, 3, 4], arg_destructure_right(1, [2, [3, 4, :ignored], :ignored]))
   end
 
-  def test_optional_args
+  def test_args_keyword
+    assert_eq([3, 4], arg_keyword_optional(x: 3, y: 4))
+    assert_eq([nil, :default], arg_keyword_optional)
+    assert_eq([nil, nil], arg_keyword_optional(x: nil, y: nil))
+    assert_eq([1, 2], arg_keyword_optional_after_positional(1, y: 2))
+    assert_eq([1, :default], arg_keyword_optional_after_positional(1))
+    # TODO: required keyword args
+  end
+
+  def test_args_optional
     assert_eq([1, 2], arg_optional_left(1, 2))
     assert_eq([nil, 2], arg_optional_left(nil, 2))
     assert_eq([:default, 1], arg_optional_left(1))
@@ -163,32 +82,154 @@ class TestCompiler2 < TestCase
     assert_eq([1, :default], arg_optional_right(1))
   end
 
-  def test_keyword_args
-    assert_eq([3, 4], arg_keyword_optional(x: 3, y: 4))
-    assert_eq([nil, :default], arg_keyword_optional)
-    assert_eq([nil, nil], arg_keyword_optional(x: nil, y: nil))
-    assert_eq([1, 2], arg_keyword_optional_after_positional(1, y: 2))
-    assert_eq([1, :default], arg_keyword_optional_after_positional(1))
-    # TODO: required keyword args
+  def test_args_splat
+    assert_eq([[1, 2], 3], arg_splat_left(1, 2, 3))
+    assert_eq([1, [2, 3], 4, 5], arg_splat_middle(1, 2, 3, 4, 5))
+    assert_eq([1, [2, 3]], arg_splat_right(1, 2, 3))
+
+    ary = [1, 2, 3]
+    assert_eq([1, 2, 3], arg_splat(*ary))
+    assert_eq([0, 1, 2, 3], arg_splat(0, *ary))
+    assert_eq([1, 2, 3, 4], arg_splat(*ary, 4))
+    assert_eq([0, 1, 2, 3, 4], arg_splat(0, *[1, 2, 3], 4))
   end
 
-  def test_and
-    assert_eq(true, true && true)
-    assert_eq(false, true && false)
-    assert_eq(nil, true && nil)
-    assert_eq(false, false && nil)
-    assert_eq(nil, nil && false)
-    false && fail
+  def test_array
+    result = ary.map { |i| i * 2 }
+    assert_eq([2, 4, 6], result)
   end
 
-  def test_or
-    assert_eq(true, false || true)
-    assert_eq(false, false || false)
-    assert_eq(nil, false || nil)
-    assert_eq(true, true || nil)
-    assert_eq(1337, false || 1337)
-    assert_eq(:foo, nil || :foo)
-    true || fail
+  def test_assignment
+    x ||= 1
+    x ||= 2
+    assert_eq(1, x)
+
+    @y ||= 3
+    @y ||= 4
+    assert_eq(3, @y)
+
+    $z ||= 5
+    $z ||= 6
+    assert_eq(5, $z)
+  end
+
+  def test_attr_assignment
+    a = AttrAssignTest.new
+
+    a.foo = 1
+    assert_eq(1, a.foo)
+
+    AttrAssignTest.bar = 4
+    assert_eq(4, AttrAssignTest.bar)
+  end
+
+  def test_block_arg_and_pass
+    x = 1
+    block_call do
+      x = 2
+    end
+    assert_eq(2, x)
+    block_pass do
+      x = 3
+    end
+    assert_eq(3, x)
+  end
+
+  def test_block_arg_destructure
+    [
+      [1, 2],
+    ].each do |(x, y)|
+      assert_eq(1, x)
+      assert_eq(2, y)
+    end
+    [
+      [3, 4],
+    ].each do |x, y|
+      assert_eq(3, x)
+      assert_eq(4, y)
+    end
+    [
+      5
+    ].each do |x, y|
+      assert_eq(5, x)
+      assert_eq(nil, y)
+    end
+  end
+
+  def test_block_arg_does_not_overwrite_outer_scope_arg
+    z = 0
+    [1].each do |z|
+      assert_eq(1, z)
+    end
+    assert_eq(0, z)
+  end
+
+  def test_block_scope
+    y = 1
+    2.times do
+      y += 2
+      3.times do
+        y += 3
+      end
+    end
+    assert_eq(23, y)
+  end
+
+  def test_break_from_block
+    result = block_yield3(1, 2, 3) do
+      break 100
+    end
+    assert_eq(100, result)
+    result = block_yield3(1, 2, 3) do
+      break
+    end
+    assert_eq(nil, result)
+  end
+
+  def test_break_from_lambda
+    l1 = -> do
+      break 400
+    end
+    assert_eq(400, l1.call)
+    l2 = lambda do
+      break 500
+    end
+    assert_eq(500, l2.call)
+    l3 = lambda do
+      break
+    end
+    assert_eq(nil, l3.call)
+  end
+
+  def test_break_from_loop
+    result = loop do
+      break 200
+    end
+    assert_eq(200, result)
+    result = loop do
+      break
+    end
+    assert_eq(nil, result)
+  end
+
+  def test_break_from_proc
+    the_proc = proc do
+      break 300
+    end
+    assert_raises(LocalJumpError, 'break from proc-closure') do
+      the_proc.call
+    end
+  end
+
+  def test_break_from_while
+    result = while true
+      break 200
+    end
+    assert_eq(200, result)
+    result = while true
+      break
+    end
+    assert_eq(nil, result)
   end
 
   def test_case
@@ -227,198 +268,76 @@ class TestCompiler2 < TestCase
     assert_eq(case_result, nil)
   end
 
-  def test_rescue
-    x = begin
-          1
-        rescue ArgumentError
-          2
-        end
-    assert_eq(1, x)
-    y = begin
-          send() # missing args
-        rescue NoMethodError
-          1
-        rescue ArgumentError
-          2
-        end
-    assert_eq(2, y)
-    z = begin
-          method_raises
-        rescue
-          y + 1
-        end
-    assert_eq(3, z)
+  def test_class
+    assert_eq :foo, ClassWithInitialize.new.foo
   end
 
-  def test_rescue_get_exception
-    begin
-      send()
-    rescue NoMethodError => e
-      fail # should not be here
-    rescue ArgumentError => e
-      assert_eq(ArgumentError, e.class)
-      assert_eq('no method name given', e.message)
-    end
+  def test_constant
+    assert_eq(:toplevel, CONSTANT)
+    assert_eq(:toplevel, ::CONSTANT)
+    assert_eq(:toplevel2, ::CONSTANT2)
+    assert_eq(:namespaced, Constants::CONSTANT)
+    assert_eq(:nested, Constants::Nested::CONSTANT)
   end
 
-  def test_rescue_else
-    x = begin
-          1
-        rescue
-          2
-        else
-          3
-        end
-    assert_eq(3, x)
-
-    y = begin
-          non_existent_method
-        rescue
-          2
-        else
-          3
-        end
-    assert_eq(2, y)
-
-    assert_raises(RuntimeError, 'this is the error') do
-      begin
-        # noop
-      rescue
-        raise 'should not be reached'
-      else
-        raise 'this is the error'
-      end
-    end
+  def test_float
+    f = 1.56
+    assert_eq(1.56, f)
   end
 
-  def test_block_scope
-    y = 1
-    2.times do
-      y += 2
-      3.times do
-        y += 3
-      end
-    end
-    assert_eq(23, y)
+  def test_global_variable
+    $global = 1
+    assert_eq(1, $global)
+    assert_eq(nil, $non_existent_global)
   end
 
-  def test_block_arg_destructure
-    [
-      [1, 2],
-    ].each do |(x, y)|
-      assert_eq(1, x)
-      assert_eq(2, y)
-    end
-    [
-      [3, 4],
-    ].each do |x, y|
-      assert_eq(3, x)
-      assert_eq(4, y)
-    end
-    [
-      5
-    ].each do |x, y|
-      assert_eq(5, x)
-      assert_eq(nil, y)
-    end
+  def test_hash
+    h = { 1 => 2, 3 => 4 }
+    h[5] = 6
+    assert_eq(3, h.size)
+    assert_eq(2, h[1])
+    assert_eq(4, h[3])
+    assert_eq(6, h[5])
   end
 
-  def test_block_arg_and_pass
-    x = 1
-    block_call do
-      x = 2
+  def test_if
+    t = nil
+    if 1
+      t = 't'
+    else
+      t = 'f'
     end
-    assert_eq(2, x)
-    block_pass do
-      x = 3
+    f = nil
+    if nil
+      f = 't'
+    else
+      f = 'f'
     end
-    assert_eq(3, x)
+    assert_eq(%w[t f], [t, f])
+
+    x = nil
+    if nil
+      # do nothing
+    else
+      x = 'x'
+    end
+    assert_eq('x', x)
   end
 
-  def test_block_arg_does_not_overwrite_outer_scope_arg
-    z = 0
-    [1].each do |z|
-      assert_eq(1, z)
-    end
-    assert_eq(0, z)
+  def test_instance_variable
+    @ivar = 2
+    assert_eq(2, @ivar)
+    assert_eq(nil, @non_existent_ivar)
   end
 
-  def test_break_from_block
-    result = block_yield3(1, 2, 3) do
-      break 100
-    end
-    assert_eq(100, result)
-    result = block_yield3(1, 2, 3) do
-      break
-    end
-    assert_eq(nil, result)
-  end
-
-  def test_break_from_loop
-    result = loop do
-      break 200
-    end
-    assert_eq(200, result)
-    result = loop do
-      break
-    end
-    assert_eq(nil, result)
-  end
-
-  def test_break_from_while
-    result = while true
-      break 200
-    end
-    assert_eq(200, result)
-    result = while true
-      break
-    end
-    assert_eq(nil, result)
-  end
-
-  def test_break_from_proc
-    the_proc = proc do
-      break 300
-    end
-    assert_raises(LocalJumpError, 'break from proc-closure') do
-      the_proc.call
-    end
-  end
-
-  def test_break_from_lambda
-    l1 = -> do
-      break 400
-    end
-    assert_eq(400, l1.call)
-    l2 = lambda do
-      break 500
-    end
-    assert_eq(500, l2.call)
-    l3 = lambda do
-      break
-    end
-    assert_eq(nil, l3.call)
-  end
-
-  def test_yield
-    result = block_yield0 { :hi }
-    assert_eq(:hi, result)
-    result = block_yield2(1, 2) { |x, y| [x, y] }
-    assert_eq([1, 2], result)
-    result = block_yield_in_block { |i| i * 2 }
-    assert_eq([2], result)
-  end
-
-  def test_next
-    result = []
-    i = 0
-    loop do
-      i += 1
-      next if i < 5
-      result << i
-      break if result.size >= 3
-    end
-    assert_eq([5, 6, 7], result)
+  def test_lambda
+    l1 = -> { 1 }
+    assert_eq(1, l1.call)
+    assert_eq(1, l1.())
+    l2 = ->(x) { x }
+    assert_eq(2, l2[2])
+    l3 = lambda { |x, y| y }
+    assert_eq(3, l3.call(2, 3))
   end
 
   def test_method_in_method
@@ -429,59 +348,6 @@ class TestCompiler2 < TestCase
     end
     assert_eq(2, should_not_see_outer_scope)
     assert_eq(1, x)
-  end
-
-  def test_return
-    x = 0
-    def should_return_1
-      return 1
-      x = 2
-    end
-    assert_eq(1, should_return_1)
-    assert_eq(0, x)
-
-    def should_return_ary
-      return 1, 2
-      3
-    end
-    assert_eq([1, 2], should_return_ary)
-
-    def should_return_nil
-      return
-      3
-    end
-    assert_eq(nil, should_return_nil)
-
-    def should_return_in_if(ret)
-      return ret if ret
-      :nope
-    end
-    assert_eq(true, should_return_in_if(true))
-    assert_eq(:nope, should_return_in_if(false))
-  end
-
-  def test_assignment
-    x ||= 1
-    x ||= 2
-    assert_eq(1, x)
-
-    @y ||= 3
-    @y ||= 4
-    assert_eq(3, @y)
-
-    $z ||= 5
-    $z ||= 6
-    assert_eq(5, $z)
-  end
-
-  def test_attr_assignment
-    a = AttrAssignTest.new
-
-    a.foo = 1
-    assert_eq(1, a.foo)
-
-    AttrAssignTest.bar = 4
-    assert_eq(4, AttrAssignTest.bar)
   end
 
   def test_multiple_assignment
@@ -525,16 +391,148 @@ class TestCompiler2 < TestCase
     assert_eq(4, b)
   end
 
-  def test_global_variable
-    $global = 1
-    assert_eq(1, $global)
-    assert_eq(nil, $non_existent_global)
+  def test_next
+    result = []
+    i = 0
+    loop do
+      i += 1
+      next if i < 5
+      result << i
+      break if result.size >= 3
+    end
+    assert_eq([5, 6, 7], result)
   end
 
-  def test_instance_variable
-    @ivar = 2
-    assert_eq(2, @ivar)
-    assert_eq(nil, @non_existent_ivar)
+  def test_or
+    assert_eq(true, false || true)
+    assert_eq(false, false || false)
+    assert_eq(nil, false || nil)
+    assert_eq(true, true || nil)
+    assert_eq(1337, false || 1337)
+    assert_eq(:foo, nil || :foo)
+    true || fail
+  end
+
+  def test_range
+    r = 1..3
+    assert_eq(1, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(false, r.exclude_end?)
+
+    r = 1...3
+    assert_eq(1, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(true, r.exclude_end?)
+
+    r = (..3)
+    assert_eq(nil, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(false, r.exclude_end?)
+
+    r = (1...)
+    assert_eq(1, r.begin)
+    assert_eq(nil, r.end)
+    assert_eq(true, r.exclude_end?)
+  end
+
+  def test_rescue
+    x = begin
+          1
+        rescue ArgumentError
+          2
+        end
+    assert_eq(1, x)
+    y = begin
+          send() # missing args
+        rescue NoMethodError
+          1
+        rescue ArgumentError
+          2
+        end
+    assert_eq(2, y)
+    z = begin
+          method_raises
+        rescue
+          y + 1
+        end
+    assert_eq(3, z)
+  end
+
+  def test_rescue_else
+    x = begin
+          1
+        rescue
+          2
+        else
+          3
+        end
+    assert_eq(3, x)
+
+    y = begin
+          non_existent_method
+        rescue
+          2
+        else
+          3
+        end
+    assert_eq(2, y)
+
+    assert_raises(RuntimeError, 'this is the error') do
+      begin
+        # noop
+      rescue
+        raise 'should not be reached'
+      else
+        raise 'this is the error'
+      end
+    end
+  end
+
+  def test_rescue_get_exception
+    begin
+      send()
+    rescue NoMethodError => e
+      fail # should not be here
+    rescue ArgumentError => e
+      assert_eq(ArgumentError, e.class)
+      assert_eq('no method name given', e.message)
+    end
+  end
+
+  def test_regex
+    assert_eq(0, 'foo' =~ /foo/)
+    assert_eq(0, /F../i =~ 'foo')
+    s = 'FOO'
+    assert_eq(0, /#{s}/i =~ 'foo')
+  end
+
+  def test_return
+    x = 0
+    def should_return_1
+      return 1
+      x = 2
+    end
+    assert_eq(1, should_return_1)
+    assert_eq(0, x)
+
+    def should_return_ary
+      return 1, 2
+      3
+    end
+    assert_eq([1, 2], should_return_ary)
+
+    def should_return_nil
+      return
+      3
+    end
+    assert_eq(nil, should_return_nil)
+
+    def should_return_in_if(ret)
+      return ret if ret
+      :nope
+    end
+    assert_eq(true, should_return_in_if(true))
+    assert_eq(:nope, should_return_in_if(false))
   end
 
   def test_send
@@ -556,11 +554,22 @@ class TestCompiler2 < TestCase
     assert_eq("3 = 3", s6)
   end
 
-  def test_regex
-    assert_eq(0, 'foo' =~ /foo/)
-    assert_eq(0, /F../i =~ 'foo')
-    s = 'FOO'
-    assert_eq(0, /#{s}/i =~ 'foo')
+  def test_until
+    y = 0
+    until y >= 3
+      y += 1
+    end
+    assert_eq(3, y)
+
+    y = 0
+    y += 1 until y >= 3
+    assert_eq(3, y)
+
+    y = 0
+    begin
+      y += 1
+    end until true
+    assert_eq(1, y)
   end
 
   def test_while
@@ -581,22 +590,13 @@ class TestCompiler2 < TestCase
     assert_eq(1, x)
   end
 
-  def test_until
-    y = 0
-    until y >= 3
-      y += 1
-    end
-    assert_eq(3, y)
-
-    y = 0
-    y += 1 until y >= 3
-    assert_eq(3, y)
-
-    y = 0
-    begin
-      y += 1
-    end until true
-    assert_eq(1, y)
+  def test_yield
+    result = block_yield0 { :hi }
+    assert_eq(:hi, result)
+    result = block_yield2(1, 2) { |x, y| [x, y] }
+    assert_eq([1, 2], result)
+    result = block_yield_in_block { |i| i * 2 }
+    assert_eq([2], result)
   end
 
   private
