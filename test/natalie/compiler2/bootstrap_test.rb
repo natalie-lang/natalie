@@ -274,6 +274,7 @@ class TestCompiler2 < TestCase
 
   def test_class
     assert_eq :foo, ClassWithInitialize.new.foo
+    assert_eq 'TestCompiler2::ClassWithInitialize', ClassWithInitialize.name
   end
 
   def test_constant
