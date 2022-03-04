@@ -40,6 +40,14 @@ module Natalie
 
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
+      
+      def transform_alias(exp, used:)
+        _, new_name, old_name = exp
+        instructions = [transform_expression(new_name, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << transform_expression(old_name, used: true)
+        instructions << AliasInstruction.new
+      end
 
       def transform_and(exp, used:)
         _, lhs, rhs = exp

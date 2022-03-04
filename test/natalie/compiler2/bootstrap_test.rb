@@ -46,6 +46,10 @@ class TestCase
 end
 
 class TestCompiler2 < TestCase
+  def test_alias
+    assert_eq('foo', AliasTest.new.bar)
+  end
+
   def test_and
     assert_eq(true, true && true)
     assert_eq(false, true && false)
@@ -714,6 +718,13 @@ class TestCompiler2 < TestCase
       def bar; @bar; end
     end
     def self.bar=(bar); @bar = bar; end
+  end
+
+  class AliasTest
+    def foo
+      'foo'
+    end
+    alias bar foo
   end
 end
 
