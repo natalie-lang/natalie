@@ -544,6 +544,11 @@ class TestCompiler2 < TestCase
     assert_raises(NoMethodError) { ClassWithPrivateMethod.new.priv }
   end
 
+  def test_shell_out
+    assert_eq('hi', `echo hi`.strip)
+    assert_eq('2', `echo #{1 + 1}`.strip)
+  end
+
   def test_string
     s1 = 'hello world'
     assert_eq(11, s1.size)

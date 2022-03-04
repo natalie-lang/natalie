@@ -396,6 +396,16 @@ module Natalie
         instructions
       end
 
+      def transform_dxstr(exp, used:)
+        _, *parts = exp
+        instructions = [
+          transform_dstr(exp.new(:dstr, *parts), used: true),
+          ShellInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_false(_, used:)
         return [] unless used
         PushFalseInstruction.new
@@ -665,6 +675,16 @@ module Natalie
           WhileInstruction.new(pre: pre),
           transform_expression(body, used: true),
           EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_xstr(exp, used:)
+        _, command = exp
+        instructions = [
+          transform_str(exp.new(:str, command), used: true),
+          ShellInstruction.new,
         ]
         instructions << PopInstruction.new unless used
         instructions
