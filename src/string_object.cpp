@@ -801,15 +801,19 @@ bool StringObject::include(const char *arg) const {
 }
 
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
-    length_obj->assert_type(env, Object::Type::Integer, "Integer");
-    size_t length = length_obj->as_integer()->to_nat_int_t() < 0 ? 0 : length_obj->as_integer()->to_nat_int_t();
+    nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
+    size_t length = length_i < 0 ? 0 : length_i;
+
     StringObject *padstr;
-    if (pad_obj) {
-        pad_obj->assert_type(env, Object::Type::String, "String");
-        padstr = pad_obj->as_string();
-    } else {
+    if (!pad_obj) {
         padstr = new StringObject { " " };
+    } else {
+        padstr = pad_obj->to_str(env);
     }
+
+    if (padstr->string().is_empty())
+        env->raise("ArgumentError", "can't pad with an empty string");
+
     StringObject *copy = dup(env)->as_string();
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
