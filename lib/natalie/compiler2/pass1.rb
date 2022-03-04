@@ -597,6 +597,29 @@ module Natalie
         instructions
       end
 
+      def transform_op_asgn1(exp, used:)
+        _, obj, (_, *key_args), op, value = exp
+        instructions = [
+          key_args.map { |arg| transform_expression(arg, used: true) },
+          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+          PushArgcInstruction.new(key_args.size),
+          transform_expression(obj, used: true),
+          SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          DupInstruction.new,
+          IfInstruction.new,
+          key_args.map { PopInstruction.new }, # didn't need the extra key(s) after all :-)
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          transform_expression(value, used: true),
+          PushArgcInstruction.new(key_args.size + 1),
+          transform_expression(obj, used: true),
+          SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_or(exp, used:)
         _, lhs, rhs = exp
         lhs_instructions = transform_expression(lhs, used: true)

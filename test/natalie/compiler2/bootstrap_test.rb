@@ -115,6 +115,11 @@ class TestCompiler2 < TestCase
     $z ||= 5
     $z ||= 6
     assert_eq(5, $z)
+
+    h = {}
+    h[:foo] ||= :bar
+    h[:foo] ||= :baz
+    assert_eq(:bar, h[:foo])
   end
 
   def test_attr_assignment

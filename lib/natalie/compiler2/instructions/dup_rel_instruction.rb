@@ -6,6 +6,7 @@ module Natalie
       def initialize(index)
         @index = index
       end
+
       def to_s
         "dup_rel #{@index}"
       end
