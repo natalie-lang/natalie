@@ -462,7 +462,7 @@ module Natalie
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
         instructions << transform_block_args(args, used: true)
-        instructions << transform_expression(body, used: true)
+        instructions << transform_expression(body || s(:nil), used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
         when :call
