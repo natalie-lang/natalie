@@ -211,7 +211,7 @@ bool StringObject::start_with(Env *env, size_t argc, Value *args) const {
         if (internal_start_with(env, arg))
             return true;
     }
-    
+
     return false;
 }
 

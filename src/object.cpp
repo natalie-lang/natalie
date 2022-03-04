@@ -882,7 +882,7 @@ StringObject *Object::to_str(Env *env) {
     if (is_string()) return as_string();
 
     auto to_str = "to_str"_s;
-    if (! respond_to(env, to_str)) {
+    if (!respond_to(env, to_str)) {
         assert_type(env, Type::String, "String");
     }
 
@@ -892,7 +892,7 @@ StringObject *Object::to_str(Env *env) {
         return result->as_string();
 
     env->raise(
-       "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
         klass()->inspect_str(),
         klass()->inspect_str(),
         result->klass()->inspect_str());
