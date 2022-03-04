@@ -476,7 +476,16 @@ Value ModuleObject::inspect(Env *env) {
 
 Value ModuleObject::name(Env *env) {
     if (m_class_name) {
-        return new StringObject { m_class_name.value() };
+        String name = m_class_name.value();
+        auto the_owner = owner();
+        if (the_owner && the_owner != GlobalEnv::the()->Object()) {
+            auto owner_name = the_owner->name();
+            if (owner_name) {
+                name.prepend("::");
+                name.prepend(owner_name.value());
+            }
+        }
+        return new StringObject { name };
     } else {
         return NilObject::the();
     }

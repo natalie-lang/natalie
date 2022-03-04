@@ -54,4 +54,10 @@ describe 'Module' do
       M3.const_get('A').should == M3::A
     end
   end
+
+  describe '#name' do
+    it 'returns the fully-qualified name' do
+      M3::M3A.name.should == 'M3::M3A'
+    end
+  end
 end

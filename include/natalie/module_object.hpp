@@ -115,6 +115,7 @@ public:
     const ManagedString *inspect_str();
     Value inspect(Env *);
     Value name(Env *);
+    Optional<String> name() { return m_class_name; }
     Value attr_reader(Env *, size_t, Value *);
     Value attr_writer(Env *, size_t, Value *);
     Value attr_accessor(Env *, size_t, Value *);
