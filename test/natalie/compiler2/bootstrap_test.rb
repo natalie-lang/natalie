@@ -151,12 +151,14 @@ class TestCompiler2 < TestCase
       assert_eq(1, x)
       assert_eq(2, y)
     end
-    [
-      [3, 4],
-    ].each do |x, y|
+
+    ary = [[3, 4]]
+    ary.each do |x, y|
       assert_eq(3, x)
       assert_eq(4, y)
     end
+    assert_eq([[3, 4]], ary) # don't mutate ary
+
     [
       5
     ].each do |x, y|

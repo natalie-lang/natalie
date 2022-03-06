@@ -17,7 +17,7 @@ module Natalie
       def generate(transform)
         args = transform.temp('args')
         if @for_block && @arity > 1
-          transform.exec_and_push(:args, "argc == 1 ? to_ary(env, args[0], true) : new ArrayObject(argc, args)")
+          transform.exec_and_push(:args, "argc == 1 ? to_ary(env, args[0], true)->dup(env) : new ArrayObject(argc, args)")
         else
           transform.exec_and_push(:args, "new ArrayObject(argc, args)")
         end
@@ -26,7 +26,7 @@ module Natalie
       def execute(vm)
         if @for_block && @arity > 1 && vm.args.size == 1
           if vm.args.first.is_a?(Array)
-            vm.push(vm.args.first)
+            vm.push(vm.args.first.dup)
           elsif vm.args.first.respond_to?(:to_ary)
             vm.push(vm.args.first.to_ary)
           else
