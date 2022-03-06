@@ -254,8 +254,8 @@ module Natalie
       ast.each_with_index do |node, i|
         next unless node.is_a?(Sexp)
         expanded =
-          if macro?(node)
-            run_macro(node, path)
+          if (macro_name = macro?(node))
+            run_macro(macro_name, node, path)
           elsif node.size > 1
             s(node[0], *expand_macros(node[1..-1], path))
           else
@@ -267,18 +267,53 @@ module Natalie
       ast
     end
 
+    MACROS = %i[
+      require
+      require_relative
+      load
+      eval
+      nat_ignore_require_relative
+      nat_ignore_require
+    ].freeze
+
     def macro?(node)
       return false unless node.is_a?(Sexp)
-      return false unless node[0..1] == s(:call, nil)
-      %i[require require_relative load eval nat_ignore_require_relative nat_ignore_require].include?(node[2])
+      if node[0..1] == s(:call, nil)
+        _, _, name = node
+        if MACROS.include?(name)
+          name
+        elsif @macros_enabled
+          if name == :macro!
+            name
+          elsif @macros.key?(name)
+            :user_macro
+          end
+        end
+      elsif node.sexp_type == :iter
+        macro?(node[1])
+      end
     end
 
-    def run_macro(expr, current_path)
-      _, _, macro, *args = expr
-      send("macro_#{macro}", args: args, current_path: current_path)
+    def run_macro(macro_name, expr, current_path)
+      send("macro_#{macro_name}", expr: expr, current_path: current_path)
     end
 
-    def macro_require(args:, current_path:)
+    def macro_user_macro(expr:, current_path:)
+      _, _, name = expr
+      macro = @macros[name]
+      new_ast = VM.compile_and_run(macro, path: 'macro')
+      expand_macros(new_ast, path: current_path)
+    end
+
+    def macro_macro!(expr:, current_path:)
+      _, call, _, block = expr
+      _, name = call.last
+      @macros[name] = block
+      s(:block)
+    end
+
+    def macro_require(expr:, current_path:)
+      args = expr[3..]
       node = args.first
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
@@ -294,7 +329,8 @@ module Natalie
       drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
-    def macro_require_relative(args:, current_path:)
+    def macro_require_relative(expr:, current_path:)
+      args = expr[3..]
       node = args.first
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
@@ -306,7 +342,8 @@ module Natalie
       drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
-    def macro_load(args:, current_path:)
+    def macro_load(expr:, current_path:)
+      args = expr[3..]
       node = args.first
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       path = node.last
@@ -315,7 +352,8 @@ module Natalie
       drop_load_error "cannot load such file -- #{path}"
     end
 
-    def macro_eval(args:, current_path:)
+    def macro_eval(expr:, current_path:)
+      args = expr[3..]
       node = args.first
       $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
       if node.sexp_type == :str
@@ -330,11 +368,11 @@ module Natalie
       end
     end
 
-    def macro_nat_ignore_require(args:, current_path:)
+    def macro_nat_ignore_require(expr:, current_path:)
       s(:false) # Script has not been loaded
     end
 
-    def macro_nat_ignore_require_relative(args:, current_path:)
+    def macro_nat_ignore_require_relative(expr:, current_path:)
       s(:false) # Script has not been loaded
     end
 
