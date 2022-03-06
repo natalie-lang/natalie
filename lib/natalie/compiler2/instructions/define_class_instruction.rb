@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class DefineClassInstruction < BaseInstruction
       def initialize(name:)
-        @name = name
+        @name = name.to_sym
       end
 
       def has_body?
@@ -31,9 +31,12 @@ module Natalie
         namespace = transform.pop
         superclass = transform.pop
         code = []
-        code << "auto #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
-        code << "#{namespace}->const_set(#{@name.to_s.inspect}_s, #{klass})"
-        code << "#{klass}->eval_body(env, #{fn})"
+        code << "auto #{klass} = #{namespace}->const_get(#{@name.to_s.inspect}_s)"
+        code << "if (!#{klass}) {"
+        code << "  #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
+        code << "  #{namespace}->const_set(#{@name.to_s.inspect}_s, #{klass})"
+        code << "}"
+        code << "#{klass}->as_class()->eval_body(env, #{fn})"
         transform.exec_and_push(:result_of_define_class, code)
       end
 
@@ -41,8 +44,12 @@ module Natalie
         namespace = vm.pop
         namespace = namespace.class unless namespace.respond_to?(:const_set)
         superclass = vm.pop
-        klass = Class.new(superclass)
-        namespace.const_set(@name, klass)
+        if namespace.constants.include?(@name)
+          klass = namespace.const_get(@name)
+        else
+          klass = Class.new(superclass)
+          namespace.const_set(@name, klass)
+        end
         vm.method_visibility = :public
         vm.with_self(klass) { vm.run }
         :no_halt

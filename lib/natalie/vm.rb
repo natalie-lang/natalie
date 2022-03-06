@@ -6,7 +6,7 @@ module Natalie
       @instructions = Compiler2::InstructionManager.new(instructions)
       @stack = []
       @call_stack = [{ scope: { vars: {} } }]
-      @self = MainObject.new
+      @self = build_main
       @method_visibility = :public
       @path = path
       @global_variables = {
@@ -122,6 +122,15 @@ module Natalie
     def self.compile_and_run(ast, path:)
       compiler = Compiler2.new(ast, path, interpret: true)
       VM.new(compiler.instructions, path: path).run
+    end
+
+    private
+
+    def build_main
+      main = Object.new
+      def main.inspect; 'main'; end
+      def main.define_method(name, &block); Object.define_method(name, &block); end
+      main
     end
   end
 end

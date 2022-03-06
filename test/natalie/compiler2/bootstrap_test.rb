@@ -279,6 +279,7 @@ class TestCompiler2 < TestCase
 
   def test_class
     assert_eq :foo, ClassWithInitialize.new.foo
+    assert_eq :bar, ClassWithInitialize.new.bar
     assert_eq 'TestCompiler2::ClassWithInitialize', ClassWithInitialize.name
   end
 
@@ -363,6 +364,7 @@ class TestCompiler2 < TestCase
   def test_module
     assert_eq :bar, ModuleToTest.bar
     assert_eq :foo, ClassIncludingModule.new.foo
+    assert_eq :foo2, ClassIncludingModule.new.foo2
   end
 
   def test_multiple_assignment
@@ -712,6 +714,11 @@ class TestCompiler2 < TestCase
     attr_reader :foo
   end
 
+  # reopen class
+  class ClassWithInitialize
+    def bar; :bar; end
+  end
+
   class ClassWithPrivateMethod
     def pub; 'pub'; end
     private
@@ -752,6 +759,13 @@ class TestCompiler2 < TestCase
       def bar
         :bar
       end
+    end
+  end
+
+  # reopen module
+  module ModuleToTest
+    def foo2
+      :foo2
     end
   end
 

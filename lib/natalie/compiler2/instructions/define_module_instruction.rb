@@ -30,17 +30,24 @@ module Natalie
         mod = transform.temp('module')
         namespace = transform.pop
         code = []
-        code << "auto #{mod} = new ModuleObject(#{@name.to_s.inspect})"
-        code << "#{namespace}->const_set(#{@name.to_s.inspect}_s, #{mod})"
-        code << "#{mod}->eval_body(env, #{fn})"
+        code << "auto #{mod} = #{namespace}->const_get(#{@name.to_s.inspect}_s)"
+        code << "if (!#{mod}) {"
+        code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
+        code << "  #{namespace}->const_set(#{@name.to_s.inspect}_s, #{mod})"
+        code << "}"
+        code << "#{mod}->as_module()->eval_body(env, #{fn})"
         transform.exec_and_push(:result_of_define_module, code)
       end
 
       def execute(vm)
         namespace = vm.pop
         namespace = namespace.class unless namespace.respond_to?(:const_set)
-        mod = Module.new
-        namespace.const_set(@name, mod)
+        if namespace.constants.include?(@name)
+          mod = namespace.const_get(@name)
+        else
+          mod = Module.new
+          namespace.const_set(@name, mod)
+        end
         vm.method_visibility = :public
         vm.with_self(mod) { vm.run }
         :no_halt
