@@ -20,8 +20,10 @@ module Natalie
       def execute(vm)
         old_name = vm.pop
         new_name = vm.pop
-        vm.self.instance_eval do
-          alias_method new_name, old_name
+        if vm.self.respond_to?(:alias_method)
+          vm.self.alias_method(new_name, old_name)
+        else
+          vm.self.class.alias_method(new_name, old_name)
         end
       end
     end
