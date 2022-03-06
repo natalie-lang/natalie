@@ -317,6 +317,7 @@ module Natalie
       node = args.first
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
+      return s(:block) if name == 'tempfile' # FIXME: not sure how to handle this actually
       if name == 'natalie/inline'
         @inline_cpp_enabled = true
         return s(:block)
