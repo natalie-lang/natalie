@@ -47,10 +47,6 @@ module Natalie
       @instructions.fetch_block(until_instruction: until_instruction, expected_label: expected_label)
     end
 
-    def find_next(instruction_klass)
-      @instructions.find_next(instruction_klass)
-    end
-
     def push(value)
       @stack.push(value)
     end

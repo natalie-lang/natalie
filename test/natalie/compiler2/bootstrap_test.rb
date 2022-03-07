@@ -191,10 +191,16 @@ class TestCompiler2 < TestCase
       break 100
     end
     assert_eq(100, result)
+
     result = block_yield3(1, 2, 3) do
       break
     end
     assert_eq(nil, result)
+
+    result = [3, 2, 1].sort { 1 }.each do
+      break 4
+    end
+    assert_eq(4, result)
   end
 
   def test_break_from_lambda

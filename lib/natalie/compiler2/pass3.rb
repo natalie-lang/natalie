@@ -9,8 +9,18 @@ module Natalie
       def initialize(instructions)
         @instructions = InstructionManager.new(instructions)
         @break_point = 0
+
+        # We need to keep track of which 'container' the `break` is operating in.
+        # If it's a `while` loop, the BreakInstruction has to do extra work
+        # to set the proper result variable (see BreakInstruction#generate).
         @break_point_instructions = {}
         @break_instructions = {}
+
+        # We have to match each break point with the appropriate SendInstruction or
+        # CreateLambdaInstruction. Since method calls are chainable, the next
+        # instruction is not necessarily the one that goes with the break point.
+        # Thus, a stack is needed.
+        @break_point_stack = []
       end
 
       def transform
@@ -43,36 +53,44 @@ module Natalie
         @break_instructions[break_point] = instruction
       end
 
-      def transform_end_define_block(_)
-        return unless (break_point = @env[:has_break])
+      def transform_create_lambda(instruction)
+        return unless (break_point = @break_point_stack.pop)
 
-        if (i = @instructions.peek).is_a?(CreateLambdaInstruction)
-          i.break_point = break_point
-          @break_point_instructions[break_point] = i
-          return
-        end
+        instruction.break_point = break_point
+        @break_point_instructions[break_point] = instruction
+      end
+
+      def transform_end_define_block(instruction)
+        @break_point_stack << @env[:has_break]
+      end
+
+      def transform_send(instruction)
+        return unless (break_point = @break_point_stack.pop)
 
         try_instruction = TryInstruction.new
         @break_point_instructions[break_point] = try_instruction
-        @instructions.insert_after(try_instruction)
+        @instructions.insert_left(try_instruction)
 
-        ip, send_instruction = @instructions.find_next(SendInstruction)
-        @instructions.insert_at(ip + 1, [
+        @instructions.insert_right([
           CatchInstruction.new,
           MatchBreakPointInstruction.new(break_point),
           IfInstruction.new,
           PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
-          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: send_instruction.file, line: send_instruction.line),
+          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
           PushNilInstruction.new,
-          SendInstruction.new(:raise, receiver_is_self: false, with_block: false, file: send_instruction.file, line: send_instruction.line),
+          SendInstruction.new(:raise, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
         ])
       end
 
+      # NOTE: `while` loops are different.
+      # This code tracks break points independently from the above methods.
+      # FIXME: I would like a new instruction for the IR called BreakOutInstruction.
+      # Breaking out of a while loop is quite different than other breaks.
       def transform_end_while(instruction)
         return unless (break_point = @env[:has_break])
 

@@ -30,12 +30,19 @@ module Natalie
         @instructions[@ip]
       end
 
-      def insert_after(instructions)
+      def insert_left(instructions)
+        count = insert_at(@ip - 1, instructions)
+        @ip += count
+      end
+
+      def insert_right(instructions)
         insert_at(@ip, instructions)
       end
 
       def insert_at(ip, instructions)
-        @instructions.insert(ip, *Array(instructions))
+        instructions = Array(instructions)
+        @instructions.insert(ip, *instructions)
+        instructions.size
       end
 
       def fetch_block(until_instruction: EndInstruction, expected_label: nil)
@@ -59,18 +66,6 @@ module Natalie
         end
 
         instructions
-      end
-
-      def find_next(instruction_klass)
-        ip = @ip
-        while ip < @instructions.size
-          instruction = @instructions[ip]
-          if instruction.is_a?(instruction_klass)
-            return ip, instruction
-          end
-          ip += 1
-        end
-        raise 'ran out of instructions'
       end
     end
   end
