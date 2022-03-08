@@ -29,7 +29,7 @@ describe "Array#hash" do
     # Check the Array#eql? specs!
   end
 
-  #TODO add back once we implement Hash::hash from https://github.com/seven1m/natalie/issues/96
+  #TODO add back once we implement Hash::hash from https://github.com/natalie-lang/natalie/issues/96
   xit "returns the same hash for equal recursive arrays through hashes" do
     h = {} ; rec = [h] ; h[:x] = rec
     rec.hash.should == [h].hash

@@ -1,8 +1,8 @@
 # Natalie
 
-[![github build status](https://github.com/seven1m/natalie/actions/workflows/build.yml/badge.svg)](https://github.com/seven1m/natalie/actions?query=workflow%3ABuild+branch%3Amaster)
+[![github build status](https://github.com/natalie-lang/natalie/actions/workflows/build.yml/badge.svg)](https://github.com/natalie-lang/natalie/actions?query=workflow%3ABuild+branch%3Amaster)
 [![builds.sr.ht status](https://builds.sr.ht/~tim/natalie.svg)](https://builds.sr.ht/~tim/natalie?)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/seven1m/natalie/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/natalie-lang/natalie/blob/master/LICENSE)
 
 Natalie is a very early-stage work-in-progress Ruby implementation.
 
@@ -21,7 +21,7 @@ the [hacking session videos on YouTube](https://www.youtube.com/playlist?list=PL
 
 The easiest way to get started right now would be to find a method on an object
 that is not yet implemented and make it yourself! Also take a look at
-[good first issues](https://github.com/seven1m/natalie/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+[good first issues](https://github.com/natalie-lang/natalie/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 (See the 'Building' and 'Running Tests' sections below for some helpful steps.)
 
 We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and hang out!
@@ -46,7 +46,7 @@ Prerequisites:
 Install the above prerequisites on your platform, then run:
 
 ```sh
-git clone https://github.com/seven1m/natalie
+git clone https://github.com/natalie-lang/natalie
 cd natalie
 rake
 ```
