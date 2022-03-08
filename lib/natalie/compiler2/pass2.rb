@@ -31,6 +31,8 @@ module Natalie
       end
 
       def find_or_create_var(env, name, local_only: false)
+        raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
+
         owning_env = env
 
         # "hoisted" envs don't ever own a variable

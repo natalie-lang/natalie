@@ -122,6 +122,8 @@ class TestCompiler2 < TestCase
     assert_eq([0, 1, 2, 3], arg_splat(0, *ary))
     assert_eq([1, 2, 3, 4], arg_splat(*ary, 4))
     assert_eq([0, 1, 2, 3, 4], arg_splat(0, *[1, 2, 3], 4))
+
+    assert_eq(1, arg_splat_ignore(1, 2, 3))
   end
 
   def test_array
@@ -674,6 +676,10 @@ class TestCompiler2 < TestCase
 
   def ary
     [1, 2, 3]
+  end
+
+  def arg_splat_ignore(a, *)
+    a
   end
 
   def arg_splat_left(*a, b)

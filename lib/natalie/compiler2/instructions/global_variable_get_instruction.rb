@@ -15,9 +15,9 @@ module Natalie
 
       def generate(transform)
         if @name == :$!
-          transform.push("env->exception_object()")
+          transform.exec_and_push(:exception, "env->exception_object()")
         else
-          transform.push("env->global_get(#{@name.to_s.inspect}_s)")
+          transform.exec_and_push(:gvar, "env->global_get(#{@name.to_s.inspect}_s)")
         end
       end
 
