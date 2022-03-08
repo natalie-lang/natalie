@@ -40,15 +40,14 @@ module Natalie
 
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
-            _, exceptions_array, rescue_body = rescue_expr
-            rescue_body ||= s(:nil)
+            _, exceptions_array, *rescue_body = rescue_expr
             variable_set, match_array = split_exceptions_array(exceptions_array)
             instr + [
               @pass.transform_expression(match_array, used: true),
               MatchExceptionInstruction.new,
               IfInstruction.new,
               variable_set ? @pass.transform_expression(variable_set, used: false) : [],
-              @pass.transform_expression(rescue_body, used: true),
+              @pass.transform_body(rescue_body, used: true),
               ElseInstruction.new(:if),
             ]
           else

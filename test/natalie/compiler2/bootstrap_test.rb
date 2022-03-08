@@ -515,13 +515,16 @@ class TestCompiler2 < TestCase
         rescue
           2
         else
+          :noop # ensure the whole body is run
           3
         end
     assert_eq(3, x)
 
     y = begin
+          :noop # ensure the whole body is run
           non_existent_method
         rescue
+          :noop # ensure the whole body is run
           2
         else
           3
@@ -541,12 +544,12 @@ class TestCompiler2 < TestCase
 
   def test_rescue_get_exception
     begin
-      send()
+      raise ArgumentError, 'stuff'
     rescue NoMethodError => e
       fail # should not be here
     rescue ArgumentError => e
       assert_eq(ArgumentError, e.class)
-      assert_eq('no method name given', e.message)
+      assert_eq('stuff', e.message)
     end
   end
 
