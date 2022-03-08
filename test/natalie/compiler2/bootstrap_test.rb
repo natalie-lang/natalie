@@ -631,6 +631,18 @@ class TestCompiler2 < TestCase
     assert_eq(1, y)
   end
 
+  def test_variable
+    x = 1
+    if true
+      x += 2
+      [3, 4].each { |i| x += i }
+      while x % 2 == 0
+        x += 1
+      end
+    end
+    assert_eq(11, x)
+  end
+
   def test_while
     x = 0
     while x < 3

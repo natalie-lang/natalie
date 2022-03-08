@@ -55,6 +55,7 @@ module Natalie
           if env[:block] && !local_only && (outer = env.fetch(:outer))
             env = outer
             capturing = true
+            env = env.fetch(:outer) while env[:hoist]
           else
             break
           end

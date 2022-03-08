@@ -68,10 +68,10 @@ module Natalie
 
         def find_var(name, local_only: false)
           env = @env
-          env = env[:outer] while env[:hoist]
-
           depth = 0
+
           loop do
+            env = env[:outer] while env[:hoist]
             if env.fetch(:vars).key?(name)
               var = env.dig(:vars, name)
               return [depth, var]
