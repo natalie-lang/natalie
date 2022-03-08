@@ -31,7 +31,7 @@ module Natalie
     def run
       @instructions.walk do |instruction|
         result = instruction.execute(self)
-        if %i[halt next return].include?(result)
+        if %i[break_out halt next return].include?(result)
           return result
         end
       end

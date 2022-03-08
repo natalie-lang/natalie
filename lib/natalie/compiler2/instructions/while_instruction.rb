@@ -9,12 +9,9 @@ module Natalie
 
       attr_reader :pre, :result_name
 
-      attr_accessor :break_point
-
       def to_s
         s = 'while'
         s << ' (post)' unless pre
-        s << " (break point: #{break_point})" if break_point
         s
       end
 
@@ -62,24 +59,25 @@ module Natalie
             vm.ip = start_ip
             result = vm.run
             vm.ip = end_ip
+            if result == :break_out
+              result = :halt
+              break
+            end
           end
         else
           begin
             vm.ip = start_ip
             result = vm.run
             vm.ip = end_ip
+            if result == :break_out
+              p result
+              result = :halt
+              break
+            end
           end while condition.()
         end
         unless result == :halt
           result
-        end
-      rescue LocalJumpError => exception
-        raise unless @break_point
-        break_point = exception.instance_variable_get(:@break_point)
-        if break_point == @break_point
-          vm.push(exception.exit_value)
-        else
-          raise
         end
       end
     end

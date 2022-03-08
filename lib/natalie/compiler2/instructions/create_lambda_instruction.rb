@@ -6,6 +6,7 @@ module Natalie
       def to_s
         s = 'create_lambda'
         s << " (break point: #{break_point})" if break_point
+        s
       end
 
       attr_accessor :break_point

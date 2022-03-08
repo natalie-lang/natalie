@@ -30,6 +30,11 @@ module Natalie
         @instructions[@ip]
       end
 
+      def replace_at(ip, instruction)
+        raise 'did not expect an Array' if instruction.is_a?(Array)
+        @instructions[ip] = instruction
+      end
+
       def insert_left(instructions)
         count = insert_at(@ip - 1, instructions)
         @ip += count

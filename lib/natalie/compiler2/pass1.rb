@@ -29,14 +29,14 @@ module Natalie
         end
       end
 
-      private
-
       def transform_body(body, used:)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
         instructions << transform_expression(last || s(:nil), used: used)
         instructions
       end
+
+      private
 
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)

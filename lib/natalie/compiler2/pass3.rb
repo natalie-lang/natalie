@@ -11,9 +11,9 @@ module Natalie
         @break_point = 0
 
         # We need to keep track of which 'container' the `break` is operating in.
-        # If it's a `while` loop, the BreakInstruction has to do extra work
-        # to set the proper result variable (see BreakInstruction#generate).
-        @break_point_instructions = {}
+        # If it's a `while` loop, the BreakInstruction needs to be converted to a
+        # BreakOutInstruction, which operates differently.
+        @to_convert_to_break_out = {}
         @break_instructions = {}
 
         # We have to match each break point with the appropriate SendInstruction or
@@ -33,8 +33,11 @@ module Natalie
           end
         end
 
-        @break_instructions.each do |break_point, break_instruction|
-          break_instruction.break_point_instruction = @break_point_instructions[break_point]
+        @to_convert_to_break_out.each do |break_point, while_instruction|
+          ip, break_instruction = @break_instructions[break_point]
+          break_out = BreakOutInstruction.new
+          break_out.while_instruction = while_instruction
+          @instructions.replace_at(ip, break_out)
         end
 
         # add envs to newly-added instructions
@@ -50,14 +53,13 @@ module Natalie
         break_point = (@break_point += 1)
         env[:has_break] = break_point
         instruction.break_point = break_point
-        @break_instructions[break_point] = instruction
+        @break_instructions[break_point] = [@instructions.ip - 1, instruction]
       end
 
       def transform_create_lambda(instruction)
         return unless (break_point = @break_point_stack.pop)
 
         instruction.break_point = break_point
-        @break_point_instructions[break_point] = instruction
       end
 
       def transform_end_define_block(instruction)
@@ -68,7 +70,6 @@ module Natalie
         return unless (break_point = @break_point_stack.pop)
 
         try_instruction = TryInstruction.new
-        @break_point_instructions[break_point] = try_instruction
         @instructions.insert_left(try_instruction)
 
         @instructions.insert_right([
@@ -89,8 +90,6 @@ module Natalie
 
       # NOTE: `while` loops are different.
       # This code tracks break points independently from the above methods.
-      # FIXME: I would like a new instruction for the IR called BreakOutInstruction.
-      # Breaking out of a while loop is quite different than other breaks.
       def transform_end_while(instruction)
         return unless (break_point = @env[:has_break])
 
@@ -100,8 +99,7 @@ module Natalie
           raise "unexpected instruction: #{while_instruction.inspect}"
         end
 
-        while_instruction.break_point = break_point
-        @break_point_instructions[break_point] = while_instruction
+        @to_convert_to_break_out[break_point] = while_instruction
       end
 
       def self.debug_instructions(instructions)

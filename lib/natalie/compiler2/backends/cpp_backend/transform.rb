@@ -125,7 +125,11 @@ module Natalie
           while lines.any?
             line = lines.shift
             next if line.nil?
-            lines.empty? ? out << "#{result_prefix} #{semicolon(line)}" : out << semicolon(line)
+            if lines.empty? && line !~ /^\s*env->raise|^\s*break;?$/
+              out << "#{result_prefix} #{semicolon(line)}"
+            else
+              out << semicolon(line)
+            end
           end
           out.join("\n")
         end
