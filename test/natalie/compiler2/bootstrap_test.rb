@@ -1,8 +1,19 @@
 # some basic tests as we are starting out
 
 class TestCase
+  class TestFailedError < StandardError; end
+
+  def initialize
+    @assertions = 0
+    @success = 0
+    @fail = 0
+    @error = 0
+  end
+
   def assert_eq(expected, actual)
+    @assertions += 1
     if expected != actual
+      puts @test
       puts 'expected: ' + expected.inspect
       puts '  actual: ' + actual.inspect
       fail
@@ -10,6 +21,7 @@ class TestCase
   end
 
   def assert_raises(klass, message = nil)
+    @assertions += 1
     begin
       yield
     rescue klass => e
@@ -22,7 +34,7 @@ class TestCase
   end
 
   def fail
-    raise 'test failed'
+    raise TestFailedError
   end
 
   def run
@@ -39,9 +51,23 @@ class TestCase
 
   def run_tests(tests)
     tests.each do |method|
-      send(method)
+      @test = method
+      begin
+        send(method)
+      rescue => e
+        if e.is_a?(TestFailedError)
+          @fail += 1
+        else
+          puts e.message
+          puts e.backtrace
+          puts "Exception in #{@test}"
+          @error += 1
+        end
+      else
+        @success += 1
+      end
     end
-    puts tests.size.to_s + ' tests successful'
+    puts "#{@success} tests successful (#{@assertions} assertions, #{@fail} failed, #{@error} errored)"
   end
 end
 
