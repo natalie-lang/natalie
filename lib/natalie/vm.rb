@@ -126,6 +126,9 @@ module Natalie
       main = Object.new
       def main.inspect; 'main'; end
       def main.define_method(name, &block); Object.define_method(name, &block); end
+      def main.private(*args); Object.send(:private, *args); end
+      def main.protected(*args); Object.send(:potected, *args); end
+      def main.public(*args); Object.send(:public, *args); end
       main
     end
   end
