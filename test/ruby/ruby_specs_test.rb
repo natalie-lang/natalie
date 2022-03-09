@@ -7,8 +7,8 @@ require_relative '../support/nat_binary'
 describe 'ruby/spec' do
   parallelize_me!
 
-  PER_RUN = 10
-  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 600).to_i
+  PER_RUN = 25
+  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 1200).to_i
 
   Dir.chdir File.expand_path('../..', __dir__)
   paths = Dir['spec/**/*_spec.rb'].sort
