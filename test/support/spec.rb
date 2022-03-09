@@ -65,7 +65,7 @@ class ScratchPad
   end
 
   def self.clear
-    @recorded = nil
+    @record = nil
   end
 
   def self.<<(item)
