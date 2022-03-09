@@ -14,27 +14,7 @@ extern char **environ;
 namespace Natalie {
 
 Value KernelModule::Array(Env *env, Value value) {
-    if (value->is_array()) {
-        return value;
-    }
-
-    if (value->respond_to(env, "to_ary"_s)) {
-        auto array = value.send(env, "to_ary"_s);
-        if (!array->is_nil()) {
-            array->assert_type(env, Object::Type::Array, "Array");
-            return array;
-        }
-    }
-
-    if (value->respond_to(env, "to_a"_s)) {
-        auto array = value.send(env, "to_a"_s);
-        if (!array->is_nil()) {
-            array->assert_type(env, Object::Type::Array, "Array");
-            return array;
-        }
-    }
-
-    return new ArrayObject { value };
+    return Natalie::to_ary(env, value, true);
 }
 
 Value KernelModule::abort_method(Env *env, Value message) {

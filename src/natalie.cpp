@@ -312,23 +312,35 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
 }
 
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
-    auto to_ary_symbol = "to_ary"_s;
     if (obj->is_array()) {
         return obj->as_array();
-    } else if (obj->respond_to(env, to_ary_symbol)) {
-        Value ary = obj.send(env, to_ary_symbol);
-        if (ary->is_array()) {
-            return ary->as_array();
-        } else if (ary->is_nil() || !raise_for_non_array) {
-            ary = new ArrayObject { obj };
-            return ary->as_array();
-        } else {
-            auto *class_name = obj->klass()->inspect_str();
-            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->inspect_str());
-        }
-    } else {
-        return new ArrayObject { obj };
     }
+
+    if (obj->respond_to(env, "to_ary"_s)) {
+        auto array = obj.send(env, "to_ary"_s);
+        if (!array->is_nil()) {
+            if (array->is_array()) {
+                return array->as_array();
+            } else if (raise_for_non_array) {
+                auto *class_name = obj->klass()->inspect_str();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array->klass()->inspect_str());
+            }
+        }
+    }
+
+    if (obj->respond_to(env, "to_a"_s)) {
+        auto array = obj.send(env, "to_a"_s);
+        if (!array->is_nil()) {
+            if (array->is_array()) {
+                return array->as_array();
+            } else if (raise_for_non_array) {
+                auto *class_name = obj->klass()->inspect_str();
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
+            }
+        }
+    }
+
+    return new ArrayObject { obj };
 }
 
 static Value splat_value(Env *env, Value value, size_t index, size_t offset_from_end, bool has_kwargs) {
