@@ -561,11 +561,23 @@ Value StringObject::ref(Env *env, Value index_obj) {
     } else if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
 
-        range->begin()->assert_type(env, Object::Type::Integer, "Integer");
-        range->begin()->assert_type(env, Object::Type::Integer, "Integer");
+        auto begin_obj = range->begin();
+        nat_int_t begin;
+        if (begin_obj->is_nil()) {
+            begin = 0;
+        } else {
+            begin_obj->assert_type(env, Object::Type::Integer, "Integer");
+            begin = begin_obj->as_integer()->to_nat_int_t();
+        }
 
-        nat_int_t begin = range->begin()->as_integer()->to_nat_int_t();
-        nat_int_t end = range->end()->as_integer()->to_nat_int_t();
+        auto end_obj = range->end();
+        nat_int_t end;
+        if (end_obj->is_nil()) {
+            end = range->exclude_end() ? m_string.size() + 1 : m_string.size();
+        } else {
+            end_obj->assert_type(env, Object::Type::Integer, "Integer");
+            end = end_obj->as_integer()->to_nat_int_t();
+        }
 
         ArrayObject *chars = this->chars(env);
 

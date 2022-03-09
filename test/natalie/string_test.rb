@@ -197,6 +197,21 @@ describe 'string' do
         s[90..100].should == nil
       end
     end
+
+    context 'given a beginless range' do
+      it 'returns a substring from the start of the string' do
+        s = "hello"
+        s[..2].should == 'hel'
+      end
+    end
+
+    context 'given an endless range' do
+      it 'returns a substring to the end of the string' do
+        s = "hello"
+        s[2..].should == 'llo'
+        s[2...].should == 'llo'
+      end
+    end
   end
 
   describe '#succ' do
