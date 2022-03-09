@@ -89,6 +89,10 @@ class TestCompiler2 < TestCase
     assert_eq([1, 2, 3, 4], arg_destructure_left([[1, 2, :ignored], 3, :ignored], 4))
     assert_eq([1, 2, 3, 4, 5, 6], arg_destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
     assert_eq([1, 2, 3, 4], arg_destructure_right(1, [2, [3, 4, :ignored], :ignored]))
+
+    assert_eq([:not_an_array, nil, nil, 1], arg_destructure_left(:not_an_array, 1))
+    assert_eq([1, :not_an_array, nil, nil, nil, 2], arg_destructure_middle(1, :not_an_array, 2))
+    assert_eq([1, :not_an_array, nil, nil], arg_destructure_right(1, :not_an_array))
   end
 
   def test_args_keyword
