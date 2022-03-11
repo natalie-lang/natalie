@@ -38,6 +38,7 @@ public:
     Value array(int);
     Value group(Env *, size_t);
 
+    Value captures(Env *);
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);

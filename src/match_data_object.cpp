@@ -29,6 +29,10 @@ Value MatchDataObject::group(Env *env, size_t index) {
     return new StringObject { str, length };
 }
 
+Value MatchDataObject::captures(Env *env) {
+    return this->array(1);
+}
+
 Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
