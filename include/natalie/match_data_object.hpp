@@ -35,8 +35,10 @@ public:
 
     size_t index(size_t);
 
+    Value array(int);
     Value group(Env *, size_t);
 
+    Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);
 
