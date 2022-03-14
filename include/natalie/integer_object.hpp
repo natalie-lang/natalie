@@ -76,6 +76,7 @@ public:
     Value bitwise_and(Env *, Value);
     Value bitwise_or(Env *, Value);
     Value bitwise_xor(Env *, Value);
+    Value bit_length(Env *);
     Value left_shift(Env *, Value);
     Value right_shift(Env *, Value);
     Value pred(Env *);

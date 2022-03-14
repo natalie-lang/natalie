@@ -346,6 +346,20 @@ TM::String Integer::to_string() const {
     return TM::String(to_nat_int_t());
 }
 
+Integer Integer::bit_length() const {
+    // If it is equal to NAT_MAX_FIXNUM we cannot increment it later, instead we have to use the
+    // bignum branch.
+    if (is_bignum() || to_nat_int_t() == NAT_MAX_FIXNUM) {
+        auto binary = to_bigint().to_binary();
+        for (size_t i = 0; i < binary.length(); ++i)
+            if (binary[i] == (to_bigint().is_negative() ? '0' : '1'))
+                return (nat_int_t)(binary.length() - i);
+    }
+
+    auto nat_int = to_nat_int_t();
+    return ceil(log2(nat_int < 0 ? -nat_int : nat_int + 1));
+}
+
 Integer operator+(const long long &lhs, const Integer &rhs) {
     return Integer(lhs) + rhs;
 }
