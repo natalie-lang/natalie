@@ -1813,12 +1813,14 @@ TM::String BigInt::to_binary() const {
     }
 
     while (copy_num > 0) {
-        if (copy_num % 2 == 1) {
+        auto quotient = copy_num.c_div(2);
+        auto remainder = copy_num - quotient * 2;
+        if (remainder == 1) {
             binary_num.prepend_char('1');
         } else {
             binary_num.prepend_char('0');
         }
-        copy_num /= 2;
+        copy_num = quotient;
     }
 
     if (*this < 0) {
