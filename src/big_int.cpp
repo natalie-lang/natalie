@@ -1232,14 +1232,27 @@ std::tuple<BigInt, BigInt> divide(const BigInt &dividend, const BigInt &divisor)
 
     temp = divisor;
     quotient = 1;
+    unsigned long long iterations = 0;
     while (temp < dividend) {
-        quotient++;
         temp += divisor;
+        iterations++;
+        if (iterations == LLONG_MAX) {
+            quotient += iterations;
+            iterations = 0;
+        }
     }
+    quotient += iterations;
+    iterations = 0;
+
     if (temp > dividend) {
-        quotient--;
+        iterations++;
+        if (iterations == LLONG_MAX) {
+            quotient -= iterations;
+            iterations = 0;
+        }
         remainder = dividend - (temp - divisor);
     }
+    quotient -= iterations;
 
     return std::make_tuple(quotient, remainder);
 }
