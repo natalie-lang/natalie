@@ -284,9 +284,8 @@ Integer Integer::operator<<(const Integer &other) const {
     auto pow_result = pow(2, other.to_nat_int_t());
     if (pow_result.is_bignum())
         return to_bigint() << other.to_nat_int_t();
-    else if (will_multiplication_overflow(to_nat_int_t(), pow_result.to_nat_int_t())) {
+    else if (will_multiplication_overflow(to_nat_int_t(), pow_result.to_nat_int_t()))
         return to_bigint() << other.to_nat_int_t();
-    }
 
     return to_nat_int_t() << other.to_nat_int_t();
 }
@@ -297,7 +296,7 @@ Integer Integer::operator>>(const Integer &other) const {
     if (is_bignum())
         return to_bigint() >> other.to_nat_int_t();
 
-    if (other.to_nat_int_t() > (nat_int_t)sizeof(nat_int_t))
+    if (other.to_nat_int_t() >= (nat_int_t)sizeof(nat_int_t) * 8)
         return is_negative() ? -1 : 0;
 
     return to_nat_int_t() >> other.to_nat_int_t();
