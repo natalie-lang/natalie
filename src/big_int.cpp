@@ -1067,7 +1067,7 @@ BigInt BigInt::operator+(const BigInt &num) const {
     // add the two values
     for (long i = larger.size() - 1; i >= 0; i--) {
         sum = larger[i] - '0' + smaller[i] - '0' + carry;
-        result.value.prepend(sum % 10);
+        result.value.prepend_char((sum % 10) + '0');
         carry = sum / (short)10;
     }
     if (carry)
@@ -1118,7 +1118,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
     add_leading_zeroes(smaller, larger.size() - smaller.size());
 
     result.value = ""; // the value is cleared as the digits will be appended
-    short difference;
+    char difference;
     long i, j;
     // subtract the two values
     for (i = larger.size() - 1; i >= 0; i--) {
@@ -1137,7 +1137,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
             }
             difference += 10; // add the borrow
         }
-        result.value.prepend(difference);
+        result.value.prepend_char(difference + '0');
     }
     strip_leading_zeroes(result.value);
 
