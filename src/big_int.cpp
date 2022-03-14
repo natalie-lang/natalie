@@ -813,7 +813,7 @@ bool operator>=(const TM::String &lhs, const BigInt &rhs) {
 */
 
 BigInt abs(const BigInt &num) {
-    return num < 0 ? -num : num;
+    return num.is_negative() ? -num : num;
 }
 
 /*
