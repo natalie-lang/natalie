@@ -426,6 +426,10 @@ Value IntegerObject::bitwise_xor(Env *env, Value arg) {
     return create(m_integer ^ argument);
 }
 
+Value IntegerObject::bit_length(Env *env) {
+    return create(m_integer.bit_length());
+}
+
 Value IntegerObject::left_shift(Env *env, Value arg) {
     nat_int_t nat_int;
     if (arg.is_fast_integer()) {

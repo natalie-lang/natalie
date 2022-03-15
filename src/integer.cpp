@@ -284,9 +284,8 @@ Integer Integer::operator<<(const Integer &other) const {
     auto pow_result = pow(2, other.to_nat_int_t());
     if (pow_result.is_bignum())
         return to_bigint() << other.to_nat_int_t();
-    else if (will_multiplication_overflow(to_nat_int_t(), pow_result.to_nat_int_t())) {
+    else if (will_multiplication_overflow(to_nat_int_t(), pow_result.to_nat_int_t()))
         return to_bigint() << other.to_nat_int_t();
-    }
 
     return to_nat_int_t() << other.to_nat_int_t();
 }
@@ -297,7 +296,7 @@ Integer Integer::operator>>(const Integer &other) const {
     if (is_bignum())
         return to_bigint() >> other.to_nat_int_t();
 
-    if (other.to_nat_int_t() > (nat_int_t)sizeof(nat_int_t))
+    if (other.to_nat_int_t() >= (nat_int_t)sizeof(nat_int_t) * 8)
         return is_negative() ? -1 : 0;
 
     return to_nat_int_t() >> other.to_nat_int_t();
@@ -345,6 +344,20 @@ TM::String Integer::to_string() const {
         return to_bigint().to_string();
     }
     return TM::String(to_nat_int_t());
+}
+
+Integer Integer::bit_length() const {
+    // If it is equal to NAT_MAX_FIXNUM we cannot increment it later, instead we have to use the
+    // bignum branch.
+    if (is_bignum() || to_nat_int_t() == NAT_MAX_FIXNUM) {
+        auto binary = to_bigint().to_binary();
+        for (size_t i = 0; i < binary.length(); ++i)
+            if (binary[i] == (to_bigint().is_negative() ? '0' : '1'))
+                return (nat_int_t)(binary.length() - i);
+    }
+
+    auto nat_int = to_nat_int_t();
+    return ceil(log2(nat_int < 0 ? -nat_int : nat_int + 1));
 }
 
 Integer operator+(const long long &lhs, const Integer &rhs) {

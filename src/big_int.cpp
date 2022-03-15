@@ -813,7 +813,7 @@ bool operator>=(const TM::String &lhs, const BigInt &rhs) {
 */
 
 BigInt abs(const BigInt &num) {
-    return num < 0 ? -num : num;
+    return num.is_negative() ? -num : num;
 }
 
 /*
@@ -1067,7 +1067,7 @@ BigInt BigInt::operator+(const BigInt &num) const {
     // add the two values
     for (long i = larger.size() - 1; i >= 0; i--) {
         sum = larger[i] - '0' + smaller[i] - '0' + carry;
-        result.value.prepend(sum % 10);
+        result.value.prepend_char((sum % 10) + '0');
         carry = sum / (short)10;
     }
     if (carry)
@@ -1118,7 +1118,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
     add_leading_zeroes(smaller, larger.size() - smaller.size());
 
     result.value = ""; // the value is cleared as the digits will be appended
-    short difference;
+    char difference;
     long i, j;
     // subtract the two values
     for (i = larger.size() - 1; i >= 0; i--) {
@@ -1137,7 +1137,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
             }
             difference += 10; // add the borrow
         }
-        result.value.prepend(difference);
+        result.value.prepend_char(difference + '0');
     }
     strip_leading_zeroes(result.value);
 
@@ -1232,14 +1232,27 @@ std::tuple<BigInt, BigInt> divide(const BigInt &dividend, const BigInt &divisor)
 
     temp = divisor;
     quotient = 1;
+    unsigned long long iterations = 0;
     while (temp < dividend) {
-        quotient++;
         temp += divisor;
+        iterations++;
+        if (iterations == LLONG_MAX) {
+            quotient += iterations;
+            iterations = 0;
+        }
     }
+    quotient += iterations;
+    iterations = 0;
+
     if (temp > dividend) {
-        quotient--;
+        iterations++;
+        if (iterations == LLONG_MAX) {
+            quotient -= iterations;
+            iterations = 0;
+        }
         remainder = dividend - (temp - divisor);
     }
+    quotient -= iterations;
 
     return std::make_tuple(quotient, remainder);
 }
@@ -1800,12 +1813,14 @@ TM::String BigInt::to_binary() const {
     }
 
     while (copy_num > 0) {
-        if (copy_num % 2 == 1) {
+        auto quotient = copy_num.c_div(2);
+        auto remainder = copy_num - quotient * 2;
+        if (remainder == 1) {
             binary_num.prepend_char('1');
         } else {
             binary_num.prepend_char('0');
         }
-        copy_num /= 2;
+        copy_num = quotient;
     }
 
     if (*this < 0) {

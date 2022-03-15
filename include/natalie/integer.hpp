@@ -124,6 +124,7 @@ public:
     double to_double() const;
     TM::String to_string() const;
 
+    Integer bit_length() const;
     // TM::String to_binary() const;
 
     ~Integer() {
