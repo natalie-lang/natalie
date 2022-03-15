@@ -20,6 +20,9 @@ public:
     ArrayObject()
         : Object { Object::Type::Array, GlobalEnv::the()->Array() } { }
 
+    ArrayObject(ClassObject *klass)
+        : Object { Object::Type::Array, klass } { }
+
     ArrayObject(size_t initial_capacity)
         : ArrayObject {} {
         m_vector.set_capacity(initial_capacity);
@@ -85,6 +88,8 @@ public:
         assert(index < m_vector.size());
         return m_vector[index];
     }
+
+    void set(size_t index, Value value);
 
     Value &operator[](size_t index) const {
         assert(index < m_vector.size()); // TODO: remove this assertion (audit what's using this operator first though)

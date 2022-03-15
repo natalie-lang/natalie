@@ -271,7 +271,7 @@ public:
     }
 
     void append_sprintf(const char *format, ...) {
-        va_list args, args_copy;
+        va_list args;
         va_start(args, format);
         append_vsprintf(format, args);
         va_end(args);
@@ -415,7 +415,6 @@ public:
 
     void remove(char character) {
         size_t i;
-        int offset = 0;
         assert(m_str);
         for (i = 0; i < m_length; ++i) {
             if (m_str[i] == character) {

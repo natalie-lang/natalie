@@ -10,7 +10,11 @@ module Natalie
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
-    INC_PATHS = [File.join(ROOT_DIR, 'include'), File.join(BUILD_DIR, 'onigmo/include')]
+    INC_PATHS = [
+      File.join(ROOT_DIR, 'include'),
+      File.join(BUILD_DIR, 'onigmo/include'),
+      File.join(BUILD_DIR, 'natalie_parser/include'),
+    ]
     LIB_PATHS = [BUILD_DIR]
     LIBRARIES = %W[-lnatalie]
 

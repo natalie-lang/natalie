@@ -4,9 +4,10 @@
 
 namespace Natalie {
 
+// TODO: remove?
 class SexpObject : public ArrayObject {
 public:
-    SexpObject(Env *, Node *, std::initializer_list<Value>);
+    SexpObject(Env *, NatalieParser::Node *, std::initializer_list<Value>);
 
     static Value from_array(Env *env, Value array) {
         array->assert_type(env, Object::Type::Array, "Array");

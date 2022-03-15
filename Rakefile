@@ -19,9 +19,9 @@ task :clean do
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf 'build/natalie_parser'
-  rm_rf 'build/parser_c_ext'
-  rm_rf 'build/parser_c_ext.so'
-  rm_rf 'build/parser_c_ext.bundle'
+  rm_rf 'build/libnatalie_parser.a'
+  rm_rf 'build/natalie_parser.so'
+  rm_rf 'build/natalie_parser.bundle'
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -42,7 +42,7 @@ task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for the Natalie Parser'
 so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
-task parser_c_ext: "build/parser_c_ext.#{so_ext}"
+task parser_c_ext: "build/natalie_parser.#{so_ext}"
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -139,7 +139,7 @@ end
 
 STANDARD = 'c++17'
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
-PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*')
+PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
@@ -163,6 +163,7 @@ task libnatalie: [
        :bundle_install,
        :build_dir,
        'build/onigmo/lib/libonigmo.a',
+       'build/libnatalie_parser.a',
        'build/generated/numbers.rb',
        :primary_objects,
        :ruby_objects,
@@ -173,14 +174,17 @@ task libnatalie: [
 
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
-  mkdir_p 'build/natalie_parser' unless File.exist?('build/natalie_parser')
 end
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
 multitask special_objects: SPECIAL_OBJECT_FILES
 
-file 'build/libnatalie.a' => %w[build/libnatalie_base.a build/onigmo/lib/libonigmo.a] do |t|
+file 'build/libnatalie.a' => %w[
+  build/libnatalie_parser.a
+  build/libnatalie_base.a
+  build/onigmo/lib/libonigmo.a
+] do |t|
   if RUBY_PLATFORM =~ /darwin/
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
   else
@@ -206,6 +210,17 @@ file 'build/onigmo/lib/libonigmo.a' do
     ./configure --with-pic --prefix #{build_dir} && \
     make -j 4 && \
     make install
+  SH
+end
+
+file 'build/libnatalie_parser.a' => Rake::FileList['ext/natalie_parser/**/*.{hpp,cpp}'] do
+  build_dir = File.expand_path('build/natalie_parser', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/natalie_parser', build_dir
+  sh <<-SH
+    cd #{build_dir} && \
+    rake library && \
+    cp #{build_dir}/build/libnatalie_parser.a #{File.expand_path('build', __dir__)}
   SH
 end
 
@@ -272,16 +287,15 @@ rule '.rb.cpp' => 'src/%n' do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/parser_c_ext.#{so_ext}" => 'src/parser_c_ext/parser_c_ext.cpp' do |t|
-  build_dir = File.expand_path('build/parser_c_ext', __dir__)
-  cp_r 'src/parser_c_ext', build_dir
+file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do |t|
+  build_dir = File.expand_path('build/natalie_parser', __dir__)
   sh <<-SH
     cd #{build_dir} && \
-    ruby extconf.rb && \
-    make && \
-    cp parser_c_ext.#{so_ext} ..
+    rake parser_c_ext && \
+    cp #{build_dir}/ext/natalie_parser/natalie_parser.so #{File.expand_path('build', __dir__)}
   SH
 end
+
 
 task :tidy_internal do
   # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
@@ -341,5 +355,9 @@ def cxx_flags
 end
 
 def include_paths
-  [File.expand_path('include', __dir__), File.expand_path('build/onigmo/include', __dir__)]
+  [
+    File.expand_path('include', __dir__),
+    File.expand_path('build/onigmo/include', __dir__),
+    File.expand_path('build/natalie_parser/include', __dir__)
+  ]
 end
