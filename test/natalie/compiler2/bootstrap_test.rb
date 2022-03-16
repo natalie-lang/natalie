@@ -170,10 +170,19 @@ class TestCompiler2 < TestCase
       x = 2
     end
     assert_eq(2, x)
+
     block_pass do
       x = 3
     end
     assert_eq(3, x)
+
+    (arg, block) = block_pass2 { 4 }
+    assert_eq(nil, arg)
+    assert_eq(4, block.call)
+
+    (arg, block) = block_pass2(5) { 6 }
+    assert_eq(5, arg)
+    assert_eq(6, block.call)
   end
 
   def test_block_arg_destructure
@@ -759,6 +768,10 @@ class TestCompiler2 < TestCase
 
   def block_pass(&block)
     block_call(&block)
+  end
+
+  def block_pass2(arg = nil, &block)
+    [arg, block]
   end
 
   def method_raises

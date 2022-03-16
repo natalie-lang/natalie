@@ -329,7 +329,7 @@ module Natalie
 
         if has_complicated_args || may_need_to_destructure_args_for_block
           instructions << PushArgsInstruction.new(for_block: for_block, arity: arity)
-          instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp)
+          instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
           return instructions
         end
 
