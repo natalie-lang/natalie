@@ -3,7 +3,6 @@
 namespace Natalie {
 
 Value MatchDataObject::array(int start) {
-    assert(start < m_region->num_regs);
     auto size = (size_t)(m_region->num_regs - start);
     auto array = new ArrayObject { size };
     for (int i = start; i < m_region->num_regs; i++) {

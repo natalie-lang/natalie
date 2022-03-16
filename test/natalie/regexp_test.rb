@@ -234,4 +234,11 @@ describe 'regexp' do
       r.options.should == 7
     end
   end
+
+  describe 'MatchData' do
+    describe '#captures' do
+      /foo/.match('foo').captures.should == []
+      /f(.)(o)/.match('foo').captures.should == ['o', 'o']
+    end
+  end
 end
