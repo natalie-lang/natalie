@@ -292,7 +292,7 @@ file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do |t|
   sh <<-SH
     cd #{build_dir} && \
     rake parser_c_ext && \
-    cp #{build_dir}/ext/natalie_parser/natalie_parser.so #{File.expand_path('build', __dir__)}
+    cp #{build_dir}/ext/natalie_parser/natalie_parser.#{so_ext} #{File.expand_path('build', __dir__)}
   SH
 end
 
