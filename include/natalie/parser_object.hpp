@@ -12,23 +12,15 @@
 
 namespace Natalie {
 
-using namespace NatalieParser;
-
 class ParserObject : public Object {
 public:
     Value parse(Env *, Value, Value = nullptr);
     Value tokens(Env *, Value, Value);
 
-    Value node_to_ruby(Env *env, Node *node);
-
 private:
-    Value token_to_ruby(Env *env, Token &token, bool with_line_and_column_numbers = false);
-    void validate_token(Env *env, Token &token);
-    Value class_or_module_name_to_ruby(Env *env, Node *name);
-
-    SexpObject *build_args_sexp(Env *env, Node *parent, Vector<Node *> &args);
-    SexpObject *build_assignment_sexp(Env *env, Node *parent, Node *identifier);
-    SexpObject *multiple_assignment_to_ruby_with_array(Env *env, MultipleAssignmentNode *node);
+    Value node_to_ruby(Env *env, NatalieParser::Node *node);
+    Value token_to_ruby(Env *env, NatalieParser::Token &token, bool with_line_and_column_numbers = false);
+    void validate_token(Env *env, NatalieParser::Token &token);
 };
 
 }

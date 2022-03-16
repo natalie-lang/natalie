@@ -111,6 +111,10 @@ public:
         parse_options(options, &m_options);
     }
 
+    void set_options(int options) {
+        m_options = options;
+    }
+
     static void parse_options(String &options_string, int *options) {
         for (char *c = const_cast<char *>(options_string.c_str()); *c != '\0'; ++c) {
             switch (*c) {

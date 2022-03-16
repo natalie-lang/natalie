@@ -12,3 +12,5 @@
         fprintf(stderr, "\n");                                                                    \
         abort();                                                                                  \
     }
+
+#define TM_UNUSED(var) (void)var

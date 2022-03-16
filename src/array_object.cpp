@@ -98,6 +98,18 @@ Value ArrayObject::shift() {
     return m_vector.pop_front();
 }
 
+void ArrayObject::set(size_t index, Value value) {
+    if (index == m_vector.size()) {
+        m_vector.push(value);
+        return;
+    } else if (index > m_vector.size()) {
+        m_vector.set_size(index, NilObject::the());
+        m_vector.push(value);
+        return;
+    }
+    m_vector[index] = value;
+}
+
 Value ArrayObject::inspect(Env *env) {
     RecursionGuard guard { this };
 

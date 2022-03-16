@@ -7,13 +7,16 @@ module Natalie
     def initialize(code_str, path, nat_parser: false)
       if RUBY_ENGINE != 'natalie'
         if nat_parser
+          so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
           begin
-            require_relative '../../build/parser_c_ext'
+            $LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
+            $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
+            require 'natalie_parser'
           rescue LoadError
-            puts 'Error: You must build parser_c_ext.so by running: rake parser_c_ext'
+            puts 'Error: You must build natalie_parser.so by running: rake parser_c_ext'
             exit 1
           end
-          require_relative '../../lib/sexp_stub_for_use_by_c_ext'
+          #require_relative '../../lib/sexp_stub_for_use_by_c_ext'
         else
           require 'ruby_parser'
         end

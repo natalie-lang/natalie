@@ -198,7 +198,7 @@ public:
             return *this;
         }
 
-        iterator operator++(int _) {
+        iterator operator++(int) {
             iterator i = *this;
             m_index++;
             return i;

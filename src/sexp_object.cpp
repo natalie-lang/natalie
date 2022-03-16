@@ -3,7 +3,8 @@
 
 namespace Natalie {
 
-SexpObject::SexpObject(Env *env, Node *node, std::initializer_list<Value> list)
+// TODO: remove?
+SexpObject::SexpObject(Env *env, NatalieParser::Node *node, std::initializer_list<Value> list)
     : ArrayObject { list } {
     m_klass = GlobalEnv::the()->Object()->const_fetch("Sexp"_s)->as_class();
     if (node->file())
