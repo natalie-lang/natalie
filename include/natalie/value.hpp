@@ -62,13 +62,9 @@ public:
         if (is_fast_integer()) {
             if (other.is_fast_integer())
                 return get_fast_integer() == other.get_fast_integer();
-            if (other.is_fast_float())
-                return get_fast_integer() == other.get_fast_float();
             return false;
         }
         if (is_fast_float()) {
-            if (other.is_fast_integer())
-                return get_fast_integer() == other.get_fast_integer();
             if (other.is_fast_float())
                 return get_fast_float() == other.get_fast_float();
             return false;
@@ -77,21 +73,7 @@ public:
     }
 
     bool operator!=(Value other) const {
-        if (is_fast_integer()) {
-            if (other.is_fast_integer())
-                return get_fast_integer() != other.get_fast_integer();
-            if (other.is_fast_float())
-                return get_fast_integer() != other.get_fast_float();
-            return true;
-        }
-        if (is_fast_float()) {
-            if (other.is_fast_integer())
-                return get_fast_integer() != other.get_fast_integer();
-            if (other.is_fast_float())
-                return get_fast_float() != other.get_fast_float();
-            return true;
-        }
-        return m_object != other.object();
+        return !(*this == other);
     }
 
     bool is_null() const { return m_type == Type::Pointer && !m_object; }
