@@ -893,6 +893,7 @@ gen.binding('Symbol', 'empty?', 'SymbolObject', 'is_empty', argc: 0, pass_env: f
 gen.binding('Symbol', 'id2name', 'SymbolObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'inspect', 'SymbolObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'intern', 'SymbolObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Symbol', 'length', 'SymbolObject', 'length', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', '[]', 'SymbolObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'start_with?', 'SymbolObject', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Symbol', 'succ', 'SymbolObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
