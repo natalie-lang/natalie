@@ -36,6 +36,12 @@ module Kernel
   end
   private :initialize_dup
 
+  def initialize_clone(other, freeze: nil)
+    initialize_copy(other)
+    self
+  end
+  private :initialize_clone
+
   def instance_of?(clazz)
     raise TypeError, 'class or module required' unless clazz.is_a?(Module)
 
