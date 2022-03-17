@@ -64,6 +64,7 @@ public:
 
     Value define_singleton_method(Env *env, Value name, Block *block);
     Value hash(Env *env);
+    Value initialize_copy(Env *env, Value object);
     Value inspect(Env *env);
     static Value inspect(Env *env, Value value);
     Value main_obj_inspect(Env *);
