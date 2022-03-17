@@ -19,6 +19,12 @@ module Kernel
   end
   alias to_enum enum_for
 
+  def initialize_dup(other)
+    initialize_copy(other)
+    self
+  end
+  private :initialize_dup
+
   def rand(*args)
     Random::DEFAULT.rand(*args)
   end
