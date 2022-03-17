@@ -282,18 +282,6 @@ SexpObject *Object::as_sexp_object_for_method_binding() {
     return static_cast<SexpObject *>(this);
 }
 
-const ManagedString *Object::identifier_str(Env *env, Conversion conversion) {
-    if (is_symbol()) {
-        return as_symbol()->to_s(env)->to_low_level_string();
-    } else if (is_string()) {
-        return as_string()->to_low_level_string();
-    } else if (conversion == Conversion::NullAllowed) {
-        return nullptr;
-    } else {
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-    }
-}
-
 SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol();
