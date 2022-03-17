@@ -45,12 +45,11 @@ describe "Regexp#match" do
 
   describe "with [string, position]" do
     describe "when given a positive position" do
-      # NATFIXME MatchObject is missing captures
-      xit "matches the input at a given position" do
+      it "matches the input at a given position" do
         /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
       end
 
-      # NATFIXME MatchObject is missing captures
+      # NATFIXME encoding isn't quite handled properly just yet
       xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
       end
@@ -63,12 +62,11 @@ describe "Regexp#match" do
     end
 
     describe "when given a negative position" do
-      # NATFIXME MatchObject is missing captures
-      xit "matches the input at a given position" do
+      it "matches the input at a given position" do
         /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
       end
 
-      # NATFIXME MatchObject is missing captures
+      # NATFIXME encoding isn't quite handled properly just yet
       xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
       end
