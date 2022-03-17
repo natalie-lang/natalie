@@ -197,6 +197,17 @@ Value KernelModule::hash(Env *env) {
     }
 }
 
+Value KernelModule::initialize_copy(Env *env, Value object) {
+    if (this->send(env, "=="_s, { object })->is_truthy()) {
+        return this;
+    }
+    this->assert_not_frozen(env);
+    if (m_klass != object->klass()) {
+        env->raise("TypeError", "initialize_copy should take same class object");
+    }
+    return this;
+}
+
 Value KernelModule::inspect(Env *env) {
     return inspect(env, this);
 }
