@@ -155,8 +155,6 @@ public:
     SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
 
-    const ManagedString *identifier_str(Env *, Conversion);
-
     ClassObject *singleton_class() const { return m_singleton_class; }
     ClassObject *singleton_class(Env *);
 
