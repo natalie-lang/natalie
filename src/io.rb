@@ -6,4 +6,10 @@ class IO
   def rewind
     seek(0)
   end
+
+  def each
+    while line = gets
+      yield line
+    end
+  end
 end
