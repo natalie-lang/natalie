@@ -85,6 +85,10 @@ bool SymbolObject::start_with(Env *env, Value needle) {
     return to_s(env)->internal_start_with(env, needle);
 }
 
+Value SymbolObject::length(Env *env) {
+    return to_s(env)->size(env);
+}
+
 Value SymbolObject::ref(Env *env, Value index_obj) {
     return to_s(env)->send(env, intern("[]"), { index_obj });
 }

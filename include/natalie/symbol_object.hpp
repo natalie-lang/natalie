@@ -58,6 +58,7 @@ public:
 
     bool start_with(Env *, Value);
 
+    Value length(Env *);
     Value ref(Env *, Value);
 
     const String &string() const { return m_name; }
