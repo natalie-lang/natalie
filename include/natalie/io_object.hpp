@@ -45,6 +45,7 @@ public:
     Value initialize(Env *, Value);
     Value read(Env *, Value) const;
     Value write(Env *, size_t, Value *) const;
+    Value gets(Env *) const;
     Value puts(Env *, size_t, Value *) const;
     Value print(Env *, size_t, Value *) const;
     Value close(Env *);

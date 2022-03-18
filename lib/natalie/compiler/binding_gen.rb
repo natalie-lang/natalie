@@ -620,6 +620,7 @@ gen.binding('IO', 'closed?', 'IoObject', 'is_closed', argc: 0, pass_env: false, 
 gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('IO', 'initialize', 'IoObject', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'print', 'IoObject', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'gets', 'IoObject', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'puts', 'IoObject', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'read', 'IoObject', 'read', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'seek', 'IoObject', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
