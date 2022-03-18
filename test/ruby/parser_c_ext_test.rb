@@ -14,11 +14,11 @@ describe 'Natalie Parser C Extension' do
   parallelize_me!
 
   it 'works with an instance' do
-    expect(Parser.new('1', '-e').parse).must_equal(s(:block, s(:lit, 1)))
+    expect(NatalieParser.new('1', '-e').parse).must_equal(s(:block, s(:lit, 1)))
   end
 
   it 'works using the class method' do
-    expect(Parser.parse('1', '-e')).must_equal(s(:block, s(:lit, 1)))
+    expect(NatalieParser.parse('1', '-e')).must_equal(s(:block, s(:lit, 1)))
   end
 
   it 'works via the command line' do
