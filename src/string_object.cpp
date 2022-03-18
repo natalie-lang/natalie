@@ -342,7 +342,7 @@ Value StringObject::concat(Env *env, size_t argc, Value *args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s)->as_string();
+            str_obj = arg.send(env, "chr"_s, { EncodingObject::encodings().get(m_encoding) })->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
@@ -422,7 +422,7 @@ Value StringObject::prepend(Env *env, size_t argc, Value *args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s)->as_string();
+            str_obj = arg.send(env, "chr"_s, { EncodingObject::encodings().get(m_encoding) })->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
@@ -446,8 +446,8 @@ Value StringObject::bytes(Env *env, Block *block) {
         return each_byte(env, block);
     }
     ArrayObject *ary = new ArrayObject { length() };
-    for (size_t i = 0; i < length(); i++) {
-        unsigned char c = c_str()[i];
+    for (size_t i = 0; i < length(); ++i) {
+        unsigned char c = m_string[i];
         ary->push(Value::integer(c));
     }
     return ary;

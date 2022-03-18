@@ -2,7 +2,9 @@ require_relative '../../spec_helper'
 
 describe "Symbol#<=> with Symbol" do
   it "compares individual characters based on their ascii value" do
-    ascii_order = Array.new(256) { |x| x.chr.to_sym }
+    # NATFIXME: Implement Encoding::US_ASCII
+    # ascii_order = Array.new(256) { |x| x.chr.to_sym }
+    ascii_order = Array.new(256) { |x| x.chr(Encoding::ASCII_8BIT).to_sym }
     sort_order = ascii_order.sort
     sort_order.should == ascii_order
   end

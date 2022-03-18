@@ -642,7 +642,7 @@ module Natalie
             when 92
               "\\134"
             when 32..126
-              byte.chr
+              byte.chr(Encoding::ASCII_8BIT)
             else
               "\\%03o" % byte
             end

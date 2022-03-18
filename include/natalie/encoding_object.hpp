@@ -37,8 +37,25 @@ public:
 
     Value inspect(Env *);
 
+    bool in_encoding_codepoint_range(nat_int_t codepoint) {
+        switch (m_num) {
+        case Encoding::ASCII_8BIT:
+            return codepoint >= 0 && codepoint < 256;
+        case Encoding::UTF_8:
+            return codepoint >= 0 && codepoint < 1114112;
+        }
+        NAT_UNREACHABLE();
+    }
+
+    // NATFIXME: Check if a codepoint is invalid
+    bool invalid_codepoint(nat_int_t codepoint) {
+        return false;
+    }
+
     static HashObject *aliases(Env *);
+    static EncodingObject *find(Env *, Value);
     static ArrayObject *list(Env *env);
+    static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
 
     virtual void visit_children(Visitor &) override final;
 
@@ -49,6 +66,8 @@ public:
 private:
     Vector<StringObject *> m_names {};
     Encoding m_num;
+
+    static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
 };
 
 EncodingObject *encoding(Env *env, Encoding num, ArrayObject *names);

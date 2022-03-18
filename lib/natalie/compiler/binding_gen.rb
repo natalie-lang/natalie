@@ -422,6 +422,7 @@ gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_en
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'name', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -584,7 +585,7 @@ gen.binding('Integer', '===', 'IntegerObject', 'eq', argc: 1, pass_env: true, pa
 gen.binding('Integer', '^', 'IntegerObject', 'bitwise_xor', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'abs', 'IntegerObject', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'bit_length', 'IntegerObject', 'bit_length', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Integer', 'chr', 'IntegerObject', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Integer', 'chr', 'IntegerObject', 'chr', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'ceil', 'IntegerObject', 'ceil', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'coerce', 'IntegerObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'denominator', 'IntegerObject', 'denominator', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

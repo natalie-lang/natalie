@@ -87,7 +87,7 @@ public:
     Value floor(Env *, Value);
     Value gcd(Env *, Value);
     Value abs(Env *);
-    Value chr(Env *) const;
+    Value chr(Env *, Value) const;
     Value negate(Env *);
     Value numerator();
     Value complement(Env *) const;

@@ -560,12 +560,40 @@ Value IntegerObject::abs(Env *env) {
     return this;
 }
 
-Value IntegerObject::chr(Env *env) const {
-    if (m_integer < 0 || m_integer > 255)
-        env->raise("RangeError", "{} out of char range", m_integer.to_nat_int_t());
-    auto c = static_cast<char>(m_integer.to_nat_int_t());
-    char str[2] = { c, 0 };
-    return new StringObject { str, 1 };
+Value IntegerObject::chr(Env *env, Value encoding) const {
+    if (m_integer < 0 || m_integer > (nat_int_t)UINT_MAX)
+        env->raise("RangeError", "{} out of char range", m_integer.to_string());
+    else if (is_bignum())
+        env->raise("RangeError", "bignum out of char range");
+
+    if (encoding) {
+        if (!encoding->is_encoding()) {
+            encoding->assert_type(env, Type::String, "String");
+            encoding = EncodingObject::find(env, encoding);
+        }
+    } else {
+        if (m_integer > 255)
+            env->raise("RangeError", "{} out of char range", m_integer.to_string());
+
+        Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
+        if (m_integer <= 127) {
+            NAT_NOT_YET_IMPLEMENTED();
+        } else {
+            encoding = Encoding->const_fetch("BINARY"_s);
+        }
+    }
+
+    auto encoding_obj = encoding->as_encoding();
+    if (!encoding_obj->in_encoding_codepoint_range(m_integer.to_nat_int_t()))
+        env->raise("RangeError", "{} out of char range", m_integer.to_string());
+
+    if (encoding_obj->invalid_codepoint(m_integer.to_nat_int_t()))
+        env->raise("RangeError", "invalid codepoint {} in {}", m_integer.to_nat_int_t(), encoding_obj->inspect_str(env));
+
+    char c = static_cast<char>(m_integer.to_nat_int_t());
+    Natalie::String string = " ";
+    string[0] = c;
+    return new StringObject { string, encoding_obj->num() };
 }
 
 bool IntegerObject::optimized_method(SymbolObject *method_name) {
