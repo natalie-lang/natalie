@@ -39,6 +39,7 @@ public:
 
     static HashObject *aliases(Env *);
     static ArrayObject *list(Env *env);
+    static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
 
     virtual void visit_children(Visitor &) override final;
 
@@ -49,6 +50,8 @@ public:
 private:
     Vector<StringObject *> m_names {};
     Encoding m_num;
+
+    static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
 };
 
 EncodingObject *encoding(Env *env, Encoding num, ArrayObject *names);

@@ -31,10 +31,12 @@ ArrayObject *EncodingObject::list(Env *) {
 
 EncodingObject::EncodingObject(Encoding num, std::initializer_list<const char *> names)
     : EncodingObject {} {
+    assert(s_encoding_list.get(num) == nullptr);
     m_num = num;
     for (const char *name : names) {
         m_names.push(new StringObject { name });
     }
+    s_encoding_list.put(num, this);
 }
 
 Value EncodingObject::name(Env *env) {
