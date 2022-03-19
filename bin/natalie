@@ -87,10 +87,6 @@ OptionParser.new do |opts|
     options[:keep_cpp] = true
   end
 
-  opts.on('--nat-parser', "Enable use of Natalie's own Ruby parser (rather than the ruby_parser gem)") do
-    options[:nat_parser] = true
-  end
-
   opts.on('--extra-optimizations', 'Enables additional compiler optimizations that may decrease compatibility with Ruby') do
     options[:optimizations] = true
   end
@@ -271,7 +267,7 @@ class Runner
   end
 
   def parser
-    @parser ||= Natalie::Parser.new(code, source_path, nat_parser: options[:nat_parser])
+    @parser ||= Natalie::Parser.new(code, source_path)
   end
 
   def ast

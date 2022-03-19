@@ -2,19 +2,10 @@ require_relative '../spec_helper'
 require 'sexp_processor'
 
 if RUBY_ENGINE != 'natalie'
-  require 'ruby_parser'
+  require 'natalie_parser'
   class NatalieParser
     def self.parse(code, path = '(string)')
-      node = RubyParser.new.parse(code, path)
-      if node.nil?
-        s(:block)
-      elsif node.first == :block
-        node
-      else
-        s(:block, node)
-      end
-    rescue Racc::ParseError, RubyParser::SyntaxError => e
-      raise SyntaxError, e.message
+      NatalieParser.parse(code, path)
     end
   end
 end

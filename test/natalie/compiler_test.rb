@@ -52,9 +52,8 @@ describe 'Natalie::Compiler' do
 
     compiler = Natalie::Compiler.new(ast, path)
 
-    # FIXME: line numbers do not match between our Parser and the ruby_parser gem
-    actual = compiler.instructions.gsub(/^.*set_line.*\n/, '').strip
-    expected = `#{NAT_BINARY} #{path} -d`.gsub(/^.*set_line.*\n/, '').split('-' * 80).first.strip
+    actual = compiler.instructions.strip
+    expected = `#{NAT_BINARY} #{path} -d`.split('-' * 80).first.strip
     actual.should == expected
   end
 end
