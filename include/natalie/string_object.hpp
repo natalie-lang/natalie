@@ -136,6 +136,7 @@ public:
     }
 
     Value initialize(Env *, Value);
+    Value initialize_copy(Env *, Value);
     Value ltlt(Env *, Value);
 
     bool eql(Value arg) const {

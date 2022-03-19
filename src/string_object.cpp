@@ -261,6 +261,15 @@ Value StringObject::initialize(Env *env, Value arg) {
     return this;
 }
 
+Value StringObject::initialize_copy(Env *env, Value arg) {
+    assert_not_frozen(env);
+    if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
+        arg = arg->send(env, "to_str"_s);
+    arg->assert_type(env, Type::String, "String");
+    m_string = arg->as_string()->string();
+    return this;
+}
+
 Value StringObject::ltlt(Env *env, Value arg) {
     concat(env, 1, &arg);
     return this;
