@@ -593,7 +593,7 @@ Value StringObject::ref(Env *env, Value index_obj) {
         if (begin < 0) begin = chars->size() + begin;
         if (end < 0) end = chars->size() + end;
 
-        if (begin < 0 || end < 0) return NilObject::the();
+        if (begin < 0 || end < 0) return new StringObject { "", 0 };
         size_t u_begin = static_cast<size_t>(begin);
         size_t u_end = static_cast<size_t>(end);
         if (u_begin > chars->size()) return NilObject::the();
