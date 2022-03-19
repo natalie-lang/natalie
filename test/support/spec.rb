@@ -258,6 +258,10 @@ def guard(proc)
   yield if proc.call
 end
 
+def guard_not(proc)
+  yield unless proc.call
+end
+
 def quarantine!
   # do nothing
 end
