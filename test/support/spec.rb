@@ -187,18 +187,22 @@ def ruby_exe(code, args: nil)
   end
 end
 
-def ruby_version_is(version)
-  ruby_version = SpecVersion.new RUBY_VERSION
-  case version
+def ruby_version_is(version, &block)
+  version_is(RUBY_VERSION, version, &block)
+end
+
+def version_is(version, requirement_version)
+  version = SpecVersion.new(version)
+  case requirement_version
   when String
-    requirement = SpecVersion.new version
-    yield if ruby_version >= requirement
+    requirement = SpecVersion.new requirement_version
+    yield if version >= requirement
   when Range
-    a = SpecVersion.new version.begin
-    b = SpecVersion.new version.end
-    yield if ruby_version >= a && (version.exclude_end? ? ruby_version < b : ruby_version <= b)
+    a = SpecVersion.new requirement_version.begin
+    b = SpecVersion.new requirement_version.end
+    yield if version >= a && (requirement_version.exclude_end? ? version < b : version <= b)
   else
-    raise "version must be a String or Range but was a #{version.class}"
+    raise "version must be a String or Range but was a #{requirement_version.class}"
   end
 end
 
