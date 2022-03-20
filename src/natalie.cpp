@@ -193,6 +193,8 @@ Env *build_top_env() {
     env->global_set("$stderr"_s, _stderr);
     Object->const_set("STDERR"_s, _stderr);
 
+    env->global_set("$/"_s, new StringObject { "\n", 1 });
+
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
 
