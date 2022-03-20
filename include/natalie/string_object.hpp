@@ -179,6 +179,7 @@ public:
     Value ord(Env *);
     Value prepend(Env *, size_t, Value *);
     Value ref(Env *, Value);
+    Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);
     Value reverse_in_place(Env *);
     Value rstrip(Env *) const;

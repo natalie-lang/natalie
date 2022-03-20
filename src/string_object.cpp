@@ -616,6 +616,126 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
+Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
+    assert_not_frozen(env);
+
+    if (value == nullptr) {
+        value = arg2;
+        arg2 = nullptr;
+    }
+
+    auto chars = this->chars(env);
+    auto process_begin = [chars, env](nat_int_t begin) -> nat_int_t {
+        nat_int_t start = begin;
+        if (begin < 0)
+            start += chars->size();
+
+        if (start < 0 || start > (nat_int_t)chars->size())
+            env->raise("IndexError", "index {} out of string", begin);
+
+        return start;
+    };
+
+    auto get_end_by_length = [env](nat_int_t begin, Value length_argument) -> nat_int_t {
+        if (length_argument) {
+            auto length = IntegerObject::convert_to_nat_int_t(env, length_argument);
+            if (length < 0)
+                env->raise("IndexError", "negative length {}", length);
+            return begin + length;
+        } else {
+            return begin + 1;
+        }
+    };
+
+    nat_int_t begin;
+    nat_int_t end = -1;
+    nat_int_t expand_length = 0;
+    if (arg1.is_fast_integer()) {
+        begin = process_begin(arg1.get_fast_integer());
+        end = get_end_by_length(begin, arg2);
+    } else if (arg1->is_range()) {
+        assert(arg2 == nullptr);
+        auto range = arg1->as_range();
+        begin = IntegerObject::convert_to_nat_int_t(env, range->begin());
+
+        // raises a RangeError if Range begin is greater than String size
+        if (::abs(begin) >= (nat_int_t)chars->size())
+            env->raise("RangeError", "{} out of range", arg1->inspect_str(env));
+
+        // process the begin later to eventually raise the error above
+        begin = process_begin(begin);
+
+        end = IntegerObject::convert_to_nat_int_t(env, range->end());
+
+        // treats a negative out-of-range Range end as a zero count
+        if (end < 0 && -end >= (nat_int_t)chars->size()) {
+            end = begin;
+        } else {
+            if (end < 0)
+                end += chars->size();
+
+            if (!range->exclude_end())
+                ++end;
+        }
+    } else if (arg1->is_regexp()) {
+        auto regexp = arg1->as_regexp();
+        auto match_result_value = regexp->match(env, this);
+        if (match_result_value->is_nil())
+            env->raise("IndexError", "regexp not matched");
+        auto match_result = match_result_value->as_match_data();
+
+        nat_int_t match_index_argument = 0;
+        if (arg2)
+            match_index_argument = IntegerObject::convert_to_nat_int_t(env, arg2);
+
+        if (::abs(match_index_argument) >= (nat_int_t)match_result->size())
+            env->raise("IndexError", "index {} out of regexp", match_index_argument);
+
+        nat_int_t match_index = match_index_argument;
+        if (match_index_argument < 0)
+            match_index += match_result->size();
+
+        auto offset = match_result->offset(env, Value::integer(match_index))->as_array();
+        if (offset->at(0)->is_nil())
+            env->raise("IndexError", "regexp group {} not matched", match_index);
+
+        begin = IntegerObject::convert_to_nat_int_t(env, offset->at(0));
+        end = IntegerObject::convert_to_nat_int_t(env, offset->at(1));
+    } else if (arg1->is_string()) {
+        assert(arg2 == nullptr);
+        auto query = arg1->as_string()->string();
+        begin = m_string.find(query);
+        if (begin == -1)
+            env->raise("IndexError", "string not matched");
+        begin = byte_index_to_char_index(chars, (size_t)begin);
+        end = begin + arg1->as_string()->chars(env)->size();
+    } else {
+        begin = process_begin(IntegerObject::convert_to_nat_int_t(env, arg1));
+        end = get_end_by_length(begin, arg2);
+    }
+
+    nat_int_t chars_to_be_removed = end - begin;
+    if (end > (nat_int_t)chars->size())
+        chars_to_be_removed = chars->size();
+
+    auto string = value->to_str(env);
+    auto arg_chars = string->chars(env);
+    size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
+
+    StringObject result;
+    for (size_t i = 0; i < new_length; ++i) {
+        if (i < (size_t)begin)
+            result.append(env, (*chars)[i]);
+        else if (i - begin < arg_chars->size())
+            result.append(env, (*arg_chars)[i - begin]);
+        else
+            result.append(env, (*chars)[i - arg_chars->size() + (end - begin)]);
+    }
+    m_string = result.string();
+
+    return value;
+}
+
 Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
