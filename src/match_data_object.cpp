@@ -29,6 +29,23 @@ Value MatchDataObject::group(Env *env, size_t index) {
     return new StringObject { str, length };
 }
 
+Value MatchDataObject::offset(Env *env, Value n) {
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, n);
+    if (index >= (nat_int_t)size())
+        return NilObject::the();
+
+    auto begin = m_region->beg[index];
+    auto end = m_region->end[index];
+    if (begin == -1)
+        return new ArrayObject { NilObject::the(), NilObject::the() };
+
+    auto chars = m_string->chars(env);
+    return new ArrayObject {
+        Value::integer(StringObject::byte_index_to_char_index(chars, begin)),
+        Value::integer(StringObject::byte_index_to_char_index(chars, end))
+    };
+}
+
 Value MatchDataObject::captures(Env *env) {
     return this->array(1);
 }

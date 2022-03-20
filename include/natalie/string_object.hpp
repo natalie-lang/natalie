@@ -193,6 +193,8 @@ public:
 
     Value convert_float();
 
+    static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
+
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
         String out;

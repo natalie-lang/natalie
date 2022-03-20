@@ -37,6 +37,7 @@ public:
 
     Value array(int);
     Value group(Env *, size_t);
+    Value offset(Env *, Value);
 
     Value captures(Env *);
     Value to_a(Env *);
@@ -54,6 +55,6 @@ public:
 
 private:
     OnigRegion *m_region { nullptr };
-    const StringObject *m_string { nullptr };
+    StringObject *m_string { nullptr };
 };
 }

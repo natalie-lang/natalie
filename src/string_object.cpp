@@ -604,6 +604,18 @@ Value StringObject::ref(Env *env, Value index_obj) {
     abort();
 }
 
+size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_index) {
+    size_t char_index = 0;
+    size_t current_byte_index = 0;
+    for (auto character : *chars) {
+        current_byte_index += character->as_string()->length();
+        if (current_byte_index > byte_index)
+            break;
+        ++char_index;
+    }
+    return char_index;
+}
+
 Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
