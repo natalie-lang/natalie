@@ -420,11 +420,7 @@ RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject
     Value gcd = x->gcd(env, y);
     Value numerator = x->div(env, gcd);
     Value denominator = y->div(env, gcd);
-    if (denominator->as_integer()->is_negative()) {
-        numerator = numerator->as_integer()->negate(env);
-        denominator = denominator->as_integer()->negate(env);
-    }
-    return new RationalObject { numerator->as_integer(), denominator->as_integer() };
+    return RationalObject::create(env, numerator->as_integer(), denominator->as_integer());
 }
 
 RationalObject *KernelModule::Rational(Env *env, double arg) {

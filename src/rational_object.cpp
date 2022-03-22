@@ -2,6 +2,14 @@
 
 namespace Natalie {
 
+RationalObject *RationalObject::create(Env *env, IntegerObject *numerator, IntegerObject *denominator) {
+    if (denominator->is_negative()) {
+        numerator = numerator->negate(env)->as_integer();
+        denominator = denominator->negate(env)->as_integer();
+    }
+    return new RationalObject { numerator, denominator };
+}
+
 Value RationalObject::add(Env *env, Value other) {
     if (other->is_integer()) {
         auto numerator = m_numerator->add(env, m_denominator->mul(env, other))->as_integer();
@@ -64,6 +72,31 @@ Value RationalObject::coerce(Env *env, Value other) {
 
 Value RationalObject::denominator(Env *env) {
     return m_denominator;
+}
+
+Value RationalObject::div(Env *env, Value other) {
+    if (other->is_integer() || other->is_rational()) {
+        RationalObject *arg;
+        if (other->is_integer()) {
+            arg = create(env, new IntegerObject { 1 }, other->as_integer());
+        } else {
+            auto numerator = other->as_rational()->numerator(env)->as_integer();
+            auto denominator = other->as_rational()->denominator(env)->as_integer();
+            arg = create(env, denominator, numerator);
+        }
+
+        if (arg->m_denominator->integer() == 0)
+            env->raise("ZeroDivisionError", "divided by 0");
+
+        return mul(env, arg);
+    } else if (other->is_float()) {
+        return this->to_f(env)->as_float()->div(env, other);
+    } else if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "/"_s, { result.second });
+    } else {
+        env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
+    }
 }
 
 bool RationalObject::eq(Env *env, Value other) {
