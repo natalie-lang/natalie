@@ -17,8 +17,7 @@ describe "Integer#/" do
     it "returns result the same class as the argument" do
       (3 / 2).should == 1
       (3 / 2.0).should == 1.5
-      # NATFIXME: Support Rational
-      # (3 / Rational(2, 1)).should == Rational(3, 2)
+      (3 / Rational(2, 1)).should == Rational(3, 2)
     end
 
     it "raises a ZeroDivisionError if the given argument is zero and not a Float" do
@@ -69,8 +68,7 @@ describe "Integer#/" do
     it "returns result the same class as the argument" do
       (@bignum / 4).should == 4611686018427387926
       (@bignum / 4.0).should be_close(4611686018427387926, TOLERANCE)
-      # NATFIXME: Support Rational
-      # (@bignum / Rational(4, 1)).should == Rational(4611686018427387926, 1)
+      (@bignum / Rational(4, 1)).should == Rational(4611686018427387926, 1)
     end
 
     it "does NOT raise ZeroDivisionError if other is zero and is a Float" do

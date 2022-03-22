@@ -42,8 +42,7 @@ describe "Integer#div" do
       1.div(0.169).should == 5
       -1.div(50.4).should == -1
       1.div(bignum_value).should == 0
-      # NATFIXME: Implement Integer#/ for Rational
-      # 1.div(Rational(1, 5)).should == 5
+      1.div(Rational(1, 5)).should == 5
     end
 
     it "raises a ZeroDivisionError when the given argument is 0 and a Float" do
@@ -72,8 +71,7 @@ describe "Integer#div" do
 
     it "returns self divided by other" do
       @bignum.div(4).should == 4611686018427387926
-      # NATFIXME: Implement Integer#/ for Rational
-      # @bignum.div(Rational(4, 1)).should == 4611686018427387926
+      @bignum.div(Rational(4, 1)).should == 4611686018427387926
       @bignum.div(bignum_value(2)).should == 1
 
       (-(10**50)).div(-(10**40 + 1)).should == 9999999999
