@@ -41,11 +41,11 @@ public:
         : m_size { other.m_size }
         , m_capacity { other.m_size }
         , m_data { array_of_size(other.m_size) } {
-        memcpy(m_data, other.m_data, sizeof(T) * m_size);
+        copy_data(m_data, other.m_data, other.m_size);
     }
 
     ~Vector() {
-        delete[] m_data;
+        delete_memory();
     }
 
     void clear() { m_size = 0; }
@@ -58,20 +58,29 @@ public:
             return {};
         }
         T *data = array_of_size(count);
-        memcpy(data, m_data + offset, sizeof(T) * count);
+        copy_data(data, m_data + offset, count);
         return { count, count, data };
     }
 
     Vector &operator=(Vector &other) {
         clear();
         grow_at_least(other.m_size);
-        memcpy(m_data, other.m_data, sizeof(T) * other.m_size);
+        copy_data(m_data, other.m_data, other.m_size);
         m_size = other.m_size;
         return *this;
     }
 
+    void copy_data(T *dest, T *src, size_t size) {
+        if constexpr (std::is_trivially_copyable<T>::value) {
+            memcpy(dest, src, sizeof(T) * size);
+        } else {
+            for (size_t i = 0; i < size; ++i)
+                dest[i] = src[i];
+        }
+    }
+
     Vector &operator=(Vector &&other) {
-        delete[] m_data;
+        delete_memory();
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_data = other.m_data;
@@ -119,8 +128,8 @@ public:
     }
 
     void insert(size_t index, T val) {
-        if (m_size >= m_capacity)
-            grow_at_least(m_size + 1);
+        assert(index <= m_size);
+        grow_at_least(m_size + 1);
 
         if (index == m_size) {
             m_size++;
@@ -131,9 +140,10 @@ public:
         if constexpr (std::is_trivially_copyable<T>::value) {
             memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
         } else {
-            for (size_t i = m_size - 1; i >= index; --i) {
+            for (size_t i = m_size - 1; i > index; --i) {
                 m_data[i + 1] = m_data[i];
             }
+            m_data[index + 1] = m_data[index];
         }
 
         m_data[index] = val;
@@ -249,7 +259,7 @@ private:
 
     static T *array_of_size(size_t size) {
         if constexpr (std::is_trivially_copyable<T>::value)
-            return reinterpret_cast<T *>(new unsigned char[size * sizeof(T)] {});
+            return reinterpret_cast<T *>(malloc(size * sizeof(T)));
         else
             return new T[size] {};
     }
@@ -306,6 +316,13 @@ private:
         m_data[end] = m_data[p_index];
         m_data[p_index] = temp;
         return p_index;
+    }
+
+    void delete_memory() {
+        if constexpr (std::is_trivially_copyable<T>::value)
+            free(m_data);
+        else
+            delete[] m_data;
     }
 
     size_t m_size { 0 };

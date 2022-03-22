@@ -69,8 +69,7 @@ public:
 private:
     bool m_present;
 
-    union {
-        T m_value {};
-    };
+    T m_value {};
 };
+
 }

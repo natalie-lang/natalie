@@ -373,6 +373,7 @@ public:
     void truncate(size_t length) {
         assert(length <= m_length);
         if (length == 0) {
+            delete[] m_str;
             m_str = nullptr;
             m_length = 0;
             m_capacity = 0;
