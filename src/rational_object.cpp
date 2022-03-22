@@ -7,6 +7,11 @@ RationalObject *RationalObject::create(Env *env, IntegerObject *numerator, Integ
         numerator = numerator->negate(env)->as_integer();
         denominator = denominator->negate(env)->as_integer();
     }
+
+    auto gcd = numerator->gcd(env, denominator);
+    numerator = numerator->div(env, gcd)->as_integer();
+    denominator = denominator->div(env, gcd)->as_integer();
+
     return new RationalObject { numerator, denominator };
 }
 
@@ -19,14 +24,11 @@ Value RationalObject::add(Env *env, Value other) {
     } else if (other->is_rational()) {
         auto num1 = other->as_rational()->numerator(env)->as_integer();
         auto den1 = other->as_rational()->denominator(env)->as_integer();
-        auto gcd1 = m_denominator->gcd(env, den1);
-        auto a = den1->div(env, gcd1)->as_integer()->mul(env, m_numerator);
-        auto b = m_denominator->div(env, gcd1)->as_integer()->mul(env, num1);
+        auto a = den1->mul(env, m_numerator);
+        auto b = m_denominator->mul(env, num1);
         auto c = a->as_integer()->add(env, b)->as_integer();
-        auto gcd2 = c->gcd(env, gcd1);
-        auto num2 = c->div(env, gcd2);
-        auto den2 = den1->div(env, gcd2)->as_integer()->mul(env, m_denominator->div(env, gcd1));
-        return new RationalObject { num2->as_integer(), den2->as_integer() };
+        auto den2 = den1->mul(env, m_denominator)->as_integer();
+        return create(env, c, den2);
     } else if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
         return result.first->send(env, "+"_s, { result.second });
@@ -121,13 +123,11 @@ Value RationalObject::mul(Env *env, Value other) {
         other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };
     }
     if (other->is_rational()) {
-        auto num1 = other->as_rational()->numerator(env)->as_integer();
-        auto den1 = other->as_rational()->denominator(env)->as_integer();
-        auto gcd1 = m_numerator->gcd(env, den1);
-        auto gcd2 = m_denominator->gcd(env, num1);
-        auto num2 = m_numerator->div(env, gcd1)->as_integer()->mul(env, num1->div(env, gcd2));
-        auto den2 = m_denominator->div(env, gcd2)->as_integer()->mul(env, den1->div(env, gcd1));
-        return new RationalObject { num2->as_integer(), den2->as_integer() };
+        auto num1 = other->as_rational()->numerator(env);
+        auto den1 = other->as_rational()->denominator(env);
+        auto num2 = m_numerator->mul(env, num1);
+        auto den2 = m_denominator->mul(env, den1);
+        return create(env, num2->as_integer(), den2->as_integer());
     } else if (other->is_float()) {
         return this->to_f(env)->as_float()->mul(env, other);
     } else if (other->respond_to(env, "coerce"_s)) {
@@ -151,14 +151,11 @@ Value RationalObject::sub(Env *env, Value other) {
     } else if (other->is_rational()) {
         auto num1 = other->as_rational()->numerator(env)->as_integer();
         auto den1 = other->as_rational()->denominator(env)->as_integer();
-        auto gcd1 = m_denominator->gcd(env, den1);
-        auto a = den1->div(env, gcd1)->as_integer()->mul(env, m_numerator);
-        auto b = m_denominator->div(env, gcd1)->as_integer()->mul(env, num1);
+        auto a = den1->mul(env, m_numerator);
+        auto b = m_denominator->mul(env, num1);
         auto c = a->as_integer()->sub(env, b)->as_integer();
-        auto gcd2 = c->gcd(env, gcd1);
-        auto num2 = c->div(env, gcd2);
-        auto den2 = den1->div(env, gcd2)->as_integer()->mul(env, m_denominator->div(env, gcd1));
-        return new RationalObject { num2->as_integer(), den2->as_integer() };
+        auto den2 = den1->mul(env, m_denominator)->as_integer();
+        return create(env, c, den2);
     } else if (other->respond_to(env, "coerce"_s)) {
         auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
         return result.first->send(env, "-"_s, { result.second });
