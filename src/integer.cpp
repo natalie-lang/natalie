@@ -75,6 +75,11 @@ Integer &Integer::operator*=(const Integer &other) {
     return *this;
 }
 
+Integer &Integer::operator/=(const Integer &other) {
+    *this = *this / other;
+    return *this;
+}
+
 Integer &Integer::operator>>=(const Integer &other) {
     *this = *this >> other;
     return *this;
