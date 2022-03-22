@@ -799,6 +799,7 @@ gen.binding('Rational', '==', 'RationalObject', 'eq', argc: 1, pass_env: true, p
 gen.binding('Rational', '===', 'RationalObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Rational', 'coerce', 'RationalObject', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'denominator', 'RationalObject', 'denominator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Rational', 'floor', 'RationalObject', 'floor', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'inspect', 'RationalObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'numerator', 'RationalObject', 'numerator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'to_f', 'RationalObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

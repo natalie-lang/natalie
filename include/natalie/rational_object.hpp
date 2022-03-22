@@ -21,6 +21,7 @@ public:
     Value denominator(Env *);
     Value div(Env *, Value);
     bool eq(Env *, Value);
+    Value floor(Env *, Value);
     Value inspect(Env *);
     Value mul(Env *, Value);
     Value numerator(Env *);

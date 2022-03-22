@@ -114,6 +114,25 @@ bool RationalObject::eq(Env *env, Value other) {
     return true;
 }
 
+Value RationalObject::floor(Env *env, Value precision_value) {
+    nat_int_t precision = 0;
+    if (precision_value)
+        precision = IntegerObject::convert_to_nat_int_t(env, precision_value);
+
+    if (m_denominator->integer() == 1)
+        return m_numerator->floor(env, precision_value);
+
+    if (precision < 0)
+        return to_i(env)->as_integer()->floor(env, precision_value);
+    if (precision == 0)
+        return to_f(env)->as_float()->floor(env, precision_value);
+
+    auto powered = IntegerObject::create(Natalie::pow(10, precision));
+    auto numerator = mul(env, powered)->as_rational()->floor(env, nullptr)->as_integer();
+
+    return create(env, numerator, powered->as_integer());
+}
+
 Value RationalObject::inspect(Env *env) {
     return StringObject::format("({}/{})", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
