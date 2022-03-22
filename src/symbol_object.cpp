@@ -89,6 +89,15 @@ Value SymbolObject::length(Env *env) {
     return to_s(env)->size(env);
 }
 
+Value SymbolObject::name(Env *env) {
+    SymbolObject *symbol = intern(m_name);
+    if (!symbol->m_string) {
+        symbol->m_string = symbol->to_s(env);
+        symbol->m_string->freeze();
+    }
+    return symbol->m_string;
+}
+
 Value SymbolObject::ref(Env *env, Value index_obj) {
     return to_s(env)->send(env, intern("[]"), { index_obj });
 }
