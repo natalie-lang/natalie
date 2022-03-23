@@ -13,11 +13,15 @@ public:
         , m_numerator { numerator }
         , m_denominator { denominator } { }
 
+    static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
+
     Value add(Env *, Value);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);
     Value denominator(Env *);
+    Value div(Env *, Value);
     bool eq(Env *, Value);
+    Value floor(Env *, Value);
     Value inspect(Env *);
     Value mul(Env *, Value);
     Value numerator(Env *);

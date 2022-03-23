@@ -129,6 +129,8 @@ Value IntegerObject::div(Env *env, Value arg) {
     if (arg->is_float()) {
         double result = m_integer.to_double() / arg->as_float()->to_double();
         return new FloatObject { result };
+    } else if (arg->is_rational()) {
+        return RationalObject(this, new IntegerObject { 1 }).div(env, arg);
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
