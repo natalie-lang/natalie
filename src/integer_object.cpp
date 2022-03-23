@@ -16,20 +16,21 @@ Value IntegerObject::create(const char *string) {
 Value IntegerObject::to_s(Env *env, Value base_value) {
     if (m_integer == 0)
         return new StringObject { "0" };
-    if (m_integer.is_bignum())
-        return new StringObject { m_integer.to_string() };
-    auto str = new StringObject {};
+
     nat_int_t base = 10;
-    // FIXME: What if base or self are bignums
     if (base_value) {
-        base_value->assert_type(env, Object::Type::Integer, "Integer");
-        base = base_value->as_integer()->integer().to_nat_int_t();
+        base = convert_to_nat_int_t(env, base_value);
 
         if (base < 2 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
         }
     }
-    auto num = m_integer.to_nat_int_t();
+
+    if (base == 10)
+        return new StringObject { m_integer.to_string() };
+
+    auto str = new StringObject {};
+    auto num = m_integer;
     bool negative = false;
     if (num < 0) {
         negative = true;
@@ -39,9 +40,9 @@ Value IntegerObject::to_s(Env *env, Value base_value) {
         auto digit = num % base;
         char c;
         if (digit >= 0 && digit <= 9)
-            c = digit + 48;
+            c = digit.to_nat_int_t() + 48;
         else
-            c = digit + 87;
+            c = digit.to_nat_int_t() + 87;
         str->prepend_char(env, c);
         num /= base;
     }

@@ -54,8 +54,7 @@ describe "Integer#to_s" do
   end
 
   context "bignum" do
-    # NATFIXME: Implement Integer#to_s with given base for bignums
-    xdescribe "when given a base" do
+    describe "when given a base" do
       it "returns self converted to a String using the given base" do
         a = 2**64
         a.to_s(2).should == "10000000000000000000000000000000000000000000000000000000000000000"
