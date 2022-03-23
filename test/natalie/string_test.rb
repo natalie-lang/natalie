@@ -214,6 +214,12 @@ describe 'string' do
     end
   end
 
+  describe '#[]=' do
+    it 'returns passed string' do
+      ("abc"[1] = "x").should == "x"
+    end
+  end
+
   describe '#succ' do
     context 'given a single character' do
       it 'returns the next character' do

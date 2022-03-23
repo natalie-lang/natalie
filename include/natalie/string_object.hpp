@@ -179,6 +179,7 @@ public:
     Value ord(Env *);
     Value prepend(Env *, size_t, Value *);
     Value ref(Env *, Value);
+    Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);
     Value reverse_in_place(Env *);
     Value rstrip(Env *) const;
@@ -192,6 +193,8 @@ public:
     Value uplus(Env *);
 
     Value convert_float();
+
+    static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
