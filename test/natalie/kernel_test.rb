@@ -63,4 +63,12 @@ describe 'Kernel' do
       a.should == [1, 1]
     end
   end
+
+  describe '#p' do
+    it 'returns the argument' do
+      result = nil
+      (-> { result = p([1, 2, 3]) }).should output("[1, 2, 3]\n")
+      result.should == [1, 2, 3]
+    end
+  end
 end

@@ -506,6 +506,44 @@ class BeNanExpectation
   end
 end
 
+class OutputExpectation
+  def initialize(expected)
+    @expected = expected
+  end
+
+  def match(subject)
+    actual = capture_output do
+      subject.call
+    end
+    if actual != @expected
+      raise SpecFailedException, "expected $stdout to get #{@expected.inspect} but it got #{actual.inspect} instead"
+    end
+  end
+
+  def inverted_match(subject)
+    actual = capture_output do
+      subject.call
+    end
+    if actual == @expected
+      raise SpecFailedException, "expected $stdout not to get #{@expected.inspect} but it did"
+    end
+  end
+
+  private
+
+  def capture_output
+    stub = IOStub.new
+    old_stdout = $stdout
+    begin
+      $stdout = stub
+      yield
+    ensure
+      $stdout = old_stdout
+    end
+    stub.to_s
+  end
+end
+
 class RaiseErrorExpectation
   def initialize(klass, message = nil, &block)
     @klass = klass
@@ -577,8 +615,10 @@ class IOStub
   alias write <<
   alias print <<
 
-  def puts(str)
-    self.<<(str.to_s + "\n")
+  def puts(*args)
+    args.each do |arg|
+      self.<<(arg.to_s + "\n")
+    end
   end
 
   def to_s
@@ -932,6 +972,14 @@ class Object
 
   def equal(other)
     EqualExpectation.new(other)
+  end
+
+  def output(expected)
+    OutputExpectation.new(expected)
+  end
+
+  def output_to_fd(expected)
+    OutputExpectation.new(expected)
   end
 
   def raise_error(klass = nil, message = nil, &block)

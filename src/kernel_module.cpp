@@ -313,7 +313,7 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
     } else if (argc == 1) {
         Value arg = args[0].send(env, "inspect"_s);
         puts(env, 1, &arg);
-        return arg;
+        return args[0];
     } else {
         ArrayObject *result = new ArrayObject { argc };
         for (size_t i = 0; i < argc; i++) {
