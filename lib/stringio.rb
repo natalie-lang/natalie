@@ -84,6 +84,18 @@ class StringIO
     raise NotImplementedError, 'fcntl() function is unimplemented on this machine'
   end
 
+  def fileno
+    nil
+  end
+
+  def flush
+    self
+  end
+
+  def fsync
+    0
+  end
+
   def getc
     __assert_not_read_closed
 
@@ -97,6 +109,15 @@ class StringIO
     return $_ = nil if eof?
 
     $_ = __next_line(separator, limit, chomp: chomp)
+  end
+
+  def isatty
+    false
+  end
+  alias tty? isatty
+
+  def pid
+    nil
   end
 
   def pos
@@ -163,6 +184,14 @@ class StringIO
       end
       result
     end
+  end
+
+  def sync
+    true
+  end
+
+  def sync=(arg)
+    arg
   end
 
   def write(argument)
