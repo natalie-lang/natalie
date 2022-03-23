@@ -343,6 +343,8 @@ class Matcher
       raise SpecFailedException, "#{@subject.inspect} should not be #{method}#{than}" if @subject.send(method, *args)
     end
   end
+
+  undef_method :equal?
 end
 
 class BeNilExpectation
