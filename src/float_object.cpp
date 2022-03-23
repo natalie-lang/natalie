@@ -173,8 +173,14 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     }
     rhs.unguard();
 
-    Value lhs = this;
+    if (is_infinity() && rhs->is_integer() && rhs->as_integer()->is_bignum()) {
+        if (is_positive_infinity())
+            return Value::integer(1);
+        else
+            return Value::integer(-1);
+    }
 
+    Value lhs = this;
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
