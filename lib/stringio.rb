@@ -80,6 +80,10 @@ class StringIO
   end
   alias eof eof?
 
+  def fcntl
+    raise NotImplementedError, 'fcntl() function is unimplemented on this machine'
+  end
+
   def getc
     __assert_not_read_closed
 
