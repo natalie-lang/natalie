@@ -18,7 +18,7 @@ describe 'Natalie::Compiler' do
     }
 
     path = File.expand_path('../../examples/boardslam.rb', __dir__)
-    ast = Parser.parse(File.read(path), path)
+    ast = NatalieParser.parse(File.read(path), path)
 
     pass1 = Natalie::Compiler::Pass1.new(context)
     ast1 = pass1.go(ast)

@@ -3,7 +3,7 @@ require 'sexp_processor'
 
 if RUBY_ENGINE != 'natalie'
   require 'ruby_parser'
-  class Parser
+  class NatalieParser
     def self.parse(code, path = '(string)')
       node = RubyParser.new.parse(code, path)
       if node.nil?
@@ -19,11 +19,11 @@ if RUBY_ENGINE != 'natalie'
   end
 end
 
-describe 'Parser' do
+describe 'NatalieParser' do
   describe '#parse' do
     it 'parses examples/fib.rb' do
       fib = File.read(File.expand_path('../../examples/fib.rb', __dir__))
-      Parser.parse(fib).should ==
+      NatalieParser.parse(fib).should ==
         s(
           :block,
           s(
