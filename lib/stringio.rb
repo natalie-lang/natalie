@@ -65,6 +65,16 @@ class StringIO
   end
   alias each_line each
 
+  def each_char
+    return enum_for(:each_char) unless block_given?
+
+    while !eof?
+      yield getc
+    end
+
+    self
+  end
+
   def eof?
     @index >= @string.length
   end
