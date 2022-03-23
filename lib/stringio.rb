@@ -53,6 +53,18 @@ class StringIO
     !!@write_closed
   end
 
+  def each(separator = $/, limit = nil, chomp: false)
+    return enum_for(:each) unless block_given?
+    __assert_not_read_closed
+
+    while !eof?
+      yield __next_line(separator, limit, chomp: chomp)
+    end
+
+    self
+  end
+  alias each_line each
+
   def eof?
     @index >= @string.length
   end
@@ -62,58 +74,11 @@ class StringIO
     read 1
   end
 
-  def gets(separator = $/, limit = nil, **options)
+  def gets(separator = $/, limit = nil, chomp: false)
     __assert_not_read_closed
     return $_ = nil if eof?
 
-    if limit && !limit.is_a?(Integer)
-      limit = limit.to_int
-    end
-
-    if separator && !separator.is_a?(String)
-      if separator.respond_to?(:to_str)
-        separator = separator.to_str
-      elsif separator.respond_to?(:to_int)
-        separator = separator.to_int
-      end
-    end
-
-    if separator.is_a? Integer
-      limit = separator
-      separator = $/
-    end
-
-    if limit == 0
-      @lineno += 1
-      return ""
-    end
-
-    if separator == ''
-      separator = "\n\n"
-    end
-
-    if separator
-      line_ending = @string[@index..].index(separator)
-    end
-
-    unless line_ending
-      line_ending = @string.length - 1
-    else
-      if options[:chomp]
-        line_ending += @index - 1
-      else
-        line_ending += @index + separator.size - 1
-      end
-    end
-
-    if limit && line_ending - @index + 1 > limit
-      line_ending = @index + limit - 1
-    end
-
-    $_ = @string[@index..line_ending].tap do
-      @index = line_ending + 1
-      @lineno += 1
-    end
+    $_ = __next_line(separator, limit, chomp: chomp)
   end
 
   def pos
@@ -229,6 +194,79 @@ class StringIO
     when 'w', 'a'
       @read_closed = true
       @write_closed = false
+    end
+  end
+
+  private def __next_line(separator, limit, chomp: false)
+    return if eof?
+
+    if limit && !limit.is_a?(Integer)
+      limit = limit.to_int
+    end
+
+    initial_separator = separator
+    if separator && !separator.is_a?(String)
+      if separator.respond_to?(:to_str)
+        separator = separator.to_str
+      elsif separator.respond_to?(:to_int)
+        separator = separator.to_int
+      end
+    end
+
+    if separator.is_a? Integer
+      limit = separator
+      separator = $/
+    end
+
+    if limit == 0
+      @lineno += 1
+      return ""
+    end
+
+    if separator == ''
+      separator = "\n\n"
+    end
+
+    if separator
+      line_ending = @string[@index..].index(separator)
+    end
+
+    unless line_ending
+      line_ending = @string.length - 1
+    else
+      if chomp
+        line_ending += @index - 1
+      else
+        line_ending += @index + separator.size - 1
+      end
+    end
+
+    if limit && line_ending - @index + 1 > limit
+      line_ending = @index + limit - 1
+    end
+
+    @string[@index..line_ending].tap do |result|
+      if chomp
+        @index = line_ending + separator.size + 1
+
+        # I don't really understand why ruby does this but it seems correct?
+        if result[-1] == "\r"
+          result.replace(result[0..-2])
+        end
+      else
+        @index = line_ending + 1
+      end
+      @lineno += 1
+
+      # If "" is given as a separator we want to read each paragraph.
+      # This means the separator is set to \n\n, but if there are more
+      # line ending we want to skip over those.
+      # See spec/library/stringio/shared/each.rb:43
+      if result && initial_separator == ''
+        while @string[@index] == "\n"
+          @index += 1
+        end
+      end
     end
   end
 end
