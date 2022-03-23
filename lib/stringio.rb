@@ -71,7 +71,11 @@ class StringIO
   alias eof eof?
 
   def getc
-    read 1
+    __assert_not_read_closed
+
+    @string[@index].tap do
+      @index += 1 unless eof?
+    end
   end
 
   def gets(separator = $/, limit = nil, chomp: false)
