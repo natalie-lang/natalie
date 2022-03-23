@@ -25,6 +25,11 @@ module Kernel
   end
   private :initialize_dup
 
+  def instance_of?(clazz)
+    raise TypeError, 'class or module required' unless clazz.is_a?(Module)
+    self.class == clazz
+  end
+
   def rand(*args)
     Random::DEFAULT.rand(*args)
   end
