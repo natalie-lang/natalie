@@ -219,7 +219,7 @@ file 'build/libnatalie_parser.a' => Rake::FileList['ext/natalie_parser/**/*.{hpp
   cp_r 'ext/natalie_parser', build_dir
   sh <<-SH
     cd #{build_dir} && \
-    rake library && \
+    BUILD=release rake library && \
     cp #{build_dir}/build/libnatalie_parser.a #{File.expand_path('build', __dir__)}
   SH
 end
