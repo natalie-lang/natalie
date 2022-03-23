@@ -196,8 +196,8 @@ Env *build_top_env() {
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
 
-    ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "Parser");
-    Object->const_set("Parser"_s, Parser);
+    ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "NatalieParser");
+    Object->const_set("NatalieParser"_s, Parser);
 
     ClassObject *Sexp = Array->subclass(env, "Sexp", Object::Type::Array);
     Object->const_set("Sexp"_s, Sexp);
