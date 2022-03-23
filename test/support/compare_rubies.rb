@@ -11,14 +11,14 @@ module CompareRubies
   end
 
   def run_nat_i(path, *args)
-    out_nat = sh("bin/natalie --nat-parser -i -I test/support #{path} #{args.join(' ')} 2>&1").strip
+    out_nat = sh("bin/natalie -i -I test/support #{path} #{args.join(' ')} 2>&1").strip
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
   end
 
   def run_nat_c2(path, *args)
-    out_nat = sh("bin/natalie --nat-parser -c2 -I test/support #{path} #{args.join(' ')} 2>&1").strip
+    out_nat = sh("bin/natalie -c2 -I test/support #{path} #{args.join(' ')} 2>&1").strip
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
