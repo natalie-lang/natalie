@@ -90,6 +90,9 @@ ROUNDING_OPERATION(round, round)
 ROUNDING_OPERATION(ceil, ceil)
 ROUNDING_OPERATION(truncate, trunc)
 
+// from dtoa.c by David Gay
+extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
+
 Value FloatObject::to_s(Env *env) const {
     if (is_nan()) {
         return new StringObject { "NaN" };
