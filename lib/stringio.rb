@@ -186,6 +186,11 @@ class StringIO
     end
   end
 
+  def size
+    @string.size
+  end
+  alias length size
+
   def sync
     true
   end
