@@ -193,6 +193,8 @@ Env *build_top_env() {
     env->global_set("$stderr"_s, _stderr);
     Object->const_set("STDERR"_s, _stderr);
 
+    env->global_set("$/"_s, new StringObject { "\n", 1 });
+
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
 
@@ -366,7 +368,7 @@ Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_siz
     bool has_default = !!options.default_value;
     auto default_value = options.default_value ?: NilObject::the();
     bool defaults_on_left = !options.defaults_on_right;
-    int required_count = options.total_count - options.default_count;
+    int required_count = options.total_count - options.default_count - (options.has_kwargs ? 1 : 0);
     auto &arguments = options.value;
     Value return_value = nullptr;
     for (size_t i = 0; i < path_size; i++) {

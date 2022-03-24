@@ -92,6 +92,20 @@ Value IoObject::write(Env *env, size_t argc, Value *args) const {
     return Value::integer(bytes_written);
 }
 
+// NATFIXME: Make this spec compliant and maybe more performant?
+Value IoObject::gets(Env *env) const {
+    char buffer[NAT_READ_BYTES + 1];
+    size_t index;
+    for (index = 0; index < NAT_READ_BYTES; ++index) {
+        if (::read(m_fileno, &buffer[index], 1) == 0)
+            return NilObject::the();
+
+        if (buffer[index] == '\n')
+            break;
+    }
+    return new StringObject { buffer, index + 1 };
+}
+
 Value IoObject::puts(Env *env, size_t argc, Value *args) const {
     if (argc == 0) {
         dprintf(m_fileno, "\n");
