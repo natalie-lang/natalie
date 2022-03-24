@@ -59,6 +59,7 @@ public:
     bool start_with(Env *, Value);
 
     Value length(Env *);
+    Value name(Env *);
     Value ref(Env *, Value);
 
     const String &string() const { return m_name; }
@@ -81,6 +82,8 @@ private:
         , m_name { name } { }
 
     const TM::String m_name {};
+
+    StringObject *m_string = nullptr;
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {
