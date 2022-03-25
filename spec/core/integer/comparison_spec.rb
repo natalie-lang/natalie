@@ -158,7 +158,7 @@ describe "Integer#<=>" do
     end
 
     # The tests below are taken from matz's revision 23730 for Ruby trunk
-    xit "returns 1 when self is Infinity and other is a Bignum" do
+    it "returns 1 when self is Infinity and other is a Bignum" do
       (infinity_value <=> Float::MAX.to_i*2).should == 1
     end
 
@@ -170,7 +170,7 @@ describe "Integer#<=>" do
       (-Float::MAX.to_i*2 <=> -infinity_value).should == 1
     end
 
-    xit "returns -1 when self is -Infinity and other is negative" do
+    it "returns -1 when self is -Infinity and other is negative" do
       (-infinity_value <=> -Float::MAX.to_i*2).should == -1
     end
   end
