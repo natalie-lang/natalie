@@ -22,7 +22,11 @@ module Observable
   end
 
   def count_observers
-    return @observers.size if defined? @observers else 0
+    if defined? @observers
+      @observers.size
+    else
+      0
+    end
   end
 
   def notify_observers(*arg)
