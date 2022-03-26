@@ -51,6 +51,10 @@ public:
         m_sexp->push(Value::integer(number));
     }
 
+    virtual void append_integer(TM::String &number) override {
+        m_sexp->push(new IntegerObject(Integer(number)));
+    }
+
     virtual void append_nil() override {
         m_sexp->push(NilObject::the());
     }
