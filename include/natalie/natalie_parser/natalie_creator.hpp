@@ -17,6 +17,10 @@ public:
         m_sexp = Sexp.send(m_env, "new"_s)->as_array();
     }
 
+    virtual void set_comments(const TM::String &comments) override {
+        m_sexp->ivar_set(m_env, "comments"_s, new StringObject(comments));
+    }
+
     virtual void set_type(const char *type) override {
         m_sexp->set(0, SymbolObject::intern(type));
     }
