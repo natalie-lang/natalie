@@ -161,6 +161,51 @@ Value RationalObject::numerator(Env *env) {
     return m_numerator;
 }
 
+Value RationalObject::pow(Env *env, Value other) {
+    IntegerObject *numerator = nullptr, *denominator = nullptr;
+    if (other->is_integer()) {
+        numerator = other->as_integer();
+        denominator = new IntegerObject { 1 };
+    } else if (other->is_rational()) {
+        numerator = other->as_rational()->numerator(env)->as_integer();
+        denominator = other->as_rational()->denominator(env)->as_integer();
+    } else if (!other->is_float()) {
+        if (other->respond_to(env, "coerce"_s)) {
+            auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+            return result.first->send(env, "**"_s, { result.second });
+        } else {
+            env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
+        }
+    }
+
+    if (numerator && denominator) {
+        if (numerator->integer() == 0)
+            return create(env, new IntegerObject { 1 }, new IntegerObject { 1 });
+
+        if (m_numerator->integer() == 0 && numerator->is_negative())
+            env->raise("ZeroDivisionError", "divided by 0");
+
+        if (denominator->integer() == 1) {
+            Value new_numerator, new_denominator;
+            if (numerator->integer().is_negative()) {
+                if (m_numerator->integer() == 0)
+                    env->raise("ZeroDivisionError", "divided by 0");
+                auto negated = numerator->negate(env);
+                new_numerator = m_denominator->pow(env, negated);
+                new_denominator = m_numerator->pow(env, negated);
+            } else {
+                new_numerator = m_numerator->pow(env, numerator);
+                new_denominator = m_denominator->pow(env, numerator);
+            }
+
+            if (new_numerator->is_integer() && new_denominator->is_integer())
+                return create(env, new_numerator->as_integer(), new_denominator->as_integer());
+        }
+    }
+
+    return this->to_f(env)->as_float()->pow(env, other);
+}
+
 Value RationalObject::sub(Env *env, Value other) {
     if (other->is_integer()) {
         auto numerator = m_numerator->sub(env, m_denominator->mul(env, other))->as_integer();
