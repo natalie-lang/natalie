@@ -37,6 +37,11 @@ describe 'integer' do
       (bignum_value % 4.5).should == 2.5
       (bignum_value % -4.5).should == -2.0
     end
+
+    it 'handles modulo with rational as argument correctly' do
+      (5 % Rational(3, 1)).should == Rational(2, 1)
+      (5 % Rational(3, 2)).should == Rational(1, 2)
+    end
   end
 
   describe '** (exponentiation)' do
