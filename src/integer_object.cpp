@@ -171,6 +171,9 @@ Value IntegerObject::pow(Env *env, Value arg) {
         if (arg->is_float())
             return FloatObject { m_integer.to_double() }.pow(env, arg);
 
+        if (arg->is_rational())
+            return RationalObject { this, new IntegerObject { 1 } }.pow(env, arg);
+
         if (!arg->is_integer()) {
             auto coerced = Natalie::coerce(env, arg, this);
             arg = coerced.second;
@@ -188,8 +191,10 @@ Value IntegerObject::pow(Env *env, Value arg) {
         env->raise("ZeroDivisionError", "divided by 0");
 
     // NATFIXME: If a negative number is passed we want to return a Rational
-    if (arg_int < 0)
-        NAT_NOT_YET_IMPLEMENTED();
+    if (arg_int < 0) {
+        auto denominator = Natalie::pow(m_integer, -arg_int);
+        return new RationalObject { new IntegerObject { 1 }, new IntegerObject { denominator } };
+    }
 
     if (arg_int == 0)
         return Value::integer(1);

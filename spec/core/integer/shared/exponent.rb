@@ -6,9 +6,8 @@ describe :integer_exponent, shared: true do
       2.send(@method, 2).should eql 4
 
       9.send(@method, 0.5).should eql 3.0
-      # NATFIXME: Implement Rational
-      # 9.send(@method, Rational(1, 2)).should eql 3.0
-      # 5.send(@method, -1).to_f.to_s.should == '0.2'
+      9.send(@method, Rational(1, 2)).should eql 3.0
+      5.send(@method, -1).to_f.to_s.should == '0.2'
 
       2.send(@method, 40).should eql 1099511627776
     end
@@ -57,8 +56,7 @@ describe :integer_exponent, shared: true do
 
     it "raises a ZeroDivisionError for 0 ** -1" do
       -> { 0.send(@method, -1) }.should raise_error(ZeroDivisionError)
-      # NATFIXME: Implement Rational
-      # -> { 0.send(@method, Rational(-1, 1)) }.should raise_error(ZeroDivisionError)
+      -> { 0.send(@method, Rational(-1, 1)) }.should raise_error(ZeroDivisionError)
     end
 
     it "returns Float::INFINITY for 0 ** -1.0" do
@@ -84,12 +82,11 @@ describe :integer_exponent, shared: true do
       2.send(@method, 2.0).should == 4.0
     end
 
-    # NATFIXME: Implement Rational
-    xit "returns Rational when power is Rational" do
+    it "returns Rational when power is Rational" do
       2.send(@method, Rational(2, 1)).should == Rational(4, 1)
     end
 
-    # NATFIXME: Implement Complex and Rational
+    # NATFIXME: Implement Complex
     xit "returns a complex number when negative and raised to a fractional power" do
       (-8).send(@method, 1.0/3)         .should be_close(Complex(1, 1.73205), TOLERANCE)
       (-8).send(@method, Rational(1, 3)).should be_close(Complex(1, 1.73205), TOLERANCE)
@@ -121,7 +118,7 @@ describe :integer_exponent, shared: true do
       flt.infinite?.should == 1
     end
 
-    # NATFIXME: Implement Complex and Rational
+    # NATFIXME: Implement Complex
     xit "returns a complex number when negative and raised to a fractional power" do
       (-bignum_value).send(@method, (1.0/2)).should be_close(Complex(0.0, 4294967296.0), TOLERANCE)
       (-@bignum).send(@method, (1.0/3))      .should be_close(Complex(1321122.9748145656, 2288252.1154253655), TOLERANCE)
