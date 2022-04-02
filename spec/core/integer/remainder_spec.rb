@@ -5,8 +5,7 @@ describe "Integer#remainder" do
     it "returns the remainder of dividing self by other" do
       5.remainder(3).should == 2
       5.remainder(3.0).should == 2.0
-      # NATFIXME: Implement for Rationals
-      # 5.remainder(Rational(3, 1)).should == Rational(2, 1)
+      5.remainder(Rational(3, 1)).should == Rational(2, 1)
     end
 
     it "means x-y*(x/y).truncate" do
