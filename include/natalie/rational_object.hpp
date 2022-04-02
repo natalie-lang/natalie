@@ -25,6 +25,7 @@ public:
     Value inspect(Env *);
     Value mul(Env *, Value);
     Value numerator(Env *);
+    Value pow(Env *, Value);
     Value sub(Env *, Value);
     Value to_f(Env *);
     Value to_i(Env *);
