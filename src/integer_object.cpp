@@ -149,6 +149,8 @@ Value IntegerObject::mod(Env *env, Value arg) {
         argument = arg.get_fast_integer();
     } else if (arg.is_fast_float() || arg->is_float()) {
         return FloatObject { m_integer.to_double() }.mod(env, arg);
+    } else if (arg->is_rational()) {
+        return RationalObject { this, new IntegerObject { 1 } }.send(env, "%"_s, { arg });
     } else {
         arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
