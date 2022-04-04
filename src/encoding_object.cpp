@@ -21,6 +21,19 @@ HashObject *EncodingObject::aliases(Env *env) {
     return aliases;
 }
 
+EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
+    if (arg->is_encoding()) {
+        s_default_internal = arg->as_encoding();
+    } else if (arg->is_nil()) {
+        s_default_internal = nullptr;
+    } else {
+        auto name = arg->to_str(env);
+        s_default_internal = find(env, name);
+    }
+
+    return default_internal();
+}
+
 EncodingObject *EncodingObject::find(Env *env, Value name) {
     for (auto value : *list(env)) {
         auto encoding = value->as_encoding();

@@ -581,16 +581,17 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
             encoding->assert_type(env, Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
         }
-    } else {
-        if (m_integer > 255)
-            env->raise("RangeError", "{} out of char range", m_integer.to_string());
-
+    } else if (m_integer < 256) {
         Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
         if (m_integer <= 127) {
             NAT_NOT_YET_IMPLEMENTED();
         } else {
             encoding = Encoding->const_fetch("BINARY"_s);
         }
+    } else if (EncodingObject::default_internal()) {
+        encoding = EncodingObject::default_internal();
+    } else {
+        env->raise("RangeError", "{} out of char range", m_integer.to_string());
     }
 
     auto encoding_obj = encoding->as_encoding();
