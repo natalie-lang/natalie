@@ -1,0 +1,108 @@
+class CSV
+  class MalformedCSVError < RuntimeError
+    attr_reader :line_number
+    alias_method :lineno, :line_number
+
+    def initialize(message, line_number)
+      @line_number = line_number
+      super("#{message} in line #{line_number}.")
+    end
+  end
+
+  class Parser
+    def initialize(input, options)
+      @input = input
+      @options = options
+      @line = nil
+      @lineno = 0
+      @current_col = 0
+      @current_index = 0
+    end
+
+    def next_line
+      @line = @input.gets
+      return nil unless @line
+      @current_col = 0
+      @current_index = 0
+      @lineno += 1
+
+      [].tap do |out|
+        while !line_break? && !eol?
+          advance if separator?
+          out << next_col
+        end
+      end
+    end
+
+    def next_col
+      if quote?
+        parse_quoted_column_value
+      else
+        parse_unquoted_column_value
+      end
+    end
+
+    def parse_quoted_column_value
+      advance
+      "".tap do |out|
+        while true
+          if quote?
+            advance
+            if !@options[:liberal_parsing] && !(separator? || eol? || line_break?)
+              raise MalformedCSVError.new("Any value after quoted field isn't allowed", @lineno)
+            end
+            break
+          elsif !@options[:liberal_parsing] && (separator? || eol? || line_break?)
+            raise MalformedCSVError.new('Unclosed quoted field', @lineno)
+          else
+            out << advance
+          end
+        end
+      end
+    end
+
+    def parse_unquoted_column_value
+      if separator? || eol? || line_break?
+        return nil
+      end
+
+      "".tap do |out|
+        while !(separator? || eol? || line_break?)
+          if !@options[:liberal_parsing] && quote?
+            raise MalformedCSVError.new('Illegal quoting', @lineno)
+          end
+
+          out << advance
+        end
+      end
+    end
+
+    def advance
+      peek.tap { @current_index += 1 }
+    end
+
+    def peek
+      @line[@current_index]
+    end
+
+    def line_break?
+      peek == "\n"
+    end
+
+    def eol?
+      !peek
+    end
+
+    def separator?
+      peek == @options[:col_sep]
+    end
+
+    def quote?
+      peek == quote_character
+    end
+
+    def quote_character
+      @options[:quote_char]
+    end
+  end
+end
