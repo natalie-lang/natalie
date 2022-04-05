@@ -56,6 +56,8 @@ public:
     static EncodingObject *find(Env *, Value);
     static ArrayObject *list(Env *env);
     static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
+    static EncodingObject *default_internal() { return s_default_internal; }
+    static EncodingObject *set_default_internal(Env *, Value);
 
     virtual void visit_children(Visitor &) override final;
 
@@ -68,6 +70,7 @@ private:
     Encoding m_num;
 
     static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
+    static inline EncodingObject *s_default_internal = nullptr;
 };
 
 EncodingObject *encoding(Env *env, Encoding num, ArrayObject *names);
