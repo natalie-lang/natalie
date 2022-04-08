@@ -59,7 +59,6 @@ Value ParserObject::token_to_ruby(Env *env, NatalieParser::Token &token, bool wi
     case NatalieParser::Token::Type::PercentUpperI:
     case NatalieParser::Token::Type::PercentLowerW:
     case NatalieParser::Token::Type::PercentUpperW:
-    case NatalieParser::Token::Type::Regexp:
     case NatalieParser::Token::Type::String:
         hash->put(env, "literal"_s, new StringObject { token.literal_or_blank() });
         break;
@@ -79,8 +78,8 @@ Value ParserObject::token_to_ruby(Env *env, NatalieParser::Token &token, bool wi
         hash->put(env, "literal"_s, Value::integer(token.get_fixnum()));
         break;
     case NatalieParser::Token::Type::InterpolatedRegexpEnd:
-        if (token.options())
-            hash->put(env, "options"_s, new StringObject { token.options().value().ref() });
+        if (token.has_literal())
+            hash->put(env, "options"_s, new StringObject { token.literal_string().ref() });
         break;
     default:
         void();
