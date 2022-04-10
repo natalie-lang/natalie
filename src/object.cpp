@@ -454,6 +454,12 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
     return m_klass->cvar_set(env, name, val);
 }
 
+void Object::alias(Env *env, Value new_name, Value old_name) {
+    new_name->assert_type(env, Object::Type::Symbol, "Symbol");
+    old_name->assert_type(env, Object::Type::Symbol, "Symbol");
+    alias(env, static_cast<SymbolObject *>(new_name.object()), static_cast<SymbolObject *>(old_name.object()));
+}
+
 void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     if (is_integer() || is_symbol()) {
         env->raise("TypeError", "no klass to make alias");

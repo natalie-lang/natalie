@@ -24,8 +24,8 @@ module Natalie
       end
 
       def process_alias(exp)
-        _, (_, new_name), (_, old_name) = exp
-        exp.new(:block, s(:alias, :self, :env, s(:intern, new_name), s(:intern, old_name)), s(:nil))
+        _, new_name, old_name = exp
+        exp.new(:block, s(:alias, :self, :env, process(new_name), process(old_name)), s(:nil))
       end
 
       def process_undef(exp)

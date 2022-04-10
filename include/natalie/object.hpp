@@ -197,6 +197,7 @@ public:
     void protected_method(Env *, SymbolObject *);
     void module_function(Env *, SymbolObject *);
 
+    void alias(Env *env, Value new_name, Value old_name);
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
     nat_int_t object_id() const { return reinterpret_cast<nat_int_t>(this); }
