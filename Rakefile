@@ -307,7 +307,9 @@ task :bundle_install do
 end
 
 task :update_submodules do
-  sh 'git submodule update --init'
+  unless ENV['SKIP_SUBMODULE_UPDATE']
+    sh 'git submodule update --init'
+  end
 end
 
 def cc
