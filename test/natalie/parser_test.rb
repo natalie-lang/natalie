@@ -1,13 +1,10 @@
 require_relative '../spec_helper'
-require 'sexp_processor'
+require_relative '../../ext/natalie_parser/lib/natalie_parser/sexp'
 
 if RUBY_ENGINE != 'natalie'
+  $LOAD_PATH << File.expand_path('../../ext/natalie_parser/lib', __dir__)
+  $LOAD_PATH << File.expand_path('../../ext/natalie_parser/ext', __dir__)
   require 'natalie_parser'
-  class NatalieParser
-    def self.parse(code, path = '(string)')
-      NatalieParser.parse(code, path)
-    end
-  end
 end
 
 describe 'NatalieParser' do
