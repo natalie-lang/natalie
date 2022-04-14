@@ -2,8 +2,8 @@ require_relative '../spec_helper'
 require_relative '../../ext/natalie_parser/lib/natalie_parser/sexp'
 
 if RUBY_ENGINE != 'natalie'
-  $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext/natalie_parser/lib', __dir__)
-  $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext/natalie_parser/ext', __dir__)
+  $LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
+  $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
   require 'natalie_parser'
 end
 
