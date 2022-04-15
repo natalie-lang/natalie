@@ -73,10 +73,26 @@ class CSV
   end
 
   def <<(row)
-    if row.is_a? Array
-      @io.write(row.join(@options[:col_sep]) + "\n")
-      @lineno += 1
+    # TODO: move this to a real method, but I cannot find where it is in the Ruby docs
+    quote = -> (str) {
+      # FIXME: Regexp.escape these two options once we have that method to use :-)
+      if str =~ /#{@options[:col_sep]}|#{@options[:quote_char]}/
+        str.inspect
+      else
+        str
+      end
+    }
+    row = row.map do |item|
+      if item.is_a?(String)
+        quote.(item)
+      elsif item.respond_to?(:to_str)
+        quote.(item.to_str)
+      elsif item.respond_to?(:to_s)
+        quote.(item.to_s)
+      end
     end
+    @io.write(row.join(@options[:col_sep]) + "\n")
+    @lineno += 1
   end
   alias add_row <<
 
