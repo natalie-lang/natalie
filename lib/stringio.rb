@@ -224,7 +224,7 @@ class StringIO
   end
 
   private def __assert_not_write_closed
-    raise IOError, 'not opened for reading' if closed_write?
+    raise IOError, 'not opened for writing' if closed_write?
   end
 
   private def __appending?
