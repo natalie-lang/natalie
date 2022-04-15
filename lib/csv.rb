@@ -1,5 +1,7 @@
 require 'stringio'
 require 'csv/parser'
+require 'csv/row'
+require 'csv/writer'
 
 class CSV
   DEFAULT_OPTIONS = {
@@ -73,26 +75,7 @@ class CSV
   end
 
   def <<(row)
-    # TODO: move this to a real method, but I cannot find where it is in the Ruby docs
-    quote = -> (str) {
-      # FIXME: Regexp.escape these two options once we have that method to use :-)
-      if str =~ /#{@options[:col_sep]}|#{@options[:quote_char]}/
-        str.inspect
-      else
-        str
-      end
-    }
-    row = row.map do |item|
-      if item.is_a?(String)
-        quote.(item)
-      elsif item.respond_to?(:to_str)
-        quote.(item.to_str)
-      elsif item.respond_to?(:to_s)
-        quote.(item.to_s)
-      end
-    end
-    @io.write(row.join(@options[:col_sep]) + "\n")
-    @lineno += 1
+    writer << row
   end
   alias add_row <<
 
@@ -107,7 +90,7 @@ class CSV
   end
 
   def headers
-    @options[:headers]
+    @writer&.headers
   end
 
   def liberal_parsing?
@@ -116,7 +99,7 @@ class CSV
 
   def lineno
     # If there is no parser we are writing!
-    @parser&.lineno || @lineno
+    @parser&.lineno || @writer&.lineno || 0
   end
 
   def line
@@ -143,11 +126,19 @@ class CSV
   end
 
   def row_sep
-    @options[:row_sep]
+    if @options[:row_sep] == :auto
+      "\n"
+    else
+      @options[:row_sep]
+    end
   end
 
   def shift
     parser.next_line
   end
   alias readline shift
+
+  def writer
+    @writer ||= Writer.new(@io, @options)
+  end
 end
