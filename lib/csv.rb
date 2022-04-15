@@ -115,7 +115,8 @@ class CSV
   end
 
   def lineno
-    parser.lineno
+    # If there is no parser we are writing!
+    @parser&.lineno || @lineno
   end
 
   def line
