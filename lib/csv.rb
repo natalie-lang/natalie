@@ -1,5 +1,7 @@
 require 'stringio'
 require 'csv/parser'
+require 'csv/row'
+require 'csv/writer'
 
 class CSV
   DEFAULT_OPTIONS = {
@@ -73,10 +75,7 @@ class CSV
   end
 
   def <<(row)
-    if row.is_a? Array
-      @io.write(row.join(@options[:col_sep]) + "\n")
-      @lineno += 1
-    end
+    writer << row
   end
   alias add_row <<
 
@@ -91,7 +90,7 @@ class CSV
   end
 
   def headers
-    @options[:headers]
+    @writer&.headers
   end
 
   def liberal_parsing?
@@ -99,7 +98,8 @@ class CSV
   end
 
   def lineno
-    parser.lineno
+    # If there is no parser we are writing!
+    @parser&.lineno || @writer&.lineno || 0
   end
 
   def line
@@ -126,11 +126,19 @@ class CSV
   end
 
   def row_sep
-    @options[:row_sep]
+    if @options[:row_sep] == :auto
+      "\n"
+    else
+      @options[:row_sep]
+    end
   end
 
   def shift
     parser.next_line
   end
   alias readline shift
+
+  def writer
+    @writer ||= Writer.new(@io, @options)
+  end
 end

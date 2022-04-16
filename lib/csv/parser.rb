@@ -10,6 +10,8 @@ class CSV
   end
 
   class Parser
+    attr_reader :lineno
+
     def initialize(input, options)
       @input = input
       @options = options
