@@ -149,6 +149,8 @@ Value IntegerObject::mod(Env *env, Value arg) {
         argument = arg.get_fast_integer();
     } else if (arg.is_fast_float() || arg->is_float()) {
         return FloatObject { m_integer.to_double() }.mod(env, arg);
+    } else if (arg->is_rational()) {
+        return RationalObject { this, new IntegerObject { 1 } }.send(env, "%"_s, { arg });
     } else {
         arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
@@ -171,6 +173,9 @@ Value IntegerObject::pow(Env *env, Value arg) {
         if (arg->is_float())
             return FloatObject { m_integer.to_double() }.pow(env, arg);
 
+        if (arg->is_rational())
+            return RationalObject { this, new IntegerObject { 1 } }.pow(env, arg);
+
         if (!arg->is_integer()) {
             auto coerced = Natalie::coerce(env, arg, this);
             arg = coerced.second;
@@ -188,8 +193,10 @@ Value IntegerObject::pow(Env *env, Value arg) {
         env->raise("ZeroDivisionError", "divided by 0");
 
     // NATFIXME: If a negative number is passed we want to return a Rational
-    if (arg_int < 0)
-        NAT_NOT_YET_IMPLEMENTED();
+    if (arg_int < 0) {
+        auto denominator = Natalie::pow(m_integer, -arg_int);
+        return new RationalObject { new IntegerObject { 1 }, new IntegerObject { denominator } };
+    }
 
     if (arg_int == 0)
         return Value::integer(1);
@@ -574,16 +581,17 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
             encoding->assert_type(env, Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
         }
-    } else {
-        if (m_integer > 255)
-            env->raise("RangeError", "{} out of char range", m_integer.to_string());
-
+    } else if (m_integer < 256) {
         Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
         if (m_integer <= 127) {
             NAT_NOT_YET_IMPLEMENTED();
         } else {
             encoding = Encoding->const_fetch("BINARY"_s);
         }
+    } else if (EncodingObject::default_internal()) {
+        encoding = EncodingObject::default_internal();
+    } else {
+        env->raise("RangeError", "{} out of char range", m_integer.to_string());
     }
 
     auto encoding_obj = encoding->as_encoding();

@@ -422,6 +422,8 @@ gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_en
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Encoding', 'default_internal', 'EncodingObject', 'default_internal', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding('Encoding', 'default_internal=', 'EncodingObject', 'set_default_internal', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -793,6 +795,7 @@ gen.binding('Range', 'to_s', 'RangeObject', 'to_s', argc: 0, pass_env: true, pas
 
 gen.undefine_singleton_method('Rational', 'new')
 gen.binding('Rational', '*', 'RationalObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Rational', '**', 'RationalObject', 'pow', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', '+', 'RationalObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', '-', 'RationalObject', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', '/', 'RationalObject', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

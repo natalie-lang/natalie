@@ -98,8 +98,8 @@ void Env::raise_errno() {
 
 void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMissingReason reason) {
     String inspect_string;
-    if (receiver->is_module()) {
-        inspect_string = String::format("{}:{}", receiver->as_module()->inspect_str(), receiver->klass()->inspect_str());
+    if (receiver->type() != Object::Type::Object) {
+        inspect_string = String::format("{}:{}", receiver->inspect_str(this), receiver->klass()->inspect_str());
     } else {
         inspect_string = receiver->inspect_str(this);
     }
