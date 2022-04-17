@@ -18,14 +18,13 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
         new String(code->as_string()->to_low_level_string()),
         new String(source_path->as_string()->to_low_level_string())
     };
-    NatalieParser::Node *tree;
+    SharedPtr<NatalieParser::Node> tree;
     try {
         tree = parser.tree();
     } catch (NatalieParser::Parser::SyntaxError &e) {
         env->raise("SyntaxError", e.message());
     }
     auto ast = node_to_ruby(env, tree);
-    delete tree;
     return ast;
 }
 
@@ -99,7 +98,7 @@ void ParserObject::validate_token(Env *env, NatalieParser::Token &token) {
     }
 }
 
-Value ParserObject::node_to_ruby(Env *env, NatalieParser::Node *node) {
+Value ParserObject::node_to_ruby(Env *env, SharedPtr<NatalieParser::Node> node) {
     NatalieCreator creator { env };
     node->transform(&creator);
     return creator.sexp();
