@@ -135,11 +135,12 @@ class CSV
   end
 
   def row_sep
-    if @options[:row_sep] == :auto
-      "\n"
-    else
-      @options[:row_sep]
-    end
+    @row_sep ||=
+      if @options[:row_sep] == :auto
+        parser.detect_row_separator || "\n"
+      else
+        @options[:row_sep].to_s
+      end.encode(encoding)
   end
 
   def shift
