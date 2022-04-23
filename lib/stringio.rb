@@ -80,6 +80,10 @@ class StringIO
   end
   alias eof eof?
 
+  def external_encoding
+    @external_encoding || @string.encoding
+  end
+
   def fcntl
     raise NotImplementedError, 'fcntl() function is unimplemented on this machine'
   end
