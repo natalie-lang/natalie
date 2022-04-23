@@ -1,4 +1,4 @@
-require 'csv'
+require "csv"
 
 describe :csv_add_row, shared: true do
   it "appends array to self" do
@@ -36,7 +36,7 @@ describe :csv_add_row, shared: true do
   end
 
   it "increments lineno" do
-    csv = CSV.new('')
+    csv = CSV.new("")
     csv.lineno.should == 0
     csv.send(@method, [1, 2, 3])
     csv.lineno.should == 1
@@ -51,7 +51,7 @@ describe :csv_add_row, shared: true do
   end
 
   it "appends any object answering #collect" do
-    x = mock('collectable')
+    x = mock("collectable")
     x.should_receive(:collect).and_return([1, 2, 3])
 
     CSV.generate do |csv|
@@ -61,15 +61,15 @@ describe :csv_add_row, shared: true do
 
   it "converts each item in the array to a string" do
     ary = [1, 2, 3]
-    str = 'foo'
+    str = "foo"
     str.should_not_receive(:to_str)
 
-    o1 = mock('both')
-    o1.should_receive(:to_str).and_return('to_str')
+    o1 = mock("both")
+    o1.should_receive(:to_str).and_return("to_str")
     o1.should_not_receive(:to_s)
 
-    o2 = mock('to_s')
-    o2.should_receive(:to_s).and_return('to_s')
+    o2 = mock("to_s")
+    o2.should_receive(:to_s).and_return("to_s")
 
     csv_str = CSV.generate do |csv|
       csv.send(@method, [str, ary, o1, o2])
@@ -78,13 +78,13 @@ describe :csv_add_row, shared: true do
   end
 
   it "respects column separator" do
-    CSV.generate(col_sep: ';') do |csv|
+    CSV.generate(col_sep: ";") do |csv|
       csv.send(@method, [1, 2, 3])
     end.should == "1;2;3\n"
   end
 
   it "respects row separator" do
-    CSV.generate(row_sep: ';') do |csv|
+    CSV.generate(row_sep: ";") do |csv|
       csv.send(@method, [1, 2, 3])
       csv.send(@method, [4, 5, 6])
     end.should == "1,2,3;4,5,6;"
@@ -99,20 +99,20 @@ describe :csv_add_row, shared: true do
     write_converters = [upcase_converter]
 
     CSV.generate(write_converters: write_converters) do |csv|
-      csv.send(@method, ['a', 'b', 'c'])
+      csv.send(@method, ["a", "b", "c"])
     end.should == "A,B,C\n"
   end
 
   it "raises NoMethodError if row is not an Array or CSV::Row" do
-    -> { CSV.new('').send(@method, :foo) }.should raise_error(NoMethodError, "undefined method `collect' for :foo:Symbol")
-    -> { CSV.new('').send(@method, 1) }.should raise_error(NoMethodError, "undefined method `collect' for 1:Integer")
-    -> { CSV.new('').send(@method, 'foo') }.should raise_error(NoMethodError, "undefined method `collect' for \"foo\":String")
-    -> { CSV.new('').send(@method, nil) }.should raise_error(NoMethodError, "undefined method `collect' for nil:NilClass")
+    -> { CSV.new("").send(@method, :foo) }.should raise_error(NoMethodError, "undefined method `collect' for :foo:Symbol")
+    -> { CSV.new("").send(@method, 1) }.should raise_error(NoMethodError, "undefined method `collect' for 1:Integer")
+    -> { CSV.new("").send(@method, "foo") }.should raise_error(NoMethodError, "undefined method `collect' for \"foo\":String")
+    -> { CSV.new("").send(@method, nil) }.should raise_error(NoMethodError, "undefined method `collect' for nil:NilClass")
   end
 
   it "raises IOError if underlying IO is not opened for writing" do
     io = StringIO.new("", "r")
     csv = CSV.new(io)
-    -> { csv.send(@method, ['a', 'b', 1, 2]) }.should raise_error(IOError, "not opened for writing")
+    -> { csv.send(@method, ["a", "b", 1, 2]) }.should raise_error(IOError, "not opened for writing")
   end
 end

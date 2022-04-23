@@ -31,12 +31,15 @@ class CSV
     write_empty_value:  "",
   }
 
+  attr_reader :encoding
+
   def initialize(io, **options)
     if io.is_a? String
       io = StringIO.new(io)
     end
 
     @io = io
+    @encoding = @io.internal_encoding || @io.external_encoding
     @options = DEFAULT_OPTIONS.merge(options).freeze
     @line = nil
     @lineno = 0
@@ -80,7 +83,13 @@ class CSV
   alias add_row <<
 
   def col_sep
-    @options[:col_sep]
+    @col_sep ||= @options[:col_sep].to_s.encode(encoding)
+
+    if @col_sep.empty?
+      raise ArgumentError, ":col_sep must be 1 or more characters: #{@options[:col_sep].inspect}"
+    end
+
+    @col_sep
   end
 
   def each
@@ -126,11 +135,12 @@ class CSV
   end
 
   def row_sep
-    if @options[:row_sep] == :auto
-      "\n"
-    else
-      @options[:row_sep]
-    end
+    @row_sep ||=
+      if @options[:row_sep] == :auto
+        parser.detect_row_separator || "\n"
+      else
+        @options[:row_sep].to_s
+      end.encode(encoding)
   end
 
   def shift

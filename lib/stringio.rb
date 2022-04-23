@@ -80,6 +80,10 @@ class StringIO
   end
   alias eof eof?
 
+  def external_encoding
+    @external_encoding || @string.encoding
+  end
+
   def fcntl
     raise NotImplementedError, 'fcntl() function is unimplemented on this machine'
   end
@@ -109,6 +113,10 @@ class StringIO
     return $_ = nil if eof?
 
     $_ = __next_line(separator, limit, chomp: chomp)
+  end
+
+  def internal_encoding
+    nil
   end
 
   def isatty
@@ -184,6 +192,14 @@ class StringIO
       end
       result
     end
+  end
+
+  def set_encoding(external_encoding, _ = nil, **options)
+    @external_encoding = external_encoding || Encoding.default_external
+    unless @string.frozen?
+      @string.force_encoding(@external_encoding)
+    end
+    @external_encoding
   end
 
   def size

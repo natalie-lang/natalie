@@ -106,5 +106,21 @@ class CSV
     def quote_character
       @options[:quote_char]
     end
+
+    def detect_row_separator
+      new_line = "\n"
+      reset_line = "\r"
+      while char = @input.getc
+        if char == new_line
+          return char
+        elsif char == reset_line
+          if @input.getc == new_line
+            return reset_line + new_line
+          else
+            return reset_line
+          end
+        end
+      end
+    end
   end
 end
