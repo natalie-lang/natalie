@@ -186,6 +186,14 @@ class StringIO
     end
   end
 
+  def set_encoding(external_encoding, _ = nil, **options)
+    @external_encoding = external_encoding || Encoding.default_external
+    unless @string.frozen?
+      @string.force_encoding(@external_encoding)
+    end
+    @external_encoding
+  end
+
   def size
     @string.size
   end
