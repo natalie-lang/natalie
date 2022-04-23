@@ -111,6 +111,10 @@ class StringIO
     $_ = __next_line(separator, limit, chomp: chomp)
   end
 
+  def internal_encoding
+    nil
+  end
+
   def isatty
     false
   end
