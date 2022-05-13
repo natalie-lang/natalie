@@ -34,6 +34,7 @@ public:
     Value each(Env *, Block *);
     Value first(Env *, Value);
     Value inspect(Env *);
+    Value last(Env *, Value);
     Value to_s(Env *);
     bool eq(Env *, Value);
     bool eqeqeq(Env *, Value);

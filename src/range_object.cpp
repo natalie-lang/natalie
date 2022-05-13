@@ -129,6 +129,16 @@ Value RangeObject::inspect(Env *env) {
     }
 }
 
+Value RangeObject::last(Env *env, Value n) {
+    if (m_end->is_nil())
+        env->raise("RangeError", "cannot get the last element of endless range");
+
+    if (!n)
+        return end();
+
+    return to_a(env)->as_array()->last(env, n);
+}
+
 Value RangeObject::to_s(Env *env) {
     auto begin = m_begin->send(env, "to_s"_s)->as_string();
     auto end = m_end->send(env, "to_s"_s)->as_string();
