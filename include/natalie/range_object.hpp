@@ -40,6 +40,10 @@ public:
     bool eql(Env *, Value);
     bool include(Env *, Value);
 
+    static Value size_fn(Env *env, Value self, size_t, Value *, Block *) {
+        return Value::integer(self->as_range()->to_a(env)->as_array()->size());
+    }
+
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
         visitor.visit(m_begin);

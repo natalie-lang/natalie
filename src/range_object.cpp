@@ -11,13 +11,19 @@ Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_en
 
 template <typename Function>
 Value RangeObject::iterate_over_range(Env *env, Function &&func) {
-    if (m_begin.send(env, ">"_s, { m_end })->is_truthy())
-        return nullptr;
-
     Value item = m_begin;
 
-    auto eqeq = "=="_s;
+    // According to the spec, this call MUST happen before the #succ check.
+    auto compare_result = item.send(env, "<=>"_s, { m_end });
+
     auto succ = "succ"_s;
+    if (!m_begin->respond_to(env, succ))
+        env->raise("TypeError", "can't iterate from {}", m_begin->klass()->inspect_str());
+
+    if (compare_result->equal(Value::integer(1)))
+        return nullptr;
+
+    auto eqeq = "=="_s;
 
     bool done = item.send(env, eqeq, { m_end })->is_truthy();
     while (!done || !m_exclude_end) {
@@ -49,8 +55,10 @@ Value RangeObject::to_a(Env *env) {
 }
 
 Value RangeObject::each(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, RangeObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
+    }
 
     Value break_value = iterate_over_range(env, [&](Value item) -> Value {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
