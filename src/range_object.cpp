@@ -3,9 +3,16 @@
 namespace Natalie {
 
 Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_end_value) {
+    assert_not_frozen(env);
+
+    if (!begin->is_nil() && !end->is_nil() && begin->send(env, "<=>"_s, { end })->is_nil())
+        env->raise("ArgumentError", "bad value for range");
+
     m_begin = begin;
     m_end = end;
     m_exclude_end = exclude_end_value && exclude_end_value->is_truthy();
+    freeze();
+
     return this;
 }
 
