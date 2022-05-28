@@ -23,7 +23,9 @@ public:
         : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s)->as_class() }
         , m_begin { begin }
         , m_end { end }
-        , m_exclude_end { exclude_end } { }
+        , m_exclude_end { exclude_end } {
+        freeze();
+    }
 
     Value begin() { return m_begin; }
     Value end() { return m_end; }
