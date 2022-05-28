@@ -787,6 +787,7 @@ gen.binding('Range', 'to_a', 'RangeObject', 'to_a', argc: 0, pass_env: true, pas
 gen.binding('Range', 'each', 'RangeObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Range', 'first', 'RangeObject', 'first', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'inspect', 'RangeObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Range', 'member?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Range', '==', 'RangeObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Range', '===', 'RangeObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Range', 'include?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
