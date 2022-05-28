@@ -245,5 +245,12 @@ describe 'range' do
       r.include?(11).should == false
       r.include?(10.1).should == false
     end
+
+    it 'checks for endless ranges correctly' do
+      (1..).include?(-1).should == false
+      (1..).include?(10).should == true
+      (..1).include?(-1).should == true
+      (..1).include?(10).should == false
+    end
   end
 end
