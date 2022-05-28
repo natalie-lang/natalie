@@ -14,6 +14,7 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     Value item = m_begin;
 
     // According to the spec, this call MUST happen before the #succ check.
+    // See core/range/each_spec.rb "raises a TypeError if the first element does not respond to #succ"
     auto compare_result = item.send(env, "<=>"_s, { m_end });
 
     auto succ = "succ"_s;
@@ -23,10 +24,10 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     if (compare_result->equal(Value::integer(1)))
         return nullptr;
 
-    auto eqeq = "=="_s;
-
-    bool done = item.send(env, eqeq, { m_end })->is_truthy();
-    while (!done || !m_exclude_end) {
+    auto cmp = "<=>"_s;
+    // If we exclude the end, the loop should not be entered if m_begin (item) == m_end.
+    bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
+    while (!done) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(item);
         } else {
@@ -34,13 +35,24 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
                 return ptr;
         }
 
-        if (!m_exclude_end && done) {
+        if (!item->respond_to(env, "succ"_s))
             break;
-        }
-
         item = item.send(env, succ);
 
-        done = item.send(env, eqeq, { m_end })->is_truthy();
+        // NATFIXME: Use String#upto for String Range iteration
+        // String#upto should stop if the current items length is greater than the length of m_end
+        if (!m_end->is_nil()) {
+            if (item->is_string() && m_end->is_string() && item->as_string()->size(env).get_fast_integer() > m_end->as_string()->size(env).get_fast_integer()) {
+                done = true;
+            } else {
+                auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
+                // If range excludes the end,
+                //  we are done if item is bigger than or equal to m_end
+                // else
+                //  we are done if item is bigger than m_end.
+                done = compare_result > (m_exclude_end ? -1 : 0);
+            }
+        }
     }
 
     return nullptr;
@@ -205,26 +217,25 @@ bool RangeObject::include(Env *env, Value arg) {
         if (larger_than_begin && smaller_than_end)
             return true;
         return false;
-    } else if (m_begin->is_numeric() && m_end->is_numeric()) {
-        const auto lt = "<"_s, leq = "<="_s, geq = ">="_s;
-        const auto larger_than_begin = arg.send(env, geq, { m_begin })->is_truthy();
-        const auto smaller_than_end = arg.send(env, m_exclude_end ? lt : leq, { m_end })->is_truthy();
-        if (larger_than_begin && smaller_than_end)
-            return true;
-        return false;
+    } else if ((m_begin->is_nil() || m_begin->is_numeric()) && (m_end->is_nil() || m_end->is_numeric())) {
+        return send(env, "cover?"_s, { arg })->is_truthy();
     }
 
+    auto compare_result = arg.send(env, "<=>"_s, { m_begin });
+    if (compare_result->equal(Value::integer(-1)))
+        return false;
+
     auto eqeq = "=="_s;
+    // NATFIXME: Break out of iteration if current arg is smaller than item.
+    // This means we have to implement a way to break out of `iterate_over_range`
     Value found_item = iterate_over_range(env, [&](Value item) -> Value {
         if (arg.send(env, eqeq, { item })->is_truthy())
             return item;
 
         return nullptr;
     });
-    if (found_item)
-        return true;
 
-    return false;
+    return !!found_item;
 }
 
 }
