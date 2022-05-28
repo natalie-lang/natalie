@@ -173,27 +173,6 @@ bool RangeObject::eql(Env *env, Value other_value) {
     return false;
 }
 
-bool RangeObject::eqeqeq(Env *env, Value arg) {
-    if (m_begin->type() == Object::Type::Integer && arg->is_integer()) {
-        // optimized path for integer ranges
-        nat_int_t begin = m_begin->as_integer()->to_nat_int_t();
-        nat_int_t end = m_end->as_integer()->to_nat_int_t();
-        nat_int_t val = arg->as_integer()->to_nat_int_t();
-        if (begin <= val && ((m_exclude_end && val < end) || (!m_exclude_end && val <= end))) {
-            return true;
-        }
-    } else {
-        if (m_exclude_end) {
-            if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<"_s, 1, &m_end)->is_truthy())
-                return true;
-        } else {
-            if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<="_s, 1, &m_end)->is_truthy())
-                return true;
-        }
-    }
-    return false;
-}
-
 bool RangeObject::include(Env *env, Value arg) {
     if (arg.is_fast_integer() && m_begin.is_fast_integer() && m_end.is_fast_integer()) {
         const auto begin = m_begin.get_fast_integer();

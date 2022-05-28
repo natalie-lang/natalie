@@ -59,6 +59,7 @@ class Range
 
     result
   end
+  alias === cover?
 
   def size
     return Float::INFINITY if self.begin.nil?
