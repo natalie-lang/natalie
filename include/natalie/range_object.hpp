@@ -39,7 +39,6 @@ public:
     Value last(Env *, Value);
     Value to_s(Env *);
     bool eq(Env *, Value);
-    bool eqeqeq(Env *, Value);
     bool eql(Env *, Value);
     bool include(Env *, Value);
 
