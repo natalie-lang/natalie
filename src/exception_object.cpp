@@ -20,7 +20,10 @@ Value ExceptionObject::inspect(Env *env) {
 }
 
 Value ExceptionObject::backtrace(Env *env) {
-    return m_backtrace ? m_backtrace->dup(env) : NilObject::the();
+    if (m_backtrace)
+        return m_backtrace->to_ruby_array();
+
+    return NilObject::the();
 }
 
 Value ExceptionObject::match_rescue_array(Env *env, Value ary) {

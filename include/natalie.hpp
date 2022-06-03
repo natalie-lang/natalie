@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "natalie/array_object.hpp"
+#include "natalie/backtrace.hpp"
 #include "natalie/binding_object.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"

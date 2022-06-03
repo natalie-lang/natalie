@@ -280,7 +280,7 @@ void run_at_exit_handlers(Env *env) {
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
     IoObject *_stderr = env->global_get("$stderr"_s)->as_io();
     int fd = _stderr->fileno();
-    const ArrayObject *backtrace = exception->backtrace();
+    ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
     if (backtrace && backtrace->size() > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
         for (int i = backtrace->size() - 1; i > 0; i--) {

@@ -41,7 +41,7 @@ public:
         return m_message;
     }
 
-    const ArrayObject *backtrace() { return m_backtrace; }
+    Backtrace *backtrace() { return m_backtrace; }
     void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
     Value backtrace(Env *);
 
@@ -64,8 +64,10 @@ public:
     void set_break_point(nat_int_t break_point) { m_break_point = break_point; }
 
 private:
+    ArrayObject *generate_backtrace();
+
     StringObject *m_message { nullptr };
-    ArrayObject *m_backtrace { nullptr };
+    Backtrace *m_backtrace { nullptr };
     nat_int_t m_break_point { 0 };
     Env *m_local_jump_error_env { nullptr };
     LocalJumpErrorType m_local_jump_error_type { LocalJumpErrorType::None };

@@ -40,7 +40,7 @@ public:
     Value global_set(SymbolObject *, Value);
 
     Method *current_method();
-    const ManagedString *build_code_location_name(Env *);
+    const ManagedString *build_code_location_name();
 
     Value var_get(const char *, size_t);
     Value var_set(const char *, size_t, bool, Value);
@@ -124,7 +124,7 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     void clear_exception() { m_exception = nullptr; }
 
-    ArrayObject *backtrace();
+    Backtrace *backtrace();
 
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
