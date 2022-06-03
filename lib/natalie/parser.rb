@@ -20,7 +20,12 @@ module Natalie
     end
 
     def ast
-      ::NatalieParser.parse(@code_str, @path)
+      result = ::NatalieParser.parse(@code_str, @path)
+      if result.is_a?(Sexp) && result.sexp_type == :block
+        result
+      else
+        result.new(:block, result)
+      end
     end
   end
 end

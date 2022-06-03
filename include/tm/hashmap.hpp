@@ -366,8 +366,42 @@ public:
         return *this;
     }
 
+    /**
+     * Sets a cleanup function pointer to be called
+     * whenever this Hashmap is deleted.
+     *
+     * NOTE: The cleanup function is not called if
+     * the map was never initialized with any data.
+     *
+     * ```
+     * // top-level ----
+     * bool hm_cleanup_ran = false;
+     * void hm_cleanup(Hashmap<String, Thing*> &map) {
+     *     for (std::pair item : map) {
+     *         delete item.second;
+     *     }
+     *     hm_cleanup_ran = true;
+     * };
+     * // end-top-level ----
+     *
+     * auto foo = new Thing(1);
+     * {
+     *     Hashmap<String, Thing*> map;
+     *     map.set_cleanup_function(hm_cleanup);
+     *     map.put("foo", foo);
+     * }
+     * assert_eq(true, hm_cleanup_ran);
+     * ```
+     */
+    using CleanupFn = void(Hashmap<KeyT, T> &);
+    void set_cleanup_function(CleanupFn fn) {
+        m_cleanup_fn = fn;
+    }
+
     ~Hashmap() {
         if (!m_map) return;
+        if (m_cleanup_fn)
+            m_cleanup_fn(*this);
         clear();
         delete[] m_map;
     }
@@ -822,5 +856,6 @@ private:
 
     HashFn *m_hash_fn { nullptr };
     CompareFn *m_compare_fn { nullptr };
+    CleanupFn *m_cleanup_fn { nullptr };
 };
 }

@@ -59,6 +59,14 @@ public:
         assert(m_ptr);
     }
 
+    SharedPtr(T *ptr, Counter *counter)
+        : m_ptr { ptr }
+        , m_count { counter } {
+        assert(m_ptr);
+        assert(m_count);
+        m_count->increment();
+    }
+
     ~SharedPtr() {
         destroy();
     }
@@ -207,10 +215,23 @@ public:
      * assert_eq(0, ptr.count());
      * ```
      */
-    unsigned int count() {
+    unsigned int count() const {
         if (!m_count)
             return 0;
         return m_count->count();
+    }
+
+    /**
+     * Returns a new SharedPtr with the underlying pointer
+     * statically cast as the templated type.
+     *
+     * TODO: example
+     */
+    template <typename To>
+    SharedPtr<To> static_cast_as() const {
+        if (!m_ptr)
+            return {};
+        return SharedPtr<To> { static_cast<To *>(m_ptr), m_count };
     }
 
 private:

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -226,6 +227,23 @@ public:
     String &operator=(const String &other) {
         set_str(other.c_str(), other.size());
         return *this;
+    }
+
+    /**
+     * Appends two Strings together and returns the result.
+     *
+     * ```
+     * auto str1 = String { "foo" };
+     * auto str2 = String { "bar" };
+     * assert_str_eq("foobar", str1 + str2);
+     *
+     * assert_str_eq("12", String("1") + "2");
+     * ```
+     */
+    String operator+(const String &other) const {
+        auto new_string = String(*this);
+        new_string.append(other);
+        return new_string;
     }
 
     /**
@@ -576,9 +594,10 @@ public:
      *
      * ```
      * auto str = String { "xyz" };
-     * str.insert(1, '-');
-     * str.insert(3, '-');
-     * assert_str_eq("x-y-z", str);
+     * str.insert(0, '-');
+     * str.insert(2, '-');
+     * str.insert(4, '-');
+     * assert_str_eq("-x-y-z", str);
      * ```
      *
      * This method aborts if the index is past the end.
@@ -591,10 +610,10 @@ public:
     void insert(size_t index, char c) {
         assert(index < m_length);
         grow_at_least(m_length + 1);
-        m_length++;
         size_t nbytes = m_length - index + 1; // 1 extra for null terminator
         memmove(m_str + index + 1, m_str + index, nbytes);
         m_str[index] = c;
+        m_length++;
     }
 
     /**
@@ -1245,6 +1264,141 @@ public:
             printf("%c", (*this)[i]);
         }
         printf("\n");
+    }
+
+    /**
+     * Returns true if the string contains UTF-8-encoded
+     * characters that seem to be valid, multibyte or not.
+     *
+     * An ASCII string "foo" would return true, because it's
+     * also a valid UTF-8-encoded string. It can be
+     * represented with UTF-8.
+     *
+     * NOTE: This is not fool-proof. There's a lot of
+     * checks we aren't doing.
+     *
+     * ```
+     * assert_eq(true, String("abc").contains_seemingly_valid_utf8_encoded_characters());
+     * assert_eq(true, String("🐄").contains_seemingly_valid_utf8_encoded_characters());
+     * assert_eq(false, String("\xC3").contains_seemingly_valid_utf8_encoded_characters());
+     * ```
+     */
+    bool contains_seemingly_valid_utf8_encoded_characters() const {
+        int index = 0;
+        char buf[5];
+        do {
+            index = next_utf8_char(index, buf);
+        } while (index > 0);
+        return index == 0;
+    }
+
+    /**
+     * Returns true if the string contains multibyte
+     * UTF-8-encoded characters that seem to be valid.
+     *
+     * NOTE: This is not fool-proof. There's a lot of
+     * checks we aren't doing.
+     *
+     * ```
+     * assert_eq(false, String("abc").contains_utf8_encoded_multibyte_characters());
+     * assert_eq(true, String("🐄").contains_utf8_encoded_multibyte_characters());
+     * assert_eq(false, String("\xC3").contains_utf8_encoded_multibyte_characters());
+     * ```
+     */
+    bool contains_utf8_encoded_multibyte_characters() const {
+        int index_was = 0;
+        int index = 0;
+        char buf[5];
+        bool multibyte = false;
+        do {
+            index = next_utf8_char(index, buf);
+            if (index > index_was + 1)
+                multibyte = true;
+            index_was = index;
+        } while (index > 0);
+        return index == 0 && multibyte;
+    }
+
+    /**
+     * Takes an integer for the starting index and a
+     * buffer char*. Consumes the proper number of
+     * bytes, appending to the buffer C string to build
+     * a single UTF-8-encoded character.
+     *
+     * Be sure to pass a pointer to a buffer that is
+     * at least 5 characters in size (one is used for
+     * the null terminator).
+     *
+     * Returns the new index, a positive integer,
+     * on success.
+     *
+     * Returns zero (0) if the end of the string has
+     * been reached.
+     *
+     * Returns a negative integer if the character
+     * is invalid.
+     *
+     * (Note: this method only does rudimentary checking
+     * for a valid character, i.e. does it have enough
+     * bytes to satisfy the encoding.)
+     *
+     * ```
+     * auto str = String("ab☺🐄");
+     * int index = 0;
+     *
+     * char buf[5];
+     * index = str.next_utf8_char(index, buf);
+     * assert_eq(1, index);
+     * assert_str_eq("a", String(buf));
+     *
+     * buf[0] = '\0';
+     * index = str.next_utf8_char(index, buf);
+     * assert_eq(2, index);
+     * assert_str_eq("b", String(buf));
+     *
+     * buf[0] = '\0';
+     * index = str.next_utf8_char(index, buf);
+     * assert_eq(5, index);
+     * assert_str_eq("☺", String(buf));
+     *
+     * buf[0] = '\0';
+     * index = str.next_utf8_char(index, buf);
+     * assert_eq(9, index);
+     * assert_str_eq("🐄", String(buf));
+     *
+     * buf[0] = '\0';
+     * index = str.next_utf8_char(index, buf);
+     * assert_eq(0, index);
+     * assert_str_eq("", String(buf));
+     * ```
+     */
+    int next_utf8_char(int index, char *buffer) const {
+        if (!m_str)
+            return 0;
+        assert(m_length < INT_MAX);
+        assert(index >= 0);
+        if ((size_t)index >= m_length)
+            return 0;
+        buffer[0] = m_str[index];
+        if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
+            if ((size_t)index + 3 >= m_length) return -1;
+            buffer[1] = m_str[++index];
+            buffer[2] = m_str[++index];
+            buffer[3] = m_str[++index];
+            buffer[4] = 0;
+        } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
+            if ((size_t)index + 2 >= m_length) return -1;
+            buffer[1] = m_str[++index];
+            buffer[2] = m_str[++index];
+            buffer[3] = 0;
+        } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
+            if ((size_t)index + 1 >= m_length) return -1;
+            buffer[1] = m_str[++index];
+            buffer[2] = 0;
+        } else {
+            buffer[1] = 0;
+        }
+        return index + 1;
     }
 
 private:
