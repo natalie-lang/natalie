@@ -440,7 +440,7 @@ module Natalie
     if RUBY_ENGINE == 'natalie'
       def pp(obj)
         File.open('/tmp/pp.txt', 'w') { |f| f.write(obj.inspect) }
-        puts `ruby -r ruby_parser -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
+        puts `ruby -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
       end
     end
   end

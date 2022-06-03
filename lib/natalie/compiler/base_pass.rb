@@ -1,6 +1,6 @@
 module Natalie
   class Compiler
-    class BasePass < NatSexpProcessor
+    class BasePass < SexpProcessor
       def initialize(compiler_context)
         super()
         self.default_method = :process_sexp

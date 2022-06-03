@@ -24,8 +24,8 @@ module Natalie
       end
 
       def process_alias(exp)
-        _, (_, new_name), (_, old_name) = exp
-        exp.new(:block, s(:alias, :self, :env, s(:intern, new_name), s(:intern, old_name)), s(:nil))
+        _, new_name, old_name = exp
+        exp.new(:block, s(:alias, :self, :env, process(new_name), process(old_name)), s(:nil))
       end
 
       def process_undef(exp)
@@ -741,7 +741,18 @@ module Natalie
             s(:var_declare, :env, s(:s, name)),
             s(:c_if, s(:defined, s(:lvar, name)), s(:c_if, condition.(var), var, process(value))),
           )
+        when :call
+          _, call, attrasgn = exp
+          result_name = temp('op_asgn_bool')
+          exp.new(
+            :block,
+            s(:declare, result_name, process(call)),
+            s(:c_if, condition.(result_name), result_name, process(attrasgn)),
+          )
         else
+          p exp
+          p exp.file
+          p exp.line
           raise "unknown op_asgn_or type: #{var_type.inspect}"
         end
       end

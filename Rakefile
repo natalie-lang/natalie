@@ -283,7 +283,7 @@ rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.cpp' => 'src/%n' do |t|
+rule '.rb.cpp' => ['src/%n', "build/natalie_parser.#{so_ext}"] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
@@ -307,7 +307,9 @@ task :bundle_install do
 end
 
 task :update_submodules do
-  sh 'git submodule update --init'
+  unless ENV['SKIP_SUBMODULE_UPDATE']
+    sh 'git submodule update --init'
+  end
 end
 
 def cc

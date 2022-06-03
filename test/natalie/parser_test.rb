@@ -1,22 +1,10 @@
 require_relative '../spec_helper'
-require 'sexp_processor'
+require_relative '../../ext/natalie_parser/lib/natalie_parser/sexp'
 
 if RUBY_ENGINE != 'natalie'
-  require 'ruby_parser'
-  class NatalieParser
-    def self.parse(code, path = '(string)')
-      node = RubyParser.new.parse(code, path)
-      if node.nil?
-        s(:block)
-      elsif node.first == :block
-        node
-      else
-        s(:block, node)
-      end
-    rescue Racc::ParseError, RubyParser::SyntaxError => e
-      raise SyntaxError, e.message
-    end
-  end
+  $LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
+  $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
+  require 'natalie_parser'
 end
 
 describe 'NatalieParser' do

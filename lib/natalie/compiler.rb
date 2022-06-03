@@ -379,7 +379,7 @@ module Natalie
       if node.sexp_type == :str
         begin
           Natalie::Parser.new(node[1], current_path).ast
-        rescue Racc::ParseError => e
+        rescue SyntaxError => e
           # TODO: add a flag to raise syntax errors at compile time?
           s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, e.message))
         end
@@ -455,7 +455,7 @@ module Natalie
     if RUBY_ENGINE == 'natalie'
       def pp(obj)
         File.open('/tmp/pp.txt', 'w') { |f| f.write(obj.inspect) }
-        puts `ruby -r ruby_parser -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
+        puts `ruby -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
       end
     end
   end

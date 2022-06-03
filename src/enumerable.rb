@@ -734,7 +734,7 @@ module Enumerable
 
   def first(*args)
     if args.length == 0
-      each { |*item| return item.size <= 1 ? item.first : item }
+      each { |*item| return (item.size <= 1 ? item.first : item) }
     else
       count = args[0]
       count = count.to_int if not count.is_a? Integer and count.respond_to? :to_int

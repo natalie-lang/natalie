@@ -220,7 +220,7 @@ public:
      * assert_eq('b', vec.at(1));
      * ```
      *
-     * If the vector is empty, then this method aborts.
+     * This method aborts if the index is past the end.
      *
      * ```should_abort
      * auto vec = Vector<char> {};
@@ -247,7 +247,7 @@ public:
      * vec.first();
      * ```
      */
-    T first() {
+    T &first() const {
         assert(m_size != 0);
         return m_data[0];
     }
@@ -267,7 +267,7 @@ public:
      * vec.last();
      * ```
      */
-    T last() {
+    T &last() const {
         assert(m_size != 0);
         return m_data[m_size - 1];
     }
@@ -658,7 +658,7 @@ public:
         quicksort(0, m_size - 1, cmp);
     }
 
-private:
+protected:
     Vector(size_t size, size_t capacity, T *data)
         : m_size(size)
         , m_capacity(capacity)
@@ -744,6 +744,53 @@ private:
     size_t m_size { 0 };
     size_t m_capacity { 0 };
     T *m_data { nullptr };
+};
+
+template <typename T>
+class OwnedVector : public Vector<T> {
+public:
+    /**
+     * Constructs an empty OwnedVector with the default capacity.
+     *
+     * ```
+     * {
+     *     auto vec = OwnedVector<Thing*> {};
+     *     vec.push(new Thing(1));
+     * }
+     * // Thing was deleted
+     * ```
+     */
+    ~OwnedVector() {
+        if (!m_released) {
+            for (auto item : *this) {
+                delete item;
+            }
+        }
+    }
+
+    /**
+     * Releases the objects being stored in the vector so they
+     * are not destroyed when this OwnedVector is deleted.
+     * Calling this effectively turns this OwnedVector into a
+     * plain Vector<T>.
+     *
+     * ```
+     * auto thing = new Thing(1);
+     * {
+     *     auto vec = OwnedVector<Thing*> {};
+     *     vec.push(thing);
+     *     vec.relese();
+     * }
+     * assert_eq(1, thing.value());
+     * ```
+     */
+    Vector<T> *release() {
+        m_released = true;
+        return static_cast<Vector<T> *>(this);
+    }
+
+private:
+    bool m_released { false };
 };
 
 }

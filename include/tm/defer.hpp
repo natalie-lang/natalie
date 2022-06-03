@@ -13,9 +13,10 @@ public:
      *
      * ```
      * bool resource_cleaned_up = false;
-     * {
-     *     // do something with resource that may throw an exception
-     *     Defer close_file([&]() { resource_cleaned_up = true; });
+     * try {
+     *     Defer clean_up([&]() { resource_cleaned_up = true; });
+     *     throw std::exception();
+     * } catch (const std::exception &e) {
      * }
      * assert(resource_cleaned_up);
      * ```

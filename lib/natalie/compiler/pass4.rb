@@ -777,7 +777,7 @@ module Natalie
       end
 
       def init_symbols
-        @symbols.map { |name, index| "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{process(s(:s, name.to_s))}, #{name.to_s.length});" }
+        @symbols.map { |name, index| "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{process(s(:s, name.to_s))}, #{name.to_s.bytesize});" }
       end
 
       def set_dollar_zero_global_in_main_to_c

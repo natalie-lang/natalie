@@ -5,21 +5,20 @@ end
 
 describe 'begin/rescue/else' do
   it 'runs the rescue block with the exception named' do
-    r =
-      begin
-        a = []
-        a[1, 2, 3]
-      rescue => e
-        e
-      end
+    r = begin
+          a = []
+          a[1, 2, 3]
+        rescue => e
+          e
+        end
     r.message.should == 'wrong number of arguments (given 3, expected 1..2)'
-    r =
-      begin
-        raise 'foo'
-      rescue => e
-        e
-      end
-    r.message.should == 'foo'
+
+    r2 ||= begin
+             raise 'foo'
+           rescue => e
+             e
+           end
+    r2.message.should == 'foo'
   end
 
   it 'uses the same scope' do

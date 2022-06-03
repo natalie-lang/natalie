@@ -18,14 +18,13 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
         new String(code->as_string()->to_low_level_string()),
         new String(source_path->as_string()->to_low_level_string())
     };
-    NatalieParser::Node *tree;
+    SharedPtr<NatalieParser::Node> tree;
     try {
         tree = parser.tree();
     } catch (NatalieParser::Parser::SyntaxError &e) {
         env->raise("SyntaxError", e.message());
     }
     auto ast = node_to_ruby(env, tree);
-    delete tree;
     return ast;
 }
 
@@ -54,11 +53,11 @@ Value ParserObject::token_to_ruby(Env *env, NatalieParser::Token &token, bool wi
     auto hash = new HashObject {};
     hash->put(env, "type"_s, SymbolObject::intern(type));
     switch (token.type()) {
+    case NatalieParser::Token::Type::Bignum:
     case NatalieParser::Token::Type::PercentLowerI:
     case NatalieParser::Token::Type::PercentUpperI:
     case NatalieParser::Token::Type::PercentLowerW:
     case NatalieParser::Token::Type::PercentUpperW:
-    case NatalieParser::Token::Type::Regexp:
     case NatalieParser::Token::Type::String:
         hash->put(env, "literal"_s, new StringObject { token.literal_or_blank() });
         break;
@@ -74,12 +73,12 @@ Value ParserObject::token_to_ruby(Env *env, NatalieParser::Token &token, bool wi
     case NatalieParser::Token::Type::Float:
         hash->put(env, "literal"_s, new FloatObject { token.get_double() });
         break;
-    case NatalieParser::Token::Type::Integer:
-        hash->put(env, "literal"_s, Value::integer(token.get_integer()));
+    case NatalieParser::Token::Type::Fixnum:
+        hash->put(env, "literal"_s, Value::integer(token.get_fixnum()));
         break;
     case NatalieParser::Token::Type::InterpolatedRegexpEnd:
-        if (token.options())
-            hash->put(env, "options"_s, new StringObject { token.options().value().ref() });
+        if (token.has_literal())
+            hash->put(env, "options"_s, new StringObject { token.literal_string().ref() });
         break;
     default:
         void();
@@ -99,7 +98,7 @@ void ParserObject::validate_token(Env *env, NatalieParser::Token &token) {
     }
 }
 
-Value ParserObject::node_to_ruby(Env *env, NatalieParser::Node *node) {
+Value ParserObject::node_to_ruby(Env *env, SharedPtr<NatalieParser::Node> node) {
     NatalieCreator creator { env };
     node->transform(&creator);
     return creator.sexp();
