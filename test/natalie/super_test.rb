@@ -25,6 +25,10 @@ class Greeter
     "Hello, #{name}."
   end
 
+  def greet_by_block_implicitly
+    "Hello, #{yield}."
+  end
+
   def greet_in_rescue
     'Hello.'
   end
@@ -63,6 +67,10 @@ class PirateGreeter < Greeter
 
   def greet_by_name_implicitly(name)
     "ARRRR. #{super}"
+  end
+
+  def greet_by_block_implicitly
+    "ARRR. #{super}"
   end
 
   def greet_in_rescue
@@ -105,6 +113,11 @@ describe 'super' do
   it 'works with implicit args' do
     greeter = PirateGreeter.new
     greeter.greet_by_name_implicitly('Tim').should == 'ARRRR. Hello, Tim.'
+  end
+
+  it 'works with implicit blocks' do
+    greeter = PirateGreeter.new
+    greeter.greet_by_block_implicitly { 'Tim' }.should == 'ARRR. Hello, Tim.'
   end
 
   it 'works with explicit empty args' do

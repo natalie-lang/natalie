@@ -611,7 +611,8 @@ module Natalie
           args_name, args_count = process_atom(args).split(':')
           decl "Value #{result_name} = super(env, self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else
-          decl "Value #{result_name} = super(env, self, argc, args, #{block || 'nullptr'});"
+          block = block && block != 'nullptr' ? block : 'block'
+          decl "Value #{result_name} = super(env, self, argc, args, #{block});"
         end
         result_name
       end
