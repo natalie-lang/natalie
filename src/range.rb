@@ -97,6 +97,29 @@ class Range
     end
   end
 
+  def min(n = nil)
+    raise RangeError, 'cannot get the minimum of beginless range' unless self.begin
+
+    if block_given?
+      raise RangeError, 'cannot get the minimum of endless range with custom comparison method' unless self.end
+
+      return super
+    end
+
+    if n
+      return first(n)
+    end
+
+    min = first
+    return min if !self.end
+
+    if exclude_end?
+      return min if min < self.end
+    else
+      return min if min <= self.end
+    end
+  end
+
   def size
     return Float::INFINITY if self.begin.nil?
     return unless self.begin.is_a?(Numeric)

@@ -452,6 +452,7 @@ module Enumerable
     has_block = block_given?
     cmp = ->(result) do
       raise ArgumentError, 'bad result from block' unless result.respond_to?(:<)
+      result > -2 # Ruby requires a call to :>?
       result < 0
     end
     if n
