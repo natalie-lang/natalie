@@ -5,6 +5,7 @@
 namespace Natalie {
 
 class ArrayObject;
+class Backtrace;
 class Block;
 class ClassObject;
 class EncodingObject;

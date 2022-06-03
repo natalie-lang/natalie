@@ -54,7 +54,8 @@ Value KernelModule::binding(Env *env) {
 }
 
 Value KernelModule::caller(Env *env) {
-    auto ary = env->backtrace();
+    auto backtrace = env->backtrace();
+    auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
     ary->shift(); // remove the frame for the call site of Kernel#caller
     return ary;

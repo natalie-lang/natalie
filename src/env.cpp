@@ -27,14 +27,15 @@ Method *Env::current_method() {
     return env->method();
 }
 
-const ManagedString *Env::build_code_location_name(Env *location_env) {
-    if (location_env->is_main())
+const ManagedString *Env::build_code_location_name() {
+    if (is_main())
         return new ManagedString("<main>");
-    if (location_env->method())
-        return new ManagedString(location_env->method()->name());
+    if (method())
+        return new ManagedString(method()->name());
+
     // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
-    if (location_env->outer()) {
-        auto outer_name = build_code_location_name(location_env->outer());
+    if (outer()) {
+        auto outer_name = outer()->build_code_location_name();
         return ManagedString::format("block in {}", outer_name);
     }
     // fall back to just "block" if we don't know where this block came from
@@ -201,17 +202,16 @@ ExceptionObject *Env::exception() {
     return nullptr;
 }
 
-ArrayObject *Env::backtrace() {
-    auto ary = new ArrayObject {};
+Backtrace *Env::backtrace() {
+    auto backtrace = new Backtrace;
+
     Env *bt_env = this;
     do {
-        if (bt_env->file()) {
-            auto method_name = build_code_location_name(bt_env);
-            ary->push(StringObject::format("{}:{}:in `{}'", bt_env->file(), bt_env->line(), method_name));
-        }
+        if (bt_env->file())
+            backtrace->add_item(bt_env, bt_env->file(), bt_env->line());
         bt_env = bt_env->caller();
     } while (bt_env);
-    return ary;
+    return backtrace;
 }
 
 Value Env::var_get(const char *key, size_t index) {
