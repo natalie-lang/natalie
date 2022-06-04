@@ -47,16 +47,16 @@ public:
         m_sexp->push(FalseObject::the());
     }
 
-    virtual void append_float(double number) override {
-        m_sexp->push(new FloatObject(number));
+    virtual void append_bignum(TM::String &number) override {
+        m_sexp->push(new IntegerObject(Integer(number)));
     }
 
-    virtual void append_integer(long long number) override {
+    virtual void append_fixnum(long long number) override {
         m_sexp->push(Value::integer(number));
     }
 
-    virtual void append_integer(TM::String &number) override {
-        m_sexp->push(new IntegerObject(Integer(number)));
+    virtual void append_float(double number) override {
+        m_sexp->push(new FloatObject(number));
     }
 
     virtual void append_nil() override {
@@ -88,6 +88,14 @@ public:
 
     virtual void append_true() override {
         m_sexp->push(TrueObject::the());
+    }
+
+    virtual void make_complex_number() override {
+        // TODO
+    }
+
+    virtual void make_rational_number() override {
+        // TODO
     }
 
     virtual void wrap(const char *type) override {
