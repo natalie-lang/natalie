@@ -3,7 +3,7 @@ require 'uri'
 require 'net/http'
 
 stats = ARGF.read.split(', ').map(&:split).each_with_object({}) { |(c, l), h| h[l] = c.to_i }
-uri = URI('https://natalie-lang.org/specs-api/self_hosted_stats')
+uri = URI('https://stats.natalie-lang.org/self_hosted_stats')
 https = Net::HTTP.new(uri.host, uri.port)
 https.use_ssl = true
 puts https.post(
