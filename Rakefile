@@ -37,6 +37,21 @@ task test: :build do
   sh 'bundle exec ruby test/all.rb'
 end
 
+def num_procs
+  `command -v nproc 2>&1 >/dev/null && nproc || command -v sysctl 2>&1 >/dev/null && sysctl -n hw.ncpu || echo 4`.strip
+rescue SystemCallError
+  '4'
+end
+
+desc 'Run the test suite using many processes in parallel'
+task test_parallel: :build do
+  env = {}
+  env['PARALLEL'] = 'true'
+  env['REPORTER'] = 'dots'
+  env['NCPU'] = ENV['NCPU'] || num_procs
+  sh env, 'bundle exec ruby test/all.rb'
+end
+
 desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 

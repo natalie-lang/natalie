@@ -3,9 +3,10 @@ GEM
   specs:
     ansi (1.5.0)
     builder (3.2.4)
-    concurrent-ruby (1.1.9)
-    minitest (5.14.4)
-    minitest-reporters (1.4.3)
+    concurrent-ruby (1.1.10)
+    minitest (5.15.0)
+    minitest-parallel_fork (1.2.0)
+    minitest-reporters (1.5.0)
       ansi
       builder
       minitest (>= 5.0)
@@ -14,11 +15,13 @@ GEM
     ruby-progressbar (1.11.0)
 
 PLATFORMS
-  ruby
+  arm64-darwin-21
+  x86_64-linux
 
 DEPENDENCIES
   concurrent-ruby
   minitest
+  minitest-parallel_fork
   minitest-reporters
   rake
 
