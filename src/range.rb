@@ -62,7 +62,7 @@ class Range
   alias === cover?
 
   def max(n = nil)
-    raise RangeError, 'cannot get maximum of endless range' unless self.end
+    raise RangeError, 'cannot get the maximum of endless range' unless self.end
 
     if block_given?
       raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' unless self.begin
@@ -92,7 +92,7 @@ class Range
         self.end
       end
 
-    if !self.begin || max >= self.begin
+    if !self.begin || (max == self.begin || (self.begin <=> max) == -1)
       max
     end
   end
@@ -116,8 +116,16 @@ class Range
     if exclude_end?
       return min if min < self.end
     else
-      return min if min <= self.end
+      return min if min == self.end || (min <=> self.end) == -1
     end
+  end
+
+  def minmax(&block)
+    if block_given?
+      return super
+    end
+
+    [min, max]
   end
 
   def size
