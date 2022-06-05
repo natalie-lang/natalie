@@ -1139,8 +1139,9 @@ def run_specs
           end
         end
         $stub_registry.reset
-        context.each { |con| con.before_each.each { |b| b.call } }
         $expectations = []
+        context.each { |con| con.before_each.each { |b| b.call } }
+
         fn.call
 
         $expectations.each { |expectation| expectation.validate! }
