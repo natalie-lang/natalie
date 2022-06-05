@@ -253,4 +253,31 @@ describe 'range' do
       (..1).include?(10).should == false
     end
   end
+
+  describe 'min' do
+    it 'returns beginning if end and begin are equal' do
+      x = mock('x')
+      (x..x).min.should == x
+    end
+
+    it 'uses <=> to compare end and min' do
+      x = mock('x')
+      x.should_receive(:<=>).and_return(1)
+      (x..2).min.should == nil
+    end
+  end
+
+  describe 'max' do
+    it 'returns end if begin and end are equal' do
+      x = mock('x')
+      (x..x).max.should == x
+    end
+
+    it 'uses <=> to compare begin and max' do
+      x = mock('x')
+      y = mock('y')
+      y.should_receive(:<=>).and_return(1)
+      (y..x).max.should == nil
+    end
+  end
 end
