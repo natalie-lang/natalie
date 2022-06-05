@@ -3,6 +3,7 @@ require_relative './lib/natalie/compiler/flags'
 task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
+SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
 
 desc 'Build Natalie'
 task :build do
@@ -26,9 +27,10 @@ task :clean do
   rm_rf 'build/encoding'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
+  rm_rf "build/libnatalie_base.#{SO_EXT}"
   rm_rf 'build/natalie_parser'
   rm_rf 'build/libnatalie_parser.a'
-  rm_rf 'build/natalie_parser.so'
+  rm_rf "build/natalie_parser.#{SO_EXT}"
   rm_rf 'build/natalie_parser.bundle'
   rm_rf Rake::FileList['build/*.o']
 end
@@ -77,8 +79,7 @@ desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for the Natalie Parser'
-so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
-task parser_c_ext: "build/natalie_parser.#{so_ext}"
+task parser_c_ext: ["build/natalie_parser.#{SO_EXT}", "build/libnatalie_parser.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -210,6 +211,7 @@ task libnatalie: [
   :ruby_objects,
   :special_objects,
   'build/libnatalie.a',
+  "build/libnatalie_base.#{SO_EXT}",
   :write_compile_database,
 ]
 
@@ -240,6 +242,10 @@ end
 
 file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
   sh "ar rcs #{t.name} #{OBJECT_FILES}"
+end
+
+file "build/libnatalie_base.#{SO_EXT}" => OBJECT_FILES + HEADERS do |t|
+  sh "#{cxx} -shared -fPIC -rdynamic -o #{t.name} #{OBJECT_FILES}"
 end
 
 file 'build/onigmo/lib/libonigmo.a' do
@@ -329,17 +335,23 @@ rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.cpp' => ['src/%n', "build/natalie_parser.#{so_ext}"] do |t|
+rule '.rb.cpp' => ['src/%n', "build/natalie_parser.#{SO_EXT}"] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do
+file "build/natalie_parser.#{SO_EXT}" => 'build/libnatalie_parser.a' do
   build_dir = File.expand_path('build/natalie_parser', __dir__)
   sh <<-SH
     cd #{build_dir} && \
     rake parser_c_ext && \
-    cp #{build_dir}/ext/natalie_parser/natalie_parser.#{so_ext} #{File.expand_path('build', __dir__)}
+    cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}
   SH
+end
+
+# FIXME: should we rename to libnatalie_parser in the NatalieParser project?
+file "build/libnatalie_parser.#{SO_EXT}" => 'build/natalie_parser.so' do |t|
+  build_dir = File.expand_path('build/natalie_parser', __dir__)
+  sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
 task :tidy_internal do
