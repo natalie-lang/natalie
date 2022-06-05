@@ -184,8 +184,10 @@ class Runner
         Natalie::VM.new(compiler.instructions, path: source_path).run
       else
         compiler.compile
+        build_dir = File.expand_path('../build', __dir__)
+        env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
         begin
-          pid = spawn(out.path, *ARGV)
+          pid = spawn(env, out.path, *ARGV)
           Process.wait(pid)
           exit $?.exitstatus || 1
         ensure
@@ -207,7 +209,7 @@ class Runner
       rescue Natalie::Compiler::CompileError => e
         puts e
       else
-        pid = spawn(out.path, *ARGV)
+        pid = spawn(env, out.path, *ARGV)
         Process.wait(pid)
       end
       print 'Edit again? [Yn] '
