@@ -18,8 +18,15 @@ module Natalie
       File.join(BUILD_DIR, 'onigmo/include'),
       File.join(BUILD_DIR, 'natalie_parser/include'),
     ]
-    LIB_PATHS = [BUILD_DIR]
-    LIBRARIES = %W[-lnatalie]
+    LIB_PATHS = [
+      BUILD_DIR,
+      File.join(BUILD_DIR, 'onigmo/lib'),
+    ]
+    LIBRARIES = %w[
+      -lnatalie_base
+      -lnatalie_parser
+      -lonigmo
+    ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
@@ -71,7 +78,7 @@ module Natalie
     end
 
     def check_build
-      unless File.file?(File.join(BUILD_DIR, 'libnatalie.a'))
+      unless File.file?(File.join(BUILD_DIR, 'libnatalie_base.so'))
         puts 'please run: rake'
         exit 1
       end

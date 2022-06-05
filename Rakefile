@@ -18,9 +18,10 @@ task :clean do
   rm_rf 'build/build.log'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
+  rm_rf "build/libnatalie_base.#{so_ext}"
   rm_rf 'build/natalie_parser'
   rm_rf 'build/libnatalie_parser.a'
-  rm_rf 'build/natalie_parser.so'
+  rm_rf "build/natalie_parser.#{so_ext}"
   rm_rf 'build/natalie_parser.bundle'
   rm_rf Rake::FileList['build/*.o']
 end
@@ -57,7 +58,7 @@ task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for the Natalie Parser'
 so_ext = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
-task parser_c_ext: "build/natalie_parser.#{so_ext}"
+task parser_c_ext: ["build/natalie_parser.#{so_ext}", "build/libnatalie_parser.#{so_ext}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -184,6 +185,7 @@ task libnatalie: [
        :ruby_objects,
        :special_objects,
        'build/libnatalie.a',
+       "build/libnatalie_base.#{so_ext}",
        :write_compile_database,
      ]
 
@@ -213,6 +215,10 @@ end
 
 file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
   sh "ar rcs #{t.name} #{OBJECT_FILES}"
+end
+
+file "build/libnatalie_base.#{so_ext}" => OBJECT_FILES + HEADERS do |t|
+  sh "#{cxx} -shared -fPIC -rdynamic -o #{t.name} #{OBJECT_FILES}"
 end
 
 file 'build/onigmo/lib/libonigmo.a' do
@@ -311,6 +317,11 @@ file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do |t|
   SH
 end
 
+# FIXME: should we rename to libnatalie_parser in the NatalieParer project?
+file "build/libnatalie_parser.#{so_ext}" => 'build/natalie_parser.so' do |t|
+  build_dir = File.expand_path('build/natalie_parser', __dir__)
+  sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{so_ext} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{so_ext}"
+end
 
 task :tidy_internal do
   # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
