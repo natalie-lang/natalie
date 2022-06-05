@@ -690,40 +690,76 @@ class ComplainExpectation
   end
 end
 
+class StubRegistry
+  attr_reader :stubs
+
+  def initialize
+    @stubs = {}
+  end
+
+  def register(stub)
+    $expectations << stub
+
+    if stub.message == :object_id
+      # If some spec has to stub object_id we have to rethink the idea of the StubRegistry class. We currently use the object_id
+      # method do build a hash key from the object id and the stub message.
+      raise SpecFailedException, "Cannot register stub for :object_id. This method is used internally and thus cannot be stubbed."
+    end
+
+    key = [stub.subject.object_id, stub.message]
+    if stubs.key?(key)
+      # We are prepending stubs here to ensure that new stubs get matched first.
+      stubs[key].prepend(stub)
+    else
+      stubs[key] = [stub]
+
+      get_stubs = ->(subject, method) { @stubs[[subject.object_id, method]] }
+      stub.subject.define_singleton_method(stub.message) do |*args, &block|
+        matched_stub = get_stubs.(stub.subject, stub.message).find { |stub| stub.match?(*args) }
+
+        if matched_stub
+          matched_stub.execute(&block)
+        else
+          super(*args, &block)
+        end
+      end
+    end
+  end
+
+  def reset
+    @stubs.clear
+  end
+end
+
 class Stub
+  attr_reader :subject, :message
+
   def initialize(subject, message)
     @subject = subject
     @message = message
-    @pass = false
     @args = nil
     @count = 0
     at_least(1)
     @yield_values = []
     @results = []
     @raises = []
+  end
 
-    increment = -> { @count += 1 }
-    expected_args = @args
-    should_receive_called = -> { @pass = @count_restriction.nil? || @count_restriction === @count }
-    return_values = @results
-    result = -> { return_values.size > 1 ? return_values[@count - 1] : return_values[0] }
-    yields = @yield_values
-    exception_to_raise = @raises
-    @subject.define_singleton_method(@message) do |*args|
-      if expected_args.nil? || args == expected_args
-        increment.()
-        should_receive_called.()
+  def match?(*args)
+    @args.nil? || args == @args
+  end
 
-        raise exception_to_raise.first unless exception_to_raise.empty?
+  def execute
+    @count += 1
 
-        if block_given? && !yields.empty?
-          yields.each { |yield_value| yield yield_value }
-        elsif !return_values.empty?
-          result.()
-        end
-      else
-        fail
-      end
+    unless @raises.empty?
+      raise @raises.size > 1 ? @raises[@count - 1] : @raises[0]
+    end
+
+    if block_given? && !@yield_values.empty?
+      @yield_values.each { |yield_value| yield yield_value }
+    elsif !@results.empty?
+      @results.size > 1 ? @results[@count - 1] : @results[0]
     end
   end
 
@@ -760,14 +796,13 @@ class Stub
   end
 
   def at_least(n)
-    # FIXME: support endless ranges
     case n
     when :once
-      @count_restriction = 1..9_999_999
+      @count_restriction = 1..
     when :twice
-      @count_restriction = 2..9_999_999
+      @count_restriction = 2..
     else
-      @count_restriction = n..9_999_999
+      @count_restriction = n..
     end
     self
   end
@@ -792,13 +827,14 @@ class Stub
   end
 
   def any_number_of_times
-    @pass = true
     @count_restriction = nil
     self
   end
 
   def validate!
-    raise SpecFailedException, "#{@subject.inspect} should have received #{@message}" unless @pass
+    unless @count_restriction == nil || @count_restriction === @count
+      raise SpecFailedException, "#{@subject.inspect} should have received #{@message}"
+    end
   end
 end
 
@@ -999,7 +1035,7 @@ class Object
   end
 
   def should_receive(message)
-    Stub.new(self, message).tap { |stub| $expectations << stub }
+    Stub.new(self, message).tap { |stub| $stub_registry.register(stub) }
   end
 
   def should_not_receive(message)
@@ -1036,7 +1072,7 @@ class Object
   end
 
   def stub!(message)
-    Stub.new(self, message)
+    Stub.new(self, message).any_number_of_times.tap { |stub| $stub_registry.register(stub) }
   end
 end
 
@@ -1075,6 +1111,7 @@ def run_specs
   @errors = []
   @skipped = []
   @test_count = 0
+  $stub_registry = StubRegistry.new
 
   before_all_done = []
   any_focused = @specs.any? { |_, _, _, focus| focus }
@@ -1101,6 +1138,7 @@ def run_specs
             end
           end
         end
+        $stub_registry.reset
         context.each { |con| con.before_each.each { |b| b.call } }
         $expectations = []
         fn.call
