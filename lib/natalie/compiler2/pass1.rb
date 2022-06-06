@@ -577,6 +577,16 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_not(exp, used:)
+        _, value = exp
+        instructions = [
+          transform_expression(value, used: true),
+          NotInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_op_asgn_or(exp, used:)
         _, variable, assignment = exp
         var_instruction = if variable.sexp_type == :lvar

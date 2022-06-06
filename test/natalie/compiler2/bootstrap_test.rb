@@ -469,6 +469,13 @@ class TestCompiler2 < TestCase
     assert_eq([5, 6, 7], result)
   end
 
+  def test_not
+    assert_eq(false, (not true))
+    assert_eq(false, !true)
+    assert_eq(true, 'foo' !~ /bar/)
+    assert_eq(true, /bar/ !~ 'foo')
+  end
+
   def test_or
     assert_eq(true, false || true)
     assert_eq(false, false || false)
