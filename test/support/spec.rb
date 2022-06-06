@@ -833,7 +833,12 @@ class Stub
 
   def validate!
     unless @count_restriction == nil || @count_restriction === @count
-      raise SpecFailedException, "#{@subject.inspect} should have received #{@message}"
+      message = "#{@subject.inspect} should have received ##{@message}"
+      if @count_restriction != nil
+        message << " #{@count_restriction} time(s) but received #{@count} time(s)"
+      end
+
+      raise SpecFailedException, message
     end
   end
 end
