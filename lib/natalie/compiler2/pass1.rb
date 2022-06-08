@@ -406,6 +406,21 @@ module Natalie
         instructions
       end
 
+      def transform_ensure(exp, used:)
+        _, body, ensure_body = exp
+        transform_rescue(
+          exp.new(:rescue,
+                  body,
+                  exp.new(:resbody,
+                          exp.new(:array),
+                          exp.new(:block,
+                                  ensure_body,
+                                  exp.new(:call, nil, :raise))),
+                  ensure_body),
+          used: used
+        )
+      end
+
       def transform_false(_, used:)
         return [] unless used
         PushFalseInstruction.new

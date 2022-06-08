@@ -340,6 +340,62 @@ class TestCompiler2 < TestCase
     assert_eq(:nested, Constants::Nested::CONSTANT)
   end
 
+  def test_ensure
+    # exception rescued
+    result = []
+    begin
+      result << 1
+      non_existent_method
+    rescue
+      result << 2
+    ensure
+      result << 3
+    end
+    assert_eq([1, 2, 3], result)
+
+    # exception not rescued
+    result = []
+    begin
+      begin
+        result << 1
+        non_existent_method
+      ensure
+        result << 3
+      end
+    rescue
+    end
+    assert_eq([1, 3], result)
+
+    # no exception
+    result = []
+    begin
+      result << 1
+    rescue
+      result << 2
+    ensure
+      result << 3
+    end
+    assert_eq([1, 3], result)
+
+    # ensure caused exception
+    result = []
+    exception = nil
+    begin
+      begin
+        result << 1
+      rescue
+        result << 2
+      ensure
+        result << 3
+        raise 'foo'
+      end
+    rescue => e
+      exception = e
+    end
+    assert_eq([1, 3], result)
+    assert_eq('foo', exception.message)
+  end
+
   def test_float
     f = 1.56
     assert_eq(1.56, f)
