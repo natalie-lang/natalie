@@ -696,6 +696,14 @@ class TestCompiler2 < TestCase
     assert_eq("3 = 3", s6)
   end
 
+  def test_svalue
+    a = [1, 2, 3]
+    arr = *a
+    assert_eq([1, 2, 3], arr)
+    arr = *[1, 2, 3]
+    assert_eq([1, 2, 3], arr)
+  end
+
   def test_until
     y = 0
     until y >= 3

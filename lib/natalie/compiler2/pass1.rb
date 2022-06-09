@@ -704,6 +704,16 @@ module Natalie
         PushStringInstruction.new(str, str.size)
       end
 
+      def transform_svalue(exp, used:)
+        _, svalue = exp
+        case svalue.sexp_type
+        when :splat
+          transform_expression(svalue, used: used)
+        else
+          raise "unexpected svalue type: #{svalue.sexp_type}"
+        end
+      end
+
       def transform_to_ary(exp, used:)
         _, value = exp
         instructions = [PushArgcInstruction.new(0)]
