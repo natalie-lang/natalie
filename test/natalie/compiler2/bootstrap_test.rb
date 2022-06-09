@@ -667,6 +667,11 @@ class TestCompiler2 < TestCase
     assert_eq(:nope, should_return_in_if(false))
   end
 
+  def test_sclass
+    assert_eq('foo', ClassWithClassMethod.foo)
+    assert_eq('bar', ClassWithClassMethod.bar)
+  end
+
   def test_send
     assert_eq('pub', ClassWithPrivateMethod.new.pub)
     assert_raises(NoMethodError) { ClassWithPrivateMethod.new.priv }
@@ -858,6 +863,13 @@ class TestCompiler2 < TestCase
     def pub; 'pub'; end
     private
     def priv; 'priv'; end
+  end
+
+  class ClassWithClassMethod
+    def self.foo; 'foo'; end
+    class << self
+      def bar; 'bar'; end
+    end
   end
 
   ::CONSTANT = :toplevel
