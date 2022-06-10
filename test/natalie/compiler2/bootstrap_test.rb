@@ -135,6 +135,26 @@ class TestCompiler2 < TestCase
     assert_eq([2, 4, 6], result)
   end
 
+  def test_array_splat
+    ary = [1, 2, 3]
+    i = 1
+
+    *a = *ary
+    assert_eq(ary, a)
+
+    a = *ary
+    assert_eq(ary, a)
+
+    b = [0, *ary, 4]
+    assert_eq([0, 1, 2, 3, 4], b)
+
+    e = [0, *i, 2]
+    assert_eq([0, 1, 2], e)
+
+    d = *i
+    assert_eq([1], d)
+  end
+
   def test_assignment
     x ||= 1
     x ||= 2
@@ -496,12 +516,6 @@ class TestCompiler2 < TestCase
 
     a, *$b = ary
     assert_eq([2, 3], $b)
-
-    *a = *ary
-    assert_eq(ary, a)
-
-    a = [0, *ary, 4]
-    assert_eq([0, 1, 2, 3, 4], a)
 
     def returns_whole_thing
       d, e = [4, 5]

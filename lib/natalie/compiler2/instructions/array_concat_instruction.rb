@@ -10,13 +10,15 @@ module Natalie
       def generate(transform)
         ary2 = transform.pop
         ary = transform.peek
-        transform.exec("#{ary}->as_array()->concat(env, 1, &#{ary2})")
+        # NOTE: ArrayObject::push_splat() is better than concat() because it
+        # can handle when the given value is not an array.
+        transform.exec("#{ary}->as_array()->push_splat(env, #{ary2})")
       end
 
       def execute(vm)
         ary2 = vm.pop
         ary = vm.peek
-        ary.concat(ary2)
+        ary.concat(Array(ary2))
       end
     end
   end

@@ -706,12 +706,16 @@ module Natalie
 
       def transform_svalue(exp, used:)
         _, svalue = exp
+        instructions = []
         case svalue.sexp_type
         when :splat
-          transform_expression(svalue, used: used)
+          instructions << transform_expression(svalue, used: true)
+          instructions << ArrayWrapInstruction.new
         else
           raise "unexpected svalue type: #{svalue.sexp_type}"
         end
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_to_ary(exp, used:)
