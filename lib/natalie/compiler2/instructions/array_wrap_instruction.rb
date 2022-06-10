@@ -17,7 +17,7 @@ module Natalie
 
       def execute(vm)
         obj = vm.pop
-        vm.push(Array(obj))
+        vm.push([*obj])
       end
     end
   end
