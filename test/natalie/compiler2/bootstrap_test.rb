@@ -242,6 +242,11 @@ class TestCompiler2 < TestCase
       break 4
     end
     assert_eq(4, result)
+
+    result = [3, 2, 1].sort.each do
+      break 5
+    end
+    assert_eq(5, result)
   end
 
   def test_break_from_lambda

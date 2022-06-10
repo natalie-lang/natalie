@@ -67,6 +67,7 @@ module Natalie
       end
 
       def transform_send(instruction)
+        return unless instruction.with_block?
         return unless (break_point = @break_point_stack.pop)
 
         try_instruction = TryInstruction.new

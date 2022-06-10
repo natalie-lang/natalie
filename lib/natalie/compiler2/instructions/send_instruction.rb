@@ -19,6 +19,10 @@ module Natalie
 
       attr_reader :file, :line
 
+      def with_block?
+        !!@with_block
+      end
+
       def to_s
         s = "send #{@message.inspect}"
         s << ' to self' if @receiver_is_self
