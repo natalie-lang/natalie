@@ -38,7 +38,7 @@ task test: :build do
 end
 
 desc 'Run the most-recently-modified test'
-task :test_last_modified do
+task test_last_modified: :build do
   last_edited = Dir['test/**/*_test.rb', 'spec/**/*_spec.rb'].sort_by { |path| File.stat(path).mtime.to_i }.last
   sh ['bin/natalie', ENV['FLAGS'], last_edited].compact.join(' ')
 end
