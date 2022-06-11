@@ -9,10 +9,21 @@ module Natalie
     # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:, file:, line:)
+      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false)
+        # the message to send
         @message = message.to_sym
+
+        # implied self, no explicit receiver, e.g. foo vs something.foo
         @receiver_is_self = receiver_is_self
+
+        # the args array is already on the stack and ready;
+        # no need to collect individual args
+        @args_array_on_stack = args_array_on_stack
+
+        # a block is on the stack
         @with_block = with_block
+
+        # source location info
         @file = file
         @line = line
       end
@@ -27,16 +38,18 @@ module Natalie
         s = "send #{@message.inspect}"
         s << ' to self' if @receiver_is_self
         s << ' with block' if @with_block
+        s << ' (args array on stack)' if @args_array_on_stack
         s
       end
 
       def generate(transform)
         receiver = transform.pop
 
-        if (arg_count = transform.pop) == -1
+        if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
           args_array = "#{args}->size(), #{args}->data()"
         else
+          arg_count = transform.pop
           args = []
           arg_count.times { args.unshift transform.pop }
           args_array = "{ #{args.join(', ')} }"
@@ -54,28 +67,24 @@ module Natalie
 
       def execute(vm)
         receiver = vm.pop
-        arg_count = vm.pop
-        if arg_count.zero? && %i[public private protected].include?(@message)
+
+        if @args_array_on_stack
+          args = vm.pop
+        else
+          arg_count = vm.pop
+          args = []
+          arg_count.times { args.unshift vm.pop }
+        end
+
+        if args.empty? && %i[public private protected].include?(@message)
           vm.method_visibility = @message
           vm.push(receiver)
           return
         end
 
-        if arg_count == -1
-          args = vm.pop
-        else
-          args = []
-          arg_count.times { args.unshift vm.pop }
-        end
-
         vm.with_self(receiver) do
-          result =
-            if @with_block
-              block = vm.pop
-              receiver.send(method, @message, *args, &block)
-            else
-              receiver.send(method, @message, *args)
-            end
+          block = vm.pop if @with_block
+          result = receiver.send(method, @message, *args, &block)
           vm.push result
         end
       end

@@ -723,6 +723,8 @@ class TestCompiler2 < TestCase
     assert_eq('tim', c.super_with_implicit_args('tim'))
     assert_eq(nil, c.super_with_zero_args('tim'))
     assert_eq('tim', c.super_with_given_args('tim'))
+    assert_eq('tim', c.super_with_block { 'tim' })
+    assert_eq('tim', c.super_with_block_pass { 'tim' })
   end
 
   def test_svalue
@@ -913,6 +915,14 @@ class TestCompiler2 < TestCase
     def super_with_given_args(name = nil)
       name
     end
+
+    def super_with_block
+      yield
+    end
+
+    def super_with_block_pass
+      yield
+    end
   end
 
   # reopen class
@@ -949,6 +959,14 @@ class TestCompiler2 < TestCase
 
     def super_with_given_args(name)
       super(name)
+    end
+
+    def super_with_block
+      super
+    end
+
+    def super_with_block_pass(&block)
+      super(&block)
     end
   end
 

@@ -144,15 +144,8 @@ module Natalie
           return transform_lambda(exp.new(:lambda), used: used)
         end
 
-        instructions = []
-
-        if args.last&.sexp_type == :block_pass
-          with_block = true
-          _, block = args.pop
-          instructions << transform_expression(block, used: true)
-        end
-
-        instructions += transform_call_args(args)
+        instructions, block, args_array_on_stack = transform_call_args(args)
+        with_block = true if block
 
         if receiver.nil?
           instructions << PushSelfInstruction.new
@@ -160,24 +153,30 @@ module Natalie
           instructions << transform_expression(receiver, used: true)
         end
 
-        instructions << SendInstruction.new(message, receiver_is_self: receiver.nil?, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: receiver.nil?, with_block: with_block, file: exp.file, line: exp.line)
         instructions << PopInstruction.new unless used
         instructions
       end
 
       def transform_call_args(args)
-        if args.any? { |a| a.sexp_type == :splat }
-          return [
-            transform_array_with_splat(args),
-            PushArgcInstruction.new(-1) # -1 indicates the args are already an array on the stack
-          ]
+        instructions = []
+
+        if args.last&.sexp_type == :block_pass
+          _, block = args.pop
+          instructions << transform_expression(block, used: true)
         end
 
-        instructions = []
+        if args.any? { |a| a.sexp_type == :splat }
+          instructions << transform_array_with_splat(args)
+          return [instructions, block, :args_array_on_stack]
+        end
+
         args.each do |arg|
           instructions << transform_expression(arg, used: true)
         end
         instructions << PushArgcInstruction.new(args.size)
+
+        [instructions, block]
       end
 
       def transform_case(exp, used:)
@@ -706,10 +705,9 @@ module Natalie
 
       def transform_super(exp, used:)
         _, *args = exp
-        instructions = []
-        instructions += transform_call_args(args)
+        instructions, block, args_array_on_stack = transform_call_args(args)
         instructions << PushSelfInstruction.new
-        instructions << SuperInstruction.new(args_array: false)
+        instructions << SuperInstruction.new(args_array_on_stack: args_array_on_stack, with_block_pass: block)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -788,7 +786,7 @@ module Natalie
         instructions = []
         instructions << PushArgsInstruction.new(for_block: false, arity: 0)
         instructions << PushSelfInstruction.new
-        instructions << SuperInstruction.new(args_array: true)
+        instructions << SuperInstruction.new(args_array_on_stack: true, with_block_pass: false)
         instructions << PopInstruction.new unless used
         instructions
       end
