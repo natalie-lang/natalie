@@ -65,8 +65,8 @@ module Natalie
       @stack.pop
     end
 
-    def push_call(return_ip:, args:, scope:, block:)
-      @call_stack.push(return_ip: return_ip, args: args, scope: scope, block: block)
+    def push_call(name:, return_ip:, args:, scope:, block:)
+      @call_stack.push(name: name, return_ip: return_ip, args: args, scope: scope, block: block)
     end
 
     def pop_call
@@ -91,6 +91,12 @@ module Natalie
       raise 'out of call stack' if @call_stack.empty?
 
       @call_stack.last[:block]
+    end
+
+    def method_name
+      raise 'out of call stack' if @call_stack.empty?
+
+      @call_stack.last[:name]
     end
 
     def find_var(name, local_only: false)

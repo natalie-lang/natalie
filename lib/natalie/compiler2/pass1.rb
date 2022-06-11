@@ -704,6 +704,16 @@ module Natalie
         PushStringInstruction.new(str, str.size)
       end
 
+      def transform_super(exp, used:)
+        _, *args = exp
+        instructions = []
+        instructions += transform_call_args(args)
+        instructions << PushSelfInstruction.new
+        instructions << SuperInstruction.new(args_array: false)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_svalue(exp, used:)
         _, svalue = exp
         instructions = []
@@ -769,6 +779,16 @@ module Natalie
         instructions = args.map { |arg| transform_expression(arg, used: true) }
         instructions << PushArgcInstruction.new(args.size)
         instructions << YieldInstruction.new
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_zsuper(exp, used:)
+        _, *args = exp
+        instructions = []
+        instructions << PushArgsInstruction.new(for_block: false, arity: 0)
+        instructions << PushSelfInstruction.new
+        instructions << SuperInstruction.new(args_array: true)
         instructions << PopInstruction.new unless used
         instructions
       end

@@ -718,6 +718,13 @@ class TestCompiler2 < TestCase
     assert_eq("3 = 3", s6)
   end
 
+  def test_super
+    c = ClassWithSuper.new
+    assert_eq('tim', c.super_with_implicit_args('tim'))
+    assert_eq(nil, c.super_with_zero_args('tim'))
+    assert_eq('tim', c.super_with_given_args('tim'))
+  end
+
   def test_svalue
     a = [1, 2, 3]
     arr = *a
@@ -894,6 +901,18 @@ class TestCompiler2 < TestCase
     end
 
     attr_reader :foo
+
+    def super_with_implicit_args(name = nil)
+      name
+    end
+
+    def super_with_zero_args(name = nil)
+      name
+    end
+
+    def super_with_given_args(name = nil)
+      name
+    end
   end
 
   # reopen class
@@ -911,6 +930,25 @@ class TestCompiler2 < TestCase
     def self.foo; 'foo'; end
     class << self
       def bar; 'bar'; end
+    end
+  end
+
+  class ClassWithSuper < ClassWithInitialize
+    def initialize
+      super
+      @last = 'morgan'
+    end
+
+    def super_with_implicit_args(name)
+      super
+    end
+
+    def super_with_zero_args(name)
+      super()
+    end
+
+    def super_with_given_args(name)
+      super(name)
     end
   end
 

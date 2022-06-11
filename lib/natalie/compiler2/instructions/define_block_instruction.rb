@@ -40,7 +40,7 @@ module Natalie
           lambda do |*args|
             vm.with_self(captured_self) do
               scope = { vars: {}, parent: parent_scope }
-              vm.push_call(return_ip: vm.ip, args: args, scope: scope, block: captured_block)
+              vm.push_call(name: nil, return_ip: vm.ip, args: args, scope: scope, block: captured_block)
               vm.ip = start_ip
               begin
                 vm.run
