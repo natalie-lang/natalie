@@ -8,24 +8,23 @@ module Natalie
       end
 
       def transform(exp)
-        @keyword_arg_hash_on_stack = false
         @from_side = :left
         @instructions = []
         _, *@args = exp
         while @args.any?
           arg = @from_side == :left ? @args.shift : @args.pop
           if transform_arg(arg) == :reverse
-            break if @args.empty?
-            arg = @args.pop
             @from_side = :right
-            transform_arg(arg)
           end
         end
-        @instructions << PopInstruction.new if @keyword_arg_hash_on_stack
-        @instructions << PopInstruction.new
+        pop_args
       end
 
       private
+
+      def pop_args
+        @instructions << PopInstruction.new
+      end
 
       def transform_arg(arg)
         if arg.is_a?(Sexp)
@@ -66,22 +65,6 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         sub_processor = self.class.new(@pass, file: @file, line: @line)
         @instructions << sub_processor.transform(arg)
-      end
-
-      def transform_keyword_arg(arg)
-        _, name, default = arg
-        unless @keyword_arg_hash_on_stack
-          @instructions << CreateHashInstruction.new(count: 0)
-          @instructions << ArrayPopWithDefaultInstruction.new
-          @keyword_arg_hash_on_stack = true
-        end
-        if default
-          @instructions << @pass.transform_expression(default, used: true)
-          @instructions << HashDeleteWithDefaultInstruction.new(name)
-        else
-          @instructions << HashDeleteInstruction.new(name)
-        end
-        @instructions << variable_set(name)
       end
 
       def transform_optional_arg(arg)
