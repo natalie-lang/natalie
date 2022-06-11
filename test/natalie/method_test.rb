@@ -143,12 +143,11 @@ describe 'method' do
     with.should == true
   end
 
-  # FIXME: doesn't actually bubble up because LocalJumpError is trapped by the method
-  xit 'raises an error when trying to yield without a block' do
+  it 'raises an error when trying to yield without a block' do
     -> { YieldToBlock.new.yield_to_block }.should raise_error(LocalJumpError)
   end
 
-  xit 'can call super with a block arg' do
+  it 'can call super with a block arg' do
     t = BlockPassTest.new
     it_worked = false
     t.yield_to_block { it_worked = true }
