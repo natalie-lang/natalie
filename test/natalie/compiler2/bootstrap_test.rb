@@ -689,6 +689,11 @@ class TestCompiler2 < TestCase
     assert_eq(:nope, should_return_in_if(false))
   end
 
+  def test_safe_call
+    assert_eq('foo', ClassWithClassMethod&.foo)
+    assert_eq(nil, nil&.foo)
+  end
+
   def test_sclass
     assert_eq('foo', ClassWithClassMethod.foo)
     assert_eq('bar', ClassWithClassMethod.bar)

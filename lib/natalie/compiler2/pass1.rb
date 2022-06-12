@@ -674,6 +674,24 @@ module Natalie
         instructions << ReturnInstruction.new
       end
 
+      def transform_safe_call(exp, used:)
+        _, receiver, message, *args = exp
+
+        instructions, block, args_array_on_stack = transform_call_args(args)
+        with_block = true if block
+
+        instructions << transform_expression(receiver, used: true)
+        instructions << DupInstruction.new
+        instructions << IsNilInstruction.new
+        instructions << IfInstruction.new
+        instructions << PushNilInstruction.new
+        instructions << ElseInstruction.new(:if)
+        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: false, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << EndInstruction.new(:if)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_sclass(exp, used:)
         _, owner, *body = exp
         instructions = [
