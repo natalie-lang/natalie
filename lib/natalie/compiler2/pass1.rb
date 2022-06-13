@@ -332,6 +332,10 @@ module Natalie
           return instructions
         end
 
+        unless for_block
+          instructions << CheckArgsInstruction.new(positional: args.size)
+        end
+
         args.each_with_index do |name, index|
           instructions << PushArgInstruction.new(index)
           instructions << VariableSetInstruction.new(name, local_only: true)

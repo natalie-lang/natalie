@@ -85,6 +85,11 @@ class TestCompiler2 < TestCase
     false && fail
   end
 
+  def test_args
+    assert_raises(ArgumentError, 'wrong number of arguments (given 0, expected 2)') { arg_required }
+    assert_raises(ArgumentError, 'wrong number of arguments (given 1, expected 2)') { arg_required(1) }
+  end
+
   def test_args_destructured
     assert_eq([1, 2, 3, 4], arg_destructure_left([[1, 2, :ignored], 3, :ignored], 4))
     assert_eq([1, 2, 3, 4, 5, 6], arg_destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
@@ -801,6 +806,10 @@ class TestCompiler2 < TestCase
 
   def ary
     [1, 2, 3]
+  end
+
+  def arg_required(a, b)
+    [a, b]
   end
 
   def arg_splat_ignore(a, *)
