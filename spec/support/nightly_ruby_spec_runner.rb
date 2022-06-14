@@ -118,9 +118,10 @@ stats = {
 p stats.reject { |k, _| k == "Details" }
 
 uri = URI('https://stats.natalie-lang.org/stats')
+p uri
 https = Net::HTTP.new(uri.host, uri.port)
 https.use_ssl = true
-https.post(
+p https.post(
   uri.path,
   URI.encode_www_form(
     'stats' => stats.to_json,
