@@ -103,9 +103,12 @@ class TestCompiler2 < TestCase
   def test_args_keyword
     assert_eq([3, 4], arg_keyword_optional(x: 3, y: 4))
     assert_eq([nil, :default], arg_keyword_optional)
+    assert_eq([nil, :default], arg_keyword_optional)
     assert_eq([nil, nil], arg_keyword_optional(x: nil, y: nil))
     assert_eq([1, 2], arg_keyword_optional_after_positional(1, y: 2))
     assert_eq([1, :default], arg_keyword_optional_after_positional(1))
+    assert_eq([1, :default], arg_keyword_optional_after_positional_optional)
+    assert_eq([2, :default], arg_keyword_optional_after_positional_optional(2))
     assert_eq([1, { b: :c }], arg_keyword_splat_after_positional(1, b: :c))
     assert_eq([1, { b: :c }], arg_keyword_splat_after_keyword(a: 1, b: :c))
     assert_eq(1, arg_keyword_splat_unnamed(a: 1, b: :c))
@@ -861,6 +864,10 @@ class TestCompiler2 < TestCase
   end
 
   def arg_keyword_optional_after_positional(x, y: :default)
+    [x, y]
+  end
+
+  def arg_keyword_optional_after_positional_optional(x = 1, y: :default)
     [x, y]
   end
 

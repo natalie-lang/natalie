@@ -17,14 +17,10 @@ module Natalie
             @from_side = :right
           end
         end
-        pop_args
+        clean_up
       end
 
       private
-
-      def pop_args
-        @instructions << PopInstruction.new
-      end
 
       def transform_arg(arg)
         if arg.is_a?(Sexp)
@@ -125,6 +121,10 @@ module Natalie
       def variable_set(name)
         raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
         VariableSetInstruction.new(name, local_only: false)
+      end
+
+      def clean_up
+        @instructions << PopInstruction.new
       end
     end
   end
