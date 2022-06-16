@@ -47,6 +47,8 @@ public:
     }
 
     Object *object() {
+        if (m_type == Type::Pointer)
+            return m_object;
         auto_hydrate();
         return m_object;
     }
@@ -115,6 +117,8 @@ public:
         assert(m_type == Type::Double);
         return m_double;
     }
+
+    bool guarded() const { return m_guarded; }
 
     Value guard() {
         m_guarded = true;

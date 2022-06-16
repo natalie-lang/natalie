@@ -424,6 +424,9 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
+    if (val.guarded())
+        TM_UNREACHABLE();
+
     m_ivars.put(name, val.object(), env);
     return val;
 }
