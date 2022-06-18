@@ -339,11 +339,16 @@ task :update_submodules do
   end
 end
 
+def ccache?
+  return @ccache_exists if defined?(@ccache_exists)
+  @ccache_exists = system('which ccache 2>&1 > /dev/null')
+end
+
 def cc
   @cc ||=
     if ENV['CC']
       ENV['CC']
-    elsif system('which ccache 2>&1 > /dev/null')
+    elsif ccache?
       'ccache cc'
     else
       'cc'
@@ -354,7 +359,7 @@ def cxx
   @cxx ||=
     if ENV['CXX']
       ENV['CXX']
-    elsif system('which ccache 2>&1 > /dev/null')
+    elsif ccache?
       'ccache c++'
     else
       'c++'
