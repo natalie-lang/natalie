@@ -49,8 +49,8 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
         *this = std::move(new_array);
 
         for (nat_int_t i = 0; i < s; i++) {
-            Value args = new IntegerObject { i };
-            push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr));
+            Value args[] = { new IntegerObject { i } };
+            push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr));
         }
 
     } else {
@@ -357,7 +357,8 @@ bool ArrayObject::eq(Env *env, Value other) {
                     continue;
             }
 
-            Value result = this_item.send(env, equality, 1, &item, nullptr);
+            Value args[] = { item };
+            Value result = this_item.send(env, equality, 1, args, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -390,8 +391,8 @@ bool ArrayObject::eql(Env *env, Value other) {
             return TrueObject::the();
 
         for (size_t i = 0; i < size(); ++i) {
-            Value item = (*other_array)[i];
-            Value result = (*this)[i].send(env, "eql?"_s, 1, &item, nullptr);
+            Value args[] = { (*other_array)[i] };
+            Value result = (*this)[i].send(env, "eql?"_s, 1, args, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -409,7 +410,8 @@ Value ArrayObject::each(Env *env, Block *block) {
     }
 
     for (size_t i = 0; i < size(); ++i) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
+        Value args[] = { (*this)[i] };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return this;
 }
@@ -422,8 +424,8 @@ Value ArrayObject::each_index(Env *env, Block *block) {
 
     nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
     for (nat_int_t i = 0; i < size_nat_int_t; i++) {
-        Value args = new IntegerObject { i };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &args, nullptr);
+        Value args[] = { new IntegerObject { i } };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return this;
 }
@@ -448,8 +450,8 @@ Value ArrayObject::map_in_place(Env *env, Block *block) {
     assert_not_frozen(env);
 
     for (size_t i = 0; i < m_vector.size(); ++i) {
-        auto &item = (*this)[i];
-        m_vector.at(i) = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value args[] = { (*this)[i] };
+        m_vector.at(i) = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return this;
 }
@@ -657,8 +659,8 @@ Value ArrayObject::delete_if(Env *env, Block *block) {
     Vector<size_t> marked_indexes;
 
     for (size_t i = 0; i < size(); ++i) {
-        auto item = (*this)[i];
-        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value args[] = { (*this)[i] };
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
         if (result->is_truthy()) {
             marked_indexes.push(i);
         }
@@ -1030,8 +1032,12 @@ Value ArrayObject::sort_in_place(Env *env, Block *block) {
 }
 
 bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
-    Value a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
-    Value b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
+    Value args[1];
+    args[0] = a;
+    Value a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+
+    args[0] = b;
+    Value b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
 
     Value compare = a_res.send(env, "<=>"_s, { b_res });
     if (compare->is_integer()) {
@@ -1075,7 +1081,8 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
     assert_not_frozen(env);
 
     bool changed = select_in_place([env, block](Value &item) -> bool {
-        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value args[] = { item };
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
         return result->is_truthy();
     });
 
@@ -1128,7 +1135,8 @@ Value ArrayObject::reject_in_place(Env *env, Block *block) {
         auto item = *it;
 
         try {
-            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+            Value args[] = { item };
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
             if (result->is_falsey())
                 new_array.push(item);
             else
@@ -1338,7 +1346,8 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto none_method = Enumerable->find_method(env, "cycle"_s);
-    return none_method->call(env, this, 1, &count, block);
+    Value args[] = { count };
+    return none_method->call(env, this, 1, args, block);
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {
@@ -1354,7 +1363,8 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     for (auto item : *this) {
         Value key = item;
         if (block) {
-            key = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &item, nullptr);
+            Value args[] = { item };
+            key = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
         }
         if (!hash->has_key(env, key)) {
             hash->put(env, key, item);
@@ -1423,7 +1433,8 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
 
     do {
         nat_int_t i = floor((left + right) / 2);
-        auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
+        Value args[] = { (*this)[i] };
+        auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
         if (!(
                 outcome->is_numeric() || outcome->is_nil() || outcome->is_boolean())) {
             env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->inspect_str());
@@ -1540,7 +1551,8 @@ Value ArrayObject::insert(Env *env, size_t argc, Value *args) {
 }
 
 Value ArrayObject::intersection(Env *env, Value arg) {
-    return intersection(env, 1, &arg);
+    Value args[] = { arg };
+    return intersection(env, 1, args);
 }
 
 bool ArrayObject::include_eql(Env *env, Value arg) {
@@ -1641,8 +1653,8 @@ Value ArrayObject::reverse_each(Env *env, Block *block) {
     }
 
     for (size_t i = m_vector.size(); i > 0; --i) {
-        auto obj = (*this)[i - 1];
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
+        Value args[] = { (*this)[i - 1] };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
 
     return this;
@@ -1703,7 +1715,8 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *
             if (default_value)
                 env->warn("block supersedes default value argument");
 
-            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &arg_index, nullptr);
+            Value args[] = { arg_index };
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
         } else if (default_value) {
             value = default_value;
         } else {

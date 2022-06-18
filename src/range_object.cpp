@@ -80,7 +80,8 @@ Value RangeObject::each(Env *env, Block *block) {
     }
 
     Value break_value = iterate_over_range(env, [&](Value item) -> Value {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value args[] = { item };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
         return nullptr;
     });
     if (break_value) {

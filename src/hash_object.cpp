@@ -503,7 +503,8 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
             if (default_value)
                 env->warn("block supersedes default value argument");
 
-            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &key, nullptr);
+            Value args[] = { key };
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
         } else if (default_value) {
             value = default_value;
         } else {

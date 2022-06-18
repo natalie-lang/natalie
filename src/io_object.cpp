@@ -25,10 +25,11 @@ Value IoObject::read_file(Env *env, Value filename) {
 
 Value IoObject::write_file(Env *env, Value filename, Value string) {
     Value flags = new StringObject { "w" };
-    Value args[] = { filename, flags };
+    Value new_args[] = { filename, flags };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, 2, args, nullptr)->as_file();
-    auto bytes_written = file->write(env, 1, &string);
+    FileObject *file = _new(env, File, 2, new_args, nullptr)->as_file();
+    Value write_args[] = { string };
+    auto bytes_written = file->write(env, 1, write_args);
     file->close(env);
     return bytes_written;
 }

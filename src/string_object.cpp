@@ -271,7 +271,8 @@ Value StringObject::initialize_copy(Env *env, Value arg) {
 }
 
 Value StringObject::ltlt(Env *env, Value arg) {
-    concat(env, 1, &arg);
+    Value args[] = { arg };
+    concat(env, 1, args);
     return this;
 }
 

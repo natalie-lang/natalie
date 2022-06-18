@@ -24,8 +24,7 @@ SymbolObject *SymbolObject::intern(const String &name) {
 ArrayObject *SymbolObject::all_symbols(Env *env) {
     ArrayObject *array = new ArrayObject(s_symbols.size());
     for (auto pair : s_symbols) {
-        Value symbol_value = pair.second;
-        array->push(env, 1, &symbol_value);
+        array->push(pair.second);
     }
     return array;
 }

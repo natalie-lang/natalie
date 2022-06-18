@@ -113,8 +113,8 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
         caller_env->set_last_match(match);
 
         if (block) {
-            Value args = match;
-            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr);
+            Value args[] = { match };
+            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
         }
         return match;
     } else if (result == ONIG_MISMATCH) {

@@ -18,7 +18,8 @@ Value ModuleObject::initialize(Env *env, Block *block) {
     if (block) {
         Value self = this;
         block->set_self(self);
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+        Value args[] = { self };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return this;
 }
@@ -625,7 +626,8 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     block->set_self(self);
     auto old_method_visibility = m_method_visibility;
     auto old_module_function = m_module_function;
-    Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    Value args[] = { self };
+    Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     m_method_visibility = old_method_visibility;
     m_module_function = old_module_function;
     return result;

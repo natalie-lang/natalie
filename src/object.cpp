@@ -759,7 +759,8 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     block->set_self(self);
     GlobalEnv::the()->set_instance_evaling(true);
     Defer done_instance_evaling([]() { GlobalEnv::the()->set_instance_evaling(false); });
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    Value args[] = { self };
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {

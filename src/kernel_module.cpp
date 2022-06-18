@@ -313,7 +313,8 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
         return NilObject::the();
     } else if (argc == 1) {
         Value arg = args[0].send(env, "inspect"_s);
-        puts(env, 1, &arg);
+        Value puts_args[] = { arg };
+        puts(env, 1, puts_args);
         return args[0];
     } else {
         ArrayObject *result = new ArrayObject { argc };
@@ -511,7 +512,8 @@ Value KernelModule::String(Env *env, Value value) {
 
 Value KernelModule::tap(Env *env, Block *block) {
     Value self = this;
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    Value args[] = { self };
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     return this;
 }
 
