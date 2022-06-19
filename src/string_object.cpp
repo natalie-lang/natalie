@@ -138,6 +138,58 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     return new StringObject { result, m_encoding };
 }
 
+Value StringObject::chomp(Env *env, Value record_separator) {
+    const char *cstr = m_string.c_str();
+    size_t end_idx = m_string.length();
+
+    if (record_separator.is_null()) {
+        if (cstr[end_idx-1] == '\r') {
+            --end_idx;
+        } else if (cstr[end_idx-1] == '\n') {
+            if (cstr[end_idx-2] == '\r') {
+                --end_idx;
+            }
+            --end_idx;
+        }
+        
+        return new StringObject(m_string.substring(0, end_idx));
+    } 
+
+    record_separator->assert_type(env, Object::Type::String, "String");
+    StringObject *sep = record_separator->as_string();
+    const char *csep = sep->m_string.c_str();
+    size_t sep_len = sep->m_string.length();
+
+    if (sep_len == 0) {
+        while (end_idx > 0 && cstr[end_idx - 1] == '\n') {
+            if (end_idx > 1 && cstr[end_idx-2] == '\r') {
+                --end_idx;
+            }
+            --end_idx;
+        }
+
+        return new StringObject(m_string.substring(0, end_idx));
+    }
+
+    size_t last_idx = end_idx - 1;
+    size_t sep_idx = sep_len - 1;
+    while (cstr[last_idx] == csep[sep_idx]) {
+        if (sep_idx == 0) {
+            end_idx = last_idx;
+            break;
+        }
+
+        if (last_idx == 0) {
+            break;
+        }
+
+        --last_idx;
+        --sep_idx;
+    }
+
+    return new StringObject(m_string.substring(0, end_idx));
+}
+
 Value StringObject::chr(Env *env) {
     if (this->is_empty()) {
         return new StringObject { "", m_encoding };
