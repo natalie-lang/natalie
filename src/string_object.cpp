@@ -143,17 +143,17 @@ Value StringObject::chomp(Env *env, Value record_separator) {
     size_t end_idx = m_string.length();
 
     if (record_separator.is_null()) {
-        if (cstr[end_idx-1] == '\r') {
+        if (cstr[end_idx - 1] == '\r') {
             --end_idx;
-        } else if (cstr[end_idx-1] == '\n') {
-            if (cstr[end_idx-2] == '\r') {
+        } else if (cstr[end_idx - 1] == '\n') {
+            if (cstr[end_idx - 2] == '\r') {
                 --end_idx;
             }
             --end_idx;
         }
-        
+
         return new StringObject(m_string.substring(0, end_idx));
-    } 
+    }
 
     record_separator->assert_type(env, Object::Type::String, "String");
     StringObject *sep = record_separator->as_string();
@@ -162,7 +162,7 @@ Value StringObject::chomp(Env *env, Value record_separator) {
 
     if (sep_len == 0) {
         while (end_idx > 0 && cstr[end_idx - 1] == '\n') {
-            if (end_idx > 1 && cstr[end_idx-2] == '\r') {
+            if (end_idx > 1 && cstr[end_idx - 2] == '\r') {
                 --end_idx;
             }
             --end_idx;
