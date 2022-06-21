@@ -18,6 +18,42 @@ describe 'string' do
       "foo\x00\x04".encode('ascii-8bit').inspect.should == '"foo\\x00\\x04"'
       '😉🤷'.inspect.should == "\"😉🤷\"" unless RUBY_PLATFORM =~ /openbsd/
     end
+
+    it 'represents character escapes' do
+      enc = Encoding::ASCII_8BIT
+      0.chr(enc).inspect.should == '"\x00"'
+      1.chr(enc).inspect.should == '"\x01"'
+      2.chr(enc).inspect.should == '"\x02"'
+      3.chr(enc).inspect.should == '"\x03"'
+      4.chr(enc).inspect.should == '"\x04"'
+      5.chr(enc).inspect.should == '"\x05"'
+      6.chr(enc).inspect.should == '"\x06"'
+      7.chr(enc).inspect.should == '"\a"'
+      8.chr(enc).inspect.should == '"\b"'
+      9.chr(enc).inspect.should == '"\t"'
+      10.chr(enc).inspect.should == '"\n"'
+      11.chr(enc).inspect.should == '"\v"'
+      12.chr(enc).inspect.should == '"\f"'
+      13.chr(enc).inspect.should == '"\r"'
+      14.chr(enc).inspect.should == '"\x0E"'
+      15.chr(enc).inspect.should == '"\x0F"'
+      16.chr(enc).inspect.should == '"\x10"'
+      17.chr(enc).inspect.should == '"\x11"'
+      18.chr(enc).inspect.should == '"\x12"'
+      19.chr(enc).inspect.should == '"\x13"'
+      20.chr(enc).inspect.should == '"\x14"'
+      21.chr(enc).inspect.should == '"\x15"'
+      22.chr(enc).inspect.should == '"\x16"'
+      23.chr(enc).inspect.should == '"\x17"'
+      24.chr(enc).inspect.should == '"\x18"'
+      25.chr(enc).inspect.should == '"\x19"'
+      26.chr(enc).inspect.should == '"\x1A"'
+      27.chr(enc).inspect.should == '"\e"'
+      28.chr(enc).inspect.should == '"\x1C"'
+      29.chr(enc).inspect.should == '"\x1D"'
+      30.chr(enc).inspect.should == '"\x1E"'
+      31.chr(enc).inspect.should == '"\x1F"'
+    end
   end
 
   describe '#size' do

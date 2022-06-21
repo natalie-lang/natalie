@@ -218,10 +218,22 @@ StringObject *StringObject::inspect(Env *env) {
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
             out->append_char('\\');
             out->append_char(c);
+        } else if (c == '\a') {
+            out->append(env, "\\a");
+        } else if (c == '\b') {
+            out->append(env, "\\b");
+        } else if ((int)c == 27) {
+            out->append(env, "\\e");
+        } else if (c == '\f') {
+            out->append(env, "\\f");
         } else if (c == '\n') {
             out->append(env, "\\n");
+        } else if (c == '\r') {
+            out->append(env, "\\r");
         } else if (c == '\t') {
             out->append(env, "\\t");
+        } else if (c == '\v') {
+            out->append(env, "\\v");
         } else if ((int)c < 32) {
             switch (m_encoding) {
             case Encoding::UTF_8: {
