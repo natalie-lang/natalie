@@ -22,7 +22,7 @@ Value Value::floatingpoint(double value) {
         };                                                                                      \
         auto event_name = new ManagedString();                                                  \
         event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());                \
-        for (size_t i = 0; i < args.size(); ++i) {                                                \
+        for (size_t i = 0; i < args.size(); ++i) {                                              \
             if (i > 0)                                                                          \
                 event_name->append_char(',');                                                   \
             event_name->append(classnameOf(args[i]));                                           \
