@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/args.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
@@ -17,12 +18,12 @@ public:
         , m_self { self } { }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
-    Value _run(Env *env, size_t argc = 0, Value *args = nullptr, Block *block = nullptr) {
+    Value _run(Env *env, Args args = {}, Block *block = nullptr) {
         assert(has_env());
         Env e { m_env };
         e.set_caller(env);
         e.set_this_block(this);
-        auto result = m_fn(&e, m_self, argc, args, block);
+        auto result = m_fn(&e, m_self, args, block);
         return result;
     }
 

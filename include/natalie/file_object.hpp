@@ -23,15 +23,14 @@ public:
 
     static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
         Value args[] = { filename, flags_obj };
-        size_t argc = 1;
-        if (flags_obj) argc++;
-        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), argc, args, nullptr);
+        auto args_struct = Args { static_cast<size_t>(flags_obj ? 2 : 1), args };
+        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), args_struct, nullptr);
         if (block) {
             Defer close_file([&]() {
                 obj->as_file()->close(env);
             });
             Value block_args[] = { obj };
-            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
             return result;
         } else {
             return obj;

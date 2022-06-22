@@ -24,7 +24,7 @@ module Natalie
         fn = transform.temp("defn_#{@name}")
         transform.with_new_scope(body) do |t|
           body = []
-          body << "Value #{fn}(Env *env, Value self, size_t argc, Value *args, Block *block) {"
+          body << "Value #{fn}(Env *env, Value self, Args args, Block *block) {"
           body << t.transform('return')
           body << '}'
           transform.top(body)

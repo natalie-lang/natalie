@@ -44,10 +44,10 @@ public:
 
     Value initialize(Env *, Value);
     Value read(Env *, Value) const;
-    Value write(Env *, size_t, Value *) const;
+    Value write(Env *, Args) const;
     Value gets(Env *) const;
-    Value puts(Env *, size_t, Value *) const;
-    Value print(Env *, size_t, Value *) const;
+    Value puts(Env *, Args) const;
+    Value print(Env *, Args) const;
     Value close(Env *);
     Value seek(Env *, Value, Value) const;
     bool is_closed() const { return m_closed; }

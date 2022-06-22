@@ -68,7 +68,7 @@ Value StringObject::each_char(Env *env, Block *block) {
     while (next_char(env, buffer, &index)) {
         auto c = new StringObject { buffer, m_encoding };
         Value args[] = { c };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
     return NilObject::the();
 }
@@ -317,8 +317,8 @@ bool StringObject::internal_start_with(Env *env, Value needle) const {
     return i == 0;
 }
 
-bool StringObject::start_with(Env *env, size_t argc, Value *args) const {
-    for (size_t i = 0; i < argc; ++i) {
+bool StringObject::start_with(Env *env, Args args) const {
+    for (size_t i = 0; i < args.argc; ++i) {
         auto arg = args[i];
 
         if (internal_start_with(env, arg))
@@ -385,7 +385,7 @@ Value StringObject::initialize_copy(Env *env, Value arg) {
 
 Value StringObject::ltlt(Env *env, Value arg) {
     Value args[] = { arg };
-    concat(env, 1, args);
+    concat(env, Args(1, args));
     return this;
 }
 
@@ -447,13 +447,13 @@ Value StringObject::cmp(Env *env, Value other) const {
     return Value::integer(0);
 }
 
-Value StringObject::concat(Env *env, size_t argc, Value *args) {
+Value StringObject::concat(Env *env, Args args) {
     assert_not_frozen(env);
 
     StringObject *original = new StringObject(*this);
 
     auto to_str = "to_str"_s;
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         auto arg = args[i];
 
         if (arg == this)
@@ -526,15 +526,14 @@ Value StringObject::ord(Env *env) {
     return Value::integer(code);
 }
 
-#include <stdio.h>
-Value StringObject::prepend(Env *env, size_t argc, Value *args) {
+Value StringObject::prepend(Env *env, Args args) {
     assert_not_frozen(env);
 
     StringObject *original = new StringObject(*this);
 
     auto to_str = "to_str"_s;
     String appendable;
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         auto arg = args[i];
 
         if (arg == this)
@@ -584,7 +583,7 @@ Value StringObject::each_byte(Env *env, Block *block) {
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         Value args[] = { Value::integer(c) };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
     return this;
 }
@@ -875,7 +874,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
         }
         StringObject *out = new StringObject { c_str(), static_cast<size_t>(index) };
         if (block) {
-            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
             result->assert_type(env, Object::Type::String, "String");
             out->append(env, result->as_string());
         } else {
@@ -928,7 +927,7 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
     if (block) {
         auto string = (*match)->to_s(env);
         Value args[1] = { string };
-        Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+        Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
         replacement_from_block->assert_type(env, Object::Type::String, "String");
         *expanded_replacement = replacement_from_block->as_string();
         out->append(env, *expanded_replacement);

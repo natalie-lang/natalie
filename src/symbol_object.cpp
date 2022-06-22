@@ -67,8 +67,8 @@ ProcObject *SymbolObject::to_proc(Env *env) {
     return new ProcObject { proc_block };
 }
 
-Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, size_t argc, Value *args, Block *block) {
-    env->ensure_argc_is(argc, 1);
+Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args args, Block *block) {
+    env->ensure_argc_is(args.argc, 1);
     SymbolObject *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
     return args[0].send(env, name_obj);

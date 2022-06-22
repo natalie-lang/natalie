@@ -54,8 +54,8 @@ Value HashObject::get_default(Env *env, Value key) {
     if (m_default_proc) {
         if (!key)
             return NilObject::the();
-        Value args[2] = { this, key };
-        return m_default_proc->call(env, 2, args, nullptr);
+        Value args[] = { this, key };
+        return m_default_proc->call(env, Args(2, args), nullptr);
     } else {
         return m_default_value;
     }
@@ -208,10 +208,10 @@ Value HashObject::initialize(Env *env, Value default_value, Block *block) {
 }
 
 // Hash[]
-Value HashObject::square_new(Env *env, size_t argc, Value *args, ClassObject *klass) {
-    if (argc == 0) {
+Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
+    if (args.argc == 0) {
         return new HashObject { klass };
-    } else if (argc == 1) {
+    } else if (args.argc == 1) {
         Value value = args[0];
         if (!value->is_hash() && value->respond_to(env, "to_hash"_s))
             value = value.send(env, "to_hash"_s);
@@ -240,11 +240,11 @@ Value HashObject::square_new(Env *env, size_t argc, Value *args, ClassObject *kl
             }
         }
     }
-    if (argc % 2 != 0) {
+    if (args.argc % 2 != 0) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
     HashObject *hash = new HashObject { klass };
-    for (size_t i = 0; i < argc; i += 2) {
+    for (size_t i = 0; i < args.argc; i += 2) {
         Value key = args[i];
         Value value = args[i + 1];
         hash->put(env, key, value);
@@ -339,7 +339,7 @@ Value HashObject::delete_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
+        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr)->is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -353,16 +353,16 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
     if (val)
         return val;
     else if (block)
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 0, nullptr, nullptr);
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, {}, nullptr);
     else
         return NilObject::the();
 }
 
-Value HashObject::dig(Env *env, size_t argc, Value *args) {
-    env->ensure_argc_at_least(argc, 1);
+Value HashObject::dig(Env *env, Args args) {
+    env->ensure_argc_at_least(args.argc, 1);
     auto dig = "dig"_s;
     Value val = ref(env, args[0]);
-    if (argc == 1)
+    if (args.argc == 1)
         return val;
 
     if (val == NilObject::the())
@@ -371,7 +371,7 @@ Value HashObject::dig(Env *env, size_t argc, Value *args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
-    return val.send(env, dig, argc - 1, args + 1);
+    return val.send(env, dig, Args::shift(args));
 }
 
 Value HashObject::size(Env *env) const {
@@ -479,18 +479,18 @@ Value HashObject::each(Env *env, Block *block) {
     for (HashObject::Key &node : *this) {
         auto ary = new ArrayObject { { node.key, node.val } };
         Value block_args[1] = { ary };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
     }
     return this;
 }
 
-Value HashObject::except(Env *env, size_t argc, Value *args) {
+Value HashObject::except(Env *env, Args args) {
     HashObject *new_hash = new HashObject {};
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
     }
 
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         new_hash->remove(env, args[i]);
     }
     return new_hash;
@@ -504,7 +504,7 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
                 env->warn("block supersedes default value argument");
 
             Value args[] = { key };
-            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
         } else if (default_value) {
             value = default_value;
         } else {
@@ -514,11 +514,11 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
     return value;
 }
 
-Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block) {
-    if (argc == 0) return new ArrayObject;
+Value HashObject::fetch_values(Env *env, Args args, Block *block) {
+    if (args.argc == 0) return new ArrayObject;
 
-    auto array = new ArrayObject { argc };
-    for (size_t i = 0; i < argc; ++i) {
+    auto array = new ArrayObject { args.argc };
+    for (size_t i = 0; i < args.argc; ++i) {
         array->push(fetch(env, args[i], nullptr, block));
     }
     return array;
@@ -541,7 +541,7 @@ Value HashObject::keep_if(Env *env, Block *block) {
     assert_not_frozen(env);
     for (auto &node : *this) {
         Value args[2] = { node.key, node.val };
-        if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
+        if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(2, args), nullptr)->is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
     }
@@ -560,7 +560,7 @@ Value HashObject::to_h(Env *env, Block *block) {
     for (auto &node : *this) {
         block_args[0] = node.key;
         block_args[1] = node.val;
-        auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr);
+        auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr);
         if (!result->is_array() && result->respond_to(env, "to_ary"_s))
             result = result.send(env, "to_ary"_s);
         if (!result->is_array())
@@ -641,14 +641,14 @@ bool HashObject::has_value(Env *env, Value value) {
     return false;
 }
 
-Value HashObject::merge(Env *env, size_t argc, Value *args, Block *block) {
-    return dup(env)->as_hash()->merge_in_place(env, argc, args, block);
+Value HashObject::merge(Env *env, Args args, Block *block) {
+    return dup(env)->as_hash()->merge_in_place(env, args, block);
 }
 
-Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *block) {
+Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
     this->assert_not_frozen(env);
 
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         auto h = args[i];
 
         if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
@@ -662,7 +662,7 @@ Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *bloc
                 auto old_value = get(env, node.key);
                 if (old_value) {
                     Value args[3] = { node.key, old_value, new_value };
-                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 3, args, nullptr);
+                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(3, args), nullptr);
                 }
             }
             put(env, node.key, new_value);
@@ -671,9 +671,9 @@ Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *bloc
     return this;
 }
 
-Value HashObject::slice(Env *env, size_t argc, Value *args) {
+Value HashObject::slice(Env *env, Args args) {
     auto new_hash = new HashObject {};
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         Value key = args[i];
         Value value = this->get(env, key);
         if (value) {

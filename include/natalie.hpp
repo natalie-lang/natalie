@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <utility>
 
+#include "natalie/args.hpp"
 #include "natalie/array_object.hpp"
 #include "natalie/backtrace.hpp"
 #include "natalie/binding_object.hpp"
@@ -108,13 +109,13 @@ HashObject *kwarg_hash(ArrayObject *args);
 Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_value);
 Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value);
 
-ArrayObject *args_to_array(Env *env, size_t argc, Value *args);
+ArrayObject *args_to_array(Env *env, Args args);
 ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args);
-void args_to_vector(TM::Vector<Value> &target, size_t argc, Value *args);
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args);
-void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, size_t argc, Value *args);
+void args_to_vector(TM::Vector<Value> &target, Args args);
+ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args);
+void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args);
 
-void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...);
+void arg_spread(Env *env, Args args, const char *arrangement, ...);
 
 enum class CoerceInvalidReturnValueMode {
     Raise,
@@ -136,7 +137,7 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, int, int);
 
-Value super(Env *, Value, size_t, Value *, Block *);
+Value super(Env *, Value, Args, Block *);
 
 void clean_up_and_exit(int status);
 

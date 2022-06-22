@@ -36,7 +36,7 @@ FiberObject *FiberObject::initialize(Env *env, Block *block) {
     return this;
 }
 
-Value FiberObject::resume(Env *env, size_t argc, Value *args) {
+Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
@@ -44,7 +44,7 @@ Value FiberObject::resume(Env *env, size_t argc, Value *args) {
     auto previous_fiber = FiberObject::current();
     m_previous_fiber = s_current;
     s_current = this;
-    set_args(argc, args);
+    set_args(args);
 
     Heap::the().set_start_of_stack(m_start_of_stack);
     previous_fiber->m_end_of_stack = &args;
@@ -63,13 +63,13 @@ Value FiberObject::resume(Env *env, size_t argc, Value *args) {
     }
 }
 
-Value FiberObject::yield(Env *env, size_t argc, Value *args) {
+Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
     current_fiber->m_end_of_stack = &args;
-    current_fiber->yield_back(env, argc, args);
+    current_fiber->yield_back(env, args);
 
     auto fiber_args = FiberObject::current()->args();
     if (fiber_args.size() == 0) {
@@ -81,10 +81,10 @@ Value FiberObject::yield(Env *env, size_t argc, Value *args) {
     }
 }
 
-void FiberObject::yield_back(Env *env, size_t argc, Value *args) {
+void FiberObject::yield_back(Env *env, Args args) {
     assert(m_previous_fiber);
     s_current = m_previous_fiber;
-    s_current->set_args(argc, args);
+    s_current->set_args(args);
     m_previous_fiber = nullptr;
     Heap::the().set_start_of_stack(s_current->start_of_stack());
     fiber_asm_switch(s_current->fiber(), this->fiber(), 0, env, s_current);
@@ -111,9 +111,9 @@ void FiberObject::visit_children(Visitor &visitor) {
     }
 }
 
-void FiberObject::set_args(size_t argc, Value *args) {
+void FiberObject::set_args(Args args) {
     m_args.clear();
-    for (size_t i = 0; i < argc; ++i) {
+    for (size_t i = 0; i < args.argc; ++i) {
         m_args.push(args[i]);
     }
 }
@@ -141,7 +141,8 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
         // That means a backtrace built from inside the fiber will end abruptly.
         // But that seems to be what Ruby does too.
         Natalie::Env e {};
-        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), fiber->args().size(), fiber->args().data(), nullptr);
+
+        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), Natalie::Args(fiber->args()), nullptr);
     } catch (Natalie::ExceptionObject *exception) {
         fiber->set_error(exception);
         reraise = true;
@@ -151,9 +152,9 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     fiber->set_end_of_stack(&fiber);
 
     if (reraise)
-        fiber->yield_back(env, 0, nullptr);
+        fiber->yield_back(env, {});
     else
-        fiber->yield_back(env, 1, return_args);
+        fiber->yield_back(env, Natalie::Args(1, return_args));
 }
 
 #if defined(__x86_64)

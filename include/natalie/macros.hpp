@@ -11,48 +11,48 @@
         abort();                                                                                  \
     }
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                                        \
-    Env *env_with_block = env;                                                                            \
-    while (!env_with_block->block() && env_with_block->outer()) {                                         \
-        env_with_block = env_with_block->outer();                                                         \
-    }                                                                                                     \
-    if (!env_with_block->block()) {                                                                       \
-        env->raise("LocalJumpError", "no block given");                                                   \
-    }                                                                                                     \
-    NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, env_with_block->block(), argc, args, nullptr); \
+#define NAT_RUN_BLOCK_FROM_ENV(env, args) ({                                                        \
+    Env *env_with_block = env;                                                                      \
+    while (!env_with_block->block() && env_with_block->outer()) {                                   \
+        env_with_block = env_with_block->outer();                                                   \
+    }                                                                                               \
+    if (!env_with_block->block()) {                                                                 \
+        env->raise("LocalJumpError", "no block given");                                             \
+    }                                                                                               \
+    NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, env_with_block->block(), args, nullptr); \
 })
 
-#define NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, the_block, argc, args, block) ({ \
-    Value _result = the_block->_run(env, argc, args, block);                                    \
-    if (_result->has_break_flag()) {                                                            \
-        if (env == env_with_block) {                                                            \
-            _result->remove_break_flag();                                                       \
-        }                                                                                       \
-        return _result;                                                                         \
-    }                                                                                           \
-    _result;                                                                                    \
+#define NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, the_block, args, block) ({ \
+    Value _result = the_block->_run(env, args, block);                                    \
+    if (_result->has_break_flag()) {                                                      \
+        if (env == env_with_block) {                                                      \
+            _result->remove_break_flag();                                                 \
+        }                                                                                 \
+        return _result;                                                                   \
+    }                                                                                     \
+    _result;                                                                              \
 })
 
-#define NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, on_break_flag) ({ \
-    Natalie::Value _result = nullptr;                                              \
-    do {                                                                           \
-        if (_result)                                                               \
-            _result->remove_redo_flag();                                           \
-        _result = the_block->_run(env, argc, args, block);                         \
-        if (_result->has_break_flag()) {                                           \
-            _result->remove_break_flag();                                          \
-            on_break_flag;                                                         \
-        }                                                                          \
-    } while (_result->has_redo_flag());                                            \
-    _result;                                                                       \
+#define NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, on_break_flag) ({ \
+    Natalie::Value _result = nullptr;                                        \
+    do {                                                                     \
+        if (_result)                                                         \
+            _result->remove_redo_flag();                                     \
+        _result = the_block->_run(env, args, block);                         \
+        if (_result->has_break_flag()) {                                     \
+            _result->remove_break_flag();                                    \
+            on_break_flag;                                                   \
+        }                                                                    \
+    } while (_result->has_redo_flag());                                      \
+    _result;                                                                 \
 })
 
-#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \
-    NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, return _result);  \
+#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, args, block) ({ \
+    NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, return _result);  \
 })
 
-#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({                                                               \
-    NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, env->raise_local_jump_error(_result, Natalie::LocalJumpErrorType::Break)); \
+#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, args, block) ({                                                               \
+    NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, env->raise_local_jump_error(_result, Natalie::LocalJumpErrorType::Break)); \
 })
 
 #define NAT_HANDLE_BREAK(value, on_break_flag) ({ \

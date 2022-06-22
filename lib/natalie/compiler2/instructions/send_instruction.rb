@@ -47,12 +47,12 @@ module Natalie
 
         if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
-          args_array = "#{args}->size(), #{args}->data()"
+          args_array = "Args(*#{args})"
         else
           arg_count = transform.pop
           args = []
           arg_count.times { args.unshift transform.pop }
-          args_array = "{ #{args.join(', ')} }"
+          args_array = "std::initializer_list<Value> { #{args.join(', ')} }"
         end
 
         transform.exec("env->set_file(#{@file.inspect})") if @file

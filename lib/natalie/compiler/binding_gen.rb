@@ -129,7 +129,7 @@ class BindingGen
     def write_function
       type = cpp_class == 'Object' ? 'Value ' : "#{cpp_class} *"
       puts <<-FUNC
-Value #{name}(Env *env, Value self_value, size_t argc, Value *args, Block *block) {
+Value #{name}(Env *env, Value self_value, Args args, Block *block) {
     #{argc_assertion}
     #{type}self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
@@ -140,7 +140,7 @@ Value #{name}(Env *env, Value self_value, size_t argc, Value *args, Block *block
 
     def write_static_function
       puts <<-FUNC
-Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
+Value #{name}(Env *env, Value klass, Args args, Block *block) {
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -151,12 +151,12 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
     def args_to_pass
       case argc
       when :any
-        [env_arg, 'argc', 'args', block_arg, klass_arg].compact.join(', ')
+        [env_arg, 'args', block_arg, klass_arg].compact.join(', ')
       when Range
         if argc.end
           ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
         else
-          [env_arg, 'argc', 'args', block_arg, klass_arg].compact.join(', ')
+          [env_arg, 'args', block_arg, klass_arg].compact.join(', ')
         end
       when Integer
         ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
@@ -214,12 +214,12 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
         ''
       when Range
         if argc.end
-          "env->ensure_argc_between(argc, #{argc.begin}, #{argc.end});"
+          "env->ensure_argc_between(args.argc, #{argc.begin}, #{argc.end});"
         else
-          "env->ensure_argc_at_least(argc, #{argc.begin});"
+          "env->ensure_argc_at_least(args.argc, #{argc.begin});"
         end
       when Integer
-        "env->ensure_argc_is(argc, #{argc});"
+        "env->ensure_argc_is(args.argc, #{argc});"
       else
         raise "Unknown argc: #{argc.inspect}"
       end
@@ -230,7 +230,7 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
     end
 
     def args
-      (0...max_argc).map { |i| "argc > #{i} ? args[#{i}] : nullptr" }
+      (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
     end
 
     def block_arg

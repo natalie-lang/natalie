@@ -13,7 +13,7 @@ class Tempfile
       int fileno = mkstemp(const_cast<char*>(path_template->c_str()));
       if (fileno == -1) {
           Value args[] = { Value::integer(errno) };
-          auto exception = GlobalEnv::the()->Object()->const_fetch("SystemCallError"_s).send(env, "exception"_s, 1, args)->as_exception();
+          auto exception = GlobalEnv::the()->Object()->const_fetch("SystemCallError"_s).send(env, "exception"_s, Args(1, args))->as_exception();
           env->raise_exception(exception);
       } else {
           auto file = new FileObject {};
@@ -25,7 +25,7 @@ class Tempfile
               FileObject::unlink(env, new StringObject { path_template });
             });
             Value block_args[] = { file };
-            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
           } else {
             return file;
           }

@@ -17,7 +17,7 @@ Value IoObject::initialize(Env *env, Value file_number) {
 Value IoObject::read_file(Env *env, Value filename) {
     Value args[] = { filename };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, 1, args, nullptr)->as_file();
+    FileObject *file = _new(env, File, Args(1, args), nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
     return data;
@@ -27,9 +27,9 @@ Value IoObject::write_file(Env *env, Value filename, Value string) {
     Value flags = new StringObject { "w" };
     Value new_args[] = { filename, flags };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, 2, new_args, nullptr)->as_file();
+    FileObject *file = _new(env, File, Args(2, new_args), nullptr)->as_file();
     Value write_args[] = { string };
-    auto bytes_written = file->write(env, 1, write_args);
+    auto bytes_written = file->write(env, Args(1, write_args));
     file->close(env);
     return bytes_written;
 }
@@ -71,10 +71,10 @@ Value IoObject::read(Env *env, Value count_value) const {
     return str;
 }
 
-Value IoObject::write(Env *env, size_t argc, Value *args) const {
-    env->ensure_argc_at_least(argc, 1);
+Value IoObject::write(Env *env, Args args) const {
+    env->ensure_argc_at_least(args.argc, 1);
     int bytes_written = 0;
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         Value obj = args[i];
         if (obj->type() != Object::Type::String) {
             obj = obj.send(env, "to_s"_s);
@@ -107,11 +107,11 @@ Value IoObject::gets(Env *env) const {
     return new StringObject { buffer, index + 1 };
 }
 
-Value IoObject::puts(Env *env, size_t argc, Value *args) const {
-    if (argc == 0) {
+Value IoObject::puts(Env *env, Args args) const {
+    if (args.argc == 0) {
         dprintf(m_fileno, "\n");
     } else {
-        for (size_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < args.argc; i++) {
             Value str = args[i].send(env, "to_s"_s);
             str->assert_type(env, Object::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
@@ -120,9 +120,9 @@ Value IoObject::puts(Env *env, size_t argc, Value *args) const {
     return NilObject::the();
 }
 
-Value IoObject::print(Env *env, size_t argc, Value *args) const {
-    if (argc > 0) {
-        for (size_t i = 0; i < argc; i++) {
+Value IoObject::print(Env *env, Args args) const {
+    if (args.argc > 0) {
+        for (size_t i = 0; i < args.argc; i++) {
             Value str = args[i].send(env, "to_s"_s);
             str->assert_type(env, Object::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());

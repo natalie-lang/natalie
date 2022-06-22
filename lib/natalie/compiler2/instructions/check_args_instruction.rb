@@ -14,12 +14,12 @@ module Natalie
       def generate(transform)
         case @positional
         when Integer
-          transform.exec("env->ensure_argc_is(argc, #{@positional})")
+          transform.exec("env->ensure_argc_is(args.argc, #{@positional})")
         when Range
           if @positional.end
-            transform.exec("env->ensure_argc_between(argc, #{@positional.begin}, #{@positional.end})")
+            transform.exec("env->ensure_argc_between(args.argc, #{@positional.begin}, #{@positional.end})")
           else
-            transform.exec("env->ensure_argc_at_least(argc, #{@positional.begin})")
+            transform.exec("env->ensure_argc_at_least(args.argc, #{@positional.begin})")
           end
         else
           raise "unknown CheckArgsInstruction @positional type: #{@positional.inspect}"

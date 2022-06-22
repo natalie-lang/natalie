@@ -17,11 +17,11 @@ public:
         return sexp;
     }
 
-    Value new_method(Env *env, size_t argc, Value *args) {
+    Value new_method(Env *env, Args args) {
         auto sexp = new SexpObject {};
         sexp->ivar_set(env, "@file"_s, ivar_get(env, "@file"_s));
         sexp->ivar_set(env, "@line"_s, ivar_get(env, "@line"_s));
-        for (size_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < args.argc; i++) {
             sexp->push(args[i]);
         }
         return sexp;
