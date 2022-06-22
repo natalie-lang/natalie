@@ -143,7 +143,7 @@ module Natalie
         c = []
         if args
           _, *args = args
-          c << "env->ensure_argc_is(args.argc, #{args.size});"
+          c << "args.ensure_argc_is(env, #{args.size});"
           args.each_with_index do |arg, i|
             unless arg.sexp_type == :lit
               raise "Expected symbol arg name pass to __define_method__, but got: #{arg.inspect}"
@@ -510,6 +510,14 @@ module Natalie
         end
         result
       end
+
+      def process_ensure_argc_is(exp)
+        fn, obj, _env, *args = exp
+        decl "#{process_atom obj}.#{fn}(env, #{args.map { |a| process_atom(a) }.join(', ')});"
+        ''
+      end
+      alias process_ensure_argc_between process_ensure_argc_is
+      alias process_ensure_argc_at_least process_ensure_argc_is
 
       def process_l(exp)
         _, lit = exp

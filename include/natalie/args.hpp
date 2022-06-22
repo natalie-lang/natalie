@@ -47,9 +47,12 @@ struct Args {
     ArrayObject *to_array() const;
     ArrayObject *to_array_for_block(Env *env) const;
 
+    void ensure_argc_is(Env *env, size_t expected) const;
+    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const;
+    void ensure_argc_at_least(Env *env, size_t expected) const;
+
     // TODO: make these private and provide accessors
     size_t argc { 0 };
     const Value *args { nullptr };
 };
-
 };

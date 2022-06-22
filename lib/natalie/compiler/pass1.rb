@@ -554,11 +554,11 @@ module Natalie
           end
         end
         if max == :unlimited
-          min.zero? ? s(:block) : s(:ensure_argc_at_least, :env, s(:l, 'args.argc'), min)
+          min.zero? ? s(:block) : s(:ensure_argc_at_least, :args, :env, min)
         elsif min == max
-          s(:ensure_argc_is, :env, s(:l, 'args.argc'), min)
+          s(:ensure_argc_is, :args, :env, min)
         else
-          s(:ensure_argc_between, :env, s(:l, 'args.argc'), min, max)
+          s(:ensure_argc_between, :args, :env, min, max)
         end
       end
 

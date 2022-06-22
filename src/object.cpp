@@ -109,7 +109,7 @@ Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
 }
 
 Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
-    env->ensure_argc_is(args.argc, 0);
+    args.ensure_argc_is(env, 0);
 
     ClassObject *klass = klass_value->as_class();
     if (!klass->respond_to(env, "allocate"_s))

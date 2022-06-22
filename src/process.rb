@@ -23,7 +23,7 @@ module Process
 
   class << self
     __define_method__ :wait, <<-END
-        env->ensure_argc_between(args.argc, 0, 2);
+        args.ensure_argc_between(env, 0, 2);
         nat_int_t pid = -1, flags = 0;
         arg_spread(env, args, "|ii", &pid, &flags);
         int status;
