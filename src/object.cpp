@@ -99,17 +99,17 @@ Value Object::create(Env *env, ClassObject *klass) {
     return obj;
 }
 
-Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
+Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
     Value obj = create(env, klass_value->as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, argc, args, block);
+    obj->send(env, "initialize"_s, args, block);
     return obj;
 }
 
-Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
-    env->ensure_argc_is(argc, 0);
+Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
+    env->ensure_argc_is(args.argc, 0);
 
     ClassObject *klass = klass_value->as_class();
     if (!klass->respond_to(env, "allocate"_s))
@@ -355,9 +355,9 @@ ClassObject *Object::subclass(Env *env, const char *name) {
     return as_class()->subclass(env, name);
 }
 
-Value Object::extend(Env *env, size_t argc, Value *args) {
+Value Object::extend(Env *env, Args args) {
     assert_not_frozen(env);
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         if (args[i]->type() == Object::Type::Module) {
             extend_once(env, args[i]->as_module());
         } else {
@@ -523,74 +523,74 @@ Value Object::main_obj_define_method(Env *env, Value name, Value proc_or_unbound
 
 void Object::private_method(Env *env, SymbolObject *name) {
     Value args[] = { name };
-    private_method(env, 1, args);
+    private_method(env, Args(1, args));
 }
 
 void Object::protected_method(Env *env, SymbolObject *name) {
     Value args[] = { name };
-    protected_method(env, 1, args);
+    protected_method(env, Args(1, args));
 }
 
 void Object::module_function(Env *env, SymbolObject *name) {
     Value args[] = { name };
-    module_function(env, 1, args);
+    module_function(env, Args(1, args));
 }
 
-Value Object::private_method(Env *env, size_t argc, Value *args) {
+Value Object::private_method(Env *env, Args args) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
         abort();
     }
-    return m_klass->private_method(env, argc, args);
+    return m_klass->private_method(env, args);
 }
 
-Value Object::protected_method(Env *env, size_t argc, Value *args) {
+Value Object::protected_method(Env *env, Args args) {
     if (!is_main_object()) {
         printf("tried to call protected_method on something that has no methods\n");
         abort();
     }
-    return m_klass->protected_method(env, argc, args);
+    return m_klass->protected_method(env, args);
 }
 
-Value Object::module_function(Env *env, size_t argc, Value *args) {
+Value Object::module_function(Env *env, Args args) {
     printf("tried to call module_function on something that isn't a module\n");
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    return send(env, name, argc, args, block, MethodVisibility::Public);
+Value Object::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
+    return send(env, name, args, block, MethodVisibility::Public);
 }
 
-Value Object::public_send(Env *env, size_t argc, Value *args, Block *block) {
+Value Object::public_send(Env *env, Args args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return public_send(env->caller(), name, argc - 1, args + 1, block);
+    return public_send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    return send(env, name, argc, args, block, MethodVisibility::Private);
+Value Object::send(Env *env, SymbolObject *name, Args args, Block *block) {
+    return send(env, name, args, block, MethodVisibility::Private);
 }
 
-Value Object::send(Env *env, size_t argc, Value *args, Block *block) {
+Value Object::send(Env *env, Args args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return send(env->caller(), name, argc - 1, args + 1, block);
+    return send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block, MethodVisibility visibility_at_least) {
+Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, name, visibility_at_least);
     if (method) {
-        return method->call(env, this, argc, args, block);
+        return method->call(env, this, args, block);
     } else if (respond_to(env, "method_missing"_s)) {
-        ArrayObject new_args { argc + 1 };
+        ArrayObject new_args { args.argc + 1 };
         new_args.push(name);
-        new_args.push(env, argc, args);
-        return send(env, "method_missing"_s, new_args.size(), new_args.data(), block);
+        new_args.push(env, args);
+        return send(env, "method_missing"_s, Args(new_args), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
 }
 
-Value Object::method_missing(Env *env, size_t argc, Value *args, Block *block) {
-    if (argc == 0) {
+Value Object::method_missing(Env *env, Args args, Block *block) {
+    if (args.argc == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0]->is_symbol()) {
         env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
@@ -771,7 +771,7 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     GlobalEnv::the()->set_instance_evaling(true);
     Defer done_instance_evaling([]() { GlobalEnv::the()->set_instance_evaling(false); });
     Value args[] = { self };
-    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {
@@ -816,13 +816,13 @@ const ManagedString *Object::inspect_str(Env *env) {
     return inspected->as_string()->to_low_level_string();
 }
 
-Value Object::enum_for(Env *env, const char *method, size_t argc, Value *args) {
-    Value args2[argc + 1];
+Value Object::enum_for(Env *env, const char *method, Args args) {
+    Value args2[args.argc + 1];
     args2[0] = SymbolObject::intern(method);
-    for (size_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < args.argc; i++) {
         args2[i + 1] = args[i];
     }
-    return this->public_send(env, "enum_for"_s, argc + 1, args2);
+    return this->public_send(env, "enum_for"_s, Args(args.argc + 1, args2));
 }
 
 void Object::visit_children(Visitor &visitor) {

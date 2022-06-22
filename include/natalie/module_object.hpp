@@ -40,10 +40,10 @@ public:
 
     Value initialize(Env *, Block *);
 
-    Value include(Env *, size_t argc, Value *args);
+    Value include(Env *, Args args);
     void include_once(Env *, ModuleObject *);
 
-    Value prepend(Env *, size_t argc, Value *args);
+    Value prepend(Env *, Args args);
     void prepend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *env, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
@@ -116,31 +116,31 @@ public:
     Value inspect(Env *);
     Value name(Env *);
     Optional<String> name() { return m_class_name; }
-    Value attr_reader(Env *, size_t, Value *);
-    Value attr_writer(Env *, size_t, Value *);
-    Value attr_accessor(Env *, size_t, Value *);
+    Value attr_reader(Env *, Args);
+    Value attr_writer(Env *, Args);
+    Value attr_accessor(Env *, Args);
 
-    static Value attr_reader_block_fn(Env *, Value, size_t, Value *, Block *);
-    static Value attr_writer_block_fn(Env *, Value, size_t, Value *, Block *);
+    static Value attr_reader_block_fn(Env *, Value, Args, Block *);
+    static Value attr_writer_block_fn(Env *, Value, Args, Block *);
 
     Value module_eval(Env *, Block *);
 
-    Value private_method(Env *, size_t, Value *) override;
-    Value protected_method(Env *, size_t, Value *) override;
-    Value public_method(Env *, size_t, Value *);
-    Value private_class_method(Env *, size_t, Value *);
-    Value public_class_method(Env *, size_t, Value *);
-    void set_method_visibility(Env *, size_t, Value *, MethodVisibility);
-    Value module_function(Env *, size_t, Value *) override;
+    Value private_method(Env *, Args) override;
+    Value protected_method(Env *, Args) override;
+    Value public_method(Env *, Args);
+    Value private_class_method(Env *, Args);
+    Value public_class_method(Env *, Args);
+    void set_method_visibility(Env *, Args, MethodVisibility);
+    Value module_function(Env *, Args) override;
 
-    Value deprecate_constant(Env *, size_t, Value *);
-    Value private_constant(Env *, size_t, Value *);
-    Value public_constant(Env *, size_t, Value *);
+    Value deprecate_constant(Env *, Args);
+    Value private_constant(Env *, Args);
+    Value public_constant(Env *, Args);
 
     bool const_defined(Env *, Value);
     Value alias_method(Env *, Value, Value);
-    Value remove_method(Env *, size_t, Value *);
-    Value undef_method(Env *, size_t, Value *);
+    Value remove_method(Env *, Args);
+    Value undef_method(Env *, Args);
 
     bool eqeqeq(Env *env, Value other) {
         return other->is_a(env, this);

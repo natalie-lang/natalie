@@ -143,7 +143,7 @@ module Natalie
         c = []
         if args
           _, *args = args
-          c << "env->ensure_argc_is(argc, #{args.size});"
+          c << "env->ensure_argc_is(args.argc, #{args.size});"
           args.each_with_index do |arg, i|
             unless arg.sexp_type == :lit
               raise "Expected symbol arg name pass to __define_method__, but got: #{arg.inspect}"
@@ -154,7 +154,7 @@ module Natalie
         c << body.last
         fn = temp('fn')
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
-        top "Value #{fn}(Env *env, Value self, size_t argc, Value *args, Block *block) {\n#{c.join(nl)}\n}"
+        top "Value #{fn}(Env *env, Value self, Args args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, 'self->as_module()'), :env, s(:intern, name), fn, -1))
         "#{name.inspect}_s"
       end
@@ -258,11 +258,11 @@ module Natalie
       def process_args(exp)
         _, *args = exp
         if args.size.zero?
-          'nullptr:0'
+          'Args()'
         else
           args_name = temp('args')
           decl "Value #{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
-          "#{args_name}:#{args.size}"
+          "Args(#{args.size}, #{args_name})"
         end
       end
 
@@ -271,7 +271,7 @@ module Natalie
         array = process_atom(args)
         name = temp('args_array')
         decl "Value #{name} = #{array};"
-        "#{name}->as_array()->data():#{name}->as_array()->size()"
+        "Args(*#{name}->as_array())"
       end
 
       def process_block(exp)
@@ -297,7 +297,7 @@ module Natalie
         decl "Value #{array_val} = to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "#{array_val}->size()", "#{array_val}->data()")
+          arg_value = process_assign_val(arg.pop, array_val)
           process(arg << arg_value)
         end
         val
@@ -311,7 +311,7 @@ module Natalie
           decl "  Value #{array_arg} = to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, "#{array_arg}->size()", "#{array_arg}->data()")
+            arg_value = process_assign_val(arg.pop, array_arg)
             process(arg << arg_value)
           end
           decl '} else {'
@@ -323,15 +323,15 @@ module Natalie
         ''
       end
 
-      def process_assign_val(exp, argc_name = 'argc', args_name = 'args')
+      def process_assign_val(exp, ary)
         _, index, type, default = exp
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "ArrayObject *#{rest} = new ArrayObject { #{argc_name}, #{args_name} };"
+          decl "ArrayObject *#{rest} = #{ary};"
           rest
         else
-          "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{process_atom(default)}"
+          "#{index} < #{ary}->size() ? #{ary}[#{index}] : #{process_atom(default)}"
         end
       end
 
@@ -526,7 +526,7 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "Value #{name}(Env *env, Value self, size_t argc, Value *args, Block *block) {"
+            fn << "Value #{name}(Env *env, Value self, Args args, Block *block) {"
           elsif arg_list == 2
             fn << "Value #{name}(Env *env, Value self) {"
           else
@@ -558,13 +558,12 @@ module Natalie
         fn, receiver, method, args, block = exp
         receiver_name = process_atom(receiver)
         if args
-          args_name, args_count = process_atom(args).split(':')
+          args_name = process_atom(args)
         else
-          args_name = 'nullptr'
-          args_count = 0
+          args_name = 'Args()'
         end
         result_name = temp('call_result')
-        decl "Value #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        decl "Value #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 
@@ -598,9 +597,9 @@ module Natalie
 
       def process_NAT_RUN_BLOCK_FROM_ENV(exp)
         _, args = exp
-        args_name, args_count = process_atom(args).split(':')
+        args_name = process_atom(args)
         result_name = temp('block_result')
-        decl "Value #{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
+        decl "Value #{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_name});"
         result_name
       end
 
@@ -608,11 +607,11 @@ module Natalie
         _, args, block = exp
         result_name = temp('call_result')
         if args
-          args_name, args_count = process_atom(args).split(':')
-          decl "Value #{result_name} = super(env, self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+          args_name = process_atom(args)
+          decl "Value #{result_name} = super(env, self, #{args_name}, #{block || 'nullptr'});"
         else
           block = block && block != 'nullptr' ? block : 'block'
-          decl "Value #{result_name} = super(env, self, argc, args, #{block});"
+          decl "Value #{result_name} = super(env, self, args, #{block});"
         end
         result_name
       end

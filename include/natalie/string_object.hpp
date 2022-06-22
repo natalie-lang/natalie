@@ -148,7 +148,7 @@ public:
     }
 
     bool internal_start_with(Env *, Value) const;
-    bool start_with(Env *, size_t, Value *) const;
+    bool start_with(Env *, Args) const;
     bool end_with(Env *, Value) const;
     bool is_empty() const { return m_string.is_empty(); }
 
@@ -163,7 +163,7 @@ public:
     Value chomp(Env *, Value);
     Value clear(Env *);
     Value cmp(Env *, Value) const;
-    Value concat(Env *env, size_t argc, Value *args);
+    Value concat(Env *env, Args args);
     Value downcase(Env *);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
@@ -179,7 +179,7 @@ public:
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);
-    Value prepend(Env *, size_t, Value *);
+    Value prepend(Env *, Args);
     Value ref(Env *, Value);
     Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);

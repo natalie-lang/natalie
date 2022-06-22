@@ -26,8 +26,8 @@ public:
         return new ProcObject { block };
     }
 
-    Value call(Env *env, size_t argc, Value *args, Block *block) {
-        return m_method->call(env, m_object, argc, args, block);
+    Value call(Env *env, Args args, Block *block) {
+        return m_method->call(env, m_object, args, block);
     }
 
     virtual void visit_children(Visitor &visitor) override final {

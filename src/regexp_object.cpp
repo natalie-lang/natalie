@@ -114,7 +114,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 
         if (block) {
             Value args[] = { match };
-            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
         }
         return match;
     } else if (result == ONIG_MISMATCH) {

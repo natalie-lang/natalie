@@ -387,7 +387,7 @@ Value IntegerObject::times(Env *env, Block *block) {
     for (Integer i = 0; i < m_integer; ++i) {
         Value num = create(i);
         Value args[] = { num };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
     return this;
 }

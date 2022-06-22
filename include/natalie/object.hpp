@@ -77,8 +77,8 @@ public:
     }
 
     static Value create(Env *, ClassObject *);
-    static Value _new(Env *, Value, size_t, Value *, Block *);
-    static Value allocate(Env *, Value, size_t, Value *, Block *);
+    static Value _new(Env *, Value, Args, Block *);
+    static Value allocate(Env *, Value, Args, Block *);
 
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }
@@ -162,7 +162,7 @@ public:
 
     void set_singleton_class(ClassObject *);
 
-    Value extend(Env *, size_t, Value *);
+    Value extend(Env *, Args);
     void extend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
@@ -191,9 +191,9 @@ public:
 
     Value main_obj_define_method(Env *, Value, Value, Block *);
 
-    virtual Value private_method(Env *, size_t, Value *);
-    virtual Value protected_method(Env *, size_t, Value *);
-    virtual Value module_function(Env *, size_t, Value *);
+    virtual Value private_method(Env *, Args);
+    virtual Value protected_method(Env *, Args);
+    virtual Value module_function(Env *, Args);
 
     void private_method(Env *, SymbolObject *);
     void protected_method(Env *, SymbolObject *);
@@ -212,18 +212,18 @@ public:
         return new ManagedString(buf);
     }
 
-    Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
-    Value public_send(Env *, size_t, Value *, Block *);
+    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value public_send(Env *, Args, Block *);
 
-    Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
-    Value send(Env *, size_t, Value *, Block *);
+    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value send(Env *, Args, Block *);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return send(env, name, args.size(), const_cast<Value *>(data(args)), block);
+        return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, size_t, Value *, Block *, MethodVisibility);
-    Value method_missing(Env *, size_t, Value *, Block *);
+    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
+    Value method_missing(Env *, Args, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
@@ -272,7 +272,7 @@ public:
 
     const ManagedString *inspect_str(Env *);
 
-    Value enum_for(Env *env, const char *method, size_t argc = 0, Value *args = nullptr);
+    Value enum_for(Env *env, const char *method, Args args = {});
 
     virtual void visit_children(Visitor &visitor) override;
 

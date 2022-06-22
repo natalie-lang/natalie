@@ -34,7 +34,7 @@ public:
 
     bool is_undefined() const { return m_undefined; }
 
-    Value call(Env *env, Value self, size_t argc, Value *args, Block *block) {
+    Value call(Env *env, Value self, Args args, Block *block) {
         assert(!is_undefined());
         Env *closure_env;
         if (has_env()) {
@@ -51,10 +51,10 @@ public:
         Value result;
         if (block && !block->calling_env()) {
             block->set_calling_env(env);
-            result = m_fn(&e, self, argc, args, block);
+            result = m_fn(&e, self, args, block);
             block->clear_calling_env();
         } else {
-            result = m_fn(&e, self, argc, args, block);
+            result = m_fn(&e, self, args, block);
         }
         return result;
     }

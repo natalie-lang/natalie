@@ -13,7 +13,7 @@ module Natalie
         arg_count.times { args.unshift transform.pop }
         args_array = transform.temp('args')
         transform.exec "Value #{args_array}[] = { #{args.join(', ')} };"
-        transform.exec_and_push :yield, "NAT_RUN_BLOCK_FROM_ENV(env, #{arg_count}, #{args_array})"
+        transform.exec_and_push :yield, "NAT_RUN_BLOCK_FROM_ENV(env, Args(#{arg_count}, #{args_array}))"
       end
 
       def execute(vm)

@@ -283,8 +283,8 @@ module Natalie
           assign_args =
             s(
               :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'argc')), :'auto&'),
-              s(:args_to_vector, args_name, s(:l, 'argc'), s(:l, 'args')),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'args.argc')), :'auto&'),
+              s(:args_to_vector, args_name, :args),
               process(method_args.set_args),
             )
           arity = method_args.arity
@@ -449,7 +449,7 @@ module Natalie
             s(
               :block,
               s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto&'),
-              s(:block_args_to_vector, :env, args_name, args.size, s(:l, 'argc'), s(:l, 'args')),
+              s(:block_args_to_vector, :env, args_name, args.size, :args),
               process(method_args.set_args),
             )
           arity = method_args.arity
@@ -554,11 +554,11 @@ module Natalie
           end
         end
         if max == :unlimited
-          min.zero? ? s(:block) : s(:ensure_argc_at_least, :env, :argc, min)
+          min.zero? ? s(:block) : s(:ensure_argc_at_least, :env, s(:l, 'args.argc'), min)
         elsif min == max
-          s(:ensure_argc_is, :env, :argc, min)
+          s(:ensure_argc_is, :env, s(:l, 'args.argc'), min)
         else
-          s(:ensure_argc_between, :env, :argc, min, max)
+          s(:ensure_argc_between, :env, s(:l, 'args.argc'), min, max)
         end
       end
 
