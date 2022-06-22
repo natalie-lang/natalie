@@ -283,7 +283,7 @@ module Natalie
           assign_args =
             s(
               :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'args.argc')), :'auto&'),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'args.size()')), :'auto&'),
               s(:args_to_vector, args_name, :args),
               process(method_args.set_args),
             )

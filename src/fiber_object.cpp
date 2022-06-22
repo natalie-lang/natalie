@@ -113,7 +113,7 @@ void FiberObject::visit_children(Visitor &visitor) {
 
 void FiberObject::set_args(Args args) {
     m_args.clear();
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         m_args.push(args[i]);
     }
 }

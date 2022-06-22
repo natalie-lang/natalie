@@ -357,7 +357,7 @@ ClassObject *Object::subclass(Env *env, const char *name) {
 
 Value Object::extend(Env *env, Args args) {
     assert_not_frozen(env);
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         if (args[i]->type() == Object::Type::Module) {
             extend_once(env, args[i]->as_module());
         } else {
@@ -580,7 +580,7 @@ Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, Method
     if (method) {
         return method->call(env, this, args, block);
     } else if (respond_to(env, "method_missing"_s)) {
-        ArrayObject new_args { args.argc + 1 };
+        ArrayObject new_args { args.size() + 1 };
         new_args.push(name);
         new_args.push(env, args);
         return send(env, "method_missing"_s, Args(new_args), block);
@@ -590,7 +590,7 @@ Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, Method
 }
 
 Value Object::method_missing(Env *env, Args args, Block *block) {
-    if (args.argc == 0) {
+    if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0]->is_symbol()) {
         env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
@@ -817,12 +817,12 @@ const ManagedString *Object::inspect_str(Env *env) {
 }
 
 Value Object::enum_for(Env *env, const char *method, Args args) {
-    Value args2[args.argc + 1];
+    Value args2[args.size() + 1];
     args2[0] = SymbolObject::intern(method);
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         args2[i + 1] = args[i];
     }
-    return this->public_send(env, "enum_for"_s, Args(args.argc + 1, args2));
+    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2));
 }
 
 void Object::visit_children(Visitor &visitor) {

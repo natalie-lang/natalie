@@ -209,9 +209,9 @@ Value HashObject::initialize(Env *env, Value default_value, Block *block) {
 
 // Hash[]
 Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
-    if (args.argc == 0) {
+    if (args.size() == 0) {
         return new HashObject { klass };
-    } else if (args.argc == 1) {
+    } else if (args.size() == 1) {
         Value value = args[0];
         if (!value->is_hash() && value->respond_to(env, "to_hash"_s))
             value = value.send(env, "to_hash"_s);
@@ -240,11 +240,11 @@ Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
             }
         }
     }
-    if (args.argc % 2 != 0) {
+    if (args.size() % 2 != 0) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
     HashObject *hash = new HashObject { klass };
-    for (size_t i = 0; i < args.argc; i += 2) {
+    for (size_t i = 0; i < args.size(); i += 2) {
         Value key = args[i];
         Value value = args[i + 1];
         hash->put(env, key, value);
@@ -362,7 +362,7 @@ Value HashObject::dig(Env *env, Args args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
     Value val = ref(env, args[0]);
-    if (args.argc == 1)
+    if (args.size() == 1)
         return val;
 
     if (val == NilObject::the())
@@ -490,7 +490,7 @@ Value HashObject::except(Env *env, Args args) {
         new_hash->put(env, node.key, node.val);
     }
 
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         new_hash->remove(env, args[i]);
     }
     return new_hash;
@@ -515,10 +515,10 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
 }
 
 Value HashObject::fetch_values(Env *env, Args args, Block *block) {
-    if (args.argc == 0) return new ArrayObject;
+    if (args.size() == 0) return new ArrayObject;
 
-    auto array = new ArrayObject { args.argc };
-    for (size_t i = 0; i < args.argc; ++i) {
+    auto array = new ArrayObject { args.size() };
+    for (size_t i = 0; i < args.size(); ++i) {
         array->push(fetch(env, args[i], nullptr, block));
     }
     return array;
@@ -648,7 +648,7 @@ Value HashObject::merge(Env *env, Args args, Block *block) {
 Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
     this->assert_not_frozen(env);
 
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         auto h = args[i];
 
         if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
@@ -673,7 +673,7 @@ Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
 
 Value HashObject::slice(Env *env, Args args) {
     auto new_hash = new HashObject {};
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         Value key = args[i];
         Value value = this->get(env, key);
         if (value) {

@@ -318,7 +318,7 @@ bool StringObject::internal_start_with(Env *env, Value needle) const {
 }
 
 bool StringObject::start_with(Env *env, Args args) const {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
 
         if (internal_start_with(env, arg))
@@ -453,7 +453,7 @@ Value StringObject::concat(Env *env, Args args) {
     StringObject *original = new StringObject(*this);
 
     auto to_str = "to_str"_s;
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
 
         if (arg == this)
@@ -533,7 +533,7 @@ Value StringObject::prepend(Env *env, Args args) {
 
     auto to_str = "to_str"_s;
     String appendable;
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
 
         if (arg == this)

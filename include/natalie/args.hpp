@@ -9,30 +9,31 @@ class ArrayObject;
 class Env;
 class Value;
 
-struct Args {
+class Args {
+public:
     Args() { }
 
-    Args(size_t c, const Value *a, bool owned = false)
-        : argc { c }
-        , args { a } { }
+    Args(size_t size, const Value *data, bool owned = false)
+        : m_size { size }
+        , m_data { data } { }
 
-    Args(TM::Vector<Value> a)
-        : argc { a.size() }
-        , args { a.data() } { }
+    Args(TM::Vector<Value> vec)
+        : m_size { vec.size() }
+        , m_data { vec.data() } { }
 
     Args(ArrayObject &a);
 
-    Args(std::initializer_list<Value> a)
-        : argc { a.size() }
-        , args { data(a) } { }
+    Args(std::initializer_list<Value> args)
+        : m_size { args.size() }
+        , m_data { std::data(args) } { }
 
     Args(const Args &other);
 
     Args(Args &&other)
-        : argc { other.argc }
-        , args { other.args } {
-        other.argc = 0;
-        other.args = nullptr;
+        : m_size { other.m_size }
+        , m_data { other.m_data } {
+        other.m_size = 0;
+        other.m_data = nullptr;
     }
 
     Args &operator=(const Args &other);
@@ -51,8 +52,12 @@ struct Args {
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const;
     void ensure_argc_at_least(Env *env, size_t expected) const;
 
-    // TODO: make these private and provide accessors
-    size_t argc { 0 };
-    const Value *args { nullptr };
+    size_t size() const { return m_size; }
+
+    const Value *data() const { return m_data; }
+
+private:
+    size_t m_size { 0 };
+    const Value *m_data { nullptr };
 };
 };

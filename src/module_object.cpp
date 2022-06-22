@@ -25,7 +25,7 @@ Value ModuleObject::initialize(Env *env, Block *block) {
 }
 
 Value ModuleObject::include(Env *env, Args args) {
-    for (int i = args.argc - 1; i >= 0; i--) {
+    for (int i = args.size() - 1; i >= 0; i--) {
         include_once(env, args[i]->as_module());
     }
     return this;
@@ -45,7 +45,7 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
 }
 
 Value ModuleObject::prepend(Env *env, Args args) {
-    for (int i = args.argc - 1; i >= 0; i--) {
+    for (int i = args.size() - 1; i >= 0; i--) {
         prepend_once(env, args[i]->as_module());
     }
     return this;
@@ -493,7 +493,7 @@ Value ModuleObject::name(Env *env) {
 }
 
 Value ModuleObject::attr_reader(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         Value name_obj = args[i];
         if (name_obj->type() == Object::Type::Symbol) {
             // we're good!
@@ -519,7 +519,7 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args, Block 
 }
 
 Value ModuleObject::attr_writer(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         Value name_obj = args[i];
         if (name_obj->type() == Object::Type::Symbol) {
             // we're good!
@@ -659,18 +659,17 @@ Value ModuleObject::public_class_method(Env *env, Args args) {
 }
 
 void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility visibility) {
-    if (args.argc == 0) {
+    if (args.size() == 0) {
         m_method_visibility = visibility;
         m_module_function = false;
     }
 
-    if (args.argc == 1 && args[0]->is_array()) {
+    if (args.size() == 1 && args[0]->is_array()) {
         auto array = args[0]->as_array();
-        args.argc = array->size();
-        args.args = array->data();
+        args = Args(*array);
     }
 
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method = find_method(env, name);
         assert_method_defined(env, name, method);
@@ -682,8 +681,8 @@ Value ModuleObject::module_function(Env *env, Args args) {
     if (is_class()) {
         env->raise("TypeError", "module_function must be called for modules");
     }
-    if (args.argc > 0) {
-        for (size_t i = 0; i < args.argc; ++i) {
+    if (args.size() > 0) {
+        for (size_t i = 0; i < args.size(); ++i) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
             auto method = find_method(env, name);
             assert_method_defined(env, name, method);
@@ -698,7 +697,7 @@ Value ModuleObject::module_function(Env *env, Args args) {
 }
 
 Value ModuleObject::deprecate_constant(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
@@ -709,7 +708,7 @@ Value ModuleObject::deprecate_constant(Env *env, Args args) {
 }
 
 Value ModuleObject::private_constant(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
@@ -720,7 +719,7 @@ Value ModuleObject::private_constant(Env *env, Args args) {
 }
 
 Value ModuleObject::public_constant(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
@@ -752,7 +751,7 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
 }
 
 Value ModuleObject::remove_method(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto info = m_method_info.get(name, env);
         if (!info) {
@@ -765,7 +764,7 @@ Value ModuleObject::remove_method(Env *env, Args args) {
 }
 
 Value ModuleObject::undef_method(Env *env, Args args) {
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method = find_method(env, name);
         assert_method_defined(env, name, method);

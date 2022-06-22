@@ -536,8 +536,8 @@ Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value d
 }
 
 ArrayObject *args_to_array(Env *env, Args args) {
-    ArrayObject *ary = new ArrayObject { args.argc };
-    for (size_t i = 0; i < args.argc; i++) {
+    ArrayObject *ary = new ArrayObject { args.size() };
+    for (size_t i = 0; i < args.size(); i++) {
         ary->push(args[i]);
     }
     return ary;
@@ -552,8 +552,8 @@ ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args) {
 }
 
 void args_to_vector(TM::Vector<Value> &target, Args args) {
-    target.set_capacity(args.argc);
-    for (size_t i = 0; i < args.argc; ++i) {
+    target.set_capacity(args.size());
+    for (size_t i = 0; i < args.size(); ++i) {
         target.push(args[i]);
     }
 }
@@ -561,14 +561,14 @@ void args_to_vector(TM::Vector<Value> &target, Args args) {
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
 ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args) {
-    if (args.argc == 1 && signature_size > 1) {
+    if (args.size() == 1 && signature_size > 1) {
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, args);
 }
 
 void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args) {
-    if (args.argc == 1 && signature_size > 1) {
+    if (args.size() == 1 && signature_size > 1) {
         auto ary = to_ary(env, args[0], true);
         target.set_capacity(ary->size());
         for (size_t i = 0; i < ary->size(); ++i) {
@@ -586,7 +586,7 @@ void arg_spread(Env *env, Args args, const char *arrangement, ...) {
     size_t arg_index = 0;
     bool optional = false;
     for (size_t i = 0; i < len; i++) {
-        if (arg_index >= args.argc && optional)
+        if (arg_index >= args.size() && optional)
             break;
         char c = arrangement[i];
         switch (c) {
@@ -595,14 +595,14 @@ void arg_spread(Env *env, Args args, const char *arrangement, ...) {
             break;
         case 'o': {
             Object **obj_ptr = va_arg(va_args, Object **);
-            if (arg_index >= args.argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Object *obj = args[arg_index++].object();
             *obj_ptr = obj;
             break;
         }
         case 'i': {
             int *int_ptr = va_arg(va_args, int *);
-            if (arg_index >= args.argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj->assert_type(env, Object::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_nat_int_t();
@@ -610,7 +610,7 @@ void arg_spread(Env *env, Args args, const char *arrangement, ...) {
         }
         case 's': {
             const char **str_ptr = va_arg(va_args, const char **);
-            if (arg_index >= args.argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             if (obj == NilObject::the()) {
                 *str_ptr = nullptr;
@@ -622,14 +622,14 @@ void arg_spread(Env *env, Args args, const char *arrangement, ...) {
         }
         case 'b': {
             bool *bool_ptr = va_arg(va_args, bool *);
-            if (arg_index >= args.argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
         }
         case 'v': {
             void **void_ptr = va_arg(va_args, void **);
-            if (arg_index >= args.argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr"_s);
             assert(obj->type() == Object::Type::VoidP);
