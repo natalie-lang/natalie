@@ -43,11 +43,42 @@ class Bar < Foo
   end
 end
 
+WAT = 1
+
 describe 'class' do
   describe 'inheritance' do
     it 'has its own methods and those of its superclass' do
       Bar.new.foo.should == 'bar'
       Bar.new.double(3).should == 6
+    end
+
+    it 'raises an error if the superclass is not a class' do
+      ruby_version_is '3.0' do # the message changed in 3.0
+        -> {
+          class WatClass < WAT; end
+        }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
+        -> {
+          Class.new(WAT)
+        }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
+      end
+    end
+
+    it 'raises an error if the superclass is Class' do
+      -> {
+        class WatClass < Class; end
+      }.should raise_error(TypeError, "can't make subclass of Class")
+      -> {
+        Class.new(Class)
+      }.should raise_error(TypeError, "can't make subclass of Class")
+    end
+
+    it 'raises an error if the superclass is a singleton class' do
+      -> {
+        class WatClass < Object.singleton_class; end
+      }.should raise_error(TypeError, "can't make subclass of singleton class")
+      -> {
+        Class.new(Object.singleton_class)
+      }.should raise_error(TypeError, "can't make subclass of singleton class")
     end
   end
 end

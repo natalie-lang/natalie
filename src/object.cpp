@@ -343,8 +343,16 @@ ClassObject *Object::singleton_class(Env *env) {
     } else {
         singleton_superclass = m_klass;
     }
-    set_singleton_class(singleton_superclass->subclass(env, name));
+    auto new_singleton_class = new ClassObject { singleton_superclass };
+    singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
+    set_singleton_class(new_singleton_class);
     return m_singleton_class;
+}
+
+ClassObject *Object::subclass(Env *env, const char *name) {
+    if (!is_class())
+        env->raise("TypeError", "superclass must be an instance of Class (given an instance of {})", klass()->inspect_str());
+    return as_class()->subclass(env, name);
 }
 
 Value Object::extend(Env *env, size_t argc, Value *args) {

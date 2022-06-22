@@ -158,6 +158,8 @@ public:
     ClassObject *singleton_class() const { return m_singleton_class; }
     ClassObject *singleton_class(Env *);
 
+    ClassObject *subclass(Env *env, const char *name);
+
     void set_singleton_class(ClassObject *);
 
     Value extend(Env *, size_t, Value *);

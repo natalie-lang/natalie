@@ -35,7 +35,9 @@ Env *build_top_env() {
     global_env->set_Module(Module);
     Object->const_set("Module"_s, Module);
     Class->set_superclass_DANGEROUSLY(Module);
-    Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
+    auto class_singleton_class = new ClassObject { Module->singleton_class() };
+    Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, new ManagedString("#<Class:Class>"));
+    Class->set_singleton_class(class_singleton_class);
 
     ModuleObject *Kernel = new ModuleObject { "Kernel" };
     Object->const_set("Kernel"_s, Kernel);

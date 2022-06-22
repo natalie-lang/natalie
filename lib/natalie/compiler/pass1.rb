@@ -209,7 +209,7 @@ module Natalie
             s(:c_not, klass),
             s(
               :block,
-              s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
+              s(:set, klass, s(:subclass, process(superclass), :env, s(:s, name))),
               s(:const_set, ns, s(:intern, name), klass),
             ),
           ),
