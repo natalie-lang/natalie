@@ -309,21 +309,21 @@ Value KernelModule::methods(Env *env, Value regular_val) {
 }
 
 Value KernelModule::p(Env *env, Args args) {
-    if (args.argc == 0) {
+    if (args.size() == 0) {
         return NilObject::the();
-    } else if (args.argc == 1) {
+    } else if (args.size() == 1) {
         Value arg = args[0].send(env, "inspect"_s);
         Value puts_args[] = { arg };
         puts(env, Args(1, puts_args));
         return args[0];
     } else {
-        ArrayObject *result = new ArrayObject { args.argc };
-        Value puts_args[args.argc];
-        for (size_t i = 0; i < args.argc; i++) {
+        ArrayObject *result = new ArrayObject { args.size() };
+        Value puts_args[args.size()];
+        for (size_t i = 0; i < args.size(); i++) {
             result->push(args[i]);
             puts_args[i] = args[i].send(env, "inspect"_s);
         }
-        puts(env, Args(args.argc, puts_args));
+        puts(env, Args(args.size(), puts_args));
         return result;
     }
 }
@@ -479,15 +479,15 @@ Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
     args.ensure_argc_at_least(env, 1);
     auto program = args[0]->as_string();
-    char *cmd[args.argc + 1];
-    for (size_t i = 0; i < args.argc; i++) {
+    char *cmd[args.size() + 1];
+    for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
         arg->assert_type(env, Object::Type::String, "String");
         cmd[i] = strdup(arg->as_string()->c_str());
     }
-    cmd[args.argc] = nullptr;
+    cmd[args.size()] = nullptr;
     int result = posix_spawnp(&pid, program->c_str(), NULL, NULL, cmd, environ);
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         free(cmd[i]);
     }
     if (result != 0)

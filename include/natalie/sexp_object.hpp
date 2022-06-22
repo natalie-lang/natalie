@@ -21,7 +21,7 @@ public:
         auto sexp = new SexpObject {};
         sexp->ivar_set(env, "@file"_s, ivar_get(env, "@file"_s));
         sexp->ivar_set(env, "@line"_s, ivar_get(env, "@line"_s));
-        for (size_t i = 0; i < args.argc; i++) {
+        for (size_t i = 0; i < args.size(); i++) {
             sexp->push(args[i]);
         }
         return sexp;

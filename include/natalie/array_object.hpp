@@ -59,7 +59,7 @@ public:
 
     // Array[]
     static Value square_new(Env *env, Args args, ClassObject *klass) {
-        return new ArrayObject { args.argc, args.args, klass };
+        return new ArrayObject { args.size(), args.data(), klass };
     }
 
     static Value size_fn(Env *, Value self, Args, Block *) {

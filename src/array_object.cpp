@@ -700,7 +700,7 @@ Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
 Value ArrayObject::difference(Env *env, Args args) {
     Value last = new ArrayObject { *this };
 
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         last = last->as_array()->sub(env, args[i]);
     }
 
@@ -711,7 +711,7 @@ Value ArrayObject::dig(Env *env, Args args) {
     args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
     Value val = ref(env, args[0]);
-    if (args.argc == 1)
+    if (args.size() == 1)
         return val;
 
     if (val == NilObject::the())
@@ -951,7 +951,7 @@ Value ArrayObject::pack(Env *env, Value directives) {
 
 Value ArrayObject::push(Env *env, Args args) {
     assert_not_frozen(env);
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         push(args[i]);
     }
     return this;
@@ -1517,7 +1517,7 @@ Value ArrayObject::hash(Env *env) {
 Value ArrayObject::insert(Env *env, Args args) {
     this->assert_not_frozen(env);
 
-    if (args.argc == 1)
+    if (args.size() == 1)
         return this;
 
     auto index_ptr = args[0];
@@ -1543,7 +1543,7 @@ Value ArrayObject::insert(Env *env, Args args) {
         m_vector.push(NilObject::the());
     }
 
-    for (size_t i = 1; i < args.argc; i++) {
+    for (size_t i = 1; i < args.size(); i++) {
         m_vector.insert(i + size_t_index - 1, args[i]);
     }
 
@@ -1570,7 +1570,7 @@ Value ArrayObject::intersection(Env *env, Args args) {
 
     TM::Vector<ArrayObject *> arrays;
 
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
         ArrayObject *other_array = arg->to_ary(env);
 
@@ -1579,7 +1579,7 @@ Value ArrayObject::intersection(Env *env, Args args) {
     }
 
     if (result->is_empty()) return result;
-    if (arrays.size() != args.argc) return new ArrayObject;
+    if (arrays.size() != args.size()) return new ArrayObject;
 
     for (size_t i = 0; i < result->size(); ++i) {
         auto &item = result->at(i);
@@ -1623,7 +1623,7 @@ Value ArrayObject::union_of(Env *env, Args args) {
     auto *result = new ArrayObject(*this);
 
     // TODO: we probably want to make | call this instead of this way for optimization
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
         result = result->union_of(env, arg)->as_array();
     }
@@ -1633,7 +1633,7 @@ Value ArrayObject::union_of(Env *env, Args args) {
 
 Value ArrayObject::unshift(Env *env, Args args) {
     assert_not_frozen(env);
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         m_vector.insert(i, args[i]);
     }
     return this;
@@ -1674,7 +1674,7 @@ Value ArrayObject::concat(Env *env, Args args) {
 
     ArrayObject *original = new ArrayObject(*this);
 
-    for (size_t i = 0; i < args.argc; i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
 
         if (arg == this)
@@ -1770,7 +1770,7 @@ Value ArrayObject::one(Env *env, Args args, Block *block) {
 Value ArrayObject::product(Env *env, Args args, Block *block) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
-    for (size_t i = 0; i < args.argc; ++i)
+    for (size_t i = 0; i < args.size(); ++i)
         arrays.push(args[i]->to_ary(env));
 
     constexpr size_t max_size_t = std::numeric_limits<size_t>::max();
@@ -2021,7 +2021,7 @@ Value ArrayObject::try_convert(Env *env, Value val) {
 Value ArrayObject::values_at(Env *env, Args args) {
     TM::Vector<nat_int_t> indices;
 
-    for (size_t i = 0; i < args.argc; ++i) {
+    for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
         if (arg->is_range()) {
             auto begin_value = arg->as_range()->begin();
