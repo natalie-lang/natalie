@@ -214,12 +214,12 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
         ''
       when Range
         if argc.end
-          "env->ensure_argc_between(args.argc, #{argc.begin}, #{argc.end});"
+          "args.ensure_argc_between(env, #{argc.begin}, #{argc.end});"
         else
-          "env->ensure_argc_at_least(args.argc, #{argc.begin});"
+          "args.ensure_argc_at_least(env, #{argc.begin});"
         end
       when Integer
-        "env->ensure_argc_is(args.argc, #{argc});"
+        "args.ensure_argc_is(env, #{argc});"
       else
         raise "Unknown argc: #{argc.inspect}"
       end

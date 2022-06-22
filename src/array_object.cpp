@@ -708,7 +708,7 @@ Value ArrayObject::difference(Env *env, Args args) {
 }
 
 Value ArrayObject::dig(Env *env, Args args) {
-    env->ensure_argc_at_least(args.argc, 1);
+    args.ensure_argc_at_least(env, 1);
     auto dig = "dig"_s;
     Value val = ref(env, args[0]);
     if (args.argc == 1)

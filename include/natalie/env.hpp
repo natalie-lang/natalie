@@ -81,9 +81,6 @@ public:
         warn(message);
     }
 
-    void ensure_argc_is(size_t argc, size_t expected);
-    void ensure_argc_between(size_t argc, size_t expected_low, size_t expected_high);
-    void ensure_argc_at_least(size_t argc, size_t expected);
     void ensure_block_given(Block *);
 
     Value last_match();

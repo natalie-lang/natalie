@@ -72,7 +72,7 @@ Value IoObject::read(Env *env, Value count_value) const {
 }
 
 Value IoObject::write(Env *env, Args args) const {
-    env->ensure_argc_at_least(args.argc, 1);
+    args.ensure_argc_at_least(env, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < args.argc; i++) {
         Value obj = args[i];

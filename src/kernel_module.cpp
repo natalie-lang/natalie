@@ -477,7 +477,7 @@ Value KernelModule::sleep(Env *env, Value length) {
 
 Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
-    env->ensure_argc_at_least(args.argc, 1);
+    args.ensure_argc_at_least(env, 1);
     auto program = args[0]->as_string();
     char *cmd[args.argc + 1];
     for (size_t i = 0; i < args.argc; i++) {

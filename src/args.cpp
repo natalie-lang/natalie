@@ -49,4 +49,19 @@ ArrayObject *Args::to_array_for_block(Env *env) const {
     return new ArrayObject { argc, args };
 }
 
+void Args::ensure_argc_is(Env *env, size_t expected) const {
+    if (argc != expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, expected);
+}
+
+void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const {
+    if (argc < expected_low || argc > expected_high)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{})", argc, expected_low, expected_high);
+}
+
+void Args::ensure_argc_at_least(Env *env, size_t expected) const {
+    if (argc < expected)
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+)", argc, expected);
+}
+
 }
