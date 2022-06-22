@@ -139,30 +139,67 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
 }
 
 Value StringObject::chomp(Env *env, Value record_separator) {
-    const char *cstr = m_string.c_str();
-    size_t end_idx = m_string.length();
+    // When passed nil, return duplicate string
+    if (!record_separator.is_null() && record_separator->is_nil()) {
+        return new StringObject(m_string);
+    }
 
-    if (record_separator.is_null()) {
-        if (cstr[end_idx - 1] == '\r') {
+    // When passed a non nil object, call to_str();
+    if (!record_separator.is_null() && !record_separator->is_string()) {
+        record_separator = record_separator->to_str(env);
+    }
+
+    size_t end_idx = m_string.length();
+    if (end_idx == 0) { // if this is an empty string, return empty sring
+	    return new StringObject();
+    }
+
+    String global_record_separator = env->global_get("$/"_s)->as_string()->string();
+    // When using default record separator, also remove trailing \r
+    if (record_separator.is_null() && global_record_separator == "\n") { 
+        if (m_string.at(end_idx-1) == '\r') {
             --end_idx;
-        } else if (cstr[end_idx - 1] == '\n') {
-            if (cstr[end_idx - 2] == '\r') {
+        } else if (m_string.at(end_idx-1) == '\n') {
+            if (m_string.at(end_idx-2) == '\r') {
                 --end_idx;
             }
             --end_idx;
+        }
+        
+        return new StringObject(m_string.substring(0, end_idx));
+    // When called with custom global record separator and no args
+    // don't remove \r unless specified by record separator
+    } else if (record_separator.is_null()) { 
+        size_t end_idx = length();
+        size_t last_idx = end_idx - 1;
+        size_t sep_idx = global_record_separator.length() - 1;
+
+        while (m_string.at(last_idx) == global_record_separator.at(sep_idx)) {
+            if (sep_idx == 0) {
+                end_idx = last_idx;
+                break;
+            }
+
+            if (last_idx == 0) {
+                break;
+            }
+
+            --last_idx;
+            --sep_idx;
         }
 
         return new StringObject(m_string.substring(0, end_idx));
     }
 
     record_separator->assert_type(env, Object::Type::String, "String");
-    StringObject *sep = record_separator->as_string();
-    const char *csep = sep->m_string.c_str();
-    size_t sep_len = sep->m_string.length();
 
-    if (sep_len == 0) {
-        while (end_idx > 0 && cstr[end_idx - 1] == '\n') {
-            if (end_idx > 1 && cstr[end_idx - 2] == '\r') {
+    const String rs = record_separator->as_string()->m_string;
+    size_t rs_len = rs.length();
+
+    // when passed empty string remove trailing \n and \r\n but not \r
+    if (rs_len == 0) { 
+        while (end_idx > 0 && m_string.at(end_idx - 1) == '\n') {
+            if (end_idx > 1 && m_string.at(end_idx-2) == '\r') {
                 --end_idx;
             }
             --end_idx;
@@ -172,9 +209,21 @@ Value StringObject::chomp(Env *env, Value record_separator) {
     }
 
     size_t last_idx = end_idx - 1;
-    size_t sep_idx = sep_len - 1;
-    while (cstr[last_idx] == csep[sep_idx]) {
-        if (sep_idx == 0) {
+    size_t rs_idx = rs_len - 1;
+
+    // remove only final \r when called with (non empty) string on
+    // a string terminating in \r
+    if (m_string.at(last_idx) == '\r') { 
+        return new StringObject(m_string.substring(0, end_idx - 1));
+    }
+
+    // called with (non empty) string
+    while (m_string.at(last_idx) == rs.at(rs_idx)) {
+        if (rs_idx == 0) {
+            if (last_idx != 0 && m_string.at(last_idx-1) == '\r') {
+               --last_idx;
+            }
+
             end_idx = last_idx;
             break;
         }
@@ -184,7 +233,7 @@ Value StringObject::chomp(Env *env, Value record_separator) {
         }
 
         --last_idx;
-        --sep_idx;
+        --rs_idx;
     }
 
     return new StringObject(m_string.substring(0, end_idx));
@@ -477,6 +526,7 @@ Value StringObject::ord(Env *env) {
     return Value::integer(code);
 }
 
+#include <stdio.h>
 Value StringObject::prepend(Env *env, size_t argc, Value *args) {
     assert_not_frozen(env);
 
