@@ -20,9 +20,10 @@ Value Args::at(size_t index, Value default_value) const {
     return m_data[index];
 }
 
-Args::Args(ArrayObject &a)
-    : m_size { a.size() }
-    , m_data { a.data() } { }
+Args::Args(ArrayObject *array)
+    : m_size { array->size() }
+    , m_data { array->data() }
+    , m_array_pointer_so_the_gc_does_not_collect_it { array } { }
 
 Args::Args(const Args &other)
     : m_size { other.m_size }

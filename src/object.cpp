@@ -583,7 +583,7 @@ Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, Method
         ArrayObject new_args { args.size() + 1 };
         new_args.push(name);
         new_args.push(env, args);
-        return send(env, "method_missing"_s, Args(new_args), block);
+        return send(env, "method_missing"_s, Args(&new_args), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
