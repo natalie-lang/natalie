@@ -151,25 +151,25 @@ Value StringObject::chomp(Env *env, Value record_separator) {
 
     size_t end_idx = m_string.length();
     if (end_idx == 0) { // if this is an empty string, return empty sring
-	    return new StringObject();
+        return new StringObject();
     }
 
     String global_record_separator = env->global_get("$/"_s)->as_string()->string();
     // When using default record separator, also remove trailing \r
-    if (record_separator.is_null() && global_record_separator == "\n") { 
-        if (m_string.at(end_idx-1) == '\r') {
+    if (record_separator.is_null() && global_record_separator == "\n") {
+        if (m_string.at(end_idx - 1) == '\r') {
             --end_idx;
-        } else if (m_string.at(end_idx-1) == '\n') {
-            if (m_string.at(end_idx-2) == '\r') {
+        } else if (m_string.at(end_idx - 1) == '\n') {
+            if (m_string.at(end_idx - 2) == '\r') {
                 --end_idx;
             }
             --end_idx;
         }
-        
+
         return new StringObject(m_string.substring(0, end_idx));
-    // When called with custom global record separator and no args
-    // don't remove \r unless specified by record separator
-    } else if (record_separator.is_null()) { 
+        // When called with custom global record separator and no args
+        // don't remove \r unless specified by record separator
+    } else if (record_separator.is_null()) {
         size_t end_idx = length();
         size_t last_idx = end_idx - 1;
         size_t sep_idx = global_record_separator.length() - 1;
@@ -197,9 +197,9 @@ Value StringObject::chomp(Env *env, Value record_separator) {
     size_t rs_len = rs.length();
 
     // when passed empty string remove trailing \n and \r\n but not \r
-    if (rs_len == 0) { 
+    if (rs_len == 0) {
         while (end_idx > 0 && m_string.at(end_idx - 1) == '\n') {
-            if (end_idx > 1 && m_string.at(end_idx-2) == '\r') {
+            if (end_idx > 1 && m_string.at(end_idx - 2) == '\r') {
                 --end_idx;
             }
             --end_idx;
@@ -213,15 +213,15 @@ Value StringObject::chomp(Env *env, Value record_separator) {
 
     // remove only final \r when called with (non empty) string on
     // a string terminating in \r
-    if (m_string.at(last_idx) == '\r') { 
+    if (m_string.at(last_idx) == '\r') {
         return new StringObject(m_string.substring(0, end_idx - 1));
     }
 
     // called with (non empty) string
     while (m_string.at(last_idx) == rs.at(rs_idx)) {
         if (rs_idx == 0) {
-            if (last_idx != 0 && m_string.at(last_idx-1) == '\r') {
-               --last_idx;
+            if (last_idx != 0 && m_string.at(last_idx - 1) == '\r') {
+                --last_idx;
             }
 
             end_idx = last_idx;
