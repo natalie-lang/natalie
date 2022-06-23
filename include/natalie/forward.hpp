@@ -46,7 +46,7 @@ class VoidPObject;
 
 class Value;
 
-struct Args;
+class Args;
 
 using MethodFnPtr = Value (*)(Env *, Value, Args, Block *);
 
