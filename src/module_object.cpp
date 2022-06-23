@@ -666,7 +666,7 @@ void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility v
 
     if (args.size() == 1 && args[0]->is_array()) {
         auto array = args[0]->as_array();
-        args = Args(*array);
+        args = Args(array);
     }
 
     for (size_t i = 0; i < args.size(); ++i) {

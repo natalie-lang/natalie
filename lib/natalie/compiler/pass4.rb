@@ -271,7 +271,7 @@ module Natalie
         array = process_atom(args)
         name = temp('args_array')
         decl "Value #{name} = #{array};"
-        "Args(*#{name}->as_array())"
+        "Args(#{name}->as_array())"
       end
 
       def process_block(exp)
