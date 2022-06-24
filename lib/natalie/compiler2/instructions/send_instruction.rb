@@ -47,7 +47,7 @@ module Natalie
 
         if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
-          args_array = "Args(*#{args})"
+          args_array = "Args(#{args})"
         else
           arg_count = transform.pop
           args = []
