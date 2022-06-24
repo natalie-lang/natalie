@@ -407,6 +407,7 @@ module Natalie
             .map { |(key, val)| s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val)) }
         exp.new(:block, s(:declare, hash, s(:new, :HashObject)), s(:block, *inserts), hash)
       end
+      alias process_bare_hash process_hash # TODO: handle this separately for keyword args
 
       def process_if(exp)
         _, condition, true_body, false_body = exp

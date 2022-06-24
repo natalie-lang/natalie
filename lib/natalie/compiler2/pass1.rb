@@ -450,6 +450,7 @@ module Natalie
         instructions << PopInstruction.new unless used
         instructions
       end
+      alias transform_bare_hash transform_hash # TODO: handle this separately for keyword args
 
       def transform_iasgn(exp, used:)
         _, name, value = exp
