@@ -61,6 +61,10 @@ private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
     void *operator new(size_t size) { TM_UNREACHABLE(); };
 
+    void array_pointer_accessor_so_clang_does_not_complain() const {
+        (void)m_array_pointer_so_the_gc_does_not_collect_it;
+    }
+
     size_t m_size { 0 };
     const Value *m_data { nullptr };
 
