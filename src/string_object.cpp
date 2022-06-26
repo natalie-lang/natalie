@@ -14,49 +14,9 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
-void StringObject::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) const {
-    StringObject *message = format("invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
-    ClassObject *InvalidByteSequenceError = find_nested_const(env, { "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
-    ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };
-    env->raise_exception(exception);
-}
-
-char *StringObject::next_char(Env *env, char *buffer, size_t *index) {
-    size_t len = length();
-    if (*index >= len)
-        return nullptr;
-    size_t i = *index;
-    const char *str = m_string.c_str();
-    switch (m_encoding) {
-    case Encoding::UTF_8:
-        buffer[0] = str[i];
-        if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
-            if (i + 3 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = str[++i];
-            buffer[2] = str[++i];
-            buffer[3] = str[++i];
-            buffer[4] = 0;
-        } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
-            if (i + 2 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = str[++i];
-            buffer[2] = str[++i];
-            buffer[3] = 0;
-        } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
-            if (i + 1 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = str[++i];
-            buffer[2] = 0;
-        } else {
-            buffer[1] = 0;
-        }
-        *index = i + 1;
-        return buffer;
-    case Encoding::ASCII_8BIT:
-        buffer[0] = str[i];
-        buffer[1] = 0;
-        (*index)++;
-        return buffer;
-    }
-    NAT_UNREACHABLE();
+String StringObject::next_char(Env *env, size_t *index) {
+    assert(m_encoding);
+    return m_encoding->next_char(env, m_string, index);
 }
 
 Value StringObject::each_char(Env *env, Block *block) {
@@ -64,11 +24,11 @@ Value StringObject::each_char(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each_char"_s });
 
     size_t index = 0;
-    char buffer[5];
-    while (next_char(env, buffer, &index)) {
-        auto c = new StringObject { buffer, m_encoding };
-        Value args[] = { c };
+    String c = next_char(env, &index);
+    while (!c.is_empty()) {
+        Value args[] = { new StringObject { c, m_encoding } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        c = next_char(env, &index);
     }
     return NilObject::the();
 }
@@ -76,10 +36,10 @@ Value StringObject::each_char(Env *env, Block *block) {
 ArrayObject *StringObject::chars(Env *env) {
     ArrayObject *ary = new ArrayObject {};
     size_t index = 0;
-    char buffer[5];
-    while (next_char(env, buffer, &index)) {
-        auto c = new StringObject { buffer, m_encoding };
-        ary->push(c);
+    String c = next_char(env, &index);
+    while (!c.is_empty()) {
+        ary->push(new StringObject { c, m_encoding });
+        c = next_char(env, &index);
     }
     return ary;
 }
@@ -244,9 +204,8 @@ Value StringObject::chr(Env *env) {
         return new StringObject { "", m_encoding };
     }
     size_t index = 0;
-    char buffer[5];
-    next_char(env, buffer, &index);
-    return new StringObject { buffer, m_encoding };
+    String c = next_char(env, &index);
+    return new StringObject { c, m_encoding };
 }
 
 SymbolObject *StringObject::to_symbol(Env *env) const {
@@ -259,11 +218,10 @@ Value StringObject::to_sym(Env *env) const {
 
 StringObject *StringObject::inspect(Env *env) {
     size_t len = length();
-    const char *str = m_string.c_str();
     StringObject *out = new StringObject { "\"" };
     for (size_t i = 0; i < len; i++) {
-        unsigned char c = str[i];
-        char c2 = (i + 1) < len ? str[i + 1] : 0;
+        unsigned char c = m_string[i];
+        char c2 = (i + 1) < len ? m_string[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
             out->append_char('\\');
             out->append_char(c);
@@ -271,7 +229,7 @@ StringObject *StringObject::inspect(Env *env) {
             out->append(env, "\\a");
         } else if (c == '\b') {
             out->append(env, "\\b");
-        } else if ((int)c == 27) {
+        } else if ((int)c == 27) { // FIXME: change to '\033' ??
             out->append(env, "\\e");
         } else if (c == '\f') {
             out->append(env, "\\f");
@@ -284,20 +242,8 @@ StringObject *StringObject::inspect(Env *env) {
         } else if (c == '\v') {
             out->append(env, "\\v");
         } else if ((int)c < 32) {
-            switch (m_encoding) {
-            case Encoding::UTF_8: {
-                char buf[7];
-                snprintf(buf, 7, "\\u%04llX", (long long)c);
-                out->append(env, buf);
-                break;
-            }
-            case Encoding::ASCII_8BIT: {
-                char buf[5];
-                snprintf(buf, 5, "\\x%02llX", (long long)c);
-                out->append(env, buf);
-                break;
-            }
-            }
+            auto escaped_char = m_encoding->escaped_char(c);
+            out->append(env, escaped_char);
         } else {
             out->append_char(c);
         }
@@ -347,12 +293,13 @@ Value StringObject::index(Env *env, Value needle, size_t start) {
         return NilObject::the();
     }
     size_t byte_index_size_t = static_cast<size_t>(byte_index);
-    size_t char_index = 0, i = 0;
-    char buffer[5];
-    while (next_char(env, buffer, &i)) {
-        if (i > byte_index_size_t)
+    size_t char_index = 0, index = 0;
+    String c = next_char(env, &index);
+    while (!c.is_empty()) {
+        if (index > byte_index_size_t)
             return IntegerObject::from_size_t(env, char_index);
         char_index++;
+        c = next_char(env, &index);
     }
     return Value::integer(0);
 }
@@ -465,7 +412,7 @@ Value StringObject::concat(Env *env, Args args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s, { EncodingObject::encodings().get(m_encoding) })->as_string();
+            str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
@@ -498,27 +445,24 @@ Value StringObject::match(Env *env, Value other) {
 
 Value StringObject::ord(Env *env) {
     size_t index = 0;
-    char buffer[5];
-    if (!next_char(env, buffer, &index))
+    String c = next_char(env, &index);
+    if (c.is_empty())
         env->raise("ArgumentError", "empty string");
-    auto c = new StringObject { buffer, m_encoding };
-    assert(c->length() > 0);
     unsigned int code;
-    const char *str = c->c_str();
-    switch (c->length()) {
+    switch (c.size()) {
     case 0:
         NAT_UNREACHABLE();
     case 1:
-        code = (unsigned char)str[0];
+        code = (unsigned char)c[0];
         break;
     case 2:
-        code = (((unsigned char)str[0] ^ 0xC0) << 6) + (((unsigned char)str[1] ^ 0x80) << 0);
+        code = (((unsigned char)c[0] ^ 0xC0) << 6) + (((unsigned char)c[1] ^ 0x80) << 0);
         break;
     case 3:
-        code = (((unsigned char)str[0] ^ 0xE0) << 12) + (((unsigned char)str[1] ^ 0x80) << 6) + (((unsigned char)str[2] ^ 0x80) << 0);
+        code = (((unsigned char)c[0] ^ 0xE0) << 12) + (((unsigned char)c[1] ^ 0x80) << 6) + (((unsigned char)c[2] ^ 0x80) << 0);
         break;
     case 4:
-        code = (((unsigned char)str[0] ^ 0xF0) << 18) + (((unsigned char)str[1] ^ 0x80) << 12) + (((unsigned char)str[2] ^ 0x80) << 6) + (((unsigned char)str[3] ^ 0x80) << 0);
+        code = (((unsigned char)c[0] ^ 0xF0) << 18) + (((unsigned char)c[1] ^ 0x80) << 12) + (((unsigned char)c[2] ^ 0x80) << 6) + (((unsigned char)c[3] ^ 0x80) << 0);
         break;
     default:
         NAT_UNREACHABLE();
@@ -545,7 +489,7 @@ Value StringObject::prepend(Env *env, Args args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
-            str_obj = arg.send(env, "chr"_s, { EncodingObject::encodings().get(m_encoding) })->as_string();
+            str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
@@ -561,7 +505,7 @@ Value StringObject::prepend(Env *env, Args args) {
 }
 
 Value StringObject::b(Env *env) const {
-    return new StringObject { m_string.clone(), Encoding::ASCII_8BIT };
+    return new StringObject { m_string.clone(), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
 Value StringObject::bytes(Env *env, Block *block) {
@@ -591,22 +535,12 @@ Value StringObject::each_byte(Env *env, Block *block) {
 Value StringObject::size(Env *env) {
     size_t index = 0;
     size_t char_count = 0;
-    char buffer[5];
-    while (next_char(env, buffer, &index)) {
+    String c = next_char(env, &index);
+    while (!c.is_empty()) {
         char_count++;
+        c = next_char(env, &index);
     }
     return IntegerObject::from_size_t(env, char_count);
-}
-
-Value StringObject::encoding(Env *env) {
-    ClassObject *Encoding = find_top_level_const(env, "Encoding"_s)->as_class();
-    switch (m_encoding) {
-    case Encoding::ASCII_8BIT:
-        return Encoding->const_find(env, "ASCII_8BIT"_s);
-    case Encoding::UTF_8:
-        return Encoding->const_find(env, "UTF_8"_s);
-    }
-    NAT_UNREACHABLE();
 }
 
 static EncodingObject *find_encoding_by_name(Env *env, const ManagedString *name) {
@@ -627,37 +561,29 @@ static EncodingObject *find_encoding_by_name(Env *env, const ManagedString *name
 }
 
 Value StringObject::encode(Env *env, Value encoding) {
-    Encoding orig_encoding = m_encoding;
+    auto orig_encoding = m_encoding;
     StringObject *copy = dup(env)->as_string();
-    copy->force_encoding(env, encoding);
-    ClassObject *Encoding = find_top_level_const(env, "Encoding"_s)->as_class();
-    if (orig_encoding == copy->encoding()) {
-        return copy;
-    } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
-        ArrayObject *chars = this->chars(env);
-        for (size_t i = 0; i < chars->size(); i++) {
-            StringObject *char_obj = (*chars)[i]->as_string();
-            if (char_obj->length() > 1) {
-                Value ord = char_obj->ord(env);
-                auto message = StringObject::format("U+{} from UTF-8 to ASCII-8BIT", String::hex(ord->as_integer()->to_nat_int_t(), String::HexFormat::Uppercase));
-                env->raise(Encoding->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
-            }
-        }
-        return copy;
-    } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding() == Encoding::UTF_8) {
-        return copy;
-    } else {
-        env->raise(Encoding->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
+    EncodingObject *encoding_obj;
+    switch (encoding->type()) {
+    case Object::Type::Encoding:
+        encoding_obj = encoding->as_encoding();
+        break;
+    case Object::Type::String:
+        encoding_obj = find_encoding_by_name(env, encoding->as_string()->to_low_level_string());
+        break;
+    default:
+        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
     }
+    return encoding_obj->encode(env, orig_encoding, copy);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
     switch (encoding->type()) {
     case Object::Type::Encoding:
-        set_encoding(encoding->as_encoding()->num());
+        set_encoding(encoding->as_encoding());
         break;
     case Object::Type::String:
-        set_encoding(find_encoding_by_name(env, encoding->as_string()->to_low_level_string())->num());
+        set_encoding(find_encoding_by_name(env, encoding->as_string()->to_low_level_string()));
         break;
     default:
         env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
@@ -707,7 +633,7 @@ Value StringObject::ref(Env *env, Value index_obj) {
         if (begin < 0) begin = chars->size() + begin;
         if (end < 0) end = chars->size() + end;
 
-        if (begin < 0 || end < 0) return new StringObject { "", 0 };
+        if (begin < 0 || end < 0) return new StringObject {};
         size_t u_begin = static_cast<size_t>(begin);
         size_t u_end = static_cast<size_t>(end);
         if (u_begin > chars->size()) return NilObject::the();

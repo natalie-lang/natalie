@@ -847,7 +847,11 @@ module Natalie
 
       def process_str(exp)
         _, str = exp
-        exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
+        if str.empty?
+          exp.new(:new, :StringObject)
+        else
+          exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
+        end
       end
 
       def process_struct(exp)

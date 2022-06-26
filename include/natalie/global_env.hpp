@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "natalie/encodings.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/method_missing_reason.hpp"
@@ -75,7 +76,7 @@ public:
     MethodMissingReason method_missing_reason() const { return m_method_missing_reason; }
     void set_method_missing_reason(MethodMissingReason reason) { m_method_missing_reason = reason; }
 
-    bool instance_evaling() { return m_instance_evaling; }
+    bool instance_evaling() const { return m_instance_evaling; }
     void set_instance_evaling(bool instance_evaling) { m_instance_evaling = instance_evaling; }
 
     bool rescued() const { return m_rescued; }
@@ -110,6 +111,8 @@ private:
     ClassObject *m_String { nullptr };
     ClassObject *m_Symbol { nullptr };
     Natalie::Object *m_main_obj { nullptr };
+
+    ClassObject *m_Encodings[EncodingCount];
 
     Env *m_main_env { nullptr };
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
