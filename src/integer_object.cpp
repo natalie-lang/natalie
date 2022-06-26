@@ -608,7 +608,7 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
     char c = static_cast<char>(m_integer.to_nat_int_t());
     Natalie::String string = " ";
     string[0] = c;
-    return new StringObject { string, encoding_obj->num() };
+    return new StringObject { string, encoding_obj };
 }
 
 bool IntegerObject::optimized_method(SymbolObject *method_name) {

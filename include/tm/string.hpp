@@ -928,6 +928,41 @@ public:
     }
 
     /**
+     * Returns -1, 0, or 1 by comparing this String to the given String,
+     * ignoring difference in case.
+     * -1 is returned if this String is alphanumerically less than the other one.
+     * 0 is returned if they are equivalent.
+     * 1 is returned if this String is alphanumerically greater than the other one.
+     *
+     * ```
+     * auto str1 = String { "def" };
+     * auto str2 = String { "DEF" };
+     * auto str3 = String { "efg" };
+     * assert_eq(0, str1.cmp(str2));
+     * assert_eq(1, str2.cmp(str3));
+     * ```
+     */
+    int casecmp(const String &other) const {
+        if (m_length == 0) {
+            if (other.m_length == 0)
+                return 0;
+            return -1;
+        }
+        auto lower = [&](char c) { return c >= 'A' && c <= 'Z' ? c + 32 : c; };
+        size_t i;
+        for (i = 0; i < std::min(m_length, other.m_length); ++i) {
+            auto c1 = lower((unsigned char)(*this)[i]), c2 = lower((unsigned char)other[i]);
+            if (c1 < c2)
+                return -1;
+            else if (c1 > c2)
+                return 1;
+        }
+        // "x" (len 1) <=> "xx" (len 2)
+        // 1 - 2 = -1
+        return m_length - other.m_length;
+    }
+
+    /**
      * Finds the given String inside this one and return its starting index.
      * If not found, return -1.
      *

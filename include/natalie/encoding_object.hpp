@@ -5,6 +5,7 @@
 
 #include "natalie/array_object.hpp"
 #include "natalie/class_object.hpp"
+#include "natalie/encodings.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
@@ -14,11 +15,6 @@ namespace Natalie {
 
 using namespace TM;
 
-enum class Encoding {
-    ASCII_8BIT = 1,
-    UTF_8 = 2,
-};
-
 class EncodingObject : public Object {
 public:
     EncodingObject();
@@ -26,25 +22,50 @@ public:
     EncodingObject(ClassObject *klass)
         : Object { Object::Type::Encoding, klass } { }
 
-    EncodingObject(Encoding, std::initializer_list<const char *>);
+    EncodingObject(Encoding, std::initializer_list<const String>);
 
-    Encoding num() { return m_num; }
+    Encoding num() const { return m_num; }
 
-    const StringObject *name() { return m_names[0]; }
+    const StringObject *name() const;
     Value name(Env *);
 
     ArrayObject *names(Env *);
 
-    Value inspect(Env *);
+    Value inspect(Env *) const;
 
     bool in_encoding_codepoint_range(nat_int_t codepoint) {
         switch (m_num) {
         case Encoding::ASCII_8BIT:
             return codepoint >= 0 && codepoint < 256;
+        case Encoding::US_ASCII:
+            return codepoint >= 0 && codepoint < 128;
         case Encoding::UTF_8:
             return codepoint >= 0 && codepoint < 1114112;
         }
         NAT_UNREACHABLE();
+    }
+
+    bool is_ascii_compatible() const {
+        switch (m_num) {
+        case Encoding::ASCII_8BIT:
+        case Encoding::US_ASCII:
+        case Encoding::UTF_8:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    virtual String next_char(Env *, String &, size_t *) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::each_char()");
+    }
+
+    virtual String escaped_char(unsigned char c) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::escaped_char()");
+    }
+
+    virtual Value encode(Env *, EncodingObject *, StringObject *) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::encode()");
     }
 
     // NATFIXME: Check if a codepoint is invalid
@@ -52,21 +73,22 @@ public:
         return false;
     }
 
+    void raise_encoding_invalid_byte_sequence_error(Env *, String &, size_t) const;
+
     static HashObject *aliases(Env *);
     static EncodingObject *find(Env *, Value);
     static ArrayObject *list(Env *env);
     static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
     static EncodingObject *default_internal() { return s_default_internal; }
     static EncodingObject *set_default_internal(Env *, Value);
-
-    virtual void visit_children(Visitor &) override final;
+    static EncodingObject *get(Encoding encoding) { return s_encoding_list.get(encoding); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);
     }
 
 private:
-    Vector<StringObject *> m_names {};
+    Vector<String> m_names {};
     Encoding m_num;
 
     static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
@@ -74,5 +96,4 @@ private:
 };
 
 EncodingObject *encoding(Env *env, Encoding num, ArrayObject *names);
-
 }

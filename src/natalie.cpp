@@ -161,11 +161,14 @@ Env *build_top_env() {
     ClassObject *Encoding = GlobalEnv::the()->Object()->subclass(env, "Encoding");
     Object->const_set("Encoding"_s, Encoding);
 
-    EncodingObject *EncodingAscii8Bit = new EncodingObject { Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
+    Value EncodingAscii8Bit = new Ascii8BitEncodingObject {};
     Encoding->const_set("ASCII_8BIT"_s, EncodingAscii8Bit);
     Encoding->const_set("BINARY"_s, EncodingAscii8Bit);
 
-    Value EncodingUTF8 = new EncodingObject { Encoding::UTF_8, { "UTF-8" } };
+    Value EncodingUsAscii = new UsAsciiEncodingObject {};
+    Encoding->const_set("US_ASCII"_s, EncodingUsAscii);
+
+    Value EncodingUTF8 = new Utf8EncodingObject {};
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
 
     Value Process = new ModuleObject { "Process" };
