@@ -22,9 +22,21 @@ String UsAsciiEncodingObject::escaped_char(unsigned char c) const {
 Value UsAsciiEncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
     switch (orig_encoding->num()) {
-    case Encoding::ASCII_8BIT:
-    case Encoding::US_ASCII:
+    case Encoding::ASCII_8BIT: {
+        auto string = str->string();
+        for (size_t i = 0; i < string.size(); ++i) {
+            unsigned char c = string[i];
+            if (!valid_codepoint(c)) {
+                Value ord = Value::integer(c);
+                auto message = StringObject::format("U+{} from UTF-8 to US-ASCII", String::hex(ord->as_integer()->to_nat_int_t(), String::HexFormat::Uppercase));
+                env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+            }
+        }
         str->set_encoding(EncodingObject::get(num()));
+        return str;
+    }
+    case Encoding::US_ASCII:
+        // nothing to do
         return str;
     case Encoding::UTF_8: {
         ArrayObject *chars = str->chars(env);
@@ -42,6 +54,10 @@ Value UsAsciiEncodingObject::encode(Env *env, EncodingObject *orig_encoding, Str
     default:
         env->raise(EncodingClass->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
     }
+}
+
+String UsAsciiEncodingObject::encode_codepoint(nat_int_t codepoint) const {
+    return String((char)codepoint);
 }
 
 }

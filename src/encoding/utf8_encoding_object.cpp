@@ -44,7 +44,7 @@ String Utf8EncodingObject::escaped_char(unsigned char c) const {
 Value Utf8EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
     switch (orig_encoding->num()) {
     case Encoding::UTF_8:
-        str->set_encoding(EncodingObject::get(num()));
+        // nothing to do
         return str;
     case Encoding::ASCII_8BIT:
     case Encoding::US_ASCII:
@@ -55,6 +55,30 @@ Value Utf8EncodingObject::encode(Env *env, EncodingObject *orig_encoding, String
         ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
         env->raise(EncodingClass->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
     }
+}
+
+// public domain
+// https://gist.github.com/Miouyouyou/864130e8734afe3f806512b14022226f
+String Utf8EncodingObject::encode_codepoint(nat_int_t codepoint) const {
+    String buf;
+    if (codepoint < 0x80) {
+        buf.append_char(codepoint);
+    } else if (codepoint < 0x800) { // 00000yyy yyxxxxxx
+        buf.append_char(0b11000000 | (codepoint >> 6));
+        buf.append_char(0b10000000 | (codepoint & 0x3f));
+    } else if (codepoint < 0x10000) { // zzzzyyyy yyxxxxxx
+        buf.append_char(0b11100000 | (codepoint >> 12));
+        buf.append_char(0b10000000 | ((codepoint >> 6) & 0x3f));
+        buf.append_char(0b10000000 | (codepoint & 0x3f));
+    } else if (codepoint < 0x200000) { // 000uuuuu zzzzyyyy yyxxxxxx
+        buf.append_char(0b11110000 | (codepoint >> 18));
+        buf.append_char(0b10000000 | ((codepoint >> 12) & 0x3f));
+        buf.append_char(0b10000000 | ((codepoint >> 6) & 0x3f));
+        buf.append_char(0b10000000 | (codepoint & 0x3f));
+    } else {
+        TM_UNREACHABLE();
+    }
+    return buf;
 }
 
 }
