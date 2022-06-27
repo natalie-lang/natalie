@@ -99,7 +99,7 @@ public:
      */
     String(char c) {
         char buf[2] = { c, 0 };
-        set_str(buf);
+        set_str(buf, 1);
     }
 
     /**

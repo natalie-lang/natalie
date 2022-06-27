@@ -23,6 +23,8 @@ Value Ascii8BitEncodingObject::encode(Env *env, EncodingObject *orig_encoding, S
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
     switch (orig_encoding->num()) {
     case Encoding::ASCII_8BIT:
+        // nothing to do
+        return str;
     case Encoding::US_ASCII:
         str->set_encoding(EncodingObject::get(num()));
         return str;
@@ -42,6 +44,10 @@ Value Ascii8BitEncodingObject::encode(Env *env, EncodingObject *orig_encoding, S
     default:
         env->raise(EncodingClass->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
     }
+}
+
+String Ascii8BitEncodingObject::encode_codepoint(nat_int_t codepoint) const {
+    return String((char)codepoint);
 }
 
 }

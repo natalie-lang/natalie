@@ -585,13 +585,10 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
             encoding->assert_type(env, Type::String, "String");
             encoding = EncodingObject::find(env, encoding);
         }
+    } else if (m_integer <= 127) {
+        encoding = EncodingObject::get(Encoding::US_ASCII);
     } else if (m_integer < 256) {
-        Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
-        if (m_integer <= 127) {
-            NAT_NOT_YET_IMPLEMENTED();
-        } else {
-            encoding = Encoding->const_fetch("BINARY"_s);
-        }
+        encoding = EncodingObject::get(Encoding::ASCII_8BIT);
     } else if (EncodingObject::default_internal()) {
         encoding = EncodingObject::default_internal();
     } else {
@@ -602,13 +599,11 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
     if (!encoding_obj->in_encoding_codepoint_range(m_integer.to_nat_int_t()))
         env->raise("RangeError", "{} out of char range", m_integer.to_string());
 
-    if (encoding_obj->invalid_codepoint(m_integer.to_nat_int_t()))
+    if (!encoding_obj->valid_codepoint(m_integer.to_nat_int_t()))
         env->raise("RangeError", "invalid codepoint {} in {}", m_integer.to_nat_int_t(), encoding_obj->inspect_str(env));
 
-    char c = static_cast<char>(m_integer.to_nat_int_t());
-    Natalie::String string = " ";
-    string[0] = c;
-    return new StringObject { string, encoding_obj };
+    auto encoded = encoding_obj->encode_codepoint(m_integer.to_nat_int_t());
+    return new StringObject { encoded, encoding_obj };
 }
 
 bool IntegerObject::optimized_method(SymbolObject *method_name) {

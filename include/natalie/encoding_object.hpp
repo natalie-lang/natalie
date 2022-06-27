@@ -57,11 +57,7 @@ public:
     }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::invalid_codepoint()");
-    }
-
-    bool invalid_codepoint(nat_int_t codepoint) const {
-        return !valid_codepoint(codepoint);
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::valid_codepoint()");
     }
 
     virtual String next_char(Env *, String &, size_t *) const {
@@ -74,6 +70,10 @@ public:
 
     virtual Value encode(Env *, EncodingObject *, StringObject *) const {
         TM_NOT_YET_IMPLEMENTED("EncodingObject::encode()");
+    }
+
+    virtual String encode_codepoint(nat_int_t codepoint) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::encode_codepoint()");
     }
 
     void raise_encoding_invalid_byte_sequence_error(Env *, String &, size_t) const;
