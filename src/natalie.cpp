@@ -167,6 +167,7 @@ Env *build_top_env() {
 
     Value EncodingUsAscii = new UsAsciiEncodingObject {};
     Encoding->const_set("US_ASCII"_s, EncodingUsAscii);
+    Encoding->const_set("ASCII"_s, EncodingUsAscii);
 
     Value EncodingUTF8 = new Utf8EncodingObject {};
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
