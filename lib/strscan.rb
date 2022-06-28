@@ -129,7 +129,7 @@ class StringScanner
 
   def peek(length)
     raise ArgumentError, 'length is negative' if length < 0
-    @string.bytes[@pos...(@pos + length)].map { |byte| byte.chr(@string.encoding) }.join
+    @string.bytes[@pos...(@pos + length)].map { |byte| byte.chr }.join
   end
 
   alias peep peek
