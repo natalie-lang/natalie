@@ -22,8 +22,7 @@ describe "String#chr" do
     "Goodbye, world".chr.should == "G"
   end
 
-  # NATFIXME: Implement Encoding::US_ASCII
-  xit "returns a String in the same encoding as self" do
+  it "returns a String in the same encoding as self" do
     "\x24".encode(Encoding::US_ASCII).chr.encoding.should == Encoding::US_ASCII
   end
 
