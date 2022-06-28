@@ -415,7 +415,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value modulus = mod(env, arg);
 
     return new ArrayObject {
-        f_to_i_or_bigint(::floor(division.get_fast_float())),
+        f_to_i_or_bigint(::floor(division.is_fast_float() ? division.get_fast_float() : division->as_float()->to_double())),
         modulus
     };
 }

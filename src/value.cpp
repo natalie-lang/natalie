@@ -5,7 +5,8 @@ namespace Natalie {
 Value Value::floatingpoint(double value) {
     if (isnan(value))
         return FloatObject::nan();
-    return Value { value };
+    // return Value { value }; // FIXME: errors in GC
+    return new FloatObject { value };
 }
 
 #define PROFILED_SEND(type)                                                                     \

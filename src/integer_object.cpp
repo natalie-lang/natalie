@@ -128,7 +128,7 @@ Value IntegerObject::div(Env *env, Value arg) {
     arg.unguard();
 
     if (arg->is_float()) {
-        double result = to_nat_int_t() / arg->as_float()->to_double();
+        double result = m_integer / arg->as_float()->to_double();
         if (isnan(result))
             return FloatObject::nan();
         return Value::floatingpoint(result);
@@ -283,7 +283,7 @@ bool IntegerObject::eq(Env *env, Value other) {
     other.unguard();
 
     if (other->is_float())
-        return m_integer.to_nat_int_t() == other->as_float()->to_double();
+        return m_integer == other->as_float()->to_double();
 
     if (!other->is_integer())
         other = Natalie::coerce(env, other, this).second;
