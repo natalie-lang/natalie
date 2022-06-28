@@ -117,6 +117,9 @@ Value ArrayObject::inspect(Env *env) {
         if (is_recursive)
             return new StringObject { "[...]" };
 
+        if (is_empty())
+            return new StringObject { "[]", EncodingObject::get(Encoding::US_ASCII) };
+
         StringObject *out = new StringObject { "[" };
         for (size_t i = 0; i < size(); i++) {
             Value obj = (*this)[i];
@@ -944,7 +947,7 @@ Value ArrayObject::pack(Env *env, Value directives) {
     auto directives_string = directives->as_string()->to_low_level_string();
 
     if (directives_string->is_empty())
-        return new StringObject;
+        return new StringObject { "", EncodingObject::get(Encoding::US_ASCII) };
 
     return ArrayPacker::Packer { this, directives_string }.pack(env);
 }

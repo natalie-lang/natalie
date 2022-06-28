@@ -27,9 +27,9 @@ Value IntegerObject::to_s(Env *env, Value base_value) {
     }
 
     if (base == 10)
-        return new StringObject { m_integer.to_string() };
+        return new StringObject { m_integer.to_string(), EncodingObject::get(Encoding::US_ASCII) };
 
-    auto str = new StringObject {};
+    auto str = new StringObject { "", EncodingObject::get(Encoding::US_ASCII) };
     auto num = m_integer;
     bool negative = false;
     if (num < 0) {
@@ -40,9 +40,9 @@ Value IntegerObject::to_s(Env *env, Value base_value) {
         auto digit = num % base;
         char c;
         if (digit >= 0 && digit <= 9)
-            c = digit.to_nat_int_t() + 48;
+            c = digit.to_nat_int_t() + '0';
         else
-            c = digit.to_nat_int_t() + 87;
+            c = digit.to_nat_int_t() + 'a' - 10;
         str->prepend_char(env, c);
         num /= base;
     }

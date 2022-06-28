@@ -92,17 +92,20 @@ describe :array_inspect, shared: true do
 
   describe "with encoding" do
     before :each do
-      @default_external_encoding = Encoding.default_external
+      # NATFIXME: implement Encoding.default_external
+      #@default_external_encoding = Encoding.default_external
     end
 
     after :each do
-      Encoding.default_external = @default_external_encoding
+      # NATFIXME: implement Encoding.default_external
+      #Encoding.default_external = @default_external_encoding
     end
 
-    xit "returns a US-ASCII string for an empty Array" do
+    it "returns a US-ASCII string for an empty Array" do
       [].send(@method).encoding.should == Encoding::US_ASCII
     end
 
+    # NATFIXME: implement Encoding.default_external
     xit "use the default external encoding if it is ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-8')
 
@@ -113,6 +116,7 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "UTF-8"
     end
 
+    # NATFIXME: implement Encoding.default_external
     xit "use US-ASCII encoding if the default external encoding is not ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-32')
 
@@ -123,6 +127,7 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "US-ASCII"
     end
 
+    # NATFIXME: implement Encoding.default_external
     xit "does not raise if inspected result is not default external encoding" do
       utf_16be = mock("utf_16be")
       utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
