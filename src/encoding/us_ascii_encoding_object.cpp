@@ -2,12 +2,15 @@
 
 namespace Natalie {
 
-String UsAsciiEncodingObject::next_char(Env *env, String &string, size_t *index) const {
+String UsAsciiEncodingObject::next_char(Env *env, const String &string, size_t *index) const {
     if (*index >= string.size())
         return String();
     char buffer[2];
     size_t i = *index;
-    buffer[0] = string[i];
+    unsigned char c = string[i];
+    if ((int)c > 127)
+        raise_encoding_invalid_byte_sequence_error(env, string, i);
+    buffer[0] = c;
     buffer[1] = 0;
     (*index)++;
     return String(buffer, 1);

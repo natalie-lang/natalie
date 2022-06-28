@@ -14,8 +14,7 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
-String StringObject::next_char(Env *env, size_t *index) {
-    assert(m_encoding);
+String StringObject::next_char(Env *env, size_t *index) const {
     return m_encoding->next_char(env, m_string, index);
 }
 
@@ -1267,6 +1266,20 @@ Value StringObject::convert_float() {
     } else {
         return nullptr;
     }
+}
+
+bool StringObject::valid_encoding() const {
+    size_t index = 0;
+    Env fake_env;
+    String c = " ";
+    try {
+        while (!c.is_empty()) {
+            c = next_char(&fake_env, &index);
+        }
+    } catch (ExceptionObject *) {
+        return false;
+    }
+    return true;
 }
 
 }

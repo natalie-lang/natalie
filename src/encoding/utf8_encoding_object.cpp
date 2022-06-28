@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-String Utf8EncodingObject::next_char(Env *env, String &string, size_t *index) const {
+String Utf8EncodingObject::next_char(Env *env, const String &string, size_t *index) const {
     size_t len = string.size();
     if (*index >= len)
         return String();

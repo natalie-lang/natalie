@@ -48,8 +48,7 @@ describe :string_replace, shared: true do
     a.encoding.should == Encoding::UTF_8
   end
 
-  # NATFIXME: Implement String::valid_encoding?
-  xit "carries over the encoding invalidity" do
+  it "carries over the encoding invalidity" do
     a = "\u{8765}".force_encoding('ascii')
     "".send(@method, a).valid_encoding?.should be_false
   end
