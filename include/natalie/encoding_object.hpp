@@ -60,7 +60,7 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::valid_codepoint()");
     }
 
-    virtual String next_char(Env *, String &, size_t *) const {
+    virtual String next_char(Env *, const String &, size_t *) const {
         TM_NOT_YET_IMPLEMENTED("EncodingObject::each_char()");
     }
 
@@ -76,7 +76,7 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::encode_codepoint()");
     }
 
-    void raise_encoding_invalid_byte_sequence_error(Env *, String &, size_t) const;
+    void raise_encoding_invalid_byte_sequence_error(Env *, const String &, size_t) const;
 
     static HashObject *aliases(Env *);
     static EncodingObject *find(Env *, Value);

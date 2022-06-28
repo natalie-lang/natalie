@@ -68,12 +68,12 @@ describe :string_to_sym, shared: true do
     binary_symbol.encoding.should == Encoding::BINARY
   end
 
-  # NATFIXME: Add back once we have encoding and `String#valid_encoding?`
-  xit "raises an EncodingError for UTF-8 String containing invalid bytes" do
+  it "raises an EncodingError for UTF-8 String containing invalid bytes" do
     invalid_utf8 = "\xC3"
     invalid_utf8.should_not.valid_encoding?
-    -> {
-      invalid_utf8.send(@method)
-    }.should raise_error(EncodingError, /invalid/)
+    # NATFIXME: to_sym should raise EncodingError
+    #-> {
+      #invalid_utf8.send(@method)
+    #}.should raise_error(EncodingError, /invalid/)
   end
 end

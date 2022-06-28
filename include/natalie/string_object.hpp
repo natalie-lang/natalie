@@ -86,6 +86,7 @@ public:
         m_string.set_str(str, length);
     }
 
+    bool valid_encoding() const;
     EncodingObject *encoding() const { return m_encoding; }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
 
@@ -109,7 +110,7 @@ public:
         va_end(args);
     }
 
-    String next_char(Env *, size_t *);
+    String next_char(Env *, size_t *) const;
     Value each_char(Env *, Block *);
     ArrayObject *chars(Env *);
 

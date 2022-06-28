@@ -79,7 +79,7 @@ ArrayObject *EncodingObject::names(Env *env) {
     return array;
 }
 
-void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, String &string, size_t index) const {
+void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const String &string, size_t index) const {
     StringObject *message = StringObject::format("invalid byte sequence at index {} in string of size {} (string not long enough)", index, string.size());
     ClassObject *InvalidByteSequenceError = find_nested_const(env, { "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
     ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };

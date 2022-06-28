@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-String Ascii8BitEncodingObject::next_char(Env *env, String &string, size_t *index) const {
+String Ascii8BitEncodingObject::next_char(Env *env, const String &string, size_t *index) const {
     if (*index >= string.size())
         return String();
     char buffer[2];
