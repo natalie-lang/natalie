@@ -325,7 +325,9 @@ Value StringObject::initialize_copy(Env *env, Value arg) {
     if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
         arg = arg->send(env, "to_str"_s);
     arg->assert_type(env, Type::String, "String");
-    m_string = arg->as_string()->string();
+    auto string_obj = arg->as_string();
+    m_string = string_obj->string();
+    m_encoding = string_obj->encoding();
     return this;
 }
 

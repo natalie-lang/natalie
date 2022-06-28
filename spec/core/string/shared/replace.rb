@@ -40,9 +40,10 @@ describe :string_replace, shared: true do
     end
   end
 
-  # NATFIXME: Implement Encoding::UTF-16LE
-  xit "replaces the encoding of self with that of other" do
-    a = "".encode("UTF-16LE")
+  it "replaces the encoding of self with that of other" do
+    # NATFIXME: Implement Encoding::UTF-16LE
+    #a = "".encode("UTF-16LE")
+    a = "".encode("US-ASCII")
     b = "".encode("UTF-8")
     a.send(@method, b)
     a.encoding.should == Encoding::UTF_8
