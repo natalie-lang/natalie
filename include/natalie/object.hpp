@@ -23,15 +23,23 @@ public:
     using Type = ObjectType;
 
     enum Flag {
-        MainObject = 1,
-        Frozen = 2,
-        Break = 4,
-        Redo = 8,
-        Inspecting = 16,
+        // set on an object that cannot be modified --
+        // note that Integer and Float are always frozen,
+        // even if this flag is not set
+        Frozen = 1,
 
-        // object lives for a short time on the stack, don't capture it anywhere
+        // set on an object returned from a block to signal
+        // that `break` was called
+        Break = 2,
+
+        // set on an object returned from a block to signal
+        // that `redo` was called
+        Redo = 4,
+
+        // set on an object to signal it only lives for a short time
+        // on the stack, and not to capture it anywhere
         // (don't store in variables, arrays, hashes)
-        Synthesized = 32,
+        Synthesized = 8,
     };
 
     enum class Conversion {
@@ -244,8 +252,7 @@ public:
 
     virtual ProcObject *to_proc(Env *);
 
-    bool is_main_object() const { return (m_flags & Flag::MainObject) == Flag::MainObject; }
-    void add_main_object_flag() { m_flags = m_flags | Flag::MainObject; }
+    bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
     bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
     void freeze() { m_flags = m_flags | Flag::Frozen; }
@@ -257,10 +264,6 @@ public:
     void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
-
-    void add_inspecting_flag() { m_flags = m_flags | Flag::Inspecting; }
-    void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
-    bool has_inspecting_flag() const { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
 
     void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
     void remove_synthesized_flag() { m_flags = m_flags & ~Flag::Synthesized; }
