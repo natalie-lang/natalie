@@ -48,8 +48,6 @@ public:
     }
 
     Object *object() {
-        if (m_type == Type::Pointer)
-            return m_object;
         auto_hydrate();
         return m_object;
     }

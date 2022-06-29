@@ -31,7 +31,8 @@ public:
     ArrayObject(std::initializer_list<Value> list)
         : ArrayObject {} {
         m_vector.set_capacity(list.size());
-        for (auto &v : list) {
+        for (auto v : list) {
+            assert(!v->has_synthesized_flag());
             m_vector.push(v);
         }
     }
@@ -70,11 +71,8 @@ public:
 
     size_t size() const { return m_vector.size(); }
 
-    void push(Object &val) {
-        m_vector.push(&val);
-    }
-
     void push(Value val) {
+        assert(!val->has_synthesized_flag());
         m_vector.push(val);
     }
 

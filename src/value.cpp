@@ -5,8 +5,7 @@ namespace Natalie {
 Value Value::floatingpoint(double value) {
     if (isnan(value))
         return FloatObject::nan();
-    // return Value { value }; // FIXME: errors in GC
-    return new FloatObject { value };
+    return Value { value };
 }
 
 #define PROFILED_SEND(type)                                                                     \
@@ -45,17 +44,15 @@ Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) 
         if (args.size() > 0 && args[0].is_fast_integer())
             args[0].guard();
         auto synthesized = IntegerObject { m_integer };
-        auto wrapper = Value { &synthesized };
-        wrapper.guard();
-        return wrapper.public_send(env, name, args, block);
+        synthesized.add_synthesized_flag();
+        return synthesized.public_send(env, name, args, block);
     }
     if (m_type == Type::Double && FloatObject::optimized_method(name)) {
         if (args.size() > 0 && args[0].is_fast_float())
             args[0].guard();
         auto synthesized = FloatObject { m_double };
-        auto wrapper = Value { &synthesized };
-        wrapper.guard();
-        return wrapper.public_send(env, name, args, block);
+        synthesized.add_synthesized_flag();
+        return synthesized.public_send(env, name, args, block);
     }
 
     return object()->public_send(env, name, args, block);
@@ -67,17 +64,15 @@ Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
         if (args.size() > 0 && args[0].is_fast_integer())
             args[0].guard();
         auto synthesized = IntegerObject { m_integer };
-        auto wrapper = Value { &synthesized };
-        wrapper.guard();
-        return wrapper.send(env, name, args, block);
+        synthesized.add_synthesized_flag();
+        return synthesized.send(env, name, args, block);
     }
     if (m_type == Type::Double && FloatObject::optimized_method(name)) {
         if (args.size() > 0 && args[0].is_fast_float())
             args[0].guard();
         auto synthesized = FloatObject { m_double };
-        auto wrapper = Value { &synthesized };
-        wrapper.guard();
-        return wrapper.send(env, name, args, block);
+        synthesized.add_synthesized_flag();
+        return synthesized.send(env, name, args, block);
     }
 
     return object()->send(env, name, args, block);

@@ -99,6 +99,7 @@ Value ArrayObject::shift() {
 }
 
 void ArrayObject::set(size_t index, Value value) {
+    assert(!value->has_synthesized_flag());
     if (index == m_vector.size()) {
         m_vector.push(value);
         return;
@@ -967,10 +968,10 @@ void ArrayObject::push_splat(Env *env, Value val) {
     if (val->is_array()) {
         m_vector.set_capacity(m_vector.capacity() + val->as_array()->size());
         for (Value v : *val->as_array()) {
-            push(*v);
+            push(v);
         }
     } else {
-        push(*val);
+        push(val);
     }
 }
 
@@ -999,7 +1000,7 @@ Value ArrayObject::pop(Env *env, Value count) {
 
 void ArrayObject::expand_with_nil(Env *env, size_t total) {
     for (size_t i = size(); i < total; i++) {
-        push(*NilObject::the());
+        push(NilObject::the());
     }
 }
 
@@ -1350,7 +1351,8 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto none_method = Enumerable->find_method(env, "cycle"_s);
     Value args[] = { count };
-    return none_method->call(env, this, Args(1, args), block);
+    size_t argc = count ? 1 : 0;
+    return none_method->call(env, this, Args(argc, args), block);
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {

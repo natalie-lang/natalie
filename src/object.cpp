@@ -421,11 +421,10 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
+    assert(!val->has_synthesized_flag());
+
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
-
-    if (val.guarded())
-        TM_UNREACHABLE();
 
     m_ivars.put(name, val.object(), env);
     return val;
@@ -629,17 +628,21 @@ Value Object::dup(Env *env) {
         return new ClassObject { *as_class() };
     case Object::Type::Exception:
         return new ExceptionObject { *as_exception() };
+    case Object::Type::Float:
+        return Value::floatingpoint(as_float()->to_double());
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
+    case Object::Type::Integer:
+        if (as_integer()->is_bignum())
+            return new IntegerObject { *as_integer() };
+        return Value::integer(as_integer()->to_nat_int_t());
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
-    case Object::Type::String:
-        return new StringObject { *as_string() };
     case Object::Type::Range:
         return new RangeObject { *as_range() };
+    case Object::Type::String:
+        return new StringObject { *as_string() };
     case Object::Type::False:
-    case Object::Type::Float:
-    case Object::Type::Integer:
     case Object::Type::Nil:
     case Object::Type::Rational:
     case Object::Type::Symbol:

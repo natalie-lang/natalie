@@ -28,6 +28,10 @@ public:
         Break = 4,
         Redo = 8,
         Inspecting = 16,
+
+        // object lives for a short time on the stack, don't capture it anywhere
+        // (don't store in variables, arrays, hashes)
+        Synthesized = 32,
     };
 
     enum class Conversion {
@@ -257,6 +261,10 @@ public:
     void add_inspecting_flag() { m_flags = m_flags | Flag::Inspecting; }
     void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
     bool has_inspecting_flag() const { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
+
+    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
+    void remove_synthesized_flag() { m_flags = m_flags & ~Flag::Synthesized; }
+    bool has_synthesized_flag() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
 
     bool eq(Env *, Value other) {
         return other == this;
