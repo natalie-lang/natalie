@@ -177,7 +177,7 @@ Integer Integer::operator%(const Integer &other) const {
         return to_bigint() % other.to_bigint();
 
     auto remainder = to_nat_int_t() % other.to_nat_int_t();
-    if (signbit(remainder) != signbit(other.to_nat_int_t()))
+    if (remainder != 0 && signbit(remainder) != signbit(other.to_nat_int_t()))
         remainder += other.to_nat_int_t();
 
     return remainder;

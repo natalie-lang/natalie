@@ -341,7 +341,10 @@ Value FloatObject::div(Env *env, Value rhs) {
 Value FloatObject::mod(Env *env, Value rhs) {
     if (rhs.is_fast_integer()) {
         if (rhs.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        return Value::floatingpoint(fmod(m_double, rhs.get_fast_integer()));
+        auto result = fmod(m_double, rhs.get_fast_integer());
+        if (result != 0.0 && signbit(m_double) != signbit(rhs.get_fast_integer()))
+            result += rhs.get_fast_integer();
+        return Value::floatingpoint(result);
     }
     if (rhs.is_fast_float()) {
         auto dividend = m_double;
@@ -349,7 +352,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
         if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
         if (divisor == -INFINITY) return rhs;
         auto result = fmod(dividend, divisor);
-        if (signbit(dividend) != signbit(divisor)) {
+        if (result != 0.0 && signbit(dividend) != signbit(divisor)) {
             result += divisor;
         }
         return Value::floatingpoint(result);
@@ -378,9 +381,9 @@ Value FloatObject::mod(Env *env, Value rhs) {
     if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
 
     auto result = fmod(dividend, divisor);
-    if (signbit(dividend) != signbit(divisor)) {
+
+    if (result != 0.0 && signbit(dividend) != signbit(divisor))
         result += divisor;
-    }
 
     return Value::floatingpoint(result);
 }
