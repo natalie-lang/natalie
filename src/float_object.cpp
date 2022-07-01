@@ -21,12 +21,6 @@ Value FloatObject::is_infinite(Env *env) const {
 }
 
 bool FloatObject::eq(Env *env, Value other) {
-    if (other.is_fast_integer())
-        return m_double == other.get_fast_integer();
-    if (other.is_fast_float())
-        return m_double == other.get_fast_float();
-    other.unguard();
-
     if (other->is_integer()) {
         auto integer = other->as_integer();
         return integer->integer() == m_double;
@@ -43,12 +37,6 @@ bool FloatObject::eq(Env *env, Value other) {
 }
 
 bool FloatObject::eql(Value other) const {
-    if (other.is_fast_float())
-        return m_double == other.get_fast_float();
-    if (other.is_fast_integer())
-        return false;
-    other.unguard();
-
     if (!other->is_float()) return false;
     auto *f = other->as_float();
     return f->m_double == m_double;
@@ -148,33 +136,6 @@ Value FloatObject::to_s(Env *env) const {
 }
 
 Value FloatObject::cmp(Env *env, Value rhs) {
-    if (rhs.is_fast_float()) {
-        double lhs_d = m_double;
-        double rhs_d = rhs.get_fast_float();
-        if (is_nan() || isnan(rhs_d))
-            return NilObject::the();
-        if (lhs_d < rhs_d) {
-            return Value::integer(-1);
-        } else if (lhs_d == rhs_d) {
-            return Value::integer(0);
-        } else {
-            return Value::integer(1);
-        }
-    }
-    if (rhs.is_fast_integer()) {
-        double lhs_d = m_double;
-        nat_int_t rhs_i = rhs.get_fast_integer();
-
-        if (lhs_d < rhs_i) {
-            return Value::integer(-1);
-        } else if (lhs_d == rhs_i) {
-            return Value::integer(0);
-        } else {
-            return Value::integer(1);
-        }
-    }
-    rhs.unguard();
-
     if (is_infinity() && rhs->is_integer() && rhs->as_integer()->is_bignum()) {
         if (is_positive_infinity())
             return Value::integer(1);
@@ -238,14 +199,6 @@ Value FloatObject::to_i(Env *env) const {
 }
 
 Value FloatObject::add(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        return Value::floatingpoint(m_double + rhs.get_fast_integer());
-    }
-    if (rhs.is_fast_float()) {
-        return Value::floatingpoint(m_double + rhs.get_fast_float());
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -263,14 +216,6 @@ Value FloatObject::add(Env *env, Value rhs) {
 }
 
 Value FloatObject::sub(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        return Value::floatingpoint(m_double - rhs.get_fast_integer());
-    }
-    if (rhs.is_fast_float()) {
-        return Value::floatingpoint(m_double - rhs.get_fast_float());
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -288,14 +233,6 @@ Value FloatObject::sub(Env *env, Value rhs) {
 }
 
 Value FloatObject::mul(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        return Value::floatingpoint(m_double * rhs.get_fast_integer());
-    }
-    if (rhs.is_fast_float()) {
-        return Value::floatingpoint(m_double * rhs.get_fast_float());
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -313,14 +250,6 @@ Value FloatObject::mul(Env *env, Value rhs) {
 }
 
 Value FloatObject::div(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        return Value::floatingpoint(m_double / rhs.get_fast_integer());
-    }
-    if (rhs.is_fast_float()) {
-        return Value::floatingpoint(m_double / rhs.get_fast_float());
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -339,32 +268,12 @@ Value FloatObject::div(Env *env, Value rhs) {
 }
 
 Value FloatObject::mod(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        if (rhs.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        auto result = fmod(m_double, rhs.get_fast_integer());
-        if (result != 0.0 && signbit(m_double) != signbit(rhs.get_fast_integer()))
-            result += rhs.get_fast_integer();
-        return Value::floatingpoint(result);
-    }
-    if (rhs.is_fast_float()) {
-        auto dividend = m_double;
-        auto divisor = rhs.get_fast_float();
-        if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
-        if (divisor == -INFINITY) return rhs;
-        auto result = fmod(dividend, divisor);
-        if (result != 0.0 && signbit(dividend) != signbit(divisor)) {
-            result += divisor;
-        }
-        return Value::floatingpoint(result);
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs->is_integer() && !rhs->as_integer()->is_zero());
 
-    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return rhs;
-    if (is_negative_zero() && rhs_is_non_zero) return this;
+    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return Value::floatingpoint(rhs->as_float()->to_double());
+    if (is_negative_zero() && rhs_is_non_zero) return Value::floatingpoint(m_double);
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -392,23 +301,6 @@ Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (arg.is_fast_integer()) {
-        if (arg.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        return new ArrayObject {
-            Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_integer())) },
-            Value::floatingpoint(::fmod(m_double, arg.get_fast_integer()))
-        };
-    }
-    if (arg.is_fast_float()) {
-        if (arg.get_fast_float() == 0) env->raise("ZeroDivisionError", "divided by 0");
-        if (isnan(arg.get_fast_float())) env->raise("FloatDomainError", "NaN");
-        return new ArrayObject {
-            Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_float())) },
-            Value::floatingpoint(::fmod(m_double, arg.get_fast_float()))
-        };
-    }
-    arg.unguard();
-
     if (!arg->is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg->klass()->inspect_str());
     if (arg->is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
     if (arg->is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
@@ -418,20 +310,12 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value modulus = mod(env, arg);
 
     return new ArrayObject {
-        f_to_i_or_bigint(::floor(division.is_fast_float() ? division.get_fast_float() : division->as_float()->to_double())),
+        f_to_i_or_bigint(::floor(division->as_float()->to_double())),
         modulus
     };
 }
 
 Value FloatObject::pow(Env *env, Value rhs) {
-    if (rhs.is_fast_integer()) {
-        return Value::floatingpoint(::pow(m_double, rhs.get_fast_integer()));
-    }
-    if (rhs.is_fast_float()) {
-        return Value::floatingpoint(::pow(m_double, rhs.get_fast_float()));
-    }
-    rhs.unguard();
-
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -470,38 +354,8 @@ Value FloatObject::arg(Env *env) {
     }
 }
 
-bool FloatObject::optimized_method(SymbolObject *method_name) {
-    // return false;
-    if (s_optimized_methods.is_empty()) {
-        // NOTE: No method that ever returns 'this' can be an "optimized" method. Trust me!
-        // FIXME: Is this list correct?
-        //        Can it be expanded?
-        s_optimized_methods.set("+"_s);
-        s_optimized_methods.set("-"_s);
-        s_optimized_methods.set("*"_s);
-        s_optimized_methods.set("/"_s);
-        s_optimized_methods.set("%"_s);
-        s_optimized_methods.set("**"_s);
-        s_optimized_methods.set("<=>"_s);
-        s_optimized_methods.set("=="_s);
-        s_optimized_methods.set("==="_s);
-        s_optimized_methods.set("<"_s);
-        s_optimized_methods.set("<="_s);
-        s_optimized_methods.set(">"_s);
-        s_optimized_methods.set(">="_s);
-        s_optimized_methods.set("eql?"_s);
-    }
-    return !!s_optimized_methods.get(method_name);
-}
-
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                        \
     bool FloatObject::name(Env *env, Value rhs) {                                                           \
-        if (rhs.is_fast_float())                                                                            \
-            return m_double op rhs.get_fast_float();                                                        \
-        if (rhs.is_fast_integer())                                                                          \
-            return m_double op rhs.get_fast_integer();                                                      \
-        rhs.unguard();                                                                                      \
-                                                                                                            \
         Value lhs = this;                                                                                   \
                                                                                                             \
         if (!rhs->is_float()) {                                                                             \

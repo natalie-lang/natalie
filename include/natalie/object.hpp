@@ -193,11 +193,11 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int arity);
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
     virtual SymbolObject *undefine_method(Env *, SymbolObject *);
 
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int);
+    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
@@ -254,8 +254,11 @@ public:
 
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
-    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
     void freeze() { m_flags = m_flags | Flag::Frozen; }
+    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+
+    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
+    bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
 
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
@@ -264,10 +267,6 @@ public:
     void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
-
-    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
-    void remove_synthesized_flag() { m_flags = m_flags & ~Flag::Synthesized; }
-    bool has_synthesized_flag() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
 
     bool eq(Env *, Value other) {
         return other == this;

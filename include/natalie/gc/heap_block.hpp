@@ -71,6 +71,8 @@ public:
 
     size_t total_count() const { return m_total_count; }
 
+    size_t used_count() const { return m_total_count - m_free_count; }
+
     class iterator {
     public:
         iterator(HeapBlock *block, size_t index)

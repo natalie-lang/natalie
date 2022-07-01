@@ -39,40 +39,36 @@ Value Value::floatingpoint(double value) {
     });
 
 Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
-    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND)
-    if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
-        if (args.size() > 0 && args[0].is_fast_integer())
-            args[0].guard();
-        auto synthesized = IntegerObject { m_integer };
-        synthesized.add_synthesized_flag();
-        return synthesized.public_send(env, name, args, block);
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    if (m_type == Type::Integer) {
+        auto synthesized_receiver = IntegerObject { m_integer };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.public_send(env, name, args, block);
     }
-    if (m_type == Type::Double && FloatObject::optimized_method(name)) {
-        if (args.size() > 0 && args[0].is_fast_float())
-            args[0].guard();
-        auto synthesized = FloatObject { m_double };
-        synthesized.add_synthesized_flag();
-        return synthesized.public_send(env, name, args, block);
+
+    if (m_type == Type::Double) {
+        auto synthesized_receiver = FloatObject { m_double };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.public_send(env, name, args, block);
     }
 
     return object()->public_send(env, name, args, block);
 }
 
 Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
-    PROFILED_SEND(NativeProfilerEvent::Type::SEND)
-    if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
-        if (args.size() > 0 && args[0].is_fast_integer())
-            args[0].guard();
-        auto synthesized = IntegerObject { m_integer };
-        synthesized.add_synthesized_flag();
-        return synthesized.send(env, name, args, block);
+    PROFILED_SEND(NativeProfilerEvent::Type::SEND);
+
+    if (m_type == Type::Integer) {
+        auto synthesized_receiver = IntegerObject { m_integer };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.send(env, name, args, block);
     }
-    if (m_type == Type::Double && FloatObject::optimized_method(name)) {
-        if (args.size() > 0 && args[0].is_fast_float())
-            args[0].guard();
-        auto synthesized = FloatObject { m_double };
-        synthesized.add_synthesized_flag();
-        return synthesized.send(env, name, args, block);
+
+    if (m_type == Type::Double) {
+        auto synthesized_receiver = FloatObject { m_double };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.send(env, name, args, block);
     }
 
     return object()->send(env, name, args, block);

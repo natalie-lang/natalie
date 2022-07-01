@@ -85,7 +85,7 @@ public:
     virtual Value cvar_set(Env *, SymbolObject *, Value) override;
 
     Value define_method(Env *, Value, Value, Block *);
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int) override;
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool optimized = false) override;
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
 

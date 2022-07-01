@@ -421,7 +421,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
-    assert(!val->has_synthesized_flag());
+    NAT_ASSERT_NOT_SYNTHESIZED(val);
 
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
@@ -483,9 +483,9 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     }
 }
 
-SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
+SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     ClassObject *klass = singleton_class(env);
-    klass->define_method(env, name, fn, arity);
+    klass->define_method(env, name, fn, arity, optimized);
     return name;
 }
 
@@ -501,8 +501,8 @@ SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
-    m_klass->define_method(env, name, fn, arity);
+SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+    m_klass->define_method(env, name, fn, arity, optimized);
     return name;
 }
 
@@ -638,6 +638,8 @@ Value Object::dup(Env *env) {
         return Value::integer(as_integer()->to_nat_int_t());
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
+    case Object::Type::Proc:
+        return new ProcObject { *as_proc() };
     case Object::Type::Range:
         return new RangeObject { *as_range() };
     case Object::Type::String:

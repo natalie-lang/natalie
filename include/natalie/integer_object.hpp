@@ -91,7 +91,7 @@ public:
     Value negate(Env *);
     Value numerator();
     Value complement(Env *) const;
-    Value ord() { return this; }
+    Value ord() { return IntegerObject::create(m_integer); }
     Value denominator() { return Value::integer(1); }
     Value round(Env *, Value, Value);
     Value truncate(Env *, Value);
@@ -103,10 +103,9 @@ public:
     bool gt(Env *, Value);
     bool gte(Env *, Value);
     bool is_bignum() const { return m_integer.is_bignum(); }
-    bool has_to_be_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 
-    nat_int_t to_nat_int_t() { return integer().to_nat_int_t(); }
+    nat_int_t to_nat_int_t() const { return integer().to_nat_int_t(); }
     BigInt to_bigint() const { return m_integer.to_bigint(); }
 
     void assert_fixnum(Env *env) const {
@@ -114,15 +113,11 @@ public:
             env->raise("RangeError", "bignum too big to convert into `long'");
     }
 
-    static bool optimized_method(SymbolObject *);
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<IntegerObject %p value=%s is_fixnum=%s>", this, m_integer.to_string().c_str(), m_integer.is_fixnum() ? "true" : "false");
     }
 
 private:
-    inline static Hashmap<SymbolObject *> s_optimized_methods {};
-
     Integer m_integer;
 };
 

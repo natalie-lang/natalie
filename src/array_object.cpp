@@ -99,15 +99,19 @@ Value ArrayObject::shift() {
 }
 
 void ArrayObject::set(size_t index, Value value) {
-    assert(!value->has_synthesized_flag());
+    NAT_ASSERT_NOT_SYNTHESIZED(value);
+
     if (index == m_vector.size()) {
         m_vector.push(value);
         return;
-    } else if (index > m_vector.size()) {
+    }
+
+    if (index > m_vector.size()) {
         m_vector.set_size(index, NilObject::the());
         m_vector.push(value);
         return;
     }
+
     m_vector[index] = value;
 }
 
