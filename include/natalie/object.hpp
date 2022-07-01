@@ -80,12 +80,18 @@ public:
         m_singleton_class = other.m_singleton_class;
         m_owner = other.m_owner;
         m_flags = other.m_flags;
-        m_ivars = std::move(other.m_ivars);
+        m_ivars = other.m_ivars;
+        other.m_type = Type::Nil;
+        other.m_singleton_class = nullptr;
+        other.m_owner = nullptr;
+        other.m_flags = 0;
+        other.m_ivars = nullptr;
         return *this;
     }
 
     virtual ~Object() override {
         m_type = ObjectType::Nil;
+        delete m_ivars;
     }
 
     static Value create(Env *, ClassObject *);
@@ -303,7 +309,7 @@ private:
     ModuleObject *m_owner { nullptr };
     int m_flags { 0 };
 
-    TM::Hashmap<SymbolObject *, Value> m_ivars {};
+    TM::Hashmap<SymbolObject *, Value> *m_ivars { nullptr };
 };
 
 }

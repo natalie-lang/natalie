@@ -8,8 +8,10 @@ Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
     , m_singleton_class { nullptr }
-    , m_owner { other.m_owner }
-    , m_ivars { other.m_ivars } { }
+    , m_owner { other.m_owner } {
+    if (other.m_ivars)
+        m_ivars = new TM::Hashmap<SymbolObject *, Value> { *other.m_ivars };
+}
 
 Value Object::create(Env *env, ClassObject *klass) {
     if (klass->is_singleton())
@@ -391,7 +393,10 @@ bool Object::ivar_defined(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
-    auto val = m_ivars.get(name, env);
+    if (!m_ivars)
+        return false;
+
+    auto val = m_ivars->get(name, env);
     if (val)
         return true;
     else
@@ -402,7 +407,10 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
-    auto val = m_ivars.get(name, env);
+    if (!m_ivars)
+        return NilObject::the();
+
+    auto val = m_ivars->get(name, env);
     if (val)
         return val;
     else
@@ -413,7 +421,10 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
-    auto val = m_ivars.remove(name, env);
+    if (!m_ivars)
+        env->raise("NameError", "instance variable {} not defined", name->c_str());
+
+    auto val = m_ivars->remove(name, env);
     if (val)
         return val;
     else
@@ -423,10 +434,15 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     NAT_ASSERT_NOT_SYNTHESIZED(val);
 
+    // TODO: assert_not_frozen(env);
+
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
-    m_ivars.put(name, val.object(), env);
+    if (!m_ivars)
+        m_ivars = new TM::Hashmap<SymbolObject *, Value> {};
+
+    m_ivars->put(name, val.object(), env);
     return val;
 }
 
@@ -434,10 +450,14 @@ Value Object::instance_variables(Env *env) {
     if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
         return new ArrayObject;
     }
-    ArrayObject *ary = new ArrayObject { m_ivars.size() };
-    for (auto pair : m_ivars) {
+
+    ArrayObject *ary = new ArrayObject { m_ivars->size() };
+
+    if (!m_ivars)
+        return ary;
+
+    for (auto pair : *m_ivars)
         ary->push(pair.first);
-    }
     return ary;
 }
 
@@ -833,9 +853,11 @@ Value Object::enum_for(Env *env, const char *method, Args args) {
 void Object::visit_children(Visitor &visitor) {
     visitor.visit(m_singleton_class);
     visitor.visit(m_owner);
-    for (auto pair : m_ivars) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.second);
+    if (m_ivars) {
+        for (auto pair : *m_ivars) {
+            visitor.visit(pair.first);
+            visitor.visit(pair.second);
+        }
     }
 }
 
