@@ -97,3 +97,12 @@
 #define NAT_MAKE_NONCOPYABLE(c) \
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
+
+// TODO: In release mode, could we make this dup() the value rather than abort?
+#define NAT_ASSERT_NOT_SYNTHESIZED(val)                                                                                       \
+    if (val->is_synthesized()) {                                                                                              \
+        fprintf(stderr,                                                                                                       \
+            "Value is synthesized, but you allowed it to be captured in a variable or another data structure.\n"              \
+            "Either mark the method as not optimized (in binding_gen.rb) or don't allow the synthesized value to escape.\n"); \
+        abort();                                                                                                              \
+    }

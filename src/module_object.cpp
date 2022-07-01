@@ -202,8 +202,10 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     return val;
 }
 
-SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     Method *method = new Method { name->c_str(), this, fn, arity };
+    if (optimized)
+        method->set_optimized(true);
     define_method(env, name, method, m_method_visibility);
     if (m_module_function)
         define_singleton_method(env, name, fn, arity);

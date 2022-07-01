@@ -32,7 +32,7 @@ public:
         : ArrayObject {} {
         m_vector.set_capacity(list.size());
         for (auto v : list) {
-            assert(!v->has_synthesized_flag());
+            NAT_ASSERT_NOT_SYNTHESIZED(v);
             m_vector.push(v);
         }
     }
@@ -72,7 +72,7 @@ public:
     size_t size() const { return m_vector.size(); }
 
     void push(Value val) {
-        assert(!val->has_synthesized_flag());
+        NAT_ASSERT_NOT_SYNTHESIZED(val);
         m_vector.push(val);
     }
 

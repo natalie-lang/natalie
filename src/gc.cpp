@@ -165,7 +165,18 @@ void Heap::return_cell_to_free_list(Cell *cell) {
     block->return_cell_to_free_list(cell);
 }
 
-void Heap::dump() {
+size_t Heap::total_allocations() const {
+    size_t count = 0;
+    for (auto allocator : m_allocators) {
+        for (auto block_pair : *allocator) {
+            auto *block = block_pair.first;
+            count += block->used_count();
+        }
+    }
+    return count;
+}
+
+void Heap::dump() const {
     nat_int_t allocation_count = 0;
     for (auto allocator : m_allocators) {
         for (auto block_pair : *allocator) {

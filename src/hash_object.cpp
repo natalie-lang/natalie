@@ -69,8 +69,8 @@ Value HashObject::set_default(Env *env, Value value) {
 }
 
 void HashObject::put(Env *env, Value key, Value val) {
-    assert(!key->has_synthesized_flag());
-    assert(!val->has_synthesized_flag());
+    NAT_ASSERT_NOT_SYNTHESIZED(key);
+    NAT_ASSERT_NOT_SYNTHESIZED(val);
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
