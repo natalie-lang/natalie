@@ -434,7 +434,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     NAT_ASSERT_NOT_SYNTHESIZED(val);
 
-    // TODO: assert_not_frozen(env);
+    assert_not_frozen(env);
 
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
