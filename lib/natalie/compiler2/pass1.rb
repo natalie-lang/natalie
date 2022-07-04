@@ -9,8 +9,9 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast)
+      def initialize(ast, inline_cpp_enabled:)
         @ast = ast
+        @inline_cpp_enabled = inline_cpp_enabled
       end
 
       # pass used: true to leave the final result on the stack
@@ -133,6 +134,10 @@ module Natalie
 
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
+
+        if @inline_cpp_enabled && receiver.nil? && message =~ /^__.*__$/
+          return [InlineCppInstruction.new(exp)]
+        end
 
         if receiver == nil && message == :lambda && args.empty?
           # NOTE: We need Kernel#lambda to behave just like the stabby
