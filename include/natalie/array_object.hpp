@@ -100,6 +100,11 @@ public:
         }
     }
 
+    void truncate(size_t new_size) {
+        assert(new_size < size());
+        m_vector.set_size(new_size);
+    }
+
     void push_splat(Env *, Value);
 
     void expand_with_nil(Env *, size_t);

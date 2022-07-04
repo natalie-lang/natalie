@@ -30,6 +30,29 @@ module Natalie
         end
       end
 
+      def remaining_required_args
+        @args.select { |arg| !arg.is_a?(Sexp) && !arg.start_with?('*') }
+      end
+
+      def transform_optional_arg(arg)
+        if remaining_required_args.any?
+          # we cannot steal a value that might be needed to fulfill a required arg that follows
+          # so put it back and work from the right side
+          @args.unshift(arg)
+          return :reverse
+        elsif @from_side == :right
+          # optional args must be assigned from the left-to-right;
+          # if we arrived here, it must be because we fulfilled all the required args on the right
+          # and now we can start from the left again
+          @args.push(arg)
+          return :reverse
+        end
+        _, name, default_value = arg
+        @instructions << @pass.transform_expression(default_value, used: true)
+        shift_or_pop_next_arg_with_default
+        @instructions << variable_set(name)
+      end
+
       def transform_keyword_arg(arg)
         _, name, default = arg
         move_keyword_arg_hash_from_args_array_to_stack

@@ -1,3 +1,4 @@
+require_relative './arity'
 require_relative './base_pass'
 require_relative './args'
 require_relative './multiple_assignment'
@@ -296,7 +297,7 @@ module Natalie
 
       def transform_def(exp, used:)
         _, name, args, *body = exp
-        arity = args.size - 1 # FIXME: way more complicated than this :-)
+        arity = Arity.new(args, is_proc: false).arity
         instructions = [
           DefineMethodInstruction.new(name: name, arity: arity),
           transform_defn_args(args, used: true),
@@ -318,8 +319,6 @@ module Natalie
         return [] unless used
         _, *args = exp
 
-        arity = args.size # FIXME: need a way more complicated calculation
-
         instructions = []
 
         if args.last.is_a?(Symbol) && args.last.start_with?('&')
@@ -329,10 +328,12 @@ module Natalie
         end
 
         has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
-        may_need_to_destructure_args_for_block = for_block && arity > 1
+        may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
-          instructions << PushArgsInstruction.new(for_block: for_block, arity: arity)
+          min_count = args.count { |arg| !arg.is_a?(Sexp) || arg.sexp_type != :lasgn }
+          max_count = args.size
+          instructions << PushArgsInstruction.new(for_block: for_block, min_count: min_count, max_count: max_count)
           instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
           return instructions
         end
@@ -482,7 +483,8 @@ module Natalie
 
       def transform_iter(exp, used:)
         _, call, args, body = exp
-        arity = args.size - 1 # FIXME: way more complicated than this :-)
+        is_lambda = is_lambda_call?(call)
+        arity = Arity.new(args, is_proc: !is_lambda).arity
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
         instructions << transform_block_args(args, used: true)
@@ -812,7 +814,7 @@ module Natalie
       def transform_zsuper(exp, used:)
         _, *args = exp
         instructions = []
-        instructions << PushArgsInstruction.new(for_block: false, arity: 0)
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << PushSelfInstruction.new
         instructions << SuperInstruction.new(args_array_on_stack: true, with_block_pass: false)
         instructions << PopInstruction.new unless used
@@ -842,6 +844,10 @@ module Natalie
           desc = "#{index} #{instruction}"
           puts desc
         end
+      end
+
+      def is_lambda_call?(exp)
+        exp == s(:lambda) || exp == s(:call, nil, :lambda)
       end
     end
   end

@@ -43,11 +43,19 @@ ArrayObject *Args::to_array() const {
     return new ArrayObject { m_size, m_data };
 }
 
-ArrayObject *Args::to_array_for_block(Env *env) const {
-    // NOTE: we check arity of the block in PushArgsInstruction so it's not needed here
-    if (m_size == 1)
-        return to_ary(env, m_data[0], true)->dup(env)->as_array();
-    return new ArrayObject { m_size, m_data };
+ArrayObject *Args::to_array_for_block(Env *env, size_t min_count, size_t max_count) const {
+    if (m_size == 1 && max_count > 1) {
+        auto ary = to_ary(env, m_data[0], true)->dup(env)->as_array();
+        if (ary->size() > max_count)
+            ary->truncate(max_count);
+        else if (ary->size() < min_count)
+            ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
+        return ary;
+    }
+    auto ary = new ArrayObject { std::min(m_size, max_count), m_data };
+    if (ary->size() < min_count)
+        ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
+    return ary;
 }
 
 void Args::ensure_argc_is(Env *env, size_t expected) const {
