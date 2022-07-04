@@ -19,8 +19,8 @@ module Natalie
         receiver = transform.pop
         if @args_array_on_stack
           args = transform.pop
-          arg_count = "#{args}->size()"
-          args_array_on_stack = "#{args}->data()"
+          arg_count = "#{args}->as_array()->size()"
+          args_array_on_stack = "#{args}->as_array()->data()"
         else
           arg_count = transform.pop
           args = []

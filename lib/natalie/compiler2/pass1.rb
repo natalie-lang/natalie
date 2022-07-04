@@ -328,7 +328,7 @@ module Natalie
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
-        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
+        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
         may_need_to_destructure_args_for_block = for_block && arity > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
@@ -342,7 +342,7 @@ module Natalie
         end
 
         args.each_with_index do |name, index|
-          instructions << PushArgInstruction.new(index)
+          instructions << PushArgInstruction.new(index, nil_default: for_block)
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
