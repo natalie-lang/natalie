@@ -44,6 +44,7 @@ ArrayObject *Args::to_array() const {
 }
 
 ArrayObject *Args::to_array_for_block(Env *env) const {
+    // NOTE: we check arity of the block in PushArgsInstruction so it's not needed here
     if (m_size == 1)
         return to_ary(env, m_data[0], true)->dup(env)->as_array();
     return new ArrayObject { m_size, m_data };

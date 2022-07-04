@@ -546,14 +546,6 @@ ArrayObject *args_to_array(Env *env, Args args) {
     return ary;
 }
 
-ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args) {
-    ArrayObject *ary = new ArrayObject { args.size() };
-    for (auto val : args) {
-        ary->push(val);
-    }
-    return ary;
-}
-
 void args_to_vector(TM::Vector<Value> &target, Args args) {
     target.set_capacity(args.size());
     for (size_t i = 0; i < args.size(); ++i) {

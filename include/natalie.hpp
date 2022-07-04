@@ -113,7 +113,6 @@ Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_
 Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value);
 
 ArrayObject *args_to_array(Env *env, Args args);
-ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args);
 void args_to_vector(TM::Vector<Value> &target, Args args);
 ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args);
 void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args);
