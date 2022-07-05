@@ -19,7 +19,7 @@ module Natalie
 
       def generate(transform)
         ary = transform.memoize(:ary, transform.peek)
-        code = "(#{ary}->as_array()->is_empty() || !#{ary}->as_array()->last()->is_hash() ? new HashObject : #{ary}->as_array()->pop())"
+        code = "args.has_keyword_hash() ? #{ary}->as_array()->pop() : new HashObject"
         transform.exec_and_push(:keyword_args_hash, code)
       end
 

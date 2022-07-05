@@ -6,6 +6,7 @@ module Natalie
           @args = []
         elsif args.is_a?(Sexp) && args.sexp_type == :args
           @args = args[1..]
+          @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
         else
           raise "expected args sexp, but got: #{args.inspect}"
         end

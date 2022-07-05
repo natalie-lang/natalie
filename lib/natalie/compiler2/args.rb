@@ -34,9 +34,22 @@ module Natalie
         @args.select { |arg| !arg.is_a?(Sexp) && !arg.start_with?('*') }
       end
 
+      def remaining_keyword_args
+        @args.select { |arg| arg.is_a?(Sexp) && arg.sexp_type == :kwarg }
+      end
+
+      def kwsplat?
+        @args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('**') }
+      end
+
       def transform_optional_arg(arg)
         if remaining_required_args.any?
           # we cannot steal a value that might be needed to fulfill a required arg that follows
+          # so put it back and work from the right side
+          @args.unshift(arg)
+          return :reverse
+        elsif remaining_keyword_args.any? || kwsplat?
+          # we cannot steal the keyword hash as if it is a regular arg,
           # so put it back and work from the right side
           @args.unshift(arg)
           return :reverse
@@ -78,10 +91,10 @@ module Natalie
 
       def transform_keyword_splat_arg(arg)
         name = arg[2..-1]
+        move_keyword_arg_hash_from_args_array_to_stack
         if name.empty?
           :noop
         else
-          move_keyword_arg_hash_from_args_array_to_stack
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the **splat is the last arg
         end

@@ -20,18 +20,23 @@ Value Args::at(size_t index, Value default_value) const {
     return m_data[index];
 }
 
-Args::Args(ArrayObject *array)
+Args::Args(ArrayObject *array, bool has_keyword_hash)
     : m_size { array->size() }
     , m_data { array->data() }
+    , m_has_keyword_hash { has_keyword_hash }
     , m_array_pointer_so_the_gc_does_not_collect_it { array } { }
 
 Args::Args(const Args &other)
     : m_size { other.m_size }
-    , m_data { other.m_data } { }
+    , m_data { other.m_data }
+    , m_has_keyword_hash { other.m_has_keyword_hash }
+    , m_array_pointer_so_the_gc_does_not_collect_it { other.m_array_pointer_so_the_gc_does_not_collect_it } { }
 
 Args &Args::operator=(const Args &other) {
     m_size = other.m_size;
     m_data = other.m_data;
+    m_has_keyword_hash = other.m_has_keyword_hash;
+    m_array_pointer_so_the_gc_does_not_collect_it = other.m_array_pointer_so_the_gc_does_not_collect_it;
     return *this;
 }
 

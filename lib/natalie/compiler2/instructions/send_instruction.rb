@@ -9,7 +9,7 @@ module Natalie
     # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false)
+      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false)
         # the message to send
         @message = message.to_sym
 
@@ -22,6 +22,9 @@ module Natalie
 
         # a block is on the stack
         @with_block = with_block
+
+        # a bare hash (probably a keyword hash) is last in the args
+        @has_keyword_hash = has_keyword_hash
 
         # source location info
         @file = file
@@ -47,12 +50,12 @@ module Natalie
 
         if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
-          args_array = "Args(#{args})"
+          args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
         else
           arg_count = transform.pop
           args = []
           arg_count.times { args.unshift transform.pop }
-          args_array = "std::initializer_list<Value> { #{args.join(', ')} }"
+          args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
         end
 
         transform.exec("env->set_file(#{@file.inspect})") if @file
@@ -61,7 +64,7 @@ module Natalie
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
           "send_#{@message}",
-          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_array}, #{block})"
+          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_list}, #{block})"
         )
       end
 

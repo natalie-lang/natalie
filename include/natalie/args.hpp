@@ -14,19 +14,21 @@ class Args {
 public:
     Args() { }
 
-    Args(size_t size, const Value *data, bool owned = false)
+    Args(size_t size, const Value *data, bool has_keyword_hash = false)
         : m_size { size }
-        , m_data { data } { }
+        , m_data { data }
+        , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(TM::Vector<Value> vec)
         : m_size { vec.size() }
         , m_data { vec.data() } { }
 
-    Args(ArrayObject *array);
+    Args(ArrayObject *array, bool has_keyword_hash = false);
 
-    Args(std::initializer_list<Value> args)
+    Args(std::initializer_list<Value> args, bool has_keyword_hash = false)
         : m_size { args.size() }
-        , m_data { std::data(args) } { }
+        , m_data { std::data(args) }
+        , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(const Args &other);
 
@@ -57,6 +59,8 @@ public:
 
     const Value *data() const { return m_data; }
 
+    bool has_keyword_hash() const { return m_has_keyword_hash; }
+
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
     void *operator new(size_t size) { TM_UNREACHABLE(); };
@@ -67,6 +71,7 @@ private:
 
     size_t m_size { 0 };
     const Value *m_data { nullptr };
+    bool m_has_keyword_hash { false };
 
     // NOTE: We need to hold onto this pointer so the GC does not collect the
     // ArrayObject holding our data. We don't actually use it, but just it

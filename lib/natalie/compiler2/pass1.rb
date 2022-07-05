@@ -150,8 +150,9 @@ module Natalie
           return transform_lambda(exp.new(:lambda), used: used)
         end
 
-        instructions, block, args_array_on_stack = transform_call_args(args)
-        with_block = true if block
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        with_block ||= call_args.fetch(:with_block_pass)
 
         if receiver.nil?
           instructions << PushSelfInstruction.new
@@ -159,7 +160,15 @@ module Natalie
           instructions << transform_expression(receiver, used: true)
         end
 
-        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: receiver.nil?, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: receiver.nil?,
+          with_block: with_block,
+          has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          file: exp.file,
+          line: exp.line,
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -174,15 +183,29 @@ module Natalie
 
         if args.any? { |a| a.sexp_type == :splat }
           instructions << transform_array_with_splat(args)
-          return [instructions, block, :args_array_on_stack]
+          return {
+            instructions: instructions,
+            with_block_pass: !!block,
+            args_array_on_stack: true,
+            has_keyword_hash: false, # TODO
+          }
         end
 
         args.each do |arg|
           instructions << transform_expression(arg, used: true)
         end
+
+        last_instruction = instructions.flatten.last
+        has_keyword_hash = last_instruction.is_a?(CreateHashInstruction) && last_instruction.bare?
+
         instructions << PushArgcInstruction.new(args.size)
 
-        [instructions, block]
+        {
+          instructions: instructions,
+          with_block_pass: !!block,
+          args_array_on_stack: false,
+          has_keyword_hash: has_keyword_hash,
+        }
       end
 
       def transform_case(exp, used:)
@@ -452,11 +475,19 @@ module Natalie
         _, *items = exp
         raise 'odd number of hash items' if items.size.odd?
         instructions = items.map { |item| transform_expression(item, used: true) }
-        instructions << CreateHashInstruction.new(count: items.size / 2)
+        instructions << CreateHashInstruction.new(count: items.size / 2, bare: false)
         instructions << PopInstruction.new unless used
         instructions
       end
-      alias transform_bare_hash transform_hash # TODO: handle this separately for keyword args
+
+      def transform_bare_hash(exp, used:)
+        _, *items = exp
+        raise 'odd number of hash items' if items.size.odd?
+        instructions = items.map { |item| transform_expression(item, used: true) }
+        instructions << CreateHashInstruction.new(count: items.size / 2, bare: true)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
 
       def transform_iasgn(exp, used:)
         _, name, value = exp
@@ -689,8 +720,8 @@ module Natalie
       def transform_safe_call(exp, used:)
         _, receiver, message, *args = exp
 
-        instructions, block, args_array_on_stack = transform_call_args(args)
-        with_block = true if block
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
 
         instructions << transform_expression(receiver, used: true)
         instructions << DupInstruction.new
@@ -698,7 +729,14 @@ module Natalie
         instructions << IfInstruction.new
         instructions << PushNilInstruction.new
         instructions << ElseInstruction.new(:if)
-        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: false, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: false,
+          with_block: call_args.fetch(:with_block_pass),
+          file: exp.file,
+          line: exp.line,
+        )
         instructions << EndInstruction.new(:if)
         instructions << PopInstruction.new unless used
         instructions
@@ -735,9 +773,13 @@ module Natalie
 
       def transform_super(exp, used:)
         _, *args = exp
-        instructions, block, args_array_on_stack = transform_call_args(args)
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
         instructions << PushSelfInstruction.new
-        instructions << SuperInstruction.new(args_array_on_stack: args_array_on_stack, with_block_pass: block)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          with_block_pass: call_args.fetch(:with_block_pass),
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
