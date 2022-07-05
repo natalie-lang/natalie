@@ -37,7 +37,11 @@ module Natalie
       end
 
       def init_matter
-        [init_symbols.join("\n"), set_dollar_zero_global_in_main_to_c].compact.join("\n")
+        [
+          init_symbols.join("\n"),
+          set_dollar_zero_global_in_main_to_c,
+          set_compiler_version_to_c,
+        ].compact.join("\n")
       end
 
       def declare_symbols
@@ -52,6 +56,11 @@ module Natalie
         return if @compiler_context[:is_obj]
 
         "env->global_set(\"$0\"_s, new StringObject { #{@compiler_context[:source_path].inspect} });"
+      end
+
+      # NOTE: This is just used for tests and will likely be removed in the future.
+      def set_compiler_version_to_c
+        'GlobalEnv::the()->Object()->const_set("NATALIE_COMPILER"_s, new StringObject("v2"));'
       end
 
       def symbols_var_name
