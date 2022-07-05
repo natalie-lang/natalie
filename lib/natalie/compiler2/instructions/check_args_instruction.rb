@@ -3,12 +3,15 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class CheckArgsInstruction < BaseInstruction
-      def initialize(positional:)
+      def initialize(positional:, args_array_on_stack: false)
         @positional = positional
+        @args_array_on_stack = args_array_on_stack
       end
 
       def to_s
-        "check_args positional: #{@positional.inspect}"
+        s = "check_args positional: #{@positional.inspect}"
+        s << ' (args array on stack)' if @args_array_on_stack
+        s
       end
 
       def generate(transform)

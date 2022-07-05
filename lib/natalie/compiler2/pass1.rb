@@ -15,6 +15,15 @@ module Natalie
         @inline_cpp_enabled = inline_cpp_enabled
       end
 
+      INLINE_CPP_MACROS = %i[
+        __inline__
+        __define_method__
+        __cxx_flags__
+        __ld_flags__
+        __function__
+        __constant__
+      ].freeze
+
       # pass used: true to leave the final result on the stack
       def transform(used: true)
         raise 'unexpected AST input' unless @ast.sexp_type == :block
@@ -136,11 +145,11 @@ module Natalie
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
 
-        if @inline_cpp_enabled && receiver.nil? && message =~ /^__.*__$/
+        if @inline_cpp_enabled && receiver.nil? && INLINE_CPP_MACROS.include?(message)
           return [InlineCppInstruction.new(exp)]
         end
 
-        if receiver == nil && message == :lambda && args.empty?
+        if receiver.nil? && message == :lambda && args.empty?
           # NOTE: We need Kernel#lambda to behave just like the stabby
           # lambda (->) operator so we can attach the "break point" to
           # it. I realize this is a bit of a hack and if someone wants
@@ -148,6 +157,13 @@ module Natalie
           # broken lambda, i.e. calling `break` won't work correctly.
           # Maybe someday we can think of a better way to handle this...
           return transform_lambda(exp.new(:lambda), used: used)
+        end
+
+        if receiver.nil? && message == :block_given? && !with_block
+          return [
+            PushBlockInstruction.new,
+            transform_call(exp, used: used, with_block: true),
+          ]
         end
 
         call_args = transform_call_args(args)
@@ -354,8 +370,11 @@ module Natalie
         may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
-          min_count = args.count { |arg| !arg.is_a?(Sexp) || arg.sexp_type != :lasgn }
-          max_count = args.size
+          min_count = minimum_arg_count(args)
+          max_count = maximum_arg_count(args)
+          unless for_block
+            instructions << CheckArgsInstruction.new(positional: min_count..max_count)
+          end
           instructions << PushArgsInstruction.new(for_block: for_block, min_count: min_count, max_count: max_count)
           instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
           return instructions
@@ -890,6 +909,24 @@ module Natalie
 
       def is_lambda_call?(exp)
         exp == s(:lambda) || exp == s(:call, nil, :lambda)
+      end
+
+      def minimum_arg_count(args)
+        args.count do |arg|
+          (arg.is_a?(Symbol) && arg !~ /^&|^\*/) ||
+            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+        end
+      end
+
+      def maximum_arg_count(args)
+        if args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('*') && !arg.start_with?('**') }
+          # splat, no maximum
+          return nil
+        end
+
+        args.count do |arg|
+          !arg.is_a?(Symbol) || !arg.start_with?('&')
+        end
       end
     end
   end

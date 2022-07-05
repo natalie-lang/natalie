@@ -18,7 +18,7 @@ module Natalie
       def generate(transform)
         args = transform.temp('args')
         if @for_block
-          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count})")
+          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1})")
         else
           transform.exec_and_push(:args, 'args.to_array()')
         end

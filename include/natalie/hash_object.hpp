@@ -89,6 +89,7 @@ public:
 
     void put(Env *, Value, Value);
     Value remove(Env *, Value);
+    Value remove_keyword_arg(Env *, SymbolObject *);
     Value clear(Env *);
 
     Value default_proc(Env *);

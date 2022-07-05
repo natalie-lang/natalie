@@ -109,6 +109,13 @@ Value HashObject::remove(Env *env, Value key) {
     }
 }
 
+Value HashObject::remove_keyword_arg(Env *env, SymbolObject *name) {
+    auto value = remove(env, name);
+    if (!value)
+        env->raise("ArgumentError", "missing keyword: :{}", name->string());
+    return value;
+}
+
 Value HashObject::clear(Env *env) {
     assert_not_frozen(env);
     m_hashmap.clear();
