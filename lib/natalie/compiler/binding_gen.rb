@@ -237,7 +237,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def block_arg
-      'block' if pass_block
+      'args.block()' if pass_block
     end
 
     def klass_arg

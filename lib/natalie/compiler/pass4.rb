@@ -255,23 +255,24 @@ module Natalie
         list.map { |klass| "#{process_atom target}->is_a(env, #{process_atom klass})" }.join(' || ')
       end
 
-      def process_args(exp)
+      def process_args(exp, block: nil)
+        return process_args_array(exp, block: block) if exp.sexp_type == :args_array
         _, *args = exp
         if args.size.zero?
-          'Args()'
+          "Args(0, nullptr, #{block || 'nullptr'})"
         else
           args_name = temp('args')
           decl "Value #{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
-          "Args(#{args.size}, #{args_name})"
+          "Args(#{args.size}, #{args_name}, #{block || 'nullptr'})"
         end
       end
 
-      def process_args_array(exp)
+      def process_args_array(exp, block: nil)
         _, args = exp
         array = process_atom(args)
         name = temp('args_array')
         decl "Value #{name} = #{array};"
-        "Args(#{name}->as_array())"
+        "Args(#{name}->as_array(), #{block || 'nullptr'})"
       end
 
       def process_block(exp)
@@ -566,7 +567,7 @@ module Natalie
         fn, receiver, method, args, block = exp
         receiver_name = process_atom(receiver)
         if args
-          args_name = process_atom(args)
+          args_name = process_args(args, block: block)
         else
           args_name = 'Args()'
         end
@@ -615,11 +616,11 @@ module Natalie
         _, args, block = exp
         result_name = temp('call_result')
         if args
-          args_name = process_atom(args)
+          args_name = process_args(args, block: block)
           decl "Value #{result_name} = super(env, self, #{args_name}, #{block || 'nullptr'});"
         else
           block = block && block != 'nullptr' ? block : 'block'
-          decl "Value #{result_name} = super(env, self, args, #{block});"
+          decl "Value #{result_name} = super(env, self, Args(args, #{block}), #{block});"
         end
         result_name
       end

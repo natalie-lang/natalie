@@ -50,21 +50,23 @@ module Natalie
 
         if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
-          args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
         else
           arg_count = transform.pop
-          args = []
-          arg_count.times { args.unshift transform.pop }
-          args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
+          arg_list = []
+          arg_count.times { arg_list.unshift transform.pop }
+          args = "{ #{arg_list.join(', ')} }"
         end
 
         transform.exec("env->set_file(#{@file.inspect})") if @file
         transform.exec("env->set_line(#{@line.inspect})") if @line
 
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
+
+        args_obj = "Args(#{args}, #{block}, #{@has_keyword_hash ? 'true' : 'false'})"
+
         transform.exec_and_push(
           "send_#{@message}",
-          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_list}, #{block})"
+          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_obj}, #{block})"
         )
       end
 
