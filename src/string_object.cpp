@@ -1188,6 +1188,14 @@ Value StringObject::uplus(Env *env) {
     }
 }
 
+bool StringObject::empty(Env *env) {
+    if (this->is_empty()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 Value StringObject::reverse(Env *env) {
     if (length() == 0)
         return new StringObject {};

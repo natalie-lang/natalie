@@ -193,6 +193,7 @@ public:
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
+    bool empty(Env *);
 
     Value convert_float();
 
