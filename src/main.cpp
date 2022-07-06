@@ -46,9 +46,10 @@ Value _main(int argc, char *argv[]) {
     Heap::the().gc_enable();
 #endif
 
-    assert(argc > 0);
-    Value exe = new StringObject { argv[0] };
-    env->global_set("$exe"_s, exe);
+    if (argc > 0) {
+        Value exe = new StringObject { argv[0] };
+        env->global_set("$exe"_s, exe);
+    }
 
     ArrayObject *ARGV = new ArrayObject { (size_t)argc };
     GlobalEnv::the()->Object()->const_set("ARGV"_s, ARGV);
