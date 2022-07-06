@@ -66,7 +66,7 @@ module Natalie
 
         transform.exec_and_push(
           "send_#{@message}",
-          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_obj}, #{block})"
+          "#{receiver}.#{method}(env, #{@message.to_s.inspect}_s, #{args_obj})"
         )
       end
 

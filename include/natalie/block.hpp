@@ -23,7 +23,7 @@ public:
         Env e { m_env };
         e.set_caller(env);
         e.set_this_block(this);
-        auto result = m_fn(&e, m_self, args, block);
+        auto result = m_fn(&e, m_self, args);
         return result;
     }
 

@@ -101,16 +101,16 @@ Value Object::create(Env *env, ClassObject *klass) {
     return obj;
 }
 
-Value Object::_new(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::_new(Env *env, Value klass_value, Args args) {
     Value obj = create(env, klass_value->as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
-    obj->send(env, "initialize"_s, args, block);
+    obj->send(env, "initialize"_s, args);
     return obj;
 }
 
-Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
+Value Object::allocate(Env *env, Value klass_value, Args args) {
     args.ensure_argc_is(env, 0);
 
     ClassObject *klass = klass_value->as_class();
@@ -576,39 +576,39 @@ Value Object::module_function(Env *env, Args args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
-    return send(env, name, args, block, MethodVisibility::Public);
+Value Object::public_send(Env *env, SymbolObject *name, Args args) {
+    return send(env, name, args, MethodVisibility::Public);
 }
 
-Value Object::public_send(Env *env, Args args, Block *block) {
+Value Object::public_send(Env *env, Args args) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return public_send(env->caller(), name, Args::shift(args), block);
+    return public_send(env->caller(), name, Args::shift(args));
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block) {
-    return send(env, name, args, block, MethodVisibility::Private);
+Value Object::send(Env *env, SymbolObject *name, Args args) {
+    return send(env, name, args, MethodVisibility::Private);
 }
 
-Value Object::send(Env *env, Args args, Block *block) {
+Value Object::send(Env *env, Args args) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
-    return send(env->caller(), name, Args::shift(args), block);
+    return send(env->caller(), name, Args::shift(args));
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least) {
+Value Object::send(Env *env, SymbolObject *name, Args args, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, name, visibility_at_least);
     if (method) {
-        return method->call(env, this, args, block);
+        return method->call(env, this, args);
     } else if (respond_to(env, "method_missing"_s)) {
         ArrayObject new_args { args.size() + 1 };
         new_args.push(name);
         new_args.push(env, args);
-        return send(env, "method_missing"_s, Args(&new_args), block);
+        return send(env, "method_missing"_s, Args(&new_args, args.block()));
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
 }
 
-Value Object::method_missing(Env *env, Args args, Block *block) {
+Value Object::method_missing(Env *env, Args args) {
     if (args.size() == 0) {
         env->raise("ArgError", "no method name given");
     } else if (!args[0]->is_symbol()) {

@@ -186,11 +186,11 @@ Value ArrayObject::sub(Env *env, Value other) {
     return new_array;
 }
 
-Value ArrayObject::sum(Env *env, Args args, Block *block) {
+Value ArrayObject::sum(Env *env, Args args) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto sum_method = Enumerable->find_method(env, "sum"_s);
-    return sum_method->call(env, this, args, block);
+    return sum_method->call(env, this, args);
 }
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
@@ -318,12 +318,12 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     return val;
 }
 
-Value ArrayObject::any(Env *env, Args args, Block *block) {
+Value ArrayObject::any(Env *env, Args args) {
     // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto any_method = Enumerable->find_method(env, "any?"_s);
-    return any_method->call(env, this, args, block);
+    return any_method->call(env, this, args);
 }
 
 bool ArrayObject::eq(Env *env, Value other) {
@@ -366,7 +366,7 @@ bool ArrayObject::eq(Env *env, Value other) {
             }
 
             Value args[] = { item };
-            Value result = this_item.send(env, equality, Args(1, args), nullptr);
+            Value result = this_item.send(env, equality, Args(1, args));
             if (result->is_false())
                 return result;
         }
@@ -400,7 +400,7 @@ bool ArrayObject::eql(Env *env, Value other) {
 
         for (size_t i = 0; i < size(); ++i) {
             Value args[] = { (*other_array)[i] };
-            Value result = (*this)[i].send(env, "eql?"_s, Args(1, args), nullptr);
+            Value result = (*this)[i].send(env, "eql?"_s, Args(1, args));
             if (result->is_false())
                 return result;
         }
@@ -1356,7 +1356,7 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     auto none_method = Enumerable->find_method(env, "cycle"_s);
     Value args[] = { count };
     size_t argc = count ? 1 : 0;
-    return none_method->call(env, this, Args(argc, args), block);
+    return none_method->call(env, this, Args(argc, args, block));
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {
@@ -1760,23 +1760,23 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
     return NilObject::the();
 }
 
-Value ArrayObject::none(Env *env, Args args, Block *block) {
+Value ArrayObject::none(Env *env, Args args) {
     // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto none_method = Enumerable->find_method(env, "none?"_s);
-    return none_method->call(env, this, args, block);
+    return none_method->call(env, this, args);
 }
 
-Value ArrayObject::one(Env *env, Args args, Block *block) {
+Value ArrayObject::one(Env *env, Args args) {
     // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto one_method = Enumerable->find_method(env, "one?"_s);
-    return one_method->call(env, this, args, block);
+    return one_method->call(env, this, args);
 }
 
-Value ArrayObject::product(Env *env, Args args, Block *block) {
+Value ArrayObject::product(Env *env, Args args) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
     for (size_t i = 0; i < args.size(); ++i)
@@ -1815,9 +1815,9 @@ Value ArrayObject::product(Env *env, Args args, Block *block) {
         products->push(product);
     }
 
-    if (block) {
+    if (args.block()) {
         if (products->size() > 0)
-            products->each(env, block);
+            products->each(env, args.block());
         return this;
     }
 
@@ -1997,7 +1997,7 @@ Value ArrayObject::to_h(Env *env, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto to_h_method = Enumerable->find_method(env, "to_h"_s);
-    return to_h_method->call(env, this, {}, block);
+    return to_h_method->call(env, this, Args(block));
 }
 
 Value ArrayObject::try_convert(Env *env, Value val) {
@@ -2081,6 +2081,6 @@ Value ArrayObject::zip(Env *env, Args args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto zip_method = Enumerable->find_method(env, "zip"_s);
-    return zip_method->call(env, this, args, block);
+    return zip_method->call(env, this, args);
 }
 }

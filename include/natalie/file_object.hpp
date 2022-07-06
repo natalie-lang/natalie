@@ -24,7 +24,7 @@ public:
     static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
         Value args[] = { filename, flags_obj };
         auto args_struct = Args { static_cast<size_t>(flags_obj ? 2 : 1), args };
-        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), args_struct, nullptr);
+        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), args_struct);
         if (block) {
             Defer close_file([&]() {
                 obj->as_file()->close(env);

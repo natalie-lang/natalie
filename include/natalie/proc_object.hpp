@@ -55,7 +55,7 @@ public:
         return this;
     }
 
-    Value call(Env *, Args = {}, Block * = nullptr);
+    Value call(Env *, Args = {});
 
     Env *env() { return m_block->env(); }
 

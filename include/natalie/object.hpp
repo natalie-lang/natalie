@@ -95,8 +95,8 @@ public:
     }
 
     static Value create(Env *, ClassObject *);
-    static Value _new(Env *, Value, Args, Block *);
-    static Value allocate(Env *, Value, Args, Block *);
+    static Value _new(Env *, Value, Args);
+    static Value allocate(Env *, Value, Args);
 
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }
@@ -230,18 +230,18 @@ public:
         return new ManagedString(buf);
     }
 
-    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
-    Value public_send(Env *, Args, Block *);
+    Value public_send(Env *, SymbolObject *, Args = {});
+    Value public_send(Env *, Args);
 
-    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
-    Value send(Env *, Args, Block *);
+    Value send(Env *, SymbolObject *, Args = {});
+    Value send(Env *, Args);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return send(env, name, Args(args), block);
+        return send(env, name, Args(args, block));
     }
 
-    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
-    Value method_missing(Env *, Args, Block *);
+    Value send(Env *, SymbolObject *, Args, MethodVisibility);
+    Value method_missing(Env *, Args);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 

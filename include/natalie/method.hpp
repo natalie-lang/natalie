@@ -37,7 +37,7 @@ public:
     bool is_optimized() const { return m_optimized; }
     void set_optimized(bool optimized) { m_optimized = optimized; }
 
-    Value call(Env *env, Value self, Args args, Block *block);
+    Value call(Env *env, Value self, Args args);
 
     ManagedString *name() const { return new ManagedString(m_name); }
     ModuleObject *owner() const { return m_owner; }

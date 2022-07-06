@@ -28,8 +28,8 @@ module Natalie
           args_array_on_stack = transform.temp('args')
           transform.exec "Value #{args_array_on_stack}[] = { #{args.join(', ')} };"
         end
-        block = @with_block_pass ? "to_block(env, #{transform.pop})" : 'block'
-        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}), #{block})"
+        block = @with_block_pass ? "to_block(env, #{transform.pop})" : 'args.block()'
+        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}, #{block}))"
       end
 
       def execute(vm)

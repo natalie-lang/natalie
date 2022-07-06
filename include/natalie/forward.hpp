@@ -48,6 +48,6 @@ class Value;
 
 class Args;
 
-using MethodFnPtr = Value (*)(Env *, Value, Args, Block *);
+using MethodFnPtr = Value (*)(Env *, Value, Args);
 
 }

@@ -120,8 +120,8 @@ public:
     Value attr_writer(Env *, Args);
     Value attr_accessor(Env *, Args);
 
-    static Value attr_reader_block_fn(Env *, Value, Args, Block *);
-    static Value attr_writer_block_fn(Env *, Value, Args, Block *);
+    static Value attr_reader_block_fn(Env *, Value, Args);
+    static Value attr_writer_block_fn(Env *, Value, Args);
 
     Value module_eval(Env *, Block *);
 

@@ -512,7 +512,7 @@ Value ModuleObject::attr_reader(Env *env, Args args) {
     return NilObject::the();
 }
 
-Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args, Block *block) {
+Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args) {
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     assert(name_obj->is_symbol());
@@ -539,7 +539,7 @@ Value ModuleObject::attr_writer(Env *env, Args args) {
     return NilObject::the();
 }
 
-Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args args, Block *block) {
+Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args args) {
     Value val = args[0];
     Value name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);

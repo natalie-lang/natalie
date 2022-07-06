@@ -63,7 +63,7 @@ public:
         return new ArrayObject { args.size(), args.data(), klass };
     }
 
-    static Value size_fn(Env *, Value self, Args, Block *) {
+    static Value size_fn(Env *, Value self, Args) {
         return Value::integer(self->as_array()->size());
     }
 
@@ -131,7 +131,7 @@ public:
     Value initialize(Env *, Value, Value, Block *);
 
     Value add(Env *, Value);
-    Value any(Env *, Args, Block *);
+    Value any(Env *, Args);
     Value at(Env *, Value);
     Value assoc(Env *, Value);
     Value bsearch(Env *, Block *);
@@ -176,11 +176,11 @@ public:
     Value min(Env *, Value, Block *);
     Value minmax(Env *, Block *);
     Value multiply(Env *, Value);
-    Value none(Env *, Args, Block *);
-    Value one(Env *, Args, Block *);
+    Value none(Env *, Args);
+    Value one(Env *, Args);
     Value pack(Env *, Value);
     Value pop(Env *, Value);
-    Value product(Env *, Args, Block *);
+    Value product(Env *, Args);
     Value push(Env *, Args);
     Value rassoc(Env *, Value);
     Value ref(Env *, Value, Value = nullptr);
@@ -201,7 +201,7 @@ public:
     Value sort(Env *, Block *);
     Value sub(Env *, Value);
     static Value try_convert(Env *, Value);
-    Value sum(Env *, Args, Block *);
+    Value sum(Env *, Args);
     Value union_of(Env *, Value);
     Value union_of(Env *, Args);
     Value uniq(Env *, Block *);

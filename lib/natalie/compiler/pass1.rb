@@ -115,7 +115,7 @@ module Natalie
           args = s(:args, *args.map { |a| process(a) })
         end
         receiver = receiver ? process(receiver) : :self
-        return exp.new(:send, receiver, s(:intern, method), args, 'block') if method == :block_given?
+        return exp.new(:send, receiver, s(:intern, method), args, 'args.block()') if method == :block_given?
         call =
           if is_super == :zsuper
             exp.new(:super, nil)
@@ -275,7 +275,7 @@ module Natalie
         fn_name = temp("def_#{name}_")
         if args.last&.to_s&.start_with?('&')
           arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
+          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'args.block()'))
         end
         if args.any?
           args_name = temp('args_as_vector')
@@ -430,7 +430,7 @@ module Natalie
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
           arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:arg_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
+          block_arg = exp.new(:arg_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'args.block()'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')

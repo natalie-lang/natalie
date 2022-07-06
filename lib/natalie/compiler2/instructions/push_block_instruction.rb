@@ -8,7 +8,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:block, "ProcObject::from_block_maybe(block)")
+        transform.exec_and_push(:block, "ProcObject::from_block_maybe(args.block())")
       end
 
       def execute(vm)

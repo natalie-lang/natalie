@@ -55,7 +55,7 @@ Value HashObject::get_default(Env *env, Value key) {
         if (!key)
             return NilObject::the();
         Value args[] = { this, key };
-        return m_default_proc->call(env, Args(2, args), nullptr);
+        return m_default_proc->call(env, Args(2, args));
     } else {
         return m_default_value;
     }
@@ -523,12 +523,12 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
     return value;
 }
 
-Value HashObject::fetch_values(Env *env, Args args, Block *block) {
+Value HashObject::fetch_values(Env *env, Args args) {
     if (args.size() == 0) return new ArrayObject;
 
     auto array = new ArrayObject { args.size() };
     for (size_t i = 0; i < args.size(); ++i) {
-        array->push(fetch(env, args[i], nullptr, block));
+        array->push(fetch(env, args[i], nullptr, args.block()));
     }
     return array;
 }
@@ -650,11 +650,11 @@ bool HashObject::has_value(Env *env, Value value) {
     return false;
 }
 
-Value HashObject::merge(Env *env, Args args, Block *block) {
-    return dup(env)->as_hash()->merge_in_place(env, args, block);
+Value HashObject::merge(Env *env, Args args) {
+    return dup(env)->as_hash()->merge_in_place(env, args);
 }
 
-Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
+Value HashObject::merge_in_place(Env *env, Args args) {
     this->assert_not_frozen(env);
 
     for (size_t i = 0; i < args.size(); i++) {
@@ -667,11 +667,11 @@ Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
 
         for (auto node : *h->as_hash()) {
             auto new_value = node.val;
-            if (block) {
+            if (args.block()) {
                 auto old_value = get(env, node.key);
                 if (old_value) {
-                    Value args[3] = { node.key, old_value, new_value };
-                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(3, args), nullptr);
+                    Value block_args[3] = { node.key, old_value, new_value };
+                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, args.block(), Args(3, block_args), nullptr);
                 }
             }
             put(env, node.key, new_value);

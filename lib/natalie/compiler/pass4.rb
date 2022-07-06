@@ -154,7 +154,7 @@ module Natalie
         c << body.last
         fn = temp('fn')
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
-        top "Value #{fn}(Env *env, Value self, Args args, Block *block) {\n#{c.join(nl)}\n}"
+        top "Value #{fn}(Env *env, Value self, Args args) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, 'self->as_module()'), :env, s(:intern, name), fn, -1))
         "#{name.inspect}_s"
       end
@@ -529,13 +529,13 @@ module Natalie
         'Value { FalseObject::the() }'
       end
 
-      def process_fn(exp, arg_list = 6)
+      def process_fn(exp, arg_list = 5)
         _, name, body = exp
         in_decl_context do
           result = process_atom(body)
           fn = []
-          if arg_list == 6
-            fn << "Value #{name}(Env *env, Value self, Args args, Block *block) {"
+          if arg_list == 5
+            fn << "Value #{name}(Env *env, Value self, Args args) {"
           elsif arg_list == 2
             fn << "Value #{name}(Env *env, Value self) {"
           else
@@ -569,10 +569,10 @@ module Natalie
         if args
           args_name = process_args(args, block: block)
         else
-          args_name = 'Args()'
+          args_name = "Args(#{block})"
         end
         result_name = temp('call_result')
-        decl "Value #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_name}, #{block || 'nullptr'});"
+        decl "Value #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_name});"
         result_name
       end
 
@@ -617,10 +617,10 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name = process_args(args, block: block)
-          decl "Value #{result_name} = super(env, self, #{args_name}, #{block || 'nullptr'});"
+          decl "Value #{result_name} = super(env, self, #{args_name});"
         else
-          block = block && block != 'nullptr' ? block : 'block'
-          decl "Value #{result_name} = super(env, self, Args(args, #{block}), #{block});"
+          block = block && block != 'nullptr' ? block : 'args.block()'
+          decl "Value #{result_name} = super(env, self, Args(args, #{block}));"
         end
         result_name
       end

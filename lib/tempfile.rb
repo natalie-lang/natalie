@@ -19,13 +19,13 @@ class Tempfile
           auto file = new FileObject {};
           file->set_fileno(fileno);
           file->set_path(path_template);
-          if(block) {
+          if (args.block()) {
             Defer close_file([&]() {
               file->close(env);
               FileObject::unlink(env, new StringObject { path_template });
             });
             Value block_args[] = { file };
-            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
+            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, args.block(), Args(1, block_args), nullptr);
           } else {
             return file;
           }

@@ -779,7 +779,7 @@ void set_status_object(Env *env, int pid, int status) {
     env->global_set("$?"_s, status_obj);
 }
 
-Value super(Env *env, Value self, Args args, Block *block) {
+Value super(Env *env, Value self, Args args) {
     auto current_method = env->current_method();
     auto klass = self->singleton_class();
     if (!klass)
@@ -793,7 +793,7 @@ Value super(Env *env, Value self, Args args, Block *block) {
         }
     }
     assert(super_method != current_method);
-    return super_method->call(env, self, args, block);
+    return super_method->call(env, self, args);
 }
 
 void clean_up_and_exit(int status) {

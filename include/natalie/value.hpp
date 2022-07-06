@@ -83,16 +83,16 @@ public:
 
     operator bool() const { return !is_null(); }
 
-    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value public_send(Env *, SymbolObject *, Args = {});
 
     Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return public_send(env, name, Args(args), block);
+        return public_send(env, name, Args(args, block));
     }
 
-    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value send(Env *, SymbolObject *, Args = {});
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return send(env, name, Args(args), block);
+        return send(env, name, Args(args, block));
     }
 
     bool is_pointer() const {
