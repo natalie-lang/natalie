@@ -711,6 +711,26 @@ module Natalie
         instructions
       end
 
+      def transform_op_asgn_and(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = if variable.sexp_type == :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          transform_expression(assignment, used: true),
+          ElseInstruction.new(:if),
+          var_instruction,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_op_asgn1(exp, used:)
         _, obj, (_, *key_args), op, value = exp
         if op == :'||'
