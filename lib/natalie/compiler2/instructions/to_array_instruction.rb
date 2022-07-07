@@ -13,7 +13,14 @@ module Natalie
       end
 
       def execute(vm)
-        raise 'todo'
+        obj = vm.pop
+        if obj.is_a?(Array)
+          vm.push(obj.dup)
+        elsif obj.respond_to?(:to_ary)
+          vm.push(obj.to_ary.dup)
+        else
+          vm.push([obj])
+        end
       end
     end
   end
