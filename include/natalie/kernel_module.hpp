@@ -47,17 +47,17 @@ public:
     static Value get_usage(Env *env);
     static Value Hash(Env *env, Value value);
     static Value lambda(Env *env, Block *block);
-    static Value p(Env *env, size_t argc, Value *args);
-    static Value print(Env *env, size_t argc, Value *args);
+    static Value p(Env *env, Args args);
+    static Value print(Env *env, Args args);
     static Value proc(Env *env, Block *block);
-    static Value puts(Env *env, size_t argc, Value *args);
+    static Value puts(Env *env, Args args);
     static Value raise(Env *env, Value klass, Value message);
     static Value Rational(Env *env, Value x, Value y, Value kwargs);
     static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
     static RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
     static RationalObject *Rational(Env *env, double arg);
     static Value sleep(Env *env, Value length);
-    static Value spawn(Env *, size_t, Value *);
+    static Value spawn(Env *, Args);
     static Value String(Env *env, Value value);
     static Value this_method(Env *env);
     static bool block_given(Env *env, Block *block) { return !!block; }

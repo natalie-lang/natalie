@@ -209,7 +209,7 @@ module Natalie
             s(:c_not, klass),
             s(
               :block,
-              s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
+              s(:set, klass, s(:subclass, process(superclass), :env, s(:s, name))),
               s(:const_set, ns, s(:intern, name), klass),
             ),
           ),
@@ -283,8 +283,8 @@ module Natalie
           assign_args =
             s(
               :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'argc')), :'auto&'),
-              s(:args_to_vector, args_name, s(:l, 'argc'), s(:l, 'args')),
+              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'args.size()')), :'auto&'),
+              s(:args_to_vector, args_name, :args),
               process(method_args.set_args),
             )
           arity = method_args.arity
@@ -407,6 +407,7 @@ module Natalie
             .map { |(key, val)| s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val)) }
         exp.new(:block, s(:declare, hash, s(:new, :HashObject)), s(:block, *inserts), hash)
       end
+      alias process_bare_hash process_hash # TODO: handle this separately for keyword args
 
       def process_if(exp)
         _, condition, true_body, false_body = exp
@@ -449,7 +450,7 @@ module Natalie
             s(
               :block,
               s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto&'),
-              s(:block_args_to_vector, :env, args_name, args.size, s(:l, 'argc'), s(:l, 'args')),
+              s(:block_args_to_vector, :env, args_name, args.size, :args),
               process(method_args.set_args),
             )
           arity = method_args.arity
@@ -554,11 +555,11 @@ module Natalie
           end
         end
         if max == :unlimited
-          min.zero? ? s(:block) : s(:ensure_argc_at_least, :env, :argc, min)
+          min.zero? ? s(:block) : s(:ensure_argc_at_least, :args, :env, min)
         elsif min == max
-          s(:ensure_argc_is, :env, :argc, min)
+          s(:ensure_argc_is, :args, :env, min)
         else
-          s(:ensure_argc_between, :env, :argc, min, max)
+          s(:ensure_argc_between, :args, :env, min, max)
         end
       end
 
@@ -846,7 +847,11 @@ module Natalie
 
       def process_str(exp)
         _, str = exp
-        exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
+        if str.empty?
+          exp.new(:new, :StringObject)
+        else
+          exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
+        end
       end
 
       def process_struct(exp)

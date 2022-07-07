@@ -22,7 +22,7 @@ Value Value::floatingpoint(double value) {
         };                                                                                      \
         auto event_name = new ManagedString();                                                  \
         event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());                \
-        for (size_t i = 0; i < argc; ++i) {                                                     \
+        for (size_t i = 0; i < args.size(); ++i) {                                              \
             if (i > 0)                                                                          \
                 event_name->append_char(',');                                                   \
             event_name->append(classnameOf(args[i]));                                           \
@@ -38,40 +38,40 @@ Value Value::floatingpoint(double value) {
             NativeProfiler::the()->push(event->end_now());                                      \
     });
 
-Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND)
-    if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
-        if (argc > 0 && args[0].is_fast_integer())
-            args[0].guard();
-        auto synthesized = IntegerObject { m_integer };
-        return synthesized.public_send(env, name, argc, args, block);
-    }
-    if (m_type == Type::Double && FloatObject::optimized_method(name)) {
-        if (argc > 0 && args[0].is_fast_float())
-            args[0].guard();
-        auto synthesized = FloatObject { m_double };
-        return synthesized.public_send(env, name, argc, args, block);
+Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    if (m_type == Type::Integer) {
+        auto synthesized_receiver = IntegerObject { m_integer };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.public_send(env, name, args, block);
     }
 
-    return object()->public_send(env, name, argc, args, block);
+    if (m_type == Type::Double) {
+        auto synthesized_receiver = FloatObject { m_double };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.public_send(env, name, args, block);
+    }
+
+    return object()->public_send(env, name, args, block);
 }
 
-Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    PROFILED_SEND(NativeProfilerEvent::Type::SEND)
-    if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
-        if (argc > 0 && args[0].is_fast_integer())
-            args[0].guard();
-        auto synthesized = IntegerObject { m_integer };
-        return synthesized.send(env, name, argc, args, block);
-    }
-    if (m_type == Type::Double && FloatObject::optimized_method(name)) {
-        if (argc > 0 && args[0].is_fast_float())
-            args[0].guard();
-        auto synthesized = FloatObject { m_double };
-        return synthesized.send(env, name, argc, args, block);
+Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::SEND);
+
+    if (m_type == Type::Integer) {
+        auto synthesized_receiver = IntegerObject { m_integer };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.send(env, name, args, block);
     }
 
-    return object()->send(env, name, argc, args, block);
+    if (m_type == Type::Double) {
+        auto synthesized_receiver = FloatObject { m_double };
+        synthesized_receiver.add_synthesized_flag();
+        return synthesized_receiver.send(env, name, args, block);
+    }
+
+    return object()->send(env, name, args, block);
 }
 
 void Value::hydrate() {

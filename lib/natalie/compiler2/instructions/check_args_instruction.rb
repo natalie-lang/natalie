@@ -3,23 +3,26 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class CheckArgsInstruction < BaseInstruction
-      def initialize(positional:)
+      def initialize(positional:, args_array_on_stack: false)
         @positional = positional
+        @args_array_on_stack = args_array_on_stack
       end
 
       def to_s
-        "check_args positional: #{@positional.inspect}"
+        s = "check_args positional: #{@positional.inspect}"
+        s << ' (args array on stack)' if @args_array_on_stack
+        s
       end
 
       def generate(transform)
         case @positional
         when Integer
-          transform.exec("env->ensure_argc_is(argc, #{@positional})")
+          transform.exec("args.ensure_argc_is(env, #{@positional})")
         when Range
           if @positional.end
-            transform.exec("env->ensure_argc_between(argc, #{@positional.begin}, #{@positional.end})")
+            transform.exec("args.ensure_argc_between(env, #{@positional.begin}, #{@positional.end})")
           else
-            transform.exec("env->ensure_argc_at_least(argc, #{@positional.begin})")
+            transform.exec("args.ensure_argc_at_least(env, #{@positional.begin})")
           end
         else
           raise "unknown CheckArgsInstruction @positional type: #{@positional.inspect}"

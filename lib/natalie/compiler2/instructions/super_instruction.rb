@@ -19,8 +19,8 @@ module Natalie
         receiver = transform.pop
         if @args_array_on_stack
           args = transform.pop
-          arg_count = "#{args}->size()"
-          args_array_on_stack = "#{args}->data()"
+          arg_count = "#{args}->as_array()->size()"
+          args_array_on_stack = "#{args}->as_array()->data()"
         else
           arg_count = transform.pop
           args = []
@@ -29,7 +29,7 @@ module Natalie
           transform.exec "Value #{args_array_on_stack}[] = { #{args.join(', ')} };"
         end
         block = @with_block_pass ? "to_block(env, #{transform.pop})" : 'block'
-        transform.exec_and_push :super, "super(env, #{receiver}, #{arg_count}, #{args_array_on_stack}, #{block})"
+        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}), #{block})"
       end
 
       def execute(vm)

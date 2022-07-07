@@ -18,7 +18,7 @@ namespace ArrayPacker {
         Packer(ArrayObject *source, String directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
-            , m_encoding { Encoding::ASCII_8BIT } { }
+            , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } { }
 
         ~Packer() { delete m_directives; }
 
@@ -75,9 +75,9 @@ namespace ArrayPacker {
                     });
 
                     if (d == 'U')
-                        m_encoding = Encoding::UTF_8;
+                        m_encoding = EncodingObject::get(Encoding::UTF_8);
                     else
-                        m_encoding = Encoding::ASCII_8BIT;
+                        m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
 
                     break;
                 }
@@ -129,7 +129,7 @@ namespace ArrayPacker {
         ArrayObject *m_source;
         TM::Vector<Token> *m_directives;
         String m_packed {};
-        Encoding m_encoding;
+        EncodingObject *m_encoding;
         size_t m_index { 0 };
     };
 

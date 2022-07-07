@@ -1,3 +1,5 @@
+# test-compiler2
+
 require_relative '../spec_helper'
 
 class ArrayLike

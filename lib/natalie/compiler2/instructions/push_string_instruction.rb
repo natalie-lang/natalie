@@ -13,7 +13,11 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push('string', "Value(new StringObject(#{@string.inspect}, #{@length}))")
+        if @string.empty?
+          transform.exec_and_push('string', "Value(new StringObject)")
+        else
+          transform.exec_and_push('string', "Value(new StringObject(#{@string.inspect}, (size_t)#{@length}))")
+        end
       end
 
       def execute(vm)

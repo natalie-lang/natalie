@@ -134,7 +134,7 @@ describe "String#[]= with Integer index" do
     str.should == "ありがとう"
   end
 
-  # NATFIXME: Implement Encoding::US_ASCII
+  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
   xit "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
@@ -314,7 +314,7 @@ describe "String#[]= with a Regexp index" do
     str.should == "ありかとう"
   end
 
-  # NATFIXME: Implement Encoding::US_ASCII
+  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
   xit "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
@@ -437,7 +437,7 @@ describe "String#[]= with a Range index" do
     str.should == "ありがとう"
   end
 
-  # NATFIXME: Implement Encoding::US_ASCII
+  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
   xit "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
@@ -606,7 +606,7 @@ describe "String#[]= with Integer index, count" do
     -> { "あれ"[3, 0] = "り" }.should raise_error(IndexError)
   end
 
-  # NATFIXME: Implement Encoding::US_ASCII
+  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
   xit "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY

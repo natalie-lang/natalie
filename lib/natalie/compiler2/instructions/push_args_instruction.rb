@@ -3,9 +3,10 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class PushArgsInstruction < BaseInstruction
-      def initialize(for_block:, arity:)
+      def initialize(for_block:, min_count:, max_count:)
         @for_block = for_block
-        @arity = arity
+        @min_count = min_count
+        @max_count = max_count
       end
 
       def to_s
@@ -16,15 +17,15 @@ module Natalie
 
       def generate(transform)
         args = transform.temp('args')
-        if @for_block && @arity > 1
-          transform.exec_and_push(:args, "argc == 1 ? to_ary(env, args[0], true)->dup(env) : new ArrayObject(argc, args)")
+        if @for_block
+          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1})")
         else
-          transform.exec_and_push(:args, "new ArrayObject(argc, args)")
+          transform.exec_and_push(:args, 'args.to_array()')
         end
       end
 
       def execute(vm)
-        if @for_block && @arity > 1 && vm.args.size == 1
+        if @for_block && @max_count > 1 && vm.args.size == 1
           if vm.args.first.is_a?(Array)
             vm.push(vm.args.first.dup)
           elsif vm.args.first.respond_to?(:to_ary)

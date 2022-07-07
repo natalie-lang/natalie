@@ -24,8 +24,7 @@ extern "C" Object *EVAL(Env *env) {
     volatile bool run_exit_handlers = true;
 
     // kinda hacky, but needed for top-level begin/rescue
-    size_t argc = 0;
-    Value *args = nullptr;
+    Args args;
     Block *block = nullptr;
 
     try {

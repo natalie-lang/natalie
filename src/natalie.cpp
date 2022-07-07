@@ -35,7 +35,9 @@ Env *build_top_env() {
     global_env->set_Module(Module);
     Object->const_set("Module"_s, Module);
     Class->set_superclass_DANGEROUSLY(Module);
-    Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
+    auto class_singleton_class = new ClassObject { Module->singleton_class() };
+    Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, new ManagedString("#<Class:Class>"));
+    Class->set_singleton_class(class_singleton_class);
 
     ModuleObject *Kernel = new ModuleObject { "Kernel" };
     Object->const_set("Kernel"_s, Kernel);
@@ -80,7 +82,7 @@ Env *build_top_env() {
     for (auto name : old_integer_constants) {
         Object->const_set(name->as_symbol(), Integer);
     }
-    Object->deprecate_constant(env, 2, old_integer_constants);
+    Object->deprecate_constant(env, Args(2, old_integer_constants));
 
     ClassObject *Float = Numeric->subclass(env, "Float", Object::Type::Float);
     global_env->set_Float(Float);
@@ -159,11 +161,15 @@ Env *build_top_env() {
     ClassObject *Encoding = GlobalEnv::the()->Object()->subclass(env, "Encoding");
     Object->const_set("Encoding"_s, Encoding);
 
-    EncodingObject *EncodingAscii8Bit = new EncodingObject { Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
+    Value EncodingAscii8Bit = new Ascii8BitEncodingObject {};
     Encoding->const_set("ASCII_8BIT"_s, EncodingAscii8Bit);
     Encoding->const_set("BINARY"_s, EncodingAscii8Bit);
 
-    Value EncodingUTF8 = new EncodingObject { Encoding::UTF_8, { "UTF-8" } };
+    Value EncodingUsAscii = new UsAsciiEncodingObject {};
+    Encoding->const_set("US_ASCII"_s, EncodingUsAscii);
+    Encoding->const_set("ASCII"_s, EncodingUsAscii);
+
+    Value EncodingUTF8 = new Utf8EncodingObject {};
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
 
     Value Process = new ModuleObject { "Process" };
@@ -178,7 +184,6 @@ Env *build_top_env() {
     env->global_set("$NAT_at_exit_handlers"_s, new ArrayObject {});
 
     auto main_obj = new Natalie::Object {};
-    main_obj->add_main_object_flag();
     GlobalEnv::the()->set_main_obj(main_obj);
 
     Value _stdin = new IoObject { STDIN_FILENO };
@@ -273,7 +278,7 @@ void run_at_exit_handlers(Env *env) {
         Value proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
-        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, nullptr, nullptr);
+        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), {}, nullptr);
     }
 }
 
@@ -533,40 +538,32 @@ Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value d
     return value;
 }
 
-ArrayObject *args_to_array(Env *env, size_t argc, Value *args) {
-    ArrayObject *ary = new ArrayObject { argc };
-    for (size_t i = 0; i < argc; i++) {
+ArrayObject *args_to_array(Env *env, Args args) {
+    ArrayObject *ary = new ArrayObject { args.size() };
+    for (size_t i = 0; i < args.size(); i++) {
         ary->push(args[i]);
     }
     return ary;
 }
 
-ArrayObject *args_to_array(Env *env, TM::Vector<Value> &args) {
-    ArrayObject *ary = new ArrayObject { args.size() };
-    for (auto val : args) {
-        ary->push(val);
-    }
-    return ary;
-}
-
-void args_to_vector(TM::Vector<Value> &target, size_t argc, Value *args) {
-    target.set_capacity(argc);
-    for (size_t i = 0; i < argc; ++i) {
+void args_to_vector(TM::Vector<Value> &target, Args args) {
+    target.set_capacity(args.size());
+    for (size_t i = 0; i < args.size(); ++i) {
         target.push(args[i]);
     }
 }
 
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args) {
-    if (argc == 1 && signature_size > 1) {
+ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args) {
+    if (args.size() == 1 && signature_size > 1) {
         return to_ary(env, args[0], true);
     }
-    return args_to_array(env, argc, args);
+    return args_to_array(env, args);
 }
 
-void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, size_t argc, Value *args) {
-    if (argc == 1 && signature_size > 1) {
+void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args) {
+    if (args.size() == 1 && signature_size > 1) {
         auto ary = to_ary(env, args[0], true);
         target.set_capacity(ary->size());
         for (size_t i = 0; i < ary->size(); ++i) {
@@ -574,17 +571,17 @@ void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_
         }
         return;
     }
-    args_to_vector(target, argc, args);
+    args_to_vector(target, args);
 }
 
-void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...) {
+void arg_spread(Env *env, Args args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
     size_t len = strlen(arrangement);
     size_t arg_index = 0;
     bool optional = false;
     for (size_t i = 0; i < len; i++) {
-        if (arg_index >= argc && optional)
+        if (arg_index >= args.size() && optional)
             break;
         char c = arrangement[i];
         switch (c) {
@@ -593,14 +590,14 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
             break;
         case 'o': {
             Object **obj_ptr = va_arg(va_args, Object **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Object *obj = args[arg_index++].object();
             *obj_ptr = obj;
             break;
         }
         case 'i': {
             int *int_ptr = va_arg(va_args, int *);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj->assert_type(env, Object::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_nat_int_t();
@@ -608,7 +605,7 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
         }
         case 's': {
             const char **str_ptr = va_arg(va_args, const char **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             if (obj == NilObject::the()) {
                 *str_ptr = nullptr;
@@ -620,14 +617,14 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
         }
         case 'b': {
             bool *bool_ptr = va_arg(va_args, bool *);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
         }
         case 'v': {
             void **void_ptr = va_arg(va_args, void **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
+            if (arg_index >= args.size()) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", args.size(), arg_index + 1);
             Value obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr"_s);
             assert(obj->type() == Object::Type::VoidP);
@@ -645,6 +642,10 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
 std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
     if (lhs->respond_to(env, coerce_symbol)) {
+        if (lhs->is_synthesized())
+            lhs = lhs->dup(env);
+        if (rhs->is_synthesized())
+            rhs = rhs->dup(env);
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
             if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)
@@ -778,7 +779,7 @@ void set_status_object(Env *env, int pid, int status) {
     env->global_set("$?"_s, status_obj);
 }
 
-Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {
+Value super(Env *env, Value self, Args args, Block *block) {
     auto current_method = env->current_method();
     auto klass = self->singleton_class();
     if (!klass)
@@ -792,7 +793,7 @@ Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {
         }
     }
     assert(super_method != current_method);
-    return super_method->call(env, self, argc, args, block);
+    return super_method->call(env, self, args, block);
 }
 
 void clean_up_and_exit(int status) {

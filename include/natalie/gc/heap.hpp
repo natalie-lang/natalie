@@ -70,7 +70,8 @@ public:
         m_gc_enabled = false;
     }
 
-    void dump();
+    size_t total_allocations() const;
+    void dump() const;
 
     template <typename F>
     auto with_gc_disabled(F func) {

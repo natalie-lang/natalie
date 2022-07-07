@@ -46,6 +46,8 @@ class VoidPObject;
 
 class Value;
 
-using MethodFnPtr = Value (*)(Env *, Value, size_t, Value *, Block *);
+class Args;
+
+using MethodFnPtr = Value (*)(Env *, Value, Args, Block *);
 
 }

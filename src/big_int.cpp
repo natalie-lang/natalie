@@ -1379,7 +1379,7 @@ BigInt BigInt::c_mod(const BigInt &num) const {
 BigInt BigInt::operator%(const BigInt &num) const {
     BigInt remainder = c_mod(num);
 
-    if (num.sign != remainder.sign)
+    if (remainder != 0 && num.sign != remainder.sign)
         remainder += num;
 
     return remainder;

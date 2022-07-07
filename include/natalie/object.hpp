@@ -23,11 +23,23 @@ public:
     using Type = ObjectType;
 
     enum Flag {
-        MainObject = 1,
-        Frozen = 2,
-        Break = 4,
-        Redo = 8,
-        Inspecting = 16,
+        // set on an object that cannot be modified --
+        // note that Integer and Float are always frozen,
+        // even if this flag is not set
+        Frozen = 1,
+
+        // set on an object returned from a block to signal
+        // that `break` was called
+        Break = 2,
+
+        // set on an object returned from a block to signal
+        // that `redo` was called
+        Redo = 4,
+
+        // set on an object to signal it only lives for a short time
+        // on the stack, and not to capture it anywhere
+        // (don't store in variables, arrays, hashes)
+        Synthesized = 8,
     };
 
     enum class Conversion {
@@ -68,17 +80,23 @@ public:
         m_singleton_class = other.m_singleton_class;
         m_owner = other.m_owner;
         m_flags = other.m_flags;
-        m_ivars = std::move(other.m_ivars);
+        m_ivars = other.m_ivars;
+        other.m_type = Type::Nil;
+        other.m_singleton_class = nullptr;
+        other.m_owner = nullptr;
+        other.m_flags = 0;
+        other.m_ivars = nullptr;
         return *this;
     }
 
     virtual ~Object() override {
         m_type = ObjectType::Nil;
+        delete m_ivars;
     }
 
     static Value create(Env *, ClassObject *);
-    static Value _new(Env *, Value, size_t, Value *, Block *);
-    static Value allocate(Env *, Value, size_t, Value *, Block *);
+    static Value _new(Env *, Value, Args, Block *);
+    static Value allocate(Env *, Value, Args, Block *);
 
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }
@@ -158,9 +176,11 @@ public:
     ClassObject *singleton_class() const { return m_singleton_class; }
     ClassObject *singleton_class(Env *);
 
+    ClassObject *subclass(Env *env, const char *name);
+
     void set_singleton_class(ClassObject *);
 
-    Value extend(Env *, size_t, Value *);
+    Value extend(Env *, Args);
     void extend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
@@ -179,19 +199,19 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *);
     virtual Value cvar_set(Env *, SymbolObject *, Value);
 
-    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int arity);
+    virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
     virtual SymbolObject *undefine_method(Env *, SymbolObject *);
 
-    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int);
+    SymbolObject *define_singleton_method(Env *, SymbolObject *, MethodFnPtr, int, bool = false);
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
     Value main_obj_define_method(Env *, Value, Value, Block *);
 
-    virtual Value private_method(Env *, size_t, Value *);
-    virtual Value protected_method(Env *, size_t, Value *);
-    virtual Value module_function(Env *, size_t, Value *);
+    virtual Value private_method(Env *, Args);
+    virtual Value protected_method(Env *, Args);
+    virtual Value module_function(Env *, Args);
 
     void private_method(Env *, SymbolObject *);
     void protected_method(Env *, SymbolObject *);
@@ -210,18 +230,18 @@ public:
         return new ManagedString(buf);
     }
 
-    Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
-    Value public_send(Env *, size_t, Value *, Block *);
+    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value public_send(Env *, Args, Block *);
 
-    Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
-    Value send(Env *, size_t, Value *, Block *);
+    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value send(Env *, Args, Block *);
 
     Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return send(env, name, args.size(), const_cast<Value *>(data(args)), block);
+        return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, size_t, Value *, Block *, MethodVisibility);
-    Value method_missing(Env *, size_t, Value *, Block *);
+    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
+    Value method_missing(Env *, Args, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
@@ -238,11 +258,13 @@ public:
 
     virtual ProcObject *to_proc(Env *);
 
-    bool is_main_object() const { return (m_flags & Flag::MainObject) == Flag::MainObject; }
-    void add_main_object_flag() { m_flags = m_flags | Flag::MainObject; }
+    bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
-    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
     void freeze() { m_flags = m_flags | Flag::Frozen; }
+    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+
+    void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
+    bool is_synthesized() const { return (m_flags & Flag::Synthesized) == Flag::Synthesized; }
 
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
@@ -251,10 +273,6 @@ public:
     void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
-
-    void add_inspecting_flag() { m_flags = m_flags | Flag::Inspecting; }
-    void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
-    bool has_inspecting_flag() const { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
 
     bool eq(Env *, Value other) {
         return other == this;
@@ -270,7 +288,7 @@ public:
 
     const ManagedString *inspect_str(Env *);
 
-    Value enum_for(Env *env, const char *method, size_t argc = 0, Value *args = nullptr);
+    Value enum_for(Env *env, const char *method, Args args = {});
 
     virtual void visit_children(Visitor &visitor) override;
 
@@ -291,7 +309,7 @@ private:
     ModuleObject *m_owner { nullptr };
     int m_flags { 0 };
 
-    TM::Hashmap<SymbolObject *, Value> m_ivars {};
+    TM::Hashmap<SymbolObject *, Value> *m_ivars { nullptr };
 };
 
 }

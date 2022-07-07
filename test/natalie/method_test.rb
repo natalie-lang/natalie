@@ -1,3 +1,5 @@
+# test-compiler2
+
 require_relative '../spec_helper'
 
 def foo
@@ -438,6 +440,7 @@ describe 'method with keyword args' do
     method_with_kwargs8(a: 1).should == [1, nil]
     method_with_kwargs9.should == [1, 2]
     method_with_kwargs9('a').should == ['a', 2]
+    method_with_kwargs9({ b: 'b' }).should == [{ b: 'b' }, 2] if compiler2?
     method_with_kwargs9(b: 'b').should == [1, 'b']
     method_with_kwargs9('a', b: 'b').should == %w[a b]
     method_with_kwargs10(b: 'b').should == [1]

@@ -1,3 +1,4 @@
+require_relative './arity'
 require_relative './base_pass'
 require_relative './args'
 require_relative './multiple_assignment'
@@ -9,9 +10,19 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast)
+      def initialize(ast, inline_cpp_enabled:)
         @ast = ast
+        @inline_cpp_enabled = inline_cpp_enabled
       end
+
+      INLINE_CPP_MACROS = %i[
+        __inline__
+        __define_method__
+        __cxx_flags__
+        __ld_flags__
+        __function__
+        __constant__
+      ].freeze
 
       # pass used: true to leave the final result on the stack
       def transform(used: true)
@@ -134,7 +145,11 @@ module Natalie
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
 
-        if receiver == nil && message == :lambda && args.empty?
+        if @inline_cpp_enabled && receiver.nil? && INLINE_CPP_MACROS.include?(message)
+          return [InlineCppInstruction.new(exp)]
+        end
+
+        if receiver.nil? && message == :lambda && args.empty?
           # NOTE: We need Kernel#lambda to behave just like the stabby
           # lambda (->) operator so we can attach the "break point" to
           # it. I realize this is a bit of a hack and if someone wants
@@ -144,8 +159,16 @@ module Natalie
           return transform_lambda(exp.new(:lambda), used: used)
         end
 
-        instructions, block, args_array_on_stack = transform_call_args(args)
-        with_block = true if block
+        if receiver.nil? && message == :block_given? && !with_block
+          return [
+            PushBlockInstruction.new,
+            transform_call(exp, used: used, with_block: true),
+          ]
+        end
+
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        with_block ||= call_args.fetch(:with_block_pass)
 
         if receiver.nil?
           instructions << PushSelfInstruction.new
@@ -153,7 +176,15 @@ module Natalie
           instructions << transform_expression(receiver, used: true)
         end
 
-        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: receiver.nil?, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: receiver.nil?,
+          with_block: with_block,
+          has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          file: exp.file,
+          line: exp.line,
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -168,15 +199,29 @@ module Natalie
 
         if args.any? { |a| a.sexp_type == :splat }
           instructions << transform_array_with_splat(args)
-          return [instructions, block, :args_array_on_stack]
+          return {
+            instructions: instructions,
+            with_block_pass: !!block,
+            args_array_on_stack: true,
+            has_keyword_hash: false, # TODO
+          }
         end
 
         args.each do |arg|
           instructions << transform_expression(arg, used: true)
         end
+
+        last_instruction = instructions.flatten.last
+        has_keyword_hash = last_instruction.is_a?(CreateHashInstruction) && last_instruction.bare?
+
         instructions << PushArgcInstruction.new(args.size)
 
-        [instructions, block]
+        {
+          instructions: instructions,
+          with_block_pass: !!block,
+          args_array_on_stack: false,
+          has_keyword_hash: has_keyword_hash,
+        }
       end
 
       def transform_case(exp, used:)
@@ -291,7 +336,7 @@ module Natalie
 
       def transform_def(exp, used:)
         _, name, args, *body = exp
-        arity = args.size - 1 # FIXME: way more complicated than this :-)
+        arity = Arity.new(args, is_proc: false).arity
         instructions = [
           DefineMethodInstruction.new(name: name, arity: arity),
           transform_defn_args(args, used: true),
@@ -313,8 +358,6 @@ module Natalie
         return [] unless used
         _, *args = exp
 
-        arity = args.size # FIXME: need a way more complicated calculation
-
         instructions = []
 
         if args.last.is_a?(Symbol) && args.last.start_with?('&')
@@ -323,11 +366,16 @@ module Natalie
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
-        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
-        may_need_to_destructure_args_for_block = for_block && arity > 1
+        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
+        may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
-          instructions << PushArgsInstruction.new(for_block: for_block, arity: arity)
+          min_count = minimum_arg_count(args)
+          max_count = maximum_arg_count(args)
+          unless for_block
+            instructions << CheckArgsInstruction.new(positional: min_count..max_count)
+          end
+          instructions << PushArgsInstruction.new(for_block: for_block, min_count: min_count, max_count: max_count)
           instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
           return instructions
         end
@@ -337,7 +385,7 @@ module Natalie
         end
 
         args.each_with_index do |name, index|
-          instructions << PushArgInstruction.new(index)
+          instructions << PushArgInstruction.new(index, nil_default: for_block)
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
 
@@ -446,7 +494,16 @@ module Natalie
         _, *items = exp
         raise 'odd number of hash items' if items.size.odd?
         instructions = items.map { |item| transform_expression(item, used: true) }
-        instructions << CreateHashInstruction.new(count: items.size / 2)
+        instructions << CreateHashInstruction.new(count: items.size / 2, bare: false)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_bare_hash(exp, used:)
+        _, *items = exp
+        raise 'odd number of hash items' if items.size.odd?
+        instructions = items.map { |item| transform_expression(item, used: true) }
+        instructions << CreateHashInstruction.new(count: items.size / 2, bare: true)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -476,7 +533,8 @@ module Natalie
 
       def transform_iter(exp, used:)
         _, call, args, body = exp
-        arity = args.size - 1 # FIXME: way more complicated than this :-)
+        is_lambda = is_lambda_call?(call)
+        arity = Arity.new(args, is_proc: !is_lambda).arity
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
         instructions << transform_block_args(args, used: true)
@@ -681,8 +739,8 @@ module Natalie
       def transform_safe_call(exp, used:)
         _, receiver, message, *args = exp
 
-        instructions, block, args_array_on_stack = transform_call_args(args)
-        with_block = true if block
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
 
         instructions << transform_expression(receiver, used: true)
         instructions << DupInstruction.new
@@ -690,7 +748,14 @@ module Natalie
         instructions << IfInstruction.new
         instructions << PushNilInstruction.new
         instructions << ElseInstruction.new(:if)
-        instructions << SendInstruction.new(message, args_array_on_stack: args_array_on_stack, receiver_is_self: false, with_block: with_block, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: false,
+          with_block: call_args.fetch(:with_block_pass),
+          file: exp.file,
+          line: exp.line,
+        )
         instructions << EndInstruction.new(:if)
         instructions << PopInstruction.new unless used
         instructions
@@ -727,9 +792,13 @@ module Natalie
 
       def transform_super(exp, used:)
         _, *args = exp
-        instructions, block, args_array_on_stack = transform_call_args(args)
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
         instructions << PushSelfInstruction.new
-        instructions << SuperInstruction.new(args_array_on_stack: args_array_on_stack, with_block_pass: block)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          with_block_pass: call_args.fetch(:with_block_pass),
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -806,7 +875,7 @@ module Natalie
       def transform_zsuper(exp, used:)
         _, *args = exp
         instructions = []
-        instructions << PushArgsInstruction.new(for_block: false, arity: 0)
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << PushSelfInstruction.new
         instructions << SuperInstruction.new(args_array_on_stack: true, with_block_pass: false)
         instructions << PopInstruction.new unless used
@@ -835,6 +904,28 @@ module Natalie
         instructions.each_with_index do |instruction, index|
           desc = "#{index} #{instruction}"
           puts desc
+        end
+      end
+
+      def is_lambda_call?(exp)
+        exp == s(:lambda) || exp == s(:call, nil, :lambda)
+      end
+
+      def minimum_arg_count(args)
+        args.count do |arg|
+          (arg.is_a?(Symbol) && arg !~ /^&|^\*/) ||
+            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+        end
+      end
+
+      def maximum_arg_count(args)
+        if args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('*') && !arg.start_with?('**') }
+          # splat, no maximum
+          return nil
+        end
+
+        args.count do |arg|
+          !arg.is_a?(Symbol) || !arg.start_with?('&')
         end
       end
     end

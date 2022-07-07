@@ -127,7 +127,7 @@ public:
     Value prev_float(Env *) const;
     Value round(Env *, Value);
     Value sub(Env *, Value);
-    Value to_f() { return this; }
+    Value to_f() const { return Value::floatingpoint(m_double); }
     Value to_i(Env *) const;
     Value to_s(Env *) const;
     Value truncate(Env *, Value);
@@ -160,13 +160,11 @@ public:
         klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
-    static bool optimized_method(SymbolObject *);
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FloatObject %p float=%f>", this, m_double);
     }
 
 private:
-    inline static Hashmap<SymbolObject *> s_optimized_methods {};
     inline static FloatObject *s_nan { nullptr };
 
     double m_double { 0.0 };

@@ -17,14 +17,12 @@ describe "Encoding.aliases" do
     end
   end
 
-  # NATFIXME: add back once we add the ASCII encoding
-  xit "has alias names as its keys" do
+  it "has alias names as its keys" do
     Encoding.aliases.key?('BINARY').should be_true
     Encoding.aliases.key?('ASCII').should be_true
   end
 
-  # NATFIXME: add back once we add the ASCII encoding
-  xit "has the names of the aliased encoding as its values" do
+  it "has the names of the aliased encoding as its values" do
     Encoding.aliases['BINARY'].should == 'ASCII-8BIT'
     Encoding.aliases['ASCII'].should == 'US-ASCII'
   end

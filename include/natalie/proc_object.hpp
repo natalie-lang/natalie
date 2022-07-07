@@ -33,6 +33,12 @@ public:
         assert(m_block);
     }
 
+    ProcObject(ProcObject &other)
+        : Object { other }
+        , m_block { other.m_block }
+        , m_type { other.m_type }
+        , m_break_point { other.m_break_point } { }
+
     static Value from_block_maybe(Block *block) {
         if (!block) {
             return NilObject::the();
@@ -49,7 +55,7 @@ public:
         return this;
     }
 
-    Value call(Env *, size_t = 0, Value * = nullptr, Block * = nullptr);
+    Value call(Env *, Args = {}, Block * = nullptr);
 
     Env *env() { return m_block->env(); }
 

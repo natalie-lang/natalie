@@ -17,8 +17,7 @@ describe "Integer#chr without argument" do
   end
 
   describe "when Encoding.default_internal is nil" do
-    # NATFIXME: Implement Encoding::US_ASCII
-    xdescribe "and self is between 0 and 127 (inclusive)" do
+    describe "and self is between 0 and 127 (inclusive)" do
       it "returns a US-ASCII String" do
         (0..127).each do |c|
           c.chr.encoding.should == Encoding::US_ASCII
@@ -61,15 +60,15 @@ describe "Integer#chr without argument" do
       Encoding.default_internal = @default_internal
     end
 
-    # NATFIXME: Implement Encoding::US_ASCII and Encoding::SHIFT_JIS
-    xdescribe "and self is between 0 and 127 (inclusive)" do
+    describe "and self is between 0 and 127 (inclusive)" do
       it "returns a US-ASCII String" do
         (0..127).each do |c|
           Encoding.default_internal = Encoding::UTF_8
           c.chr.encoding.should == Encoding::US_ASCII
 
-          Encoding.default_internal = Encoding::SHIFT_JIS
-          c.chr.encoding.should == Encoding::US_ASCII
+          # NATFIXME: Implement Encoding::SHIFT_JIS
+          #Encoding.default_internal = Encoding::SHIFT_JIS
+          #c.chr.encoding.should == Encoding::US_ASCII
         end
       end
 
@@ -78,8 +77,9 @@ describe "Integer#chr without argument" do
           Encoding.default_internal = Encoding::UTF_8
           c.chr.bytes.to_a.should == [c]
 
-          Encoding.default_internal = Encoding::SHIFT_JIS
-          c.chr.bytes.to_a.should == [c]
+          # NATFIXME: Implement Encoding::SHIFT_JIS
+          #Encoding.default_internal = Encoding::SHIFT_JIS
+          #c.chr.bytes.to_a.should == [c]
         end
       end
     end
@@ -134,7 +134,7 @@ describe "Integer#chr without argument" do
       # NATFIXME: Implement various encodings
       # #5864
       it "raises RangeError if self is invalid as a codepoint in the default internal encoding" do
-        [ #[0x0100, "US-ASCII"],
+        [ [0x0100, "US-ASCII"],
           [0x0100, "BINARY"],
           #[0x0100, "EUC-JP"],
           #[0xA1A0, "EUC-JP"],
@@ -180,10 +180,10 @@ describe "Integer#chr with an encoding argument" do
     -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
   end
 
-  # NATFIXME: Add Encoding::US_ASCII and Encoding::SHIFT_JIS
+  # NATFIXME: Add Encoding::SHIFT_JIS
   it "returns a String with the specified encoding" do
-    # 0x0000.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
-    # 0x007F.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
+    0x0000.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
+    0x007F.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
 
     0x0000.chr(Encoding::BINARY).encoding.should == Encoding::BINARY
     0x007F.chr(Encoding::BINARY).encoding.should == Encoding::BINARY
@@ -205,10 +205,10 @@ describe "Integer#chr with an encoding argument" do
     # 0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
   end
 
-  # NATFIXME: Add Encoding::US_ASCII and Encoding::SHIFT_JIS
+  # NATFIXME: Add Encoding::SHIFT_JIS
   it "returns a String encoding self interpreted as a codepoint in the specified encoding" do
-    # 0x0000.chr(Encoding::US_ASCII).bytes.to_a.should == [0x00]
-    # 0x007F.chr(Encoding::US_ASCII).bytes.to_a.should == [0x7F]
+    0x0000.chr(Encoding::US_ASCII).bytes.to_a.should == [0x00]
+    0x007F.chr(Encoding::US_ASCII).bytes.to_a.should == [0x7F]
 
     0x0000.chr(Encoding::BINARY).bytes.to_a.should == [0x00]
     0x007F.chr(Encoding::BINARY).bytes.to_a.should == [0x7F]
@@ -217,11 +217,10 @@ describe "Integer#chr with an encoding argument" do
 
     0x0000.chr(Encoding::UTF_8).bytes.to_a.should == [0x00]
     0x007F.chr(Encoding::UTF_8).bytes.to_a.should == [0x7F]
-    # NATFIXME: Implement multibyte characters
-    # 0x0080.chr(Encoding::UTF_8).bytes.to_a.should == [0xC2, 0x80]
-    # 0x00FF.chr(Encoding::UTF_8).bytes.to_a.should == [0xC3, 0xBF]
-    # 0x0100.chr(Encoding::UTF_8).bytes.to_a.should == [0xC4, 0x80]
-    # 0x3000.chr(Encoding::UTF_8).bytes.to_a.should == [0xE3, 0x80, 0x80]
+    0x0080.chr(Encoding::UTF_8).bytes.to_a.should == [0xC2, 0x80]
+    0x00FF.chr(Encoding::UTF_8).bytes.to_a.should == [0xC3, 0xBF]
+    0x0100.chr(Encoding::UTF_8).bytes.to_a.should == [0xC4, 0x80]
+    0x3000.chr(Encoding::UTF_8).bytes.to_a.should == [0xE3, 0x80, 0x80]
 
     # 0x0000.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x00]
     # 0x007F.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x7F]
@@ -235,7 +234,7 @@ describe "Integer#chr with an encoding argument" do
   # NATFIXME: Implement invalid codepoint detection
   # #5864
   xit "raises RangeError if self is invalid as a codepoint in the specified encoding" do
-    [ #[0x80,   "US-ASCII"],
+    [ [0x80,   "US-ASCII"],
       [0x0100, "BINARY"],
       # [0x0100, "EUC-JP"],
       # [0xA1A0, "EUC-JP"],

@@ -16,6 +16,7 @@ Value Env::global_get(SymbolObject *name) {
 }
 
 Value Env::global_set(SymbolObject *name, Value val) {
+    NAT_ASSERT_NOT_SYNTHESIZED(val);
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
@@ -143,24 +144,6 @@ void Env::warn(const ManagedString *message) {
     _stderr.send(this, "puts"_s, { new StringObject { message } });
 }
 
-void Env::ensure_argc_is(size_t argc, size_t expected) {
-    if (argc != expected) {
-        raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, expected);
-    }
-}
-
-void Env::ensure_argc_between(size_t argc, size_t expected_low, size_t expected_high) {
-    if (argc < expected_low || argc > expected_high) {
-        raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{})", argc, expected_low, expected_high);
-    }
-}
-
-void Env::ensure_argc_at_least(size_t argc, size_t expected) {
-    if (argc < expected) {
-        raise("ArgumentError", "wrong number of arguments (given {}, expected {}+)", argc, expected);
-    }
-}
-
 void Env::ensure_block_given(Block *block) {
     if (!block) {
         raise("ArgumentError", "called without a block");
@@ -226,6 +209,8 @@ Value Env::var_get(const char *key, size_t index) {
 }
 
 Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
+    NAT_ASSERT_NOT_SYNTHESIZED(val);
+
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;
     if (needed > current_size) {

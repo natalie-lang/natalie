@@ -14,9 +14,9 @@ HashObject *EncodingObject::aliases(Env *env) {
         if (names.size() < 2)
             continue;
 
-        auto original = names[0]->dup(env);
+        auto original = new StringObject { names[0] };
         for (size_t i = 1; i < names.size(); ++i)
-            aliases->put(env, names[i]->dup(env), original);
+            aliases->put(env, new StringObject { names[i] }, original);
     }
     return aliases;
 }
@@ -35,11 +35,11 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
 }
 
 EncodingObject *EncodingObject::find(Env *env, Value name) {
+    auto string = name->as_string()->to_low_level_string();
     for (auto value : *list(env)) {
         auto encoding = value->as_encoding();
         for (auto encodingName : encoding->m_names) {
-            auto string = name->as_string();
-            if (strcasecmp(string->c_str(), encodingName->c_str()) == 0)
+            if (encodingName.casecmp(string) == 0)
                 return encoding;
         }
     }
@@ -48,43 +48,46 @@ EncodingObject *EncodingObject::find(Env *env, Value name) {
 
 ArrayObject *EncodingObject::list(Env *) {
     Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
-    return new ArrayObject {
-        Encoding->const_fetch("ASCII_8BIT"_s),
-        Encoding->const_fetch("UTF_8"_s)
-    };
+    auto ary = new ArrayObject {};
+    for (auto pair : s_encoding_list)
+        ary->push(pair.second);
+    assert(ary->size() == EncodingCount);
+    return ary;
 }
 
-EncodingObject::EncodingObject(Encoding num, std::initializer_list<const char *> names)
+EncodingObject::EncodingObject(Encoding num, std::initializer_list<const String> names)
     : EncodingObject {} {
     assert(s_encoding_list.get(num) == nullptr);
     m_num = num;
-    for (const char *name : names) {
-        m_names.push(new StringObject { name });
-    }
+    for (auto name : names)
+        m_names.push(name);
     s_encoding_list.put(num, this);
 }
 
 Value EncodingObject::name(Env *env) {
-    return m_names[0]->dup(env);
+    return new StringObject { m_names[0] };
+}
+
+const StringObject *EncodingObject::name() const {
+    return new StringObject { m_names[0] };
 }
 
 ArrayObject *EncodingObject::names(Env *env) {
     auto array = new ArrayObject { m_names.size() };
-    for (auto name : m_names) {
-        array->push(name);
-    }
+    for (auto name : m_names)
+        array->push(new StringObject { name });
     return array;
 }
 
-Value EncodingObject::inspect(Env *env) {
-    return StringObject::format("#<Encoding:{}>", name());
+void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const String &string, size_t index) const {
+    StringObject *message = StringObject::format("invalid byte sequence at index {} in string of size {} (string not long enough)", index, string.size());
+    ClassObject *InvalidByteSequenceError = find_nested_const(env, { "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
+    ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };
+    env->raise_exception(exception);
 }
 
-void EncodingObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    for (auto name : m_names) {
-        visitor.visit(name);
-    }
+Value EncodingObject::inspect(Env *env) const {
+    return StringObject::format("#<Encoding:{}>", name());
 }
 
 }

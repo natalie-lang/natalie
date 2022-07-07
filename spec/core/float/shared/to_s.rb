@@ -288,7 +288,7 @@ describe :float_to_s, shared: true do
   end
 
   # NATFIXME: Support different encodings
-  xdescribe 'encoding' do
+  describe 'encoding' do
     before :each do
       @internal = Encoding.default_internal
     end
@@ -303,7 +303,9 @@ describe :float_to_s, shared: true do
     end
 
     it "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
-      Encoding.default_internal = Encoding::IBM437
+      # NATFIXME: implement Encoding::IBM437
+      #Encoding.default_internal = Encoding::IBM437
+      Encoding.default_internal = Encoding::ASCII_8BIT
       5.47.send(@method).encoding.should equal(Encoding::US_ASCII)
     end
   end

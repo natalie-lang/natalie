@@ -93,13 +93,13 @@ module Gtk3
 
   class << self
     def init
-      __inline__ 'gtk_init(0, nullptr);'
+      __inline__ 'gtk_init({});'
     end
 
     __define_method__ :window_new, <<-END
-      env->ensure_argc_is(argc, 1);
+      args.ensure_argc_is(env, 1);
       int type;
-      arg_spread(env, argc, args, "i", &type);
+      arg_spread(env, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
       ClassObject *Window = self->const_fetch("Window"_s)->as_class();
       Object *window_wrapper = new Object { Window };
@@ -109,26 +109,26 @@ module Gtk3
     END
 
     __define_method__ :widget_show_all, <<-END
-      env->ensure_argc_is(argc, 1);
+      args.ensure_argc_is(env, 1);
       GtkWidget *gtk_window;
-      arg_spread(env, argc, args, "v", &gtk_window);
+      arg_spread(env, args, "v", &gtk_window);
       gtk_widget_show_all(gtk_window);
       return NilObject::the();
     END
 
     __define_method__ :window_set_title, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *gtk_window;
       char *title;
-      arg_spread(env, argc, args, "vs", &gtk_window, &title);
+      arg_spread(env, args, "vs", &gtk_window, &title);
       gtk_window_set_title(GTK_WINDOW(gtk_window), title);
       return NilObject::the();
     END
 
     __define_method__ :box_new, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       int orientation, spacing;
-      arg_spread(env, argc, args, "ii", &orientation, &spacing);
+      arg_spread(env, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
       ClassObject *Box = self->const_fetch("Box"_s)->as_class();
       Object *box_wrapper = new Object { Box };
@@ -138,17 +138,17 @@ module Gtk3
     END
 
     __define_method__ :container_add, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *gtk_window, *gtk_container;
-      arg_spread(env, argc, args, "vv", &gtk_window, &gtk_container);
+      arg_spread(env, args, "vv", &gtk_window, &gtk_container);
       gtk_container_add(GTK_CONTAINER(gtk_window), gtk_container);
       return NilObject::the();
     END
 
     __define_method__ :image_new_from_file, <<-END
-      env->ensure_argc_is(argc, 1);
+      args.ensure_argc_is(env, 1);
       char *filename;
-      arg_spread(env, argc, args, "s", &filename);
+      arg_spread(env, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
       ClassObject *Image = self->const_fetch("Image"_s)->as_class();
       Object *image_wrapper = new Object { Image };
@@ -158,35 +158,35 @@ module Gtk3
     END
 
     __define_method__ :box_pack_start, <<-END
-      env->ensure_argc_is(argc, 5);
+      args.ensure_argc_is(env, 5);
       GtkWidget *gtk_box, *gtk_child;
       bool expand, fill;
       int padding;
-      arg_spread(env, argc, args, "vvbbi", &gtk_box, &gtk_child, &expand, &fill, &padding);
+      arg_spread(env, args, "vvbbi", &gtk_box, &gtk_child, &expand, &fill, &padding);
       gtk_box_pack_start(GTK_BOX(gtk_box), gtk_child, expand, fill, padding);
       return NilObject::the();
     END
 
     __define_method__ :widget_set_halign, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *gtk_widget;
       int align;
-      arg_spread(env, argc, args, "vi", &gtk_widget, &align);
+      arg_spread(env, args, "vi", &gtk_widget, &align);
       gtk_widget_set_halign(gtk_widget, (GtkAlign)align);
       return NilObject::the();
     END
 
     __define_method__ :widget_set_valign, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *gtk_widget;
       int align;
-      arg_spread(env, argc, args, "vi", &gtk_widget, &align);
+      arg_spread(env, args, "vi", &gtk_widget, &align);
       gtk_widget_set_valign(gtk_widget, (GtkAlign)align);
       return NilObject::the();
     END
 
     __define_method__ :label_new, <<-END
-      env->ensure_argc_is(argc, 1);
+      args.ensure_argc_is(env, 1);
       GtkWidget *gtk_label;
       if (args[0]->is_nil()) {
           gtk_label = gtk_label_new(nullptr);
@@ -202,18 +202,18 @@ module Gtk3
     END
 
     __define_method__ :label_set_markup, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *gtk_label;
       char *markup;
-      arg_spread(env, argc, args, "vs", &gtk_label, &markup);
+      arg_spread(env, args, "vs", &gtk_label, &markup);
       gtk_label_set_markup(GTK_LABEL(gtk_label), markup);
       return NilObject::the();
     END
 
     __define_method__ :button_new_with_label, <<-END
-      env->ensure_argc_is(argc, 1);
+      args.ensure_argc_is(env, 1);
       char *label;
-      arg_spread(env, argc, args, "s", &label);
+      arg_spread(env, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
       ClassObject *Button = self->const_fetch("Button"_s)->as_class();
       Object *button_wrapper = new Object { Button };
@@ -223,20 +223,20 @@ module Gtk3
     END
 
     __define_method__ :container_set_border_width, <<-END
-      env->ensure_argc_is(argc, 2);
+      args.ensure_argc_is(env, 2);
       GtkWidget *container;
       int width;
-      arg_spread(env, argc, args, "vi", &container, &width);
+      arg_spread(env, args, "vi", &container, &width);
       gtk_container_set_border_width(GTK_CONTAINER(container), width);
       return NilObject::the();
     END
 
     __define_method__ :g_signal_connect, <<-END
-      env->ensure_argc_is(argc, 3);
+      args.ensure_argc_is(env, 3);
       GObject *instance;
       char *signal;
       Object *callback;
-      arg_spread(env, argc, args, "vso", &instance, &signal, &callback);
+      arg_spread(env, args, "vso", &instance, &signal, &callback);
       g_signal_connect(instance, signal, G_CALLBACK(gtk3_signal_callback), callback);
       return NilObject::the();
     END

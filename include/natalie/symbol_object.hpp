@@ -32,7 +32,7 @@ public:
 
     virtual ProcObject *to_proc(Env *) override;
 
-    static Value to_proc_block_fn(Env *, Value, size_t, Value *, Block *);
+    static Value to_proc_block_fn(Env *, Value, Args, Block *);
 
     Value cmp(Env *, Value);
 

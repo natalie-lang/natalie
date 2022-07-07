@@ -22,40 +22,51 @@ public:
 
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
-        , m_encoding { Encoding::ASCII_8BIT } { }
+        , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
+        assert(m_encoding);
+    }
 
     StringObject()
         : StringObject { "" } { }
 
     StringObject(const char *str)
-        : Object { Object::Type::String, GlobalEnv::the()->String() } {
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
         set_str(str);
     }
 
-    StringObject(const char *str, Encoding encoding)
+    StringObject(const char *str, EncodingObject *encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
+        assert(m_encoding);
         set_str(str);
     }
 
     StringObject(const char *str, size_t length)
-        : Object { Object::Type::String, GlobalEnv::the()->String() } {
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
         set_str(str, length);
     }
 
     StringObject(const StringObject &other)
         : Object { other } {
         set_str(other.c_str(), other.length());
+        set_encoding(other.encoding());
     }
 
     StringObject(const String &str)
-        : Object { Object::Type::String, GlobalEnv::the()->String() } {
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
         m_string = str;
     }
 
-    StringObject(const String &str, Encoding encoding)
+    StringObject(const String &str, EncodingObject *encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
+        assert(m_encoding);
         m_string = str;
     }
 
@@ -66,7 +77,6 @@ public:
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
     size_t capacity() const { return m_string.capacity(); }
-    Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {
         m_string.set_str(str);
@@ -76,7 +86,9 @@ public:
         m_string.set_str(str, length);
     }
 
-    void set_encoding(Encoding encoding) { m_encoding = encoding; }
+    bool valid_encoding() const;
+    EncodingObject *encoding() const { return m_encoding; }
+    void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
 
     void prepend_char(Env *, char);
 
@@ -98,7 +110,7 @@ public:
         va_end(args);
     }
 
-    char *next_char(Env *, char *, size_t *);
+    String next_char(Env *, size_t *) const;
     Value each_char(Env *, Block *);
     ArrayObject *chars(Env *);
 
@@ -148,7 +160,7 @@ public:
     }
 
     bool internal_start_with(Env *, Value) const;
-    bool start_with(Env *, size_t, Value *) const;
+    bool start_with(Env *, Args) const;
     bool end_with(Env *, Value) const;
     bool is_empty() const { return m_string.is_empty(); }
 
@@ -163,11 +175,10 @@ public:
     Value chomp(Env *, Value);
     Value clear(Env *);
     Value cmp(Env *, Value) const;
-    Value concat(Env *env, size_t argc, Value *args);
+    Value concat(Env *env, Args args);
     Value downcase(Env *);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
-    Value encoding(Env *);
     bool eq(Env *, Value arg);
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
@@ -179,7 +190,7 @@ public:
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);
-    Value prepend(Env *, size_t, Value *);
+    Value prepend(Env *, Args);
     Value ref(Env *, Value);
     Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);
@@ -238,9 +249,7 @@ private:
 
     using Object::Object;
 
-    void raise_encoding_invalid_byte_sequence_error(Env *, size_t) const;
-
     String m_string {};
-    Encoding m_encoding { Encoding::UTF_8 };
+    EncodingObject *m_encoding { nullptr };
 };
 }

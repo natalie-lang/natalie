@@ -34,30 +34,10 @@ public:
 
     bool is_undefined() const { return m_undefined; }
 
-    Value call(Env *env, Value self, size_t argc, Value *args, Block *block) {
-        assert(!is_undefined());
-        Env *closure_env;
-        if (has_env()) {
-            closure_env = this->env();
-        } else {
-            closure_env = m_owner->env();
-        }
-        Env e { closure_env };
-        e.set_caller(env);
-        e.set_method(this);
-        e.set_file(env->file());
-        e.set_line(env->line());
-        e.set_block(block);
-        Value result;
-        if (block && !block->calling_env()) {
-            block->set_calling_env(env);
-            result = m_fn(&e, self, argc, args, block);
-            block->clear_calling_env();
-        } else {
-            result = m_fn(&e, self, argc, args, block);
-        }
-        return result;
-    }
+    bool is_optimized() const { return m_optimized; }
+    void set_optimized(bool optimized) { m_optimized = optimized; }
+
+    Value call(Env *env, Value self, Args args, Block *block);
 
     ManagedString *name() const { return new ManagedString(m_name); }
     ModuleObject *owner() const { return m_owner; }
@@ -80,5 +60,6 @@ private:
     int m_arity { 0 };
     Env *m_env { nullptr };
     bool m_undefined { false };
+    bool m_optimized { false };
 };
 }

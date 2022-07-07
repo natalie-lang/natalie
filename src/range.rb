@@ -61,6 +61,73 @@ class Range
   end
   alias === cover?
 
+  def max(n = nil)
+    raise RangeError, 'cannot get the maximum of endless range' unless self.end
+
+    if block_given?
+      raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' unless self.begin
+
+      return super
+    end
+
+    if n
+      return last(n)
+    end
+
+    # If end is not a numeric and the range excludes it's end, we cannot calculate the max value without iterating
+    if exclude_end? && !self.end.is_a?(Numeric)
+      return super
+    end
+
+    max =
+      if exclude_end?
+        raise TypeError, 'cannot exclude end value with non Integer begin value' unless self.begin
+
+        if self.end.is_a?(Integer)
+          self.end - 1
+        else
+          raise TypeError, 'cannot exclude non Integer end value'
+        end
+      else
+        self.end
+      end
+
+    if !self.begin || (max == self.begin || (self.begin <=> max) == -1)
+      max
+    end
+  end
+
+  def min(n = nil)
+    raise RangeError, 'cannot get the minimum of beginless range' unless self.begin
+
+    if block_given?
+      raise RangeError, 'cannot get the minimum of endless range with custom comparison method' unless self.end
+
+      return super
+    end
+
+    if n
+      return first(n)
+    end
+
+    min = first
+    return min if !self.end
+
+    if exclude_end?
+      return min if min < self.end
+    else
+      return min if min == self.end || (min <=> self.end) == -1
+    end
+  end
+
+  def minmax(&block)
+    if block_given?
+      return super
+    end
+
+    [min, max]
+  end
+
   def size
     return Float::INFINITY if self.begin.nil?
     return unless self.begin.is_a?(Numeric)

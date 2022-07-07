@@ -46,7 +46,8 @@ public:
 
     ClassObject *subclass(Env *, const ManagedString *, Type);
 
-    void initialize_subclass(ClassObject *, Env *, const ManagedString *, Type);
+    void initialize_subclass(ClassObject *, Env *, const ManagedString *, Optional<Type> = {});
+    void initialize_subclass_without_checks(ClassObject *, Env *, const ManagedString *, Optional<Type> = {});
 
     static ClassObject *bootstrap_class_class(Env *);
     static ClassObject *bootstrap_basic_object(Env *, ClassObject *);
