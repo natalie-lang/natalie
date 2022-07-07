@@ -204,6 +204,8 @@ public:
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
+    Value delete_prefix(Env *, Value);
+    Value delete_prefix_in_place(Env *, Value);
 
     Value convert_float();
 

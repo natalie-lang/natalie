@@ -1284,4 +1284,27 @@ bool StringObject::valid_encoding() const {
     return true;
 }
 
+Value StringObject::delete_prefix(Env *env, Value val) {
+    val->assert_type(env, Object::Type::String, "String");
+    auto arg_len = val->as_string()->length();
+    Value args[] = { val };
+
+    if (start_with(env, Args(1, args))) {
+        auto after_delete = new StringObject { c_str() + arg_len, length() - arg_len };
+        return after_delete;
+    }
+
+    StringObject *copy = dup(env)->as_string();
+    return copy;
+}
+
+Value StringObject::delete_prefix_in_place(Env *env, Value val) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *delete_prefix(env, val)->as_string();
+
+    if (*this == *copy) { return Value(NilObject::the()); }
+    return this;
+}
+
 }
