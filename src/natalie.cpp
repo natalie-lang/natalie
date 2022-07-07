@@ -350,6 +350,19 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
     return new ArrayObject { obj };
 }
 
+ArrayObject *to_ary_for_masgn(Env *env, Value obj) {
+    if (obj->is_array())
+        return obj->dup(env)->as_array();
+
+    if (obj->respond_to(env, "to_ary"_s)) {
+        auto array = obj.send(env, "to_ary"_s);
+        if (array->is_array())
+            return array->dup(env)->as_array();
+    }
+
+    return new ArrayObject { obj };
+}
+
 static Value splat_value(Env *env, Value value, size_t index, size_t offset_from_end, bool has_kwargs) {
     ArrayObject *splat = new ArrayObject {};
     if (!value->is_array())
