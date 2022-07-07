@@ -236,93 +236,93 @@ describe 'assignment' do
     a.foo.should == 2
   end
 
-  #it 'assigns instance variables' do
-    #@a, b = 1, 2
-    #@a.should == 1
-    #b.should == 2
-  #end
+  it 'assigns instance variables' do
+    @a, b = 1, 2
+    @a.should == 1
+    b.should == 2
+  end
 
-  #it 'assigns global variables' do
-    #a, $b = 1, 2
-    #a.should == 1
-    #$b.should == 2
-  #end
+  it 'assigns global variables' do
+    a, $b = 1, 2
+    a.should == 1
+    $b.should == 2
+  end
 
-  #it 'assigns constants' do
-    #a, Foo = 1, 2
-    #a.should == 1
-    #Foo.should == 2
-  #end
+  it 'assigns constants' do
+    a, Foo = 1, 2
+    a.should == 1
+    Foo.should == 2
+  end
 
-  #it 'does nested multiple assignment from an array' do
-    #(s, t), u = [[1, 2], 3]
-    #s.should == 1
-    #t.should == 2
-    #u.should == 3
-    #(a, (b, c)), d, (e, (f, g)) = [[10, 20], 30, [[40, 50], 60]]
-    #a.should == 10
-    #b.should == 20
-    #c.should == nil
-    #d.should == 30
-    #e.should == [40, 50]
-    #f.should == 60
-    #g.should == nil
-    #x, y, z = [[4, 5], 6, 7]
-    #x.should == [4, 5]
-    #y.should == 6
-    #z.should == 7
-  #end
+  it 'does nested multiple assignment from an array' do
+    (s, t), u = [[1, 2], 3]
+    s.should == 1
+    t.should == 2
+    u.should == 3
+    (a, (b, c)), d, (e, (f, g)) = [[10, 20], 30, [[40, 50], 60]]
+    a.should == 10
+    b.should == 20
+    c.should == nil
+    d.should == 30
+    e.should == [40, 50]
+    f.should == 60
+    g.should == nil
+    x, y, z = [[4, 5], 6, 7]
+    x.should == [4, 5]
+    y.should == 6
+    z.should == 7
+  end
 
-  #it 'does nested multiple assignment of instance variables, globals, and constants' do
-    #(s, @t), ($u, Apple) = [[1, 2], [3, 4]]
-    #s.should == 1
-    #@t.should == 2
-    #$u.should == 3
-    #Apple.should == 4
-  #end
+  it 'does nested multiple assignment of instance variables, globals, and constants' do
+    (s, @t), ($u, Apple) = [[1, 2], [3, 4]]
+    s.should == 1
+    @t.should == 2
+    $u.should == 3
+    Apple.should == 4
+  end
 
-  #it 'does not destructure another type of object' do
-    #one_two = CanRefIndex.new([1, 2])
-    #one_two_three = CanRefIndex.new([one_two, 3])
-    #(a, b), c = one_two_three
-    #a.should == one_two_three
-    #b.should == nil
-    #c.should == nil
+  it 'does not destructure another type of object' do
+    one_two = CanRefIndex.new([1, 2])
+    one_two_three = CanRefIndex.new([one_two, 3])
+    (a, b), c = one_two_three
+    a.should == one_two_three
+    b.should == nil
+    c.should == nil
 
-    #one_two = ArrayLike.new([1, 2])
-    #(s, t), u = ArrayLike.new([one_two, 3])
-    #s.should == one_two
-    #t.should == 3
-    #u.should == nil
-  #end
+    one_two = ArrayLike.new([1, 2])
+    (s, t), u = ArrayLike.new([one_two, 3])
+    s.should == one_two
+    t.should == 3
+    u.should == nil
+  end
 
-  #it 'destructures splat variables at the end' do
-    #(a, *@b), *c = [[1, 2, 3], 4, 5]
-    #a.should == 1
-    #@b.should == [2, 3]
-    #c.should == [4, 5]
-  #end
+  it 'destructures splat variables at the end' do
+    (a, *@b), *c = [[1, 2, 3], 4, 5]
+    a.should == 1
+    @b.should == [2, 3]
+    c.should == [4, 5]
+  end
 
-  #it 'destructures splat variables at the beginning' do
-    #(*a, b), c = [[1, 2, 3], 4]
-    #a.should == [1, 2]
-    #b.should == 3
-  #end
+  it 'destructures splat variables at the beginning' do
+    (*a, b), c = [[1, 2, 3], 4]
+    a.should == [1, 2]
+    b.should == 3
+  end
 
-  #it 'destructures splat variables in the middle' do
-    #(a, *b, c), d = [[1, 2, 3, 4, 5], 6]
-    #a.should == 1
-    #b.should == [2, 3, 4]
-    #c.should == 5
-    #d.should == 6
-  #end
+  it 'destructures splat variables in the middle' do
+    (a, *b, c), d = [[1, 2, 3, 4, 5], 6]
+    a.should == 1
+    b.should == [2, 3, 4]
+    c.should == 5
+    d.should == 6
+  end
 
-  #it 'handles nameless splat' do
-    #a, *, c = [1, 4]
-    #a.should == 1
-    #c.should == 4
-    #a, *, c = [1, 2, 3, 4]
-    #a.should == 1
-    #c.should == 4
-  #end
+  it 'handles nameless splat' do
+    a, *, c = [1, 4]
+    a.should == 1
+    c.should == 4
+    a, *, c = [1, 2, 3, 4]
+    a.should == 1
+    c.should == 4
+  end
 end
