@@ -1,3 +1,5 @@
+require_relative './arg_consumer'
+
 module Natalie
   class Compiler2
     class MultipleAssignment
@@ -5,20 +7,29 @@ module Natalie
         @pass = pass
         @file = file
         @line = line
+        @consumer = ArgConsumer.new
       end
 
       def transform(exp)
-        @from_side = :left
         @instructions = []
-        _, *@args = exp
-        while @args.any?
-          arg = @from_side == :left ? @args.shift : @args.pop
-          if transform_arg(arg) == :reverse
-            @from_side = { left: :right, right: :left }.fetch(@from_side)
-          end
+        @consumer.consume(exp) do |arg|
+          transform_arg(arg)
         end
         clean_up
       end
+
+      #def transform(exp)
+        #@from_side = :left
+        #@instructions = []
+        #_, *@args = exp
+        #while @args.any?
+          #arg = @from_side == :left ? @args.shift : @args.pop
+          #if transform_arg(arg) == :reverse
+            #@from_side = { left: :right, right: :left }.fetch(@from_side)
+          #end
+        #end
+        #clean_up
+      #end
 
       private
 
@@ -97,7 +108,7 @@ module Natalie
       end
 
       def shift_or_pop_next_arg
-        if @from_side == :left
+        if @consumer.from_side == :left
           @instructions << ArrayShiftInstruction.new
         else
           @instructions << ArrayPopInstruction.new
@@ -105,7 +116,7 @@ module Natalie
       end
 
       def shift_or_pop_next_arg_with_default
-        if @from_side == :left
+        if @consumer.from_side == :left
           @instructions << ArrayShiftWithDefaultInstruction.new
         else
           @instructions << ArrayPopWithDefaultInstruction.new

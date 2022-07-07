@@ -1,8 +1,25 @@
-require_relative './multiple_assignment'
-
 module Natalie
   class Compiler2
-    class Args < MultipleAssignment
+    class Args
+      def initialize(pass, file:, line:)
+        @pass = pass
+        @file = file
+        @line = line
+      end
+
+      def transform(exp)
+        @from_side = :left
+        @instructions = []
+        _, *@args = exp
+        while @args.any?
+          arg = @from_side == :left ? @args.shift : @args.pop
+          if transform_arg(arg) == :reverse
+            @from_side = { left: :right, right: :left }.fetch(@from_side)
+          end
+        end
+        clean_up
+      end
+
       private
 
       def transform_arg(arg)
@@ -42,6 +59,11 @@ module Natalie
         @args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('**') }
       end
 
+      def transform_required_arg(arg)
+        shift_or_pop_next_arg
+        @instructions << variable_set(arg)
+      end
+
       def transform_optional_arg(arg)
         if remaining_required_args.any?
           # we cannot steal a value that might be needed to fulfill a required arg that follows
@@ -78,6 +100,15 @@ module Natalie
         @instructions << variable_set(name)
       end
 
+      def transform_destructured_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << DupInstruction.new
+        @instructions << ToArrayInstruction.new
+        sub_processor = self.class.new(@pass, file: @file, line: @line)
+        @instructions << sub_processor.transform(arg)
+        @instructions << PopInstruction.new
+      end
+
       def transform_splat_arg(arg)
         name = arg[1..-1]
         if name.empty?
@@ -107,6 +138,22 @@ module Natalie
         VariableSetInstruction.new(name, local_only: true)
       end
 
+      def shift_or_pop_next_arg
+        if @from_side == :left
+          @instructions << ArrayShiftInstruction.new
+        else
+          @instructions << ArrayPopInstruction.new
+        end
+      end
+
+      def shift_or_pop_next_arg_with_default
+        if @from_side == :left
+          @instructions << ArrayShiftWithDefaultInstruction.new
+        else
+          @instructions << ArrayPopWithDefaultInstruction.new
+        end
+      end
+
       def move_keyword_arg_hash_from_args_array_to_stack
         return if @keyword_arg_hash_on_stack
         @instructions << ArrayPopKeywordArgsInstruction.new
@@ -120,7 +167,7 @@ module Natalie
 
       def clean_up
         clean_up_keyword_args
-        super
+        @instructions << PopInstruction.new
       end
     end
   end
