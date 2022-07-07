@@ -1,6 +1,7 @@
+require_relative './args'
 require_relative './arity'
 require_relative './base_pass'
-require_relative './args'
+require_relative './const_prepper'
 require_relative './multiple_assignment'
 require_relative './rescue'
 
@@ -993,17 +994,8 @@ module Natalie
       # returns a pair of [name, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
       def constant_name(name)
-        if name.is_a?(Symbol)
-          [name, PushSelfInstruction.new]
-        elsif name.sexp_type == :colon2
-          _, namespace, name = name
-          [name, transform_expression(namespace, used: true)]
-        elsif name.sexp_type == :colon3
-          _, name = name
-          [name, PushObjectClassInstruction.new]
-        else
-          raise "Unknown constant name type #{name.sexp_type.inspect}"
-        end
+        prepper = ConstPrepper.new(name, pass: self)
+        [prepper.name, prepper.namespace]
       end
 
       def self.debug_instructions(instructions)

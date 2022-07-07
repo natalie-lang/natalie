@@ -18,27 +18,23 @@ module Natalie
         clean_up
       end
 
-      #def transform(exp)
-        #@from_side = :left
-        #@instructions = []
-        #_, *@args = exp
-        #while @args.any?
-          #arg = @from_side == :left ? @args.shift : @args.pop
-          #if transform_arg(arg) == :reverse
-            #@from_side = { left: :right, right: :left }.fetch(@from_side)
-          #end
-        #end
-        #clean_up
-      #end
-
       private
 
       def transform_arg(arg)
         if arg.is_a?(Sexp)
           case arg.sexp_type
+          when :cdecl
+            _, name = arg
+            transform_constant(name)
+          when :iasgn
+            _, name = arg
+            transform_instance_variable(name)
+          when :gasgn
+            _, name = arg
+            transform_global_variable(name)
           when :lasgn
             _, name = arg
-            transform_required_arg(name)
+            transform_variable(name)
           when :masgn
             _, names_array = arg
             transform_destructured_arg(names_array)
@@ -78,6 +74,8 @@ module Natalie
       end
 
       def transform_splat_arg(arg)
+        return :reverse if arg.nil? # nameless splat
+
         case arg.sexp_type
         when :gasgn
           _, name = arg
@@ -99,12 +97,30 @@ module Natalie
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
         end
+
         :reverse
       end
 
-      def transform_required_arg(arg)
+      def transform_constant(name)
         shift_or_pop_next_arg
-        @instructions << variable_set(arg)
+        name, prep_instruction = constant_name(name)
+        @instructions << prep_instruction
+        @instructions << ConstSetInstruction.new(name)
+      end
+
+      def transform_global_variable(name)
+        shift_or_pop_next_arg
+        @instructions << GlobalVariableSetInstruction.new(name)
+      end
+
+      def transform_instance_variable(name)
+        shift_or_pop_next_arg
+        @instructions << InstanceVariableSetInstruction.new(name)
+      end
+
+      def transform_variable(name)
+        shift_or_pop_next_arg
+        @instructions << variable_set(name)
       end
 
       def shift_or_pop_next_arg
@@ -121,6 +137,13 @@ module Natalie
         else
           @instructions << ArrayPopWithDefaultInstruction.new
         end
+      end
+
+      # returns a pair of [name, prep_instruction]
+      # prep_instruction being the instruction(s) needed to get the owner of the constant
+      def constant_name(name)
+        prepper = ConstPrepper.new(name, pass: self)
+        [prepper.name, prepper.namespace]
       end
 
       def variable_set(name)
