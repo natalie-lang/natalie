@@ -35,8 +35,8 @@ module Natalie
             _, name = arg
             transform_splat_arg(name)
           when :attrasgn
-            _, receiver, message = arg
-            transform_attr_assign_arg(receiver, message)
+            _, receiver, message, *args = arg
+            transform_attr_assign_arg(receiver, message, args)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
@@ -45,9 +45,13 @@ module Natalie
         end
       end
 
-      def transform_attr_assign_arg(receiver, message)
+      def transform_attr_assign_arg(receiver, message, args)
         shift_or_pop_next_arg
-        @instructions << PushArgcInstruction.new(1)
+        if args.any?
+          args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) }
+          @instructions << MoveRelInstruction.new(args.size) # move value after args
+        end
+        @instructions << PushArgcInstruction.new(args.size + 1)
         @instructions << @pass.transform_expression(receiver, used: true)
         @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
         @instructions << PopInstruction.new
@@ -55,8 +59,11 @@ module Natalie
 
       def transform_destructured_arg(arg)
         @instructions << ArrayShiftInstruction.new
+        @instructions << DupInstruction.new
+        @instructions << ToArrayInstruction.new
         sub_processor = self.class.new(@pass, file: @file, line: @line)
         @instructions << sub_processor.transform(arg)
+        @instructions << PopInstruction.new
       end
 
       def transform_splat_arg(arg)
@@ -90,7 +97,11 @@ module Natalie
       end
 
       def shift_or_pop_next_arg
-        @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
+        if @from_side == :left
+          @instructions << ArrayShiftInstruction.new
+        else
+          @instructions << ArrayPopInstruction.new
+        end
       end
 
       def shift_or_pop_next_arg_with_default

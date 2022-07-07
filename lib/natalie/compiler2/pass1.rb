@@ -606,11 +606,18 @@ module Natalie
         #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
         #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
         _, names_array, values = exp
+
         raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
         raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary splat].include?(values.sexp_type)
+
+        # We don't actually want to use a simple to_ary.
+        # Our ToArrayInstruction is a little more special.
+        values = values.last if values.sexp_type == :to_ary
+
         instructions = [
           transform_expression(values, used: true),
-          DupObjectInstruction.new,
+          DupInstruction.new,
+          ToArrayInstruction.new,
           MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array)
         ]
         instructions << PopInstruction.new unless used
@@ -663,6 +670,26 @@ module Natalie
         instructions
       end
 
+      def transform_op_asgn_and(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = if variable.sexp_type == :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          transform_expression(assignment, used: true),
+          ElseInstruction.new(:if),
+          var_instruction,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_op_asgn_or(exp, used:)
         _, variable, assignment = exp
         var_instruction = if variable.sexp_type == :lvar
@@ -685,25 +712,104 @@ module Natalie
 
       def transform_op_asgn1(exp, used:)
         _, obj, (_, *key_args), op, value = exp
-        instructions = [
-          key_args.map { |arg| transform_expression(arg, used: true) },
-          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
-          PushArgcInstruction.new(key_args.size),
-          transform_expression(obj, used: true),
-          SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
-          DupInstruction.new,
-          IfInstruction.new,
-          key_args.map { PopInstruction.new }, # didn't need the extra key(s) after all :-)
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          transform_expression(value, used: true),
-          PushArgcInstruction.new(key_args.size + 1),
-          transform_expression(obj, used: true),
-          SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
-          EndInstruction.new(:if),
-        ]
+        if op == :'||'
+          instructions = [
+            key_args.map { |arg| transform_expression(arg, used: true) },
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+            PushArgcInstruction.new(key_args.size),
+            transform_expression(obj, used: true),
+            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            DupInstruction.new,
+            IfInstruction.new,
+            key_args.map { PopInstruction.new }, # didn't need the extra key(s) after all :-)
+            ElseInstruction.new(:if),
+            PopInstruction.new,
+            transform_expression(value, used: true),
+            PushArgcInstruction.new(key_args.size + 1),
+            transform_expression(obj, used: true),
+            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            EndInstruction.new(:if),
+          ]
+        else
+          instructions = [
+            # old_value = obj[key]
+            transform_expression(obj, used: true),
+            key_args.map { |arg| transform_expression(arg, used: true) },
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+            PushArgcInstruction.new(key_args.size),
+            DupRelInstruction.new(key_args.size * 2 + 1),
+            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            # new_value = old_value + value
+            transform_expression(value, used: true),
+            PushArgcInstruction.new(1),
+            MoveRelInstruction.new(2),
+            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            # obj[key] = new_value
+            PushArgcInstruction.new(key_args.size + 1),
+            MoveRelInstruction.new(key_args.size + 2),
+            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ]
+          # a[b] += 1
+          #
+          # 0 push_argc 0
+          # 1 push_self
+          # 2 send :a to self        [a]
+          # 3 dup                    [a, a]
+          # 4 push_argc 0
+          # 5 push_self
+          # 6 send :b to self        [a, a, b]
+          # 7 dup_rel 0              [a, a, b, b]
+          # 8 push_argc 1
+          # 9 push_argc 0
+          # 10 push_self
+          # 11 send :a to self
+          # 12 send :[]
+          # 13 push_int 1
+          # 14 swap
+          # 15 push_argc 1
+          # 16 swap
+          # 17 send :+
+          # 18 push_argc 2
+          # 19 swap
+          # 20 send :[]=
+        end
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_op_asgn2(exp, used:)
+        _, obj, writer, op, *val_args = exp
+        raise 'expected writer=' unless writer =~ /=$/
+        reader = writer.to_s.chop
+        if op == :'||'
+          raise 'todo'
+        else
+          # given: obj.foo += 2
+          instructions = [
+            # obj
+            transform_expression(obj, used: true),
+
+            # 2
+            val_args.map { |arg| transform_expression(arg, used: true) },
+
+            # temp = obj.foo
+            PushArgcInstruction.new(0),
+            DupRelInstruction.new(2),
+            SendInstruction.new(reader, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
+            # result = temp + 2
+            PushArgcInstruction.new(val_args.size),
+            SwapInstruction.new,
+            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
+            # obj.foo = result
+            PushArgcInstruction.new(1),
+            DupRelInstruction.new(2),
+            SendInstruction.new(writer, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ]
+          instructions << PopInstruction.new unless used
+          instructions
+        end
       end
 
       def transform_or(exp, used:)

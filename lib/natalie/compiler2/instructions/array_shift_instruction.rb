@@ -9,11 +9,7 @@ module Natalie
 
       def generate(transform)
         ary = transform.peek
-        unless ary =~ /^array/
-          transform.exec_and_push(:array, "to_ary(env, #{transform.pop}, true)")
-          ary = transform.peek
-        end
-        transform.exec_and_push(:first_item_of_array, "#{ary}->shift()")
+        transform.exec_and_push(:first_item_of_array, "#{ary}->as_array()->shift()")
       end
 
       def execute(vm)

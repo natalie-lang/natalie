@@ -47,12 +47,14 @@ module Natalie
 
       def generate(transform)
         receiver = transform.pop
+        raise "bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}" unless receiver.is_a?(String) || receiver.is_a?(String)
 
         if @args_array_on_stack
           args = "#{transform.pop}->as_array()"
           args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
         else
           arg_count = transform.pop
+          raise "bad argc #{arg_count.inspect} for SendInstruction #{@message.inspect}" unless arg_count.is_a?(Integer)
           args = []
           arg_count.times { args.unshift transform.pop }
           args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
