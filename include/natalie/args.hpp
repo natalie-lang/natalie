@@ -34,9 +34,13 @@ public:
 
     Args(Args &&other)
         : m_size { other.m_size }
-        , m_data { other.m_data } {
+        , m_data { other.m_data }
+        , m_has_keyword_hash { other.m_has_keyword_hash }
+        , m_array { other.m_array } {
         other.m_size = 0;
         other.m_data = nullptr;
+        other.m_has_keyword_hash = false;
+        other.m_array = nullptr;
     }
 
     Args &operator=(const Args &other);
@@ -56,7 +60,6 @@ public:
     void ensure_argc_at_least(Env *env, size_t expected) const;
 
     size_t size() const { return m_size; }
-
     const Value *data() const { return m_data; }
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
@@ -65,19 +68,9 @@ private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
     void *operator new(size_t size) { TM_UNREACHABLE(); };
 
-    void array_pointer_accessor_so_clang_does_not_complain() const {
-        (void)m_array_pointer_so_the_gc_does_not_collect_it;
-    }
-
     size_t m_size { 0 };
     const Value *m_data { nullptr };
     bool m_has_keyword_hash { false };
-
-    // NOTE: We need to hold onto this pointer so the GC does not collect the
-    // ArrayObject holding our data. We don't actually use it, but just it
-    // being here means this pointer stays on the stack for as long as this
-    // Args object is in scope, which means the GC continues to see the
-    // ArrayObject* as reachable. :-)
-    const ArrayObject *m_array_pointer_so_the_gc_does_not_collect_it { nullptr };
+    const ArrayObject *m_array { nullptr };
 };
 };

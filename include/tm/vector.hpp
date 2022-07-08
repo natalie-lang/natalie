@@ -492,6 +492,7 @@ public:
      * ```
      */
     T *data() { return m_data; }
+    const T *data() const { return m_data; }
 
     /**
      * Fill the given range with a filler value.
