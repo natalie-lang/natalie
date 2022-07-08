@@ -24,24 +24,28 @@ Args::Args(ArrayObject *array, bool has_keyword_hash)
     : m_size { array->size() }
     , m_data { array->data() }
     , m_has_keyword_hash { has_keyword_hash }
-    , m_array_pointer_so_the_gc_does_not_collect_it { array } { }
+    , m_array { array } { }
 
 Args::Args(const Args &other)
     : m_size { other.m_size }
     , m_data { other.m_data }
     , m_has_keyword_hash { other.m_has_keyword_hash }
-    , m_array_pointer_so_the_gc_does_not_collect_it { other.m_array_pointer_so_the_gc_does_not_collect_it } { }
+    , m_array { other.m_array } { }
 
 Args &Args::operator=(const Args &other) {
     m_size = other.m_size;
     m_data = other.m_data;
     m_has_keyword_hash = other.m_has_keyword_hash;
-    m_array_pointer_so_the_gc_does_not_collect_it = other.m_array_pointer_so_the_gc_does_not_collect_it;
+    m_array = other.m_array;
     return *this;
 }
 
 Args Args::shift(Args &args) {
-    return Args { args.m_size - 1, args.m_data + 1 };
+    assert(args.size() > 0);
+    if (args.size() == 1)
+        return Args();
+    auto ary = new ArrayObject(args.size() - 1, args.data() + 1);
+    return Args(ary);
 }
 
 ArrayObject *Args::to_array() const {
@@ -58,8 +62,8 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
             ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);
         return ary;
     }
-    auto size = max_count >= 0 ? std::min(m_size, (size_t)max_count) : m_size;
-    auto ary = new ArrayObject { size, m_data };
+    auto len = max_count >= 0 ? std::min(m_size, (size_t)max_count) : m_size;
+    auto ary = new ArrayObject { len, m_data };
     ssize_t count = ary->size();
     if (count < min_count)
         ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);

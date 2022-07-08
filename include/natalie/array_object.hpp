@@ -120,6 +120,10 @@ public:
         return m_vector.data();
     }
 
+    const Value *data() const {
+        return m_vector.data();
+    }
+
     Value sort_in_place(Env *, Block *);
     Value sort_by_in_place(Env *, Block *);
 
