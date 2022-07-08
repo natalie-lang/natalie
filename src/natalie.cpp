@@ -350,14 +350,14 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
     return new ArrayObject { obj };
 }
 
-ArrayObject *to_ary_for_masgn(Env *env, Value obj) {
+Value to_ary_for_masgn(Env *env, Value obj) {
     if (obj->is_array())
-        return obj->dup(env)->as_array();
+        return obj->dup(env);
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
         if (array->is_array())
-            return array->dup(env)->as_array();
+            return array->dup(env);
     }
 
     return new ArrayObject { obj };
