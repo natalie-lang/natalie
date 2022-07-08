@@ -1286,8 +1286,6 @@ bool StringObject::valid_encoding() const {
 
 Value StringObject::delete_prefix(Env *env, Value val) {
     auto to_str = "to_str"_s;
-    StringObject pad;
-
     if (!val->is_string() && val->respond_to(env, to_str))
         val = val->send(env, to_str);
     val->assert_type(env, Object::Type::String, "String");
