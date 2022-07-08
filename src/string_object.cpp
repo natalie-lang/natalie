@@ -1285,7 +1285,13 @@ bool StringObject::valid_encoding() const {
 }
 
 Value StringObject::delete_prefix(Env *env, Value val) {
+    auto to_str = "to_str"_s;
+    StringObject pad;
+
+    if (!val->is_string() && val->respond_to(env, to_str))
+        val = val->send(env, to_str);
     val->assert_type(env, Object::Type::String, "String");
+
     auto arg_len = val->as_string()->length();
     Value args[] = { val };
 
@@ -1303,7 +1309,9 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     StringObject *copy = dup(env)->as_string();
     *this = *delete_prefix(env, val)->as_string();
 
-    if (*this == *copy) { return Value(NilObject::the()); }
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
     return this;
 }
 

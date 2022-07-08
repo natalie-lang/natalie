@@ -28,11 +28,11 @@ describe "String#delete_prefix" do
     $~.should == nil
   end
 
-  # it "calls to_str on its argument" do
-  #   o = mock('x')
-  #   o.should_receive(:to_str).and_return 'hell'
-  #   'hello'.delete_prefix(o).should == 'o'
-  # end
+  it "calls to_str on its argument" do
+    o = mock('x')
+    o.should_receive(:to_str).and_return 'hell'
+    'hello'.delete_prefix(o).should == 'o'
+  end
 
   ruby_version_is ''...'3.0' do
     it "returns a subclass instance when called on a subclass instance" do
@@ -69,11 +69,11 @@ describe "String#delete_prefix!" do
     $~.should == nil
   end
 
-  # it "calls to_str on its argument" do
-  #   o = mock('x')
-  #   o.should_receive(:to_str).and_return 'hell'
-  #   'hello'.delete_prefix!(o).should == 'o'
-  # end
+  it "calls to_str on its argument" do
+    o = mock('x')
+    o.should_receive(:to_str).and_return 'hell'
+    'hello'.delete_prefix!(o).should == 'o'
+  end
 
   it "raises a FrozenError when self is frozen" do
     -> { 'hello'.freeze.delete_prefix!('hell') }.should raise_error(FrozenError)
