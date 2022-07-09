@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("\"#{@name.to_s}\"_s")
+        transform.push("Value(\"#{@name.to_s}\"_s)")
       end
 
       def execute(vm)

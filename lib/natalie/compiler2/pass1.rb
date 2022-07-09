@@ -235,14 +235,14 @@ module Natalie
             # case a
             # when b, c, d
             # =>
-            # if (a === b || a === c || a === d)
+            # if (b === a || c === a || d === a)
             _, options_array, body = when_statement
             _, *options = options_array
             options.each do |option|
               option_instructions = transform_expression(option, used: true)
-              instructions << option_instructions
+              instructions << DupInstruction.new
               instructions << PushArgcInstruction.new(1)
-              instructions << DupRelInstruction.new(2)
+              instructions << option_instructions
               instructions << SendInstruction.new(:===, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new

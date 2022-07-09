@@ -360,6 +360,16 @@ class TestCompiler2 < TestCase
 
     case_result = case 0;when 1; end
     assert_eq(case_result, nil)
+
+    case 1..2
+    when Integer
+      type = 'int'
+    when Range
+      type = 'range'
+    when String
+      type = 'string'
+    end
+    assert_eq('range', type)
   end
 
   def test_class
