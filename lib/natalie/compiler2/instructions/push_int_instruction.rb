@@ -14,7 +14,11 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("Value::integer(#{@int})")
+        if @int > NAT_MAX_FIXNUM || @int < NAT_MIN_FIXNUM
+          transform.push("IntegerObject::create(#{@int.to_s.inspect})")
+        else
+          transform.push("Value::integer(#{@int})")
+        end
       end
 
       def execute(vm)
