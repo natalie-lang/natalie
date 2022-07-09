@@ -27,8 +27,20 @@ Value ExceptionObject::backtrace(Env *env) {
 }
 
 Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
-    if (m_local_jump_error_type != LocalJumpErrorType::None)
+    // NOTE: Even though LocalJumpError is a StandardError, we only
+    // want it to match if it was explicitly given in the array,
+    // since it's special and controls how `break` works.
+    bool match_local_jump_error = false;
+    for (auto klass : *ary->as_array()) {
+        if (klass->is_class()) {
+            auto name = klass->as_class()->name();
+            if (name && name.value() == "LocalJumpError")
+                match_local_jump_error = true;
+        }
+    }
+    if (!match_local_jump_error && m_local_jump_error_type != LocalJumpErrorType::None)
         return FalseObject::the();
+
     for (auto klass : *ary->as_array()) {
         if (klass->send(env, "==="_s, { this })->is_truthy())
             return TrueObject::the();
