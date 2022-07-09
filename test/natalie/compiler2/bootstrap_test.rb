@@ -318,8 +318,11 @@ class TestCompiler2 < TestCase
   def test_break_from_while
     result = while true
       break 200
+      break 300
+      break 400
     end
     assert_eq(200, result)
+
     result = while true
       break
     end

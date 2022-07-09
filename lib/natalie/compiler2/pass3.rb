@@ -34,10 +34,11 @@ module Natalie
         end
 
         @to_convert_to_break_out.each do |break_point, while_instruction|
-          ip, break_instruction = @break_instructions[break_point]
-          break_out = BreakOutInstruction.new
-          break_out.while_instruction = while_instruction
-          @instructions.replace_at(ip, break_out)
+          @break_instructions[break_point].each do |ip, break_instruction|
+            break_out = BreakOutInstruction.new
+            break_out.while_instruction = while_instruction
+            @instructions.replace_at(ip, break_out)
+          end
         end
 
         # add envs to newly-added instructions
@@ -50,10 +51,13 @@ module Natalie
         env = @env
         env = env[:outer] while env[:hoist] && !env[:while]
         raise 'unexpected env for break' unless env[:block] || env[:while]
-        break_point = (@break_point += 1)
-        env[:has_break] = break_point
+        unless (break_point = env[:has_break])
+          break_point = (@break_point += 1)
+          env[:has_break] = break_point
+        end
         instruction.break_point = break_point
-        @break_instructions[break_point] = [@instructions.ip - 1, instruction]
+        @break_instructions[break_point] ||= {}
+        @break_instructions[break_point][@instructions.ip - 1] = instruction
       end
 
       def transform_create_lambda(instruction)
