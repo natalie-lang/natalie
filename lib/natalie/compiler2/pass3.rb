@@ -86,8 +86,8 @@ module Natalie
           SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
-          PushNilInstruction.new,
-          SendInstruction.new(:raise, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
+          PushSelfInstruction.new,
+          SendInstruction.new(:raise, receiver_is_self: true, with_block: false, file: instruction.file, line: instruction.line),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
         ])

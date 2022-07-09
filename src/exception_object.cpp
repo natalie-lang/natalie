@@ -27,6 +27,8 @@ Value ExceptionObject::backtrace(Env *env) {
 }
 
 Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
+    if (m_local_jump_error_type != LocalJumpErrorType::None)
+        return FalseObject::the();
     for (auto klass : *ary->as_array()) {
         if (klass->send(env, "==="_s, { this })->is_truthy())
             return TrueObject::the();
