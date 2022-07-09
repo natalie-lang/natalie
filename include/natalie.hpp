@@ -115,7 +115,6 @@ Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value d
 
 ArrayObject *args_to_array(Env *env, Args args);
 void args_to_vector(TM::Vector<Value> &target, Args args);
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args);
 void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args);
 
 void arg_spread(Env *env, Args args, const char *arrangement, ...);

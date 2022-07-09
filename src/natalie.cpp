@@ -566,15 +566,6 @@ void args_to_vector(TM::Vector<Value> &target, Args args) {
     }
 }
 
-// much like args_to_array above, but when a block is given a single arg,
-// and the block wants multiple args, call to_ary on the first arg and return that
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, Args args) {
-    if (args.size() == 1 && signature_size > 1) {
-        return to_ary(env, args[0], true);
-    }
-    return args_to_array(env, args);
-}
-
 void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args) {
     if (args.size() == 1 && signature_size > 1) {
         auto ary = to_ary(env, args[0], true);
