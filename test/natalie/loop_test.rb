@@ -1,3 +1,5 @@
+# test-compiler2
+
 require_relative '../spec_helper'
 
 describe 'while' do
@@ -20,6 +22,26 @@ describe 'while' do
     end while x != 0
     r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   end
+
+  it 'works with an assignment in pre-condition' do
+    foo = 2
+    while (x = foo)
+      y = 3
+      foo = nil
+    end
+    x.should == nil
+    y.should == 3
+  end
+
+  it 'works with an assignment in post-condition' do
+    foo = 2
+    begin
+      y = 3
+      foo = nil
+    end while (x = foo)
+    x.should == nil
+    y.should == 3
+  end
 end
 
 describe 'until' do
@@ -41,6 +63,25 @@ describe 'until' do
       x = x - 1
     end until x == 0
     r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+  end
+
+  it 'works with an assignment in pre-condition' do
+    y = nil
+    foo = 2
+    until (x = foo)
+      y = 3
+    end
+    x.should == 2
+    y.should == nil
+  end
+
+  it 'works with an assignment in post-condition' do
+    foo = 2
+    begin
+      y = 3
+    end until (x = foo)
+    x.should == 2
+    y.should == 3
   end
 end
 

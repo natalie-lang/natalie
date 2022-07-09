@@ -968,11 +968,9 @@ module Natalie
         body ||= s(:nil)
 
         instructions = [
-          DefineBlockInstruction.new(arity: 0),
-          transform_expression(condition, used: true),
-          EndInstruction.new(:define_block),
-          CreateLambdaInstruction.new,
           WhileInstruction.new(pre: pre),
+          transform_expression(condition, used: true),
+          WhileBodyInstruction.new,
           transform_expression(body, used: true),
           EndInstruction.new(:while),
         ]

@@ -20,9 +20,8 @@ module Natalie
       end
 
       def generate(transform)
+        condition = transform.fetch_block_of_instructions(until_instruction: WhileBodyInstruction)
         body = transform.fetch_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)
-        condition = transform.pop
-        @result_name = result = transform.temp('while_result')
         code = []
 
         # hoisted variables need to be set to nil here
@@ -31,17 +30,26 @@ module Natalie
           var[:declared] = true
         end
 
+        condition_name = transform.temp('while_condition')
+
+        transform.with_same_scope(condition) do |t|
+          code << "auto #{condition_name} = [&]() {"
+          code << t.transform("return")
+          code << '};'
+        end
+
+        @result_name = result = transform.temp('while_result')
         code << "Value #{result}"
 
         transform.with_same_scope(body) do |t|
           if @pre
-            code << "while (#{condition}->as_proc()->call(env)->is_truthy()) {"
+            code << "while (#{condition_name}()->is_truthy()) {"
             code << t.transform("#{result} =")
             code << '}'
           else
             code << 'do {'
             code << t.transform("#{result} =")
-            code << "} while (#{condition}->as_proc()->call(env)->is_truthy())"
+            code << "} while (#{condition_name}()->is_truthy())"
           end
         end
 
@@ -51,12 +59,19 @@ module Natalie
 
       def execute(vm)
         start_ip = vm.ip
+        vm.skip_block_of_instructions(until_instruction: WhileBodyInstruction)
+        body_ip = vm.ip
         vm.skip_block_of_instructions(until_instruction: EndInstruction, expected_label: :while)
         end_ip = vm.ip
-        condition = vm.pop
+        condition = -> {
+          vm.ip = start_ip
+          vm.run
+          vm.ip = end_ip
+          vm.pop
+        }
         if @pre
           while condition.()
-            vm.ip = start_ip
+            vm.ip = body_ip
             result = vm.run
             vm.ip = end_ip
             if result == :break_out
@@ -66,7 +81,7 @@ module Natalie
           end
         else
           begin
-            vm.ip = start_ip
+            vm.ip = body_ip
             result = vm.run
             vm.ip = end_ip
             if result == :break_out
