@@ -335,6 +335,19 @@ module Natalie
         [PushSelfInstruction.new, ConstFindInstruction.new(name)]
       end
 
+      def transform_cvar(exp, used:)
+        return [] unless used
+        _, name = exp
+        ClassVariableGetInstruction.new(name)
+      end
+
+      def transform_cvdecl(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true), ClassVariableSetInstruction.new(name)]
+        instructions << ClassVariableGetInstruction.new(name) if used
+        instructions
+      end
+
       def transform_def(exp, used:)
         _, name, args, *body = exp
         arity = Arity.new(args, is_proc: false).arity
