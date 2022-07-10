@@ -42,6 +42,24 @@ describe 'while' do
     x.should == nil
     y.should == 3
   end
+
+  it 'returns the value of a break, or nil if no break' do
+    x = 1
+    result = while true
+               break :foo
+             end
+    result.should == :foo
+
+    x = 1
+    result = while x > 0
+               x -= 1
+             end
+    result.should == nil
+
+    result = while false
+             end
+    result.should == nil
+  end
 end
 
 describe 'until' do
@@ -82,6 +100,24 @@ describe 'until' do
     end until (x = foo)
     x.should == 2
     y.should == 3
+  end
+
+  it 'returns the value of a break, or nil if no break' do
+    x = 1
+    result = until false
+               break :foo
+             end
+    result.should == :foo
+
+    x = 1
+    result = until x == 0
+               x -= 1
+             end
+    result.should == nil
+
+    result = until true
+             end
+    result.should == nil
   end
 end
 
