@@ -243,7 +243,7 @@ module Natalie
               instructions << DupInstruction.new
               instructions << PushArgcInstruction.new(1)
               instructions << option_instructions
-              instructions << SendInstruction.new(:===, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
+              instructions << SendInstruction.new(:===, receiver_is_self: true, with_block: false, file: exp.file, line: exp.line)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new
               instructions << ElseInstruction.new(:if)
