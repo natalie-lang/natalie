@@ -206,6 +206,8 @@ public:
     Value uplus(Env *);
     Value delete_prefix(Env *, Value);
     Value delete_prefix_in_place(Env *, Value);
+    Value delete_suffix(Env *, Value);
+    Value delete_suffix_in_place(Env *, Value);
 
     Value convert_float();
 

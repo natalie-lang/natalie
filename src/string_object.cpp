@@ -1313,4 +1313,31 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
     return this;
 }
 
+Value StringObject::delete_suffix(Env *env, Value val) {
+    auto to_str = "to_str"_s;
+    if (!val->is_string() && val->respond_to(env, to_str))
+        val = val->send(env, to_str);
+    val->assert_type(env, Object::Type::String, "String");
+
+    auto arg_len = val->as_string()->length();
+
+    if (end_with(env, val)) {
+        return new StringObject { c_str(), length() - arg_len };
+    }
+
+    return dup(env)->as_string();
+}
+
+Value StringObject::delete_suffix_in_place(Env *env, Value val) {
+    assert_not_frozen(env);
+
+    StringObject *copy = dup(env)->as_string();
+    *this = *delete_suffix(env, val)->as_string();
+
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
+}
+
 }
