@@ -12,10 +12,13 @@ def sh(command)
 end
 
 Dir['test/natalie/*_test.rb', 'spec/**/*_spec.rb'].each do |path|
-  describe path do
-    it 'passes' do
-      sh("bin/natalie -c2 -I test/support #{path} 2>&1").strip
-      expect($?).must_be :success?
+  code = File.read(path, encoding: 'utf-8')
+  unless code =~ /# skip-test/
+    describe path do
+      it 'passes' do
+        sh("bin/natalie -c2 -I test/support #{path} 2>&1").strip
+        expect($?).must_be :success?
+      end
     end
   end
 end
