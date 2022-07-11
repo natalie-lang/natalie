@@ -863,6 +863,10 @@ module Natalie
         instructions
       end
 
+      def transform_redo(*)
+        [RedoInstruction.new]
+      end
+
       def transform_rescue(exp, used:)
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
