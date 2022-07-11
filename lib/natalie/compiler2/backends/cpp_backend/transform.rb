@@ -125,6 +125,7 @@ module Natalie
           while lines.any?
             line = lines.shift
             next if line.nil?
+            next if result_prefix.nil? && useless_value?(line)
             if lines.empty? && line !~ /^\s*env->raise|^\s*break;?$/
               out << "#{result_prefix} #{semicolon(line)}"
             else
@@ -136,6 +137,10 @@ module Natalie
 
         def top(code)
           @top << Array(code).join("\n")
+        end
+
+        def useless_value?(value)
+          !!(value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/)
         end
       end
     end
