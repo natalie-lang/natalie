@@ -1411,4 +1411,14 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
     return this;
 }
 
+bool StringObject::ascii_only(Env *env) {
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        if (c > 127) {
+            return false;
+        }
+    }
+    return true;
+}
+
 }
