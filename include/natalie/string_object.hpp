@@ -208,6 +208,7 @@ public:
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
+    bool ascii_only(Env *);
 
     Value convert_float();
 
