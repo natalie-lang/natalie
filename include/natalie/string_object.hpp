@@ -192,6 +192,9 @@ public:
     Value ord(Env *) const;
     Value prepend(Env *, Args);
     Value ref(Env *, Value);
+    Value ref_fast_index(Env *, size_t) const;
+    Value ref_fast_range(Env *, size_t, size_t) const;
+    Value ref_fast_range_endless(Env *, size_t) const;
     Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);
     Value reverse_in_place(Env *);

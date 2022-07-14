@@ -599,14 +599,15 @@ Value StringObject::ref(Env *env, Value index_obj) {
     if (index_obj->is_integer()) {
         nat_int_t index = index_obj->as_integer()->to_nat_int_t();
 
-        ArrayObject *chars = this->chars(env);
-        if (index < 0) {
-            index = chars->size() + index;
-        }
+        if (index >= 0)
+            return ref_fast_index(env, index);
 
-        if (index < 0 || index >= (nat_int_t)chars->size()) {
+        ArrayObject *chars = this->chars(env);
+        index = chars->size() + index;
+
+        if (index < 0 || index >= (nat_int_t)chars->size())
             return NilObject::the();
-        }
+
         return (*chars)[index];
     } else if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
@@ -620,9 +621,19 @@ Value StringObject::ref(Env *env, Value index_obj) {
             begin = begin_obj->as_integer()->to_nat_int_t();
         }
 
+        auto end_obj = range->end();
+
+        if (begin >= 0 && end_obj->is_integer() && end_obj->as_integer()->to_nat_int_t() > 0) {
+            auto end = end_obj->as_integer()->to_nat_int_t();
+            if (!range->exclude_end())
+                end++;
+            return ref_fast_range(env, begin, end);
+        } else if (end_obj->is_nil()) {
+            return ref_fast_range_endless(env, begin);
+        }
+
         ArrayObject *chars = this->chars(env);
 
-        auto end_obj = range->end();
         nat_int_t end;
         if (end_obj->is_nil()) {
             end = range->exclude_end() ? chars->size() + 1 : chars->size();
@@ -657,6 +668,61 @@ Value StringObject::ref(Env *env, Value index_obj) {
     }
     index_obj->assert_type(env, Object::Type::Integer, "Integer");
     abort();
+}
+
+Value StringObject::ref_fast_index(Env *env, size_t index) const {
+    size_t byte_index = 0;
+    size_t char_index = 0;
+    String c;
+    do {
+        c = next_char(env, &byte_index);
+        if (!c.is_empty() && char_index == (size_t)index)
+            return new StringObject { c };
+        char_index++;
+    } while (!c.is_empty());
+    return NilObject::the();
+}
+
+Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
+    size_t byte_index = 0;
+    size_t char_index = 0;
+    String result;
+    String c;
+    bool char_added = false;
+    do {
+        c = next_char(env, &byte_index);
+        if (!c.is_empty()) {
+            if (char_index >= (size_t)end)
+                return new StringObject { result };
+            else if (char_index >= (size_t)begin) {
+                char_added = true;
+                result.append(c);
+            }
+        }
+        char_index++;
+    } while (!c.is_empty());
+    if (char_index > (size_t)begin || char_added)
+        return new StringObject { result };
+    return NilObject::the();
+}
+
+Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
+    size_t byte_index = 0;
+    size_t char_index = 0;
+    String result;
+    String c = " ";
+    bool char_added = false;
+    while (!c.is_empty()) {
+        if (char_index >= begin)
+            break;
+        c = next_char(env, &byte_index);
+        char_index++;
+    }
+    if (char_index < begin)
+        return NilObject::the();
+    for (; byte_index < m_string.length(); byte_index++)
+        result.append_char(m_string[byte_index]);
+    return new StringObject { result };
 }
 
 size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_index) {
