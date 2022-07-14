@@ -223,9 +223,26 @@ describe 'string' do
       end
 
       it 'returns proper result for a range out of bounds' do
-        s = 'hello'
-        s[-2..0].should == ''
-        s[2..100].should == 'llo'
+        'hello'[-2..0].should == ''
+        'hello'[2..100].should == 'llo'
+        ''[1..2].should == nil
+        'a'[1..2].should == ''
+        'ab'[1..2].should == 'b'
+      end
+
+      it 'returns proper result for a range with negative or nil begin' do
+        'hello'[..2].should == 'hel'
+        '😉”ăa'[..2].should == '😉”ă'
+        'hello'[-2..-1].should == 'lo'
+        'hello'[-100..100].should == nil
+      end
+
+      it 'returns proper result for a range with negative or nil end' do
+        'hello'[2..-1].should == 'llo'
+        'hello'[2..-100].should == ''
+        'hello'[2..].should == 'llo'
+        '😉”ăa'[2..].should == 'ăa'
+        'hello'[100..].should == nil
       end
 
       it 'returns nil for a range that starts beyond the end of the string' do

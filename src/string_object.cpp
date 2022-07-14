@@ -282,11 +282,11 @@ bool StringObject::end_with(Env *env, Value needle) const {
     return i == 0;
 }
 
-Value StringObject::index(Env *env, Value needle) {
+Value StringObject::index(Env *env, Value needle) const {
     return index(env, needle, 0);
 }
 
-Value StringObject::index(Env *env, Value needle, size_t start) {
+Value StringObject::index(Env *env, Value needle, size_t start) const {
     auto byte_index = index_int(env, needle, start);
     if (byte_index == -1) {
         return NilObject::the();
@@ -444,7 +444,7 @@ Value StringObject::match(Env *env, Value other) {
     return other->as_regexp()->match(env, this);
 }
 
-Value StringObject::ord(Env *env) {
+Value StringObject::ord(Env *env) const {
     size_t index = 0;
     String c = next_char(env, &index);
     if (c.is_empty())
@@ -533,7 +533,7 @@ Value StringObject::each_byte(Env *env, Block *block) {
     return this;
 }
 
-Value StringObject::size(Env *env) {
+Value StringObject::size(Env *env) const {
     size_t index = 0;
     size_t char_count = 0;
     String c = next_char(env, &index);
@@ -620,21 +620,26 @@ Value StringObject::ref(Env *env, Value index_obj) {
             begin = begin_obj->as_integer()->to_nat_int_t();
         }
 
+        ArrayObject *chars = this->chars(env);
+
         auto end_obj = range->end();
         nat_int_t end;
         if (end_obj->is_nil()) {
-            end = range->exclude_end() ? m_string.size() + 1 : m_string.size();
+            end = range->exclude_end() ? chars->size() + 1 : chars->size();
         } else {
             end_obj->assert_type(env, Object::Type::Integer, "Integer");
             end = end_obj->as_integer()->to_nat_int_t();
         }
 
-        ArrayObject *chars = this->chars(env);
-
         if (begin < 0) begin = chars->size() + begin;
         if (end < 0) end = chars->size() + end;
 
-        if (begin < 0 || end < 0) return new StringObject {};
+        if ((begin < 0 || begin > (nat_int_t)chars->size()) && (end < 0 || end >= (nat_int_t)chars->size()))
+            return NilObject::the();
+
+        if (begin < 0 || end < 0)
+            return new StringObject;
+
         size_t u_begin = static_cast<size_t>(begin);
         size_t u_end = static_cast<size_t>(end);
         if (u_begin > chars->size()) return NilObject::the();

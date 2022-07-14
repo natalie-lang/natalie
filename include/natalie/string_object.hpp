@@ -139,8 +139,8 @@ public:
 
     StringObject *successive(Env *);
 
-    Value index(Env *, Value);
-    Value index(Env *, Value, size_t start);
+    Value index(Env *, Value) const;
+    Value index(Env *, Value, size_t start) const;
     nat_int_t index_int(Env *, Value, size_t start) const;
 
     void truncate(size_t length) {
@@ -189,7 +189,7 @@ public:
     Value lstrip_in_place(Env *);
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
-    Value ord(Env *);
+    Value ord(Env *) const;
     Value prepend(Env *, Args);
     Value ref(Env *, Value);
     Value refeq(Env *, Value, Value, Value);
@@ -197,7 +197,7 @@ public:
     Value reverse_in_place(Env *);
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
-    Value size(Env *);
+    Value size(Env *) const;
     Value split(Env *, Value, Value);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
