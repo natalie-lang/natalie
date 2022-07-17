@@ -1,7 +1,6 @@
 #include "ctype.h"
 #include "natalie.hpp"
 #include "string.h"
-#include <sys/_types/_size_t.h>
 
 namespace Natalie {
 
