@@ -1,6 +1,7 @@
 #include "ctype.h"
 #include "natalie.hpp"
 #include "string.h"
+#include <sys/_types/_size_t.h>
 
 namespace Natalie {
 
@@ -1420,6 +1421,33 @@ bool StringObject::ascii_only(Env *env) const {
         }
     }
     return true;
+}
+
+Value StringObject::chop(Env *env) {
+    if (this->is_empty()) {
+        return new StringObject { "", m_encoding };
+    }
+
+    auto rn = new StringObject { "\r\n" };
+    auto last_char = new StringObject { m_string.last_char() };
+    auto c_bytesize = last_char->length();
+
+    if (end_with(env, Value(rn))) {
+        return new StringObject { c_str(), length() - 2 };
+    }
+
+    return new StringObject { c_str(), length() - c_bytesize };
+}
+
+Value StringObject::chop_in_place(Env *env) {
+    assert_not_frozen(env);
+
+    if (this->is_empty()) {
+        return NilObject::the();
+    }
+
+    *this = *chop(env)->as_string();
+    return this;
 }
 
 }

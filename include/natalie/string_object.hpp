@@ -176,14 +176,21 @@ public:
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
+    bool ascii_only(Env *) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
     Value center(Env *, Value, Value);
     Value chr(Env *);
     Value chomp(Env *, Value);
+    Value chop(Env *);
+    Value chop_in_place(Env *);
     Value clear(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, Args args);
+    Value delete_prefix(Env *, Value);
+    Value delete_prefix_in_place(Env *, Value);
+    Value delete_suffix(Env *, Value);
+    Value delete_suffix_in_place(Env *, Value);
     Value downcase(Env *);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
@@ -215,11 +222,6 @@ public:
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
-    Value delete_prefix(Env *, Value);
-    Value delete_prefix_in_place(Env *, Value);
-    Value delete_suffix(Env *, Value);
-    Value delete_suffix_in_place(Env *, Value);
-    bool ascii_only(Env *) const;
 
     Value convert_float();
 
