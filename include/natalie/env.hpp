@@ -12,9 +12,13 @@
 #include "natalie/value.hpp"
 #include "tm/shared_ptr.hpp"
 
+// foo
+
 namespace Natalie {
 
 using namespace TM;
+
+// baz
 
 class Env : public Cell {
 public:

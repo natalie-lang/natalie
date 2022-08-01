@@ -184,7 +184,7 @@ public:
     void extend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual Value const_get(SymbolObject *);
+    virtual Value const_get(SymbolObject *) const;
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
 

@@ -780,9 +780,10 @@ public:
      * {
      *     auto vec = OwnedVector<Thing*> {};
      *     vec.push(thing);
-     *     vec.relese();
+     *     vec.release();
      * }
-     * assert_eq(1, thing.value());
+     * assert_eq(1, thing->value());
+     * delete thing;
      * ```
      */
     Vector<T> *release() {

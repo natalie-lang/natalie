@@ -377,7 +377,7 @@ Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode sea
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
-Value Object::const_get(SymbolObject *name) {
+Value Object::const_get(SymbolObject *name) const {
     return m_klass->const_get(name);
 }
 

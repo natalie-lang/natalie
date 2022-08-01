@@ -2,15 +2,12 @@
 
 namespace Natalie {
 
-String Ascii8BitEncodingObject::next_char(Env *env, const String &string, size_t *index) const {
+StringView Ascii8BitEncodingObject::next_char(const String &string, size_t *index) const {
     if (*index >= string.size())
-        return String();
-    char buffer[2];
+        return StringView();
     size_t i = *index;
-    buffer[0] = string[i];
-    buffer[1] = 0;
     (*index)++;
-    return String(buffer, 1);
+    return StringView(&string, i, 1);
 }
 
 String Ascii8BitEncodingObject::escaped_char(unsigned char c) const {

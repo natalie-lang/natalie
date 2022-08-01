@@ -350,7 +350,7 @@ Value FloatObject::arg(Env *env) {
     if (!signbit(m_double)) {
         return Value::integer(0);
     } else {
-        return find_nested_const(env, { "Math"_s, "PI"_s });
+        return fetch_nested_const({ "Math"_s, "PI"_s });
     }
 }
 

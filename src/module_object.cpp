@@ -60,7 +60,7 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     }
 }
 
-Value ModuleObject::const_get(SymbolObject *name) {
+Value ModuleObject::const_get(SymbolObject *name) const {
     auto constant = m_constants.get(name);
     if (constant)
         return constant->value();
@@ -68,7 +68,7 @@ Value ModuleObject::const_get(SymbolObject *name) {
         return nullptr;
 }
 
-Value ModuleObject::const_get(Env *env, Value name) {
+Value ModuleObject::const_get(Env *env, Value name) const {
     return const_get(name->to_symbol(env, Object::Conversion::Strict));
 }
 

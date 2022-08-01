@@ -70,6 +70,13 @@ public:
         m_string = str;
     }
 
+    StringObject(const StringView &str, EncodingObject *encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        m_string = str.clone();
+    }
+
     ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
     const String &string() const { return m_string; }
 
@@ -110,7 +117,7 @@ public:
         va_end(args);
     }
 
-    String next_char(Env *, size_t *) const;
+    StringView next_char(size_t *) const;
     Value each_char(Env *, Block *);
     ArrayObject *chars(Env *);
 
@@ -211,7 +218,7 @@ public:
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
-    bool ascii_only(Env *);
+    bool ascii_only(Env *) const;
 
     Value convert_float();
 
@@ -249,6 +256,51 @@ public:
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<StringObject %p str='%s'>", this, m_string.c_str());
+    }
+
+    class iterator {
+    public:
+        iterator(const StringObject *string, StringView view)
+            : m_string { string }
+            , m_view { view } { }
+
+        iterator operator++() {
+            size_t byte_index = m_view.offset() + m_view.length();
+            m_view = m_string->next_char(&byte_index);
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator i = *this;
+            ++(*this);
+            return i;
+        }
+
+        StringView operator*() const {
+            return m_view;
+        }
+
+        friend bool operator==(const iterator &i1, const iterator &i2) {
+            return i1.m_string == i2.m_string && i1.m_view == i2.m_view;
+        }
+
+        friend bool operator!=(const iterator &i1, const iterator &i2) {
+            return i1.m_string != i2.m_string || i1.m_view != i2.m_view;
+        }
+
+    private:
+        const StringObject *m_string;
+        StringView m_view;
+    };
+
+    iterator begin() const {
+        size_t index = 0;
+        auto view = next_char(&index);
+        return iterator { this, view };
+    }
+
+    iterator end() const {
+        return iterator { this, StringView() };
     }
 
 private:
