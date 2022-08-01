@@ -1427,15 +1427,9 @@ Value StringObject::chop(Env *env) {
         return new StringObject { "", m_encoding };
     }
 
-    auto rn = new StringObject { "\r\n" };
-    auto last_char = new StringObject { m_string.last_char() };
-    auto c_bytesize = last_char->length();
-
-    if (end_with(env, Value(rn))) {
-        return new StringObject { c_str(), length() - 2 };
-    }
-
-    return new StringObject { c_str(), length() - c_bytesize };
+    auto new_str = new StringObject { *this };
+    new_str->chop_in_place(env);
+    return new_str;
 }
 
 Value StringObject::chop_in_place(Env *env) {
@@ -1445,7 +1439,15 @@ Value StringObject::chop_in_place(Env *env) {
         return NilObject::the();
     }
 
-    *this = *chop(env)->as_string();
+    size_t byte_index = length();
+    auto removed_char = prev_char(&byte_index);
+
+    if (removed_char == "\n" && byte_index > 0 && m_string[byte_index - 1] == '\r') {
+        prev_char(&byte_index);
+    }
+
+    m_string.truncate(byte_index);
+
     return this;
 }
 

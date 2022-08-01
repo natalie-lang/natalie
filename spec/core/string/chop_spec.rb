@@ -27,8 +27,7 @@ describe "String#chop" do
     "abc\r\n\r\n".chop.should == "abc\r\n"
   end
   
-  # FIXME: I dont know how to nadle multi-byte characters
-  xit "removes a multi-byte character" do
+  it "removes a multi-byte character" do
     "あれ".chop.should == "あ"
   end
 
@@ -36,10 +35,12 @@ describe "String#chop" do
     "あれ\r\n".chop.should == "あれ"
   end
 
-  # FIXME: Implemetn utf-32be encoding
-  xit "removes the final carriage return, newline from a non-ASCII String" do
-    str = "abc\r\n".encode "utf-32be"
-    str.chop.should == "abc".encode("utf-32be")
+  it "removes the final carriage return, newline from a non-ASCII String" do
+    # NATFIXME: Implement utf-32be encoding
+    #str = "abc\r\n".encode "utf-32be"
+    #str.chop.should == "abc".encode("utf-32be")
+    str = "abc\r\n".encode "utf-8"
+    str.chop.should == "abc".encode("utf-8")
   end
 
   it "returns an empty string when applied to an empty string" do
@@ -89,8 +90,7 @@ describe "String#chop!" do
     "abc\r\n\r\n".chop!.should == "abc\r\n"
   end
 
-  # FIXME: I dont know how to handle multi-byte chars
-  xit "removes a multi-byte character" do
+  it "removes a multi-byte character" do
     "あれ".chop!.should == "あ"
   end
 
@@ -98,10 +98,12 @@ describe "String#chop!" do
     "あれ\r\n".chop!.should == "あれ"
   end
 
-  # FIXME: Implement utf-32be encoding
-  xit "removes the final carriage return, newline from a non-ASCII String" do
-    str = "abc\r\n".encode "utf-32be"
-    str.chop!.should == "abc".encode("utf-32be")
+  it "removes the final carriage return, newline from a non-ASCII String" do
+    # NATFIXME: Implement utf-32be encoding
+    #str = "abc\r\n".encode "utf-32be"
+    #str.chop!.should == "abc".encode("utf-32be")
+    str = "abc\r\n".encode "utf-8"
+    str.chop!.should == "abc".encode("utf-8")
   end
 
   it "returns self if modifications were made" do

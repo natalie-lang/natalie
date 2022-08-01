@@ -487,6 +487,18 @@ describe 'string' do
     end
   end
 
+  describe '#chop' do
+    it 'returns a new copy of the string with the last character removed' do
+      'foo!'.encode('us-ascii').chop.should == 'foo'
+      'foo!'.encode('ascii-8bit').chop.should == 'foo'
+      ''.encode('us-ascii').chop.should == ''
+      ''.encode('ascii-8bit').chop.should == ''
+      'foo🐮'.encode('utf-8').chop.should == 'foo'
+      '🐮'.encode('utf-8').chop.should == ''
+      ''.encode('utf-8').chop.should == ''
+    end
+  end
+
   describe '#downcase' do
     it 'returns a copy of the string with all characters lower-cased' do
       'FoObAr'.downcase.should == 'foobar'
