@@ -35,15 +35,16 @@
         }                                                      \
     }
 
-#define assert_str_eq(expected, actual)                                                 \
-    {                                                                                   \
-        auto e = (expected);                                                            \
-        auto a = (actual);                                                              \
-        if (a != e) {                                                                   \
-            std::cerr << "\n"                                                           \
-                      << "Expected \"" << a.c_str() << "\" to equal \"" << e << "\"\n"; \
-            abort();                                                                    \
-        }                                                                               \
+#define assert_str_eq(expected, actual)                                                   \
+    {                                                                                     \
+        auto e = (expected);                                                              \
+        auto a = (actual);                                                                \
+        if (a != e) {                                                                     \
+            auto str = a.clone();                                                         \
+            std::cerr << "\n"                                                             \
+                      << "Expected \"" << str.c_str() << "\" to equal \"" << e << "\"\n"; \
+            abort();                                                                      \
+        }                                                                                 \
     }
 
 class Thing {

@@ -47,11 +47,11 @@ public:
     void prepend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *env, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual Value const_get(SymbolObject *) override;
+    virtual Value const_get(SymbolObject *) const override;
     virtual Value const_fetch(SymbolObject *) override;
     virtual Value const_set(SymbolObject *, Value) override;
 
-    Value const_get(Env *, Value);
+    Value const_get(Env *, Value) const;
     Value const_set(Env *, Value, Value);
 
     void make_alias(Env *, SymbolObject *, SymbolObject *);

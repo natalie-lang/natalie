@@ -371,6 +371,7 @@ public:
      * auto str1 = String { "abc" };
      * auto str2 = str1.clone();
      * assert_str_eq("abc", str2);
+     * assert_neq(str1.c_str(), str2.c_str()); // not the same pointer
      * ```
      */
     String clone() const { return String { *this }; }

@@ -19,7 +19,7 @@ public:
         return codepoint >= 0 && codepoint <= 127;
     }
 
-    virtual String next_char(Env *env, const String &string, size_t *index) const override;
+    virtual StringView next_char(const String &string, size_t *index) const override;
 
     virtual String escaped_char(unsigned char c) const override;
 

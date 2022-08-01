@@ -14,8 +14,8 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
-String StringObject::next_char(Env *env, size_t *index) const {
-    return m_encoding->next_char(env, m_string, index);
+StringView StringObject::next_char(size_t *index) const {
+    return m_encoding->next_char(m_string, index);
 }
 
 Value StringObject::each_char(Env *env, Block *block) {
@@ -23,23 +23,19 @@ Value StringObject::each_char(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each_char"_s });
 
     size_t index = 0;
-    String c = next_char(env, &index);
+    auto c = next_char(&index);
     while (!c.is_empty()) {
         Value args[] = { new StringObject { c, m_encoding } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        c = next_char(env, &index);
+        c = next_char(&index);
     }
     return NilObject::the();
 }
 
 ArrayObject *StringObject::chars(Env *env) {
     ArrayObject *ary = new ArrayObject {};
-    size_t index = 0;
-    String c = next_char(env, &index);
-    while (!c.is_empty()) {
+    for (auto c : *this)
         ary->push(new StringObject { c, m_encoding });
-        c = next_char(env, &index);
-    }
     return ary;
 }
 
@@ -203,7 +199,7 @@ Value StringObject::chr(Env *env) {
         return new StringObject { "", m_encoding };
     }
     size_t index = 0;
-    String c = next_char(env, &index);
+    auto c = next_char(&index);
     return new StringObject { c, m_encoding };
 }
 
@@ -293,12 +289,12 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
     }
     size_t byte_index_size_t = static_cast<size_t>(byte_index);
     size_t char_index = 0, index = 0;
-    String c = next_char(env, &index);
+    auto c = next_char(&index);
     while (!c.is_empty()) {
         if (index > byte_index_size_t)
             return IntegerObject::from_size_t(env, char_index);
         char_index++;
-        c = next_char(env, &index);
+        c = next_char(&index);
     }
     return Value::integer(0);
 }
@@ -446,7 +442,7 @@ Value StringObject::match(Env *env, Value other) {
 
 Value StringObject::ord(Env *env) const {
     size_t index = 0;
-    String c = next_char(env, &index);
+    auto c = next_char(&index);
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
     unsigned int code;
@@ -536,10 +532,10 @@ Value StringObject::each_byte(Env *env, Block *block) {
 Value StringObject::size(Env *env) const {
     size_t index = 0;
     size_t char_count = 0;
-    String c = next_char(env, &index);
+    auto c = next_char(&index);
     while (!c.is_empty()) {
         char_count++;
-        c = next_char(env, &index);
+        c = next_char(&index);
     }
     return IntegerObject::from_size_t(env, char_count);
 }
@@ -673,11 +669,11 @@ Value StringObject::ref(Env *env, Value index_obj) {
 Value StringObject::ref_fast_index(Env *env, size_t index) const {
     size_t byte_index = 0;
     size_t char_index = 0;
-    String c;
+    StringView c;
     do {
-        c = next_char(env, &byte_index);
+        c = next_char(&byte_index);
         if (!c.is_empty() && char_index == (size_t)index)
-            return new StringObject { c };
+            return new StringObject { c, m_encoding };
         char_index++;
     } while (!c.is_empty());
     return NilObject::the();
@@ -687,16 +683,16 @@ Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
-    String c;
+    StringView c;
     bool char_added = false;
     do {
-        c = next_char(env, &byte_index);
+        c = next_char(&byte_index);
         if (!c.is_empty()) {
             if (char_index >= (size_t)end)
                 return new StringObject { result };
             else if (char_index >= (size_t)begin) {
                 char_added = true;
-                result.append(c);
+                result.append(c.clone());
             }
         }
         char_index++;
@@ -710,13 +706,15 @@ Value StringObject::ref_fast_range_endless(Env *env, size_t begin) const {
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
-    String c = " ";
-    bool char_added = false;
-    while (!c.is_empty()) {
-        if (char_index >= begin)
-            break;
-        c = next_char(env, &byte_index);
+    if (char_index < begin) {
+        StringView c = next_char(&byte_index);
         char_index++;
+        while (!c.is_empty()) {
+            if (char_index >= begin)
+                break;
+            c = next_char(&byte_index);
+            char_index++;
+        }
     }
     if (char_index < begin)
         return NilObject::the();
@@ -1343,11 +1341,10 @@ Value StringObject::convert_float() {
 
 bool StringObject::valid_encoding() const {
     size_t index = 0;
-    Env fake_env;
-    String c = " ";
     try {
+        StringView c = next_char(&index);
         while (!c.is_empty()) {
-            c = next_char(&fake_env, &index);
+            c = next_char(&index);
         }
     } catch (ExceptionObject *) {
         return false;
@@ -1411,7 +1408,7 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
     return this;
 }
 
-bool StringObject::ascii_only(Env *env) {
+bool StringObject::ascii_only(Env *env) const {
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         if (c > 127) {
