@@ -2,6 +2,13 @@
 
 namespace Natalie {
 
+StringView Ascii8BitEncodingObject::prev_char(const String &string, size_t *index) const {
+    if (*index == 0)
+        return StringView();
+    (*index)--;
+    return StringView(&string, *index, 1);
+}
+
 StringView Ascii8BitEncodingObject::next_char(const String &string, size_t *index) const {
     if (*index >= string.size())
         return StringView();

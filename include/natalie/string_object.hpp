@@ -117,6 +117,7 @@ public:
         va_end(args);
     }
 
+    StringView prev_char(size_t *) const;
     StringView next_char(size_t *) const;
     Value each_char(Env *, Block *);
     ArrayObject *chars(Env *);
@@ -300,7 +301,7 @@ public:
     }
 
     iterator end() const {
-        return iterator { this, StringView() };
+        return iterator { this, StringView(&m_string, m_string.length(), 0) };
     }
 
 private:

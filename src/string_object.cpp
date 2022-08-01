@@ -14,6 +14,10 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
+StringView StringObject::prev_char(size_t *index) const {
+    return m_encoding->prev_char(m_string, index);
+}
+
 StringView StringObject::next_char(size_t *index) const {
     return m_encoding->next_char(m_string, index);
 }
