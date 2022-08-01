@@ -2,6 +2,16 @@
 
 namespace Natalie {
 
+StringView UsAsciiEncodingObject::prev_char(const String &string, size_t *index) const {
+    if (*index == 0)
+        return StringView();
+    (*index)--;
+    unsigned char c = string[*index];
+    if ((int)c > 127)
+        raise_encoding_invalid_byte_sequence_error(string, *index);
+    return StringView(&string, *index, 1);
+}
+
 StringView UsAsciiEncodingObject::next_char(const String &string, size_t *index) const {
     if (*index >= string.size())
         return StringView();

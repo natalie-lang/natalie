@@ -61,8 +61,12 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::valid_codepoint()");
     }
 
+    virtual StringView prev_char(const String &, size_t *) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::prev_char()");
+    }
+
     virtual StringView next_char(const String &, size_t *) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::each_char()");
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::next_char()");
     }
 
     virtual String escaped_char(unsigned char c) const {

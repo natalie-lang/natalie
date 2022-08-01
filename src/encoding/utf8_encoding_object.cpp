@@ -2,6 +2,26 @@
 
 namespace Natalie {
 
+StringView Utf8EncodingObject::prev_char(const String &string, size_t *index) const {
+    if (*index == 0)
+        return StringView();
+    size_t length = 1;
+    (*index)--;
+    unsigned char c = string[*index];
+    if ((int)c <= 127)
+        return StringView(&string, *index, 1);
+    while ((c >> 6) != 0b11) { // looking for 11xxxxxx
+        if (*index == 0)
+            raise_encoding_invalid_byte_sequence_error(string, *index);
+        (*index)--;
+        length++;
+        if (length > 4)
+            raise_encoding_invalid_byte_sequence_error(string, *index);
+        c = string[*index];
+    }
+    return StringView(&string, *index, length);
+}
+
 StringView Utf8EncodingObject::next_char(const String &string, size_t *index) const {
     size_t len = string.size();
     if (*index >= len)
@@ -9,13 +29,13 @@ StringView Utf8EncodingObject::next_char(const String &string, size_t *index) co
     size_t i = *index;
     int length = 0;
     unsigned char c = string[i];
-    if ((c >> 3) == 30) { // 11110xxx, 4 bytes
+    if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
         if (i + 3 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
         length = 4;
-    } else if ((c >> 4) == 14) { // 1110xxxx, 3 bytes
+    } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
         if (i + 2 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
         length = 3;
-    } else if ((c >> 5) == 6) { // 110xxxxx, 2 bytes
+    } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
         if (i + 1 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
         length = 2;
     } else {
