@@ -31,8 +31,12 @@ module Natalie
       end
 
       def replace_at(ip, instruction)
-        raise 'did not expect an Array' if instruction.is_a?(Array)
+        raise 'expected instruction' unless instruction.is_a?(BaseInstruction)
         @instructions[ip] = instruction
+      end
+
+      def replace_current(instruction)
+        replace_at(@ip - 1, instruction)
       end
 
       def insert_left(instructions)
