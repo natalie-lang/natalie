@@ -62,10 +62,6 @@ module Natalie
           @stack.last
         end
 
-        def vars
-          @env[:vars]
-        end
-
         def find_var(name, local_only: false)
           env = @env
           depth = 0
