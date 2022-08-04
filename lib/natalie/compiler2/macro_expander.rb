@@ -1,11 +1,12 @@
 module Natalie
   class Compiler2
     class MacroExpander
-      def initialize(ast:, path:, load_path:, interpret:)
+      def initialize(ast:, path:, load_path:, interpret:, log_load_error: false)
         @ast = ast
         @path = path
         @load_path = load_path
         @interpret = interpret
+        @log_load_error = log_load_error
         @inline_cpp_enabled = false
       end
 
@@ -208,6 +209,11 @@ module Natalie
             s(:false),
           ),
         )
+      end
+
+      def drop_load_error(msg)
+        STDERR.puts load_error_msg if @log_load_error
+        s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
       end
     end
   end

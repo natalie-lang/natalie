@@ -133,10 +133,6 @@ module Natalie
       !!(debug || options[:keep_cpp])
     end
 
-    def log_load_error
-      options[:log_load_error]
-    end
-
     def interpret?
       !!options[:interpret]
     end
@@ -260,16 +256,12 @@ module Natalie
         ast: ast,
         path: path,
         load_path: load_path,
-        interpret: interpret?
+        interpret: interpret?,
+        log_load_error: options[:log_load_error],
       )
       result = expander.expand
       @inline_cpp_enabled ||= expander.inline_cpp_enabled?
       result
-    end
-
-    def drop_load_error(msg)
-      STDERR.puts load_error_msg if log_load_error
-      s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
     end
 
     # FIXME: implement pp
