@@ -3,18 +3,35 @@ require_relative './env_builder'
 
 module Natalie
   class Compiler2
-    # This compiler pass sets up needed break points to handle `break` from a block,
-    # lambda, or while loop. You can debug this pass with the `-d p3` CLI flag.
+    # This compiler pass sets up needed break points to handle `break` and `return`
+    # statements. You can debug this pass with the `-d p3` CLI flag.
+    #
+    # There are really about 4 separate actions being taken here:
+    #
+    # == `return` inside a block ==
+    # 1. Replace the ReturnInstruction with a BreakInstruction.
+    # 2. Set up the needed break point try/catch around the appropriate SendInstruction.
+    #    (Not necessarily the SendInstruction with the block; could be higher up.)
+    # 3. When the break point is caught, return the exit_value from the enclosing method.
+    #
+    # == `break` inside a block ==
+    # 1. Set up the needed break point try/catch around the SendInstruction for that block.
+    # 2. When the break point is caught, set the result of the SendInstruction to the exit_value.
+    #
+    # == `break` inside a lambda ==
+    # 1. Set a break point on the Lambda (ProcObject) so it can try/catch around the block execution.
+    #    (It is the responsibility of the ProcObject to catch the break point and return
+    #    from the lambda with the exit_value; See `ProcObject::call()`.)
+    #
+    # == `break` inside a while loop ==
+    # 1. Replace the BreakInstruction with a BreakOutInstruction.
+    #    (The BreakOutInstruction is responsible for setting the result of the while loop.)
+    #
+    # from a block, lambda, or while loop.
     class Pass3 < BasePass
       def initialize(instructions)
-        @instructions = InstructionManager.new(instructions)
+        @instructions = instructions
         @break_point = 0
-
-        # We need to keep track of which 'container' the `break` is operating in.
-        # If it's a `while` loop, the BreakInstruction needs to be converted to a
-        # BreakOutInstruction, which operates differently.
-        @to_convert_to_break_out = {}
-        @break_instructions = {}
 
         # We have to match each break point with the appropriate SendInstruction or
         # CreateLambdaInstruction. Since method calls are chainable, the next
@@ -32,17 +49,6 @@ module Natalie
             send(method, instruction)
           end
         end
-
-        @to_convert_to_break_out.each do |break_point, while_instruction|
-          @break_instructions[break_point].each do |ip, _break_instruction|
-            break_out = BreakOutInstruction.new
-            break_out.while_instruction = while_instruction
-            @instructions.replace_at(ip, break_out)
-          end
-        end
-
-        # add envs to newly-added instructions
-        EnvBuilder.new(@instructions).process
       end
 
       private
@@ -51,32 +57,85 @@ module Natalie
         env = @env
         env = env[:outer] while env[:hoist] && !env[:while]
         raise 'unexpected env for break' unless env[:block] || env[:while]
+
+        if env[:while]
+          break_out_instruction = BreakOutInstruction.new
+          while_instruction = @instructions.find_previous(WhileInstruction)
+          break_out_instruction.while_instruction = while_instruction
+          @instructions.replace_current(break_out_instruction)
+          return
+        end
+
         unless (break_point = env[:has_break])
           break_point = (@break_point += 1)
           env[:has_break] = break_point
         end
         instruction.break_point = break_point
-        @break_instructions[break_point] ||= {}
-        @break_instructions[break_point][@instructions.ip - 1] = instruction
       end
 
       def transform_create_lambda(instruction)
-        return unless (break_point = @break_point_stack.pop)
+        return unless (break_point_env = @break_point_stack.pop)
+        return unless (break_point = break_point_env[:has_break])
 
         instruction.break_point = break_point
       end
 
       def transform_end_define_block(_)
-        @break_point_stack << @env[:has_break]
+        @break_point_stack << @env
+      end
+
+      def transform_return(instruction)
+        unless instruction.env
+          # we just now added the ReturnInstruction, so it's fine :-)
+          return
+        end
+
+        env = @env
+        env = env[:outer] while env[:hoist]
+
+        unless env[:block]
+          # ReturnInstruction inside anything else is OK.
+          return
+        end
+
+        # get the top-most block in the method
+        top_block_env = env
+        while top_block_env.dig(:outer, :block) || top_block_env[:hoist]
+          top_block_env = top_block_env[:outer]
+        end
+
+        unless (break_point = top_block_env[:has_return_break])
+          break_point = (@break_point += 1)
+          top_block_env[:has_return_break] = break_point
+        end
+
+        break_instruction = BreakInstruction.new
+        break_instruction.break_point = break_point
+        @instructions.replace_current(break_instruction)
       end
 
       def transform_send(instruction)
         return unless instruction.with_block?
-        return unless (break_point = @break_point_stack.pop)
+        return unless (break_point_env = @break_point_stack.pop)
 
-        try_instruction = TryInstruction.new
-        @instructions.insert_left(try_instruction)
+        if break_point_env[:has_break]
+          wrap_send(
+            instruction,
+            break_point: break_point_env[:has_break]
+          )
+        end
 
+        if break_point_env[:has_return_break]
+          wrap_send(
+            instruction,
+            break_point: break_point_env[:has_return_break],
+            return_break: true
+          )
+        end
+      end
+
+      def wrap_send(instruction, break_point:, return_break: false)
+        @instructions.insert_left(TryInstruction.new)
         @instructions.insert_right([
           CatchInstruction.new,
           MatchBreakPointInstruction.new(break_point),
@@ -84,27 +143,14 @@ module Natalie
           PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
           SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
+          return_break ? ReturnInstruction.new : nil,
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
           PushSelfInstruction.new,
           SendInstruction.new(:raise, receiver_is_self: true, with_block: false, file: instruction.file, line: instruction.line),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
-        ])
-      end
-
-      # NOTE: `while` loops are different.
-      # This code tracks break points independently from the above methods.
-      def transform_end_while(instruction)
-        return unless (break_point = @env[:has_break])
-
-        while_instruction = instruction.matching_instruction
-
-        unless while_instruction.is_a?(WhileInstruction)
-          raise "unexpected instruction: #{while_instruction.inspect}"
-        end
-
-        @to_convert_to_break_out[break_point] = while_instruction
+        ].compact)
       end
 
       def self.debug_instructions(instructions)

@@ -13,7 +13,6 @@ module Natalie
       end
 
       def transform
-        EnvBuilder.new(@instructions).process
         @instructions.walk do |instruction|
           method = "transform_#{instruction.label}"
           send(method, instruction) if respond_to?(method, true)

@@ -1,15 +1,19 @@
 module Natalie
   class Compiler2
-    # This class builds the 'env' hierarchy used by the C++ backend to determine variable scope.
+    # This class builds the 'env' hierarchy used to determine variable scope.
     class EnvBuilder
-      def initialize(instructions)
-        @instructions = InstructionManager.new(instructions)
-        @env = { vars: {}, outer: nil }
+      def initialize(instructions, env: { vars: {}, outer: nil })
+        if instructions.is_a?(Array)
+          @instructions = instructions
+        else
+          @instructions = instructions.to_a
+        end
+        @env = env
         @instruction_stack = []
       end
 
       def process
-        @instructions.walk do |instruction|
+        @instructions.each do |instruction|
           method = "process_#{instruction.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
 
