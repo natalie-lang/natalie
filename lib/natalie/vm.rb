@@ -3,7 +3,7 @@ require_relative 'vm/main_object'
 module Natalie
   class VM
     def initialize(instructions, path:)
-      @instructions = Compiler2::InstructionManager.new(instructions)
+      @instructions = instructions
       @stack = []
       @call_stack = [{ scope: { vars: {} } }]
       @self = build_main

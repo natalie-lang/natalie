@@ -2,22 +2,31 @@ module Natalie
   class Compiler2
     class InstructionManager
       def initialize(instructions)
-        if instructions.is_a?(InstructionManager)
-          @instructions = instructions.instance_variable_get(:@instructions)
-        else
-          @instructions = instructions
+        unless instructions.is_a?(Array)
+          raise 'expected array'
         end
-        @ip = 0
+        @instructions = instructions
+        EnvBuilder.new(@instructions).process
+        reset
       end
 
       attr_accessor :ip
+
+      def to_a
+        @instructions
+      end
 
       def walk
         while @ip < @instructions.size
           instruction = self.next
           yield instruction
         end
-        @instructions
+        reset
+        self
+      end
+
+      def reset
+        @ip = 0
       end
 
       def next
@@ -32,6 +41,7 @@ module Natalie
 
       def replace_at(ip, instruction)
         raise 'expected instruction' unless instruction.is_a?(BaseInstruction)
+        EnvBuilder.new([instruction], env: @instructions[ip - 1].env).process
         @instructions[ip] = instruction
       end
 
@@ -50,6 +60,7 @@ module Natalie
 
       def insert_at(ip, instructions)
         instructions = Array(instructions)
+        EnvBuilder.new(instructions, env: @instructions[ip - 1].env).process
         @instructions.insert(ip, *instructions)
         instructions.size
       end
@@ -75,6 +86,14 @@ module Natalie
         end
 
         instructions
+      end
+
+      def find_previous(instruction_class)
+        ip = @ip
+        while ip != 0
+          return @instructions[ip] if @instructions[ip].is_a?(instruction_class)
+          ip -= 1
+        end
       end
     end
   end

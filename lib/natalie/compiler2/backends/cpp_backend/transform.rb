@@ -3,7 +3,11 @@ module Natalie
     class CppBackend
       class Transform
         def initialize(instructions, stack: [], top:, compiler_context:)
-          @instructions = InstructionManager.new(instructions)
+          if instructions.is_a?(InstructionManager)
+            @instructions = instructions
+          else
+            @instructions = InstructionManager.new(instructions)
+          end
           @result_stack = []
           @top = top
           @code = []
