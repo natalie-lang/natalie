@@ -5,18 +5,14 @@
 #     bin/natalie test/runner.rb spec/core/array/pack/{a,b}_spec.rb
 #
 
-require 'natalie/macros'
+require_relative 'support/nat_binary'
 
-macro!(:require_argv) do
-  requires = []
-  ARGV.each do |path|
-    if File.directory?(path)
-      warn "WARNING: skipping directory #{path}"
-      next
-    end
-    requires << s(:call, nil, :require, s(:str, path))
+ARGV.each do |path|
+  if File.directory?(path)
+    $stderr.puts "WARNING: skipping directory #{path}"
+    next
   end
-  s(:block, *requires)
+  pid = spawn(NAT_BINARY, path)
+  Process.wait(pid)
+  exit $?.exitstatus unless $?.success?
 end
-
-require_argv
