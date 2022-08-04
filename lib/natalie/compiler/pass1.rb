@@ -1,3 +1,5 @@
+# test-compiler2
+
 require_relative './base_pass'
 require_relative './method_args'
 require_relative './multiple_assignment'

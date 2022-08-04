@@ -3,19 +3,23 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class ConstFindInstruction < BaseInstruction
-      def initialize(name)
+      def initialize(name, strict:)
         @name = name.to_sym
+        @strict = strict
       end
 
-      attr_reader :name
+      attr_reader :name, :strict
 
       def to_s
-        "const_find #{@name}"
+        s = "const_find #{@name}"
+        s << ' (strict)' if @strict
+        s
       end
 
       def generate(transform)
         namespace = transform.pop
-        transform.push("#{namespace}->const_find(env, #{name.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)")
+        search_mode = @strict ? 'Strict' : 'NotStrict'
+        transform.push("#{namespace}->const_find(env, #{name.to_s.inspect}_s, Object::ConstLookupSearchMode::#{search_mode})")
       end
 
       def execute(vm)

@@ -317,7 +317,7 @@ module Natalie
         _, namespace, name = exp
         instructions = [
           transform_expression(namespace, used: true),
-          ConstFindInstruction.new(name),
+          ConstFindInstruction.new(name, strict: true),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -326,13 +326,19 @@ module Natalie
       def transform_colon3(exp, used:)
         return [] unless used
         _, name = exp
-        [PushObjectClassInstruction.new, ConstFindInstruction.new(name)]
+        [
+          PushObjectClassInstruction.new,
+          ConstFindInstruction.new(name, strict: true),
+        ]
       end
 
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
-        [PushSelfInstruction.new, ConstFindInstruction.new(name)]
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(name, strict: false),
+        ]
       end
 
       def transform_cvar(exp, used:)
