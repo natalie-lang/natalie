@@ -17,7 +17,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("Value(#{string_to_cpp(@name.to_s)}_s)")
+        transform.push("Value(SymbolObject::intern(#{string_to_cpp(@name.to_s)}, #{@name.to_s.bytesize}))")
       end
 
       def execute(vm)
