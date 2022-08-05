@@ -518,6 +518,16 @@ module Natalie
         instructions
       end
 
+      def transform_dsym(exp, used:)
+        instructions = [
+          PushArgcInstruction.new(0),
+          transform_dstr(exp, used: true),
+          SendInstruction.new(:to_sym, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_dxstr(exp, used:)
         _, *parts = exp
         instructions = [
