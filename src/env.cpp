@@ -11,6 +11,10 @@ void Env::build_vars(size_t size) {
     m_vars = new ManagedVector<Value>(size, NilObject::the());
 }
 
+bool Env::global_defined(SymbolObject *name) {
+    return GlobalEnv::the()->global_defined(this, name);
+}
+
 Value Env::global_get(SymbolObject *name) {
     return GlobalEnv::the()->global_get(this, name);
 }

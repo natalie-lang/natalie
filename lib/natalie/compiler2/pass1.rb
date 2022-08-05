@@ -35,7 +35,7 @@ module Natalie
         case exp
         when Sexp
           method = "transform_#{exp.sexp_type}"
-          send(method, exp, used: used)
+          Array(send(method, exp, used: used)).flatten
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
@@ -365,6 +365,57 @@ module Natalie
         ]
         instructions << PushSymbolInstruction.new(name) if used
         instructions
+      end
+
+      def transform_defined(exp, used:)
+        return [] unless used
+        _, name = exp
+        body = transform_expression(name, used: true)
+        case body.last
+        when ConstFindInstruction
+          type = 'constant'
+        when CreateHashInstruction
+          # peculiarity that hashes always return 'expression'
+          type = 'expression'
+          return [PushStringInstruction.new(type, type.size)]
+        when GlobalVariableGetInstruction
+          type = 'global-variable'
+        when InstanceVariableGetInstruction
+          type = 'instance-variable'
+        when PushFalseInstruction
+          type = 'false'
+        when SendInstruction
+          if body.last.with_block
+            # peculiarity that send with a block always returns 'expression'
+            type = 'expression'
+            return [PushStringInstruction.new(type, type.size)]
+          else
+            type = 'method'
+          end
+        when PushNilInstruction
+          type = 'nil'
+        when PushTrueInstruction
+          type = 'true'
+        when VariableGetInstruction
+          type = 'local-variable'
+        else
+          type = 'expression'
+        end
+        body.each_with_index do |instruction, index|
+          case instruction
+          when GlobalVariableGetInstruction
+            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
+          when InstanceVariableGetInstruction
+            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
+          when SendInstruction
+            body[index] = instruction.to_method_defined_instruction
+          end
+        end
+        [
+          IsDefinedInstruction.new(type: type),
+          body,
+          EndInstruction.new(:is_defined),
+        ]
       end
 
       def transform_defn(exp, used:)
@@ -1039,13 +1090,6 @@ module Natalie
         [prepper.name, prepper.namespace]
       end
 
-      def self.debug_instructions(instructions)
-        instructions.each_with_index do |instruction, index|
-          desc = "#{index} #{instruction}"
-          puts desc
-        end
-      end
-
       def is_lambda_call?(exp)
         exp == s(:lambda) || exp == s(:call, nil, :lambda)
       end
@@ -1065,6 +1109,13 @@ module Natalie
 
         args.count do |arg|
           !arg.is_a?(Symbol) || !arg.start_with?('&')
+        end
+      end
+
+      def self.debug_instructions(instructions)
+        instructions.each_with_index do |instruction, index|
+          desc = "#{index} #{instruction}"
+          puts desc
         end
       end
     end

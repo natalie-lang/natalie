@@ -16,6 +16,10 @@ module Natalie
         @instructions
       end
 
+      def each_with_index(&block)
+        @instructions.each_with_index(&block)
+      end
+
       def walk
         while @ip < @instructions.size
           instruction = self.next

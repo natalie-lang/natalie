@@ -3,6 +3,17 @@
 
 namespace Natalie {
 
+bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
+    if (!name->is_global_name())
+        env->raise_name_error(name, "`{}' is not allowed as an global variable name", name->c_str());
+
+    auto val = m_globals.get(name, env);
+    if (val)
+        return true;
+    else
+        return false;
+}
+
 Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as an global variable name", name->c_str());

@@ -31,7 +31,13 @@ module Natalie
         @line = line
       end
 
-      attr_reader :file, :line
+      attr_reader :message,
+                  :receiver_is_self,
+                  :with_block,
+                  :args_array_on_stack,
+                  :has_keyword_hash,
+                  :file,
+                  :line
 
       def with_block?
         !!@with_block
@@ -92,6 +98,16 @@ module Natalie
           result = receiver.send(method, @message, *args, &block)
           vm.push result
         end
+      end
+
+      def to_method_defined_instruction
+        MethodDefinedInstruction.new(
+          message,
+          receiver_is_self: @receiver_is_self,
+          with_block: @with_block,
+          args_array_on_stack: @args_array_on_stack,
+          has_keyword_hash: @has_keyword_hash,
+        )
       end
 
       private

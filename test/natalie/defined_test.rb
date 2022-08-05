@@ -1,3 +1,6 @@
+# test-compiler2
+# skip-test (the old compiler can't compile some of this, but Compiler2 can!)
+
 require_relative '../spec_helper'
 
 NUM = 1
@@ -29,17 +32,23 @@ describe 'defined?' do
     x = 1
     defined?(x).should == 'local-variable'
     defined?(not_a_variable).should == nil
+    n = nil
+    defined?(n).should == 'local-variable'
   end
 
   it 'recognizes instance variables' do
     @x = 1
     defined?(@x).should == 'instance-variable'
     defined?(@not_a_variable).should == nil
+    @nil = nil
+    defined?(@nil).should == 'instance-variable'
   end
 
   it 'recognizes global variables' do
     defined?($global).should == 'global-variable'
     defined?($not_a_global).should == nil
+    $nil = nil
+    defined?($nil).should == 'global-variable'
   end
 
   it 'recognizes methods' do
@@ -53,15 +62,27 @@ describe 'defined?' do
     hash = {}
     defined?(hash[]).should == 'method'
     defined?(hash[1]).should == 'method'
+    defined?(not_a_method { 1 }).should == 'expression' # always an expression
   end
 
   it 'recognizes expressions' do
     defined?(1).should == 'expression'
     defined?('hi').should == 'expression'
+    defined?([]).should == 'expression'
+    defined?([@foo]).should == nil
+    @foo = 1
+    defined?([@foo]).should == 'expression'
+    defined?([@foo, bar]).should == nil
+    bar = 2
+    defined?([@foo, bar]).should == 'expression'
+    defined?({}).should == 'expression'
+    defined?({1=>@baz}).should == 'expression' # even though @baz is undefined
   end
 
-  it 'recognizes nil' do
+  it 'recognizes nil/true/false' do
     defined?(nil).should == 'nil'
+    defined?(true).should == 'true'
+    defined?(false).should == 'false'
   end
 
   it 'does not raise an error' do
