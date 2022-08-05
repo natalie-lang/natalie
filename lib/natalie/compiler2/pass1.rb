@@ -1085,9 +1085,11 @@ module Natalie
 
       def transform_yield(exp, used:)
         _, *args = exp
-        instructions = args.map { |arg| transform_expression(arg, used: true) }
-        instructions << PushArgcInstruction.new(args.size)
-        instructions << YieldInstruction.new
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        instructions << YieldInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
