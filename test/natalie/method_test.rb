@@ -1,4 +1,5 @@
 # test-compiler2
+# skip-test # works in Compiler2 but not in Compiler :-)
 
 require_relative '../spec_helper'
 
