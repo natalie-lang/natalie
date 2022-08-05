@@ -377,7 +377,7 @@ module Natalie
         when CreateHashInstruction
           # peculiarity that hashes always return 'expression'
           type = 'expression'
-          return [PushStringInstruction.new(type, type.size)]
+          return [PushStringInstruction.new(type)]
         when GlobalVariableGetInstruction
           type = 'global-variable'
         when InstanceVariableGetInstruction
@@ -388,7 +388,7 @@ module Natalie
           if body.last.with_block
             # peculiarity that send with a block always returns 'expression'
             type = 'expression'
-            return [PushStringInstruction.new(type, type.size)]
+            return [PushStringInstruction.new(type)]
           else
             type = 'method'
           end
@@ -500,7 +500,7 @@ module Natalie
 
       def transform_dstr(exp, used:)
         _, start, *rest = exp
-        instructions = [PushStringInstruction.new(start, start.size)]
+        instructions = [PushStringInstruction.new(start)]
         rest.each do |segment|
           case segment.sexp_type
           when :evstr
@@ -988,7 +988,7 @@ module Natalie
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
-        PushStringInstruction.new(str, str.size)
+        PushStringInstruction.new(str)
       end
 
       def transform_super(exp, used:)

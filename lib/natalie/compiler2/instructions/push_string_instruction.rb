@@ -3,20 +3,20 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class PushStringInstruction < BaseInstruction
-      def initialize(string, length)
+      def initialize(string, bytesize: string.bytesize)
         @string = string
-        @length = length
+        @bytesize = bytesize
       end
 
       def to_s
-        "push_string #{@string.inspect}, #{@length}"
+        "push_string #{@string.inspect}, #{@bytesize}"
       end
 
       def generate(transform)
         if @string.empty?
           transform.exec_and_push('string', "Value(new StringObject)")
         else
-          transform.exec_and_push('string', "Value(new StringObject(#{to_cpp}, (size_t)#{@length}))")
+          transform.exec_and_push('string', "Value(new StringObject(#{to_cpp}, (size_t)#{@bytesize}))")
         end
       end
 
