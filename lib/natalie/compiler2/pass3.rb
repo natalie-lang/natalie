@@ -55,7 +55,7 @@ module Natalie
 
       def transform_break(instruction)
         env = @env
-        env = env[:outer] while env[:hoist] && !env[:while]
+        env = env.fetch(:outer) while env[:hoist] && !env[:while]
         raise 'unexpected env for break' unless env[:block] || env[:while]
 
         if env[:while]
@@ -91,7 +91,7 @@ module Natalie
         end
 
         env = @env
-        env = env[:outer] while env[:hoist]
+        env = env.fetch(:outer) while env[:hoist]
 
         unless env[:block]
           # ReturnInstruction inside anything else is OK.
@@ -101,7 +101,7 @@ module Natalie
         # get the top-most block in the method
         top_block_env = env
         while top_block_env.dig(:outer, :block) || top_block_env[:hoist]
-          top_block_env = top_block_env[:outer]
+          top_block_env = top_block_env.fetch(:outer)
         end
 
         unless (break_point = top_block_env[:has_return_break])

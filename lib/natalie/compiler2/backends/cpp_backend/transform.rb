@@ -19,7 +19,7 @@ module Natalie
           @instructions.ip
         end
 
-        attr_reader :stack
+        attr_reader :stack, :env
 
         def transform(result_prefix = nil)
           @instructions.walk do |instruction|
@@ -71,7 +71,7 @@ module Natalie
           depth = 0
 
           loop do
-            env = env[:outer] while env[:hoist]
+            env = env.fetch(:outer) while env[:hoist]
             if env.fetch(:vars).key?(name)
               var = env.dig(:vars, name)
               return [depth, var]
@@ -125,7 +125,7 @@ module Natalie
           while lines.any?
             line = lines.shift
             next if line.nil?
-            next if result_prefix.nil? && useless_value?(line)
+            next if result_prefix.nil? && !value_has_side_effects?(line)
             if lines.empty? && line !~ /^\s*env->raise|^\s*break;?$/
               out << "#{result_prefix} #{semicolon(line)}"
             else
@@ -139,8 +139,12 @@ module Natalie
           @top << Array(code).join("\n")
         end
 
-        def useless_value?(value)
-          !!(value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/)
+        def value_has_side_effects?(value)
+          !(value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/)
+        end
+
+        def inspect
+          "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end
       end
     end

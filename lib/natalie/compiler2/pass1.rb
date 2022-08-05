@@ -626,8 +626,10 @@ module Natalie
           instructions << transform_call(call, used: used, with_block: true)
         when :lambda
           instructions << transform_lambda(call, used: used)
+        when :super
+          instructions << transform_super(call, used: used)
         else
-          raise "unexpected call: #{call.sexp_type.inspect}" unless call.sexp_type == :call
+          raise "unexpected call: #{call.sexp_type.inspect}"
         end
         instructions
       end

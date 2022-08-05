@@ -25,6 +25,17 @@ module Natalie
 
       private
 
+      def generate_constant(transform, name, type)
+        name = comptime_string(name)
+        type = comptime_string(type)
+        case type
+        when 'int', 'unsigned short'
+          transform.push("Value::integer(#{name})")
+        else
+          raise "I don't yet know how to handle constant of type #{type.inspect}"
+        end
+      end
+
       def generate_define_method(transform, name, args, body = nil)
         if body.nil?
           body = args
@@ -45,6 +56,18 @@ module Natalie
         output << '}'
         transform.top(output)
         transform.exec("self->as_module()->define_method(env, #{name.to_s.inspect}_s, #{fn}, -1)")
+      end
+
+      def generate_inline(transform, body)
+        body = comptime_string(body)
+        env = transform.env
+        env = env.fetch(:outer) while env[:hoist]
+        if env[:outer].nil?
+          transform.top body
+        else
+          transform.exec body
+        end
+        transform.push('NilObject::the()')
       end
 
       def comptime_string(exp)
