@@ -1,3 +1,5 @@
+# test-compiler2
+
 require_relative '../spec_helper'
 
 class CaseTestObj
@@ -202,5 +204,25 @@ describe 'case/when' do
         'two'
       end
     }.should_not raise_error
+  end
+
+  it 'executes every line of the when body' do
+    result = nil
+    case 1
+    when 1
+      :noop
+      :noop
+      result = :worked
+    end
+    result.should == :worked
+
+    result = nil
+    case
+    when 1 == 1
+      :noop
+      :noop
+      result = :worked
+    end
+    result.should == :worked
   end
 end

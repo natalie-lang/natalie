@@ -236,7 +236,7 @@ module Natalie
             # when b, c, d
             # =>
             # if (b === a || c === a || d === a)
-            _, options_array, body = when_statement
+            _, options_array, *body = when_statement
             _, *options = options_array
             options.each do |option|
               option_instructions = transform_expression(option, used: true)
@@ -251,7 +251,7 @@ module Natalie
             instructions << PushFalseInstruction.new
             instructions << [EndInstruction.new(:if)] * options.length
             instructions << IfInstruction.new
-            instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
+            instructions << transform_body(body, used: true)
             instructions << ElseInstruction.new(:if)
           end
         else
@@ -261,7 +261,7 @@ module Natalie
             # when a == b, b == c, c == d
             # =>
             # if (a == b || b == c || c == d)
-            _, options, body = when_statement
+            _, options, *body = when_statement
 
             # s(:array, option1, option2, ...)
             # =>
@@ -269,7 +269,7 @@ module Natalie
             options = options[2..].reduce(options[1]) { |prev, option| s(:or, prev, option) }
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
-            instructions << (body.nil? ? PushNilInstruction.new : transform_expression(body, used: true))
+            instructions << transform_body(body, used: true)
             instructions << ElseInstruction.new(:if)
           end
         end
