@@ -47,13 +47,13 @@ class CSV
 
   def self.generate(string = "", **options)
     io = StringIO.new(string)
-    csv = CSV.new(io, options)
+    csv = CSV.new(io, **options)
     yield csv
     io.string
   end
 
   def self.generate_line(ary, **options)
-    generate(options) do |csv|
+    generate('', **options) do |csv|
       csv << ary
     end
   end

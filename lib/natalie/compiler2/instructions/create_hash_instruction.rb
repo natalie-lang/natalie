@@ -26,7 +26,7 @@ module Natalie
           items.unshift(transform.pop)
           items.unshift(transform.pop)
         end
-        transform.push("Value(new HashObject(env, { #{items.join(', ')} }))")
+        transform.exec_and_push(:hash, "Value(new HashObject(env, { #{items.join(', ')} }))")
       end
 
       def execute(vm)

@@ -425,6 +425,10 @@ def method_with_kwargs13(a = nil, b = nil, **kwargs)
   [a, b, kwargs]
 end
 
+def method_with_kwargs14(a = '', **kwargs)
+  [a, kwargs]
+end
+
 describe 'method with keyword args' do
   it 'accepts keyword args' do
     method_with_kwargs1(1, b: 2).should == [1, 2]
@@ -447,11 +451,23 @@ describe 'method with keyword args' do
     method_with_kwargs11(a: 'a', b: 'b').should == ['a', { b: 'b' }]
     method_with_kwargs12(1, 2).should == [[1, 2], nil]
     method_with_kwargs12(1, 2, b: 3).should == [[1, 2], 3]
+    method_with_kwargs13.should == [nil, nil, {}]
     method_with_kwargs13('a').should == ['a', nil, {}]
     method_with_kwargs13('a', 'b').should == ['a', 'b', {}]
     method_with_kwargs13('a', c: 'c').should == ['a', nil, { c: 'c' }]
     method_with_kwargs13(c: 'c').should == [nil, nil, { c: 'c' }]
     method_with_kwargs13('a', 'b', c: 'c').should == ['a', 'b', { c: 'c' }]
+    method_with_kwargs14.should == ['', {}]
+    method_with_kwargs14(a: 1).should == ['', { a: 1 }]
+    method_with_kwargs14([]).should == [[], {}]
+  end
+
+  it 'keyword splat' do
+    h = { a: 2 }
+    method_with_kwargs6(**h).should == [2, 'b']
+    method_with_kwargs6(**h, a: 3).should == [3, 'b']
+    method_with_kwargs6(a: 0, **h).should == [2, 'b']
+    method_with_kwargs6(**h, b: 3).should == [2, 3]
   end
 
   xit 'raises an error when there are too many positional arguments' do

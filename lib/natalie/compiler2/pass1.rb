@@ -125,6 +125,10 @@ module Natalie
         transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
+      def transform_bare_hash(exp, used:)
+        transform_hash(exp, bare: true, used: used)
+      end
+
       def transform_block(exp, used:)
         _, *body = exp
         transform_body(body, used: used)
@@ -212,8 +216,7 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
 
-        last_instruction = instructions.flatten.last
-        has_keyword_hash = last_instruction.is_a?(CreateHashInstruction) && last_instruction.bare?
+        has_keyword_hash = args.last&.sexp_type == :bare_hash
 
         instructions << PushArgcInstruction.new(args.size)
 
@@ -571,21 +574,51 @@ module Natalie
         GlobalVariableGetInstruction.new(name)
       end
 
-      def transform_hash(exp, used:)
+      def transform_hash(exp, bare: false, used:)
         _, *items = exp
-        raise 'odd number of hash items' if items.size.odd?
-        instructions = items.map { |item| transform_expression(item, used: true) }
-        instructions << CreateHashInstruction.new(count: items.size / 2, bare: false)
+        instructions = []
+        if items.any? { |a| a.sexp_type == :kwsplat }
+          instructions += transform_hash_with_kwsplat(items, bare: bare)
+        else
+          items.each do |item|
+            instructions << transform_expression(item, used: true)
+          end
+          instructions << CreateHashInstruction.new(count: items.size / 2, bare: bare)
+        end
         instructions << PopInstruction.new unless used
         instructions
       end
 
-      def transform_bare_hash(exp, used:)
-        _, *items = exp
-        raise 'odd number of hash items' if items.size.odd?
-        instructions = items.map { |item| transform_expression(item, used: true) }
-        instructions << CreateHashInstruction.new(count: items.size / 2, bare: true)
-        instructions << PopInstruction.new unless used
+      def transform_hash_with_kwsplat(items, bare:)
+        items = items.dup
+        instructions = []
+
+        # TODO: skip CreateHashInstruction if splat is first
+        # (will need to duplicate the kwsplat value)
+
+        # create hash from items before the splat
+        prior_to_splat_count = 0
+        while items.any? && items.first.sexp_type != :kwsplat
+          instructions << transform_expression(items.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateHashInstruction.new(count: prior_to_splat_count / 2, bare: bare)
+
+        # now add to the hash the first splat item and everything after
+        while items.any?
+          key = items.shift
+          if key.sexp_type == :kwsplat
+            _, value = key
+            instructions << transform_expression(value, used: true)
+            instructions << HashMergeInstruction.new
+          else
+            value = items.shift
+            instructions << transform_expression(key, used: true)
+            instructions << transform_expression(value, used: true)
+            instructions << HashPutInstruction.new
+          end
+        end
+
         instructions
       end
 
