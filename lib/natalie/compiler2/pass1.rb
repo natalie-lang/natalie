@@ -1032,6 +1032,17 @@ module Natalie
         PushTrueInstruction.new
       end
 
+      def transform_undef(exp, used:)
+        _, name = exp
+        raise "unexpected undef value: #{name.inspect}" unless name.sexp_type == :lit
+        name = name.last
+        instructions = [
+          UndefineMethodInstruction.new(name: name)
+        ]
+        instructions << PushNilInstruction.new if used
+        instructions
+      end
+
       def transform_until(exp, used:)
         _, condition, body, pre = exp
         transform_while(exp.new(:while, s(:call, condition, :!), body, pre), used: used)
