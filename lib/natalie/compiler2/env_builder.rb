@@ -42,6 +42,9 @@ module Natalie
       def process_define_method(i) @env = i.env || { vars: {}, outer: @env } end
       def process_end_define_method(_) @env = @env[:outer] end
 
+      def process_define_module(i) @env = i.env || { vars: {}, outer: @env } end
+      def process_end_define_module(_) @env = @env[:outer] end
+
       def process_if(i) @env = i.env || { vars: {}, outer: @env, hoist: true } end
       def process_end_if(_) @env = @env[:outer] end
 
