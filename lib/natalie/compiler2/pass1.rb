@@ -160,7 +160,11 @@ module Natalie
       end
 
       def transform_block_args(exp, used:)
-        transform_defn_args(exp, for_block: true, used: used)
+        transform_defn_args(exp, for_block: true, check_args: false, used: used)
+      end
+
+      def transform_block_args_for_lambda(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: true, used: used)
       end
 
       def transform_break(exp, used:)
@@ -461,7 +465,7 @@ module Natalie
         ]
       end
 
-      def transform_defn_args(exp, for_block: false, used:)
+      def transform_defn_args(exp, for_block: false, check_args: true, used:)
         return [] unless used
         _, *args = exp
 
@@ -479,7 +483,7 @@ module Natalie
         if has_complicated_args || may_need_to_destructure_args_for_block
           min_count = minimum_arg_count(args)
           max_count = maximum_arg_count(args)
-          unless for_block
+          if check_args
             instructions << CheckArgsInstruction.new(positional: min_count..max_count)
           end
           instructions << PushArgsInstruction.new(for_block: for_block, min_count: min_count, max_count: max_count)
@@ -487,7 +491,7 @@ module Natalie
           return instructions
         end
 
-        unless for_block
+        if check_args
           instructions << CheckArgsInstruction.new(positional: args.size)
         end
 
@@ -684,7 +688,11 @@ module Natalie
         arity = Arity.new(args, is_proc: !is_lambda).arity
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
-        instructions << transform_block_args(args, used: true)
+        if is_lambda_call?(call)
+          instructions << transform_block_args_for_lambda(args, used: true)
+        else
+          instructions << transform_block_args(args, used: true)
+        end
         instructions << transform_expression(body || s(:nil), used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
