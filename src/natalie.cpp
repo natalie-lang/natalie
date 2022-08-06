@@ -356,8 +356,12 @@ Value to_ary_for_masgn(Env *env, Value obj) {
 
     if (obj->respond_to(env, "to_ary"_s)) {
         auto array = obj.send(env, "to_ary"_s);
-        if (array->is_array())
+        if (array->is_array()) {
             return array->dup(env);
+        } else if (!array->is_nil()) {
+            auto *class_name = obj->klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
+        }
     }
 
     return new ArrayObject { obj };

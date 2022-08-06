@@ -52,11 +52,11 @@ ArrayObject *Args::to_array() const {
     return new ArrayObject { m_size, m_data };
 }
 
-ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count) const {
-    if (m_size == 1 && max_count > 1) {
+ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const {
+    if (m_size == 1 && spread) {
         auto ary = to_ary(env, m_data[0], true)->dup(env)->as_array();
         ssize_t count = ary->size();
-        if (count > max_count)
+        if (max_count != -1 && count > max_count)
             ary->truncate(max_count);
         else if (count < min_count)
             ary->fill(env, NilObject::the(), Value::integer(ary->size()), Value::integer(min_count - ary->size()), nullptr);

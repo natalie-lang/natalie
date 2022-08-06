@@ -53,7 +53,7 @@ public:
     Value at(size_t index, Value default_value) const;
 
     ArrayObject *to_array() const;
-    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count) const;
+    ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;
 
     void ensure_argc_is(Env *env, size_t expected) const;
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const;

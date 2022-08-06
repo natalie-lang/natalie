@@ -3,22 +3,24 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class PushArgsInstruction < BaseInstruction
-      def initialize(for_block:, min_count:, max_count:)
+      def initialize(for_block:, min_count:, max_count:, spread: false)
         @for_block = for_block
         @min_count = min_count
         @max_count = max_count
+        @spread = spread
       end
 
       def to_s
         s = 'push_args'
         s << ' (for_block)' if @for_block
+        s << ' (spread)' if @spread
         s
       end
 
       def generate(transform)
         args = transform.temp('args')
         if @for_block
-          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1})")
+          transform.exec_and_push(:args, "args.to_array_for_block(env, #{@min_count}, #{@max_count || -1}, #{@spread ? 'true' : 'false'})")
         else
           transform.exec_and_push(:args, 'args.to_array()')
         end

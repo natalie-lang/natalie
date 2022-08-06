@@ -20,6 +20,12 @@ end
 
 class BadArrayLike < ArrayLike
   def to_ary
+    :bad
+  end
+end
+
+class NilArrayLike < ArrayLike
+  def to_ary
     nil
   end
 end
@@ -107,8 +113,8 @@ describe 'assignment' do
     h.should == { bar: 1, foo: 2 }
   end
 
-  it 'does not error when an object responds to to_ary but returns something else' do
-    bal = BadArrayLike.new(1, 2)
+  it 'does not error when an object responds to to_ary but returns nil' do
+    bal = NilArrayLike.new(1, 2)
     a, b = bal
     a.should == bal
     b.should == nil
@@ -116,6 +122,20 @@ describe 'assignment' do
       a.should == bal
       b.should == nil
       c.should == nil
+    end
+    [bal].each do |(a, b, c)|
+      a.should == bal
+      b.should == nil
+      c.should == nil
+    end
+  end
+
+  it 'errors when an object responds to to_ary but returns a non-array' do
+    if RUBY_PLATFORM == 'ruby' || compiler2?
+      bal = BadArrayLike.new(1, 2)
+      -> { a, b = bal }.should raise_error(TypeError)
+      -> { [bal].each { |a, b, c| } }.should raise_error(TypeError)
+      -> { [bal].each { |(a, b, c)| } }.should raise_error(TypeError)
     end
   end
 

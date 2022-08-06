@@ -483,10 +483,18 @@ module Natalie
         if has_complicated_args || may_need_to_destructure_args_for_block
           min_count = minimum_arg_count(args)
           max_count = maximum_arg_count(args)
+
           if check_args
             instructions << CheckArgsInstruction.new(positional: min_count..max_count)
           end
-          instructions << PushArgsInstruction.new(for_block: for_block, min_count: min_count, max_count: max_count)
+
+          instructions << PushArgsInstruction.new(
+            for_block: for_block,
+            min_count: min_count,
+            max_count: max_count,
+            spread: for_block && args.size > 1,
+          )
+
           instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
           return instructions
         end
