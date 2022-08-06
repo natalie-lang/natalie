@@ -1111,8 +1111,10 @@ module Natalie
         when :splat
           instructions << transform_expression(svalue, used: true)
           instructions << ArrayWrapInstruction.new
+        when :array
+          instructions << transform_array(svalue, used: true)
         else
-          raise "unexpected svalue type: #{svalue.sexp_type}"
+          raise "unexpected svalue type: #{svalue.inspect}"
         end
         instructions << PopInstruction.new unless used
         instructions

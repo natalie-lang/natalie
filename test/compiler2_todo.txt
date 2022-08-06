@@ -10,7 +10,7 @@
 - [X] test/natalie/lambda_test.rb
 - [X] test/natalie/rescue_test.rb
 - [X] test/natalie/super_test.rb
-- [ ] spec/core/array/element_set_spec.rb
+- [X] spec/core/array/element_set_spec.rb
 - [ ] spec/core/symbol/all_symbols_spec.rb
 - [ ] spec/language/retry_spec.rb
 - [ ] test/natalie/fiber_test.rb
