@@ -33,7 +33,7 @@ module Natalie
         code = []
         code << "auto #{klass} = #{namespace}->const_get(#{@name.to_s.inspect}_s)"
         code << "if (!#{klass}) {"
-        code << "  #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
+        code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{@name.to_s.inspect}_s, #{klass})"
         code << "}"
         code << "#{klass}->as_class()->eval_body(env, #{fn})"
