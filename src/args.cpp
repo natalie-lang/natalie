@@ -45,7 +45,7 @@ Args Args::shift(Args &args) {
     if (args.size() == 1)
         return Args();
     auto ary = new ArrayObject(args.size() - 1, args.data() + 1);
-    return Args(ary);
+    return Args(ary, args.has_keyword_hash());
 }
 
 ArrayObject *Args::to_array() const {
