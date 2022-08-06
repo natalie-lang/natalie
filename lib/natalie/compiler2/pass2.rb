@@ -9,7 +9,6 @@ module Natalie
     class Pass2 < BasePass
       def initialize(instructions)
         @instructions = InstructionManager.new(instructions)
-        @env = { vars: {}, outer: nil }
       end
 
       def transform
@@ -21,12 +20,26 @@ module Natalie
 
       private
 
+      def transform_variable_declare(instruction)
+        instruction.meta = find_or_create_var(
+          instruction.env,
+          instruction.name,
+        )
+      end
+
       def transform_variable_get(instruction)
-        instruction.meta = find_or_create_var(instruction.env, instruction.name)
+        instruction.meta = find_or_create_var(
+          instruction.env,
+          instruction.name,
+        )
       end
 
       def transform_variable_set(instruction)
-        instruction.meta = find_or_create_var(instruction.env, instruction.name, local_only: instruction.local_only)
+        instruction.meta = find_or_create_var(
+          instruction.env,
+          instruction.name,
+          local_only: instruction.local_only,
+        )
       end
 
       def find_or_create_var(env, name, local_only: false)
@@ -96,7 +109,7 @@ module Natalie
             env = instruction.env
             e = env
             vars = e[:vars].keys.sort.map { |v| "#{v} (mine)" }
-            while e[:hoist] && e = e[:outer]
+            while (e[:hoist] || e[:block]) && e = e.fetch(:outer)
               vars += e[:vars].keys.sort
             end
             puts

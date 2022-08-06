@@ -2,7 +2,7 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler2
-    class VariableSetInstruction < BaseInstruction
+    class VariableDeclareInstruction < BaseInstruction
       def initialize(name, local_only: false)
         @name = name.to_sym
         @local_only = local_only
@@ -13,7 +13,7 @@ module Natalie
       attr_accessor :meta
 
       def to_s
-        s = "variable_set #{@name}"
+        s = "variable_declare #{@name}"
         s << ' local' if @local_only
         s
       end
@@ -22,28 +22,22 @@ module Natalie
         ((depth, var) = transform.find_var(name, local_only: @local_only))
         index = var.fetch(:index)
 
+        return if @meta.fetch(:declared)
+
         env = 'env'
         depth.times { env << '->outer()' }
 
-        value = transform.pop
-
         if @meta.fetch(:captured)
           @meta[:declared] = true
-          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
-        elsif @meta.fetch(:declared)
-          transform.exec("#{@meta[:name]} = #{value}")
+          transform.exec("#{env}->var_set(#{name.to_s.inspect}, #{index}, true, NilObject::the())")
         else
           @meta[:declared] = true
-          transform.exec("Value #{@meta[:name]} = #{value}")
+          transform.exec("Value #{@meta[:name]} = NilObject::the()")
         end
       end
 
       def execute(vm)
-        if (var = vm.find_var(@name, local_only: @local_only))
-          var[:value] = vm.pop
-        else
-          vm.scope[:vars][@name] = { name: @name, value: vm.pop }
-        end
+        :noop
       end
     end
   end

@@ -347,4 +347,18 @@ describe 'assignment' do
     a.should == 1
     c.should == 4
   end
+
+  it 'captures variables that are in the process of being set' do
+    def foo(x)
+      x.call
+    end
+
+    ran = false
+
+    # x gets captured
+    x = foo(-> { ran = true; x })
+
+    x.should be_nil
+    ran.should be_true
+  end
 end

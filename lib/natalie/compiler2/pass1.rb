@@ -732,7 +732,11 @@ module Natalie
 
       def transform_lasgn(exp, used:)
         _, name, value = exp
-        instructions = [transform_expression(value, used: true), VariableSetInstruction.new(name)]
+        instructions = [
+          VariableDeclareInstruction.new(name),
+          transform_expression(value, used: true),
+          VariableSetInstruction.new(name),
+        ]
         instructions << VariableGetInstruction.new(name) if used
         instructions
       end
