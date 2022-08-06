@@ -685,7 +685,9 @@ module Natalie
         when :lambda
           instructions << transform_lambda(call, used: used)
         when :super
-          instructions << transform_super(call, used: used)
+          instructions << transform_super(call, used: used, with_block: true)
+        when :zsuper
+          instructions << transform_zsuper(call, used: used, with_block: true)
         else
           raise "unexpected call: #{call.sexp_type.inspect}"
         end
@@ -1061,14 +1063,14 @@ module Natalie
         PushStringInstruction.new(str)
       end
 
-      def transform_super(exp, used:)
+      def transform_super(exp, used:, with_block: false)
         _, *args = exp
         call_args = transform_call_args(args)
         instructions = call_args.fetch(:instructions)
         instructions << PushSelfInstruction.new
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          with_block_pass: call_args.fetch(:with_block_pass),
+          with_block: with_block || call_args.fetch(:with_block_pass),
         )
         instructions << PopInstruction.new unless used
         instructions
@@ -1154,12 +1156,15 @@ module Natalie
         instructions
       end
 
-      def transform_zsuper(exp, used:)
+      def transform_zsuper(exp, used:, with_block: false)
         _, *args = exp
         instructions = []
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << PushSelfInstruction.new
-        instructions << SuperInstruction.new(args_array_on_stack: true, with_block_pass: false)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: true,
+          with_block: with_block,
+        )
         instructions << PopInstruction.new unless used
         instructions
       end

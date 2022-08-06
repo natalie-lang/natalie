@@ -3,14 +3,14 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class SuperInstruction < BaseInstruction
-      def initialize(args_array_on_stack:, with_block_pass:)
+      def initialize(args_array_on_stack:, with_block:)
         @args_array_on_stack = args_array_on_stack
-        @with_block_pass = with_block_pass
+        @with_block = with_block
       end
 
       def to_s
         s = 'super'
-        s << ' with block pass' if @with_block_pass
+        s << ' with block' if @with_block
         s << ' (args array on stack)' if @args_array_on_stack
         s
       end
@@ -28,7 +28,13 @@ module Natalie
           args_array_on_stack = transform.temp('args')
           transform.exec "Value #{args_array_on_stack}[] = { #{args.join(', ')} };"
         end
-        block = @with_block_pass ? "to_block(env, #{transform.pop})" : 'block'
+
+        # NOTE: There is a similar line in SendInstruction#generate, but
+        # this one differs in that we fall back to sending the `block`
+        # from the current method, if it is set.
+        current_method_block = 'block'
+        block = @with_block ? "to_block(env, #{transform.pop})" : current_method_block
+
         transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}), #{block})"
       end
 
@@ -42,7 +48,7 @@ module Natalie
                  arg_count.times { args.unshift vm.pop }
                  args
                end
-        block = @with_block_pass ? vm.pop : vm.block
+        block = @with_block ? vm.pop : vm.block
         vm.with_self(receiver) do
           result = receiver.method(vm.method_name).super_method.call(*args, &block)
           vm.push result
