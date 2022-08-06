@@ -140,7 +140,7 @@ module Natalie
         if node.sexp_type == :str
           begin
             Natalie::Parser.new(node[1], current_path).ast
-          rescue Racc::ParseError => e
+          rescue SyntaxError => e
             # TODO: add a flag to raise syntax errors at compile time?
             s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, e.message))
           end
