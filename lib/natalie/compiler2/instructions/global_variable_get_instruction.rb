@@ -14,16 +14,22 @@ module Natalie
       end
 
       def generate(transform)
-        if @name == :$!
+        case @name
+        when :$!
           transform.exec_and_push(:exception, "env->exception_object()")
+        when :$~
+          transform.exec_and_push(:exception, "env->last_match()")
         else
           transform.exec_and_push(:gvar, "env->global_get(#{@name.to_s.inspect}_s)")
         end
       end
 
       def execute(vm)
-        if @name == :$!
+        case @name
+        when :$!
           vm.push($!)
+        when :$~
+          vm.push($~)
         else
           vm.push(vm.global_variables[@name])
         end

@@ -154,10 +154,12 @@ void Env::ensure_block_given(Block *block) {
     }
 }
 
-Value Env::last_match() {
+Value Env::last_match(bool to_s) {
     Env *env = non_block_env();
-    if (env->m_match)
-        return env->m_match;
+    if (env->m_match) {
+        auto match = env->m_match;
+        return to_s ? match->as_match_data()->to_s(this) : match;
+    }
     return NilObject::the();
 }
 

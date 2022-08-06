@@ -125,6 +125,31 @@ module Natalie
         transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
+      def transform_back_ref(exp, used:)
+        return [] unless used
+        _, name = exp
+        raise "Unknown back ref: #{name.inspect}" unless name == :&
+        [PushLastMatchInstruction.new(to_s: true)]
+      end
+
+      def transform_nth_ref(exp, used:)
+        return [] unless used
+        _, num = exp
+        [
+          PushLastMatchInstruction.new(to_s: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PushIntInstruction.new(num),
+          PushArgcInstruction.new(1),
+          DupRelInstruction.new(2),
+          SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          PushNilInstruction.new,
+          EndInstruction.new(:if),
+        ]
+      end
+
       def transform_bare_hash(exp, used:)
         transform_hash(exp, bare: true, used: used)
       end
