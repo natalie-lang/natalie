@@ -16,6 +16,7 @@ module Natalie
 
         value = transform.pop
         transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::Break, #{@break_point})")
+        transform.push('Value(NilObject::the())')
       end
 
       def execute(vm)
