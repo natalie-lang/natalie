@@ -25,7 +25,9 @@ module Natalie
       end
 
       def execute(vm)
-        raise 'todo'
+        when_value = vm.pop
+        case_value = vm.peek
+        vm.push(when_value === case_value)
       end
     end
   end
