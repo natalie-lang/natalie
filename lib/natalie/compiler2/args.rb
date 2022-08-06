@@ -82,7 +82,12 @@ module Natalie
           @args.push(arg)
           return :reverse
         end
+
         _, name, default_value = arg
+        if default_value&.sexp_type == :lvar && default_value[1] == name
+          raise SyntaxError, "circular argument reference - #{name}"
+        end
+
         @instructions << @pass.transform_expression(default_value, used: true)
         shift_or_pop_next_arg_with_default
         @instructions << variable_set(name)

@@ -881,21 +881,21 @@ describe "Post-args" do
     end
 
     describe "with a circular argument reference" do
-      xit "warns and uses a nil value when there is an existing local variable with same name" do
-        a = 1
-        -> {
-          @proc = eval "proc { |a=a| a }"
-        }.should complain(/circular argument reference/)
-        @proc.call.should == nil
-      end
+      #xit "warns and uses a nil value when there is an existing local variable with same name" do
+        #a = 1
+        #-> {
+          #@proc = eval "proc { |a=a| a }"
+        #}.should complain(/circular argument reference/)
+        #@proc.call.should == nil
+      #end
 
-      xit "warns and uses a nil value when there is an existing method with same name" do
-        def a; 1; end
-        -> {
-          @proc = eval "proc { |a=a| a }"
-        }.should complain(/circular argument reference/)
-        @proc.call.should == nil
-      end
+      #xit "warns and uses a nil value when there is an existing method with same name" do
+        #def a; 1; end
+        #-> {
+          #@proc = eval "proc { |a=a| a }"
+        #}.should complain(/circular argument reference/)
+        #@proc.call.should == nil
+      #end
 
       it "calls an existing method with the same name as the argument if explicitly using ()" do
         def a; 1; end

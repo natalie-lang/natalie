@@ -1031,7 +1031,7 @@ class Object
     OutputExpectation.new(expected)
   end
 
-  def raise_error(klass = nil, message = nil, &block)
+  def raise_error(klass = StandardError, message = nil, &block)
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
