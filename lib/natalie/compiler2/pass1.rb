@@ -835,9 +835,13 @@ module Natalie
 
       def transform_op_asgn_or(exp, used:)
         _, variable, assignment = exp
-        var_instruction = if variable.sexp_type == :lvar
+        var_instruction = case variable.sexp_type
+                          when :lvar
                             _, name = variable
                             VariableGetInstruction.new(name, default_to_nil: true)
+                          when :cvar
+                            _, name = variable
+                            ClassVariableGetInstruction.new(name, default_to_nil: true)
                           else
                             transform_expression(variable, used: true)
                           end

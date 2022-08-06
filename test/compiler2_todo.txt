@@ -1,4 +1,4 @@
-- [ ] test/natalie/class_var_test.rb
+- [X] test/natalie/class_var_test.rb
 - [ ] test/natalie/fiber_test.rb
 - [ ] spec/language/case_spec.rb
 - [ ] test/natalie/rescue_test.rb

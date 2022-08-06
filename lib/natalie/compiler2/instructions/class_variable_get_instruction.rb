@@ -3,18 +3,25 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class ClassVariableGetInstruction < BaseInstruction
-      def initialize(name)
+      def initialize(name, default_to_nil: false)
         @name = name.to_sym
+        @default_to_nil = default_to_nil
       end
 
       attr_reader :name
 
       def to_s
-        "class_variable_get #{@name}"
+        s = "class_variable_get #{@name}"
+        s << ' (default_to_nil)' if @default_to_nil
+        s
       end
 
       def generate(transform)
-        transform.exec_and_push(:ivar, "self->cvar_get(env, #{@name.to_s.inspect}_s)")
+        if @default_to_nil
+          transform.exec_and_push(:cvar, "self->cvar_get_or_null(env, #{@name.to_s.inspect}_s) ?: NilObject::the()")
+        else
+          transform.exec_and_push(:cvar, "self->cvar_get(env, #{@name.to_s.inspect}_s)")
+        end
       end
 
       def execute(vm)
