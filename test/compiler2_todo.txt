@@ -4,12 +4,12 @@
 - [X] test/natalie/rescue_test.rb
 - [X] spec/library/stringio/each_spec.rb
 - [ ] spec/core/array/element_set_spec.rb
-- [ ] spec/language/undef_spec.rb
+- [X] spec/language/undef_spec.rb
 - [ ] spec/core/symbol/all_symbols_spec.rb
 - [ ] test/natalie/class_test.rb
 - [ ] spec/language/retry_spec.rb
 - [ ] spec/core/hash/each_pair_spec.rb
-- [ ] spec/library/stringio/each_line_spec.rb
+- [X] spec/library/stringio/each_line_spec.rb
 - [X] test/natalie/super_test.rb
 - [ ] spec/language/block_spec.rb
 - [ ] spec/core/hash/each_spec.rb

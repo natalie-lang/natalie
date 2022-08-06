@@ -1118,7 +1118,6 @@ module Natalie
 
       def transform_undef(exp, used:)
         _, name = exp
-        raise "unexpected undef value: #{name.inspect}" unless name.sexp_type == :lit
         name = name.last
         instructions = [
           UndefineMethodInstruction.new(name: name)

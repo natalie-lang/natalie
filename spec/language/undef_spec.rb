@@ -44,6 +44,14 @@ describe "The undef keyword" do
       end
       -> { @obj.meth(5) }.should raise_error(NoMethodError)
     end
+
+    # TODO: support real dynamic symbol
+    xit "with a interpolated symbol" do
+      @undef_class.class_eval do
+        undef :"me#{'th'}"
+      end
+      -> { @obj.meth(5) }.should raise_error(NoMethodError)
+    end
   end
 
   it "allows undefining multiple methods at a time" do
