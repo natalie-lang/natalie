@@ -1,6 +1,6 @@
 - [X] test/natalie/class_var_test.rb
 - [ ] test/natalie/fiber_test.rb
-- [ ] spec/language/case_spec.rb
+- [X] spec/language/case_spec.rb
 - [ ] test/natalie/rescue_test.rb
 - [ ] spec/library/stringio/each_spec.rb
 - [ ] spec/core/array/element_set_spec.rb

@@ -266,12 +266,21 @@ module Natalie
             # if (b === a || c === a || d === a)
             _, options_array, *body = when_statement
             _, *options = options_array
+
             options.each do |option|
+
+              # Splats are handled in the backend.
+              # For C++, it's done in the is_case_equal() function.
+              if option.sexp_type == :splat
+                _, option = option
+                is_splat = true
+              else
+                is_splat = false
+              end
+
               option_instructions = transform_expression(option, used: true)
-              instructions << DupInstruction.new
-              instructions << PushArgcInstruction.new(1)
               instructions << option_instructions
-              instructions << SendInstruction.new(:===, receiver_is_self: true, with_block: false, file: exp.file, line: exp.line)
+              instructions << CaseEqualInstruction.new(is_splat: is_splat)
               instructions << IfInstruction.new
               instructions << PushTrueInstruction.new
               instructions << ElseInstruction.new(:if)
@@ -306,8 +315,7 @@ module Natalie
 
         instructions << [EndInstruction.new(:if)] * whens.length
 
-        # We might need to pop out the var from the stack, due to it always
-        # being used after duplication
+        # The case value is never popped during comparison, so we have to pop it here.
         instructions << [SwapInstruction.new, PopInstruction.new] if var
 
         instructions << PopInstruction.new unless used
