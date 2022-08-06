@@ -13,7 +13,15 @@ module Natalie
     class Pass1 < BasePass
       def initialize(ast, inline_cpp_enabled:)
         @ast = ast
+
+        # If any user code has required 'natalie/inline', then we enable
+        # magical extra features. :-)
         @inline_cpp_enabled = inline_cpp_enabled
+
+        # We need a way to associate `retry` with the `rescue` block it
+        # belongs to. Using a stack of object ids seems to work ok.
+        # See the Rescue class for how it's used.
+        @retry_context = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -46,6 +54,13 @@ module Natalie
         instructions = body.map { |exp| transform_expression(exp, used: false) }
         instructions << transform_expression(last || s(:nil), used: used)
         instructions
+      end
+
+      def retry_context(id)
+        @retry_context << id
+        yield
+      ensure
+        @retry_context.pop
       end
 
       private
@@ -1032,6 +1047,10 @@ module Natalie
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_retry(*)
+        [RetryInstruction.new(id: @retry_context.last)]
       end
 
       def transform_return(exp, used:)

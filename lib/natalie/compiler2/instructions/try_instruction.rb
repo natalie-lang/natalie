@@ -17,6 +17,8 @@ module Natalie
         result = transform.temp('try_result')
         code = []
 
+        has_retry = catch_body.detect { |i| i.is_a?(RetryInstruction) }
+
         # hoisted variables need to be set to nil here
         (@env[:hoisted_vars] || {}).each do |_, var|
           code << "Value #{var.fetch(:name)} = NilObject::the()"
@@ -24,6 +26,12 @@ module Natalie
         end
 
         code << "Value #{result}"
+
+        if has_retry
+          code << "bool #{retry_name}"
+          code << "do {"
+          code << "#{retry_name} = false"
+        end
 
         transform.normalize_stack do
           code << 'try {'
@@ -49,6 +57,10 @@ module Natalie
           code << '}'
         end
 
+        if has_retry
+          code << "} while (#{retry_name})"
+        end
+
         transform.exec(code)
         transform.push(result)
       end
@@ -72,6 +84,12 @@ module Natalie
           vm.ip = end_ip
           vm.global_variables.delete(:$!)
         end
+      end
+
+      private
+
+      def retry_name
+        "should_retry_#{object_id}"
       end
     end
   end

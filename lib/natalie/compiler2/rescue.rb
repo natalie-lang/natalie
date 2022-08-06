@@ -12,14 +12,21 @@ module Natalie
         #     s(:lit, 2)),
         #   s(:resbody, s(:array, s(:const, :ArgumentError)),
         #     s(:lit, 3)))
+
         _, *rescue_exprs = exp
         body = shift_body(rescue_exprs)
         else_body = pop_else_body(rescue_exprs)
+
+        # `retry_id` is used to tie a later RetryInstruction
+        # back to this TryInstruction.
+        try_instruction = TryInstruction.new
+        retry_id = try_instruction.object_id
+
         [
-          TryInstruction.new,
+          try_instruction,
           transform_body(body),
           CatchInstruction.new,
-          transform_catch_body(rescue_exprs),
+          transform_catch_body(rescue_exprs, retry_id: retry_id),
           EndInstruction.new(:try),
           transform_else_body(else_body),
         ]
@@ -27,7 +34,7 @@ module Natalie
 
       private
 
-      def transform_catch_body(rescue_exprs)
+      def transform_catch_body(rescue_exprs, retry_id:)
         # [
         #   s(:resbody,
         #     s(:array,
@@ -42,12 +49,19 @@ module Natalie
           if rescue_expr.sexp_type == :resbody
             _, exceptions_array, *rescue_body = rescue_expr
             variable_set, match_array = split_exceptions_array(exceptions_array)
+
+            # Wrap in a retry_context so any RetryInstructions inside know
+            # which rescue they are retrying.
+            rescue_instructions = @pass.retry_context(retry_id) do
+              @pass.transform_body(rescue_body, used: true)
+            end
+
             instr + [
               @pass.transform_expression(match_array, used: true),
               MatchExceptionInstruction.new,
               IfInstruction.new,
               variable_set ? @pass.transform_expression(variable_set, used: false) : [],
-              @pass.transform_body(rescue_body, used: true),
+              rescue_instructions,
               ElseInstruction.new(:if),
             ]
           else
