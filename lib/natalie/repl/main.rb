@@ -10,7 +10,6 @@ module Natalie
       env = nil
       vars = {}
       repl_num = 0
-      multi_line_expr = []
       Natalie::GenericRepl
         .new(vars)
         .get_command do |cmd|

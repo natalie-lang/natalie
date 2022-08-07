@@ -28,8 +28,8 @@ class StringScanner
     @pos = index
   end
 
-  def string=(s)
-    @string = s.to_str
+  def string=(str)
+    @string = str.to_str
     @pos = 0
   end
 
@@ -99,7 +99,7 @@ class StringScanner
 
   def skip_until(pattern)
     start = @pos
-    until (matched = scan(pattern))
+    until scan(pattern)
       return nil if @pos > @string.size
       @pos += 1
     end
@@ -129,7 +129,7 @@ class StringScanner
 
   def peek(length)
     raise ArgumentError, 'length is negative' if length < 0
-    @string.bytes[@pos...(@pos + length)].map { |byte| byte.chr }.join
+    @string.bytes[@pos...(@pos + length)].map(&:chr).join
   end
 
   alias peep peek
@@ -144,7 +144,7 @@ class StringScanner
 
   alias search_full scan_full
 
-  def get_byte
+  def get_byte # rubocop:disable Naming/AccessorMethodName
     @matched = scan(/./)
   end
 
@@ -170,7 +170,7 @@ class StringScanner
   def exist?(pattern)
     return 0 if pattern == //
     start = @pos
-    while true
+    loop do
       # FIXME: this is ugly because `break` is broken here :-(
       if check(pattern)
         found_at = @pos - start + 1
@@ -193,7 +193,7 @@ class StringScanner
 
   def post_match
     return nil if @prev_pos.nil?
-    @string[@pos..-1]
+    @string[@pos..]
   end
 
   def matched?
@@ -219,7 +219,7 @@ class StringScanner
   alias bol? beginning_of_line?
 
   def rest
-    @string[@pos..-1] || ''
+    @string[@pos..] || ''
   end
 
   def rest_size
@@ -244,7 +244,7 @@ class StringScanner
 
   alias clear terminate
 
-  def self.must_C_version
+  def self.must_C_version # rubocop:disable Naming/MethodName
     self
   end
 end

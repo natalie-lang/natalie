@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 require 'io/console'
 require_relative 'highlight'
 require_relative 'model'
@@ -132,13 +131,14 @@ module Natalie
           first = getch
           second = getch
           if first.ord == 91
-            if second.ord == 65
+            case second.ord
+            when 65
               @model.go_up
-            elsif second.ord == 66
+            when 66
               @model.go_down
-            elsif second.ord == 67
+            when 67
               @model.go_right
-            elsif second.ord == 68
+            when 68
               @model.go_left
             end
           end

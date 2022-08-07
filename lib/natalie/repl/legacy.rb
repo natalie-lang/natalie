@@ -4,8 +4,8 @@ require 'tempfile'
 
 if RUBY_ENGINE != 'natalie'
   begin
-    require 'readline' if STDOUT.tty?
-  rescue LoadError
+    require 'readline' if $stdout.tty?
+  rescue LoadError # rubocop:disable Lint/SuppressedException
   end
 end
 
@@ -13,7 +13,7 @@ unless defined?(Readline)
   class Readline
     def self.readline(prompt, _)
       print(prompt)
-      if !(line = gets)
+      unless (line = gets)
         exit
       end
       line

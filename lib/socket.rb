@@ -25,6 +25,7 @@ class Socket < BasicSocket
   SOCK_DGRAM = __constant__('SOCK_DGRAM', 'unsigned short')
 
   def initialize(domain, socktype, protocol = nil)
+    super()
     @domain = domain
     @socktype = socktype
     @protocol = protocol
@@ -174,7 +175,7 @@ class Addrinfo
     Addrinfo.new(Socket.pack_sockaddr_in(port, ip))
   end
 
-  def self.udp(ip, port)
+  def self.udp(_ip, _port)
     Addrinfo.new # TODO
   end
 

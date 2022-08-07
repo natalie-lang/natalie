@@ -1,7 +1,7 @@
 class StringIO
   attr_reader :string, :lineno
 
-  private def initialize(string = "", mode = nil)
+  private def initialize(string = '', mode = nil)
     unless string.is_a? String
       string = string.to_str
     end
@@ -57,7 +57,7 @@ class StringIO
     return enum_for(:each) unless block_given?
     __assert_not_read_closed
 
-    while !eof?
+    until eof?
       yield __next_line(separator, limit, chomp: chomp)
     end
 
@@ -68,7 +68,7 @@ class StringIO
   def each_char
     return enum_for(:each_char) unless block_given?
 
-    while !eof?
+    until eof?
       yield getc
     end
 
@@ -149,7 +149,7 @@ class StringIO
         length = length.to_int
       end
 
-      if !length.is_a? Integer
+      unless length.is_a? Integer
         raise TypeError, "no implicit conversion of #{length.class} into Integer"
       end
 
@@ -157,12 +157,12 @@ class StringIO
         raise ArgumentError, "negative length #{length} given"
       end
 
-      return "" if length == 0
+      return '' if length == 0
       return nil if eof?
 
       encoding = Encoding::BINARY
     else
-      return "" if eof?
+      return '' if eof?
 
       length = @string.length - @index
     end
@@ -172,7 +172,7 @@ class StringIO
         out_string = out_string.to_str
       end
 
-      if !out_string.is_a? String
+      unless out_string.is_a? String
         raise TypeError, "no implicit conversion of #{out_string.class} into String"
       end
     end
@@ -194,7 +194,7 @@ class StringIO
     end
   end
 
-  def set_encoding(external_encoding, _ = nil, **options)
+  def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
     unless @string.frozen?
       @string.force_encoding(@external_encoding)
@@ -218,7 +218,7 @@ class StringIO
   def write(argument)
     __assert_not_write_closed
 
-    if !argument.is_a? String
+    unless argument.is_a? String
       argument = argument.to_s
     end
 
@@ -288,7 +288,7 @@ class StringIO
 
     if limit == 0
       @lineno += 1
-      return ""
+      return ''
     end
 
     if separator == ''
@@ -299,14 +299,14 @@ class StringIO
       line_ending = @string[@index..].index(separator)
     end
 
-    unless line_ending
-      line_ending = @string.length - 1
-    else
+    if line_ending
       if chomp
         line_ending += @index - 1
       else
         line_ending += @index + separator.size - 1
       end
+    else
+      line_ending = @string.length - 1
     end
 
     if limit && line_ending - @index + 1 > limit

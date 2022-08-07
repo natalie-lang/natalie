@@ -24,7 +24,7 @@ class SexpProcessor
     elsif ast.is_a?(Array)
       result = Sexp.new
       result << ast.sexp_type
-      ast[1..-1].each { |item| item.is_a?(Array) ? result << process(item) : result << item }
+      ast[1..].each { |item| item.is_a?(Array) ? result << process(item) : result << item }
       if ast.is_a?(Sexp)
         result.file = ast.file
         result.line = ast.line

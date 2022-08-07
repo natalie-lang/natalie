@@ -11,9 +11,7 @@ module Natalie
       @in
     end
 
-    def index
-      @index
-    end
+    attr_reader :index
 
     def reset
       @in = ''
@@ -49,7 +47,11 @@ module Natalie
     end
 
     def set_index_by_row_and_col(row, col)
-      @index = row == 0 ? col : @in.lines[0..row].each.map { |line| line.length }.sum
+      @index = if row == 0
+                 col
+               else
+                 @in.lines[0..row].each.map(&:length).sum
+               end
     end
 
     def go_up
@@ -88,7 +90,7 @@ module Natalie
           col += 1
         end
       end
-      return row, col
+      [row, col]
     end
 
     def number_of_rows
