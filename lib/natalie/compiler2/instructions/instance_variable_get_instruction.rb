@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:ivar, "self->ivar_get(env, #{@name.to_s.inspect}_s)")
+        transform.exec_and_push(:ivar, "self->ivar_get(env, #{transform.intern(@name)})")
       end
 
       def execute(vm)

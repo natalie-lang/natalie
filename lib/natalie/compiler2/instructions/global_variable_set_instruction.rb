@@ -15,7 +15,7 @@ module Natalie
 
       def generate(transform)
         value = transform.pop
-        transform.exec("env->global_set(#{@name.to_s.inspect}_s, #{value})")
+        transform.exec("env->global_set(#{transform.intern(@name)}, #{value})")
       end
 
       def execute(vm)

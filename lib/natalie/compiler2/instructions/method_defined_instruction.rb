@@ -31,7 +31,7 @@ module Natalie
         end
 
         transform.exec(
-          "if (!#{receiver}->respond_to(env, #{@message.to_s.inspect}_s)) throw new ExceptionObject"
+          "if (!#{receiver}->respond_to(env, #{transform.intern(@message)})) throw new ExceptionObject"
         )
         transform.push('NilObject::the()')
       end

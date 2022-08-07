@@ -18,9 +18,9 @@ module Natalie
 
       def generate(transform)
         if @default_to_nil
-          transform.exec_and_push(:cvar, "self->cvar_get_or_null(env, #{@name.to_s.inspect}_s) ?: NilObject::the()")
+          transform.exec_and_push(:cvar, "self->cvar_get_or_null(env, #{transform.intern(@name)}) ?: NilObject::the()")
         else
-          transform.exec_and_push(:cvar, "self->cvar_get(env, #{@name.to_s.inspect}_s)")
+          transform.exec_and_push(:cvar, "self->cvar_get(env, #{transform.intern(@name)})")
         end
       end
 

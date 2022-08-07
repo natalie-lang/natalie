@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec("self->undefine_method(env, #{@name.to_s.inspect}_s)")
+        transform.exec("self->undefine_method(env, #{transform.intern(@name)})")
       end
 
       def execute(vm)

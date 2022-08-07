@@ -1,5 +1,5 @@
 require_relative './base_instruction'
-require_relative './string_to_cpp'
+require_relative '../string_to_cpp'
 
 module Natalie
   class Compiler2

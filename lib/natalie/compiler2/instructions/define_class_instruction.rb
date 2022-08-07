@@ -31,10 +31,10 @@ module Natalie
         namespace = transform.pop
         superclass = transform.pop
         code = []
-        code << "auto #{klass} = #{namespace}->const_get(#{@name.to_s.inspect}_s)"
+        code << "auto #{klass} = #{namespace}->const_get(#{transform.intern(@name)})"
         code << "if (!#{klass}) {"
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
-        code << "  #{namespace}->const_set(#{@name.to_s.inspect}_s, #{klass})"
+        code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"
         code << "}"
         code << "#{klass}->as_class()->eval_body(env, #{fn})"
         transform.exec_and_push(:result_of_define_class, code)

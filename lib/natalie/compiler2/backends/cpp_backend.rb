@@ -1,8 +1,11 @@
 require_relative './cpp_backend/transform'
+require_relative '../string_to_cpp'
 
 module Natalie
   class Compiler2
     class CppBackend
+      include StringToCpp
+
       def initialize(instructions, compiler_context:)
         @instructions = instructions
         @compiler_context = compiler_context
@@ -20,7 +23,12 @@ module Natalie
       private
 
       def transform_instructions
-        transform = Transform.new(@instructions, top: @top, compiler_context: @compiler_context)
+        transform = Transform.new(
+          @instructions,
+          top: @top,
+          compiler_context: @compiler_context,
+          symbols: @symbols,
+        )
         transform.transform
       end
 
@@ -41,7 +49,7 @@ module Natalie
           init_symbols.join("\n"),
           set_dollar_zero_global_in_main_to_c,
           set_compiler_version_to_c,
-        ].compact.join("\n")
+        ].compact.join("\n\n")
       end
 
       def declare_symbols
@@ -49,7 +57,9 @@ module Natalie
       end
 
       def init_symbols
-        @symbols.map { |name, index| "#{symbols_var_name}[#{index}] = #{name.to_s.inspect}_s;" }
+        @symbols.map do |name, index|
+          "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{string_to_cpp(name.to_s)}, #{name.to_s.bytesize});"
+        end
       end
 
       def set_dollar_zero_global_in_main_to_c

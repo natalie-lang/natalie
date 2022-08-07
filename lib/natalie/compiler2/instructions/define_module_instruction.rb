@@ -30,10 +30,10 @@ module Natalie
         mod = transform.temp('module')
         namespace = transform.pop
         code = []
-        code << "auto #{mod} = #{namespace}->const_get(#{@name.to_s.inspect}_s)"
+        code << "auto #{mod} = #{namespace}->const_get(#{transform.intern(@name)})"
         code << "if (!#{mod}) {"
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
-        code << "  #{namespace}->const_set(#{@name.to_s.inspect}_s, #{mod})"
+        code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{mod})"
         code << "}"
         code << "#{mod}->as_module()->eval_body(env, #{fn})"
         transform.exec_and_push(:result_of_define_module, code)

@@ -14,7 +14,7 @@ module Natalie
       def generate(transform)
         default = transform.pop
         hash = transform.memoize(:hash, transform.peek)
-        name_sym = "#{@name.to_s.inspect}_s"
+        name_sym = transform.intern(@name)
         code = "(#{hash}->as_hash()->has_key(env, #{name_sym}) ? #{hash}->as_hash()->remove(env, #{name_sym}) : #{default})"
         transform.exec_and_push(:value_removed_from_hash, code)
       end

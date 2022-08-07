@@ -29,7 +29,7 @@ module Natalie
           body << '}'
           transform.top(body)
         end
-        transform.exec("#{klass}->define_method(env, #{@name.to_s.inspect}_s, #{fn}, #{@arity})")
+        transform.exec("#{klass}->define_method(env, #{transform.intern(@name)}, #{fn}, #{@arity})")
       end
 
       def execute(vm)

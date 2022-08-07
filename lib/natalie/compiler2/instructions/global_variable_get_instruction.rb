@@ -20,7 +20,7 @@ module Natalie
         when :$~
           transform.exec_and_push(:exception, "env->last_match()")
         else
-          transform.exec_and_push(:gvar, "env->global_get(#{@name.to_s.inspect}_s)")
+          transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
         end
       end
 

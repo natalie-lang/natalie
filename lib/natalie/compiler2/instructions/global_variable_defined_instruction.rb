@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec("if (!env->global_defined(#{@name.to_s.inspect}_s)) throw new ExceptionObject")
+        transform.exec("if (!env->global_defined(#{transform.intern(@name)})) throw new ExceptionObject")
         transform.push('NilObject::the()')
       end
 

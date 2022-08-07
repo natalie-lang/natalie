@@ -2,7 +2,7 @@ module Natalie
   class Compiler2
     class CppBackend
       class Transform
-        def initialize(instructions, stack: [], top:, compiler_context:)
+        def initialize(instructions, stack: [], top:, compiler_context:, symbols:)
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
@@ -12,6 +12,7 @@ module Natalie
           @top = top
           @code = []
           @compiler_context = compiler_context
+          @symbols = symbols
           @stack = stack
         end
 
@@ -98,13 +99,24 @@ module Natalie
         end
 
         def with_new_scope(instructions)
-          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context)
+          t = Transform.new(
+            instructions,
+            top: @top,
+            compiler_context: @compiler_context,
+            symbols: @symbols,
+          )
           yield(t)
         end
 
         def with_same_scope(instructions)
           stack = @stack.dup
-          t = Transform.new(instructions, stack: stack, top: @top, compiler_context: @compiler_context)
+          t = Transform.new(
+            instructions,
+            stack: stack,
+            top: @top,
+            compiler_context: @compiler_context,
+            symbols: @symbols,
+          )
           yield(t)
           @stack_sizes << stack.size if @stack_sizes
         end
@@ -139,8 +151,18 @@ module Natalie
           @top << Array(code).join("\n")
         end
 
+        def intern(symbol)
+          index = @symbols[symbol] ||= @symbols.size
+          comment = "/*:#{symbol.to_s.gsub(%r{\*\/|\\}, '?')}*/"
+          "#{symbols_var_name}[#{index}]#{comment}"
+        end
+
         def value_has_side_effects?(value)
           !(value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/)
+        end
+
+        def symbols_var_name
+          "#{@compiler_context[:var_prefix]}symbols"
         end
 
         def inspect

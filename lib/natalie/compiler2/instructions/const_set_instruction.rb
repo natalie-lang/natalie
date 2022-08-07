@@ -16,7 +16,7 @@ module Natalie
       def generate(transform)
         namespace = transform.pop
         value = transform.pop
-        transform.exec_and_push(:const_set, "#{namespace}->const_set(#{@name.inspect}_s, #{value})")
+        transform.exec_and_push(:const_set, "#{namespace}->const_set(#{transform.intern(@name)}, #{value})")
       end
 
       def execute(vm)

@@ -17,9 +17,9 @@ module Natalie
       def generate(transform)
         ary = transform.peek
         if @for_keyword_arg
-          transform.exec_and_push(@name, "#{ary}->as_hash()->remove_keyword_arg(env, #{@name.to_s.inspect}_s)")
+          transform.exec_and_push(@name, "#{ary}->as_hash()->remove_keyword_arg(env, #{transform.intern(@name)})")
         else
-          transform.exec_and_push(@name, "#{ary}->as_hash()->remove(env, #{@name.to_s.inspect}_s)")
+          transform.exec_and_push(@name, "#{ary}->as_hash()->remove(env, #{transform.intern(@name)})")
         end
       end
 

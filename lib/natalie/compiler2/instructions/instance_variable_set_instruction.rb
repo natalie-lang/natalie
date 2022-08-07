@@ -15,7 +15,7 @@ module Natalie
 
       def generate(transform)
         value = transform.pop
-        transform.exec("self->ivar_set(env, #{@name.to_s.inspect}_s, #{value})")
+        transform.exec("self->ivar_set(env, #{transform.intern(@name)}, #{value})")
       end
 
       def execute(vm)
