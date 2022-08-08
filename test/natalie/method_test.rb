@@ -1,6 +1,3 @@
-# test-compiler2
-# skip-test # works in Compiler2 but not in Compiler :-)
-
 require_relative '../spec_helper'
 
 def foo
@@ -194,7 +191,7 @@ describe 'method' do
     default_nils.should == [nil, nil]
     default_nils(1).should == [1, nil]
     default_nils(1, 2).should == [1, 2]
-    if compiler2?
+    if compiler?
       out = `bin/natalie -c2 -e "def circular_argument_reference(a = a); a; end" 2>&1`
       out.should =~ /circular argument reference - a \(SyntaxError\)/
     end
@@ -449,7 +446,7 @@ describe 'method with keyword args' do
     method_with_kwargs8(a: 1).should == [1, nil]
     method_with_kwargs9.should == [1, 2]
     method_with_kwargs9('a').should == ['a', 2]
-    method_with_kwargs9({ b: 'b' }).should == [{ b: 'b' }, 2] if compiler2?
+    method_with_kwargs9({ b: 'b' }).should == [{ b: 'b' }, 2] if compiler?
     method_with_kwargs9(b: 'b').should == [1, 'b']
     method_with_kwargs9('a', b: 'b').should == %w[a b]
     method_with_kwargs10(b: 'b').should == [1]

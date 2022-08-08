@@ -381,10 +381,11 @@ def cxx_flags
         -Wall
         -Wextra
         -Werror
-        -Wno-unused-parameter
-        -Wno-unused-variable
-        -Wno-unused-but-set-variable
         -Wno-unknown-warning-option
+        -Wno-unused-but-set-variable
+        -Wno-unused-parameter
+        -Wno-unused-value
+        -Wno-unused-variable
       ]
     end
   base_flags + include_paths.map { |path| "-I #{path}" }

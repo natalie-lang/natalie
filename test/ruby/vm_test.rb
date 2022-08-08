@@ -21,8 +21,8 @@ describe 'Natalie::VM' do
     expect(run_nat_i(path, 3, 5, 1)).must_equal(`ruby #{path} 3 5 1`.strip)
   end
 
-  it 'executes test/natalie/compiler2/bootstrap_test.rb' do
-    path = File.expand_path('../natalie/compiler2/bootstrap_test.rb', __dir__)
+  it 'executes test/natalie/bootstrap_test.rb' do
+    path = File.expand_path('../natalie/bootstrap_test.rb', __dir__)
     result = run_nat_i(path)
     expect(result).must_match(/tests successful/)
     expect(result).must_equal(`ruby #{path}`.strip)

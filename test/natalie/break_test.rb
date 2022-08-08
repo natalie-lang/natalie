@@ -1,5 +1,3 @@
-# test-compiler2
-
 require_relative '../spec_helper'
 
 def break_in_while_in_method

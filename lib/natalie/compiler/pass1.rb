@@ -1,927 +1,1270 @@
-# test-compiler2
-
+require_relative './args'
+require_relative './arity'
 require_relative './base_pass'
-require_relative './method_args'
+require_relative './const_prepper'
 require_relative './multiple_assignment'
-require_relative '../../../build/generated/numbers'
+require_relative './rescue'
 
 module Natalie
   class Compiler
-    # Process S-expressions from the Ruby parser.
+    # This compiler pass transforms AST from the Parser into Intermediate
+    # Representation, which we implement using Instructions.
+    # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      MAX_FIXNUM = NAT_MAX_FIXNUM
-      MIN_FIXNUM = NAT_MIN_FIXNUM
+      def initialize(ast, inline_cpp_enabled:)
+        @ast = ast
 
-      def initialize(compiler_context)
-        super
-        self.default_method = nil
-        self.warn_on_default = true
-        self.require_empty = false
-        self.strict = false
+        # If any user code has required 'natalie/inline', then we enable
+        # magical extra features. :-)
+        @inline_cpp_enabled = inline_cpp_enabled
+
+        # We need a way to associate `retry` with the `rescue` block it
+        # belongs to. Using a stack of object ids seems to work ok.
+        # See the Rescue class for how it's used.
         @retry_context = []
       end
 
-      def go(ast)
-        process(ast)
+      INLINE_CPP_MACROS = %i[
+        __call__
+        __constant__
+        __cxx_flags__
+        __define_method__
+        __function__
+        __inline__
+        __ld_flags__
+      ].freeze
+
+      # pass used: true to leave the final result on the stack
+      def transform(used: true)
+        raise 'unexpected AST input' unless @ast.sexp_type == :block
+        transform_block(@ast, used: used).flatten
       end
 
-      def process_alias(exp)
+      def transform_expression(exp, used:)
+        case exp
+        when Sexp
+          method = "transform_#{exp.sexp_type}"
+          Array(send(method, exp, used: used)).flatten
+        else
+          raise "Unknown expression type: #{exp.inspect}"
+        end
+      end
+
+      def transform_body(body, used:)
+        *body, last = body
+        instructions = body.map { |exp| transform_expression(exp, used: false) }
+        instructions << transform_expression(last || s(:nil), used: used)
+        instructions
+      end
+
+      def retry_context(id)
+        @retry_context << id
+        yield
+      ensure
+        @retry_context.pop
+      end
+
+      private
+
+      # INDIVIDUAL EXPRESSIONS = = = = =
+      # (in alphabetical order)
+      
+      def transform_alias(exp, used:)
         _, new_name, old_name = exp
-        exp.new(:block, s(:alias, :self, :env, process(new_name), process(old_name)), s(:nil))
+        instructions = [transform_expression(new_name, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << transform_expression(old_name, used: true)
+        instructions << AliasInstruction.new
       end
 
-      def process_undef(exp)
-        _, (_, name) = exp
-        exp.new(:block, s(:undefine_method, :self, :env, s(:intern, name)), s(:nil))
-      end
-
-      def process_and(exp)
+      def transform_and(exp, used:)
         _, lhs, rhs = exp
-        rhs = process(rhs)
-        lhs_result = temp('lhs')
-        exp.new(:block, s(:declare, lhs_result, process(lhs)), s(:c_if, s(:is_truthy, lhs_result), rhs, lhs_result))
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
+        instructions = [
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          rhs_instructions,
+          ElseInstruction.new(:if),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_array(exp)
+      def transform_array(exp, used:)
         _, *items = exp
-        arr = temp('arr')
-
-        if !items.any? { |item| item.sexp_type == :splat }
-          return exp.new(:block, s(:declare, arr, s(:new, :ArrayObject, *items.map { |a| process(a) })), arr)
+        instructions = []
+        if items.any? { |a| a.sexp_type == :splat }
+          instructions += transform_array_with_splat(items)
         else
-          items =
-            items.map do |item|
-              if item.sexp_type == :splat
-                s(:push_splat, s(:l, "#{arr}->as_array()"), :env, process(item.last))
-              else
-                s(:push, s(:l, "#{arr}->as_array()"), process(item))
-              end
-            end
-          return exp.new(:block, s(:declare, arr, s(:new, :ArrayObject)), *items.compact, arr)
+          items.each do |item|
+            instructions << transform_expression(item, used: true)
+          end
+          instructions << CreateArrayInstruction.new(count: items.size)
         end
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_attrasgn(exp)
+      def transform_array_with_splat(items)
+        items = items.dup
+        instructions = []
+
+        # create array from items before the splat
+        prior_to_splat_count = 0
+        while items.any? && items.first.sexp_type != :splat
+          instructions << transform_expression(items.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
+
+        # now add to the array the first splat item and everything after
+        items.each do |arg|
+          if arg.sexp_type == :splat
+            _, value = arg
+            instructions << transform_expression(value, used: true)
+            instructions << ArrayConcatInstruction.new
+          else
+            instructions << transform_expression(arg, used: true)
+            instructions << ArrayPushInstruction.new
+          end
+        end
+
+        instructions
+      end
+
+      def transform_attrasgn(exp, used:)
         _, receiver, message, *args = exp
-        if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
-        else
-          args = s(:args, *args.map { |n| process(n) })
-        end
-        exp.new(:public_send, process(receiver), s(:intern, message), args)
+        transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
-      def process_back_ref(exp)
+      def transform_back_ref(exp, used:)
+        return [] unless used
         _, name = exp
         raise "Unknown back ref: #{name.inspect}" unless name == :&
-        match = temp('match')
-        exp.new(
-          :block,
-          s(:declare, match, s(:last_match, :env)),
-          s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :to_s)), s(:nil)),
-        )
+        [PushLastMatchInstruction.new(to_s: true)]
       end
 
-      # bare begin without rescue
-      def process_begin(exp)
-        _, code_block = exp
-        process(code_block)
+      def transform_nth_ref(exp, used:)
+        return [] unless used
+        _, num = exp
+        [
+          PushLastMatchInstruction.new(to_s: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PushIntInstruction.new(num),
+          PushArgcInstruction.new(1),
+          DupRelInstruction.new(2),
+          SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          PushNilInstruction.new,
+          EndInstruction.new(:if),
+        ]
       end
 
-      def process_block(exp)
-        _, *parts = exp
-        exp.new(:block, *parts.map { |p| p.is_a?(Sexp) ? process(p) : p })
+      def transform_bare_hash(exp, used:)
+        transform_hash(exp, bare: true, used: used)
       end
 
-      VALID_BREAK_CONTEXT = %i[iter while until]
-      BREAK_LOOPS = %i[while until]
+      def transform_block(exp, used:)
+        _, *body = exp
+        transform_body(body, used: used)
+      end
 
-      def process_break(exp)
+      def transform_block_args(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: false, used: used)
+      end
+
+      def transform_block_args_for_lambda(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: true, used: used)
+      end
+
+      def transform_break(exp, used:)
         _, value = exp
         value ||= s(:nil)
-        exp.new(:break, process(value))
+        [
+          transform_expression(value, used: true),
+          BreakInstruction.new,
+        ]
       end
 
-      def process_call(exp, is_super: false)
-        _, receiver, method, *args = exp
-        if @compiler_context[:inline_cpp_enabled]
-          if %i[__inline__ __define_method__ __cxx_flags__ __ld_flags__ __function__ __constant__].include?(method)
-            return exp.new(method, *args)
+      def transform_call(exp, used:, with_block: false)
+        _, receiver, message, *args = exp
+
+        if @inline_cpp_enabled && receiver.nil? && INLINE_CPP_MACROS.include?(message)
+          instructions = []
+          if message == :__call__
+            args[1..].reverse_each do |arg|
+              instructions << transform_expression(arg, used: true)
+            end
           end
-          return exp.new(method, args.first, *args[1..-1].map { |a| process(a) }) if method == :__call__
+          instructions << InlineCppInstruction.new(exp)
+          return instructions
         end
-        _, block_pass = args.pop if args.last&.sexp_type == :block_pass
+
+        if receiver.nil? && message == :lambda && args.empty?
+          # NOTE: We need Kernel#lambda to behave just like the stabby
+          # lambda (->) operator so we can attach the "break point" to
+          # it. I realize this is a bit of a hack and if someone wants
+          # to alias Kernel#lambda, then their method will create a
+          # broken lambda, i.e. calling `break` won't work correctly.
+          # Maybe someday we can think of a better way to handle this...
+          return transform_lambda(exp.new(:lambda), used: used)
+        end
+
+        if receiver.nil? && message == :block_given? && !with_block
+          return [
+            PushBlockInstruction.new,
+            transform_call(exp, used: used, with_block: true),
+          ]
+        end
+
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        with_block ||= call_args.fetch(:with_block_pass)
+
+        if receiver.nil?
+          instructions << PushSelfInstruction.new
+        else
+          instructions << transform_expression(receiver, used: true)
+        end
+
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: receiver.nil?,
+          with_block: with_block,
+          has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          file: exp.file,
+          line: exp.line,
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_call_args(args)
+        instructions = []
+
+        if args.last&.sexp_type == :block_pass
+          _, block = args.pop
+          instructions << transform_expression(block, used: true)
+        end
+
         if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
-        else
-          args = s(:args, *args.map { |a| process(a) })
+          instructions << transform_array_with_splat(args)
+          return {
+            instructions: instructions,
+            with_block_pass: !!block,
+            args_array_on_stack: true,
+            has_keyword_hash: false, # TODO
+          }
         end
-        receiver = receiver ? process(receiver) : :self
-        return exp.new(:send, receiver, s(:intern, method), args, 'block') if method == :block_given?
-        call =
-          if is_super == :zsuper
-            exp.new(:super, nil)
-          elsif is_super
-            exp.new(:super, args)
-          elsif receiver == :self
-            exp.new(:send, receiver, s(:intern, method), args)
-          else
-            exp.new(:public_send, receiver, s(:intern, method), args)
-          end
-        if block_pass
-          proc_name = temp('proc_to_block')
-          call << "proc_to_block_arg(env, #{proc_name})"
-          exp.new(:block, s(:declare, proc_name, process(block_pass)), call)
-        else
-          call << 'nullptr'
-          call
+
+        args.each do |arg|
+          instructions << transform_expression(arg, used: true)
         end
+
+        has_keyword_hash = args.last&.sexp_type == :bare_hash
+
+        instructions << PushArgcInstruction.new(args.size)
+
+        {
+          instructions: instructions,
+          with_block_pass: !!block,
+          args_array_on_stack: false,
+          has_keyword_hash: has_keyword_hash,
+        }
       end
 
-      def process_case(exp)
-        _, value, *whens, else_body = exp
-        if value
-          # matching against a value
-          value_name = temp('case_value')
-          cond = s(:cond)
-          whens.each do |when_exp|
-            raise "TODO: pattern matching with case/in" if when_exp.sexp_type == :in
-            _, (_, *matchers), *when_body = when_exp
-            when_body = when_body.map { |w| process(w) }
-            when_body = [s(:nil)] if when_body == [nil]
-            full_condition =
-              s(
-                :is_truthy,
-                # FIXME: Get rid of the :nil here
-                # FIXME: This is still a bit hacky
-                matchers.reduce(s(:nil)) do |new_cond, matcher|
-                  if matcher.sexp_type == :splat
-                    _, matcher = matcher
-                    is_splat = 'true'
-                  else
-                    is_splat = 'false'
-                  end
-                  process_or(s(:or, new_cond, s(:is_case_equal, :env, value_name, process(matcher), is_splat)))
-                end,
-              )
-            cond << full_condition
-            cond << s(:block, *when_body)
-          end
-          cond << s(:else)
-          cond << process(else_body || s(:nil))
-          exp.new(:block, s(:declare, value_name, process(value)), cond)
-        else
-          # just a glorified if/elsif
-          cond = exp.new(:cond)
-          whens.each do |when_exp|
-            _, (_, *matchers), *when_body = when_exp
-            when_body = when_body.map { |w| process(w) }
-            when_body = [s(:nil)] if when_body == [nil]
-            matchers.each do |matcher|
-              cond << s(:is_truthy, process(matcher))
-              cond << s(:block, *when_body)
+      def transform_case(exp, used:)
+        _, var, *whens, else_block = exp
+        return transform_expression(else_block, used: used) if whens.empty?
+        instructions = []
+        if var
+          instructions << transform_expression(var, used: true)
+          whens.each do |when_statement|
+            # case a
+            # when b, c, d
+            # =>
+            # if (b === a || c === a || d === a)
+            _, options_array, *body = when_statement
+            _, *options = options_array
+
+            options.each do |option|
+
+              # Splats are handled in the backend.
+              # For C++, it's done in the is_case_equal() function.
+              if option.sexp_type == :splat
+                _, option = option
+                is_splat = true
+              else
+                is_splat = false
+              end
+
+              option_instructions = transform_expression(option, used: true)
+              instructions << option_instructions
+              instructions << CaseEqualInstruction.new(is_splat: is_splat)
+              instructions << IfInstruction.new
+              instructions << PushTrueInstruction.new
+              instructions << ElseInstruction.new(:if)
             end
+            instructions << PushFalseInstruction.new
+            instructions << [EndInstruction.new(:if)] * options.length
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
           end
-          cond << s(:else)
-          cond << process(else_body || s(:nil))
-          cond
+        else
+          # glorified if-else
+          whens.each do |when_statement|
+            # case
+            # when a == b, b == c, c == d
+            # =>
+            # if (a == b || b == c || c == d)
+            _, options, *body = when_statement
+
+            # s(:array, option1, option2, ...)
+            # =>
+            # s(:or, option1, s(:or, option2, ...))
+            options = options[2..].reduce(options[1]) { |prev, option| s(:or, prev, option) }
+            instructions << transform_expression(options, used: true)
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
+          end
         end
+
+        instructions << (else_block.nil? ? PushNilInstruction.new : transform_expression(else_block, used: true))
+
+        instructions << [EndInstruction.new(:if)] * whens.length
+
+        # The case value is never popped during comparison, so we have to pop it here.
+        instructions << [SwapInstruction.new, PopInstruction.new] if var
+
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_cdecl(exp)
+      def transform_cdecl(exp, used:)
         _, name, value = exp
-        namespace, name = constant_name(name)
-        exp.new(:const_set, namespace, s(:intern, name), process(value))
+        instructions = [transform_expression(value, used: true)]
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
+        instructions << ConstSetInstruction.new(name)
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_class(exp)
+      def transform_class(exp, used:)
         _, name, superclass, *body = exp
-        namespace, name = constant_name(name)
-        superclass ||= s(:const, 'Object')
-        fn = temp('class_body')
-        ns = temp('class_namespace')
-        klass = temp('class')
-        exp.new(
-          :block,
-          s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, ns, namespace),
-          s(:declare, klass, s(:const_get, ns, s(:intern, name))),
-          s(
-            :c_if,
-            s(:c_not, klass),
-            s(
-              :block,
-              s(:set, klass, s(:subclass, process(superclass), :env, s(:s, name))),
-              s(:const_set, ns, s(:intern, name), klass),
-            ),
-          ),
-          s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn),
-        )
-      end
-
-      def constant_name(name)
-        if name.is_a?(Symbol)
-          namespace = :self
-        elsif name.sexp_type == :colon2
-          _, namespace, name = name
-          namespace = process(namespace)
-        elsif name.sexp_type == :colon3
-          _, name = name
-          namespace = s(:l, 'GlobalEnv::the()->Object()')
+        instructions = []
+        if superclass
+          instructions << transform_expression(superclass, used: true)
         else
-          raise "Unknown constant name type #{name.sexp_type.inspect}"
+          instructions << PushObjectClassInstruction.new
         end
-        [namespace, name]
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
+        instructions << DefineClassInstruction.new(name: name)
+        instructions += transform_body(body, used: true)
+        instructions << EndInstruction.new(:define_class)
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_colon2(exp)
-        _, parent, name = exp
-        parent_name = temp('parent')
-        exp.new(:block, s(:declare, parent_name, process(parent)), s(:const_find, parent_name, :env, s(:intern, name)))
+      def transform_colon2(exp, used:)
+        _, namespace, name = exp
+        instructions = [
+          transform_expression(namespace, used: true),
+          ConstFindInstruction.new(name, strict: true),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_colon3(exp)
+      def transform_colon3(exp, used:)
+        return [] unless used
         _, name = exp
-        exp.new(:const_find, s(:l, 'GlobalEnv::the()->Object()'), :env, s(:intern, name))
+        [
+          PushObjectClassInstruction.new,
+          ConstFindInstruction.new(name, strict: true),
+        ]
       end
 
-      def process_const(exp)
+      def transform_const(exp, used:)
+        return [] unless used
         _, name = exp
-        exp.new(:const_find, :self, :env, s(:intern, name), 'Object::ConstLookupSearchMode::NotStrict')
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(name, strict: false),
+        ]
       end
 
-      def process_cvdecl(exp)
+      def transform_cvar(exp, used:)
+        return [] unless used
+        _, name = exp
+        ClassVariableGetInstruction.new(name)
+      end
+
+      def transform_cvdecl(exp, used:)
         _, name, value = exp
-        exp.new(:cvar_set, :self, :env, s(:intern, name), process(value))
+        instructions = [transform_expression(value, used: true), ClassVariableSetInstruction.new(name)]
+        instructions << ClassVariableGetInstruction.new(name) if used
+        instructions
       end
 
-      def process_cvasgn(exp)
-        _, name, value = exp
-        exp.new(:cvar_set, :self, :env, s(:intern, name), process(value))
+      def transform_def(exp, used:)
+        _, name, args, *body = exp
+        arity = Arity.new(args, is_proc: false).arity
+        instructions = [
+          DefineMethodInstruction.new(name: name, arity: arity),
+          transform_defn_args(args, used: true),
+          transform_body(body, used: true),
+          EndInstruction.new(:define_method),
+        ]
+        instructions << PushSymbolInstruction.new(name) if used
+        instructions
       end
 
-      def process_cvar(exp)
+      def transform_defined(exp, used:)
+        return [] unless used
         _, name = exp
-        exp.new(:cvar_get, :self, :env, s(:intern, name))
-      end
-
-      def process_defined(exp)
-        _, name = exp
-        name = process(name) if name.sexp_type == :call
-        exp.new(:defined, name)
-      end
-
-      def process_defn_internal(exp)
-        _, name, (_, *args), *body = exp
-        name = name.to_s
-        fn_name = temp("def_#{name}_")
-        if args.last&.to_s&.start_with?('&')
-          arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
-        end
-        if args.any?
-          args_name = temp('args_as_vector')
-          method_args = MethodArgs.new(args, args_name)
-          assign_args =
-            s(
-              :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>', s(:l, 'args.size()')), :'auto&'),
-              s(:args_to_vector, args_name, :args),
-              process(method_args.set_args),
-            )
-          arity = method_args.arity
-        else
-          assign_args = s(:block)
-          arity = 0
-        end
-        method_body = process(s(:block, *body))
-        fn =
-          exp.new(
-            :def_fn,
-            fn_name,
-            s(:block, prepare_argc_assertion(args), assign_args, block_arg || s(:block), method_body),
-          )
-        [fn, arity]
-      end
-
-      def process_defn(exp)
-        _, name, * = exp
-        fn, arity = process_defn_internal(exp)
-        exp.new(:block, fn, s(:define_method, :self, :env, s(:intern, name), fn[1], arity))
-      end
-
-      def process_defs(exp)
-        _, owner, name, args, *body = exp
-        fn, arity = process_defn_internal(exp.new(:defs, name, args, *body))
-        exp.new(:block, fn, s(:define_singleton_method, process(owner), :env, s(:intern, name), fn[1], arity))
-      end
-
-      def process_dot2(exp)
-        _, beginning, ending = exp
-        beginning = s(:nil) if beginning.nil?
-        ending = s(:nil) if ending.nil?
-        exp.new(:new, :RangeObject, process(beginning), process(ending), 0)
-      end
-
-      def process_dot3(exp)
-        _, beginning, ending = exp
-        beginning = s(:nil) if beginning.nil?
-        ending = s(:nil) if ending.nil?
-        exp.new(:new, :RangeObject, process(beginning), process(ending), 1)
-      end
-
-      def process_dregx(exp)
-        str_node = process_dstr(exp)
-        str = str_node.pop
-        str_node << exp.new(:new, :RegexpObject, :env, s(:l, "#{str}->as_string()->c_str()"))
-        str_node
-      end
-
-      # TODO: support /o option on Regexes which compiles the literal only once
-      alias process_dregx_once process_dregx
-
-      def process_dstr(exp)
-        _, start, *rest = exp
-        string = temp('string')
-        segments =
-          rest.map do |segment|
-            case segment.sexp_type
-            when :evstr
-              s(:append, s(:as_string, string), :env, process(s(:call, segment.last, :to_s)))
-            when :str
-              s(:append, s(:as_string, string), :env, s(:s, segment.last))
-            else
-              raise "unknown dstr segment: #{segment.inspect}"
-            end
+        body = transform_expression(name, used: true)
+        case body.last
+        when ConstFindInstruction
+          type = 'constant'
+        when CreateHashInstruction
+          # peculiarity that hashes always return 'expression'
+          type = 'expression'
+          return [PushStringInstruction.new(type)]
+        when GlobalVariableGetInstruction
+          type = 'global-variable'
+        when InstanceVariableGetInstruction
+          type = 'instance-variable'
+        when PushFalseInstruction
+          type = 'false'
+        when SendInstruction
+          if body.last.with_block
+            # peculiarity that send with a block always returns 'expression'
+            type = 'expression'
+            return [PushStringInstruction.new(type)]
+          else
+            type = 'method'
           end
-        exp.new(:block, s(:declare, string, s(:new, :StringObject, s(:s, start))), *segments, string)
+        when PushNilInstruction
+          type = 'nil'
+        when PushTrueInstruction
+          type = 'true'
+        when VariableGetInstruction
+          type = 'local-variable'
+        else
+          type = 'expression'
+        end
+        body.each_with_index do |instruction, index|
+          case instruction
+          when GlobalVariableGetInstruction
+            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
+          when InstanceVariableGetInstruction
+            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
+          when SendInstruction
+            body[index] = instruction.to_method_defined_instruction
+          end
+        end
+        [
+          IsDefinedInstruction.new(type: type),
+          body,
+          EndInstruction.new(:is_defined),
+        ]
       end
 
-      def process_dxstr(exp)
-        exp.new(:shell_backticks, :env, process_dstr(exp))
+      def transform_defn(exp, used:)
+        [
+          PushSelfInstruction.new,
+          transform_def(exp, used: used)
+        ]
       end
 
-      def process_xstr(exp)
-        exp.new(:shell_backticks, :env, process_str(exp))
+      def transform_defn_args(exp, for_block: false, check_args: true, used:)
+        return [] unless used
+        _, *args = exp
+
+        instructions = []
+
+        if args.last.is_a?(Symbol) && args.last.start_with?('&')
+          name = args.pop[1..-1]
+          instructions << PushBlockInstruction.new
+          instructions << VariableSetInstruction.new(name, local_only: true)
+        end
+
+        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
+        may_need_to_destructure_args_for_block = for_block && args.size > 1
+
+        if has_complicated_args || may_need_to_destructure_args_for_block
+          min_count = minimum_arg_count(args)
+          max_count = maximum_arg_count(args)
+
+          if check_args
+            instructions << CheckArgsInstruction.new(positional: min_count..max_count)
+          end
+
+          instructions << PushArgsInstruction.new(
+            for_block: for_block,
+            min_count: min_count,
+            max_count: max_count,
+            spread: for_block && args.size > 1,
+          )
+
+          instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
+          return instructions
+        end
+
+        if check_args
+          instructions << CheckArgsInstruction.new(positional: args.size)
+        end
+
+        args.each_with_index do |name, index|
+          instructions << PushArgInstruction.new(index, nil_default: for_block)
+          instructions << VariableSetInstruction.new(name, local_only: true)
+        end
+
+        instructions
       end
 
-      def process_dsym(exp)
-        str_node = process_dstr(exp)
-        str = str_node.pop
-        str_node << exp.new(:l, "Value { #{str}->as_string()->to_symbol(env) }")
-        str_node
+      def transform_defs(exp, used:)
+        _, owner, name, args, *body = exp
+        [
+          transform_expression(owner, used: true),
+          SingletonClassInstruction.new,
+          transform_def(exp.new(:defn, name, args, *body), used: used)
+        ]
       end
 
-      def process_ensure(exp)
+
+      def transform_dot2(exp, used:, exclude_end: false)
+        _, beginning, ending = exp
+        instructions = [
+          transform_expression(ending || s(:nil), used: true),
+          transform_expression(beginning || s(:nil), used: true),
+          PushRangeInstruction.new(exclude_end),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_dot3(exp, used:)
+        transform_dot2(exp, used: used, exclude_end: true)
+      end
+
+      def transform_dregx(exp, used:)
+        options = exp.pop if exp.last.is_a?(Integer)
+        instructions = [
+          transform_dstr(exp, used: true),
+          StringToRegexpInstruction.new(options: options),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_dstr(exp, used:)
+        _, start, *rest = exp
+        instructions = [PushStringInstruction.new(start)]
+        rest.each do |segment|
+          case segment.sexp_type
+          when :evstr
+            _, value = segment
+            instructions << transform_expression(value, used: true)
+            instructions << StringAppendInstruction.new
+          when :str
+            instructions << transform_expression(segment, used: true)
+            instructions << StringAppendInstruction.new
+          else
+            raise "unknown dstr segment: #{segment.inspect}"
+          end
+        end
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_dsym(exp, used:)
+        instructions = [
+          PushArgcInstruction.new(0),
+          transform_dstr(exp, used: true),
+          SendInstruction.new(:to_sym, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_dxstr(exp, used:)
+        _, *parts = exp
+        instructions = [
+          transform_dstr(exp.new(:dstr, *parts), used: true),
+          ShellInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_ensure(exp, used:)
         _, body, ensure_body = exp
-        process(
-          exp.new(
-            :block,
-            s(:rescue, body, s(:resbody, s(:array), ensure_body, s(:raise_exception, :env, :exception))),
-            ensure_body,
-          ),
+        transform_rescue(
+          exp.new(:rescue,
+                  body,
+                  exp.new(:resbody,
+                          exp.new(:array),
+                          exp.new(:block,
+                                  ensure_body,
+                                  exp.new(:call, nil, :raise))),
+                  ensure_body),
+          used: used
         )
       end
 
-      def process_gasgn(exp)
-        _, name, value = exp
-        exp.new(:global_set, :env, s(:intern, name), process(value))
+      def transform_false(_, used:)
+        return [] unless used
+        PushFalseInstruction.new
       end
 
-      def process_gvar(exp)
+      def transform_gasgn(exp, used:)
+        _, name, value = exp
+        instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
+        instructions << GlobalVariableGetInstruction.new(name) if used
+        instructions
+      end
+
+      def transform_gvar(exp, used:)
+        return [] unless used
         _, name = exp
-        case name
-        when :$~
-          exp.new(:last_match, :env)
-        when :$!
-          exp.new(:exception_object, :env)
+        GlobalVariableGetInstruction.new(name)
+      end
+
+      def transform_hash(exp, bare: false, used:)
+        _, *items = exp
+        instructions = []
+        if items.any? { |a| a.sexp_type == :kwsplat }
+          instructions += transform_hash_with_kwsplat(items, bare: bare)
         else
-          exp.new(:global_get, :env, s(:intern, name))
+          items.each do |item|
+            instructions << transform_expression(item, used: true)
+          end
+          instructions << CreateHashInstruction.new(count: items.size / 2, bare: bare)
         end
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
-      def process_hash(exp)
-        _, *pairs = exp
-        hash = temp('hash')
-        inserts =
-          pairs
-            .each_slice(2)
-            .map { |(key, val)| s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val)) }
-        exp.new(:block, s(:declare, hash, s(:new, :HashObject)), s(:block, *inserts), hash)
-      end
-      alias process_bare_hash process_hash # TODO: handle this separately for keyword args
+      def transform_hash_with_kwsplat(items, bare:)
+        items = items.dup
+        instructions = []
 
-      def process_if(exp)
-        _, condition, true_body, false_body = exp
-        condition = exp.new(:is_truthy, process(condition))
-        exp.new(:c_if, condition, process(true_body || s(:nil)), process(false_body || s(:nil)))
+        # TODO: skip CreateHashInstruction if splat is first
+        # (will need to duplicate the kwsplat value)
+
+        # create hash from items before the splat
+        prior_to_splat_count = 0
+        while items.any? && items.first.sexp_type != :kwsplat
+          instructions << transform_expression(items.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateHashInstruction.new(count: prior_to_splat_count / 2, bare: bare)
+
+        # now add to the hash the first splat item and everything after
+        while items.any?
+          key = items.shift
+          if key.sexp_type == :kwsplat
+            _, value = key
+            instructions << transform_expression(value, used: true)
+            instructions << HashMergeInstruction.new
+          else
+            value = items.shift
+            instructions << transform_expression(key, used: true)
+            instructions << transform_expression(value, used: true)
+            instructions << HashPutInstruction.new
+          end
+        end
+
+        instructions
       end
 
-      def process_iasgn(exp)
+      def transform_iasgn(exp, used:)
         _, name, value = exp
-        exp.new(:ivar_set, :self, :env, s(:intern, name), process(value))
+        instructions = [transform_expression(value, used: true), InstanceVariableSetInstruction.new(name)]
+        instructions << InstanceVariableGetInstruction.new(name) if used
+        instructions
       end
 
-      def process_iter(exp)
-        _, call, (_, *args), *body = exp
-        return exp if call.sexp_type == :block_fn # already processed
+      def transform_if(exp, used:)
+        _, condition, true_expression, false_expression = exp
+        true_instructions = transform_expression(true_expression || s(:nil), used: true)
+        false_instructions = transform_expression(false_expression || s(:nil), used: true)
+        instructions = [
+          transform_expression(condition, used: true),
+          IfInstruction.new,
+          true_instructions,
+          ElseInstruction.new(:if),
+          false_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
 
+      def transform_iter(exp, used:)
+        _, call, args, body = exp
         is_lambda = is_lambda_call?(call)
-        is_proc = !is_lambda
-
-        args = fix_unnecessary_nesting(args)
-        if args.last&.to_s&.start_with?('&')
-          arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:arg_set, :env, s(:s, arg_name), s(:'ProcObject::from_block_maybe', 'block'))
-        end
-        block_fn = temp('block_fn')
-        block = block_fn.sub(/_fn/, '')
-
-        call = process(call)
-        if (i = call.index('nullptr'))
-          call[i] = block
+        arity = Arity.new(args, is_proc: !is_lambda).arity
+        instructions = []
+        instructions << DefineBlockInstruction.new(arity: arity)
+        if is_lambda_call?(call)
+          instructions << transform_block_args_for_lambda(args, used: true)
         else
-          puts "#{exp.file}##{exp.line}"
-          pp call
-          raise 'cannot add block to call!'
+          instructions << transform_block_args(args, used: true)
         end
-        if args.any?
-          args_name = temp('args_as_vector')
-          method_args = MethodArgs.new(args, args_name, is_proc: is_proc)
-          assign_args =
-            s(
-              :block,
-              s(:declare, args_name, exp.new(:'TM::Vector<Value>'), :'auto&'),
-              s(:block_args_to_vector, :env, args_name, args.size, :args),
-              process(method_args.set_args),
-            )
-          arity = method_args.arity
+        instructions << transform_expression(body || s(:nil), used: true)
+        instructions << EndInstruction.new(:define_block)
+        case call.sexp_type
+        when :call
+          instructions << transform_call(call, used: used, with_block: true)
+        when :lambda
+          instructions << transform_lambda(call, used: used)
+        when :super
+          instructions << transform_super(call, used: used, with_block: true)
+        when :zsuper
+          instructions << transform_zsuper(call, used: used, with_block: true)
         else
-          assign_args = s(:block)
-          arity = 0
+          raise "unexpected call: #{call.sexp_type.inspect}"
         end
-        argc_assertion = prepare_argc_assertion(args) if is_lambda
-        exp.new(
-          :iter,
-          s(
-            :block_fn,
-            block_fn,
-            s(:block, argc_assertion || s(:block), assign_args, block_arg || s(:block), process(s(:block, *body))),
-          ),
-          s(:declare_block, block, s(:new, :Block, :env, :self, block_fn, arity)),
-          call,
+        instructions
+      end
+
+      def transform_ivar(exp, used:)
+        return [] unless used
+        _, name = exp
+        InstanceVariableGetInstruction.new(name)
+      end
+
+      def transform_lambda(_, used:)
+        instructions = [CreateLambdaInstruction.new]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_lasgn(exp, used:)
+        _, name, value = exp
+        instructions = [
+          VariableDeclareInstruction.new(name),
+          transform_expression(value, used: true),
+          VariableSetInstruction.new(name),
+        ]
+        instructions << VariableGetInstruction.new(name) if used
+        instructions
+      end
+
+      def transform_lit(exp, used:)
+        return [] unless used
+        lit = if exp.is_a?(Sexp)
+                exp[1]
+              else
+                exp
+              end
+        case lit
+        when Integer
+          PushIntInstruction.new(lit)
+        when Float
+          PushFloatInstruction.new(lit)
+        when Symbol
+          PushSymbolInstruction.new(lit)
+        when Range
+          [transform_lit(lit.end, used: true),
+           transform_lit(lit.begin, used: true),
+           PushRangeInstruction.new(lit.exclude_end?)]
+        when Regexp
+          PushRegexpInstruction.new(lit)
+        else
+          raise "I don't yet know how to handle lit: #{lit.inspect}"
+        end
+      end
+
+      def transform_lvar(exp, used:)
+        return [] unless used
+        _, name = exp
+        VariableGetInstruction.new(name)
+      end
+
+      def transform_masgn(exp, used:)
+        # s(:masgn,
+        #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
+        #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
+        _, names_array, values = exp
+
+        raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
+        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary splat].include?(values.sexp_type)
+
+        # We don't actually want to use a simple to_ary.
+        # Our ToArrayInstruction is a little more special.
+        values = values.last if values.sexp_type == :to_ary
+
+        instructions = [
+          transform_expression(values, used: true),
+          DupInstruction.new,
+          ToArrayInstruction.new,
+          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array)
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_match2(exp, used:)
+        _, regexp, string = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
+      end
+
+      def transform_match3(exp, used:)
+        _, string, regexp = exp
+        transform_call(exp.new(:call, regexp, :=~, string), used: used)
+      end
+
+      def transform_module(exp, used:)
+        _, name, *body = exp
+        instructions = []
+        name, prep_instruction = constant_name(name)
+        instructions << prep_instruction
+        instructions << DefineModuleInstruction.new(name: name)
+        instructions += transform_body(body, used: true)
+        instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_next(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        [
+          transform_expression(value, used: true),
+          NextInstruction.new,
+        ]
+      end
+
+      def transform_nil(_, used:)
+        return [] unless used
+        PushNilInstruction.new
+      end
+
+      def transform_not(exp, used:)
+        _, value = exp
+        instructions = [
+          transform_expression(value, used: true),
+          NotInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_op_asgn_and(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = if variable.sexp_type == :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          transform_expression(assignment, used: true),
+          ElseInstruction.new(:if),
+          var_instruction,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_op_asgn_or(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = case variable.sexp_type
+                          when :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          when :cvar
+                            _, name = variable
+                            ClassVariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          var_instruction,
+          ElseInstruction.new(:if),
+          transform_expression(assignment, used: true),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_op_asgn_and(exp, used:)
+        _, variable, assignment = exp
+        var_instruction = if variable.sexp_type == :lvar
+                            _, name = variable
+                            VariableGetInstruction.new(name, default_to_nil: true)
+                          else
+                            transform_expression(variable, used: true)
+                          end
+        instructions = [
+          var_instruction,
+          IfInstruction.new,
+          transform_expression(assignment, used: true),
+          ElseInstruction.new(:if),
+          var_instruction,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_op_asgn1(exp, used:)
+        _, obj, (_, *key_args), op, value = exp
+        if op == :'||'
+          instructions = [
+            key_args.map { |arg| transform_expression(arg, used: true) },
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+            PushArgcInstruction.new(key_args.size),
+            transform_expression(obj, used: true),
+            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            DupInstruction.new,
+            IfInstruction.new,
+            key_args.map { PopInstruction.new }, # didn't need the extra key(s) after all :-)
+            ElseInstruction.new(:if),
+            PopInstruction.new,
+            transform_expression(value, used: true),
+            PushArgcInstruction.new(key_args.size + 1),
+            transform_expression(obj, used: true),
+            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            EndInstruction.new(:if),
+          ]
+        else
+          instructions = [
+            # old_value = obj[key]
+            transform_expression(obj, used: true),
+            key_args.map { |arg| transform_expression(arg, used: true) },
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+            PushArgcInstruction.new(key_args.size),
+            DupRelInstruction.new(key_args.size * 2 + 1),
+            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            # new_value = old_value + value
+            transform_expression(value, used: true),
+            PushArgcInstruction.new(1),
+            MoveRelInstruction.new(2),
+            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            # obj[key] = new_value
+            PushArgcInstruction.new(key_args.size + 1),
+            MoveRelInstruction.new(key_args.size + 2),
+            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ]
+          # a[b] += 1
+          #
+          # 0 push_argc 0
+          # 1 push_self
+          # 2 send :a to self        [a]
+          # 3 dup                    [a, a]
+          # 4 push_argc 0
+          # 5 push_self
+          # 6 send :b to self        [a, a, b]
+          # 7 dup_rel 0              [a, a, b, b]
+          # 8 push_argc 1
+          # 9 push_argc 0
+          # 10 push_self
+          # 11 send :a to self
+          # 12 send :[]
+          # 13 push_int 1
+          # 14 swap
+          # 15 push_argc 1
+          # 16 swap
+          # 17 send :+
+          # 18 push_argc 2
+          # 19 swap
+          # 20 send :[]=
+        end
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_op_asgn2(exp, used:)
+        _, obj, writer, op, *val_args = exp
+        raise 'expected writer=' unless writer =~ /=$/
+        reader = writer.to_s.chop
+        if op == :'||'
+          raise 'todo'
+        else
+          # given: obj.foo += 2
+          instructions = [
+            # obj
+            transform_expression(obj, used: true),
+
+            # 2
+            val_args.map { |arg| transform_expression(arg, used: true) },
+
+            # temp = obj.foo
+            PushArgcInstruction.new(0),
+            DupRelInstruction.new(2),
+            SendInstruction.new(reader, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
+            # result = temp + 2
+            PushArgcInstruction.new(val_args.size),
+            SwapInstruction.new,
+            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
+            # obj.foo = result
+            PushArgcInstruction.new(1),
+            DupRelInstruction.new(2),
+            SendInstruction.new(writer, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          ]
+          instructions << PopInstruction.new unless used
+          instructions
+        end
+      end
+
+      def transform_or(exp, used:)
+        _, lhs, rhs = exp
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
+        instructions = [
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          rhs_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_redo(*)
+        [RedoInstruction.new]
+      end
+
+      def transform_rescue(exp, used:)
+        instructions = Rescue.new(self).transform(exp)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_retry(*)
+        [RetryInstruction.new(id: @retry_context.last)]
+      end
+
+      def transform_return(exp, used:)
+        _, value = exp
+        value ||= s(:nil)
+        instructions = [transform_expression(value, used: true)]
+        instructions << ReturnInstruction.new
+      end
+
+      def transform_safe_call(exp, used:)
+        _, receiver, message, *args = exp
+
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+
+        instructions << transform_expression(receiver, used: true)
+        instructions << DupInstruction.new
+        instructions << IsNilInstruction.new
+        instructions << IfInstruction.new
+        instructions << PushNilInstruction.new
+        instructions << ElseInstruction.new(:if)
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: false,
+          with_block: call_args.fetch(:with_block_pass),
+          file: exp.file,
+          line: exp.line,
         )
+        instructions << EndInstruction.new(:if)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_sclass(exp, used:)
+        _, owner, *body = exp
+        instructions = [
+          transform_expression(owner, used: true),
+          SingletonClassInstruction.new,
+          WithSelfInstruction.new,
+          transform_body(body, used: true),
+          EndInstruction.new(:with_self),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_self(_, used:)
+        return [] unless used
+        PushSelfInstruction.new
+      end
+
+      def transform_splat(exp, used:)
+        _, value = exp
+        transform_expression(value, used: used)
+      end
+
+      def transform_str(exp, used:)
+        return [] unless used
+        _, str = exp
+        PushStringInstruction.new(str)
+      end
+
+      def transform_super(exp, used:, with_block: false)
+        _, *args = exp
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        instructions << PushSelfInstruction.new
+        instructions << SuperInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          with_block: with_block || call_args.fetch(:with_block_pass),
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_svalue(exp, used:)
+        _, svalue = exp
+        instructions = []
+        case svalue.sexp_type
+        when :splat
+          instructions << transform_expression(svalue, used: true)
+          instructions << ArrayWrapInstruction.new
+        when :array
+          instructions << transform_array(svalue, used: true)
+        else
+          raise "unexpected svalue type: #{svalue.inspect}"
+        end
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_to_ary(exp, used:)
+        _, value = exp
+        instructions = [PushArgcInstruction.new(0)]
+        instructions << transform_expression(value, used: true)
+        instructions << SendInstruction.new(:to_ary, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_true(_, used:)
+        return [] unless used
+        PushTrueInstruction.new
+      end
+
+      def transform_undef(exp, used:)
+        _, name = exp
+        name = name.last
+        instructions = [
+          UndefineMethodInstruction.new(name: name)
+        ]
+        instructions << PushNilInstruction.new if used
+        instructions
+      end
+
+      def transform_until(exp, used:)
+        _, condition, body, pre = exp
+        transform_while(exp.new(:while, s(:call, condition, :!), body, pre), used: used)
+      end
+
+      def transform_while(exp, used:)
+        _, condition, body, pre = exp
+        body ||= s(:nil)
+
+        instructions = [
+          WhileInstruction.new(pre: pre),
+          transform_expression(condition, used: true),
+          WhileBodyInstruction.new,
+          transform_expression(body, used: true),
+          EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_xstr(exp, used:)
+        _, command = exp
+        instructions = [
+          transform_str(exp.new(:str, command), used: true),
+          ShellInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_yield(exp, used:)
+        _, *args = exp
+        call_args = transform_call_args(args)
+        instructions = call_args.fetch(:instructions)
+        instructions << YieldInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_zsuper(exp, used:, with_block: false)
+        _, *args = exp
+        instructions = []
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
+        instructions << PushSelfInstruction.new
+        instructions << SuperInstruction.new(
+          args_array_on_stack: true,
+          with_block: with_block,
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      # HELPERS = = = = = = = = = = = = =
+
+      # returns a pair of [name, prep_instruction]
+      # prep_instruction being the instruction(s) needed to get the owner of the constant
+      def constant_name(name)
+        prepper = ConstPrepper.new(name, pass: self)
+        [prepper.name, prepper.namespace]
       end
 
       def is_lambda_call?(exp)
         exp == s(:lambda) || exp == s(:call, nil, :lambda)
       end
 
-      # |(a, b)| should be treated as |a, b|
-      def fix_unnecessary_nesting(args)
-        args.size == 1 && args.first.is_a?(Sexp) && args.first.sexp_type == :masgn ? args.first[1..-1] : args
-      end
-
-      def process_ivar(exp)
-        _, name = exp
-        exp.new(:ivar_get, :self, :env, s(:intern, name))
-      end
-
-      def process_lambda(exp)
-        # note: the nullptr gets overwritten with an actual block by process_iter later
-        exp.new(:new, :ProcObject, 'nullptr', :'ProcObject::ProcType::Lambda')
-      end
-
-      def process_lasgn(exp)
-        _, name, val = exp
-        return exp.new(:var_declare, :env, s(:s, name)) if val == s(:lvar, name)
-        exp.new(:var_set, :env, s(:s, name), process(val))
-      end
-
-      def process_lit(exp)
-        lit = exp.last
-        case lit
-        when Float
-          exp.new(:'Value::floatingpoint', lit)
-        when Integer
-          if lit > MAX_FIXNUM || lit < MIN_FIXNUM
-            str = lit.to_s
-            exp.new(:'IntegerObject::create', s(:s, str))
-          else
-            exp.new(:'Value::integer', lit)
-          end
-        when Range
-          exp.new(
-            :new,
-            :RangeObject,
-            process_lit(s(:lit, lit.first)),
-            process_lit(s(:lit, lit.last)),
-            lit.exclude_end? ? 1 : 0,
-          )
-        when Regexp
-          exp.new(:'RegexpObject::literal', :env, s(:s, lit.source), lit.options)
-        when Symbol
-          exp.new(:intern_value, lit)
-        else
-          raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
+      def minimum_arg_count(args)
+        args.count do |arg|
+          (arg.is_a?(Symbol) && arg !~ /^&|^\*/) ||
+            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
         end
       end
 
-      def process_lvar(exp)
-        _, name = exp
-        exp.new(:var_get, :env, s(:s, name))
-      end
-
-      def process_masgn(exp)
-        value_name = temp('masgn_value')
-        process(MultipleAssignment.new(exp, value_name).generate)
-      end
-
-      def prepare_argc_assertion(args)
-        min = 0
-        max = 0
-        has_kwargs = false
-        args.each do |arg|
-          if arg.is_a?(Symbol)
-            if arg.start_with?('*')
-              max = :unlimited
-            else
-              min += 1
-              max += 1 if max != :unlimited
-            end
-          elsif arg.sexp_type == :kwarg
-            max += 1 unless has_kwargs || max == :unlimited # FIXME: incrementing max here is wrong; it produces the wrong error message
-            has_kwargs = true
-          else
-            max += 1 if max != :unlimited
-          end
+      def maximum_arg_count(args)
+        if args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('*') && !arg.start_with?('**') }
+          # splat, no maximum
+          return nil
         end
-        if max == :unlimited
-          min.zero? ? s(:block) : s(:ensure_argc_at_least, :args, :env, min)
-        elsif min == max
-          s(:ensure_argc_is, :args, :env, min)
-        else
-          s(:ensure_argc_between, :args, :env, min, max)
+
+        args.count do |arg|
+          !arg.is_a?(Symbol) || !arg.start_with?('&')
         end
       end
 
-      def process_match2(exp)
-        _, regexp, string = exp
-        exp.new(:public_send, process(regexp), s(:intern, '=~'), s(:args, process(string)))
-      end
-
-      def process_match3(exp)
-        _, string, regexp = exp
-        exp.new(:public_send, process(regexp), s(:intern, '=~'), s(:args, process(string)))
-      end
-
-      def process_module(exp)
-        _, name, *body = exp
-        namespace, name = constant_name(name)
-        fn = temp('module_body')
-        ns = temp('module_namespace')
-        mod = temp('module')
-        exp.new(
-          :block,
-          s(:module_fn, fn, process(s(:block, *body))),
-          s(:declare, ns, namespace),
-          s(:declare, mod, s(:const_get, ns, s(:intern, name))),
-          s(
-            :c_if,
-            s(:c_not, mod),
-            s(:block, s(:set, mod, s(:new, :ModuleObject, s(:s, name))), s(:const_set, ns, s(:intern, name), mod)),
-          ),
-          exp.new(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn),
-        )
-      end
-
-      def process_next(exp)
-        _, value = exp
-        value ||= s(:nil)
-        exp.new(:c_return, process(value))
-      end
-
-      def process_nth_ref(exp)
-        _, num = exp
-        match = temp('match')
-        exp.new(
-          :block,
-          s(:declare, match, s(:last_match, :env)),
-          s(
-            :c_if,
-            s(:is_truthy, match),
-            s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerObject, num))),
-            s(:nil),
-          ),
-        )
-      end
-
-      def process_not(exp)
-        _, value = exp
-        exp.new(:public_send, process(value), s(:intern, :!), s(:args))
-      end
-
-      def process_op_asgn1(exp)
-        _, obj, (_, *key_args), op, *val_args = exp
-        val = temp('val')
-        obj_name = temp('obj')
-        if op == :'||'
-          exp.new(
-            :block,
-            s(:declare, obj_name, process(obj)),
-            s(
-              :declare,
-              val,
-              s(:public_send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr'),
-            ),
-            s(
-              :c_if,
-              s(:is_truthy, val),
-              val,
-              s(
-                :public_send,
-                obj_name,
-                s(:intern, :[]=),
-                s(:args, *key_args.map { |a| process(a) }, *val_args.map { |a| process(a) }),
-                'nullptr',
-              ),
-            ),
-          )
-        else
-          # math operators
-          exp.new(
-            :block,
-            s(:declare, obj_name, process(obj)),
-            s(
-              :declare,
-              val,
-              s(
-                :public_send,
-                s(:public_send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr'),
-                s(:intern, op),
-                s(:args, *val_args.map { |a| process(a) }),
-                'nullptr',
-              ),
-            ),
-            s(:public_send, obj_name, s(:intern, :[]=), s(:args, *key_args.map { |a| process(a) }, val), 'nullptr'),
-          )
+      def self.debug_instructions(instructions)
+        instructions.each_with_index do |instruction, index|
+          desc = "#{index} #{instruction}"
+          puts desc
         end
-      end
-
-      def process_op_asgn2(exp)
-        _, obj, writer, op, *val_args = exp
-        raise 'expected writer=' unless writer =~ /=$/
-        reader = writer.to_s.chop
-        val = temp('val')
-        obj_name = temp('obj')
-        if op == :'||'
-          exp.new(
-            :block,
-            s(:declare, obj_name, process(obj)),
-            s(:declare, val, s(:public_send, obj_name, s(:intern, reader), s(:args))),
-            s(
-              :c_if,
-              s(:is_truthy, val),
-              val,
-              s(:public_send, obj_name, s(:intern, writer), s(:args, *val_args.map { |a| process(a) })),
-            ),
-          )
-        else
-          exp.new(
-            :block,
-            s(:declare, obj_name, process(obj)),
-            s(
-              :declare,
-              val,
-              s(
-                :public_send,
-                s(:public_send, obj_name, s(:intern, reader), s(:args)),
-                s(:intern, op),
-                s(:args, *val_args.map { |a| process(a) }),
-              ),
-            ),
-            s(:public_send, obj_name, s(:intern, writer), s(:args, val)),
-          )
-        end
-      end
-
-      def process_op_asgn_and(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:c_not, s(:is_truthy, result_name)) })
-      end
-
-      def process_op_asgn_or(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:is_truthy, result_name) })
-      end
-
-      def process_op_asgn_bool(exp, condition:)
-        _, (var_type, name), value = exp
-        case var_type
-        when :cvar
-          result_name = temp('cvar')
-          exp.new(
-            :block,
-            s(:declare, result_name, s(:cvar_get_or_null, :self, :env, s(:intern, name))),
-            s(:c_if, s(:and, s(:l, result_name), condition.(result_name)), result_name, process(value)),
-          )
-        when :gvar
-          result_name = temp('gvar')
-          exp.new(
-            :block,
-            s(:declare, result_name, s(:global_get, :env, s(:intern, name))),
-            s(:c_if, condition.(result_name), result_name, process(value)),
-          )
-        when :ivar
-          result_name = temp('ivar')
-          exp.new(
-            :block,
-            s(:declare, result_name, s(:ivar_get, :self, :env, s(:intern, name))),
-            s(:c_if, condition.(result_name), result_name, process(value)),
-          )
-        when :lvar
-          var = process(s(:lvar, name))
-          exp.new(
-            :block,
-            s(:var_declare, :env, s(:s, name)),
-            s(:c_if, s(:defined, s(:lvar, name)), s(:c_if, condition.(var), var, process(value))),
-          )
-        when :call
-          _, call, attrasgn = exp
-          result_name = temp('op_asgn_bool')
-          exp.new(
-            :block,
-            s(:declare, result_name, process(call)),
-            s(:c_if, condition.(result_name), result_name, process(attrasgn)),
-          )
-        else
-          p exp
-          p exp.file
-          p exp.line
-          raise "unknown op_asgn_or type: #{var_type.inspect}"
-        end
-      end
-
-      def process_or(exp)
-        _, lhs, rhs = exp
-        rhs = process(rhs)
-        lhs_result = temp('lhs')
-        exp.new(
-          :block,
-          s(:declare, lhs_result, process(lhs)),
-          s(:c_if, s(:c_not, s(:is_truthy, lhs_result)), rhs, lhs_result),
-        )
-      end
-
-      def process_rescue(exp)
-        _, *rest = exp
-        retry_name = temp('should_retry')
-        retry_context(retry_name) do
-          else_body = rest.pop if rest.last.sexp_type != :resbody
-          body, resbodies = rest.partition { |n| n.first != :resbody }
-          rescue_cond = s(:cond)
-
-          resbodies.each_with_index do |(_, (_, *match), *resbody), index|
-            lasgn = match.pop if match.last&.sexp_type == :lasgn
-            match << s(:const, 'StandardError') if match.empty?
-            condition = s(:is_a, :exception, *match.map { |n| process(n) })
-            rescue_cond << condition
-            resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
-            rescue_cond << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
-          end
-          rescue_cond << s(:else)
-          rescue_cond << s(:block, s(:raise_exception, :env, :exception))
-          body << else_body if else_body
-          body = body.empty? ? [s(:nil)] : body
-
-          result_name = temp('rescue_result')
-
-          exp.new(
-            :block,
-            s(:declare, retry_name, :false, :bool),
-            s(
-              :rescue_do,
-              s(:block, s(:set, retry_name, :false), s(:rescue, s(:block, *body.map { |n| process(n) }), rescue_cond)),
-              retry_name,
-              result_name,
-            ),
-          )
-        end
-      end
-
-      def process_redo(exp)
-        redo_name = temp('redo')
-        exp.new(:block, s(:declare, redo_name, s(:nil)), s(:add_redo_flag, redo_name), s(:c_return, redo_name))
-      end
-
-      def process_retry(exp)
-        retry_name = @retry_context.last
-        raise 'No proper rescue context!' if retry_name.nil?
-        exp.new(:block, s(:set, retry_name, :true), s(:c_continue))
-      end
-
-      RETURN_CONTEXT = %i[defn defs iter]
-
-      def process_return(exp)
-        _, value = exp
-        exp.new(:return, process(value))
-      end
-
-      def process_safe_call(exp)
-        _, receiver, method, *args = exp
-        obj = temp('safe_call_obj')
-        exp.new(
-          :block,
-          s(:declare, obj, process(receiver)),
-          s(:c_if, s(:is_truthy, obj), process(exp.new(:call, receiver, method, *args)), s(:nil)),
-        )
-      end
-
-      def process_sclass(exp)
-        _, obj, *body = exp
-        fn = temp('singleton_class_body')
-        klass = temp('singleton_class')
-        exp.new(
-          :block,
-          s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:singleton_class, process(obj), :env)),
-          s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn),
-        )
-      end
-
-      def process_str(exp)
-        _, str = exp
-        if str.empty?
-          exp.new(:new, :StringObject)
-        else
-          exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
-        end
-      end
-
-      def process_struct(exp)
-        _, hash = exp
-        exp.new(:struct, process_atom(hash))
-      end
-
-      def process_super(exp)
-        _, *args = exp
-        process_call(exp.new(:call, nil, :super, *args), is_super: true)
-      end
-
-      def process_svalue(exp)
-        _, svalue = exp
-        case svalue.sexp_type
-        when :splat
-          _, value = svalue
-          exp.new(:splat, :env, process(value))
-        when :array
-          process_array(svalue)
-        else
-          raise "Unknown svalue type #{svalue.sexp_type.inspect}"
-        end
-      end
-
-      def process_until(exp)
-        _, condition, body, pre = exp
-        process_while(exp.new(:while, s(:not, condition), body, pre))
-      end
-
-      def process_while(exp)
-        _, condition, body, pre = exp
-        body ||= s(:nil)
-        result_name = temp('while_result')
-        cond = s(:c_if, s(:c_not, s(:is_truthy, process(condition))), s(:c_break))
-        loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
-        exp.new(
-          :block,
-          s(:declare, result_name, s(:nil)),
-          s(:loop, result_name, s(:block, loop_body, s(:NAT_HANDLE_BREAK, result_name, :break))),
-          result_name,
-        )
-      end
-
-      def process_yield(exp)
-        _, *args = exp
-        if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
-        else
-          args = s(:args, *args.map { |n| process(n) })
-        end
-        exp.new(:NAT_RUN_BLOCK_FROM_ENV, args)
-      end
-
-      def process_zsuper(exp)
-        process_call(exp.new(:call, nil, :super), is_super: :zsuper)
-      end
-
-      def temp(name)
-        n = @compiler_context[:var_num] += 1
-        "#{@compiler_context[:var_prefix]}#{name.gsub(/[^a-z0-9_]/i, '_')}#{n}"
-      end
-
-      def retry_context(name)
-        @retry_context << name
-        exp = yield
-        @retry_context.pop
-        exp
       end
     end
   end

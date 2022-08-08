@@ -43,7 +43,7 @@ module Natalie
       instruction.execute(self)
     end
 
-    def skip_block_of_instructions(until_instruction: Compiler2::EndInstruction, expected_label: nil)
+    def skip_block_of_instructions(until_instruction: Compiler::EndInstruction, expected_label: nil)
       @instructions.fetch_block(until_instruction: until_instruction, expected_label: expected_label)
     end
 
@@ -122,7 +122,7 @@ module Natalie
     end
 
     def self.compile_and_run(ast, path:)
-      compiler = Compiler2.new(ast, path, interpret: true)
+      compiler = Compiler.new(ast, path, interpret: true)
       VM.new(compiler.instructions, path: path).run
     end
 
