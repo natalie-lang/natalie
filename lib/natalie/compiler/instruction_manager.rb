@@ -1,12 +1,12 @@
 module Natalie
   class Compiler
     class InstructionManager
-      def initialize(instructions)
+      def initialize(instructions, env: { vars: {}, outer: nil })
         unless instructions.is_a?(Array)
           raise 'expected array'
         end
         @instructions = instructions
-        EnvBuilder.new(@instructions).process
+        EnvBuilder.new(@instructions, env: env).process
         reset
       end
 

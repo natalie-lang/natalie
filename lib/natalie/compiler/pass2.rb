@@ -7,8 +7,16 @@ module Natalie
     # captured if they are used in a block (closure).
     # You can debug this pass with the `-d p2` CLI flag.
     class Pass2 < BasePass
-      def initialize(instructions)
-        @instructions = InstructionManager.new(instructions)
+      def initialize(instructions, compiler_context:)
+        super()
+        @compiler_context = compiler_context
+        @instructions = InstructionManager.new(
+          instructions,
+          env: {
+            vars: compiler_context[:vars],
+            outer: nil,
+          },
+        )
       end
 
       def transform
@@ -55,9 +63,10 @@ module Natalie
 
         env = owning_env
 
-        # if a variable is not referenced from a block within this
-        # scope, then it is not "captured".
-        capturing = false
+        # If a variable is not referenced from a block within this
+        # scope, then it is not "captured". Unless we're in the REPL,
+        # then everything is captured.
+        capturing = capturing_default
 
         loop do
           if env.fetch(:vars).key?(name)
@@ -79,7 +88,7 @@ module Natalie
           name: "#{name}_var",
           captured: false,
           declared: false,
-          index: owning_env[:vars].size
+          index: owning_env[:vars].size,
         }
 
         owning_env[:vars][name] = var
@@ -98,28 +107,34 @@ module Natalie
         var
       end
 
-      def self.debug_instructions(instructions)
-        env = nil
-        instructions.each_with_index do |instruction, index|
-          desc = "#{index} #{instruction}"
-          if instruction.is_a?(EndInstruction)
-            puts desc
-          end
-          unless env.equal?(instruction.env)
-            env = instruction.env
-            e = env
-            vars = e[:vars].keys.sort.map { |v| "#{v} (mine)" }
-            while (e[:hoist] || e[:block]) && e = e.fetch(:outer)
-              vars += e[:vars].keys.sort
+      def capturing_default
+        @compiler_context[:repl]
+      end
+
+      class << self
+        def debug_instructions(instructions)
+          env = nil
+          instructions.each_with_index do |instruction, index|
+            desc = "#{index} #{instruction}"
+            if instruction.is_a?(EndInstruction)
+              puts desc
             end
-            puts
-            puts "== SCOPE " \
-                 "vars=[#{vars.join(', ')}] " \
-                 "#{env[:block] ? 'is_block ' : ''}" \
-                 "=="
-          end
-          unless instruction.is_a?(EndInstruction)
-            puts desc
+            unless env.equal?(instruction.env)
+              env = instruction.env
+              e = env
+              vars = e[:vars].keys.sort.map { |v| "#{v} (mine)" }
+              while (e[:hoist] || e[:block]) && (e = e.fetch(:outer))
+                vars += e[:vars].keys.sort
+              end
+              puts
+              puts '== SCOPE ' \
+                   "vars=[#{vars.join(', ')}] " \
+                   "#{env[:block] ? 'is_block ' : ''}" \
+                   '=='
+            end
+            unless instruction.is_a?(EndInstruction)
+              puts desc
+            end
           end
         end
       end

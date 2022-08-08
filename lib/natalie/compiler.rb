@@ -92,7 +92,7 @@ module Natalie
         var_num: 0,
         template: template,
         is_obj: !!write_obj_path,
-        repl: repl,
+        repl: !!repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
         compile_cxx_flags: cxx_flags,
@@ -164,13 +164,20 @@ module Natalie
 
       @context = build_context
 
-      instructions = Pass1.new(ast, inline_cpp_enabled: inline_cpp_enabled).transform
+      instructions = Pass1.new(
+        ast,
+        inline_cpp_enabled: inline_cpp_enabled,
+        compiler_context: @context,
+      ).transform
       if debug == 'p1'
         Pass1.debug_instructions(instructions)
         exit
       end
 
-      instructions = Pass2.new(instructions).transform
+      instructions = Pass2.new(
+        instructions,
+        compiler_context: @context,
+      ).transform
       if debug == 'p2'
         Pass2.debug_instructions(instructions)
         exit
