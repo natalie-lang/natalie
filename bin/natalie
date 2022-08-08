@@ -3,12 +3,6 @@
 require_relative '../lib/optparse'
 require 'tempfile'
 
-if RUBY_ENGINE != 'natalie'
-  # need this so we can run this script from any directory (even if that directory has a Gemfile of its own)
-  ENV['BUNDLE_GEMFILE'] = File.expand_path('../Gemfile', __dir__)
-  require 'bundler/setup'
-end
-
 require_relative '../lib/natalie'
 
 orig_args = ARGV.dup
