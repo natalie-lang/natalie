@@ -27,7 +27,7 @@ COPY examples examples
 COPY lib lib
 COPY src src
 COPY include include
-RUN rake
+RUN rake build_release
 
 COPY spec spec
 COPY test test
