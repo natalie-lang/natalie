@@ -69,7 +69,7 @@ class CSV
   end
 
   def self.parse(io, **options, &block)
-    csv = CSV.new(io, options)
+    csv = CSV.new(io, **options)
     if block_given?
       csv.each(&block)
     else
