@@ -11,8 +11,10 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, inline_cpp_enabled:)
+      def initialize(ast, inline_cpp_enabled:, compiler_context:)
+        super()
         @ast = ast
+        @compiler_context = compiler_context
 
         # If any user code has required 'natalie/inline', then we enable
         # magical extra features. :-)
@@ -68,7 +70,7 @@ module Natalie
 
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
-      
+
       def transform_alias(exp, used:)
         _, new_name, old_name = exp
         instructions = [transform_expression(new_name, used: true)]
@@ -183,7 +185,7 @@ module Natalie
         transform_defn_args(exp, for_block: true, check_args: true, used: used)
       end
 
-      def transform_break(exp, used:)
+      def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
         value ||= s(:nil)
         [
@@ -194,6 +196,10 @@ module Natalie
 
       def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
+
+        if repl? && (new_exp = fix_repl_var_that_looks_like_call(exp))
+          return transform_expression(new_exp, used: used)
+        end
 
         if @inline_cpp_enabled && receiver.nil? && INLINE_CPP_MACROS.include?(message)
           instructions = []
@@ -295,7 +301,6 @@ module Natalie
             _, *options = options_array
 
             options.each do |option|
-
               # Splats are handled in the backend.
               # For C++, it's done in the is_case_equal() function.
               if option.sexp_type == :splat
@@ -484,18 +489,18 @@ module Natalie
       def transform_defn(exp, used:)
         [
           PushSelfInstruction.new,
-          transform_def(exp, used: used)
+          transform_def(exp, used: used),
         ]
       end
 
-      def transform_defn_args(exp, for_block: false, check_args: true, used:)
+      def transform_defn_args(exp, used:, for_block: false, check_args: true)
         return [] unless used
         _, *args = exp
 
         instructions = []
 
         if args.last.is_a?(Symbol) && args.last.start_with?('&')
-          name = args.pop[1..-1]
+          name = args.pop[1..]
           instructions << PushBlockInstruction.new
           instructions << VariableSetInstruction.new(name, local_only: true)
         end
@@ -539,10 +544,9 @@ module Natalie
         [
           transform_expression(owner, used: true),
           SingletonClassInstruction.new,
-          transform_def(exp.new(:defn, name, args, *body), used: used)
+          transform_def(exp.new(:defn, name, args, *body), used: used),
         ]
       end
-
 
       def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp
@@ -620,7 +624,7 @@ module Natalie
                                   ensure_body,
                                   exp.new(:call, nil, :raise))),
                   ensure_body),
-          used: used
+          used: used,
         )
       end
 
@@ -642,7 +646,7 @@ module Natalie
         GlobalVariableGetInstruction.new(name)
       end
 
-      def transform_hash(exp, bare: false, used:)
+      def transform_hash(exp, used:, bare: false)
         _, *items = exp
         instructions = []
         if items.any? { |a| a.sexp_type == :kwsplat }
@@ -779,9 +783,11 @@ module Natalie
         when Symbol
           PushSymbolInstruction.new(lit)
         when Range
-          [transform_lit(lit.end, used: true),
-           transform_lit(lit.begin, used: true),
-           PushRangeInstruction.new(lit.exclude_end?)]
+          [
+            transform_lit(lit.end, used: true),
+            transform_lit(lit.begin, used: true),
+            PushRangeInstruction.new(lit.exclude_end?),
+          ]
         when Regexp
           PushRegexpInstruction.new(lit)
         else
@@ -812,7 +818,7 @@ module Natalie
           transform_expression(values, used: true),
           DupInstruction.new,
           ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array)
+          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -840,7 +846,7 @@ module Natalie
         instructions
       end
 
-      def transform_next(exp, used:)
+      def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
         value ||= s(:nil)
         [
@@ -902,26 +908,6 @@ module Natalie
           var_instruction,
           ElseInstruction.new(:if),
           transform_expression(assignment, used: true),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_op_asgn_and(exp, used:)
-        _, variable, assignment = exp
-        var_instruction = if variable.sexp_type == :lvar
-                            _, name = variable
-                            VariableGetInstruction.new(name, default_to_nil: true)
-                          else
-                            transform_expression(variable, used: true)
-                          end
-        instructions = [
-          var_instruction,
-          IfInstruction.new,
-          transform_expression(assignment, used: true),
-          ElseInstruction.new(:if),
-          var_instruction,
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
@@ -1260,10 +1246,35 @@ module Natalie
         end
       end
 
-      def self.debug_instructions(instructions)
-        instructions.each_with_index do |instruction, index|
-          desc = "#{index} #{instruction}"
-          puts desc
+      def repl?
+        @compiler_context[:repl]
+      end
+
+      # HACK: When using the REPL, the parser doesn't differentiate between method calls
+      # and variable lookup. Both cases look like this: `s(:call, nil, :foo)`.
+      # But we know which variables are defined in the REPL, so we can convert the :call
+      # back to an :lvar as needed.
+      # TODO: A better alternative would be to pass the variable names into NatalieParser
+      # so that it can know which variables are defined already and return s(:lvar, :foo).
+      def fix_repl_var_that_looks_like_call(exp)
+        unless exp.size == 3 && exp[..1] == [:call, nil]
+          return false
+        end
+
+        name = exp.last
+        unless @compiler_context[:vars].key?(name)
+          return false
+        end
+
+        exp.new(:lvar, exp.last)
+      end
+
+      class << self
+        def debug_instructions(instructions)
+          instructions.each_with_index do |instruction, index|
+            desc = "#{index} #{instruction}"
+            puts desc
+          end
         end
       end
     end

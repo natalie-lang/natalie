@@ -22,9 +22,6 @@ Naming/MethodParameterName:
 Naming/PredicateName:
   Enabled: false
 
-Style/LambdaCall:
-  EnforcedStyle: braces
-
 Style/AccessModifierDeclarations:
   Enabled: false
 
@@ -37,6 +34,9 @@ Style/ConditionalAssignment:
 Style/Documentation:
   Enabled: false
 
+Style/DoubleNegation:
+  Enabled: false
+
 Style/FormatString:
   Enabled: false
 
@@ -45,6 +45,9 @@ Style/GuardClause:
 
 Style/IfUnlessModifier:
   Enabled: false
+
+Style/LambdaCall:
+  EnforcedStyle: braces
 
 Style/NumericPredicate:
   Enabled: false

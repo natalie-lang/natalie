@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     # This class builds the 'env' hierarchy used to determine variable scope.
     class EnvBuilder
-      def initialize(instructions, env: { vars: {}, outer: nil })
+      def initialize(instructions, env:)
         if instructions.is_a?(Array)
           @instructions = instructions
         else
