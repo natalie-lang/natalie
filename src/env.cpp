@@ -204,7 +204,7 @@ Backtrace *Env::backtrace() {
 }
 
 Value Env::var_get(const char *key, size_t index) {
-    if (index >= m_vars->size())
+    if (!m_vars || index >= m_vars->size())
         return NilObject::the();
     Value val = m_vars->at(index);
     if (val) {
