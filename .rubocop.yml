@@ -19,6 +19,12 @@ Naming/HeredocDelimiterNaming:
 Naming/MethodParameterName:
   Enabled: false
 
+Naming/PredicateName:
+  Enabled: false
+
+Style/LambdaCall:
+  EnforcedStyle: braces
+
 Style/AccessModifierDeclarations:
   Enabled: false
 

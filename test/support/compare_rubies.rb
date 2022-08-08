@@ -17,13 +17,6 @@ module CompareRubies
     out_nat
   end
 
-  def run_nat_c2(path, *args)
-    out_nat = sh("bin/natalie -c2 -I test/support #{path} #{args.join(' ')} 2>&1").strip
-    puts out_nat unless $?.success?
-    expect($?).must_be :success?
-    out_nat
-  end
-
   def run_ruby(path, *args)
     out_ruby = sh("ruby -I test/support #{path} #{args.join(' ')} 2>&1")
     puts out_ruby unless $?.to_i == 0

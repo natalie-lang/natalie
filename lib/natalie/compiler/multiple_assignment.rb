@@ -1,99 +1,158 @@
+require_relative './arg_consumer'
+
 module Natalie
   class Compiler
     class MultipleAssignment
-      def initialize(exp, value_name)
-        @exp = exp
-        @value_name = value_name
+      def initialize(pass, file:, line:)
+        @pass = pass
+        @file = file
+        @line = line
+        @consumer = ArgConsumer.new
       end
 
-      attr_reader :exp, :value_name
-
-      def generate
-        _, names, val = exp
-        names = names[1..-1]
-        val = val.last if val.sexp_type == :to_ary
-        exp.new(:block, s(:declare, value_name, s(:to_ary, :env, val, :false)), *paths(exp, value_name))
+      def transform(exp)
+        @instructions = []
+        @consumer.consume(exp) do |arg|
+          transform_arg(arg)
+        end
+        clean_up
       end
 
       private
 
-      def paths(exp, value_name)
-        masgn_paths(exp).map do |name, path_details|
-          path = path_details[:path]
-          if name.is_a?(Sexp)
-            if name.sexp_type == :splat
-              if name.size == 1
-                # nameless splat
-                s(:block)
-              else
-                options =
-                  s(
-                    :struct,
-                    value: value_name,
-                    default_value: s(:nil),
-                    splat: true,
-                    offset_from_end: path_details[:offset_from_end],
-                  )
-                value = s(:array_value_by_path, :env, options, path.size, *path)
-                masgn_set(name.last, value)
-              end
-            else
-              default_value = name.size == 3 ? name.pop : s(:nil)
-              options = s(:struct, value: value_name, default_value: default_value, splat: false, offset_from_end: 0)
-              value = s(:array_value_by_path, :env, options, path.size, *path)
-              masgn_set(name, value)
-            end
+      def transform_arg(arg)
+        if arg.is_a?(Sexp)
+          case arg.sexp_type
+          when :cdecl
+            _, name = arg
+            transform_constant(name)
+          when :iasgn
+            _, name = arg
+            transform_instance_variable(name)
+          when :gasgn
+            _, name = arg
+            transform_global_variable(name)
+          when :lasgn
+            _, name = arg
+            transform_variable(name)
+          when :masgn
+            _, names_array = arg
+            transform_destructured_arg(names_array)
+          when :splat
+            _, name = arg
+            transform_splat_arg(name)
+          when :attrasgn
+            _, receiver, message, *args = arg
+            transform_attr_assign_arg(receiver, message, args)
           else
-            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
+            raise "I don't yet know how to compile #{arg.inspect}"
           end
-        end
-      end
-
-      # Ruby blows the stack at around this number, so let's limit Natalie as well.
-      # Anything over a few dozen is pretty crazy, actually.
-      MAX_MASGN_PATH_INDEX = 131_044
-
-      def masgn_paths(exp, prefix = [])
-        _, (_, *names) = exp
-        splatted = false
-        names_without_kwargs = names.reject { |n| n.is_a?(Sexp) && n.sexp_type == :kwarg }
-        names
-          .each_with_index
-          .each_with_object({}) do |(e, index), hash|
-            raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
-            if e.is_a?(Sexp) && e.sexp_type == :masgn
-              hash.merge!(masgn_paths(e, prefix + [index]))
-            elsif e.sexp_type == :splat
-              splatted = true
-              hash[e] = { path: prefix + [index], offset_from_end: names_without_kwargs.size - index - 1 }
-            elsif e.sexp_type == :kwsplat
-              splatted = true
-              hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
-            elsif splatted
-              hash[e] = { path: prefix + [(names.size - index) * -1] }
-            else
-              hash[e] = { path: prefix + [index] }
-            end
-          end
-      end
-
-      def masgn_set(exp, value)
-        case exp.sexp_type
-        when :cdecl
-          exp.new(:const_set, :self, s(:intern, exp.last), value)
-        when :gasgn
-          exp.new(:global_set, :env, s(:intern, exp.last), value)
-        when :iasgn
-          exp.new(:ivar_set, :self, :env, s(:intern, exp.last), value)
-        when :lasgn, :kwarg
-          exp.new(:var_set, :env, s(:s, exp[1]), value)
-        when :attrasgn
-          _, receiver, message, attr = exp
-          args = s(:args, attr, value)
-          exp.new(:public_send, receiver, s(:intern, message), args)
         else
-          raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
+          raise "I don't yet know how to compile #{arg.inspect}"
         end
+      end
+
+      def transform_attr_assign_arg(receiver, message, args)
+        shift_or_pop_next_arg
+        if args.any?
+          args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) }
+          @instructions << MoveRelInstruction.new(args.size) # move value after args
+        end
+        @instructions << PushArgcInstruction.new(args.size + 1)
+        @instructions << @pass.transform_expression(receiver, used: true)
+        @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
+        @instructions << PopInstruction.new
+      end
+
+      def transform_destructured_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        @instructions << DupInstruction.new
+        @instructions << ToArrayInstruction.new
+        sub_processor = self.class.new(@pass, file: @file, line: @line)
+        @instructions << sub_processor.transform(arg)
+        @instructions << PopInstruction.new
+      end
+
+      def transform_splat_arg(arg)
+        return :reverse if arg.nil? # nameless splat
+
+        case arg.sexp_type
+        when :gasgn
+          _, name = arg
+          @instructions << GlobalVariableSetInstruction.new(name)
+          @instructions << GlobalVariableGetInstruction.new(name)
+        when :iasgn
+          _, name = arg
+          @instructions << InstanceVariableSetInstruction.new(name)
+          @instructions << InstanceVariableGetInstruction.new(name)
+        when :lasgn
+          _, name = arg
+          @instructions << variable_set(name)
+          @instructions << VariableGetInstruction.new(name)
+        when :attrasgn
+          _, receiver, message = arg
+          @instructions << PushArgcInstruction.new(1)
+          @instructions << @pass.transform_expression(receiver, used: true)
+          @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
+        else
+          raise "I don't yet know how to compile splat arg #{arg.inspect}"
+        end
+
+        :reverse
+      end
+
+      def transform_constant(name)
+        shift_or_pop_next_arg
+        name, prep_instruction = constant_name(name)
+        @instructions << prep_instruction
+        @instructions << ConstSetInstruction.new(name)
+      end
+
+      def transform_global_variable(name)
+        shift_or_pop_next_arg
+        @instructions << GlobalVariableSetInstruction.new(name)
+      end
+
+      def transform_instance_variable(name)
+        shift_or_pop_next_arg
+        @instructions << InstanceVariableSetInstruction.new(name)
+      end
+
+      def transform_variable(name)
+        shift_or_pop_next_arg
+        @instructions << variable_set(name)
+      end
+
+      def shift_or_pop_next_arg
+        if @consumer.from_side == :left
+          @instructions << ArrayShiftInstruction.new
+        else
+          @instructions << ArrayPopInstruction.new
+        end
+      end
+
+      def shift_or_pop_next_arg_with_default
+        if @consumer.from_side == :left
+          @instructions << ArrayShiftWithDefaultInstruction.new
+        else
+          @instructions << ArrayPopWithDefaultInstruction.new
+        end
+      end
+
+      # returns a pair of [name, prep_instruction]
+      # prep_instruction being the instruction(s) needed to get the owner of the constant
+      def constant_name(name)
+        prepper = ConstPrepper.new(name, pass: self)
+        [prepper.name, prepper.namespace]
+      end
+
+      def variable_set(name)
+        raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
+        VariableSetInstruction.new(name, local_only: false)
+      end
+
+      def clean_up
+        @instructions << PopInstruction.new
       end
     end
   end

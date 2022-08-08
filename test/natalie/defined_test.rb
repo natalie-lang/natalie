@@ -1,6 +1,3 @@
-# test-compiler2
-# skip-test (the old compiler can't compile some of this, but Compiler2 can!)
-
 require_relative '../spec_helper'
 
 NUM = 1
