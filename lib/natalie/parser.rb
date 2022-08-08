@@ -11,8 +11,15 @@ module Natalie
           $LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
           $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
           require 'natalie_parser'
-        rescue LoadError
-          puts 'Error: You must build natalie_parser.so by running: rake parser_c_ext'
+        rescue LoadError => e
+          if e.message =~ /incompatible library version/
+            # NOTE: It's actually NatalieParser that was built against a different Ruby version,
+            # but saying that might be more confusing.
+            puts 'Error: Natalie was built with a different version of Ruby.'
+            puts "Please switch your current Ruby version or rebuild Natalie with version #{RUBY_VERSION}."
+          else
+            puts 'Error: You must build natalie_parser.so by running: rake parser_c_ext'
+          end
           exit 1
         end
       end
