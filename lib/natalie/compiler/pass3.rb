@@ -66,18 +66,23 @@ module Natalie
           return
         end
 
-        unless (break_point = env[:has_break])
+        if (break_details = env[:break])
+          break_point = break_details.fetch(:break_point)
+        else
           break_point = (@break_point += 1)
-          env[:has_break] = break_point
+          env[:break] = {
+            break_point: break_point,
+            type: :break,
+          }
         end
         instruction.break_point = break_point
       end
 
       def transform_create_lambda(instruction)
         return unless (break_point_env = @break_point_stack.pop)
-        return unless (break_point = break_point_env[:has_break])
+        return unless (break_details = break_point_env[:break])
 
-        instruction.break_point = break_point
+        instruction.break_point = break_details.fetch(:break_point)
       end
 
       def transform_end_define_block(_)
@@ -104,9 +109,14 @@ module Natalie
           top_block_env = top_block_env.fetch(:outer)
         end
 
-        unless (break_point = top_block_env[:has_return_break])
+        if (break_details = env[:break])
+          break_point = break_details.fetch(:break_point)
+        else
           break_point = (@break_point += 1)
-          top_block_env[:has_return_break] = break_point
+          env[:break] = {
+            break_point: break_point,
+            type: :return,
+          }
         end
 
         break_instruction = BreakInstruction.new
@@ -118,18 +128,11 @@ module Natalie
         return unless instruction.with_block?
         return unless (break_point_env = @break_point_stack.pop)
 
-        if break_point_env[:has_break]
+        if (break_details = break_point_env[:break])
           wrap_send(
             instruction,
-            break_point: break_point_env[:has_break]
-          )
-        end
-
-        if break_point_env[:has_return_break]
-          wrap_send(
-            instruction,
-            break_point: break_point_env[:has_return_break],
-            return_break: true
+            break_point: break_details.fetch(:break_point),
+            return_break: break_details.fetch(:type) == :return,
           )
         end
       end
