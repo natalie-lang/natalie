@@ -184,4 +184,15 @@ describe 'break' do
     end
     x.should == 2
   end
+
+  it 'can break from a lambda' do
+    lr = nil
+    r = [1].each do
+      l = -> { break 2 }
+      lr = l.()
+      break 3
+    end
+    r.should == 3
+    lr.should == 2
+  end
 end

@@ -114,4 +114,64 @@ describe 'return' do
     end
     foo.should == 4
   end
+
+  it 'can return from a lambda' do
+    x = 1
+    ret = lambda {
+      x += 1
+      return :foo
+      x += 1
+    }
+    ret.().should == :foo
+    x.should == 2
+
+    ret = lambda {
+      x += 1
+      if true
+        unless false
+          [1].each do |i|
+            return i
+          end
+        end
+      end
+      x += 1
+    }
+    ret.().should == 1
+    x.should == 3
+
+    def foo
+      l1 = lambda {
+        return 3
+      }
+      l2 = lambda {
+        return 4
+      }
+      return l1.() + l2.()
+    end
+    foo.should == 7
+  end
+
+  it 'can break and return from same scope' do
+    def foo(type)
+      [1].each do
+        break 5 if type == :break
+        return 6 if type == :return
+      end
+    end
+
+    foo(:break).should == 5
+    foo(:return).should == 6
+
+    l = ->(t) {
+      [1].each do
+        if t == :break
+          break 7
+        else
+          return 8
+        end
+      end
+    }
+    l.(:break).should == 7
+    l.(:return).should == 8
+  end
 end
