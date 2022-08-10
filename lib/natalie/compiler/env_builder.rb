@@ -10,10 +10,12 @@ module Natalie
         end
         @env = env
         @instruction_stack = []
+        @ip = 0
       end
 
       def process
-        @instructions.each do |instruction|
+        while @ip < @instructions.size
+          instruction = @instructions[@ip]
           method = "process_#{instruction.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
 
@@ -28,13 +30,20 @@ module Natalie
             send(method, instruction)
           end
           instruction.env ||= @env
+
+          @ip += 1
         end
       end
 
       private
 
       def process_define_block(i) @env = i.env || { vars: {}, outer: @env, block: true } end
-      def process_end_define_block(_) @env = @env.fetch(:outer) end
+      def process_end_define_block(_)
+        if @instructions[@ip + 1].is_a?(CreateLambdaInstruction)
+          @env[:lambda] = true
+        end
+        @env = @env.fetch(:outer)
+      end
 
       def process_define_class(i) @env = i.env || { vars: {}, outer: @env } end
       def process_end_define_class(_) @env = @env.fetch(:outer) end

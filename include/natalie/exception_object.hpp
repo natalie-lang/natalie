@@ -58,7 +58,7 @@ public:
     LocalJumpErrorType local_jump_error_type() { return m_local_jump_error_type; }
 
     Value match_rescue_array(Env *env, Value ary);
-    Value is_local_jump_error_with_break_point(Env *env, nat_int_t match_break_point);
+    bool is_local_jump_error_with_break_point(nat_int_t match_break_point) const;
 
     nat_int_t break_point() const { return m_break_point; }
     void set_break_point(nat_int_t break_point) { m_break_point = break_point; }
