@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        code = "exception->is_local_jump_error_with_break_point(env, #{@break_point})"
+        code = "bool_object(exception->is_local_jump_error_with_break_point(#{@break_point}))"
         transform.exec_and_push(:match_exception_result, code)
       end
 

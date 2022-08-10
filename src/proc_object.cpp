@@ -13,7 +13,7 @@ Value ProcObject::call(Env *env, Args args, Block *block) {
         try {
             return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, args, block);
         } catch (ExceptionObject *exception) {
-            if (exception->is_local_jump_error_with_break_point(env, m_break_point))
+            if (exception->is_local_jump_error_with_break_point(m_break_point))
                 return exception->send(env, "exit_value"_s);
             throw exception;
         }
