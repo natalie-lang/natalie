@@ -1,3 +1,6 @@
+# This is sort of an ACID test for a new Ruby implementation to see
+# if break and return behave as expected.
+
 def foo(type)
   loop do
     loop do
