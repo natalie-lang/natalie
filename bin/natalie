@@ -5,8 +5,6 @@ require 'tempfile'
 
 require_relative '../lib/natalie'
 
-orig_args = ARGV.dup
-
 options = { load_path: [], require: [], profile: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
@@ -18,13 +16,13 @@ OptionParser.new do |opts|
     '-d [type]', '--debug [type]',
     'Show debug output (specify option below)',
     options: {
-      '{p0c,p1,p1b,p1r,p2,p3}' => 'print intermediate AST from individual compiler pass',
-      'cpp'                => 'print generated C++',
-      'cc-cmd'             => 'show the gcc/clang compiler command that will be run',
-      'valgrind'           => 'run the resulting binary with valgrind',
-      'kcachegrind'        => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
-      '{gdb,lldb}'         => 'run the resulting binary with gdb or lldb',
-    }
+      '{p1,p1,p3,p4}' => 'print intermediate AST from individual compiler pass',
+      'cpp'           => 'print generated C++',
+      'cc-cmd'        => 'show the gcc/clang compiler command that will be run',
+      'valgrind'      => 'run the resulting binary with valgrind',
+      'kcachegrind'   => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
+      '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
+    },
   ) do |type|
     case type
     when true, 'c', 'cpp', 'c++'
@@ -44,7 +42,7 @@ OptionParser.new do |opts|
     options[:execute] = e
   end
 
-  opts.on('-p', '--profile', 'Profile a Natalie application with the embedded profiler') do |e|
+  opts.on('-p', '--profile', 'Profile a Natalie application with the embedded profiler') do
     options[:profile] = true
   end
 
@@ -74,10 +72,6 @@ OptionParser.new do |opts|
 
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
     options[:keep_cpp] = true
-  end
-
-  opts.on('--extra-optimizations', 'Enables additional compiler optimizations that may decrease compatibility with Ruby') do
-    options[:optimizations] = true
   end
 
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
@@ -167,7 +161,16 @@ class Runner
     when 'valgrind'
       compiler.cxx_flags << '-DNAT_GC_COLLECT_ALL_AT_EXIT'
       compiler.compile
-      exec('valgrind', '--leak-check=full', '--show-leak-kinds=all', '--track-origins=yes', '--error-exitcode=1', '--suppressions=test/valgrind-suppressions', out.path, *ARGV)
+      exec(
+        'valgrind',
+        '--leak-check=full',
+        '--show-leak-kinds=all',
+        '--track-origins=yes',
+        '--error-exitcode=1',
+        '--suppressions=test/valgrind-suppressions',
+        out.path,
+        *ARGV,
+      )
     when 'kcachegrind'
       callgrind_out = Tempfile.create('callgrind.out')
       callgrind_out.close
