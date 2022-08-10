@@ -173,5 +173,23 @@ describe 'return' do
     }
     l.(:break).should == 7
     l.(:return).should == 8
+
+    def bar
+      result = 0
+      loop do
+        loop do
+          if false
+            return 4
+          end
+          unless false
+            break 3
+          end
+        end
+        result = 9
+        break
+      end
+      result
+    end
+    bar.should == 9
   end
 end
