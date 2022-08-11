@@ -98,24 +98,6 @@ struct ArgValueByPathOptions {
     bool defaults_on_right;
     int offset_from_end;
 };
-Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...);
-
-struct ArrayValueByPathOptions {
-    Value value;
-    Value default_value;
-    bool splat;
-    int offset_from_end;
-};
-Value array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...);
-
-HashObject *kwarg_hash(Value args);
-HashObject *kwarg_hash(ArrayObject *args);
-Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_value);
-Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value);
-
-ArrayObject *args_to_array(Env *env, Args args);
-void args_to_vector(TM::Vector<Value> &target, Args args);
-void block_args_to_vector(Env *env, TM::Vector<Value> &target, size_t signature_size, Args args);
 
 void arg_spread(Env *env, Args args, const char *arrangement, ...);
 
@@ -126,9 +108,6 @@ enum class CoerceInvalidReturnValueMode {
 
 std::pair<Value, Value> coerce(Env *, Value, Value, CoerceInvalidReturnValueMode = CoerceInvalidReturnValueMode::Raise);
 
-char *zero_string(int);
-
-Block *proc_to_block_arg(Env *, Value);
 Block *to_block(Env *, Value);
 inline Block *to_block(Env *, Block *block) { return block; }
 
