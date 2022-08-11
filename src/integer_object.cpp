@@ -121,7 +121,7 @@ Value IntegerObject::div(Env *env, Value arg) {
 Value IntegerObject::mod(Env *env, Value arg) {
     Integer argument;
     if (arg->is_float()) {
-        return FloatObject { m_integer.to_double() }.mod(env, arg);
+        return Value::floatingpoint(m_integer.to_double())->as_float()->mod(env, arg);
     } else if (arg->is_rational()) {
         return RationalObject { this, new IntegerObject { 1 } }.send(env, "%"_s, { arg });
     } else {
@@ -138,7 +138,7 @@ Value IntegerObject::mod(Env *env, Value arg) {
 
 Value IntegerObject::pow(Env *env, Value arg) {
     if (arg->is_float())
-        return FloatObject { m_integer.to_double() }.pow(env, arg);
+        return Value::floatingpoint(m_integer.to_double())->as_float()->pow(env, arg);
 
     if (arg->is_rational())
         return RationalObject { this, new IntegerObject { 1 } }.pow(env, arg);
@@ -182,7 +182,7 @@ Value IntegerObject::pow(Env *env, Value arg) {
     constexpr const size_t BIGINT_LIMIT = 8 * 1024 * 1024;
     if (length > BIGINT_LIMIT || length * arg_int > (nat_int_t)BIGINT_LIMIT) {
         env->warn("in a**b, b may be too big");
-        return FloatObject { m_integer.to_double() }.pow(env, arg);
+        return Value::floatingpoint(m_integer.to_double())->as_float()->pow(env, arg);
     }
 
     return create(Natalie::pow(m_integer, arg_int));
