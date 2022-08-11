@@ -99,7 +99,7 @@ Value ArrayObject::shift() {
 }
 
 void ArrayObject::set(size_t index, Value value) {
-    NAT_ASSERT_NOT_SYNTHESIZED(value);
+    NAT_GC_GUARD_VALUE(value);
 
     if (index == m_vector.size()) {
         m_vector.push(value);

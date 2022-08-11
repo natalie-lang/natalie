@@ -69,8 +69,8 @@ Value HashObject::set_default(Env *env, Value value) {
 }
 
 void HashObject::put(Env *env, Value key, Value val) {
-    NAT_ASSERT_NOT_SYNTHESIZED(key);
-    NAT_ASSERT_NOT_SYNTHESIZED(val);
+    NAT_GC_GUARD_VALUE(key);
+    NAT_GC_GUARD_VALUE(val);
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {

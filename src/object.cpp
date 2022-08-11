@@ -432,7 +432,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
-    NAT_ASSERT_NOT_SYNTHESIZED(val);
+    NAT_GC_GUARD_VALUE(val);
 
     assert_not_frozen(env);
 

@@ -107,15 +107,15 @@ DOCKER_FLAGS =
   end
 
 task :docker_build do
-  sh 'docker build -t natalie .'
+  sh 'docker build -t natalie --build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
+end
+
+task :docker_build_clang do
+  sh 'docker build -t natalie_clang --build-arg CC=clang --build-arg CXX=clang++ --build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
 end
 
 task docker_bash: :docker_build do
   sh 'docker run -it --rm --entrypoint bash natalie'
-end
-
-task :docker_build_clang do
-  sh 'docker build -t natalie_clang --build-arg CC=clang --build-arg CXX=clang++ .'
 end
 
 task :docker_build_ruby27 do
@@ -386,9 +386,11 @@ def cxx_flags
         -Wno-unused-parameter
         -Wno-unused-value
         -Wno-unused-variable
+        -DNAT_GC_GUARD
       ]
     end
-  base_flags + include_paths.map { |path| "-I #{path}" }
+  user_flags = Array(ENV['NAT_CXX_FLAGS'])
+  base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
 end
 
 def include_paths

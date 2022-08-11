@@ -98,11 +98,26 @@
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
 
-// TODO: In release mode, could we make this dup() the value rather than abort?
-#define NAT_ASSERT_NOT_SYNTHESIZED(val)                                                                                       \
-    if (val->is_synthesized()) {                                                                                              \
-        fprintf(stderr,                                                                                                       \
-            "Value is synthesized, but you allowed it to be captured in a variable or another data structure.\n"              \
-            "Either mark the method as not optimized (in binding_gen.rb) or don't allow the synthesized value to escape.\n"); \
-        abort();                                                                                                              \
+#ifdef NAT_GC_GUARD
+#define NAT_GC_GUARD_VALUE(val)                                                               \
+    {                                                                                         \
+        Object *ptr;                                                                          \
+        if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
+            void *dummy;                                                                      \
+            auto end_of_stack = (uintptr_t)(&dummy);                                          \
+            auto start_of_stack = (uintptr_t)Heap::the().start_of_stack();                    \
+            assert(start_of_stack > end_of_stack);                                            \
+            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
+                fprintf(                                                                      \
+                    stderr,                                                                   \
+                    "This object (%p) is stack allocated, but you allowed it to be captured " \
+                    "in a Ruby variable or another data structure.\n"                         \
+                    "Be sure to heap-allocate the object with `new`.",                        \
+                    ptr);                                                                     \
+                abort();                                                                      \
+            }                                                                                 \
+        }                                                                                     \
     }
+#else
+#define NAT_GC_GUARD_VALUE(val)
+#endif

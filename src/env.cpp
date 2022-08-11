@@ -20,7 +20,7 @@ Value Env::global_get(SymbolObject *name) {
 }
 
 Value Env::global_set(SymbolObject *name, Value val) {
-    NAT_ASSERT_NOT_SYNTHESIZED(val);
+    NAT_GC_GUARD_VALUE(val);
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
@@ -215,7 +215,7 @@ Value Env::var_get(const char *key, size_t index) {
 }
 
 Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
-    NAT_ASSERT_NOT_SYNTHESIZED(val);
+    NAT_GC_GUARD_VALUE(val);
 
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;
