@@ -32,7 +32,7 @@ public:
         : ArrayObject {} {
         m_vector.set_capacity(list.size());
         for (auto v : list) {
-            NAT_ASSERT_NOT_SYNTHESIZED(v);
+            NAT_GC_GUARD_VALUE(v);
             m_vector.push(v);
         }
     }
@@ -72,7 +72,7 @@ public:
     size_t size() const { return m_vector.size(); }
 
     void push(Value val) {
-        NAT_ASSERT_NOT_SYNTHESIZED(val);
+        NAT_GC_GUARD_VALUE(val);
         m_vector.push(val);
     }
 
