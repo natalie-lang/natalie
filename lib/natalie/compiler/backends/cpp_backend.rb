@@ -9,7 +9,6 @@ module Natalie
       def initialize(instructions, compiler_context:)
         @instructions = instructions
         @compiler_context = compiler_context
-        @source_files = { compiler_context[:source_path] => 0 }
         @symbols = {}
         @inline_functions = {}
         @top = []
@@ -43,7 +42,7 @@ module Natalie
       end
 
       def declarations
-        [obj_declarations, source_files_to_c, declare_symbols, @top.join("\n")].join("\n\n")
+        [obj_declarations, declare_symbols, @top.join("\n")].join("\n\n")
       end
 
       def init_matter
@@ -91,11 +90,6 @@ module Natalie
 
       def obj_init_lines
         obj_files.map { |name| "init_obj_#{name}(env, self);" }
-      end
-
-      def source_files_to_c
-        files = "#{@compiler_context[:var_prefix]}source_files"
-        "const char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
       end
 
       def reindent(code)

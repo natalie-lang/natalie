@@ -170,6 +170,18 @@ module Natalie
           "#{@compiler_context[:var_prefix]}symbols"
         end
 
+        def set_file(file)
+          return unless file && file != @file
+          @file = file
+          exec("env->set_file(#{@file.inspect})")
+        end
+
+        def set_line(line)
+          return unless line && line != @line
+          @line = line
+          exec("env->set_line(#{@line})")
+        end
+
         def inspect
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end

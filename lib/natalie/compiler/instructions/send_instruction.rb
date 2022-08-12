@@ -66,8 +66,8 @@ module Natalie
           args_list = "Args({ #{args.join(', ')} }, #{@has_keyword_hash ? 'true' : 'false'})"
         end
 
-        transform.exec("env->set_file(#{@file.inspect})") if @file
-        transform.exec("env->set_line(#{@line.inspect})") if @line
+        transform.set_file(@file)
+        transform.set_line(@line)
 
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
