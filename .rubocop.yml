@@ -10,6 +10,9 @@ Layout/HashAlignment:
 Layout/HeredocIndentation:
   Enabled: false
 
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
 Metrics:
   Enabled: false
 

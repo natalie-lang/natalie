@@ -531,9 +531,9 @@ module Natalie
           instructions << CheckArgsInstruction.new(positional: args.size)
         end
 
-        args.each_with_index do |name, index|
+        args.each_with_index do |arg_name, index|
           instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(name, local_only: true)
+          instructions << VariableSetInstruction.new(arg_name, local_only: true)
         end
 
         instructions
@@ -616,14 +616,20 @@ module Natalie
       def transform_ensure(exp, used:)
         _, body, ensure_body = exp
         transform_rescue(
-          exp.new(:rescue,
-                  body,
-                  exp.new(:resbody,
-                          exp.new(:array),
-                          exp.new(:block,
-                                  ensure_body,
-                                  exp.new(:call, nil, :raise))),
-                  ensure_body),
+          exp.new(
+            :rescue,
+            body,
+            exp.new(
+              :resbody,
+              exp.new(:array),
+              exp.new(
+                :block,
+                ensure_body,
+                exp.new(:call, nil, :raise),
+              ),
+            ),
+            ensure_body,
+          ),
           used: used,
         )
       end
@@ -919,19 +925,28 @@ module Natalie
         if op == :'||'
           instructions = [
             key_args.map { |arg| transform_expression(arg, used: true) },
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+
+            # key(s) are reused when the value is set
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) },
+
             PushArgcInstruction.new(key_args.size),
             transform_expression(obj, used: true),
             SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
             DupInstruction.new,
+
             IfInstruction.new,
-            key_args.map { PopInstruction.new }, # didn't need the extra key(s) after all :-)
+
+            # didn't need the extra key(s) after all :-)
+            key_args.map { PopInstruction.new },
+
             ElseInstruction.new(:if),
+
             PopInstruction.new,
             transform_expression(value, used: true),
             PushArgcInstruction.new(key_args.size + 1),
             transform_expression(obj, used: true),
             SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
             EndInstruction.new(:if),
           ]
         else
@@ -939,43 +954,25 @@ module Natalie
             # old_value = obj[key]
             transform_expression(obj, used: true),
             key_args.map { |arg| transform_expression(arg, used: true) },
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) }, # key(s) are reused when the value is set
+
+            # key(s) are reused when the value is set
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) },
+
             PushArgcInstruction.new(key_args.size),
             DupRelInstruction.new(key_args.size * 2 + 1),
             SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
             # new_value = old_value + value
             transform_expression(value, used: true),
             PushArgcInstruction.new(1),
             MoveRelInstruction.new(2),
             SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+
             # obj[key] = new_value
             PushArgcInstruction.new(key_args.size + 1),
             MoveRelInstruction.new(key_args.size + 2),
             SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
           ]
-          # a[b] += 1
-          #
-          # 0 push_argc 0
-          # 1 push_self
-          # 2 send :a to self        [a]
-          # 3 dup                    [a, a]
-          # 4 push_argc 0
-          # 5 push_self
-          # 6 send :b to self        [a, a, b]
-          # 7 dup_rel 0              [a, a, b, b]
-          # 8 push_argc 1
-          # 9 push_argc 0
-          # 10 push_self
-          # 11 send :a to self
-          # 12 send :[]
-          # 13 push_int 1
-          # 14 swap
-          # 15 push_argc 1
-          # 16 swap
-          # 17 send :+
-          # 18 push_argc 2
-          # 19 swap
-          # 20 send :[]=
         end
         instructions << PopInstruction.new unless used
         instructions
@@ -1047,7 +1044,7 @@ module Natalie
         [RetryInstruction.new(id: @retry_context.last)]
       end
 
-      def transform_return(exp, used:)
+      def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
         value ||= s(:nil)
         instructions = [transform_expression(value, used: true)]
@@ -1141,7 +1138,13 @@ module Natalie
         _, value = exp
         instructions = [PushArgcInstruction.new(0)]
         instructions << transform_expression(value, used: true)
-        instructions << SendInstruction.new(:to_ary, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line)
+        instructions << SendInstruction.new(
+          :to_ary,
+          receiver_is_self: false,
+          with_block: false,
+          file: exp.file,
+          line: exp.line,
+        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1155,7 +1158,7 @@ module Natalie
         _, name = exp
         name = name.last
         instructions = [
-          UndefineMethodInstruction.new(name: name)
+          UndefineMethodInstruction.new(name: name),
         ]
         instructions << PushNilInstruction.new if used
         instructions
@@ -1202,8 +1205,7 @@ module Natalie
         instructions
       end
 
-      def transform_zsuper(exp, used:, with_block: false)
-        _, *args = exp
+      def transform_zsuper(_, used:, with_block: false)
         instructions = []
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << PushSelfInstruction.new
