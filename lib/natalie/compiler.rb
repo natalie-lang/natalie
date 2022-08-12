@@ -201,11 +201,6 @@ module Natalie
       CppBackend.new(instructions, compiler_context: @context).generate
     end
 
-    def clang?
-      return @clang if defined?(@clang)
-      @clang = !!(`#{cc} --version` =~ /clang/)
-    end
-
     def libraries
       LIBRARIES
     end
@@ -227,7 +222,7 @@ module Natalie
     end
 
     def link_flags
-      (@context[:compile_ld_flags] - unnecessary_link_flags).join(' ')
+      (@context[:compile_ld_flags].uniq - unnecessary_link_flags).join(' ')
     end
 
     def unnecessary_link_flags

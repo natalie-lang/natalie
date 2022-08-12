@@ -182,6 +182,10 @@ module Natalie
           exec("env->set_line(#{@line})")
         end
 
+        def add_ld_flags(flags)
+          @compiler_context[:compile_ld_flags] << flags
+        end
+
         def inspect
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end

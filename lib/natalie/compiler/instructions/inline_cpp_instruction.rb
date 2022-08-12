@@ -119,6 +119,12 @@ module Natalie
         transform.push('NilObject::the()')
       end
 
+      def generate_ld_flags(transform, flags)
+        flags = comptime_string(flags)
+        transform.add_ld_flags(flags)
+        transform.push('NilObject::the()')
+      end
+
       def comptime_array_of_strings(exp)
         unless exp.sexp_type == :array
           raise "Expected array at compile time, but got: #{exp.inspect}"
