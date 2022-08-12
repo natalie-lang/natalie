@@ -7,6 +7,7 @@ module Natalie
     # You can debug this pass with the `-d p4` CLI flag.
     class Pass4 < BasePass
       def initialize(instructions)
+        super()
         @instructions = instructions
         @break_point = 10_000 # FIXME
 
@@ -47,8 +48,8 @@ module Natalie
         # get the top-most block in the method
         top_block_env = env
         while top_block_env[:hoist] || (
-            top_block_env.dig(:outer, :block) &&
-            !top_block_env[:lambda]
+          top_block_env.dig(:outer, :block) &&
+          !top_block_env[:lambda]
         )
           top_block_env = top_block_env[:outer]
         end
@@ -69,7 +70,7 @@ module Natalie
         instruction.break_point = break_point
       end
 
-      def transform_end_define_block(instruction)
+      def transform_end_define_block(_)
         @break_point_stack << @env[:has_return]
       end
 
@@ -86,20 +87,34 @@ module Natalie
           IfInstruction.new,
           PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
-          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
+          SendInstruction.new(
+            :exit_value,
+            receiver_is_self: false,
+            with_block: false,
+            file: instruction.file,
+            line: instruction.line,
+          ),
           ReturnInstruction.new,
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
           PushSelfInstruction.new,
-          SendInstruction.new(:raise, receiver_is_self: true, with_block: false, file: instruction.file, line: instruction.line),
+          SendInstruction.new(
+            :raise,
+            receiver_is_self: true,
+            with_block: false,
+            file: instruction.file,
+            line: instruction.line,
+          ),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
         ])
       end
 
-      def self.debug_instructions(instructions)
-        instructions.each_with_index do |instruction, index|
-          puts "#{index} #{instruction}"
+      class << self
+        def debug_instructions(instructions)
+          instructions.each_with_index do |instruction, index|
+            puts "#{index} #{instruction}"
+          end
         end
       end
     end

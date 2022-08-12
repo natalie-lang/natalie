@@ -7,6 +7,7 @@ module Natalie
     # lambda, or while loop. You can debug this pass with the `-d p3` CLI flag.
     class Pass3 < BasePass
       def initialize(instructions)
+        super()
         @instructions = instructions
         @break_point = 0
 
@@ -82,11 +83,23 @@ module Natalie
           IfInstruction.new,
           PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
-          SendInstruction.new(:exit_value, receiver_is_self: false, with_block: false, file: instruction.file, line: instruction.line),
+          SendInstruction.new(
+            :exit_value,
+            receiver_is_self: false,
+            with_block: false,
+            file: instruction.file,
+            line: instruction.line,
+          ),
           ElseInstruction.new(:if),
           PushArgcInstruction.new(0),
           PushSelfInstruction.new,
-          SendInstruction.new(:raise, receiver_is_self: true, with_block: false, file: instruction.file, line: instruction.line),
+          SendInstruction.new(
+            :raise,
+            receiver_is_self: true,
+            with_block: false,
+            file: instruction.file,
+            line: instruction.line,
+          ),
           EndInstruction.new(:if),
           EndInstruction.new(:try),
         ])
@@ -106,9 +119,11 @@ module Natalie
         @to_convert_to_break_out[break_point] = while_instruction
       end
 
-      def self.debug_instructions(instructions)
-        instructions.each_with_index do |instruction, index|
-          puts "#{index} #{instruction}"
+      class << self
+        def debug_instructions(instructions)
+          instructions.each_with_index do |instruction, index|
+            puts "#{index} #{instruction}"
+          end
         end
       end
     end
