@@ -208,6 +208,9 @@ describe 'assignment' do
         3
       end
     h[:f].should == 3
+
+    index = h[:e] ||= h.size
+    index.should == 5
   end
 
   it 'can optionally call an attr writer with ||=' do

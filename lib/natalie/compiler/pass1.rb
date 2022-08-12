@@ -929,18 +929,26 @@ module Natalie
             # key(s) are reused when the value is set
             key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) },
 
+            # old_value = obj[key]
             PushArgcInstruction.new(key_args.size),
             transform_expression(obj, used: true),
             SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
             DupInstruction.new,
 
+            # if old_value
             IfInstruction.new,
 
             # didn't need the extra key(s) after all :-)
-            key_args.map { PopInstruction.new },
+            key_args.map do
+              [
+                SwapInstruction.new, # move value above duplicated key
+                PopInstruction.new, # get rid of duplicated key
+              ]
+            end,
 
             ElseInstruction.new(:if),
 
+            # obj[key] = new_value
             PopInstruction.new,
             transform_expression(value, used: true),
             PushArgcInstruction.new(key_args.size + 1),
