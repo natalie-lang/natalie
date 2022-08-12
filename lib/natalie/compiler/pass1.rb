@@ -1271,6 +1271,12 @@ module Natalie
         exp.new(:lvar, exp.last)
       end
 
+      def s(*items)
+        sexp = Sexp.new
+        items.each { |item| sexp << item }
+        sexp
+      end
+
       class << self
         def debug_instructions(instructions)
           instructions.each_with_index do |instruction, index|

@@ -215,6 +215,12 @@ module Natalie
         STDERR.puts load_error_msg if @log_load_error
         s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
       end
+
+      def s(*items)
+        sexp = Sexp.new
+        items.each { |item| sexp << item }
+        sexp
+      end
     end
   end
 end
