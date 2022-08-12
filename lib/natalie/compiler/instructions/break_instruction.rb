@@ -3,9 +3,16 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class BreakInstruction < BaseInstruction
+      def initialize(type: :break)
+        super()
+        raise 'bad type' unless %i[break return].include?(type)
+        @type = type
+      end
+
       def to_s
         s = 'break'
         s << " #{@break_point}" if @break_point
+        s << ' (return)' if @type == :return
         s
       end
 
@@ -15,7 +22,8 @@ module Natalie
         raise 'no break point set' unless @break_point
 
         value = transform.pop
-        transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::Break, #{@break_point})")
+        type = @type.to_s.capitalize
+        transform.exec("env->raise_local_jump_error(#{value}, LocalJumpErrorType::#{type}, #{@break_point})")
         transform.push('Value(NilObject::the())')
       end
 

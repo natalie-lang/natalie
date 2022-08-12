@@ -58,7 +58,7 @@ module Natalie
           top_block_env[:has_return] = break_point
         end
 
-        break_instruction = BreakInstruction.new
+        break_instruction = BreakInstruction.new(type: :return)
         break_instruction.break_point = break_point
         @instructions.replace_current(break_instruction)
       end
