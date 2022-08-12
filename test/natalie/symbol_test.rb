@@ -83,4 +83,11 @@ describe 'symbol' do
       :n[1..-1].should == ''
     end
   end
+
+  describe '#=~' do
+    it 'tests a regular expression against the string representation' do
+      (:foo =~ /foo/).should == 0
+      (:foo =~ /bar/).should be_nil
+    end
+  end
 end

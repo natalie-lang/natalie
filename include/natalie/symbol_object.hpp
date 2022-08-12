@@ -58,6 +58,7 @@ public:
 
     bool start_with(Env *, Value);
 
+    Value eqtilde(Env *, Value);
     Value length(Env *);
     Value name(Env *);
     Value ref(Env *, Value);

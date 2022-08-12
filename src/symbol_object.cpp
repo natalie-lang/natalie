@@ -48,6 +48,11 @@ StringObject *SymbolObject::inspect(Env *env) {
     return string;
 }
 
+Value SymbolObject::eqtilde(Env *env, Value other) {
+    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    return other->as_regexp()->eqtilde(env, this);
+}
+
 SymbolObject *SymbolObject::succ(Env *env) {
     auto string = to_s(env);
     string = string->send(env, "succ"_s)->as_string();
