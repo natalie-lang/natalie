@@ -9,7 +9,6 @@ module Natalie
       def initialize(instructions)
         super()
         @instructions = instructions
-        @break_point = 10_000 # FIXME
 
         # We have to match each break point with the appropriate SendInstruction or
         # CreateLambdaInstruction. Since method calls are chainable, the next
@@ -55,7 +54,7 @@ module Natalie
         end
 
         unless (break_point = top_block_env[:has_return])
-          break_point = (@break_point += 1)
+          break_point = @instructions.next_break_point
           top_block_env[:has_return] = break_point
         end
 

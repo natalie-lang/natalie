@@ -6,6 +6,7 @@ module Natalie
           raise 'expected array'
         end
         @instructions = instructions
+        @break_point = 0
         EnvBuilder.new(@instructions, env: env).process
         reset
       end
@@ -98,6 +99,10 @@ module Natalie
           return @instructions[ip] if @instructions[ip].is_a?(instruction_class)
           ip -= 1
         end
+      end
+
+      def next_break_point
+        @break_point += 1
       end
     end
   end

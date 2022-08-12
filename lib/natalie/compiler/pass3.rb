@@ -9,7 +9,6 @@ module Natalie
       def initialize(instructions)
         super()
         @instructions = instructions
-        @break_point = 0
 
         # We need to keep track of which 'container' the `break` is operating in.
         # If it's a `while` loop, the BreakInstruction needs to be converted to a
@@ -52,7 +51,7 @@ module Natalie
         env = env[:outer] while env[:hoist] && !env[:while]
         raise 'unexpected env for break' unless env[:block] || env[:while]
         unless (break_point = env[:has_break])
-          break_point = (@break_point += 1)
+          break_point = @instructions.next_break_point
           env[:has_break] = break_point
         end
         instruction.break_point = break_point
