@@ -21,11 +21,11 @@ describe 'JSON' do
       -> { JSON.parse('-01') }.should raise_error(JSON::ParserError)
     end
 
-    # TODO: need String#to_f for this to work :-)
-    xit 'parses floats' do
-      JSON.parse('1.1').should == 1.1
-      JSON.parse('123e3').should == 123000.0
-      JSON.parse('-123.4').should == -123.4
+    it 'parses floats' do
+      JSON.parse('1.1').should be_close(1.1, TOLERANCE)
+      JSON.parse('1.2e3').should be_close(1200.0, TOLERANCE)
+      JSON.parse('123e3').should be_close(123000.0, TOLERANCE)
+      JSON.parse('-123.4').should be_close(-123.4, TOLERANCE)
     end
 
     it 'parses strings' do

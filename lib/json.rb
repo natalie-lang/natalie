@@ -8,6 +8,8 @@ module JSON
   end
 
   class Lexer
+    DIGITS = '0'..'9'
+
     def initialize(string)
       @string = string
       @remaining_string = @string.dup
@@ -32,23 +34,50 @@ module JSON
       case (c = current_char)
       when 't'
         raise ParserError, "unknown literal: #{c}" unless advance(4) == 'true'
-        :true
+        :true # rubocop:disable Lint/BooleanSymbol
       when 'f'
         raise ParserError, "unknown literal: #{c}" unless advance(5) == 'false'
-        :false
+        :false # rubocop:disable Lint/BooleanSymbol
       when 'n'
         raise ParserError, "unknown literal: #{c}" unless advance(4) == 'null'
         :null
-      when '-', '0'..'9'
+      when '-', DIGITS
         num = advance
-        while %w[0 1 2 3 4 5 6 7 8 9].include?(c = current_char)
+        while DIGITS.include?(c = current_char)
           num << c
           advance
         end
-        if (num.start_with?('0') && num.length > 1) || (num.start_with?('-0') && num.length > 2)
-          raise ParserError, "unknown literal: #{num}"
+        case c
+        when '.'
+          num << c
+          advance
+          while DIGITS.include?(c = current_char)
+            num << c
+            advance
+          end
+          if c == 'e'
+            num << c
+            advance
+            while DIGITS.include?(c = current_char)
+              num << c
+              advance
+            end
+          end
+          num.to_f
+        when 'e'
+          num << c
+          advance
+          while DIGITS.include?(c = current_char)
+            num << c
+            advance
+          end
+          num.to_f
+        else
+          if (num.start_with?('0') && num.length > 1) || (num.start_with?('-0') && num.length > 2)
+            raise ParserError, "unknown literal: #{num}"
+          end
+          num.to_i
         end
-        num.to_i
       when '"'
         str = ''
         advance
@@ -124,12 +153,14 @@ module JSON
 
     def parse_sequence(token)
       case token
-      when :true
+      when :true # rubocop:disable Lint/BooleanSymbol
         true
-      when :false
+      when :false # rubocop:disable Lint/BooleanSymbol
         false
       when :null
         nil
+      when Float
+        token
       when Integer
         token
       when String
