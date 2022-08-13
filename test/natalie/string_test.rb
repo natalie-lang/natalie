@@ -426,6 +426,17 @@ describe 'string' do
     end
   end
 
+  describe '#to_f' do
+    it 'returns a Float by recognizing digts in the string' do
+      '1.1'.to_f.should be_close(1.1, TOLERANCE)
+      '1'.to_f.should be_close(1.0, TOLERANCE)
+      '1.0'.to_f.should be_close(1.0, TOLERANCE)
+      '9.9a'.to_f.should be_close(9.9, TOLERANCE)
+      'a'.to_f.should be_close(0.0, TOLERANCE)
+      ''.to_f.should be_close(0.0, TOLERANCE)
+    end
+  end
+
   describe '#split' do
     it 'splits a string into an array of smaller strings using a string match' do
       ''.split(',').should == []

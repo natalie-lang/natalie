@@ -982,6 +982,11 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
     return expanded;
 }
 
+Value StringObject::to_f(Env *env) const {
+    auto result = strtod(c_str(), nullptr);
+    return Value::floatingpoint(result);
+}
+
 Value StringObject::to_i(Env *env, Value base_obj) const {
     int base = 10;
     if (base_obj) {
