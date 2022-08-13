@@ -46,7 +46,7 @@ end
 
 desc 'Run the most-recently-modified test'
 task test_last_modified: :build do
-  last_edited = Dir['test/**/*_test.rb', 'spec/**/*_spec.rb'].sort_by { |path| File.stat(path).mtime.to_i }.last
+  last_edited = Dir['test/**/*_test.rb', 'spec/**/*_spec.rb'].max_by { |path| File.stat(path).mtime.to_i }
   sh ['bin/natalie', ENV['FLAGS'], last_edited].compact.join(' ')
 end
 
@@ -106,7 +106,7 @@ task tidy: %i[build tidy_internal]
 # # # # Docker Tasks (used for CI) # # # #
 
 DOCKER_FLAGS =
-  if !ENV['CI'] && STDOUT.isatty
+  if !ENV['CI'] && $stdout.isatty
     '-i -t'
   elsif ENV['CI']
     "-e CI=#{ENV['CI']}"
@@ -117,7 +117,11 @@ task :docker_build do
 end
 
 task :docker_build_clang do
-  sh 'docker build -t natalie_clang --build-arg CC=clang --build-arg CXX=clang++ --build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
+  sh 'docker build -t natalie_clang ' \
+     '--build-arg CC=clang ' \
+     '--build-arg CXX=clang++ ' \
+     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
+     '.'
 end
 
 task docker_bash: :docker_build do
@@ -146,16 +150,16 @@ end
 # # # # Build Compile Database # # # #
 
 if system('which compiledb 2>&1 >/dev/null')
-  $compiledb_out = []
+  $compiledb_out = [] # rubocop:disable Style/GlobalVars
 
   def $stderr.puts(str)
     write(str + "\n")
-    $compiledb_out << str
+    $compiledb_out << str # rubocop:disable Style/GlobalVars
   end
 
   task :write_compile_database do
-    if $compiledb_out.any?
-      File.write('build/build.log', $compiledb_out.join("\n"))
+    if $compiledb_out.any? # rubocop:disable Style/GlobalVars
+      File.write('build/build.log', $compiledb_out.join("\n")) # rubocop:disable Style/GlobalVars
       sh 'compiledb < build/build.log'
     end
   end
@@ -167,7 +171,7 @@ end
 
 # # # # Internal Tasks and Rules # # # #
 
-STANDARD = 'c++17'
+STANDARD = 'c++17'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
@@ -190,18 +194,18 @@ task(:set_build_release) do
 end
 
 task libnatalie: [
-       :update_submodules,
-       :bundle_install,
-       :build_dir,
-       'build/onigmo/lib/libonigmo.a',
-       'build/libnatalie_parser.a',
-       'build/generated/numbers.rb',
-       :primary_objects,
-       :ruby_objects,
-       :special_objects,
-       'build/libnatalie.a',
-       :write_compile_database,
-     ]
+  :update_submodules,
+  :bundle_install,
+  :build_dir,
+  'build/onigmo/lib/libonigmo.a',
+  'build/libnatalie_parser.a',
+  'build/generated/numbers.rb',
+  :primary_objects,
+  :ruby_objects,
+  :special_objects,
+  'build/libnatalie.a',
+  :write_compile_database,
+]
 
 task :build_dir do
   mkdir_p 'build/encoding' unless File.exist?('build/encoding')
@@ -262,10 +266,10 @@ file 'build/generated/numbers.rb' do |t|
   f2.close
   begin
     f1.puts '#include <stdio.h>'
-    f1.puts "#include \"natalie/constants.hpp\""
+    f1.puts '#include "natalie/constants.hpp"'
     f1.puts 'int main() {'
-    f1.puts "  printf(\"NAT_MAX_FIXNUM = %lli\\n\", NAT_MAX_FIXNUM);"
-    f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli\\n\", NAT_MIN_FIXNUM);"
+    f1.puts '  printf("NAT_MAX_FIXNUM = %lli\n", NAT_MAX_FIXNUM);'
+    f1.puts '  printf("NAT_MIN_FIXNUM = %lli\n", NAT_MIN_FIXNUM);'
     f1.puts '}'
     f1.close
     sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
@@ -323,7 +327,7 @@ rule '.rb.cpp' => ['src/%n', "build/natalie_parser.#{so_ext}"] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do |t|
+file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do
   build_dir = File.expand_path('build/natalie_parser', __dir__)
   sh <<-SH
     cd #{build_dir} && \
@@ -331,7 +335,6 @@ file "build/natalie_parser.#{so_ext}" => 'build/libnatalie_parser.a' do |t|
     cp #{build_dir}/ext/natalie_parser/natalie_parser.#{so_ext} #{File.expand_path('build', __dir__)}
   SH
 end
-
 
 task :tidy_internal do
   # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
@@ -348,7 +351,7 @@ task :update_submodules do
   end
 end
 
-def ccache?
+def ccache_exists?
   return @ccache_exists if defined?(@ccache_exists)
   @ccache_exists = system('which ccache 2>&1 > /dev/null')
 end
@@ -357,7 +360,7 @@ def cc
   @cc ||=
     if ENV['CC']
       ENV['CC']
-    elsif ccache?
+    elsif ccache_exists?
       'ccache cc'
     else
       'cc'
@@ -368,7 +371,7 @@ def cxx
   @cxx ||=
     if ENV['CXX']
       ENV['CXX']
-    elsif ccache?
+    elsif ccache_exists?
       'ccache c++'
     else
       'c++'
@@ -404,6 +407,6 @@ def include_paths
   [
     File.expand_path('include', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
-    File.expand_path('build/natalie_parser/include', __dir__)
+    File.expand_path('build/natalie_parser/include', __dir__),
   ]
 end
