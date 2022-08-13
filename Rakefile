@@ -9,7 +9,7 @@ task :build do
 end
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie parser_c_ext] do
+task build_debug: %i[set_build_debug libnatalie parser_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
