@@ -1,7 +1,12 @@
 task default: :build
 
-desc 'Build Natalie (same as build_debug)'
-task build: :build_debug
+DEFAULT_BUILD_TYPE = 'debug'.freeze
+
+desc 'Build Natalie'
+task :build do
+  type = File.exist?('.build') ? File.read('.build') : DEFAULT_BUILD_TYPE
+  Rake::Task["build_#{type}"].invoke
+end
 
 desc 'Build Natalie with no optimization and all warnings (default)'
 task build_debug: %i[set_build_debug libnatalie parser_c_ext] do
@@ -29,6 +34,7 @@ end
 desc 'Remove all generated files'
 task :clobber do
   rm_rf 'build'
+  rm_rf '.build'
 end
 
 task distclean: :clobber
@@ -177,6 +183,7 @@ task(:set_build_debug) do
   ENV['BUILD'] = 'debug'
   File.write('.build', 'debug')
 end
+
 task(:set_build_release) do
   ENV['BUILD'] = 'release'
   File.write('.build', 'release')
