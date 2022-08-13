@@ -37,7 +37,7 @@ module Natalie
       ].freeze
 
       # pass used: true to leave the final result on the stack
-      def transform(used: true)
+      def transform(used: false)
         raise 'unexpected AST input' unless @ast.sexp_type == :block
         transform_block(@ast, used: used).flatten
       end

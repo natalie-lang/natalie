@@ -165,11 +165,12 @@ module Natalie
 
       @context = build_context
 
+      keep_final_value_on_stack = options[:interpret]
       instructions = Pass1.new(
         ast,
         inline_cpp_enabled: inline_cpp_enabled,
         compiler_context: @context,
-      ).transform
+      ).transform(used: keep_final_value_on_stack)
       if debug == 'p1'
         Pass1.debug_instructions(instructions)
         exit
