@@ -624,11 +624,11 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
-    Method *method = klass->find_method(env, method_name);
-    if (method && !method->is_undefined()) {
-        MethodVisibility visibility = klass->get_method_visibility(env, method_name);
+    auto method_info = klass->find_method(env, method_name);
+    if (method_info && !method_info.method()->is_undefined()) {
+        MethodVisibility visibility = method_info.visibility();
         if (visibility >= visibility_at_least) {
-            return method;
+            return method_info.method();
         } else if (visibility == MethodVisibility::Protected) {
             GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Protected);
         } else {
@@ -730,14 +730,14 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const
     if (!klass)
         klass = m_klass;
 
-    Method *method = klass->find_method(env, name_symbol);
-    if (!method || method->is_undefined())
+    auto method_info = klass->find_method(env, name_symbol);
+    if (!method_info || method_info.method()->is_undefined())
         return false;
 
     if (include_all)
         return true;
 
-    MethodVisibility visibility = klass->get_method_visibility(env, name_symbol);
+    MethodVisibility visibility = method_info.visibility();
     return visibility == MethodVisibility::Public;
 }
 

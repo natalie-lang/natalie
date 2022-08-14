@@ -564,15 +564,15 @@ Value super(Env *env, Value self, Args args, Block *block) {
     if (!klass)
         klass = self->klass();
     auto super_method = klass->find_method(env, SymbolObject::intern(current_method->name()), current_method);
-    if (!super_method || super_method->is_undefined()) {
+    if (!super_method || super_method.method()->is_undefined()) {
         if (self->is_module()) {
             env->raise("NoMethodError", "super: no superclass method `{}' for {}:{}", current_method->name(), self->as_module()->inspect_str(), self->klass()->inspect_str());
         } else {
             env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
         }
     }
-    assert(super_method != current_method);
-    return super_method->call(env, self, args, block);
+    assert(super_method.method() != current_method);
+    return super_method.method()->call(env, self, args, block);
 }
 
 void clean_up_and_exit(int status) {

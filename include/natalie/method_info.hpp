@@ -5,23 +5,27 @@
 
 namespace Natalie {
 
-class MethodInfo : public Cell {
+class MethodInfo {
 public:
-    MethodInfo(const char *name, MethodVisibility visibility)
-        : m_name { name }
-        , m_visibility { visibility } { }
+    MethodInfo() { }
 
-    MethodVisibility visibility() { return m_visibility; }
-    void set_visibility(MethodVisibility visibility) { m_visibility = visibility; }
-
-    virtual void visit_children(Visitor &visitor) override final { }
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<MethodInfo %p name='%s'>", this, m_name);
+    MethodInfo(MethodVisibility visibility, Method *method)
+        : m_visibility { visibility }
+        , m_method { method } {
+        assert(m_method);
     }
 
+    MethodVisibility visibility() const { return m_visibility; }
+
+    Method *method() const {
+        assert(m_method);
+        return m_method;
+    }
+
+    operator bool() const { return m_method; }
+
 private:
-    const char *m_name {};
     MethodVisibility m_visibility { MethodVisibility::Public };
+    Method *m_method { nullptr };
 };
 }

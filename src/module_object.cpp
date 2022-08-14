@@ -146,9 +146,9 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 }
 
 void ModuleObject::make_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    Method *method = find_method(env, old_name);
-    assert_method_defined(env, old_name, method);
-    define_method(env, new_name, method, get_method_visibility(env, old_name));
+    auto method_info = find_method(env, old_name);
+    assert_method_defined(env, old_name, method_info);
+    define_method(env, new_name, method_info.method(), method_info.visibility());
 };
 
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
@@ -247,82 +247,40 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
 }
 
 void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, MethodVisibility visibility) {
-    m_methods.put(name, method, env);
-    set_method_visibility(env, name, visibility);
-}
-
-void ModuleObject::set_method_visibility(Env *env, SymbolObject *name, MethodVisibility visibility) {
-    auto info = m_method_info.get(name, env);
-    if (info) {
-        info->set_visibility(visibility);
-    } else {
-        info = new MethodInfo { name->c_str(), visibility };
-        m_method_info.put(name, info, env);
-    }
-}
-
-MethodVisibility ModuleObject::get_method_visibility(Env *env, SymbolObject *name) {
-    auto info = find_method_info(env, name);
-    if (!info) {
-        env->raise_name_error(name, "undefined method `{}' for `{}'", name->c_str(), inspect_str());
-    }
-    return info->visibility();
-}
-
-MethodInfo *ModuleObject::find_method_info(Env *env, SymbolObject *method_name) {
-    MethodInfo *info;
-    if (m_included_modules.is_empty()) {
-        // no included modules, just search the class/module
-        // note: if there are included modules, then the module chain will include this class/module
-        info = m_method_info.get(method_name, env);
-        if (info)
-            return info;
-    }
-
-    for (ModuleObject *module : m_included_modules) {
-        if (module == this)
-            info = module->m_method_info.get(method_name, env);
-        else
-            info = module->find_method_info(env, method_name);
-        if (info)
-            return info;
-    }
-
-    if (m_superclass) {
-        return m_superclass->find_method_info(env, method_name);
-    } else {
-        return nullptr;
-    }
+    m_methods.put(name, MethodInfo(visibility, method), env);
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method **after_method) const {
-    Method *method;
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method **after_method) const {
+    MethodInfo method_info;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method = m_methods.get(method_name, env);
-        if (method) {
+        method_info = m_methods.get(method_name, env);
+        if (method_info) {
+            auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
             } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = m_klass;
-                return method;
+                return method_info;
             }
         }
     }
 
     for (ModuleObject *module : m_included_modules) {
-        if (module == this)
-            method = module->m_methods.get(method_name, env);
-        else
-            method = module->find_method(env, method_name, matching_class_or_module, after_method);
-        if (method) {
+        if (module == this) {
+            method_info = module->m_methods.get(method_name, env);
+        } else {
+            method_info = module->find_method(env, method_name, matching_class_or_module, after_method);
+        }
+        if (method_info) {
+            auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
             } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = module;
-                return method;
+                return method_info;
             }
         }
     }
@@ -330,16 +288,16 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObj
     if (m_superclass) {
         return m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
     } else {
-        return nullptr;
+        return {};
     }
 }
 
-Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, Method *after_method) const {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Method *after_method) const {
     return find_method(env, method_name, nullptr, &after_method);
 }
 
-void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, Method *method) {
-    if (!method || method->is_undefined()) {
+void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {
+    if (!method_info || method_info.method()->is_undefined()) {
         if (is_class()) {
             env->raise_name_error(name, "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
         } else {
@@ -350,32 +308,29 @@ void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, Method *m
 
 Value ModuleObject::instance_method(Env *env, Value name_value) {
     auto name = name_value->to_symbol(env, Object::Conversion::Strict);
-    auto method = find_method(env, name);
-    assert_method_defined(env, name, method);
-    return new UnboundMethodObject { this, method };
+    auto method_info = find_method(env, name);
+    assert_method_defined(env, name, method_info);
+    return new UnboundMethodObject { this, method_info.method() };
 }
 
 Value ModuleObject::public_instance_method(Env *env, Value name_value) {
     auto name = name_value->to_symbol(env, Object::Conversion::Strict);
-    auto method = find_method(env, name);
-    assert_method_defined(env, name, method);
+    auto method_info = find_method(env, name);
+    assert_method_defined(env, name, method_info);
 
-    auto visibility = get_method_visibility(env, name);
-    switch (visibility) {
+    switch (method_info.visibility()) {
     case MethodVisibility::Public:
-        return new UnboundMethodObject { this, method };
+        return new UnboundMethodObject { this, method_info.method() };
     case MethodVisibility::Protected:
-        if (is_class()) {
+        if (is_class())
             env->raise_name_error(name, "method `{}' for class `{}' is protected", name->c_str(), inspect_str());
-        } else {
+        else
             env->raise_name_error(name, "method `{}' for module `{}' is protected", name->c_str(), inspect_str());
-        }
     case MethodVisibility::Private:
-        if (is_class()) {
+        if (is_class())
             env->raise_name_error(name, "method `{}' for class `{}' is private", name->c_str(), inspect_str());
-        } else {
+        else
             env->raise_name_error(name, "method `{}' for module `{}' is private", name->c_str(), inspect_str());
-        }
     default:
         NAT_UNREACHABLE();
     }
@@ -387,8 +342,8 @@ Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::f
     methods(env, array, include_super);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
         auto name = name_value->as_symbol();
-        auto method = find_method(env, name);
-        return method && !method->is_undefined() && predicate(get_method_visibility(env, name));
+        auto method_info = find_method(env, name);
+        return method_info && !method_info.method()->is_undefined() && predicate(method_info.visibility());
     });
     return array;
 }
@@ -661,21 +616,25 @@ Value ModuleObject::public_class_method(Env *env, Args args) {
 }
 
 void ModuleObject::set_method_visibility(Env *env, Args args, MethodVisibility visibility) {
+    // private (no args)
     if (args.size() == 0) {
         m_method_visibility = visibility;
         m_module_function = false;
     }
 
+    // private [:foo, :bar]
     if (args.size() == 1 && args[0]->is_array()) {
         auto array = args[0]->as_array();
         args = Args(array);
     }
 
+    // private :foo, :bar
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
-        auto method = find_method(env, name);
-        assert_method_defined(env, name, method);
-        set_method_visibility(env, name, visibility);
+        ModuleObject *matching_class_or_module = nullptr;
+        auto method_info = find_method(env, name, &matching_class_or_module);
+        assert_method_defined(env, name, method_info);
+        m_methods.put(name, MethodInfo(visibility, method_info.method()));
     }
 }
 
@@ -686,10 +645,11 @@ Value ModuleObject::module_function(Env *env, Args args) {
     if (args.size() > 0) {
         for (size_t i = 0; i < args.size(); ++i) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
-            auto method = find_method(env, name);
-            assert_method_defined(env, name, method);
+            auto method_info = find_method(env, name);
+            assert_method_defined(env, name, method_info);
+            auto method = method_info.method();
             define_singleton_method(env, name, method->fn(), method->arity());
-            set_method_visibility(env, name, MethodVisibility::Private);
+            m_methods.put(name, MethodInfo(MethodVisibility::Private, method));
         }
     } else {
         m_method_visibility = MethodVisibility::Private;
@@ -755,12 +715,10 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
 Value ModuleObject::remove_method(Env *env, Args args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
-        auto info = m_method_info.get(name, env);
-        if (!info) {
+        auto method = m_methods.get(name, env);
+        if (!method)
             env->raise_name_error(name, "method `{}' not defined in {}", name->c_str(), this->inspect_str());
-        }
         m_methods.remove(name, env);
-        m_method_info.remove(name, env);
     }
     return this;
 }
@@ -768,8 +726,8 @@ Value ModuleObject::remove_method(Env *env, Args args) {
 Value ModuleObject::undef_method(Env *env, Args args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
-        auto method = find_method(env, name);
-        assert_method_defined(env, name, method);
+        auto method_info = find_method(env, name);
+        assert_method_defined(env, name, method_info);
         undefine_method(env, name);
     }
     return this;
@@ -785,11 +743,7 @@ void ModuleObject::visit_children(Visitor &visitor) {
     }
     for (auto pair : m_methods) {
         visitor.visit(pair.first);
-        visitor.visit(pair.second);
-    }
-    for (auto pair : m_method_info) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.second);
+        visitor.visit(pair.second.method());
     }
     for (auto pair : m_class_vars) {
         visitor.visit(pair.first);
