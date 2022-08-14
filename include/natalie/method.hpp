@@ -4,6 +4,7 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/module_object.hpp"
 
 namespace Natalie {

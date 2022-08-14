@@ -278,17 +278,17 @@ Value KernelModule::method(Env *env, Value name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, name_symbol);
-        if (method) {
-            if (method->is_undefined()) {
+        auto method_info = singleton_class()->find_method(env, name_symbol);
+        if (method_info) {
+            if (method_info.method()->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
             }
-            return new MethodObject { this, method };
+            return new MethodObject { this, method_info.method() };
         }
     }
-    Method *method = m_klass->find_method(env, name_symbol);
-    if (method && !method->is_undefined())
-        return new MethodObject { this, method };
+    auto method_info = m_klass->find_method(env, name_symbol);
+    if (method_info && !method_info.method()->is_undefined())
+        return new MethodObject { this, method_info.method() };
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }
 

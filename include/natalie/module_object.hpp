@@ -31,7 +31,6 @@ public:
         , m_constants { other.m_constants }
         , m_superclass { other.m_superclass }
         , m_methods { other.m_methods }
-        , m_method_info { other.m_method_info }
         , m_class_vars { other.m_class_vars } {
         for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
             m_included_modules.push(module);
@@ -91,12 +90,9 @@ public:
 
     void methods(Env *, ArrayObject *, bool = true);
     void define_method(Env *, SymbolObject *, Method *, MethodVisibility);
-    void set_method_visibility(Env *, SymbolObject *, MethodVisibility);
-    MethodVisibility get_method_visibility(Env *, SymbolObject *);
-    MethodInfo *find_method_info(Env *, SymbolObject *);
-    Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method ** = nullptr) const;
-    Method *find_method(Env *, SymbolObject *, Method *) const;
-    void assert_method_defined(Env *, SymbolObject *, Method *);
+    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method ** = nullptr) const;
+    MethodInfo find_method(Env *, SymbolObject *, Method *) const;
+    void assert_method_defined(Env *, SymbolObject *, MethodInfo);
 
     Value instance_method(Env *, Value);
     Value public_instance_method(Env *, Value);
@@ -163,8 +159,7 @@ protected:
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<String> m_class_name {};
     ClassObject *m_superclass { nullptr };
-    TM::Hashmap<SymbolObject *, Method *> m_methods {};
-    TM::Hashmap<SymbolObject *, MethodInfo *> m_method_info {};
+    TM::Hashmap<SymbolObject *, MethodInfo> m_methods {};
     TM::Hashmap<SymbolObject *, Value> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };

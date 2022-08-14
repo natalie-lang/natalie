@@ -189,8 +189,8 @@ Value ArrayObject::sub(Env *env, Value other) {
 Value ArrayObject::sum(Env *env, Args args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto sum_method = Enumerable->find_method(env, "sum"_s);
-    return sum_method->call(env, this, args, block);
+    auto method_info = Enumerable->find_method(env, "sum"_s);
+    return method_info.method()->call(env, this, args, block);
 }
 
 Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
@@ -322,8 +322,8 @@ Value ArrayObject::any(Env *env, Args args, Block *block) {
     // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto any_method = Enumerable->find_method(env, "any?"_s);
-    return any_method->call(env, this, args, block);
+    auto method_info = Enumerable->find_method(env, "any?"_s);
+    return method_info.method()->call(env, this, args, block);
 }
 
 bool ArrayObject::eq(Env *env, Value other) {
@@ -1353,10 +1353,10 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     // FIXME: delegating to Enumerable#cycle like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto none_method = Enumerable->find_method(env, "cycle"_s);
+    auto method_info = Enumerable->find_method(env, "cycle"_s);
     Value args[] = { count };
     size_t argc = count ? 1 : 0;
-    return none_method->call(env, this, Args(argc, args), block);
+    return method_info.method()->call(env, this, Args(argc, args), block);
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {
@@ -1764,16 +1764,16 @@ Value ArrayObject::none(Env *env, Args args, Block *block) {
     // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto none_method = Enumerable->find_method(env, "none?"_s);
-    return none_method->call(env, this, args, block);
+    auto method_info = Enumerable->find_method(env, "none?"_s);
+    return method_info.method()->call(env, this, args, block);
 }
 
 Value ArrayObject::one(Env *env, Args args, Block *block) {
     // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto one_method = Enumerable->find_method(env, "one?"_s);
-    return one_method->call(env, this, args, block);
+    auto method_info = Enumerable->find_method(env, "one?"_s);
+    return method_info.method()->call(env, this, args, block);
 }
 
 Value ArrayObject::product(Env *env, Args args, Block *block) {
@@ -1996,8 +1996,8 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
 Value ArrayObject::to_h(Env *env, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto to_h_method = Enumerable->find_method(env, "to_h"_s);
-    return to_h_method->call(env, this, {}, block);
+    auto method_info = Enumerable->find_method(env, "to_h"_s);
+    return method_info.method()->call(env, this, {}, block);
 }
 
 Value ArrayObject::try_convert(Env *env, Value val) {
@@ -2080,7 +2080,7 @@ Value ArrayObject::values_at(Env *env, Args args) {
 Value ArrayObject::zip(Env *env, Args args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
-    auto zip_method = Enumerable->find_method(env, "zip"_s);
-    return zip_method->call(env, this, args, block);
+    auto method_info = Enumerable->find_method(env, "zip"_s);
+    return method_info.method()->call(env, this, args, block);
 }
 }
