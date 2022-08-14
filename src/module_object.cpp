@@ -221,7 +221,8 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *b
 }
 
 SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
-    return define_method(env, name, nullptr, 0);
+    m_methods.put(name, MethodInfo(MethodVisibility::Public), env);
+    return name;
 }
 
 // supply an empty array and it will be populated with the method names as symbols
@@ -258,6 +259,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
         // note: if there are included modules, then the module chain will include this class/module
         method_info = m_methods.get(method_name, env);
         if (method_info) {
+            if (!method_info.is_defined()) return method_info;
             auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
@@ -275,6 +277,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
             method_info = module->find_method(env, method_name, matching_class_or_module, after_method);
         }
         if (method_info) {
+            if (!method_info.is_defined()) return method_info;
             auto method = method_info.method();
             if (after_method != nullptr && method == *after_method) {
                 *after_method = nullptr;
@@ -297,7 +300,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Method
 }
 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, MethodInfo method_info) {
-    if (!method_info || method_info.method()->is_undefined()) {
+    if (!method_info.is_defined()) {
         if (is_class()) {
             env->raise_name_error(name, "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
         } else {
@@ -343,7 +346,7 @@ Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::f
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
         auto name = name_value->as_symbol();
         auto method_info = find_method(env, name);
-        return method_info && !method_info.method()->is_undefined() && predicate(method_info.visibility());
+        return method_info.is_defined() && predicate(method_info.visibility());
     });
     return array;
 }
@@ -743,7 +746,8 @@ void ModuleObject::visit_children(Visitor &visitor) {
     }
     for (auto pair : m_methods) {
         visitor.visit(pair.first);
-        visitor.visit(pair.second.method());
+        if (pair.second.is_defined())
+            visitor.visit(pair.second.method());
     }
     for (auto pair : m_class_vars) {
         visitor.visit(pair.first);

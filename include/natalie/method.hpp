@@ -15,8 +15,9 @@ public:
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
-        , m_arity { arity }
-        , m_undefined { !fn } { }
+        , m_arity { arity } {
+        assert(fn);
+    }
 
     Method(const char *name, ModuleObject *owner, Block *block)
         : m_name { name }
@@ -32,8 +33,6 @@ public:
 
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
-
-    bool is_undefined() const { return m_undefined; }
 
     bool is_optimized() const { return m_optimized; }
     void set_optimized(bool optimized) { m_optimized = optimized; }
@@ -60,7 +59,6 @@ private:
     MethodFnPtr m_fn;
     int m_arity { 0 };
     Env *m_env { nullptr };
-    bool m_undefined { false };
     bool m_optimized { false };
 };
 }
