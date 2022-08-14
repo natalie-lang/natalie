@@ -1,0 +1,31 @@
+module Natalie
+  class Compiler
+    module Flags
+      RELEASE_FLAGS = %w[
+        -pthread
+        -g
+        -O2
+        -Wno-unused-value
+      ].freeze
+
+      DEBUG_FLAGS = %w[
+        -pthread
+        -g
+        -Wall
+        -Wextra
+        -Werror
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-unused-but-set-variable
+        -Wno-unused-value
+        -Wno-unknown-warning-option
+        -DNAT_GC_GUARD
+      ].freeze
+
+      COVERAGE_FLAGS = DEBUG_FLAGS + %w[
+        -fprofile-arcs
+        -ftest-coverage
+      ].freeze
+    end
+  end
+end

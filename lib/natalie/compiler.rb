@@ -1,4 +1,5 @@
 require 'tempfile'
+require_relative './compiler/flags'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
@@ -10,6 +11,8 @@ require_relative '../../build/generated/numbers'
 
 module Natalie
   class Compiler
+    include Flags
+
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
@@ -214,12 +217,8 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-pthread -g -O2'
-    DEBUG_FLAGS = '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -Wno-unknown-warning-option -DNAT_GC_GUARD'
-    COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
-
     def build_flags
-      "#{base_build_flags} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
+      "#{base_build_flags.join(' ')} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
     end
 
     def link_flags
@@ -237,7 +236,7 @@ module Natalie
       when 'debug', nil
         DEBUG_FLAGS
       when 'coverage'
-        DEBUG_FLAGS + ' ' + COVERAGE_FLAGS
+        COVERAGE_FLAGS
       else
         raise "unknown build mode: #{build.inspect}"
       end

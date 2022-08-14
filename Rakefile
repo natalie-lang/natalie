@@ -1,3 +1,5 @@
+require_relative './lib/natalie/compiler/flags'
+
 task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
@@ -382,23 +384,11 @@ def cxx_flags
   base_flags =
     case ENV['BUILD']
     when 'release'
-      %w[-pthread -fPIC -g -O2]
+      Natalie::Compiler::Flags::RELEASE_FLAGS
     else
-      %w[
-        -pthread
-        -fPIC
-        -g
-        -Wall
-        -Wextra
-        -Werror
-        -Wno-unknown-warning-option
-        -Wno-unused-but-set-variable
-        -Wno-unused-parameter
-        -Wno-unused-value
-        -Wno-unused-variable
-        -DNAT_GC_GUARD
-      ]
+      Natalie::Compiler::Flags::DEBUG_FLAGS
     end
+  base_flags += ['-fPIC'] # needed for repl
   user_flags = Array(ENV['NAT_CXX_FLAGS'])
   base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
 end
