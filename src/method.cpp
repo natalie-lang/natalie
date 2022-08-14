@@ -3,7 +3,8 @@
 namespace Natalie {
 
 Value Method::call(Env *env, Value self, Args args, Block *block) {
-    assert(!m_undefined);
+    assert(m_fn);
+
     Env *closure_env;
     if (has_env()) {
         closure_env = m_env;

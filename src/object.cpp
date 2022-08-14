@@ -625,7 +625,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (!klass)
         klass = m_klass;
     auto method_info = klass->find_method(env, method_name);
-    if (method_info && !method_info.method()->is_undefined()) {
+    if (method_info.is_defined()) {
         MethodVisibility visibility = method_info.visibility();
         if (visibility >= visibility_at_least) {
             return method_info.method();
@@ -731,7 +731,7 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const
         klass = m_klass;
 
     auto method_info = klass->find_method(env, name_symbol);
-    if (!method_info || method_info.method()->is_undefined())
+    if (!method_info.is_defined())
         return false;
 
     if (include_all)

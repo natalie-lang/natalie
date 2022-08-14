@@ -280,14 +280,13 @@ Value KernelModule::method(Env *env, Value name) {
     if (singleton) {
         auto method_info = singleton_class()->find_method(env, name_symbol);
         if (method_info) {
-            if (method_info.method()->is_undefined()) {
+            if (!method_info.is_defined())
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
-            }
             return new MethodObject { this, method_info.method() };
         }
     }
     auto method_info = m_klass->find_method(env, name_symbol);
-    if (method_info && !method_info.method()->is_undefined())
+    if (method_info.is_defined())
         return new MethodObject { this, method_info.method() };
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }
