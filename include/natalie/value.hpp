@@ -117,35 +117,17 @@ public:
         return m_double;
     }
 
-    bool guarded() const { return m_guarded; }
-
-    Value guard() {
-        m_guarded = true;
-        return *this;
-    }
-
-    Value unguard() {
-        m_guarded = false;
-        return *this;
-    }
-
 private:
     explicit Value(double value)
         : m_type { Type::Double }
         , m_double { value } { }
 
     void auto_hydrate() {
-        if (m_guarded) {
-            printf("%p is a guarded Value, which means you must call unguard() on it before using the arrow operator.\n", this);
-            abort();
-        }
         if (m_type != Type::Pointer)
             hydrate();
     }
 
     void hydrate();
-
-    bool m_guarded { false };
 
     Type m_type { Type::Pointer };
 
