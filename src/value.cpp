@@ -75,30 +75,31 @@ Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
 }
 
 void Value::hydrate() {
+    // Running GC while we're in the processes of hydrating this Value makes
+    // debugging VERY confusing. Maybe someday we can remove this GC stuff...
+    bool garbage_collection_enabled = Heap::the().gc_enabled();
+    if (garbage_collection_enabled)
+        Heap::the().gc_disable();
+
     switch (m_type) {
     case Type::Integer: {
-        // Running GC while we're in the processes of hydrating this Value makes
-        // debugging VERY confusing. Maybe someday we can remove this GC stuff...
-        bool was_gc_enabled = Heap::the().gc_enabled();
-        Heap::the().gc_disable();
         auto i = m_integer;
         m_object = new IntegerObject { i };
         m_type = Type::Pointer;
-        if (was_gc_enabled) Heap::the().gc_enable();
         break;
     }
     case Type::Double: {
-        bool was_gc_enabled = Heap::the().gc_enabled();
-        Heap::the().gc_disable();
         auto d = m_double;
         m_object = new FloatObject { d };
         m_type = Type::Pointer;
-        if (was_gc_enabled) Heap::the().gc_enable();
         break;
     }
     case Type::Pointer:
         break;
     }
+
+    if (garbage_collection_enabled)
+        Heap::the().gc_enable();
 }
 
 #undef PROFILED_SEND
