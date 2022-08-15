@@ -125,7 +125,6 @@ Value IntegerObject::mod(Env *env, Value arg) {
     } else if (arg->is_rational()) {
         return RationalObject { this, new IntegerObject { 1 } }.send(env, "%"_s, { arg });
     } else {
-        arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
         argument = arg->as_integer()->integer();
     }
@@ -326,7 +325,6 @@ Value IntegerObject::bitwise_and(Env *env, Value arg) {
         result.second->assert_type(env, Object::Type::Integer, "Integer");
         return result.first.send(env, "&"_s, { result.second });
     }
-    arg.unguard();
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     return create(m_integer & arg->as_integer()->integer());
@@ -339,7 +337,6 @@ Value IntegerObject::bitwise_or(Env *env, Value arg) {
         result.second->assert_type(env, Object::Type::Integer, "Integer");
         return result.first.send(env, "|"_s, { result.second });
     } else {
-        arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
         argument = arg->as_integer()->integer();
     }
@@ -354,7 +351,6 @@ Value IntegerObject::bitwise_xor(Env *env, Value arg) {
         result.second->assert_type(env, Object::Type::Integer, "Integer");
         return result.first.send(env, "^"_s, { result.second });
     } else {
-        arg.unguard();
         arg->assert_type(env, Object::Type::Integer, "Integer");
         argument = arg->as_integer()->integer();
     }
