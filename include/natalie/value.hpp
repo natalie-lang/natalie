@@ -129,6 +129,9 @@ private:
             hydrate();
     }
 
+    template <typename Callback>
+    Value on_object_value(Callback &&callback);
+
     void hydrate();
 
     Type m_type { Type::Pointer };

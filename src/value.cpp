@@ -38,40 +38,37 @@ Value Value::floatingpoint(double value) {
             NativeProfiler::the()->push(event->end_now());                                      \
     });
 
-Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
-    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+template <typename Callback>
+Value Value::on_object_value(Callback &&callback) {
+    if (m_type == Type::Pointer)
+        return callback(*object());
 
     if (m_type == Type::Integer) {
         auto synthesized_receiver = IntegerObject { m_integer };
         synthesized_receiver.add_synthesized_flag();
-        return synthesized_receiver.public_send(env, name, args, block);
+        return callback(synthesized_receiver);
     }
 
-    if (m_type == Type::Double) {
-        auto synthesized_receiver = FloatObject { m_double };
-        synthesized_receiver.add_synthesized_flag();
-        return synthesized_receiver.public_send(env, name, args, block);
-    }
+    assert(m_type == Type::Double);
+    auto synthesized_receiver = FloatObject { m_double };
+    synthesized_receiver.add_synthesized_flag();
+    return callback(synthesized_receiver);
+}
 
-    return object()->public_send(env, name, args, block);
+Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
+
+    return on_object_value([&](Object &object) {
+        return object.public_send(env, name, args, block);
+    });
 }
 
 Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
-    if (m_type == Type::Integer) {
-        auto synthesized_receiver = IntegerObject { m_integer };
-        synthesized_receiver.add_synthesized_flag();
-        return synthesized_receiver.send(env, name, args, block);
-    }
-
-    if (m_type == Type::Double) {
-        auto synthesized_receiver = FloatObject { m_double };
-        synthesized_receiver.add_synthesized_flag();
-        return synthesized_receiver.send(env, name, args, block);
-    }
-
-    return object()->send(env, name, args, block);
+    return on_object_value([&](Object &object) {
+        return object.send(env, name, args, block);
+    });
 }
 
 void Value::hydrate() {
