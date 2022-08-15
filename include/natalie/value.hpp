@@ -103,6 +103,8 @@ public:
         return m_type == Type::Integer;
     }
 
+    double as_double() const;
+
     bool is_fast_float() const {
         return m_type == Type::Double;
     }

@@ -102,6 +102,13 @@ void Value::hydrate() {
         Heap::the().gc_enable();
 }
 
+double Value::as_double() const {
+    assert(m_type == Type::Double || (m_type == Type::Pointer && m_object->is_float()));
+    if (m_type == Type::Double)
+        return m_double;
+    return m_object->as_float()->to_double();
+}
+
 #undef PROFILED_SEND
 
 }

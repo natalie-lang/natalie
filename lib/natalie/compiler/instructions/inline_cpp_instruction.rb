@@ -34,7 +34,7 @@ module Natalie
           value = transform.pop # Pass1 already did the work to push the value onto the stack
           case type
           when 'double'
-            "#{value}.is_fast_float() ? #{value}.get_fast_float() : #{value}->as_float()->to_double()"
+            "#{value}.as_double()"
           else
             raise "I don't yet know how to cast arg type #{type}"
           end
