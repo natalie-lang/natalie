@@ -30,7 +30,7 @@ We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and
 
 Natalie is tested on macOS, OpenBSD, and Ubuntu Linux. Windows is not yet supported.
 
-Natalie requires a system Ruby (MRI) to host the compiler.
+Natalie requires a system Ruby (MRI) to host the compiler, for now.
 
 Prerequisites:
 
@@ -50,6 +50,24 @@ git clone https://github.com/natalie-lang/natalie
 cd natalie
 rake
 ```
+
+### Troubleshooting Build Errors
+
+- **Don't use `sudo`!** If you already made that mistake, then you should `sudo rm -rf build`
+  and try again.
+- If you get an error about file permissions, e.g. unable to write a file to somewhere like
+  `/usr/lib/ruby`, or another path that would require root, then you have a couple options:
+  - Use a tool like [rbenv](https://github.com/rbenv/rbenv) to install a Ruby verison in your
+    home directory. Gems will also be installed there. Run `rbenv version` to see which version
+    is currently selected. Run `rbenv shell` followed by a version to select that version.
+  - Specify where to install gems with something like:
+    ```
+    mkdir -p ~/gems
+    export GEM_HOME=~/gems
+    ```
+    You'll just have to remember to do that every time you open a new terminal tab.
+- If you get an error about missing `bundler`, then your operating system probably didn't
+  install it alongside Ruby. You can run `gem install bundler` to get it.
 
 **NOTE:** Currently, the default build is the "debug" build, since Nataile is in active development.
 But you can build in release mode with `rake build_release`.
