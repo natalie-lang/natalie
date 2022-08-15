@@ -30,7 +30,7 @@ COPY examples examples
 COPY lib lib
 COPY src src
 COPY include include
-RUN rake build_release
+RUN rake build
 
 COPY spec spec
 COPY test test
