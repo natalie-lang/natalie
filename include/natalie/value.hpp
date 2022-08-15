@@ -65,9 +65,9 @@ public:
                 return get_fast_integer() == other.get_fast_integer();
             return false;
         }
-        if (is_fast_float()) {
-            if (other.is_fast_float())
-                return get_fast_float() == other.get_fast_float();
+        if (m_type == Type::Double) {
+            if (other.m_type == Type::Double)
+                return m_double == m_double;
             return false;
         }
         return m_object == other.object();
@@ -95,28 +95,15 @@ public:
         return send(env, name, Args(args), block);
     }
 
-    bool is_pointer() const {
-        return m_type == Type::Pointer;
-    }
-
     bool is_fast_integer() const {
         return m_type == Type::Integer;
     }
 
     double as_double() const;
 
-    bool is_fast_float() const {
-        return m_type == Type::Double;
-    }
-
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
         return m_integer;
-    }
-
-    double get_fast_float() const {
-        assert(m_type == Type::Double);
-        return m_double;
     }
 
 private:
@@ -133,6 +120,12 @@ private:
     Value on_object_value(Callback &&callback);
 
     void hydrate();
+
+    // Method can use a synthesized value if we are a fast double
+    friend Method;
+    bool holds_raw_double() const {
+        return m_type == Type::Double;
+    }
 
     Type m_type { Type::Pointer };
 
