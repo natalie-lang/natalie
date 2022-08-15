@@ -87,7 +87,11 @@ end
 
 desc 'Generate tags file for development'
 task :ctags do
-  sh 'ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .'
+  if system('which ctags 2>&1 >/dev/null')
+    sh 'ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .'
+  else
+    puts 'Note: ctags is not available on this system'
+  end
 end
 task tags: :ctags
 
