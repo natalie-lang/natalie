@@ -36,6 +36,7 @@ OptionParser.new do |opts|
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
     end
+    options[:expecting_script] = true
   end
 
   opts.on('-e one-line-script', 'Execute one-line script') do |e|
@@ -52,6 +53,7 @@ OptionParser.new do |opts|
 
   opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
     options[:compile] = path
+    options[:expecting_script] = true
   end
 
   opts.on('--write-obj path', 'Write to C++ file for object file') do |path|
@@ -234,6 +236,8 @@ class Runner
       if options[:require].any?
         @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
       end
+    elsif options[:expecting_script]
+      raise 'Expected a Ruby script, but none was given.'
     else
       @repl = true
       @source_path = '.'
