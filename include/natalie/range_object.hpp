@@ -63,6 +63,12 @@ private:
 
     template <typename Function>
     Value iterate_over_range(Env *env, Function &&f);
+
+    template <typename Function>
+    Value iterate_over_string_range(Env *env, Function &&f);
+
+    template <typename Function>
+    Value iterate_over_symbol_range(Env *env, Function &&f);
 };
 
 }
