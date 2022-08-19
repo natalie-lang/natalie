@@ -1169,7 +1169,7 @@ public:
      * assert_str_eq("d000", String("c999").successive());
      * ```
      */
-    String successive() {
+    String successive() const {
         auto result = String { *this };
         assert(m_length > 0);
         size_t index = size() - 1;
