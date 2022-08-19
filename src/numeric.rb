@@ -148,4 +148,82 @@ class Numeric
   def to_int
     self.to_i
   end
+
+  def step(to_pos = nil, by_pos = nil, by: nil, to: nil)
+    if to_pos && to
+      raise ArgumentError, 'to is given twice'
+    end
+
+    if by_pos && by
+      raise ArgumentError, 'by is given twice'
+    end
+
+    by ||= by_pos || 1
+    to ||= to_pos
+
+    if !by.is_a?(Numeric) && by.respond_to?(:to_int)
+      by = by.to_int
+    end
+
+    # This is here for compatiblity with ruby.
+    # When `by` is a non-numeric that cannot be compared with zero, this
+    # should raise an ArgumentError.
+    ascending = by > 0
+
+    if !by.is_a?(Numeric)
+      raise TypeError, "no implicit conversion of #{by.class} into Integer"
+    end
+
+    if by == 0
+      raise ArgumentError, 'step can\'t be 0'
+    end
+
+    # Special handling for infinite values
+    if by.is_a?(Float) && by.infinite?
+      if ascending ? self <= to : self >= to
+        yield to_f
+      end
+      return self
+    end
+
+    if to.is_a?(Float) && to.infinite?
+      return self
+    end
+
+    # If any argument is a float, we want to use floats from here on
+    if is_a?(Float) || by.is_a?(Float) || to.is_a?(Float)
+      by = by.to_f
+      to = to.to_f
+    end
+
+    # Calculate how many times we have to iterate a step
+    step_count =
+      if by.is_a?(Integer)
+        n = to - self
+        ascending ? n : -n
+      else
+        n = (to - self) / by
+        (n + n * Float::EPSILON).floor
+      end
+
+    if step_count.negative?
+      return self
+    end
+
+    step_count += 1
+
+    # Execute the steps
+    step_count.times do |index|
+      value = (by * index) + self
+
+      # Ensure that we do not yield a number that exceeds `to`
+      if !ascending ? value < to : value > to
+        value = to
+      end
+
+      yield value
+    end
+
+    self
+  end
 end
