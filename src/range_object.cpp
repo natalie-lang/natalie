@@ -31,6 +31,11 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     if (compare_result->equal(Value::integer(1)))
         return nullptr;
 
+    if (m_begin->is_string() && m_end->is_string())
+        return iterate_over_string_range(env, func);
+    else if (m_begin->is_symbol() && m_end->is_symbol())
+        return iterate_over_symbol_range(env, func);
+
     auto cmp = "<=>"_s;
     // If we exclude the end, the loop should not be entered if m_begin (item) == m_end.
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
@@ -46,26 +51,75 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
             break;
         item = item.send(env, succ);
 
-        // NATFIXME: Use String#upto for String Range iteration
-        // String#upto should stop if the current items length is greater than the length of m_end
         if (!m_end->is_nil()) {
-            if (item->is_string() && m_end->is_string() && item->as_string()->size(env).get_fast_integer() > m_end->as_string()->size(env).get_fast_integer()) {
-                done = true;
-            } else {
-                auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
-                // If range excludes the end,
-                //  we are done if item is bigger than or equal to m_end
-                // else
-                //  we are done if item is bigger than m_end.
-                done = compare_result > (m_exclude_end ? -1 : 0);
-            }
+            auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
+            // If range excludes the end,
+            //  we are done if item is bigger than or equal to m_end
+            // else
+            //  we are done if item is bigger than m_end.
+            done = compare_result > (m_exclude_end ? -1 : 0);
         }
     }
 
     return nullptr;
 }
 
+template <typename Function>
+Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
+    auto current = m_begin->as_string()->string();
+    auto iterator = StringUptoIterator(current);
+    auto end = m_end->as_string()->string();
+
+    for (;;) {
+        if (m_exclude_end && current == end)
+            break;
+
+        if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
+            func(new StringObject { current });
+        } else {
+            if (Value ptr = func(new StringObject { current }))
+                return ptr;
+        }
+
+        if (current == end)
+            break;
+
+        current = iterator.next();
+    }
+
+    return nullptr;
+}
+
+template <typename Function>
+Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
+    auto current = m_begin->as_symbol()->string();
+    auto iterator = StringUptoIterator(current);
+    auto end = m_end->as_symbol()->string();
+
+    for (;;) {
+        if (m_exclude_end && current == end)
+            break;
+
+        if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
+            func(SymbolObject::intern(current));
+        } else {
+            if (Value ptr = func(SymbolObject::intern(current)))
+                return ptr;
+        }
+
+        if (current == end)
+            break;
+
+        current = iterator.next();
+    }
+
+    return nullptr;
+}
+
 Value RangeObject::to_a(Env *env) {
+    if (m_end->is_nil())
+        env->raise("RangeError", "cannot convert endless range to an array");
+
     ArrayObject *ary = new ArrayObject {};
     iterate_over_range(env, [&](Value item) {
         ary->push(item);
@@ -224,5 +278,4 @@ bool RangeObject::include(Env *env, Value arg) {
 
     return !!found_item;
 }
-
 }
