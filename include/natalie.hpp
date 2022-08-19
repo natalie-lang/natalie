@@ -55,6 +55,7 @@
 #include "natalie/regexp_object.hpp"
 #include "natalie/sexp_object.hpp"
 #include "natalie/string_object.hpp"
+#include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
