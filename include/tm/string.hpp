@@ -1145,6 +1145,13 @@ public:
      */
     bool is_empty() const { return m_length == 0; }
 
+    bool contains_only_digits() const {
+        for (size_t i = 0; i < m_length; ++i)
+            if (at(i) < '0' || at(i) > '9')
+                return false;
+        return true;
+    }
+
     /**
      * Returns a new String that is the result of incrementing
      * the last character of this String. If the the last character
