@@ -58,7 +58,9 @@ describe :range_cover_and_include, shared: true do
     (20..30).send(@method, 28).should be_true
     ('e'..'h').send(@method, 'g').should be_true
     # NATFIXME: Implement custom String#succ logic ("\u09B9".succ should be "\u09B6\u09B6")
-    if @method != :include?
+    # After that the iteration should abort because "\u09B6\u09B6".length > "\u{9999}".length
+    # Also this seems to be a ruby/spec bug because there is no expectation set on the expression below?
+    if @method == :cover?
       ("\u{999}".."\u{9999}").send @method, "\u{9995}"
     end
   end
