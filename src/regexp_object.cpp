@@ -155,8 +155,6 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     OnigRegion *region = onig_region_new();
     int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
 
-    Env *caller_env = env->caller();
-
     if (result >= 0) {
         return true;
     } else if (result == ONIG_MISMATCH) {
@@ -170,12 +168,12 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     }
 }
 
-Value RegexpObject::source(Env *env) {
+Value RegexpObject::source(Env *env) const {
     assert_initialized(env);
     return new StringObject { pattern() };
 }
 
-Value RegexpObject::to_s(Env *env) {
+Value RegexpObject::to_s(Env *env) const {
     assert_initialized(env);
     StringObject *out = new StringObject { "(" };
 

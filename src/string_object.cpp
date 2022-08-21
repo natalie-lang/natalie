@@ -43,7 +43,7 @@ ArrayObject *StringObject::chars(Env *env) {
     return ary;
 }
 
-String create_padding(String padding, size_t length) {
+String create_padding(String &padding, size_t length) {
     size_t quotient = ::floor(length / padding.size());
     size_t remainder = length % padding.size();
     auto buffer = new String { "" };
@@ -66,7 +66,7 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     String pad;
 
     if (!padstr) {
-        pad = new String { " " };
+        pad = String { " " };
     } else if (padstr->is_string()) {
         pad = padstr->as_string()->string();
     } else if (padstr->respond_to(env, to_str)) {
@@ -90,9 +90,9 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     auto left_split = ::floor(split);
     auto right_split = ::ceil(split);
 
-    auto result = new String { m_string };
-    result->prepend(create_padding(pad, left_split));
-    result->append(create_padding(pad, right_split));
+    auto result = String { m_string };
+    result.prepend(create_padding(pad, left_split));
+    result.append(create_padding(pad, right_split));
 
     return new StringObject { result, m_encoding };
 }

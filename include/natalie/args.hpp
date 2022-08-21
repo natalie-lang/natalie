@@ -3,6 +3,7 @@
 #include "tm/macros.hpp"
 #include "tm/vector.hpp"
 #include <stddef.h>
+#include <stdio.h>
 
 namespace Natalie {
 

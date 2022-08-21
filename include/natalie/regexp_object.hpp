@@ -93,7 +93,7 @@ public:
             env->raise("TypeError", "uninitialized Regexp");
     }
 
-    const String &pattern() { return m_pattern; }
+    const String &pattern() const { return m_pattern; }
 
     int options() const { return m_options; }
 
@@ -182,8 +182,8 @@ public:
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
-    Value source(Env *env);
-    Value to_s(Env *env);
+    Value source(Env *env) const;
+    Value to_s(Env *env) const;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RegexpObject %p>", this);
