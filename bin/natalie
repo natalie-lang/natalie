@@ -183,6 +183,7 @@ class Runner
       if options[:interpret]
         Natalie::VM.new(compiler.instructions, path: source_path).run
       else
+        compiler.options[:dynamic_linking] = true
         compiler.compile
         build_dir = File.expand_path('../build', __dir__)
         env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }

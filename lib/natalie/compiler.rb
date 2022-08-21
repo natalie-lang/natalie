@@ -25,10 +25,18 @@ module Natalie
       BUILD_DIR,
       File.join(BUILD_DIR, 'onigmo/lib'),
     ]
-    LIBRARIES = %w[
+
+    # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
+    LIBRARIES_FOR_DYNAMIC_LINKING = %w[
       -lnatalie_base
       -lnatalie_parser
       -lonigmo
+    ]
+
+    # When using the REPL or compiling a binary with the `-c` option,
+    # we use static linking for compatibility.
+    LIBRARIES_FOR_STATIC_LINKING = %w[
+      -lnatalie
     ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
@@ -213,7 +221,11 @@ module Natalie
     end
 
     def libraries
-      LIBRARIES
+      if options[:dynamic_linking]
+        LIBRARIES_FOR_DYNAMIC_LINKING
+      else
+        LIBRARIES_FOR_STATIC_LINKING
+      end
     end
 
     def cc
