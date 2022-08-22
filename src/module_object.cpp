@@ -82,22 +82,59 @@ Value ModuleObject::const_fetch(SymbolObject *name) {
 }
 
 Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
-    ModuleObject *search_parent;
-    Constant *constant;
+    ModuleObject *search_parent = nullptr;
+    Constant *constant = nullptr;
+
+    auto check_valid = [&](Constant *constant) {
+        if (search_mode == ConstLookupSearchMode::Strict && constant->is_private()) {
+            if (search_parent && search_parent != GlobalEnv::the()->Object())
+                env->raise_name_error(name, "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
+            else
+                env->raise_name_error(name, "private constant ::{} referenced", name->c_str());
+        }
+        if (constant->is_deprecated()) {
+            if (search_parent && search_parent != GlobalEnv::the()->Object())
+                env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
+            else
+                env->warn("constant ::{} is deprecated", name->c_str());
+        }
+    };
 
     if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        search_parent->m_constants.get(name);
-        while (!(constant = search_parent->m_constants.get(name)) && search_parent->owner() && search_parent->owner() != GlobalEnv::the()->Object()) {
+        do {
+            if (!search_parent || search_parent == GlobalEnv::the()->Object())
+                break;
+            constant = search_parent->m_constants.get(name);
             search_parent = search_parent->owner();
-        }
+        } while (!constant);
         if (constant) {
-            if (constant->is_deprecated()) {
-                env->warn("constant ::{} is deprecated", name->c_str());
-            }
+            check_valid(constant);
             return constant->value();
         }
+    }
+
+    // search included modules
+    Vector<ModuleObject *> modules_to_search;
+    for (ModuleObject *module : m_included_modules) {
+        if (module != this)
+            modules_to_search.push(module);
+    }
+    for (size_t i = 0; i < modules_to_search.size(); ++i) {
+        auto module = modules_to_search.at(i);
+        constant = module->m_constants.get(name);
+        if (constant)
+            break;
+        for (ModuleObject *m : module->m_included_modules) {
+            if (m != module && m != this)
+                modules_to_search.push(m);
+        }
+    }
+
+    if (constant) {
+        check_valid(constant);
+        return constant->value();
     }
 
     // search in superclass hierarchy
@@ -109,18 +146,18 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     } while (search_parent && search_parent != GlobalEnv::the()->Object());
 
     if (constant) {
-        if (search_mode == ConstLookupSearchMode::Strict && constant->is_private())
-            env->raise_name_error(name, "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
-        if (constant->is_deprecated()) {
-            env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
-        }
+        check_valid(constant);
         return constant->value();
     }
 
     if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
         constant = GlobalEnv::the()->Object()->m_constants.get(name);
-        if (constant) return constant->value();
+    }
+
+    if (constant) {
+        check_valid(constant);
+        return constant->value();
     }
 
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
