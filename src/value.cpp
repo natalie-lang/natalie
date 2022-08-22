@@ -8,34 +8,35 @@ Value Value::floatingpoint(double value) {
     return Value { value };
 }
 
-#define PROFILED_SEND(type)                                                                     \
-    static auto is_profiled = NativeProfiler::the()->enabled();                                 \
-    NativeProfilerEvent *event;                                                                 \
-    if (is_profiled) {                                                                          \
-        auto classnameOf = [](Value val) {                                                      \
-            if (val.m_type == Type::Integer)                                                    \
-                return "FastInteger";                                                           \
-            if (val.m_type == Type::Double)                                                     \
-                return "FastDouble";                                                            \
-            auto maybe_classname = val->klass()->class_name();                                  \
-            return (maybe_classname.present()) ? maybe_classname.value().c_str() : "Anonymous"; \
-        };                                                                                      \
-        auto event_name = new ManagedString();                                                  \
-        event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());                \
-        for (size_t i = 0; i < args.size(); ++i) {                                              \
-            if (i > 0)                                                                          \
-                event_name->append_char(',');                                                   \
-            event_name->append(classnameOf(args[i]));                                           \
-        }                                                                                       \
-        event_name->append_char(')');                                                           \
-        event = NativeProfilerEvent::named(type, event_name)                                    \
-                    ->start_now();                                                              \
-    }                                                                                           \
-    Defer log_event([&]() {                                                                     \
-        auto source_filename = env->file();                                                     \
-        auto source_line = env->line();                                                         \
-        if (is_profiled)                                                                        \
-            NativeProfiler::the()->push(event->end_now());                                      \
+#define PROFILED_SEND(type)                                                             \
+    static auto is_profiled = NativeProfiler::the()->enabled();                         \
+    NativeProfilerEvent *event;                                                         \
+    if (is_profiled) {                                                                  \
+        auto classnameOf = [](Value val) -> String {                                    \
+            if (val.m_type == Type::Integer)                                            \
+                return String("FastInteger");                                           \
+            if (val.m_type == Type::Double)                                             \
+                return String("FastDouble");                                            \
+            auto maybe_classname = val->klass()->class_name();                          \
+            if (maybe_classname.present())                                              \
+                return maybe_classname.value();                                         \
+            else                                                                        \
+                return String("Anonymous");                                             \
+        };                                                                              \
+        auto event_name = String::format("{}.{}(", classnameOf(*this), name->string()); \
+        for (size_t i = 0; i < args.size(); ++i) {                                      \
+            if (i > 0)                                                                  \
+                event_name.append_char(',');                                            \
+            event_name.append(classnameOf(args[i]));                                    \
+        }                                                                               \
+        event_name.append_char(')');                                                    \
+        event = NativeProfilerEvent::named(type, event_name)->start_now();              \
+    }                                                                                   \
+    Defer log_event([&]() {                                                             \
+        auto source_filename = env->file();                                             \
+        auto source_line = env->line();                                                 \
+        if (is_profiled)                                                                \
+            NativeProfiler::the()->push(event->end_now());                              \
     });
 
 template <typename Callback>

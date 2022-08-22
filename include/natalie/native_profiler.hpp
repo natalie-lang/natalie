@@ -1,7 +1,9 @@
 #pragma once
 
 #include "natalie/forward.hpp"
+#include "natalie/macros.hpp"
 #include "natalie/types.hpp"
+#include "tm/string.hpp"
 #include "tm/vector.hpp"
 #include <chrono>
 #include <ctime>
@@ -21,8 +23,8 @@ public:
         RUNTIME,
     };
 
-    static NativeProfilerEvent *named(const Type, const ManagedString *);
-    static NativeProfilerEvent *named(const Type, const char *);
+    static NativeProfilerEvent *named(Type type, const char *name);
+    static NativeProfilerEvent *named(Type, TM::String &);
     NativeProfilerEvent *start_now();
     NativeProfilerEvent *start(std::chrono::time_point<std::chrono::system_clock>);
     NativeProfilerEvent *end_now();
@@ -30,7 +32,7 @@ public:
 
 private:
     NativeProfilerEvent() = delete;
-    NativeProfilerEvent(const NativeProfilerEvent::Type type, const char *name, const int tid)
+    NativeProfilerEvent(const NativeProfilerEvent::Type type, const TM::String name, const int tid)
         : m_type(type)
         , m_name(name)
         , m_tid(tid) { }
@@ -50,7 +52,7 @@ private:
     }
 
     const NativeProfilerEvent::Type m_type;
-    const char *m_name;
+    const TM::String m_name;
     int m_tid;
     std::time_t m_start;
     std::time_t m_end;

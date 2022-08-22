@@ -2,17 +2,18 @@
 
 namespace Natalie {
 
-NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const ManagedString *name) {
-    return named(type, name->c_str());
+NativeProfilerEvent *NativeProfilerEvent::named(Type type, const char *name) {
+    auto str = String(name);
+    return named(type, str);
 }
 
-NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const char *name) {
+NativeProfilerEvent *NativeProfilerEvent::named(Type type, String &name) {
 #if defined(__OpenBSD__) or defined(__APPLE__)
     auto tid = 0; // FIXME: get thread id on OpenBSD/macOS
 #else
     auto tid = gettid();
 #endif
-    return new NativeProfilerEvent(type, strdup(name), tid);
+    return new NativeProfilerEvent(type, name, tid);
 }
 
 NativeProfilerEvent *NativeProfilerEvent::start_now() {
@@ -60,7 +61,7 @@ void NativeProfiler::dump() {
             event.append_char(',');
         event.append_char('{');
 
-        event.append_sprintf("\"name\":\"%s\"", e->m_name);
+        event.append_sprintf("\"name\":\"%s\"", e->m_name.c_str());
         event.append_sprintf(",\"cat\": \"%s\"", e->google_trace_type());
         event.append(",\"ph\": \"X\"");
         event.append_sprintf(",\"ts\": \"%lld\"", e->m_start);
