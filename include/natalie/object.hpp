@@ -101,7 +101,7 @@ public:
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }
 
-    ModuleObject *owner() { return m_owner; }
+    ModuleObject *owner() const { return m_owner; }
     void set_owner(ModuleObject *owner) { m_owner = owner; }
 
     int flags() const { return m_flags; }
