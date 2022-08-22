@@ -46,16 +46,11 @@ ArrayObject *StringObject::chars(Env *env) {
 String create_padding(String &padding, size_t length) {
     size_t quotient = ::floor(length / padding.size());
     size_t remainder = length % padding.size();
-    auto buffer = new String { "" };
-
-    for (size_t i = 0; i < quotient; ++i) {
-        buffer->append(padding);
-    }
-
-    for (size_t j = 0; j < remainder; ++j) {
-        buffer->append_char(padding[j]);
-    }
-
+    auto buffer = String("");
+    for (size_t i = 0; i < quotient; ++i)
+        buffer.append(padding);
+    for (size_t j = 0; j < remainder; ++j)
+        buffer.append_char(padding[j]);
     return buffer;
 }
 
