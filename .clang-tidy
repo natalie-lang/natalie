@@ -8,4 +8,5 @@ Checks: |
   readability-avoid-const-params-in-decls,
   -clang-analyzer-valist.Uninitialized,
   -clang-analyzer-core.CallAndMessage,
+  -readability-braces-around-statements,
 FormatStyle: file
