@@ -11,8 +11,8 @@ public:
             m_treat_like_integer = true;
     }
 
-    const TM::String next();
-    const TM::String peek() const;
+    TM::String next();
+    TM::String peek() const;
 
 private:
     TM::String m_string;

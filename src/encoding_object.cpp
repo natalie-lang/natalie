@@ -47,7 +47,6 @@ EncodingObject *EncodingObject::find(Env *env, Value name) {
 }
 
 ArrayObject *EncodingObject::list(Env *) {
-    Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
     auto ary = new ArrayObject {};
     for (auto pair : s_encoding_list)
         ary->push(pair.second);

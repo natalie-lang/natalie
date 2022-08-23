@@ -427,7 +427,9 @@ Integer pow(Integer lhs, Integer rhs) {
         --rhs;
     }
 
-    return negative ? -result : result;
+    if (negative)
+        return -result;
+    return result;
 }
 
 Integer abs(const Integer &other) {
