@@ -332,6 +332,8 @@ double BigInt::to_double() const {
 */
 
 BigInt &BigInt::operator=(const BigInt &num) {
+    if (num == *this) return *this;
+
     value = num.value;
     sign = num.sign;
 
@@ -813,7 +815,9 @@ bool operator>=(const TM::String &lhs, const BigInt &rhs) {
 */
 
 BigInt abs(const BigInt &num) {
-    return num.is_negative() ? -num : num;
+    if (num.is_negative())
+        return -num;
+    return num;
 }
 
 /*
@@ -839,7 +843,9 @@ BigInt pow(const BigInt &base, long long exp) {
     if (exp < 0) {
         // Cannot divide by zero
         assert(base != 0);
-        return abs(base) == 1 ? base : 0;
+        if (abs(base) == 1)
+            return base;
+        return 0;
     }
     if (exp == 0) {
         // Zero cannot be raised to zero

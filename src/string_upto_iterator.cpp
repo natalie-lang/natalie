@@ -2,11 +2,11 @@
 #include "natalie/integer.hpp"
 
 namespace Natalie {
-const TM::String StringUptoIterator::next() {
+TM::String StringUptoIterator::next() {
     return m_string = peek();
 }
 
-const TM::String StringUptoIterator::peek() const {
+TM::String StringUptoIterator::peek() const {
     if (m_treat_like_integer)
         return TM::String((Integer(m_string) + 1).to_nat_int_t());
 
