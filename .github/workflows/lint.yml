@@ -1,0 +1,17 @@
+name: Lint
+
+on: [pull_request]
+
+jobs:
+  clang-tidy:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: git submodule update --init --recursive
+    - run: sudo apt-get install -y -q build-essential autoconf libtool clang lcov ruby-dev
+    - run: sudo gem install bundler --no-doc
+    - run: rake
+    - uses: pajlada/clang-tidy-review@526cbfb043719639f1ebdeedae0cc1eacd219d8f
+      id: review
+    - if: steps.review.outputs.total_comments > 0
+      run: exit 1
