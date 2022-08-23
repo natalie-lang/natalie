@@ -229,7 +229,10 @@ public:
      * ```
      */
     String &operator=(const String &other) {
-        set_str(other.c_str(), other.size());
+        if (m_str == other.m_str)
+            m_length = other.m_length;
+        else
+            set_str(other.c_str(), other.size());
         return *this;
     }
 
