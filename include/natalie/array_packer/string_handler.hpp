@@ -16,7 +16,7 @@ namespace ArrayPacker {
             , m_token { token } { }
 
         String pack(Env *env) {
-            signed char d = m_token.directive;
+            char d = m_token.directive;
             switch (d) {
             case 'a':
                 pack_with_loop(&StringHandler::pack_a);

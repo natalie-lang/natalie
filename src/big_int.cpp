@@ -1118,7 +1118,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
     add_leading_zeroes(smaller, larger.size() - smaller.size());
 
     result.value = ""; // the value is cleared as the digits will be appended
-    char difference;
+    signed char difference;
     long i, j;
     // subtract the two values
     for (i = larger.size() - 1; i >= 0; i--) {
