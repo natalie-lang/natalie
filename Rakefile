@@ -131,8 +131,8 @@ task :docker_build_clang do
      '.'
 end
 
-task docker_bash: :docker_build do
-  sh 'docker run -it --rm --entrypoint bash natalie'
+task docker_bash: :docker_build_clang do
+  sh 'docker run -it --rm --entrypoint bash natalie_clang'
 end
 
 task :docker_build_ruby27 do
@@ -152,6 +152,10 @@ end
 # NOTE: this tests that Natalie can be hosted by MRI 2.7 -- not Natalie under Ruby 3 specs
 task docker_test_ruby27: :docker_build_ruby27 do
   sh "docker run -e RUBYOPT=-W:no-experimental #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
+end
+
+task docker_tidy: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang tidy"
 end
 
 # # # # Build Compile Database # # # #
@@ -355,8 +359,7 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
 end
 
 task :tidy_internal do
-  # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
-  sh "clang-tidy --fix #{HEADERS} #{PRIMARY_SOURCES.exclude('src/dtoa.c', 'src/big_int.cpp')}"
+  sh "clang-tidy #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
 end
 
 task :bundle_install do
