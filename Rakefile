@@ -245,7 +245,7 @@ file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
 end
 
 file "build/libnatalie_base.#{SO_EXT}" => OBJECT_FILES + HEADERS do |t|
-  sh "#{cxx} -shared -fPIC -rdynamic -o #{t.name} #{OBJECT_FILES}"
+  sh "#{cxx} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{OBJECT_FILES}"
 end
 
 file 'build/onigmo/lib/libonigmo.a' do
@@ -349,7 +349,7 @@ file "build/natalie_parser.#{SO_EXT}" => 'build/libnatalie_parser.a' do
 end
 
 # FIXME: should we rename to libnatalie_parser in the NatalieParser project?
-file "build/libnatalie_parser.#{SO_EXT}" => 'build/natalie_parser.so' do |t|
+file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do |t|
   build_dir = File.expand_path('build/natalie_parser', __dir__)
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
