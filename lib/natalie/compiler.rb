@@ -25,6 +25,7 @@ module Natalie
       BUILD_DIR,
       File.join(BUILD_DIR, 'onigmo/lib'),
     ]
+    SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
 
     # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
     LIBRARIES_FOR_DYNAMIC_LINKING = %w[
@@ -87,7 +88,7 @@ module Natalie
     end
 
     def check_build
-      unless File.file?(File.join(BUILD_DIR, 'libnatalie_base.so'))
+      unless File.file?(File.join(BUILD_DIR, "libnatalie_base.#{SO_EXT}"))
         puts 'please run: rake'
         exit 1
       end
