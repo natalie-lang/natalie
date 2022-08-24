@@ -1,7 +1,8 @@
 ARG IMAGE=ruby:3.0
 FROM $IMAGE
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov clang-tidy python3 python3-pip ccache
+RUN pip3 install compiledb
 RUN gem install bundler --no-doc
 
 ENV LC_ALL C.UTF-8
