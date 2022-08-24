@@ -292,7 +292,7 @@ Integer Integer::operator<<(const Integer &other) const {
     else if (will_multiplication_overflow(to_nat_int_t(), pow_result.to_nat_int_t()))
         return to_bigint() << other.to_nat_int_t();
 
-    return to_nat_int_t() << other.to_nat_int_t();
+    return to_nat_int_t() << other.to_nat_int_t(); // NOLINT FIXME: The result of the left shift is undefined because the right operand is negative
 }
 
 Integer Integer::operator>>(const Integer &other) const {
