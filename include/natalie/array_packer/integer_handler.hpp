@@ -16,7 +16,7 @@ namespace ArrayPacker {
             , m_token { token } { }
 
         String pack(Env *env) {
-            signed char d = m_token.directive;
+            char d = m_token.directive;
             switch (d) {
             case 'U':
                 if (m_source->is_bignum() || m_source->to_nat_int_t() > 0xffffffff || m_source->to_nat_int_t() < 0)

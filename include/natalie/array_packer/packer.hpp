@@ -23,12 +23,12 @@ namespace ArrayPacker {
         ~Packer() { delete m_directives; }
 
         StringObject *pack(Env *env) {
-            signed char directive = 0;
+            char directive = 0;
             for (auto token : *m_directives) {
                 if (token.error)
                     env->raise("ArgumentError", *token.error);
 
-                auto d = token.directive;
+                char d = token.directive;
                 switch (d) {
                 case 'a':
                 case 'A':
