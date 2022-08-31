@@ -2,48 +2,55 @@
 
 namespace Natalie {
 
-StringView Utf8EncodingObject::prev_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> Utf8EncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
-        return StringView();
+        return { true, StringView() };
     size_t length = 1;
     (*index)--;
     unsigned char c = string[*index];
     if ((int)c <= 127)
-        return StringView(&string, *index, 1);
+        return { true, StringView(&string, *index, 1) };
     while ((c >> 6) != 0b11) { // looking for 11xxxxxx
         if (*index == 0)
-            raise_encoding_invalid_byte_sequence_error(string, *index);
+            return { false, StringView() };
         (*index)--;
         length++;
-        if (length > 4)
-            raise_encoding_invalid_byte_sequence_error(string, *index);
+        if (length > 4) {
+            *index += 4;
+            return { false, StringView(&string, *index, 1) };
+        }
         c = string[*index];
     }
-    return StringView(&string, *index, length);
+    return { true, StringView(&string, *index, length) };
 }
 
-StringView Utf8EncodingObject::next_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, size_t *index) const {
     size_t len = string.size();
     if (*index >= len)
-        return StringView();
+        return { true, StringView() };
     size_t i = *index;
     int length = 0;
     unsigned char c = string[i];
+    bool valid = true;
     if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
-        if (i + 3 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
+        if (i + 3 >= len) return { false, StringView(&string, i) };
         length = 4;
     } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
-        if (i + 2 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
+        if (i + 2 >= len) return { false, StringView(&string, i) };
         length = 3;
     } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
-        if (i + 1 >= len) raise_encoding_invalid_byte_sequence_error(string, i);
+        if (i + 1 >= len) return { false, StringView(&string, i) };
         length = 2;
+    } else if ((c >> 7) == 0b0) { // 0xxxxxxx, 1 byte
+        length = 1;
     } else {
         length = 1;
+        valid = false;
     }
     *index += length;
-    return StringView(&string, i, length);
+    return { valid, StringView(&string, i, length) };
 }
+
 String Utf8EncodingObject::escaped_char(unsigned char c) const {
     char buf[7];
     snprintf(buf, 7, "\\u%04llX", (long long)c);

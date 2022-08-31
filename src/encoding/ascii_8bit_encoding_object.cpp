@@ -2,19 +2,19 @@
 
 namespace Natalie {
 
-StringView Ascii8BitEncodingObject::prev_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> Ascii8BitEncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
-        return StringView();
+        return { true, StringView() };
     (*index)--;
-    return StringView(&string, *index, 1);
+    return { true, StringView(&string, *index, 1) };
 }
 
-StringView Ascii8BitEncodingObject::next_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> Ascii8BitEncodingObject::next_char(const String &string, size_t *index) const {
     if (*index >= string.size())
-        return StringView();
+        return { true, StringView() };
     size_t i = *index;
     (*index)++;
-    return StringView(&string, i, 1);
+    return { true, StringView(&string, i, 1) };
 }
 
 String Ascii8BitEncodingObject::escaped_char(unsigned char c) const {
@@ -33,7 +33,7 @@ Value Ascii8BitEncodingObject::encode(Env *env, EncodingObject *orig_encoding, S
         str->set_encoding(EncodingObject::get(num()));
         return str;
     case Encoding::UTF_8: {
-        ArrayObject *chars = str->chars(env);
+        ArrayObject *chars = str->chars(env)->as_array();
         for (size_t i = 0; i < chars->size(); i++) {
             StringObject *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {

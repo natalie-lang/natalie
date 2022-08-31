@@ -118,9 +118,12 @@ public:
     }
 
     StringView prev_char(size_t *) const;
+    StringView prev_char(Env *, size_t *) const;
     StringView next_char(size_t *) const;
+    StringView next_char(Env *, size_t *) const;
+
     Value each_char(Env *, Block *);
-    ArrayObject *chars(Env *);
+    Value chars(Env *, Block * = nullptr);
 
     SymbolObject *to_symbol(Env *) const;
     Value to_sym(Env *) const;

@@ -15,11 +15,25 @@ constexpr bool is_strippable_whitespace(char c) {
 };
 
 StringView StringObject::prev_char(size_t *index) const {
-    return m_encoding->prev_char(m_string, index);
+    return m_encoding->prev_char(m_string, index).second;
+}
+
+StringView StringObject::prev_char(Env *env, size_t *index) const {
+    auto pair = m_encoding->prev_char(m_string, index);
+    if (!pair.first)
+        m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
+    return pair.second;
 }
 
 StringView StringObject::next_char(size_t *index) const {
-    return m_encoding->next_char(m_string, index);
+    return m_encoding->next_char(m_string, index).second;
+}
+
+StringView StringObject::next_char(Env *env, size_t *index) const {
+    auto pair = m_encoding->next_char(m_string, index);
+    if (!pair.first)
+        m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
+    return pair.second;
 }
 
 Value StringObject::each_char(Env *env, Block *block) {
@@ -27,17 +41,22 @@ Value StringObject::each_char(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "each_char"_s });
 
     size_t index = 0;
-    auto c = next_char(&index);
-    while (!c.is_empty()) {
+    for (auto c : *this) {
         Value args[] = { new StringObject { c, m_encoding } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        c = next_char(&index);
     }
     return NilObject::the();
 }
 
-ArrayObject *StringObject::chars(Env *env) {
+Value StringObject::chars(Env *env, Block *block) {
     ArrayObject *ary = new ArrayObject {};
+    if (block) {
+        for (auto c : *this) {
+            auto str = new StringObject { c, m_encoding };
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ str }), nullptr);
+        }
+        return this;
+    }
     for (auto c : *this)
         ary->push(new StringObject { c, m_encoding });
     return ary;
@@ -597,7 +616,7 @@ Value StringObject::ref(Env *env, Value index_obj) {
         if (index >= 0)
             return ref_fast_index(env, index);
 
-        ArrayObject *chars = this->chars(env);
+        ArrayObject *chars = this->chars(env)->as_array();
         index = chars->size() + index;
 
         if (index < 0 || index >= (nat_int_t)chars->size())
@@ -627,7 +646,7 @@ Value StringObject::ref(Env *env, Value index_obj) {
             return ref_fast_range_endless(env, begin);
         }
 
-        ArrayObject *chars = this->chars(env);
+        ArrayObject *chars = this->chars(env)->as_array();
 
         nat_int_t end;
         if (end_obj->is_nil()) {
@@ -742,7 +761,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         arg2 = nullptr;
     }
 
-    auto chars = this->chars(env);
+    auto chars = this->chars(env)->as_array();
     auto process_begin = [chars, env](nat_int_t begin) -> nat_int_t {
         nat_int_t start = begin;
         if (begin < 0)
@@ -826,7 +845,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         if (begin == -1)
             env->raise("IndexError", "string not matched");
         begin = byte_index_to_char_index(chars, (size_t)begin);
-        end = begin + arg1->as_string()->chars(env)->size();
+        end = begin + arg1->as_string()->chars(env)->as_array()->size();
     } else {
         begin = process_begin(IntegerObject::convert_to_nat_int_t(env, arg1));
         end = get_end_by_length(begin, arg2);
@@ -837,7 +856,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
         chars_to_be_removed = chars->size();
 
     auto string = value->to_str(env);
-    auto arg_chars = string->chars(env);
+    auto arg_chars = string->chars(env)->as_array();
     size_t new_length = arg_chars->size() + (chars->size() - chars_to_be_removed);
 
     StringObject result;
@@ -1206,7 +1225,7 @@ Value StringObject::rstrip_in_place(Env *env) {
 }
 
 Value StringObject::downcase(Env *env) {
-    auto ary = chars(env);
+    auto ary = chars(env)->as_array();
     auto str = new StringObject {};
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
@@ -1224,7 +1243,7 @@ Value StringObject::downcase(Env *env) {
 }
 
 Value StringObject::upcase(Env *env) {
-    auto ary = chars(env);
+    auto ary = chars(env)->as_array();
     auto str = new StringObject {};
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
@@ -1345,14 +1364,12 @@ Value StringObject::convert_float() {
 
 bool StringObject::valid_encoding() const {
     size_t index = 0;
-    try {
-        StringView c = next_char(&index);
-        while (!c.is_empty()) {
-            c = next_char(&index);
-        }
-    } catch (ExceptionObject *) {
-        return false;
-    }
+    std::pair<bool, StringView> pair;
+    do {
+        pair = m_encoding->next_char(m_string, &index);
+        if (!pair.first)
+            return false;
+    } while (!pair.second.is_empty());
     return true;
 }
 

@@ -39,7 +39,7 @@ Value MatchDataObject::offset(Env *env, Value n) {
     if (begin == -1)
         return new ArrayObject { NilObject::the(), NilObject::the() };
 
-    auto chars = m_string->chars(env);
+    auto chars = m_string->chars(env)->as_array();
     return new ArrayObject {
         Value::integer(StringObject::byte_index_to_char_index(chars, begin)),
         Value::integer(StringObject::byte_index_to_char_index(chars, end))

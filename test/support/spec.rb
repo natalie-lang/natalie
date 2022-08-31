@@ -1155,6 +1155,8 @@ def run_specs
         @failures << [context, test, e]
         formatter.print_failure(*@failures.last)
       rescue Exception => e
+        puts 'rescuing exception in test runner but why'
+        p e
         @errors << [context, test, e]
         formatter.print_error(*@errors.last)
       else

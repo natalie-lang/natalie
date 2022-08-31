@@ -61,11 +61,11 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::valid_codepoint()");
     }
 
-    virtual StringView prev_char(const String &, size_t *) const {
+    virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const {
         TM_NOT_YET_IMPLEMENTED("EncodingObject::prev_char()");
     }
 
-    virtual StringView next_char(const String &, size_t *) const {
+    virtual std::pair<bool, StringView> next_char(const String &, size_t *) const {
         TM_NOT_YET_IMPLEMENTED("EncodingObject::next_char()");
     }
 
@@ -81,7 +81,7 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::encode_codepoint()");
     }
 
-    [[noreturn]] void raise_encoding_invalid_byte_sequence_error(const String &, size_t) const;
+    [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 
     static HashObject *aliases(Env *);
     static EncodingObject *find(Env *, Value);

@@ -2,25 +2,25 @@
 
 namespace Natalie {
 
-StringView UsAsciiEncodingObject::prev_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> UsAsciiEncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
-        return StringView();
+        return { true, StringView() };
     (*index)--;
     unsigned char c = string[*index];
     if ((int)c > 127)
-        raise_encoding_invalid_byte_sequence_error(string, *index);
-    return StringView(&string, *index, 1);
+        return { false, StringView(&string, *index, 1) };
+    return { true, StringView(&string, *index, 1) };
 }
 
-StringView UsAsciiEncodingObject::next_char(const String &string, size_t *index) const {
+std::pair<bool, StringView> UsAsciiEncodingObject::next_char(const String &string, size_t *index) const {
     if (*index >= string.size())
-        return StringView();
+        return { true, StringView() };
     size_t i = *index;
     unsigned char c = string[i];
     if ((int)c > 127)
-        raise_encoding_invalid_byte_sequence_error(string, i);
+        return { false, StringView(&string, i, 1) };
     (*index)++;
-    return StringView(&string, i, 1);
+    return { true, StringView(&string, i, 1) };
 }
 
 String UsAsciiEncodingObject::escaped_char(unsigned char c) const {
@@ -49,7 +49,7 @@ Value UsAsciiEncodingObject::encode(Env *env, EncodingObject *orig_encoding, Str
         // nothing to do
         return str;
     case Encoding::UTF_8: {
-        ArrayObject *chars = str->chars(env);
+        ArrayObject *chars = str->chars(env)->as_array();
         for (size_t i = 0; i < chars->size(); i++) {
             StringObject *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
