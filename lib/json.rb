@@ -9,6 +9,7 @@ module JSON
 
   class Lexer
     DIGITS = '0'..'9'
+    HEX_DIGITS = DIGITS.to_a + ('a'..'f').to_a + ('A'..'F').to_a
 
     def initialize(string)
       @string = string
@@ -103,10 +104,21 @@ module JSON
             when 't'
               str << "\t"
             when 'u'
-              raise 'TODO: unicode escape'
+              escaped = ''
+              while HEX_DIGITS.include?(current_char) && escaped.size < 4
+                escaped << advance
+              end
+              if escaped.size != 4
+                raise ParserError, 'incomplete unicode escape'
+              end
+              str << escaped.to_i(16).chr(Encoding::UTF_8)
+            else
+              raise ParserError, 'unknown escape'
             end
           when "\n"
             raise ParserError, 'unexpected newline inside string'
+          when nil
+            raise ParserError, 'unexpected end of input'
           else
             str << c
           end

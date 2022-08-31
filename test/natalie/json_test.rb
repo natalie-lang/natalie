@@ -33,7 +33,12 @@ describe 'JSON' do
       JSON.parse('""').should == ''
       JSON.parse('"foo"').should == 'foo'
       JSON.parse('"foo\"bar"').should == 'foo"bar'
+      JSON.parse('"\u002598"').should == '%98'
+      JSON.parse('"\uf600"').should == ''
+      JSON.parse('"\uF600"').should == ''
       -> { JSON.parse(%("foo\nbar")) }.should raise_error(JSON::ParserError)
+      -> { JSON.parse('"\u00"') }.should raise_error(JSON::ParserError)
+      -> { JSON.parse('"\y"') }.should raise_error(JSON::ParserError)
     end
 
     it 'parses arrays' do
