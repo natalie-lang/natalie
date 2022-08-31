@@ -431,7 +431,7 @@ Value StringObject::concat(Env *env, Args args) {
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
-            env->raise("TypeError", "cannot call to_str", arg->inspect_str(env));
+            env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
@@ -508,7 +508,7 @@ Value StringObject::prepend(Env *env, Args args) {
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
-            env->raise("TypeError", "cannot call to_str", arg->inspect_str(env));
+            env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
