@@ -113,7 +113,7 @@ module JSON
               end
               str << escaped.to_i(16).chr(Encoding::UTF_8)
             else
-              raise ParserError, 'unknown escape'
+              str << c2
             end
           when "\n"
             raise ParserError, 'unexpected newline inside string'

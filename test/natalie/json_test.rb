@@ -38,7 +38,8 @@ describe 'JSON' do
       JSON.parse('"\uF600"').should == ''
       -> { JSON.parse(%("foo\nbar")) }.should raise_error(JSON::ParserError)
       -> { JSON.parse('"\u00"') }.should raise_error(JSON::ParserError)
-      -> { JSON.parse('"\y"') }.should raise_error(JSON::ParserError)
+      # not valid according to Spec, but Ruby does this:
+      JSON.parse('"\y"').should == 'y'
     end
 
     it 'parses arrays' do
