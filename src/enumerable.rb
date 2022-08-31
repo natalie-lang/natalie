@@ -27,6 +27,12 @@ module Enumerable
     end
   end
 
+  def compact
+    ary = []
+    each { |item| ary << item unless item.nil? }
+    ary
+  end
+
   def none?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
