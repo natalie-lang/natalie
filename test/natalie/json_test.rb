@@ -91,5 +91,12 @@ describe 'JSON' do
         }
       }
     end
+
+    context 'with symbolize_names argument' do
+      it 'returns symbol keys' do
+        JSON.parse('{"foo":"bar"}', symbolize_names: true).should == { foo: 'bar' }
+        JSON.parse('{"1":"foo","2":"bar"}', symbolize_names: true).should == { :'1' => 'foo', :'2' => 'bar' }
+      end
+    end
   end
 end
