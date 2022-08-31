@@ -89,7 +89,7 @@ end
 desc 'Generate tags file for development'
 task :ctags do
   if system('which ctags 2>&1 >/dev/null')
-    sh 'ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .'
+    sh "ctags #{HEADERS + SOURCES}"
   else
     puts 'Note: ctags is not available on this system'
   end
@@ -184,9 +184,12 @@ end
 
 STANDARD = 'c++17'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
+
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
+SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + SPECIAL_SOURCES
+
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
 RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%f.o')
 SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
