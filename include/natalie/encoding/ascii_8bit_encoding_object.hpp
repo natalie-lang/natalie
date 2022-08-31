@@ -19,8 +19,8 @@ public:
         return codepoint >= 0 && codepoint <= 255;
     }
 
-    virtual StringView prev_char(const String &string, size_t *index) const override;
-    virtual StringView next_char(const String &string, size_t *index) const override;
+    virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;
+    virtual std::pair<bool, StringView> next_char(const String &string, size_t *index) const override;
 
     virtual String escaped_char(unsigned char c) const override;
 
