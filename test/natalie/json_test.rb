@@ -25,6 +25,7 @@ describe 'JSON' do
       JSON.parse('1.1').should be_close(1.1, TOLERANCE)
       JSON.parse('1.2e3').should be_close(1200.0, TOLERANCE)
       JSON.parse('123e3').should be_close(123000.0, TOLERANCE)
+      JSON.parse('123E3').should be_close(123000.0, TOLERANCE)
       JSON.parse('-123.4').should be_close(-123.4, TOLERANCE)
     end
 

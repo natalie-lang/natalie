@@ -55,7 +55,7 @@ module JSON
             num << c
             advance
           end
-          if c == 'e'
+          if c == 'e' || c == 'E'
             num << c
             advance
             while DIGITS.include?(c = current_char)
@@ -64,7 +64,7 @@ module JSON
             end
           end
           num.to_f
-        when 'e'
+        when 'e', 'E'
           num << c
           advance
           while DIGITS.include?(c = current_char)
