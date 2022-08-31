@@ -2,9 +2,9 @@ module JSON
   class JSONError < StandardError; end
   class ParserError < JSONError; end
 
-  def self.parse(string)
+  def self.parse(string, **options)
     tokens = Lexer.new(string).tokens
-    Parser.new(tokens).parse
+    Parser.new(tokens, **options).parse
   end
 
   class Lexer
@@ -137,8 +137,9 @@ module JSON
   end
 
   class Parser
-    def initialize(tokens)
+    def initialize(tokens, symbolize_names: false)
       @tokens = tokens
+      @symbolize_names = symbolize_names
     end
 
     def parse
@@ -212,6 +213,7 @@ module JSON
       case token
       when String
         key = token
+        key = key.to_sym if @symbolize_names
         token = @tokens.shift
         raise ParserError, ':' unless token == :':'
         token = @tokens.shift
