@@ -19,6 +19,7 @@ module Natalie
         eval
         nat_ignore_require_relative
         nat_ignore_require
+        include_str!
       ].freeze
 
       def expand
@@ -155,6 +156,18 @@ module Natalie
 
       def macro_nat_ignore_require_relative(expr:, current_path:)
         s(:false) # Script has not been loaded
+      end
+
+      def macro_include_str!(expr:, current_path:)
+        args = expr[3..]
+        node = args.first
+        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
+        name = node[1]
+        if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
+          s(:str, File.read(full_path))
+        else
+          raise IOError, "cannot find file #{name} at #{node.file}##{node.line}"
+        end
       end
 
       def interpret?
