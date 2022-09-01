@@ -648,9 +648,10 @@ public:
      */
     bool is_empty() const { return m_size == 0; }
 
+    template <typename H>
     class iterator {
     public:
-        iterator(Hashmap &hashmap, size_t index, Item *item)
+        iterator(H &hashmap, size_t index, Item *item)
             : m_hashmap { hashmap }
             , m_index { index }
             , m_item { item } { }
@@ -705,7 +706,7 @@ public:
         Item *item() { return m_item; }
 
     private:
-        Hashmap &m_hashmap;
+        H &m_hashmap;
         size_t m_index { 0 };
         Hashmap::Item *m_item { nullptr };
     };
@@ -725,7 +726,7 @@ public:
      * }
      * ```
      */
-    iterator begin() {
+    iterator<Hashmap> begin() {
         if (m_size == 0) return end();
         assert(m_map);
         Item *item = nullptr;
@@ -738,7 +739,24 @@ public:
         return iterator { *this, index, item };
     }
 
-    iterator end() {
+    iterator<const Hashmap> begin() const {
+        if (m_size == 0) return end();
+        assert(m_map);
+        Item *item = nullptr;
+        size_t index;
+        for (index = 0; index < m_capacity; ++index) {
+            item = m_map[index];
+            if (item)
+                break;
+        }
+        return iterator { *this, index, item };
+    }
+
+    iterator<Hashmap> end() {
+        return iterator { *this, m_capacity, nullptr };
+    }
+
+    iterator<const Hashmap> end() const {
         return iterator { *this, m_capacity, nullptr };
     }
 
