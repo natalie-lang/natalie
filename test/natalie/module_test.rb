@@ -60,4 +60,10 @@ describe 'Module' do
       M3::M3A.name.should == 'M3::M3A'
     end
   end
+
+  describe '#constants' do
+    it 'retursn an array of constant names' do
+      M3.constants.sort.should == [:A, :M3A]
+    end
+  end
 end

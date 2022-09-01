@@ -182,6 +182,13 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
     return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
 }
 
+Value ModuleObject::constants(Env *env) const {
+    auto ary = new ArrayObject;
+    for (auto pair : m_constants)
+        ary->push(pair.first);
+    return ary;
+}
+
 void ModuleObject::make_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     auto method_info = find_method(env, old_name);
     assert_method_defined(env, old_name, method_info);

@@ -719,6 +719,7 @@ gen.binding('Module', 'class_eval', 'ModuleObject', 'module_eval', argc: 0, pass
 gen.binding('Module', 'const_defined?', 'ModuleObject', 'const_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'const_get', 'ModuleObject', 'const_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'const_set', 'ModuleObject', 'const_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'constants', 'ModuleObject', 'constants', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'define_method', 'ModuleObject', 'define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Module', 'deprecate_constant', 'ModuleObject', 'deprecate_constant', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
