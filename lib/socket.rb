@@ -19,10 +19,18 @@ end
 class Socket < BasicSocket
   AF_INET = __constant__('AF_INET', 'unsigned short')
   AF_INET6 = __constant__('AF_INET6', 'unsigned short')
+  AF_UNIX = __constant__('AF_UNIX', 'unsigned short')
+  IPPROTO_TCP = __constant__('IPPROTO_TCP', 'unsigned short')
+  PF_INET = __constant__('PF_INET', 'unsigned short')
+  PF_INET6 = __constant__('PF_INET6', 'unsigned short')
+  PF_UNSPEC = __constant__('PF_UNSPEC', 'unsigned short')
+  SOCK_RAW = __constant__('SOCK_RAW', 'unsigned short')
+  SOCK_RDM = __constant__('SOCK_RDM', 'unsigned short')
   SOCK_STREAM = __constant__('SOCK_STREAM', 'unsigned short')
   SOL_SOCKET = __constant__('SOL_SOCKET', 'unsigned short')
   SO_REUSEADDR = __constant__('SO_REUSEADDR', 'unsigned short')
   SOCK_DGRAM = __constant__('SOCK_DGRAM', 'unsigned short')
+  SOCK_SEQPACKET = __constant__('SOCK_SEQPACKET', 'unsigned short')
 
   def initialize(domain, socktype, protocol = nil)
     super()
@@ -188,6 +196,26 @@ class Addrinfo
   end
 
   def socktype
+    # TODO
+  end
+
+  def unix_path
+    # TODO
+  end
+
+  def pfamily
+    # TODO
+  end
+
+  def protocol
+    # TODO
+  end
+
+  def ip_address
+    # TODO
+  end
+
+  def ip_port
     # TODO
   end
 end
