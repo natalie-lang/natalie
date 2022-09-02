@@ -260,9 +260,29 @@ class Addrinfo
       return Value::integer(info_struct->ai_family);
   END
 
-  def ip_address
-    # TODO
-  end
+  __define_method__ :ip_address, <<-CPP
+      auto addrinfo = self->ivar_get(env, "@_addrinfo"_s);
+      if(addrinfo->is_nil())
+          env->raise("SocketError", "need IPv4 or IPv6 address");
+
+      auto info_struct = (struct addrinfo *)addrinfo->as_void_p()->void_ptr();
+
+      switch(info_struct->ai_family) {
+           case AF_INET: {
+            char address[INET_ADDRSTRLEN];
+            auto *sockaddr = (struct sockaddr_in *)info_struct->ai_addr;
+            inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
+            return new StringObject { address };
+          }
+          case AF_INET6: {
+            char address[INET6_ADDRSTRLEN];
+            auto *sockaddr = (struct sockaddr_in6 *)info_struct->ai_addr;
+            inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
+            return new StringObject { address };
+          }
+      }
+      return nullptr;
+  CPP
 
   def ip_port
     # TODO
