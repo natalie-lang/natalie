@@ -66,25 +66,17 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
-    auto current = m_begin->as_string()->string();
-    auto iterator = StringUptoIterator(current);
+    TM::Optional<TM::String> current;
     auto end = m_end->as_string()->string();
+    auto iterator = StringUptoIterator(m_begin->as_string()->string(), end, m_exclude_end);
 
-    for (;;) {
-        if (m_exclude_end && current == end)
-            break;
-
+    while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
-            func(new StringObject { current });
+            func(new StringObject { current.value() });
         } else {
-            if (Value ptr = func(new StringObject { current }))
+            if (Value ptr = func(new StringObject { current.value() }))
                 return ptr;
         }
-
-        if (current == end)
-            break;
-
-        current = iterator.next().value();
     }
 
     return nullptr;
@@ -92,25 +84,17 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
-    auto current = m_begin->as_symbol()->string();
-    auto iterator = StringUptoIterator(current);
+    TM::Optional<TM::String> current;
     auto end = m_end->as_symbol()->string();
+    auto iterator = StringUptoIterator(m_begin->as_symbol()->string(), end, m_exclude_end);
 
-    for (;;) {
-        if (m_exclude_end && current == end)
-            break;
-
+    while ((current = iterator.next()).present()) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
-            func(SymbolObject::intern(current));
+            func(SymbolObject::intern(current.value()));
         } else {
-            if (Value ptr = func(SymbolObject::intern(current)))
+            if (Value ptr = func(SymbolObject::intern(current.value())))
                 return ptr;
         }
-
-        if (current == end)
-            break;
-
-        current = iterator.next().value();
     }
 
     return nullptr;
