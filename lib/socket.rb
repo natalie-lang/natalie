@@ -179,29 +179,49 @@ class Addrinfo
     auto socktype = args.at(2, NilObject::the());
     auto protocol = args.at(3, NilObject::the());
 
-    if (family->is_string() || family->is_symbol())
-        family = fetch_nested_const({ "Socket"_s, family->to_symbol(env, Object::Conversion::Strict) });
+    self->ivar_set(env, "@sockaddr"_s, sockaddr);
+
+    if (family->is_string() || family->is_symbol()) {
+        auto sym = family->to_symbol(env, Object::Conversion::Strict);
+        if (sym == "INET"_s)
+            sym = "PF_INET"_s;
+        family = find_top_level_const(env, "Socket"_s)->const_find(env, sym);
+    }
+
+    if (socktype->is_string() || socktype->is_symbol()) {
+        auto sym = socktype->to_symbol(env, Object::Conversion::Strict);
+        if (sym == "STREAM"_s)
+            sym = "SOCK_STREAM"_s;
+        socktype = find_top_level_const(env, "Socket"_s)->const_find(env, sym);
+    }
 
     struct addrinfo hints {};
     struct addrinfo *result {};
-    hints.ai_family    = (unsigned short)family->as_integer()->to_nat_int_t();
-    hints.ai_flags     = 0;
-    hints.ai_socktype  = SOCK_DGRAM;
-    hints.ai_protocol  = IPPROTO_UDP;
+    if (!family->is_nil())
+        hints.ai_family = (unsigned short)family->as_integer()->to_nat_int_t();
+    if (!socktype->is_nil())
+        hints.ai_socktype = (unsigned short)socktype->as_integer()->to_nat_int_t();
+    hints.ai_flags = 0;
+    //hints.ai_protocol = IPPROTO_UDP;
 
-    auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array();
-    auto port = ary->at(0);
-    auto host = ary->at(1);
+    struct sockaddr_un un {};
+    if (sockaddr->as_string()->bytesize() == sizeof(un)) {
+        auto path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr });
+    } else {
+        auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array();
+        auto port = ary->at(0);
+        auto host = ary->at(1);
+        int s = getaddrinfo(
+            host->as_string()->c_str(),
+            port->as_integer()->to_s(env)->as_string()->c_str(),
+            &hints,
+            &result
+        );
+        if (s != 0)
+            env->raise("SocketError", "getaddrinfo: {}\\n", gai_strerror(s));
+        self->ivar_set(env, "@_addrinfo"_s, new VoidPObject { result });
+    }
 
-    int s = getaddrinfo(
-        host->as_string()->c_str(),
-        port->as_integer()->to_s(env)->as_string()->c_str(),
-        &hints,
-        &result
-    );
-    if (s != 0)
-        env->raise("SocketError", "getaddrinfo: {}\\n", gai_strerror(s));
-    self->ivar_set(env, "@addrinfo"_s, new VoidPObject { result });
     return self;
   END
 
@@ -223,16 +243,18 @@ class Addrinfo
     # TODO
   end
 
-  def socktype
-    # TODO
-  end
+  __define_method__ :socktype, <<-END
+      auto addrinfo_void_ptr = self->ivar_get(env, "@_addrinfo"_s)->as_void_p();
+      auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
+      return Value::integer(info_struct->ai_socktype);
+  END
 
   def unix_path
     # TODO
   end
 
   __define_method__ :pfamily, <<-END
-      auto addrinfo_void_ptr = self->ivar_get(env, "@addrinfo"_s)->as_void_p();
+      auto addrinfo_void_ptr = self->ivar_get(env, "@_addrinfo"_s)->as_void_p();
       auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
       return Value::integer(info_struct->ai_family);
   END
