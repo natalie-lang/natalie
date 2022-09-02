@@ -544,7 +544,7 @@ describe "Addrinfo#initialize" do
       @sockaddr = Socket.sockaddr_in(80, '127.0.0.1')
     end
 
-    it 'returns an Addrinfo with "PF_INET"  family' do
+    fit 'returns an Addrinfo with "PF_INET"  family' do
       addr = Addrinfo.new(@sockaddr, 'PF_INET')
 
       addr.pfamily.should == Socket::PF_INET

@@ -3,8 +3,10 @@ require 'natalie/inline'
 __inline__ <<-END
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netdb.h>
 END
 
 class SocketError < StandardError
@@ -170,12 +172,38 @@ class Socket < BasicSocket
 end
 
 class Addrinfo
-  def initialize(sockaddr, family = nil, socktype = nil, protocol = nil)
-    @sockaddr = sockaddr
-    @family = family
-    @socktype = socktype
-    @protocol = protocol
-  end
+  __define_method__ :initialize, <<-END
+    args.ensure_argc_between(env, 1, 4);
+    auto sockaddr = args.at(0);
+    auto family = args.at(1, NilObject::the());
+    auto socktype = args.at(2, NilObject::the());
+    auto protocol = args.at(3, NilObject::the());
+
+    if (family->is_string() || family->is_symbol())
+        family = fetch_nested_const({ "Socket"_s, family->to_symbol(env, Object::Conversion::Strict) });
+
+    struct addrinfo hints {};
+    struct addrinfo *result {};
+    hints.ai_family    = (unsigned short)family->as_integer()->to_nat_int_t();
+    hints.ai_flags     = 0;
+    hints.ai_socktype  = SOCK_DGRAM;
+    hints.ai_protocol  = IPPROTO_UDP;
+
+    auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array();
+    auto port = ary->at(0);
+    auto host = ary->at(1);
+
+    int s = getaddrinfo(
+        host->as_string()->c_str(),
+        port->as_integer()->to_s(env)->as_string()->c_str(),
+        &hints,
+        &result
+    );
+    if (s != 0)
+        env->raise("SocketError", "getaddrinfo: {}\\n", gai_strerror(s));
+    self->ivar_set(env, "@addrinfo"_s, new VoidPObject { result });
+    return self;
+  END
 
   attr_reader :sockaddr, :family
 
@@ -203,9 +231,11 @@ class Addrinfo
     # TODO
   end
 
-  def pfamily
-    # TODO
-  end
+  __define_method__ :pfamily, <<-END
+      auto addrinfo_void_ptr = self->ivar_get(env, "@addrinfo"_s)->as_void_p();
+      auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
+      return Value::integer(info_struct->ai_family);
+  END
 
   def protocol
     # TODO
