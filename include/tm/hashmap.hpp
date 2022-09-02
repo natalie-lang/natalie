@@ -736,7 +736,7 @@ public:
             if (item)
                 break;
         }
-        return iterator { *this, index, item };
+        return iterator<Hashmap> { *this, index, item };
     }
 
     iterator<const Hashmap> begin() const {
@@ -749,15 +749,15 @@ public:
             if (item)
                 break;
         }
-        return iterator { *this, index, item };
+        return iterator<const Hashmap> { *this, index, item };
     }
 
     iterator<Hashmap> end() {
-        return iterator { *this, m_capacity, nullptr };
+        return iterator<Hashmap> { *this, m_capacity, nullptr };
     }
 
     iterator<const Hashmap> end() const {
-        return iterator { *this, m_capacity, nullptr };
+        return iterator<const Hashmap> { *this, m_capacity, nullptr };
     }
 
 private:
