@@ -1450,27 +1450,29 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
         }
 
         if (outcome->is_numeric()) {
+            // Find-any mode
             auto result = (outcome->is_integer() ? outcome->as_integer()->to_nat_int_t()
                                                  : floor(outcome->as_float()->to_double()));
             if (result == 0) {
                 last_index = i;
                 break;
             }
+
             if (result < 0)
-                --right;
-            ++left;
+                right = i - 1;
+            else
+                left = i + 1;
         } else {
+            // Find-minimum mode
             if (outcome->is_true()) {
                 last_index = i;
-                --right;
+                right = i - 1;
                 continue;
             }
-            if (last_index >= 0) {
-                break;
-            }
-            ++left;
+
+            left = i + 1;
         }
-    } while (left < right);
+    } while (left <= right);
 
     if (last_index < 0)
         return NilObject::the();

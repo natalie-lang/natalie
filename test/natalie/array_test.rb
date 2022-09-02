@@ -1902,4 +1902,10 @@ describe 'array' do
       end
     end
   end
+
+  describe '#bsearch' do
+    it 'should match last element' do
+      [0, 1, 2, 3, 4].bsearch { |x| x == 4 }.should == 4
+    end
+  end
 end
