@@ -45,7 +45,7 @@ public:
     }
 
     bool is_ivar_name() {
-        return m_name.length() > 1 && m_name[0] == '@' && isalpha(m_name[1]);
+        return m_name.length() > 1 && m_name[0] == '@' && (isalpha(m_name[1]) || m_name[1] == '_');
     }
 
     bool is_cvar_name() {
