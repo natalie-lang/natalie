@@ -883,6 +883,23 @@ public:
     }
 
     /**
+     * Returns true if this is alphanumerically greater than or equal to the given String.
+     *
+     * ```
+     * auto str1 = String { "def" };
+     * auto str2 = String { "abc" };
+     * auto str3 = String { "abc" };
+     * assert(str1 >= str2);
+     * assert(str1 >= str3);
+     * assert_not(str2 > str1);
+     * ```
+     */
+    bool operator>=(const String &other) const {
+        // FIXME: cannot use strcmp here
+        return strcmp(c_str(), other.c_str()) >= 0;
+    }
+
+    /**
      * Returns true if this is alphanumerically less than the given String.
      *
      * ```

@@ -84,7 +84,7 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
         if (current == end)
             break;
 
-        current = iterator.next();
+        current = iterator.next().value();
     }
 
     return nullptr;
@@ -110,7 +110,7 @@ Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
         if (current == end)
             break;
 
-        current = iterator.next();
+        current = iterator.next().value();
     }
 
     return nullptr;
