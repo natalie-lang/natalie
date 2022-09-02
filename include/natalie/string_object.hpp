@@ -226,6 +226,7 @@ public:
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
+    Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
 
     Value convert_float();
 

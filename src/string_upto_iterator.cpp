@@ -2,22 +2,54 @@
 #include "natalie/integer.hpp"
 
 namespace Natalie {
-TM::String StringUptoIterator::next() {
-    return m_string = peek();
+TM::Optional<TM::String> StringUptoIterator::next() {
+    auto peeked = peek();
+    if (peeked.present())
+        m_current = peeked.value();
+    return peeked;
 }
 
-TM::String StringUptoIterator::peek() const {
-    if (m_treat_like_integer)
-        return TM::String((Integer(m_string) + 1).to_nat_int_t());
+TM::Optional<TM::String> StringUptoIterator::peek() const {
+    if (to_reached())
+        return {};
 
-    // special handling for single characters
-    if (m_string == "9")
-        return ":";
-    else if (m_string == "Z")
-        return "[";
-    else if (m_string == "z")
-        return "{";
+    TM::String result;
+    if (m_current.present()) {
+        auto current = m_current.value();
+        if (m_treat_as_integer) {
+            result = TM::String((Integer(current) + 1).to_nat_int_t());
+        } else {
+            // special handling for single characters
+            if (current == "9")
+                result = ":";
+            else if (current == "Z")
+                result = "[";
+            else if (current == "z")
+                result = "{";
+            else
+                result = current.successive();
+        }
+    } else {
+        result = m_from;
+    }
 
-    return m_string.successive();
+    if (m_has_to && m_exclusive && result == m_to)
+        return {};
+
+    return result;
+}
+
+bool StringUptoIterator::to_reached() const {
+    if (!m_has_to)
+        return false;
+
+    if (!m_current.present())
+        return false;
+
+    if (m_treat_as_integer) {
+        return Integer(m_current.value()) >= Integer(m_to);
+    } else {
+        return m_current.value() >= m_to;
+    }
 }
 }

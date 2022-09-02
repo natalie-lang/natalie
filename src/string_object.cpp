@@ -1268,6 +1268,39 @@ Value StringObject::uplus(Env *env) {
     }
 }
 
+Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
+    if (!exclusive)
+        exclusive = FalseObject::the();
+
+    if (!block)
+        return enum_for(env, "upto", { other, exclusive });
+
+    auto *string = other->to_str(env);
+
+    auto iterator = StringUptoIterator(m_string, string->string(), exclusive->is_truthy());
+
+    if (iterator.treat_as_integer()) {
+        if (Integer(string->string()) < Integer(m_string))
+            return this;
+    } else {
+        if (string->length() < length())
+            return this;
+
+        if (cmp(env, string)->as_integer()->integer() == 1)
+            return this;
+    }
+
+    TM::Optional<TM::String> current;
+    while ((current = iterator.next()).present()) {
+        if (current.value().length() > string->length())
+            return this;
+
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { new StringObject { current.value() } }, nullptr);
+    }
+
+    return this;
+}
+
 Value StringObject::reverse(Env *env) {
     if (length() == 0)
         return new StringObject {};
