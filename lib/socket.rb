@@ -177,9 +177,10 @@ class Addrinfo
     auto sockaddr = args.at(0);
     auto family = args.at(1, NilObject::the());
     auto socktype = args.at(2, NilObject::the());
-    auto protocol = args.at(3, NilObject::the());
+    auto protocol = args.at(3, Value::integer(0));
 
     self->ivar_set(env, "@sockaddr"_s, sockaddr);
+    self->ivar_set(env, "@protocol"_s, protocol);
 
     if (family->is_string() || family->is_symbol()) {
         auto sym = family->to_symbol(env, Object::Conversion::Strict);
@@ -225,10 +226,10 @@ class Addrinfo
     return self;
   END
 
-  attr_reader :sockaddr, :family
+  attr_reader :sockaddr, :family, :protocol
 
   def self.tcp(ip, port)
-    Addrinfo.new(Socket.pack_sockaddr_in(port, ip))
+    Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, nil, Socket::IPPROTO_TCP)
   end
 
   def self.udp(_ip, _port)
@@ -258,10 +259,6 @@ class Addrinfo
       auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
       return Value::integer(info_struct->ai_family);
   END
-
-  def protocol
-    # TODO
-  end
 
   def ip_address
     # TODO
