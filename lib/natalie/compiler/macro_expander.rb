@@ -226,7 +226,7 @@ module Natalie
       def load_cpp_file(path, require_once:)
         @inline_cpp_enabled = true # FIXME: this shouldn't be enabled everywhere; the user didn't ask for it
         name = File.split(path).last.split('.').first
-        return if @compiler_context[:required_cpp_files][path]
+        return s(:false) if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
         init_function = "Value init(Env *env, Value self)"
@@ -240,7 +240,8 @@ module Natalie
         end
         s(:block,
           s(:call, nil, :__inline__,
-            s(:str, cpp_source)))
+            s(:str, cpp_source)),
+          s(:true))
       end
 
       def drop_load_error(msg)
