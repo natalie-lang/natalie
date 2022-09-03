@@ -51,7 +51,7 @@ end
 desc 'Run the most-recently-modified test'
 task test_last_modified: :build do
   last_edited = Dir['test/**/*_test.rb', 'spec/**/*_spec.rb'].max_by { |path| File.stat(path).mtime.to_i }
-  sh ['bin/natalie', ENV['FLAGS'], last_edited].compact.join(' ')
+  sh ['bin/natalie', '-I', 'test/support', ENV['FLAGS'], last_edited].compact.join(' ')
 end
 
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
