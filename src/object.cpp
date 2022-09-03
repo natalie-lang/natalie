@@ -914,6 +914,18 @@ IntegerObject *Object::to_int(Env *env) {
         result->klass()->inspect_str());
 }
 
+FloatObject *Object::to_f(Env *env) {
+    if (is_float()) return as_float();
+
+    auto to_f = "to_f"_s;
+    if (!respond_to(env, to_f))
+        assert_type(env, Type::Float, "Float");
+
+    auto result = send(env, to_f);
+    result->assert_type(env, Type::Float, "Float");
+    return result->as_float();
+}
+
 StringObject *Object::to_str(Env *env) {
     if (is_string()) return as_string();
 

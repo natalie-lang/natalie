@@ -295,6 +295,7 @@ public:
     virtual void gc_inspect(char *buf, size_t len) const override;
 
     ArrayObject *to_ary(Env *env);
+    FloatObject *to_f(Env *env);
     IntegerObject *to_int(Env *env);
     StringObject *to_str(Env *env);
 
