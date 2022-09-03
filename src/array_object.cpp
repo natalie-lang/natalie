@@ -1436,6 +1436,9 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
         return send(env, "enum_for"_s, { "bsearch_index"_s });
     }
 
+    if (size() == 0)
+        return NilObject::the();
+
     nat_int_t left = 0;
     nat_int_t right = m_vector.size() - 1;
     nat_int_t last_index { -1 };

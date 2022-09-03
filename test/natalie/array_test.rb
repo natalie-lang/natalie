@@ -1907,5 +1907,9 @@ describe 'array' do
     it 'should match last element' do
       [0, 1, 2, 3, 4].bsearch { |x| x == 4 }.should == 4
     end
+
+    it 'does not fail on empty array' do
+      [].bsearch { true }.should == nil
+    end
   end
 end
