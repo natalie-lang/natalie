@@ -118,7 +118,7 @@ module Natalie
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
-        required_obj_files: {},
+        required_cpp_files: {},
       }
     end
 
@@ -278,7 +278,7 @@ module Natalie
     end
 
     def template
-      write_obj_path ? OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}") : MAIN_TEMPLATE
+      write_obj_path ? OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name) : MAIN_TEMPLATE
     end
 
     def expand_macros

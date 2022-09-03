@@ -226,11 +226,21 @@ module Natalie
       def load_cpp_file(path, require_once:)
         @inline_cpp_enabled = true # FIXME: this shouldn't be enabled everywhere; the user didn't ask for it
         name = File.split(path).last.split('.').first
-        return if @compiler_context[:required_obj_files][path]
-        @compiler_context[:required_obj_files][path] = name
+        return if @compiler_context[:required_cpp_files][path]
+        @compiler_context[:required_cpp_files][path] = name
+        cpp_source = File.read(path)
+        init_function = "Value init(Env *env, Value self)"
+        transformed_init_function = "Value init_#{name}(Env *env, Value self)"
+        if cpp_source.include?(init_function);
+          cpp_source.sub!(init_function, transformed_init_function)
+        else
+          $stderr.puts "Expected #{path} to contain function: `#{init_function}`\n" \
+                       "...which will be rewritten to: `#{transformed_init_function}`"
+          raise CompileError, "could not load #{name}"
+        end
         s(:block,
           s(:call, nil, :__inline__,
-            s(:str, File.read(path))))
+            s(:str, cpp_source)))
       end
 
       def drop_load_error(msg)
