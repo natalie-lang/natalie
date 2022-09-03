@@ -786,6 +786,7 @@ gen.binding('Random', 'seed', 'RandomObject', 'seed', argc: 0, pass_env: false, 
 
 gen.binding('Range', '==', 'RangeObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Range', 'begin', 'RangeObject', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.binding('Range', 'bsearch', 'RangeObject', 'bsearch', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Range', 'end', 'RangeObject', 'end', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Range', 'each', 'RangeObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Range', 'eql?', 'RangeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

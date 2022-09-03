@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/bsearch.hpp"
 
 namespace Natalie {
 
@@ -261,5 +262,44 @@ bool RangeObject::include(Env *env, Value arg) {
     });
 
     return !!found_item;
+}
+
+Value RangeObject::bsearch(Env *env, Block *block) {
+    if (!block)
+        return enum_for(env, "bsearch");
+
+    if (m_begin->is_integer() && m_end->is_integer()) {
+        nat_int_t left = m_begin->as_integer()->integer().to_nat_int_t();
+        nat_int_t right = m_end->as_integer()->integer().to_nat_int_t();
+
+        return binary_search_integer(env, left, right, block, m_exclude_end);
+    } else if (m_begin->is_integer() && m_end->is_nil()) {
+        nat_int_t left = m_begin->as_integer()->integer().to_nat_int_t();
+        nat_int_t right = left + 1;
+
+        // Find a right border in which we can perform the binary search.
+        while (binary_search_check(env, NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { IntegerObject::create(right) }, nullptr)) != BSearchCheckResult::SMALLER) {
+            right = left + (right - left) * 2;
+        }
+
+        return binary_search_integer(env, left, right, block, false);
+    } else if (m_begin->is_nil() && m_end->is_integer()) {
+        nat_int_t right = m_end->as_integer()->integer().to_nat_int_t();
+        nat_int_t left = right - 1;
+
+        // Find a left border in which we can perform the binary search.
+        while (binary_search_check(env, NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { IntegerObject::create(left) }, nullptr)) != BSearchCheckResult::BIGGER) {
+            left = right - (right - left) * 2;
+        }
+
+        return binary_search_integer(env, left, right, block, false);
+    } else if (m_begin->is_numeric() || m_end->is_numeric()) {
+        double left = m_begin->is_nil() ? -std::numeric_limits<double>::infinity() : m_begin->to_f(env)->to_double();
+        double right = m_end->is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
+
+        return binary_search_float(env, left, right, block, m_exclude_end);
+    } else {
+        env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
+    }
 }
 }
