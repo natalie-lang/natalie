@@ -680,6 +680,9 @@ Value Object::dup(Env *env) {
 
 Value Object::clone(Env *env) {
     auto duplicate = this->dup(env);
+    if (this->is_frozen()) {
+        duplicate->freeze();
+    }
     auto s_class = singleton_class();
     if (s_class) {
         duplicate->set_singleton_class(s_class->clone(env)->as_class());
