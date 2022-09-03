@@ -78,3 +78,7 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/WhileUntilModifier:
   Enabled: false
+
+Lint/Void:
+  Exclude:
+    - test/**/*.rb
