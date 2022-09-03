@@ -13,6 +13,9 @@ Layout/HeredocIndentation:
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
 
+Lint/BooleanSymbol:
+  Enabled: false
+
 Metrics:
   Enabled: false
 
@@ -65,13 +68,13 @@ Style/StringConcatenation:
   Enabled: false
 
 Style/TrailingCommaInArguments:
-  EnforcedStyleForMultiline: consistent_comma
+  Enabled: false
 
 Style/TrailingCommaInHashLiteral:
-  EnforcedStyleForMultiline: consistent_comma
+  Enabled: false
 
 Style/TrailingCommaInArrayLiteral:
-  EnforcedStyleForMultiline: consistent_comma
+  Enabled: false
 
 Style/WhileUntilModifier:
   Enabled: false
