@@ -6,7 +6,7 @@ load 'require_sub2.rb'
 require_relative '../support/require_sub3'
 require 'require_sub4.foo'
 begin
-require 'require_sub5'
+  require 'require_sub5'
 rescue LoadError
   # expected in MRI since this is a cpp file
 end
@@ -14,7 +14,7 @@ end
 # this is here to test that order of requires goes top-to-bottom
 class Foo1 < Bar1
 end
-require 'require_sub1'
+require 'require_sub1' # rubocop:disable Lint/DuplicateRequire
 
 describe 'require' do
   it 'works' do
