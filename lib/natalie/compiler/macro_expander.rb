@@ -1,11 +1,12 @@
 module Natalie
   class Compiler
     class MacroExpander
-      def initialize(ast:, path:, load_path:, interpret:, log_load_error: false)
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false)
         @ast = ast
         @path = path
         @load_path = load_path
         @interpret = interpret
+        @compiler_context = compiler_context
         @log_load_error = log_load_error
         @inline_cpp_enabled = false
       end
@@ -50,7 +51,8 @@ module Natalie
           ast: ast,
           path: path,
           load_path: load_path,
-          interpret: interpret?
+          interpret: interpret?,
+          compiler_context: @compiler_context,
         )
         result = expander.expand
         @inline_cpp_enabled ||= expander.inline_cpp_enabled?
@@ -93,7 +95,7 @@ module Natalie
         s(:block)
       end
 
-      def macro_require(expr:, current_path:)
+      def macro_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
         node = args.first
         raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
@@ -103,10 +105,10 @@ module Natalie
           @inline_cpp_enabled = true
           return s(:block)
         end
-        if (full_path = find_full_path("#{name}.rb", base: Dir.pwd, search: true))
-          return load_file(full_path, require_once: true)
-        elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
-          return load_file(full_path, require_once: true)
+        ['.rb', '.cpp', ''].each do |extension|
+          if (full_path = find_full_path(name + extension, base: Dir.pwd, search: true))
+            return load_file(full_path, require_once: true)
+          end
         end
         drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
       end
@@ -116,15 +118,16 @@ module Natalie
         node = args.first
         raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
         name = node[1]
-        if (full_path = find_full_path("#{name}.rb", base: File.dirname(current_path), search: false))
-          return load_file(full_path, require_once: true)
-        elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
-          return load_file(full_path, require_once: true)
+        base = File.dirname(current_path)
+        ['.rb', '.cpp', ''].each do |extension|
+          if (full_path = find_full_path(name + extension, base: base, search: false))
+            return load_file(full_path, require_once: true)
+          end
         end
         drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
       end
 
-      def macro_load(expr:, current_path:)
+      def macro_load(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
         node = args.first
         raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
@@ -150,11 +153,11 @@ module Natalie
         end
       end
 
-      def macro_nat_ignore_require(expr:, current_path:)
+      def macro_nat_ignore_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         s(:false) # Script has not been loaded
       end
 
-      def macro_nat_ignore_require_relative(expr:, current_path:)
+      def macro_nat_ignore_require_relative(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         s(:false) # Script has not been loaded
       end
 
@@ -193,18 +196,15 @@ module Natalie
       end
 
       def load_file(path, require_once:)
+        return load_cpp_file(path, require_once: require_once) if path =~ /\.cpp$/
         code = File.read(path)
         file_ast = Natalie::Parser.new(code, path).ast
         path_h = path.hash.to_s # the only point of this is to obscure the paths of the host system where natalie is run
-        s(
-          :block,
-          s(
-            :if,
+        s(:block,
+          s(:if,
             if require_once
-              s(
-                :call,
-                s(
-                  :call,
+              s(:call,
+                s(:call,
                   s(:op_asgn_or, s(:gvar, :$NAT_LOADED_PATHS), s(:gasgn, :$NAT_LOADED_PATHS, s(:hash))),
                   :[],
                   s(:str, path_h),
@@ -214,14 +214,23 @@ module Natalie
             else
               s(:true)
             end,
-            s(
-              :block,
+            s(:block,
               expand_macros(file_ast, path),
               require_once ? s(:attrasgn, s(:gvar, :$NAT_LOADED_PATHS), :[]=, s(:str, path_h), s(:true)) : s(:true),
             ),
             s(:false),
           ),
         )
+      end
+
+      def load_cpp_file(path, require_once:)
+        @inline_cpp_enabled = true # FIXME: this shouldn't be enabled everywhere; the user didn't ask for it
+        name = File.split(path).last.split('.').first
+        return if @compiler_context[:required_obj_files][path]
+        @compiler_context[:required_obj_files][path] = name
+        s(:block,
+          s(:call, nil, :__inline__,
+            s(:str, File.read(path))))
       end
 
       def drop_load_error(msg)
