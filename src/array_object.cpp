@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/bsearch.hpp"
 #include <algorithm>
 #include <math.h>
 #include <natalie/array_object.hpp>
@@ -1432,54 +1433,20 @@ Value ArrayObject::bsearch(Env *env, Block *block) {
 }
 
 Value ArrayObject::bsearch_index(Env *env, Block *block) {
-    if (!block) {
+    if (!block)
         return send(env, "enum_for"_s, { "bsearch_index"_s });
-    }
-
-    if (size() == 0)
-        return NilObject::the();
 
     nat_int_t left = 0;
     nat_int_t right = m_vector.size() - 1;
-    nat_int_t last_index { -1 };
 
-    do {
-        nat_int_t i = floor((left + right) / 2);
-        Value args[] = { (*this)[i] };
-        auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-        if (!(
-                outcome->is_numeric() || outcome->is_nil() || outcome->is_boolean())) {
-            env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->inspect_str());
-        }
+    auto result = binary_search(env, left, right, [this, env, block](nat_int_t middle) -> Value {
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { (*this)[middle] }, nullptr);
+    });
 
-        if (outcome->is_numeric()) {
-            // Find-any mode
-            auto result = (outcome->is_integer() ? outcome->as_integer()->to_nat_int_t()
-                                                 : floor(outcome->as_float()->to_double()));
-            if (result == 0) {
-                last_index = i;
-                break;
-            }
-
-            if (result < 0)
-                right = i - 1;
-            else
-                left = i + 1;
-        } else {
-            // Find-minimum mode
-            if (outcome->is_true()) {
-                last_index = i;
-                right = i - 1;
-                continue;
-            }
-
-            left = i + 1;
-        }
-    } while (left <= right);
-
-    if (last_index < 0)
+    if (!result.present())
         return NilObject::the();
-    return new IntegerObject { last_index };
+
+    return IntegerObject::create(result.value());
 }
 
 Value ArrayObject::rassoc(Env *env, Value needle) {
