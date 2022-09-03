@@ -118,6 +118,7 @@ module Natalie
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
+        required_obj_files: {},
       }
     end
 
@@ -180,9 +181,9 @@ module Natalie
     private
 
     def transform
-      ast = expand_macros(@ast, @path)
-
       @context = build_context
+
+      ast = expand_macros
 
       keep_final_value_on_stack = options[:interpret]
       instructions = Pass1.new(
@@ -280,13 +281,14 @@ module Natalie
       write_obj_path ? OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}") : MAIN_TEMPLATE
     end
 
-    def expand_macros(ast, path)
+    def expand_macros
       expander = MacroExpander.new(
-        ast: ast,
-        path: path,
+        ast: @ast,
+        path: @path,
         load_path: load_path,
         interpret: interpret?,
         log_load_error: options[:log_load_error],
+        compiler_context: @context,
       )
       result = expander.expand
       @inline_cpp_enabled ||= expander.inline_cpp_enabled?

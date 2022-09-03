@@ -81,7 +81,9 @@ module Natalie
       def obj_files
         rb_files = Dir.children(File.expand_path('../../../../src', __dir__)).grep(/\.rb$/)
         list = rb_files.sort.map { |name| name.split('.').first }
-        ['exception'] + (list - ['exception'])
+        ['exception'] + # must come first
+          (list - ['exception']) +
+          @compiler_context[:required_obj_files].values
       end
 
       def obj_declarations
