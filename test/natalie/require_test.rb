@@ -5,6 +5,11 @@ require 'require_sub1'
 load 'require_sub2.rb'
 require_relative '../support/require_sub3'
 require 'require_sub4.foo'
+begin
+require 'require_sub5'
+rescue LoadError
+  # expected in MRI since this is a cpp file
+end
 
 # this is here to test that order of requires goes top-to-bottom
 class Foo1 < Bar1
@@ -19,6 +24,10 @@ describe 'require' do
     Bar2.new.bar2.should == 'bar2'
     foo3.should == 'foo3'
     Bar3.new.bar3.should == 'bar3'
+    foo4.should == 'foo4'
+    if RUBY_ENGINE == 'natalie'
+      foo5.should == 'foo5'
+    end
   end
 
   it 'raises an error when the path does not exist' do

@@ -83,15 +83,15 @@ module Natalie
         list = rb_files.sort.map { |name| name.split('.').first }
         ['exception'] + # must come first
           (list - ['exception']) +
-          @compiler_context[:required_obj_files].values
+          @compiler_context[:required_cpp_files].values
       end
 
       def obj_declarations
-        obj_files.map { |name| "Value init_obj_#{name}(Env *env, Value self);" }.join("\n")
+        obj_files.map { |name| "Value init_#{name}(Env *env, Value self);" }.join("\n")
       end
 
       def obj_init_lines
-        obj_files.map { |name| "init_obj_#{name}(env, self);" }
+        obj_files.map { |name| "init_#{name}(env, self);" }
       end
 
       def reindent(code)
