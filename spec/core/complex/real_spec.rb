@@ -1,6 +1,6 @@
 require_relative '../../spec_helper'
 
-xdescribe "Complex#real" do
+describe "Complex#real" do
   it "returns the real part of self" do
     Complex(1, 0).real.should == 1
     Complex(2, 1).real.should == 2

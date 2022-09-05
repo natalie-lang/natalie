@@ -29,6 +29,7 @@ public:
         , m_imaginary { imaginary } { }
 
     Value inspect(Env *);
+    Value real(Env *);
 
 private:
     Value m_real { nullptr };
