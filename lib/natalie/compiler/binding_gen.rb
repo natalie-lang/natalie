@@ -425,6 +425,7 @@ gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_en
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.undefine_instance_method('Complex', 'new')
+gen.binding('Complex', 'imaginary', 'ComplexObject', 'imaginary', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Complex', 'inspect', 'ComplexObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Complex', 'real', 'ComplexObject', 'real', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

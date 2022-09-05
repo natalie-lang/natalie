@@ -28,6 +28,7 @@ public:
         , m_real { real }
         , m_imaginary { imaginary } { }
 
+    Value imaginary(Env *);
     Value inspect(Env *);
     Value real(Env *);
 
