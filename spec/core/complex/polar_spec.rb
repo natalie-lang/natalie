@@ -1,6 +1,6 @@
 require_relative '../../spec_helper'
 
-xdescribe "Complex.polar" do
+describe "Complex.polar" do
   it "returns a complex number in terms of radius and angle" do
     Complex.polar(50, 60).should be_close(Complex(-47.6206490207578, -15.2405310551108), TOLERANCE)
     Complex.polar(-10, -20).should be_close(Complex(-4.08082061813392, 9.12945250727628), TOLERANCE)
@@ -13,7 +13,7 @@ xdescribe "Complex.polar" do
 end
 
 describe "Complex#polar" do
-  fit "returns the absolute value and the argument" do
+  it "returns the absolute value and the argument" do
     a = Complex(3, 4)
     a.polar.size.should == 2
     a.polar.first.should == 5.0
