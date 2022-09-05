@@ -79,6 +79,10 @@ class Complex
     return true
   end
 
+  def conjugate
+    Complex(self.real, -self.imaginary)
+  end
+
   def abs
     # r = |z| = sqrt(a^2 + b^2).
     Math.sqrt(self.real ** 2 + self.imaginary ** 2)
