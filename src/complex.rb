@@ -87,6 +87,10 @@ class Complex
     return Complex(real, imaginary)
   end
 
+  def rect
+    self.rectangular
+  end
+
   def rectangular
     return [self.real, self.imaginary]
   end
@@ -101,6 +105,10 @@ class Complex
     end
 
     Complex(real, imaginary)
+  end
+
+  def self.rect(real, imaginary = 0)
+    self.rectangular(real, imaginary)
   end
 
   def to_c
