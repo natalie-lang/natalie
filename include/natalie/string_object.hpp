@@ -188,6 +188,7 @@ public:
     Value chop(Env *);
     Value chop_in_place(Env *);
     Value clear(Env *);
+    Value clone(Env *env);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, Args args);
     Value delete_prefix(Env *, Value);
