@@ -87,6 +87,22 @@ class Complex
     return Complex(real, imaginary)
   end
 
+  def rectangular
+    return [self.real, self.imaginary]
+  end
+
+  def self.rectangular(real, imaginary = 0)
+    if ! real.is_a?(Numeric) || ! imaginary.is_a?(Numeric)
+      raise TypeError, "not a Numeric"
+    end
+
+    if ! real.real? || ! imaginary.real?
+      raise TypeError, "not a real"
+    end
+
+    Complex(real, imaginary)
+  end
+
   def to_c
     self
   end
