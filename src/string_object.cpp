@@ -530,7 +530,7 @@ Value StringObject::clone(Env *env) {
         duplicate->set_singleton_class(s_class->clone(env)->as_class());
     }
 
-   if (duplicate->respond_to(env, "initialize_copy"_s)) {
+    if (duplicate->respond_to(env, "initialize_copy"_s)) {
         duplicate->send(env, "initialize_copy"_s, { duplicate });
     }
 
