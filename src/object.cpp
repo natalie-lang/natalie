@@ -28,6 +28,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ClassObject { klass };
         break;
 
+    case Object::Type::Complex:
+        obj = new ComplexObject { klass };
+        break;
+
     case Object::Type::Encoding:
         obj = new EncodingObject { klass };
         break;
@@ -161,6 +165,11 @@ ModuleObject *Object::as_module() {
 ClassObject *Object::as_class() {
     assert(is_class());
     return static_cast<ClassObject *>(this);
+}
+
+ComplexObject *Object::as_complex() {
+    assert(is_complex());
+    return static_cast<ComplexObject *>(this);
 }
 
 EncodingObject *Object::as_encoding() {
@@ -646,6 +655,8 @@ Value Object::dup(Env *env) {
         return new ArrayObject { *as_array() };
     case Object::Type::Class:
         return new ClassObject { *as_class() };
+    case Object::Type::Complex:
+        return new ComplexObject { *as_complex() };
     case Object::Type::Exception:
         return new ExceptionObject { *as_exception() };
     case Object::Type::Float:

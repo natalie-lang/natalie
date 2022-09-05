@@ -116,6 +116,7 @@ public:
     bool is_method() const { return m_type == Type::Method; }
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
     bool is_class() const { return m_type == Type::Class; }
+    bool is_complex() const { return m_type == Type::Complex; }
     bool is_encoding() const { return m_type == Type::Encoding; }
     bool is_exception() const { return m_type == Type::Exception; }
     bool is_float() const { return m_type == Type::Float; }
@@ -140,6 +141,7 @@ public:
 
     ArrayObject *as_array();
     ClassObject *as_class();
+    ComplexObject *as_complex();
     EncodingObject *as_encoding();
     ExceptionObject *as_exception();
     FalseObject *as_false();

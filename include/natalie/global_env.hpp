@@ -34,6 +34,9 @@ public:
     ClassObject *Class() { return m_Class; }
     void set_Class(ClassObject *Class) { m_Class = Class; }
 
+    ClassObject *Complex() { return m_Complex; }
+    void set_Complex(ClassObject *Complex) { m_Complex = Complex; }
+
     ClassObject *Float() { return m_Float; }
     void set_Float(ClassObject *Float) { m_Float = Float; }
 
@@ -101,6 +104,7 @@ private:
     ClassObject *m_Array { nullptr };
     ClassObject *m_Binding { nullptr };
     ClassObject *m_Class { nullptr };
+    ClassObject *m_Complex { nullptr };
     ClassObject *m_Float { nullptr };
     ClassObject *m_Hash { nullptr };
     ClassObject *m_Integer { nullptr };

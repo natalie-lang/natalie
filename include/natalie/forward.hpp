@@ -8,6 +8,7 @@ class ArrayObject;
 class Backtrace;
 class Block;
 class ClassObject;
+class ComplexObject;
 class EncodingObject;
 class Env;
 class EnvObject;
