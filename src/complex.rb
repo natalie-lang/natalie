@@ -37,6 +37,10 @@ class Complex
     return true
   end
 
+  def to_c
+    self
+  end
+
   def real?
     false
   end
