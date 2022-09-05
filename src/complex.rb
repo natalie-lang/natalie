@@ -94,6 +94,7 @@ class Complex
     Math.atan2(self.imaginary, self.real)
   end
   alias angle arg
+  alias phase arg
 
   def polar
     # Given z = a + bi, the polar form can be represented as z = r (cosθ + i sinθ)
