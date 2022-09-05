@@ -11,6 +11,16 @@ class Complex
     self.real.to_i
   end
 
+  def to_f
+    imaginary = self.imaginary
+
+    if (imaginary.is_a?(Float) && imaginary == 0.0) || (imaginary.respond_to?(:to_f) && imaginary.to_f != 0.0)
+      raise RangeError, "can't convert #{self.inspect} to Float"
+    end
+
+    self.real.to_f
+  end
+
   def +(other)
     if other.is_a?(Complex)
       return Complex(self.real + other.real, self.imaginary + other.imaginary)
