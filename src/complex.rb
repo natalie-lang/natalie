@@ -88,6 +88,7 @@ class Complex
     # θ = tan^-1(b / a)
     Math.atan2(self.imaginary, self.real)
   end
+  alias angle arg
 
   def polar
     # Given z = a + bi, the polar form can be represented as z = r (cosθ + i sinθ)
