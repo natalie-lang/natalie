@@ -82,6 +82,7 @@ class Complex
   def conjugate
     Complex(self.real, -self.imaginary)
   end
+  alias conj conjugate
 
   def abs
     # r = |z| = sqrt(a^2 + b^2).
