@@ -74,7 +74,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value kwargs)
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
-    
+
     if (imaginary == nullptr) {
         return new ComplexObject { real };
     } else if (real->is_string()) {
