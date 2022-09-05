@@ -21,6 +21,42 @@ class Complex
     self.real.to_f
   end
 
+  def to_s
+    real = self.real
+    imaginary = self.imaginary
+
+    s = ""
+    
+    if real.respond_to?(:nan?) && real.nan?
+      s << "NaN"
+    else
+      s << real.to_s
+    end
+
+    if ! imaginary.negative?
+      s << "+"
+    end
+
+    if imaginary.respond_to?(:nan?) && imaginary.nan?
+      if imaginary.negative?
+        s << '-'
+      end
+
+      s << "NaN*"
+    elsif ! imaginary.finite?
+      if imaginary.negative?
+        s << '-'
+      end
+
+      s << "Infinity*"
+    else
+      s << imaginary.to_s
+    end
+
+    s << "i"
+    s
+  end
+
   def +(other)
     if other.is_a?(Complex)
       return Complex(self.real + other.real, self.imaginary + other.imaginary)
@@ -164,13 +200,6 @@ class Complex
   end
 
   def inspect
-    real = self.real
-    imaginary = self.imaginary
-
-    if imaginary < 0
-      "(#{real.inspect}#{imaginary.inspect}i)"
-    else
-      "(#{real.inspect}+#{imaginary.inspect}i)"
-    end
+    "(#{self.to_s})"
   end
 end
