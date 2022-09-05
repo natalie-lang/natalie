@@ -152,4 +152,15 @@ class Complex
   def real?
     false
   end
+
+  def inspect
+    real = self.real
+    imaginary = self.imaginary
+
+    if imaginary < 0
+      "(#{real.inspect}#{imaginary.inspect}i)"
+    else
+      "(#{real.inspect}+#{imaginary.inspect}i)"
+    end
+  end
 end
