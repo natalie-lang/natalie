@@ -84,6 +84,10 @@ class Complex
     Math.sqrt(self.real ** 2 + self.imaginary ** 2)
   end
 
+  def abs2
+    (self.real ** 2) + (self.imaginary ** 2)
+  end
+
   def arg
     # θ = tan^-1(b / a)
     Math.atan2(self.imaginary, self.real)
