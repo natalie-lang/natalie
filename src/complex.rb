@@ -31,6 +31,24 @@ class Complex
     end
   end
 
+  def *(other)    
+    # (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
+    if other.is_a?(Complex)
+      ac = self.real * other.real
+      bd = self.imaginary * other.imaginary
+      ad = self.real * other.imaginary
+      bc = self.imaginary * other.real
+
+      return Complex(ac - bd, ad + bc)
+    end
+
+    if other.is_a?(Numeric)
+      return Complex(self.real * other, self.imaginary * other)
+    end
+
+    # NATFIXME: Handle coercion of objects.
+  end
+
   def ==(other)
     real = self.real
     imaginary = self.imaginary
