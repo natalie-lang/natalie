@@ -684,14 +684,6 @@ Value Object::clone(Env *env) {
     if (s_class) {
         duplicate->set_singleton_class(s_class->clone(env)->as_class());
     }
-    
-    if (duplicate->respond_to(env, "initialize_copy"_s)) {
-        duplicate->send(env, "initialize_copy"_s, { duplicate });
-    }
-
-    if (this->is_frozen()) {
-        duplicate->freeze();
-    }
 
     return duplicate;
 }
