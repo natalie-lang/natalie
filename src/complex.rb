@@ -57,6 +57,22 @@ class Complex
     return true
   end
 
+  def abs
+    # r = |z| = sqrt(a^2 + b^2).
+    Math.sqrt(self.real ** 2 + self.imaginary ** 2)
+  end
+
+  def arg
+    # θ = tan^-1(b / a)
+    Math.atan2(self.imaginary, self.real)
+  end
+
+  def polar
+    # Given z = a + bi, the polar form can be represented as z = r (cosθ + i sinθ)
+    # where r = self.abs and θ = self.arg.
+    [self.abs, self.arg]
+  end
+
   def to_c
     self
   end
