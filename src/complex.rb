@@ -11,6 +11,16 @@ class Complex
     self.real.to_i
   end
 
+  def +(other)
+    if other.is_a?(Complex)
+      return Complex(self.real + other.real, self.imaginary + other.imaginary)
+    end
+
+    if other.is_a?(Numeric)
+      return Complex(self.real + other, self.imaginary)
+    end
+  end
+
   def ==(other)
     real = self.real
     imaginary = self.imaginary
