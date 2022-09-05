@@ -83,6 +83,7 @@ class Complex
     # r = |z| = sqrt(a^2 + b^2).
     Math.sqrt(self.real ** 2 + self.imaginary ** 2)
   end
+  alias magnitude abs
 
   def abs2
     (self.real ** 2) + (self.imaginary ** 2)
