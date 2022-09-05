@@ -49,6 +49,10 @@ class Complex
     # NATFIXME: Handle coercion of objects.
   end
 
+  def -@
+    Complex(-self.real, -self.imaginary)
+  end
+
   def ==(other)
     real = self.real
     imaginary = self.imaginary
