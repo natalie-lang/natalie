@@ -6,7 +6,7 @@ describe "Complex#to_c" do
     value.to_c.should equal(value)
   end
 
-  fit 'returns the same value' do
+  it 'returns the same value' do
     Complex(1, 5).to_c.should == Complex(1, 5)
   end
 end
