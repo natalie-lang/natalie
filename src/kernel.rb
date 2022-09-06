@@ -3,6 +3,16 @@ module Kernel
     0 if other.object_id == self.object_id || (!is_a?(Comparable) && self == other)
   end
 
+  def then
+    if block_given?
+      return yield(self)
+    end
+
+    Enumerator.new(1) do |yielder|
+      yielder.yield(self)
+    end
+  end
+
   def enum_for(method = :each, *args, &block)
     enum =
       Enumerator.new do |yielder|
