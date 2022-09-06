@@ -11,14 +11,14 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, inline_cpp_enabled:, compiler_context:)
+      def initialize(ast, compiler_context:)
         super()
         @ast = ast
         @compiler_context = compiler_context
 
         # If any user code has required 'natalie/inline', then we enable
         # magical extra features. :-)
-        @inline_cpp_enabled = inline_cpp_enabled
+        @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
 
         # We need a way to associate `retry` with the `rescue` block it
         # belongs to. Using a stack of object ids seems to work ok.
@@ -202,7 +202,7 @@ module Natalie
           return transform_expression(new_exp, used: used)
         end
 
-        if @inline_cpp_enabled && receiver.nil? && INLINE_CPP_MACROS.include?(message)
+        if is_inline_macro_call?(exp)
           instructions = []
           if message == :__call__
             args[1..].reverse_each do |arg|
@@ -1043,6 +1043,8 @@ module Natalie
         [RedoInstruction.new]
       end
 
+      alias transform_require_cpp_file transform_call
+
       def transform_rescue(exp, used:)
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
@@ -1237,6 +1239,15 @@ module Natalie
 
       def is_lambda_call?(exp)
         exp == s(:lambda) || exp == s(:call, nil, :lambda)
+      end
+
+      def is_inline_macro_call?(exp)
+        type, receiver, message, * = exp
+        inline_enabled = @inline_cpp_enabled[exp.file] ||
+                         type == :require_cpp_file
+        inline_enabled &&
+          receiver.nil? &&
+          INLINE_CPP_MACROS.include?(message)
       end
 
       def minimum_arg_count(args)

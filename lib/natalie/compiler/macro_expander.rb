@@ -7,8 +7,8 @@ module Natalie
         @load_path = load_path
         @interpret = interpret
         @compiler_context = compiler_context
+        @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
-        @inline_cpp_enabled = false
       end
 
       attr_reader :ast, :path, :load_path
@@ -40,10 +40,6 @@ module Natalie
         ast
       end
 
-      def inline_cpp_enabled?
-        @inline_cpp_enabled
-      end
-
       private
 
       def expand_macros(ast, path)
@@ -54,9 +50,7 @@ module Natalie
           interpret: interpret?,
           compiler_context: @compiler_context,
         )
-        result = expander.expand
-        @inline_cpp_enabled ||= expander.inline_cpp_enabled?
-        result
+        expander.expand
       end
 
       def macro?(node)
@@ -102,7 +96,7 @@ module Natalie
         name = node[1]
         return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
-          @inline_cpp_enabled = true
+          @inline_cpp_enabled[current_path] = true
           return s(:block)
         end
         ['.rb', '.cpp', ''].each do |extension|
@@ -224,7 +218,6 @@ module Natalie
       end
 
       def load_cpp_file(path, require_once:)
-        @inline_cpp_enabled = true # FIXME: this shouldn't be enabled everywhere; the user didn't ask for it
         name = File.split(path).last.split('.').first
         return s(:false) if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
@@ -239,8 +232,7 @@ module Natalie
           raise CompileError, "could not load #{name}"
         end
         s(:block,
-          s(:call, nil, :__inline__,
-            s(:str, cpp_source)),
+          s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
           s(:true))
       end
 

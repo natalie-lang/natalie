@@ -54,6 +54,7 @@ module Natalie
       @path = path
       @options = options
       @cxx_flags = []
+      @inline_cpp_enabled = {}
     end
 
     attr_accessor :ast,
@@ -186,11 +187,8 @@ module Natalie
       ast = expand_macros
 
       keep_final_value_on_stack = options[:interpret]
-      instructions = Pass1.new(
-        ast,
-        inline_cpp_enabled: inline_cpp_enabled,
-        compiler_context: @context,
-      ).transform(used: keep_final_value_on_stack)
+      instructions = Pass1.new(ast, compiler_context: @context)
+                          .transform(used: keep_final_value_on_stack)
       if debug == 'p1'
         Pass1.debug_instructions(instructions)
         exit
@@ -290,9 +288,7 @@ module Natalie
         log_load_error: options[:log_load_error],
         compiler_context: @context,
       )
-      result = expander.expand
-      @inline_cpp_enabled ||= expander.inline_cpp_enabled?
-      result
+      expander.expand
     end
 
     # FIXME: implement pp
