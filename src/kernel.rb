@@ -12,6 +12,7 @@ module Kernel
       yielder.yield(self)
     end
   end
+  alias yield_self then
 
   def enum_for(method = :each, *args, &block)
     enum =
