@@ -57,6 +57,10 @@ class Complex
     s
   end
 
+  def finite?
+    self.real.finite? && self.imaginary.finite?
+  end
+
   def +(other)
     if other.is_a?(Complex)
       return Complex(self.real + other.real, self.imaginary + other.imaginary)
