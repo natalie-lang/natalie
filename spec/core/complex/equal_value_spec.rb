@@ -81,7 +81,7 @@ describe "Complex#==" do
     end
   end
 
-  xdescribe "with a Numeric which responds to #real? with false" do
+  describe "with a Numeric which responds to #real? with false" do
     it "returns other == self" do
       complex = Complex(3, 0)
       other = mock_numeric('other')
