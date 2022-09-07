@@ -15,8 +15,7 @@ describe "Complex#+" do
     end
   end
 
-  # NATFIXME: Support coercion of Complex objects
-  xdescribe "with Object" do
+  describe "with Object" do
     it "tries to coerce self into other" do
       value = Complex(3, 9)
 
@@ -26,8 +25,7 @@ describe "Complex#+" do
     end
   end
 
-  # NATFIXME: Support coercion of Complex objects
-  xdescribe "passed Numeric which responds to #real? with true" do
+  describe "passed Numeric which responds to #real? with true" do
     it "coerces the passed argument to the type of the real part and adds the resulting elements" do
       n = mock_numeric('n')
       n.should_receive(:real?).and_return(true)
@@ -36,8 +34,7 @@ describe "Complex#+" do
     end
   end
 
-  # NATFIXME: Support coercion of Complex objects
-  xdescribe "passed Numeric which responds to #real? with false" do
+  describe "passed Numeric which responds to #real? with false" do
     it "coerces the passed argument to Complex and adds the resulting elements" do
       n = mock_numeric('n')
       n.should_receive(:real?).and_return(false)
