@@ -541,6 +541,9 @@ Value KernelModule::String(Env *env, Value value) {
 Value KernelModule::tap(Env *env, Block *block) {
     Value self = this;
     Value args[] = { self };
+    if (! block) {
+        env->raise("LocalJumpError", "no block given (yield)");
+    }
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     return this;
 }
