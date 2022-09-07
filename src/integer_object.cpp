@@ -62,6 +62,8 @@ Value IntegerObject::to_f() const {
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
         return Value::floatingpoint(m_integer + arg->as_float()->to_double());
+    } else if (arg->is_complex()) {
+        return arg->send(env, "+"_s, { this });
     } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }

@@ -7,6 +7,7 @@ enum class ObjectType {
     Array,
     Binding,
     Class,
+    Complex,
     Encoding,
     Exception,
     False,

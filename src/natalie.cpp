@@ -134,6 +134,10 @@ Env *build_top_env() {
     Object->const_set("Range"_s, Range);
     Range->include_once(env, Enumerable);
 
+    ClassObject *Complex = Object->subclass(env, "Complex", Object::Type::Complex);
+    global_env->set_Complex(Complex);
+    Object->const_set("Complex"_s, Complex);
+
     ClassObject *MatchData = Object->subclass(env, "MatchData", Object::Type::MatchData);
     Object->const_set("MatchData"_s, MatchData);
 

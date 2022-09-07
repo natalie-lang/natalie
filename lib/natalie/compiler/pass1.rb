@@ -797,6 +797,12 @@ module Natalie
           ]
         when Regexp
           PushRegexpInstruction.new(lit)
+        when Complex
+          [
+            transform_lit(lit.real, used: true),
+            transform_lit(lit.imaginary, used: true),
+            PushComplexInstruction.new,
+          ]
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end

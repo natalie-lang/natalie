@@ -61,6 +61,34 @@ Value KernelModule::caller(Env *env) {
     return ary;
 }
 
+Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value kwargs) {
+    bool exception = true;
+    // NATFIXME: Improve keyword argument handling.
+    if (kwargs) {
+        if (kwargs->is_hash()) {
+            auto value = kwargs->as_hash()->get(env, "exception"_s);
+            if (value) exception = value->is_true();
+        }
+    }
+    return Complex(env, real, imaginary, exception);
+}
+
+Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
+
+    if (imaginary == nullptr) {
+        return new ComplexObject { real };
+    } else if (real->is_string()) {
+        // NATFIXME: Add support for strings too.
+    } else {
+        return new ComplexObject { real, imaginary };
+    }
+
+    if (exception)
+        env->raise("TypeError", "can't convert {} into Complex", real->klass()->inspect_str());
+    else
+        return nullptr;
+}
+
 Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");

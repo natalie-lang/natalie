@@ -201,6 +201,10 @@ Value FloatObject::to_i(Env *env) const {
 Value FloatObject::add(Env *env, Value rhs) {
     Value lhs = this;
 
+    if (rhs->is_complex()) {
+        return rhs->send(env, "+"_s, { lhs });
+    }
+
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;

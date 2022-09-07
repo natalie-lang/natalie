@@ -424,6 +424,10 @@ gen.binding('Class', 'initialize', 'ClassObject', 'initialize', argc: 0..1, pass
 gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :NullableValue)
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
+gen.undefine_instance_method('Complex', 'new')
+gen.binding('Complex', 'imaginary', 'ComplexObject', 'imaginary', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Complex', 'real', 'ComplexObject', 'real', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+
 gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'default_internal', 'EncodingObject', 'default_internal', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'default_internal=', 'EncodingObject', 'set_default_internal', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -639,6 +643,7 @@ gen.module_function_binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc
 gen.module_function_binding('Kernel', 'binding', 'KernelModule', 'binding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'block_given?', 'KernelModule', 'block_given', argc: 0, pass_env: true, pass_block: true, return_type: :bool)
 gen.module_function_binding('Kernel', 'caller', 'KernelModule', 'caller', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'Complex', 'KernelModule', 'Complex', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', '__dir__', 'KernelModule', 'cur_dir', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'exit', 'KernelModule', 'exit', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
