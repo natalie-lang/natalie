@@ -119,6 +119,14 @@ class Complex
     end
   end
 
+  def eql?(other)
+    if ! other.is_a?(Complex)
+      return false
+    end
+
+    return self.real.class == other.real.class && self.imaginary.class == other.imaginary.class && self == other
+  end
+
   def ==(other)
     if other.is_a?(Complex)
       return self.real == other.real && self.imaginary == other.imaginary
