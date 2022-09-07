@@ -206,4 +206,16 @@ class Complex
   def inspect
     "(#{self.to_s})"
   end
+
+  def coerce(other)
+    if other.is_a?(Complex)
+      return [other, self]
+    end
+
+    if other.is_a?(Numeric) && other.real?
+      return [Complex(other), self]
+    end
+
+    raise TypeError, "#{other.inspect} can't be coerced into Complex"
+  end
 end
