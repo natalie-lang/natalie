@@ -103,12 +103,26 @@ class Complex
     Complex(-self.real, -self.imaginary)
   end
 
+  def <=>(other)
+    if other.is_a?(Complex) && other.imaginary == 0 && self.imaginary == 0
+      return self.real <=> other.real
+    end
+
+    if other.is_a?(Numeric)
+      return self.real <=> other
+    end
+  end
+
   def ==(other)
     real = self.real
     imaginary = self.imaginary
 
     if ! other.is_a?(Complex) && imaginary == 0
       return real == other
+    end
+
+    if ! other.is_a?(Numeric)
+      return false
     end
 
     other_real = other.real
