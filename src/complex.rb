@@ -103,11 +103,14 @@ class Complex
       return Complex(ac - bd, ad + bc)
     end
 
-    if other.is_a?(Numeric)
+    if other.is_a?(Numeric) && other.real?
       return Complex(self.real * other, self.imaginary * other)
     end
 
-    # NATFIXME: Handle coercion of objects.
+    if other.respond_to?(:coerce)
+      first, second = other.coerce(self)
+      return first * second
+    end
   end
 
   def -@

@@ -15,7 +15,7 @@ describe "Complex#*" do
     end
   end
 
-  xdescribe "with Object" do
+  describe "with Object" do
     it "tries to coerce self into other" do
       value = Complex(3, 9)
 
@@ -25,7 +25,7 @@ describe "Complex#*" do
     end
   end
 
-  xdescribe "with a Numeric which responds to #real? with true" do
+  describe "with a Numeric which responds to #real? with true" do
     it "multiples both parts of self by other" do
       other = mock_numeric('other')
       real = mock_numeric('real')
