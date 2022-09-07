@@ -22,13 +22,11 @@ describe "Complex#to_s" do
     end
   end
 
-  # NATFIXME: Fix sign problems for negative + positive zero.
-  xit "returns 1+0.0i for Complex(1, 0.0)" do
+  it "returns 1+0.0i for Complex(1, 0.0)" do
     Complex(1, 0.0).to_s.should == "1+0.0i"
   end
 
-  # NATFIXME: Fix sign problems for negative + positive zero.
-  xit "returns 1-0.0i for Complex(1, -0.0)" do
+  it "returns 1-0.0i for Complex(1, -0.0)" do
     Complex(1, -0.0).to_s.should == "1-0.0i"
   end
 
