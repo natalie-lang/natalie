@@ -31,9 +31,9 @@ box2.pack_start(title, false, false, 0)
 
 body = Gtk3::Label.new(<<-END)
 Compiled Ruby Implementation
-targeting Ruby 2.7 (WIP)
+targeting Ruby 3.1 (WIP)
 
-Copyright © 2019-2020, Tim Morgan
+Copyright © 2019-2022, Tim Morgan and contributors
 
 
 

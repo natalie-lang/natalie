@@ -36,6 +36,12 @@ module Natalie
         )
       end
 
+      def generate_cxx_flags(transform, flags)
+        flags = comptime_string(flags)
+        transform.add_cxx_flags(flags)
+        transform.push_nil
+      end
+
       def generate_call(transform, fn_name, *args)
         fn_name = comptime_string(fn_name)
         fn = transform.inline_functions.fetch(fn_name)
@@ -114,7 +120,7 @@ module Natalie
           args: args,
           return_type: return_type,
         }
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def generate_inline(transform, body)
@@ -126,13 +132,13 @@ module Natalie
         else
           transform.exec body
         end
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def generate_ld_flags(transform, flags)
         flags = comptime_string(flags)
         transform.add_ld_flags(flags)
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def comptime_array_of_strings(exp)

@@ -52,6 +52,10 @@ module Natalie
           @stack << result
         end
 
+        def push_nil
+          @stack << 'NilObject::the()'
+        end
+
         def exec_and_push(name, code)
           result = memoize(name, code)
           push(result)
@@ -180,6 +184,10 @@ module Natalie
           return unless line && line != @line
           @line = line
           exec("env->set_line(#{@line})")
+        end
+
+        def add_cxx_flags(flags)
+          @compiler_context[:compile_cxx_flags] << flags
         end
 
         def add_ld_flags(flags)

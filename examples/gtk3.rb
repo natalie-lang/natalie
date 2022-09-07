@@ -93,7 +93,7 @@ module Gtk3
 
   class << self
     def init
-      __inline__ 'gtk_init({});'
+      __inline__ 'gtk_init(0, nullptr);'
     end
 
     __define_method__ :window_new, <<-END
