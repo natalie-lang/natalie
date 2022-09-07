@@ -1,6 +1,6 @@
 class Complex
   I = Complex(0, 1)
-  
+
   alias imag imaginary
 
   def to_i
@@ -116,33 +116,28 @@ class Complex
   end
 
   def ==(other)
-    real = self.real
-    imaginary = self.imaginary
+    if other.is_a?(Complex)
+      return self.real == other.real && self.imaginary == other.imaginary
+    end
 
-    if ! other.is_a?(Complex) && imaginary == 0
+    if ! other.is_a?(Numeric) && ! other.is_a?(Object)
+      return false
+    end
+
+    if other.respond_to?(:real) && ! other.real?
+      return other == self
+    end
+
+    if imaginary == 0
       return real == other
     end
 
-    if ! other.is_a?(Numeric)
-      return false
-    end
-
+    real = self.real
+    imaginary = self.imaginary
     other_real = other.real
     other_imaginary = other.imaginary
 
-    if real == 0 || other_imaginary == 0
-      return false
-    end
-
-    if real != other_real
-      return false
-    end
-
-    if imaginary != other_imaginary
-      return false
-    end
-
-    return true
+    return (real == 0 && other_imaginary == 0) && (real == other_real) && (imaginary == other_imaginary)
   end
 
   def conjugate
