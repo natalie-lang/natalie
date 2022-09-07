@@ -35,7 +35,7 @@ class Complex
       s << real.to_s
     end
 
-    if ! imaginary.negative?
+    if ! imaginary.negative? && ! imaginary.to_s.include?("-")
       s << "+"
     end
 
