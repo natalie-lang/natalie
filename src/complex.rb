@@ -1,4 +1,6 @@
 class Complex
+  I = Complex(0, 1)
+  
   alias imag imaginary
 
   def to_i
