@@ -171,49 +171,49 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto sockaddr = args.at(0, NilObject::the());
-      if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
-          sockaddr = sockaddr->send(env, "sockaddr"_s);
+    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
+        sockaddr = sockaddr->send(env, "sockaddr"_s);
 
-      sockaddr->assert_type(env, Object::Type::String, "String");
+    sockaddr->assert_type(env, Object::Type::String, "String");
 
-      if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in6)) {
+    if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in6)) {
 
-          // IPV6
-          const char *str = sockaddr->as_string()->c_str();
-          auto in = (struct sockaddr_in6 *)str;
-          auto ary = new ArrayObject;
-          ary->push(Value::integer(in->sin6_port));
-          ary->push(new StringObject((const char*)in->sin6_addr.s6_addr));
-          return ary;
+        // IPV6
+        const char *str = sockaddr->as_string()->c_str();
+        auto in = (struct sockaddr_in6 *)str;
+        auto ary = new ArrayObject;
+        ary->push(Value::integer(in->sin6_port));
+        ary->push(new StringObject((const char *)in->sin6_addr.s6_addr));
+        return ary;
 
-      } else if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in)) {
+    } else if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in)) {
 
-          // IPV4
-          const char *str = sockaddr->as_string()->c_str();
-          auto in = (struct sockaddr_in *)str;
-          auto addr = inet_ntoa(in->sin_addr);
-          auto ary = new ArrayObject;
-          ary->push(Value::integer(in->sin_port));
-          ary->push(new StringObject(addr));
-          return ary;
+        // IPV4
+        const char *str = sockaddr->as_string()->c_str();
+        auto in = (struct sockaddr_in *)str;
+        auto addr = inet_ntoa(in->sin_addr);
+        auto ary = new ArrayObject;
+        ary->push(Value::integer(in->sin_port));
+        ary->push(new StringObject(addr));
+        return ary;
 
-      } else {
-          env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
-      }
+    } else {
+        env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
+    }
 }
 
 Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto sockaddr = args.at(0, NilObject::the());
-      if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
-          sockaddr = sockaddr->send(env, "sockaddr"_s);
+    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
+        sockaddr = sockaddr->send(env, "sockaddr"_s);
 
-      sockaddr->assert_type(env, Object::Type::String, "String");
+    sockaddr->assert_type(env, Object::Type::String, "String");
 
-      if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
-          env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+    if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
+        env->raise("ArgumentError", "not an AF_UNIX sockaddr");
 
-      const char *str = sockaddr->as_string()->c_str();
-      auto un = (struct sockaddr_un *)str;
-      return new StringObject { un->sun_path };
+    const char *str = sockaddr->as_string()->c_str();
+    auto un = (struct sockaddr_un *)str;
+    return new StringObject { un->sun_path };
 }
