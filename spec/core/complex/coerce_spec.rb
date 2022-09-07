@@ -41,8 +41,7 @@ describe "Complex#coerce" do
     result.last.should equal(@one)
   end
 
-  # NATFIXME: Improve #== so that it can compare other real objects.
-  xit "returns an array containing other as Complex and self when other is a Numeric which responds to #real? with true" do
+  it "returns an array containing other as Complex and self when other is a Numeric which responds to #real? with true" do
     other = mock_numeric('other')
     other.should_receive(:real?).any_number_of_times.and_return(true)
     result = @one.coerce(other)
