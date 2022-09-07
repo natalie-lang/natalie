@@ -82,8 +82,13 @@ class Complex
       return Complex(self.real - other.real, self.imaginary - other.imaginary)
     end
 
-    if other.is_a?(Numeric)
+    if other.is_a?(Numeric) && other.real?
       return Complex(self.real - other, self.imaginary)
+    end
+
+    if other.respond_to?(:coerce)
+      first, second = other.coerce(self)
+      return first - second
     end
   end
 
