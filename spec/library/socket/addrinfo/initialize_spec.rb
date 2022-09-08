@@ -17,11 +17,11 @@ describe "Addrinfo#initialize" do
         @addrinfo.ip_port.should == 25
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_UNSPEC
       end
 
-      xit 'returns AF_INET as the default address family' do
+      it 'returns AF_INET as the default address family' do
         addr = Addrinfo.new(Socket.sockaddr_in(80, '127.0.0.1'))
 
         addr.afamily.should == Socket::AF_INET
@@ -53,7 +53,7 @@ describe "Addrinfo#initialize" do
         @addrinfo.ip_port.should == 25
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET6
       end
 
@@ -83,7 +83,7 @@ describe "Addrinfo#initialize" do
         @addrinfo.ip_port.should == 25
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET6
       end
 
@@ -113,7 +113,7 @@ describe "Addrinfo#initialize" do
         @addrinfo.ip_port.should == 25
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET6
       end
 
@@ -514,13 +514,13 @@ describe "Addrinfo#initialize" do
       @sockaddr = Socket.sockaddr_in(80, '127.0.0.1')
     end
 
-    xit 'returns an Addrinfo with :PF_INET  family' do
+    it 'returns an Addrinfo with :PF_INET  family' do
       addr = Addrinfo.new(@sockaddr, :PF_INET)
 
       addr.pfamily.should == Socket::PF_INET
     end
 
-    xit 'returns an Addrinfo with :INET  family' do
+    it 'returns an Addrinfo with :INET  family' do
       addr = Addrinfo.new(@sockaddr, :INET)
 
       addr.pfamily.should == Socket::PF_INET
@@ -575,15 +575,15 @@ describe "Addrinfo#initialize" do
         @sockaddr = Socket.pack_sockaddr_un('socket')
       end
 
-      xit 'returns an Addrinfo with the correct unix path' do
+      it 'returns an Addrinfo with the correct unix path' do
         Addrinfo.new(@sockaddr).unix_path.should == 'socket'
       end
 
-      xit 'returns an Addrinfo with the correct protocol family' do
+      it 'returns an Addrinfo with the correct protocol family' do
         Addrinfo.new(@sockaddr).pfamily.should == Socket::PF_UNSPEC
       end
 
-      xit 'returns an Addrinfo with the correct address family' do
+      it 'returns an Addrinfo with the correct address family' do
         Addrinfo.new(@sockaddr).afamily.should == Socket::AF_UNIX
       end
     end

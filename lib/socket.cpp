@@ -39,16 +39,22 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
     struct addrinfo hints { };
     struct addrinfo *result {};
-    if (!family->is_nil())
+
+    if (family->is_integer())
         hints.ai_family = (unsigned short)family->as_integer()->to_nat_int_t();
-    if (!socktype->is_nil())
+    else
+        self->ivar_set(env, "@pfamily"_s, Value::integer(PF_UNSPEC));
+
+    if (socktype->is_integer())
         hints.ai_socktype = (unsigned short)socktype->as_integer()->to_nat_int_t();
+
     hints.ai_flags = 0;
-    // hints.ai_protocol = IPPROTO_UDP;
 
     struct sockaddr_un un { };
     if (sockaddr->as_string()->bytesize() == sizeof(un)) {
         auto path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr });
+        self->ivar_set(env, "@afamily"_s, Value::integer(AF_UNIX));
+        self->ivar_set(env, "@unix_path"_s, path);
     } else {
         auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array();
         auto port = ary->at(0);
@@ -60,48 +66,31 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             &result);
         if (s != 0)
             env->raise("SocketError", "getaddrinfo: {}\\n", gai_strerror(s));
-        self->ivar_set(env, "@_addrinfo"_s, new VoidPObject { result });
+        self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET));
+        if (self->ivar_get(env, "@pfamily"_s)->is_nil())
+            self->ivar_set(env, "@pfamily"_s, Value::integer(result->ai_family));
+        self->ivar_set(env, "@socktype"_s, Value::integer(result->ai_socktype));
+        switch (result->ai_family) {
+        case AF_INET: {
+            char address[INET_ADDRSTRLEN];
+            auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
+            inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
+            self->ivar_set(env, "@ip_address"_s, new StringObject { address });
+            break;
+        }
+        case AF_INET6: {
+            char address[INET6_ADDRSTRLEN];
+            auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
+            inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
+            self->ivar_set(env, "@ip_address"_s, new StringObject { address });
+            break;
+        }
+        default:
+            NAT_UNREACHABLE();
+        }
     }
 
     return self;
-}
-
-Value Addrinfo_ip_address(Env *env, Value self, Args args, Block *block) {
-    auto addrinfo = self->ivar_get(env, "@_addrinfo"_s);
-    if (addrinfo->is_nil())
-        env->raise("SocketError", "need IPv4 or IPv6 address");
-
-    auto info_struct = (struct addrinfo *)addrinfo->as_void_p()->void_ptr();
-
-    switch (info_struct->ai_family) {
-    case AF_INET: {
-        char address[INET_ADDRSTRLEN];
-        auto *sockaddr = (struct sockaddr_in *)info_struct->ai_addr;
-        inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
-        return new StringObject { address };
-    }
-    case AF_INET6: {
-        char address[INET6_ADDRSTRLEN];
-        auto *sockaddr = (struct sockaddr_in6 *)info_struct->ai_addr;
-        inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
-        return new StringObject { address };
-    }
-    default:
-        NAT_UNREACHABLE();
-    }
-    return NilObject::the();
-}
-
-Value Addrinfo_pfamily(Env *env, Value self, Args args, Block *block) {
-    auto addrinfo_void_ptr = self->ivar_get(env, "@_addrinfo"_s)->as_void_p();
-    auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
-    return Value::integer(info_struct->ai_family);
-}
-
-Value Addrinfo_socktype(Env *env, Value self, Args args, Block *block) {
-    auto addrinfo_void_ptr = self->ivar_get(env, "@_addrinfo"_s)->as_void_p();
-    auto info_struct = (struct addrinfo *)addrinfo_void_ptr->void_ptr();
-    return Value::integer(info_struct->ai_socktype);
 }
 
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
