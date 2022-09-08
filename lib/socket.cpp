@@ -76,7 +76,8 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
             inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
-            self->ivar_set(env, "@ip_port"_s, Value::integer(sockaddr->sin_port));
+            auto port_in_network_byte_order = sockaddr->sin_port;
+            self->ivar_set(env, "@ip_port"_s, Value::integer(ntohs(port_in_network_byte_order)));
             break;
         }
         case AF_INET6: {
@@ -84,7 +85,8 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
             inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
-            self->ivar_set(env, "@ip_port"_s, Value::integer(sockaddr->sin6_port));
+            auto port_in_network_byte_order = sockaddr->sin6_port;
+            self->ivar_set(env, "@ip_port"_s, Value::integer(ntohs(port_in_network_byte_order)));
             break;
         }
         default:

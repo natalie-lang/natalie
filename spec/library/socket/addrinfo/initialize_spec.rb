@@ -13,7 +13,7 @@ describe "Addrinfo#initialize" do
         @addrinfo.ip_address.should == "2001:db8::1"
       end
 
-      xit "stores the port number from the sockaddr" do
+      it "stores the port number from the sockaddr" do
         @addrinfo.ip_port.should == 25
       end
 
