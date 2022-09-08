@@ -47,6 +47,8 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
     if (socktype->is_integer())
         hints.ai_socktype = (unsigned short)socktype->as_integer()->to_nat_int_t();
+    else
+        self->ivar_set(env, "@socktype"_s, Value::integer(0));
 
     hints.ai_flags = 0;
 
@@ -66,12 +68,13 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             &result);
         if (s != 0)
             env->raise("SocketError", "getaddrinfo: {}\\n", gai_strerror(s));
-        self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET));
         if (self->ivar_get(env, "@pfamily"_s)->is_nil())
             self->ivar_set(env, "@pfamily"_s, Value::integer(result->ai_family));
-        self->ivar_set(env, "@socktype"_s, Value::integer(result->ai_socktype));
+        if (self->ivar_get(env, "@socktype"_s)->is_nil())
+            self->ivar_set(env, "@socktype"_s, Value::integer(result->ai_socktype));
         switch (result->ai_family) {
         case AF_INET: {
+            self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET));
             char address[INET_ADDRSTRLEN];
             auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
             inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
@@ -81,6 +84,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             break;
         }
         case AF_INET6: {
+            self->ivar_set(env, "@afamily"_s, Value::integer(AF_INET6));
             char address[INET6_ADDRSTRLEN];
             auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
             inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
