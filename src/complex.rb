@@ -97,6 +97,30 @@ class Complex
     end
   end
 
+  def /(other)
+    # z1 / z2 =  (ac + bd)     (bc - ad)
+    #           ----------- + ----------- i
+    #           (c^2 + d^2)   (c^2 + d^2)
+    if other.is_a?(Complex)
+      ac = self.real * other.real
+      bd = self.imaginary * other.imaginary
+      bc = self.imaginary * other.real
+      ad = self.real * other.imaginary
+      c2d2 = (other.real ** 2) + (other.imaginary ** 2)
+
+      return Complex((ac + bd) / c2d2, (bc - ad) / c2d2)
+    end
+
+    if other.is_a?(Numeric) && other.real?
+      return Complex(self.real / other, self.imaginary / other)
+    end
+
+    if other.respond_to?(:coerce)
+      first, second = other.coerce(self)
+      return first / second
+    end
+  end
+
   def *(other)    
     # (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
     if other.is_a?(Complex)
