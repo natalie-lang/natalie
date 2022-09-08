@@ -94,6 +94,9 @@ class Addrinfo
   end
 
   def ip_port
-    # TODO
+    unless @ip_port
+      raise SocketError, 'need IPv4 or IPv6 address'
+    end
+    @ip_port
   end
 end

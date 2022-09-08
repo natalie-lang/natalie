@@ -938,6 +938,13 @@ FloatObject *Object::to_f(Env *env) {
     return result->as_float();
 }
 
+StringObject *Object::to_s(Env *env) {
+    auto str = send(env, "to_s"_s);
+    if (!str->is_string())
+        env->raise("TypeError", "no implicit conversion of {} into String", m_klass->class_name());
+    return str->as_string();
+}
+
 StringObject *Object::to_str(Env *env) {
     if (is_string()) return as_string();
 

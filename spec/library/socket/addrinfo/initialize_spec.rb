@@ -9,7 +9,7 @@ describe "Addrinfo#initialize" do
         @addrinfo = Addrinfo.new(Socket.sockaddr_in("smtp", "2001:DB8::1"))
       end
 
-      xit "stores the ip address from the sockaddr" do
+      it "stores the ip address from the sockaddr" do
         @addrinfo.ip_address.should == "2001:db8::1"
       end
 

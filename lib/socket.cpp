@@ -38,7 +38,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     }
 
     struct addrinfo hints { };
-    struct addrinfo *result {};
+    struct addrinfo *result; // FIXME: need to free this!
 
     if (family->is_integer())
         hints.ai_family = (unsigned short)family->as_integer()->to_nat_int_t();
@@ -76,6 +76,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
             inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
+            self->ivar_set(env, "@ip_port"_s, Value::integer(sockaddr->sin_port));
             break;
         }
         case AF_INET6: {
@@ -83,6 +84,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
             inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
             self->ivar_set(env, "@ip_address"_s, new StringObject { address });
+            self->ivar_set(env, "@ip_port"_s, Value::integer(sockaddr->sin6_port));
             break;
         }
         default:
@@ -95,7 +97,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 2);
-    auto port = args.at(0, NilObject::the());
+    auto service = args.at(0, NilObject::the());
     auto host = args.at(1, NilObject::the());
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
@@ -104,11 +106,18 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     host->assert_type(env, Object::Type::String, "String");
     auto host_string = host->as_string();
 
-    if (!port->is_integer() && port->respond_to(env, "to_i"_s))
-        port = port->send(env, "to_i"_s);
-
-    port->assert_type(env, Object::Type::Integer, "Integer");
-    auto port_unsigned = (unsigned short)port->as_integer()->to_nat_int_t();
+    unsigned short port_in_host_byte_order = 0;
+    if (service->is_integer()) {
+        auto num = service->as_integer()->to_nat_int_t();
+        if (num >= 0 && num <= 65535)
+            port_in_host_byte_order = num;
+    } else if (service->is_string() && service->as_string()->string().contains_only_digits()) {
+        port_in_host_byte_order = service->as_string()->to_i(env)->as_integer()->to_nat_int_t();
+    } else if (service->is_string()) {
+        auto servent = getservbyname(service->as_string()->c_str(), nullptr);
+        if (servent)
+            port_in_host_byte_order = ntohs(servent->s_port);
+    }
 
     if (host_string->include(":")) {
 
@@ -118,7 +127,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         in.sin6_len = sizeof(in);
 #endif
         in.sin6_family = AF_INET6;
-        in.sin6_port = port_unsigned;
+        in.sin6_port = htons(port_in_host_byte_order);
         memcpy(in.sin6_addr.s6_addr, host_string->c_str(), std::min(host_string->length(), (size_t)16));
         return new StringObject { (const char *)&in, sizeof(in) };
 
@@ -134,7 +143,7 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         in.sin_len = sizeof(in);
 #endif
         in.sin_family = AF_INET;
-        in.sin_port = port_unsigned;
+        in.sin_port = htons(port_in_host_byte_order);
         in.sin_addr = a;
         return new StringObject { (const char *)&in, sizeof(in) };
     }
@@ -171,7 +180,8 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         const char *str = sockaddr->as_string()->c_str();
         auto in = (struct sockaddr_in6 *)str;
         auto ary = new ArrayObject;
-        ary->push(Value::integer(in->sin6_port));
+        auto port_in_network_byte_order = in->sin6_port;
+        ary->push(Value::integer(ntohs(port_in_network_byte_order)));
         ary->push(new StringObject((const char *)in->sin6_addr.s6_addr));
         return ary;
 
@@ -182,7 +192,8 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         auto in = (struct sockaddr_in *)str;
         auto addr = inet_ntoa(in->sin_addr);
         auto ary = new ArrayObject;
-        ary->push(Value::integer(in->sin_port));
+        auto port_in_network_byte_order = in->sin_port;
+        ary->push(Value::integer(ntohs(port_in_network_byte_order)));
         ary->push(new StringObject(addr));
         return ary;
 
