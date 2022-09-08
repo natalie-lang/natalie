@@ -62,7 +62,7 @@ class Socket < BasicSocket
 end
 
 class Addrinfo
-  attr_reader :afamily, :family, :pfamily, :protocol, :sockaddr, :socktype, :unix_path
+  attr_reader :afamily, :family, :pfamily, :protocol, :socktype, :unix_path
 
   class << self
     def tcp(ip, port)

@@ -20,7 +20,6 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     auto socktype = args.at(2, NilObject::the());
     auto protocol = args.at(3, Value::integer(0));
 
-    self->ivar_set(env, "@sockaddr"_s, sockaddr);
     self->ivar_set(env, "@protocol"_s, protocol);
 
     if (family->is_string() || family->is_symbol()) {
@@ -175,8 +174,15 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto sockaddr = args.at(0, NilObject::the());
-    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
-        sockaddr = sockaddr->send(env, "sockaddr"_s);
+
+    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer()->to_nat_int_t();
+        if (afamily != AF_INET && afamily != AF_INET6)
+            env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
+        auto host = sockaddr.send(env, "ip_address"_s);
+        auto port = sockaddr.send(env, "ip_port"_s);
+        return new ArrayObject { port, host };
+    }
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
@@ -211,8 +217,13 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 1);
     auto sockaddr = args.at(0, NilObject::the());
-    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
-        sockaddr = sockaddr->send(env, "sockaddr"_s);
+
+    if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
+        auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer()->to_nat_int_t();
+        if (afamily != AF_UNIX)
+            env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+        return sockaddr.send(env, "unix_path"_s);
+    }
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
