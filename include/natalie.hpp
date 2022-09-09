@@ -137,4 +137,10 @@ inline Value fetch_nested_const(std::initializer_list<SymbolObject *> names) {
 
 Value bool_object(bool b);
 
+template <typename... Args>
+void dbg(const char *fmt, Args... args) {
+    auto out = StringObject::format(fmt, args...);
+    puts(out->c_str());
+}
+
 }
