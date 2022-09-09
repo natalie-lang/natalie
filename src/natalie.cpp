@@ -36,7 +36,7 @@ Env *build_top_env() {
     Object->const_set("Module"_s, Module);
     Class->set_superclass_DANGEROUSLY(Module);
     auto class_singleton_class = new ClassObject { Module->singleton_class() };
-    Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, new ManagedString("#<Class:Class>"));
+    Module->singleton_class()->initialize_subclass_without_checks(class_singleton_class, env, "#<Class:Class>");
     Class->set_singleton_class(class_singleton_class);
 
     ModuleObject *Kernel = new ModuleObject { "Kernel" };
@@ -219,7 +219,7 @@ Env *build_top_env() {
     Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2021 Tim Morgan and contributors" };
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
-    Natalie::ManagedString *ruby_revision_short = new Natalie::ManagedString { ruby_revision, 10 };
+    auto ruby_revision_short = TM::String(ruby_revision, 10);
     StringObject *RUBY_DESCRIPTION = StringObject::format("natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
@@ -300,7 +300,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
         StringObject *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->inspect_str()->c_str());
+    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->inspect_str().c_str());
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
@@ -333,7 +333,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             if (array->is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
-                auto *class_name = obj->klass()->inspect_str();
+                auto class_name = obj->klass()->inspect_str();
                 env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, array->klass()->inspect_str());
             }
         }
@@ -345,7 +345,7 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             if (array->is_array()) {
                 return array->as_array();
             } else if (raise_for_non_array) {
-                auto *class_name = obj->klass()->inspect_str();
+                auto class_name = obj->klass()->inspect_str();
                 env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
             }
         }
@@ -363,7 +363,7 @@ Value to_ary_for_masgn(Env *env, Value obj) {
         if (array->is_array()) {
             return array->dup(env);
         } else if (!array->is_nil()) {
-            auto *class_name = obj->klass()->inspect_str();
+            auto class_name = obj->klass()->inspect_str();
             env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", class_name, class_name, array->klass()->inspect_str());
         }
     }

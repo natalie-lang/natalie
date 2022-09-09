@@ -95,41 +95,41 @@ Value FloatObject::to_s(Env *env) const {
     char *out, *e;
     out = dtoa(to_double(), 0, 0, &decpt, &sign, &e);
 
-    ManagedString *string;
+    String string;
 
-    auto add_exp = [decpt](ManagedString *out) {
-        if (out->length() > 1) {
-            out->insert(1, '.');
+    auto add_exp = [decpt](String &s) {
+        if (s.length() > 1) {
+            s.insert(1, '.');
         } else {
-            out->append(".0");
+            s.append(".0");
         }
-        out->append_sprintf("e%+03d", decpt - 1);
+        s.append_sprintf("e%+03d", decpt - 1);
     };
 
     if (decpt > 0) {
-        string = new ManagedString { out };
-        long long s_length = string->length();
+        string = String(out);
+        long long s_length = string.length();
         if (decpt < s_length) {
-            string->insert(decpt, '.');
+            string.insert(decpt, '.');
         } else if (decpt <= DBL_DIG) {
             if (decpt > s_length) {
-                string->append(decpt - s_length, '0');
+                string.append(decpt - s_length, '0');
             }
-            string->append(".0");
+            string.append(".0");
         } else {
             add_exp(string);
         }
     } else if (decpt > -4) {
-        string = new ManagedString { "0." };
-        string->append(::abs(decpt), '0');
-        string->append(out);
+        string = String("0.");
+        string.append(::abs(decpt), '0');
+        string.append(out);
     } else {
-        string = new ManagedString { out };
+        string = String(out);
         add_exp(string);
     }
 
     if (sign) {
-        string->prepend_char('-');
+        string.prepend_char('-');
     }
 
     return new StringObject { string, EncodingObject::get(Encoding::US_ASCII) };

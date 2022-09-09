@@ -459,24 +459,24 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     return !!find_method(env, name);
 }
 
-const ManagedString *ModuleObject::inspect_str() {
+String ModuleObject::inspect_str() {
     if (m_class_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
-            return ManagedString::format("{}::{}", owner()->inspect_str(), m_class_name.value());
+            return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
         } else {
-            return new ManagedString(m_class_name.value());
+            return new String(m_class_name.value());
         }
     } else if (is_class()) {
-        return ManagedString::format("#<Class:{}>", pointer_id());
+        return String::format("#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return new ManagedString(m_class_name.value());
+        return new String(m_class_name.value());
     } else {
-        return ManagedString::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
+        return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
 }
 
 Value ModuleObject::inspect(Env *env) {
-    return new StringObject { *inspect_str() };
+    return new StringObject { inspect_str() };
 }
 
 Value ModuleObject::name(Env *env) {

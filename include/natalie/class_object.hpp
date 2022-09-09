@@ -37,17 +37,17 @@ public:
     }
 
     ClassObject *subclass(Env *env, const char *name, Type object_type) {
-        return subclass(env, new ManagedString(name), object_type);
+        return subclass(env, String(name), object_type);
     }
 
-    ClassObject *subclass(Env *env, const ManagedString *name) {
+    ClassObject *subclass(Env *env, String name) {
         return subclass(env, name, m_object_type);
     }
 
-    ClassObject *subclass(Env *, const ManagedString *, Type);
+    ClassObject *subclass(Env *, String, Type);
 
-    void initialize_subclass(ClassObject *, Env *, const ManagedString *, Optional<Type> = {});
-    void initialize_subclass_without_checks(ClassObject *, Env *, const ManagedString *, Optional<Type> = {});
+    void initialize_subclass(ClassObject *, Env *, String, Optional<Type> = {});
+    void initialize_subclass_without_checks(ClassObject *, Env *, String, Optional<Type> = {});
 
     static ClassObject *bootstrap_class_class(Env *);
     static ClassObject *bootstrap_basic_object(Env *, ClassObject *);

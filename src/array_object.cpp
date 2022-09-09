@@ -142,7 +142,7 @@ Value ArrayObject::inspect(Env *env) {
             if (inspected_repr->is_string())
                 out->append(inspected_repr->as_string());
             else
-                out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str()->c_str(), static_cast<uintptr_t>(inspected_repr));
+                out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str().c_str(), static_cast<uintptr_t>(inspected_repr));
 
             if (i < size() - 1) {
                 out->append(", ");
@@ -493,7 +493,7 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                 if (start < 0)
                     start += size();
                 if (start < 0)
-                    env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
+                    env->raise("RangeError", "{} out of range", start_obj->inspect_str(env));
             }
 
             auto end = start_obj->as_range()->end();
@@ -900,7 +900,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
                 else if (item->respond_to(env, to_s))
                     out->append(item.send(env, to_s)->as_string());
                 else
-                    out->append(ManagedString::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
+                    out->append(String::format("#<{}:{}>", item->klass()->inspect_str(), static_cast<size_t>(item)));
 
                 if (i < (size() - 1))
                     out->append(joiner->as_string());
@@ -950,9 +950,9 @@ Value ArrayObject::pack(Env *env, Value directives) {
         directives = directives->send(env, "to_str"_s);
 
     directives->assert_type(env, Object::Type::String, "String");
-    auto directives_string = directives->as_string()->to_low_level_string();
+    auto directives_string = directives->as_string()->string();
 
-    if (directives_string->is_empty())
+    if (directives_string.is_empty())
         return new StringObject { "", EncodingObject::get(Encoding::US_ASCII) };
 
     return ArrayPacker::Packer { this, directives_string }.pack(env);

@@ -7,11 +7,6 @@ SymbolObject *SymbolObject::intern(const char *name, size_t length) {
     return intern(String(name, length));
 }
 
-SymbolObject *SymbolObject::intern(const ManagedString *name) {
-    assert(name);
-    return intern(*name);
-}
-
 SymbolObject *SymbolObject::intern(const String &name) {
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)

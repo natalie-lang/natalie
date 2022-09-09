@@ -63,14 +63,13 @@ public:
         return m_class_name;
     }
 
-    void set_class_name(const ManagedString *name) {
-        assert(name);
+    void set_class_name(const String name) {
         m_class_name = name;
     }
 
     void set_class_name(const char *name) {
         assert(name);
-        m_class_name = new ManagedString(name);
+        m_class_name = String(name);
     }
 
     virtual ClassObject *superclass(Env *) { return m_superclass; }
@@ -109,7 +108,7 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
-    const ManagedString *inspect_str();
+    String inspect_str();
     Value inspect(Env *);
     Value name(Env *);
     Optional<String> name() { return m_class_name; }

@@ -1,7 +1,6 @@
 #include <stdarg.h>
 
 #include "natalie.hpp"
-#include "natalie/managed_string.hpp"
 
 namespace Natalie {
 
@@ -32,19 +31,19 @@ Method *Env::current_method() {
     return env->method();
 }
 
-const ManagedString *Env::build_code_location_name() {
+String Env::build_code_location_name() {
     if (is_main())
-        return new ManagedString("<main>");
+        return "<main>";
     if (method())
-        return new ManagedString(method()->name());
+        return method()->name();
 
     // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
     if (outer()) {
         auto outer_name = outer()->build_code_location_name();
-        return ManagedString::format("block in {}", outer_name);
+        return String::format("block in {}", outer_name);
     }
     // fall back to just "block" if we don't know where this block came from
-    return new ManagedString("block");
+    return new String("block");
 }
 
 void Env::raise(ClassObject *klass, StringObject *message) {
@@ -137,12 +136,12 @@ void Env::raise_name_error(SymbolObject *name, const String message) {
     this->raise_exception(exception);
 }
 
-void Env::warn(const ManagedString *message) {
+void Env::warn(String message) {
     Value _stderr = global_get("$stderr"_s);
-    message = ManagedString::format("warning: {}", message);
+    message = String::format("warning: {}", message);
 
     if (m_file && m_line) {
-        message = ManagedString::format("{}:{}: {}", m_file, m_line, message);
+        message = String::format("{}:{}: {}", m_file, m_line, message);
     }
 
     _stderr.send(this, "puts"_s, { new StringObject { message } });

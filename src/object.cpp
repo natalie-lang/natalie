@@ -303,7 +303,7 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
         if (str->is_string()) {
             return str->as_string()->to_symbol(env);
         } else {
-            auto *class_name = klass()->inspect_str();
+            auto class_name = klass()->inspect_str();
             env->raise("TypeError", "can't convert {} to String ({}#to_str gives {})", class_name, class_name, str->klass()->inspect_str());
         }
     } else if (conversion == Conversion::NullAllowed) {
@@ -337,15 +337,11 @@ ClassObject *Object::singleton_class(Env *env) {
         env->raise("TypeError", "can't define singleton");
     }
 
-    const ManagedString *inspect_string = nullptr;
+    String name;
     if (is_module()) {
-        inspect_string = as_module()->inspect_str();
+        name = String::format("#<Class:{}>", as_module()->inspect_str());
     } else if (respond_to(env, "inspect"_s)) {
-        inspect_string = inspect_str(env);
-    }
-    const ManagedString *name = nullptr;
-    if (inspect_string) {
-        name = ManagedString::format("#<Class:{}>", inspect_string);
+        name = String::format("#<Class:{}>", inspect_str(env));
     }
 
     ClassObject *singleton_superclass;
@@ -684,7 +680,7 @@ Value Object::dup(Env *env) {
     case Object::Type::Object:
         return new Object { *this };
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str()->c_str(), static_cast<int>(m_type));
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str().c_str(), static_cast<int>(m_type));
         abort();
     }
 }
@@ -844,13 +840,13 @@ bool Object::neq(Env *env, Value other) {
     return send(env, "=="_s, { other })->is_falsey();
 }
 
-const ManagedString *Object::inspect_str(Env *env) {
+String Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return ManagedString::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+        return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
-        return new ManagedString(""); // TODO: what to do here?
-    return inspected->as_string()->to_low_level_string();
+        return ""; // TODO: what to do here?
+    return inspected->as_string()->string();
 }
 
 Value Object::enum_for(Env *env, const char *method, Args args) {

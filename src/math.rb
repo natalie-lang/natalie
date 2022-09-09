@@ -175,7 +175,7 @@ module Math
           value = KernelModule::Float(env, x)->as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
-          if (strcmp(klass->inspect_str()->c_str(), "ArgumentError") == 0) {
+          if (klass->inspect_str() == "ArgumentError") {
               env->raise("TypeError", "can't convert {} into Float", x->klass()->inspect_str());
           } else {
               env->raise_exception(exception);
