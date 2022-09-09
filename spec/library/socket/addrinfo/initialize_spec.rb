@@ -139,27 +139,27 @@ describe "Addrinfo#initialize" do
         @addrinfo = Addrinfo.new(["AF_INET", 46102, "localhost", "127.0.0.1"])
       end
 
-      xit "stores the ip address from the sockaddr" do
+      it "stores the ip address from the sockaddr" do
         @addrinfo.ip_address.should == "127.0.0.1"
       end
 
-      xit "stores the port number from the sockaddr" do
+      it "stores the port number from the sockaddr" do
         @addrinfo.ip_port.should == 46102
       end
 
-      xit "returns the Socket::PF_INET pfamily" do
+      it "returns the Socket::PF_INET pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET
       end
 
-      xit "returns the INET6 afamily" do
+      it "returns the INET6 afamily" do
         @addrinfo.afamily.should == Socket::AF_INET
       end
 
-      xit "returns the 0 socket type" do
+      it "returns the 0 socket type" do
         @addrinfo.socktype.should == 0
       end
 
-      xit "returns the 0 protocol" do
+      it "returns the 0 protocol" do
         @addrinfo.protocol.should == 0
       end
     end
@@ -171,25 +171,25 @@ describe "Addrinfo#initialize" do
         @sockaddr = ['AF_INET6', 80, 'hostname', '::1']
       end
 
-      xit 'returns an Addrinfo with the correct IP' do
+      it 'returns an Addrinfo with the correct IP' do
         addr = Addrinfo.new(@sockaddr)
 
         addr.ip_address.should == '::1'
       end
 
-      xit 'returns an Addrinfo with the correct address family' do
+      it 'returns an Addrinfo with the correct address family' do
         addr = Addrinfo.new(@sockaddr)
 
         addr.afamily.should == Socket::AF_INET6
       end
 
-      xit 'returns an Addrinfo with the correct protocol family' do
+      it 'returns an Addrinfo with the correct protocol family' do
         addr = Addrinfo.new(@sockaddr)
 
         addr.pfamily.should == Socket::PF_INET6
       end
 
-      xit 'returns an Addrinfo with the correct port' do
+      it 'returns an Addrinfo with the correct port' do
         addr = Addrinfo.new(@sockaddr)
 
         addr.ip_port.should == 80
@@ -197,7 +197,7 @@ describe "Addrinfo#initialize" do
     end
 
     describe 'with an invalid IP address' do
-      xit 'raises SocketError' do
+      it 'raises SocketError' do
         block = -> { Addrinfo.new(['AF_INET6', 80, 'hostname', '127.0.0.1']) }
 
         block.should raise_error(SocketError)
@@ -209,27 +209,27 @@ describe "Addrinfo#initialize" do
         @addrinfo = Addrinfo.new(["AF_INET", 46102, "localhost", "127.0.0.1"], Socket::PF_INET)
       end
 
-      xit "stores the ip address from the sockaddr" do
+      it "stores the ip address from the sockaddr" do
         @addrinfo.ip_address.should == "127.0.0.1"
       end
 
-      xit "stores the port number from the sockaddr" do
+      it "stores the port number from the sockaddr" do
         @addrinfo.ip_port.should == 46102
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET
       end
 
-      xit "returns the INET6 afamily" do
+      it "returns the INET6 afamily" do
         @addrinfo.afamily.should == Socket::AF_INET
       end
 
-      xit "returns the 0 socket type" do
+      it "returns the 0 socket type" do
         @addrinfo.socktype.should == 0
       end
 
-      xit "returns the 0 protocol" do
+      it "returns the 0 protocol" do
         @addrinfo.protocol.should == 0
       end
     end
@@ -239,32 +239,32 @@ describe "Addrinfo#initialize" do
         @addrinfo = Addrinfo.new(["AF_INET", 46102, "localhost", "127.0.0.1"], Socket::PF_INET, Socket::SOCK_STREAM)
       end
 
-      xit "stores the ip address from the sockaddr" do
+      it "stores the ip address from the sockaddr" do
         @addrinfo.ip_address.should == "127.0.0.1"
       end
 
-      xit "stores the port number from the sockaddr" do
+      it "stores the port number from the sockaddr" do
         @addrinfo.ip_port.should == 46102
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET
       end
 
-      xit "returns the INET6 afamily" do
+      it "returns the INET6 afamily" do
         @addrinfo.afamily.should == Socket::AF_INET
       end
 
-      xit "returns the 0 socket type" do
+      it "returns the 0 socket type" do
         @addrinfo.socktype.should == Socket::SOCK_STREAM
       end
 
-      xit "returns the 0 protocol" do
+      it "returns the 0 protocol" do
         @addrinfo.protocol.should == 0
       end
 
       [:SOCK_STREAM, :SOCK_DGRAM, :SOCK_RAW].each do |type|
-        xit "overwrites the socket type #{type}" do
+        it "overwrites the socket type #{type}" do
           sockaddr = ['AF_INET', 80, 'hostname', '127.0.0.1']
 
           value = Socket.const_get(type)
@@ -277,7 +277,7 @@ describe "Addrinfo#initialize" do
       platform_is_not :android do
         with_feature :sock_packet do
           [:SOCK_SEQPACKET].each do |type|
-            xit "overwrites the socket type #{type}" do
+            it "overwrites the socket type #{type}" do
               sockaddr = ['AF_INET', 80, 'hostname', '127.0.0.1']
 
               value = Socket.const_get(type)
@@ -289,7 +289,7 @@ describe "Addrinfo#initialize" do
         end
       end
 
-      xit "raises SocketError when using SOCK_RDM" do
+      it "raises SocketError when using SOCK_RDM" do
         sockaddr = ['AF_INET', 80, 'hostname', '127.0.0.1']
         value = Socket::SOCK_RDM
         block = -> { Addrinfo.new(sockaddr, nil, value) }
@@ -303,27 +303,27 @@ describe "Addrinfo#initialize" do
         @addrinfo = Addrinfo.new(["AF_INET", 46102, "localhost", "127.0.0.1"], Socket::PF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
       end
 
-      xit "stores the ip address from the sockaddr" do
+      it "stores the ip address from the sockaddr" do
         @addrinfo.ip_address.should == "127.0.0.1"
       end
 
-      xit "stores the port number from the sockaddr" do
+      it "stores the port number from the sockaddr" do
         @addrinfo.ip_port.should == 46102
       end
 
-      xit "returns the Socket::UNSPEC pfamily" do
+      it "returns the Socket::UNSPEC pfamily" do
         @addrinfo.pfamily.should == Socket::PF_INET
       end
 
-      xit "returns the INET6 afamily" do
+      it "returns the INET6 afamily" do
         @addrinfo.afamily.should == Socket::AF_INET
       end
 
-      xit "returns the 0 socket type" do
+      it "returns the 0 socket type" do
         @addrinfo.socktype.should == Socket::SOCK_STREAM
       end
 
-      xit "returns the specified protocol" do
+      it "returns the specified protocol" do
         @addrinfo.protocol.should == Socket::IPPROTO_TCP
       end
     end
@@ -335,7 +335,7 @@ describe "Addrinfo#initialize" do
         @sockaddr = ['AF_INET6', 80, 'hostname', '127.0.0.1']
       end
 
-      xit "raises SocketError when using any Socket constant except except AF_INET(6)/PF_INET(6)" do
+      it "raises SocketError when using any Socket constant except except AF_INET(6)/PF_INET(6)" do
         Socket.constants.grep(/(^AF_|^PF_)(?!INET)/).each do |constant|
           value = Socket.const_get(constant)
           -> {
@@ -354,7 +354,7 @@ describe "Addrinfo#initialize" do
         valid = [:IPPROTO_IP, :IPPROTO_UDP, :IPPROTO_HOPOPTS]
 
         valid.each do |type|
-          xit "overwrites the protocol when using #{type}" do
+          it "overwrites the protocol when using #{type}" do
             value = Socket.const_get(type)
             addr  = Addrinfo.new(@sockaddr, nil, nil, value)
 
@@ -382,7 +382,7 @@ describe "Addrinfo#initialize" do
         valid = [:IPPROTO_IP, :IPPROTO_UDP, :IPPROTO_HOPOPTS]
 
         valid.each do |type|
-          xit "overwrites the protocol when using #{type}" do
+          it "overwrites the protocol when using #{type}" do
             value = Socket.const_get(type)
             addr  = Addrinfo.new(@sockaddr, nil, @socktype, value)
 
@@ -392,7 +392,7 @@ describe "Addrinfo#initialize" do
 
         platform_is_not :windows, :aix, :solaris do
           (Socket.constants.grep(/^IPPROTO/) - valid).each do |type|
-            xit "raises SocketError when using #{type}" do
+            it "raises SocketError when using #{type}" do
               value = Socket.const_get(type)
               block = -> { Addrinfo.new(@sockaddr, nil, @socktype, value) }
 
@@ -409,7 +409,7 @@ describe "Addrinfo#initialize" do
           end
 
           Socket.constants.grep(/^IPPROTO/).each do |type|
-            xit "raises SocketError when using #{type}" do
+            it "raises SocketError when using #{type}" do
               value = Socket.const_get(type)
               block = -> { Addrinfo.new(@sockaddr, nil, @socktype, value) }
 
@@ -440,7 +440,7 @@ describe "Addrinfo#initialize" do
         end
 
         Socket.constants.grep(/^IPPROTO/).each do |type|
-          xit "raises SocketError when using #{type}" do
+          it "raises SocketError when using #{type}" do
             value = Socket.const_get(type)
             block = -> { Addrinfo.new(@sockaddr, nil, @socktype, value) }
 
@@ -459,7 +459,7 @@ describe "Addrinfo#initialize" do
             valid = [:IPPROTO_IP, :IPPROTO_HOPOPTS]
 
             valid.each do |type|
-              xit "overwrites the protocol when using #{type}" do
+              it "overwrites the protocol when using #{type}" do
                 value = Socket.const_get(type)
                 addr  = Addrinfo.new(@sockaddr, nil, @socktype, value)
 
@@ -468,7 +468,7 @@ describe "Addrinfo#initialize" do
             end
 
             (Socket.constants.grep(/^IPPROTO/) - valid).each do |type|
-              xit "raises SocketError when using #{type}" do
+              it "raises SocketError when using #{type}" do
                 value = Socket.const_get(type)
                 block = -> { Addrinfo.new(@sockaddr, nil, @socktype, value) }
 
@@ -487,7 +487,7 @@ describe "Addrinfo#initialize" do
         valid = [:IPPROTO_IP, :IPPROTO_TCP, :IPPROTO_HOPOPTS]
 
         valid.each do |type|
-          xit "overwrites the protocol when using #{type}" do
+          it "overwrites the protocol when using #{type}" do
             value = Socket.const_get(type)
             addr  = Addrinfo.new(@sockaddr, nil, @socktype, value)
 
@@ -497,7 +497,7 @@ describe "Addrinfo#initialize" do
 
         platform_is_not :windows, :aix, :solaris do
           (Socket.constants.grep(/^IPPROTO/) - valid).each do |type|
-            xit "raises SocketError when using #{type}" do
+            it "raises SocketError when using #{type}" do
               value = Socket.const_get(type)
               block = -> { Addrinfo.new(@sockaddr, nil, @socktype, value) }
 
@@ -526,13 +526,13 @@ describe "Addrinfo#initialize" do
       addr.pfamily.should == Socket::PF_INET
     end
 
-    xit 'returns an Addrinfo with :SOCK_STREAM as the socket type' do
+    it 'returns an Addrinfo with :SOCK_STREAM as the socket type' do
       addr = Addrinfo.new(@sockaddr, nil, :SOCK_STREAM)
 
       addr.socktype.should == Socket::SOCK_STREAM
     end
 
-    xit 'returns an Addrinfo with :STREAM as the socket type' do
+    it 'returns an Addrinfo with :STREAM as the socket type' do
       addr = Addrinfo.new(@sockaddr, nil, :STREAM)
 
       addr.socktype.should == Socket::SOCK_STREAM
