@@ -103,12 +103,15 @@ public:
 
     void append_char(char);
     void append(signed char);
-    void append(unsigned char c) { append(static_cast<signed char>(c)); }
-    void append(Env *, const char *);
-    void append(Env *, const StringObject *);
-    void append(Env *, const ManagedString *);
-    void append(Env *, const String &);
-    void append(Env *, Value);
+    void append(unsigned char);
+    void append(const char *);
+    void append(long unsigned int);
+    void append(const StringObject *);
+    void append(const SymbolObject *);
+    void append(const ManagedString *);
+    void append(const IntegerObject *);
+    void append(const String &);
+    void append(Value);
 
     void append_sprintf(const char *format, ...) {
         va_list args, args_copy;
@@ -235,30 +238,27 @@ public:
 
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
-        String out;
+        auto out = new StringObject;
         format(out, fmt, args...);
-        return new StringObject { out };
+        return out;
     }
 
-    static void format(String &out, const char *fmt) {
+    static void format(StringObject *out, const char *fmt) {
         for (const char *c = fmt; *c != 0; c++) {
-            out.append_char(*c);
+            out->append_char(*c);
         }
     }
 
     template <typename T, typename... Args>
-    static void format(String &out, const char *fmt, T first, Args... rest) {
+    static void format(StringObject *out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == '}') {
                 c++;
-                if constexpr (std::is_same<T, const StringObject *>::value || std::is_same<T, StringObject *>::value)
-                    out.append(first->to_low_level_string());
-                else
-                    out.append(first);
+                out->append(first);
                 format(out, c + 1, rest...);
                 return;
             } else {
-                out.append_char(*c);
+                out->append_char(*c);
             }
         }
     }

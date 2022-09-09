@@ -285,12 +285,12 @@ Value HashObject::inspect(Env *env) {
 
         for (HashObject::Key &node : *this) {
             StringObject *key_repr = to_s(node.key.send(env, "inspect"_s));
-            out->append(env, key_repr);
-            out->append(env, "=>");
+            out->append(key_repr);
+            out->append("=>");
             StringObject *val_repr = to_s(node.val.send(env, "inspect"_s));
-            out->append(env, val_repr);
+            out->append(val_repr);
             if (index < last_index) {
-                out->append(env, ", ");
+                out->append(", ");
             }
             index++;
         }

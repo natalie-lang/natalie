@@ -239,24 +239,24 @@ StringObject *StringObject::inspect(Env *env) {
             out->append_char('\\');
             out->append_char(c);
         } else if (c == '\a') {
-            out->append(env, "\\a");
+            out->append("\\a");
         } else if (c == '\b') {
-            out->append(env, "\\b");
+            out->append("\\b");
         } else if ((int)c == 27) { // FIXME: change to '\033' ??
-            out->append(env, "\\e");
+            out->append("\\e");
         } else if (c == '\f') {
-            out->append(env, "\\f");
+            out->append("\\f");
         } else if (c == '\n') {
-            out->append(env, "\\n");
+            out->append("\\n");
         } else if (c == '\r') {
-            out->append(env, "\\r");
+            out->append("\\r");
         } else if (c == '\t') {
-            out->append(env, "\\t");
+            out->append("\\t");
         } else if (c == '\v') {
-            out->append(env, "\\v");
+            out->append("\\v");
         } else if ((int)c < 32) {
             auto escaped_char = m_encoding->escaped_char(c);
-            out->append(env, escaped_char);
+            out->append(escaped_char);
         } else {
             out->append_char(c);
         }
@@ -361,7 +361,7 @@ Value StringObject::add(Env *env, Value arg) const {
         str = str_obj->as_string()->string();
     }
     StringObject *new_string = new StringObject { m_string };
-    new_string->append(env, str);
+    new_string->append(str);
     return new_string;
 }
 
@@ -378,7 +378,7 @@ Value StringObject::mul(Env *env, Value arg) const {
         return new_string;
 
     for (nat_int_t i = 0; i < nat_int; i++) {
-        new_string->append(env, this);
+        new_string->append(this);
     }
     return new_string;
 }
@@ -436,7 +436,7 @@ Value StringObject::concat(Env *env, Args args) {
 
         str_obj->assert_type(env, Object::Type::String, "String");
 
-        append(env, str_obj->string());
+        append(str_obj->string());
     }
 
     return this;
@@ -693,7 +693,7 @@ Value StringObject::ref(Env *env, Value index_obj) {
         u_end = u_end > max ? max : u_end;
         StringObject *result = new StringObject {};
         for (size_t i = begin; i < u_end; i++) {
-            result->append(env, (*chars)[i]);
+            result->append((*chars)[i]);
         }
 
         return result;
@@ -880,11 +880,11 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     StringObject result;
     for (size_t i = 0; i < new_length; ++i) {
         if (i < (size_t)begin)
-            result.append(env, (*chars)[i]);
+            result.append((*chars)[i]);
         else if (i - begin < arg_chars->size())
-            result.append(env, (*arg_chars)[i - begin]);
+            result.append((*arg_chars)[i - begin]);
         else
-            result.append(env, (*chars)[i - arg_chars->size() + (end - begin)]);
+            result.append((*chars)[i - arg_chars->size() + (end - begin)]);
     }
     m_string = result.string();
 
@@ -908,11 +908,11 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
         if (block) {
             Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
             result->assert_type(env, Object::Type::String, "String");
-            out->append(env, result->as_string());
+            out->append(result->as_string());
         } else {
-            out->append(env, replacement->as_string());
+            out->append(replacement->as_string());
         }
-        out->append(env, &c_str()[index + find->as_string()->length()]);
+        out->append(&c_str()[index + find->as_string()->length()]);
         return out;
     } else if (find->is_regexp()) {
         MatchDataObject *match;
@@ -962,14 +962,14 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
         replacement_from_block->assert_type(env, Object::Type::String, "String");
         *expanded_replacement = replacement_from_block->as_string();
-        out->append(env, *expanded_replacement);
+        out->append(*expanded_replacement);
         if (index + length < m_string.length())
-            out->append(env, m_string.substring(index + length));
+            out->append(m_string.substring(index + length));
     } else {
         *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-        out->append(env, *expanded_replacement);
+        out->append(*expanded_replacement);
         if (index + length < m_string.length())
-            out->append(env, m_string.substring(index + length));
+            out->append(m_string.substring(index + length));
     }
     return out;
 }
@@ -995,7 +995,7 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '8':
             case '9': {
                 int num = c - 48;
-                expanded->append(env, match->group(env, num)->as_string());
+                expanded->append(match->group(env, num)->as_string());
                 break;
             }
             case '\\':
@@ -1121,7 +1121,7 @@ Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
     StringObject *copy = dup(env)->as_string();
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
-        copy->append(env, padstr);
+        copy->append(padstr);
         if (truncate) {
             copy->truncate(length);
         }
@@ -1248,7 +1248,7 @@ Value StringObject::downcase(Env *env) {
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
-            str->append(env, c_str);
+            str->append(c_str);
         } else {
             auto c = c_str->c_str()[0];
             if (c >= 65 && c <= 90) {
@@ -1266,7 +1266,7 @@ Value StringObject::upcase(Env *env) {
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
-            str->append(env, c_str);
+            str->append(c_str);
         } else {
             auto c = c_str->c_str()[0];
             if (c >= 97 && c <= 122) {
@@ -1353,27 +1353,53 @@ void StringObject::append(signed char c) {
     m_string.append_char(c);
 }
 
-void StringObject::append(Env *, const char *str) {
+void StringObject::append(unsigned char c) {
+    m_string.append_char(c);
+}
+
+void StringObject::append(const char *str) {
     m_string.append(str);
 }
 
-void StringObject::append(Env *, const StringObject *str) {
+void StringObject::append(long unsigned int i) {
+    m_string.append(i);
+}
+
+void StringObject::append(const StringObject *str) {
     m_string.append(str->string());
 }
 
-void StringObject::append(Env *, const ManagedString *str) {
+void StringObject::append(const SymbolObject *sym) {
+    m_string.append(sym->string());
+}
+
+void StringObject::append(const IntegerObject *i) {
+    m_string.append(i->to_s());
+}
+
+void StringObject::append(const ManagedString *str) {
     m_string.append(str);
 }
 
-void StringObject::append(Env *, const String &str) {
+void StringObject::append(const String &str) {
     m_string.append(str);
 }
 
-void StringObject::append(Env *env, Value val) {
-    if (val->is_string())
-        append(env, val->as_string()->c_str());
-    else
-        append(env, val.send(env, "to_s"_s));
+void StringObject::append(Value val) {
+    auto obj = val.object();
+    switch (obj->type()) {
+    case Type::String:
+        append(obj->as_string());
+        break;
+    case Type::Symbol:
+        append(obj->as_symbol());
+        break;
+    case Type::Integer:
+        append(obj->as_integer());
+        break;
+    default:
+        NAT_NOT_YET_IMPLEMENTED("don't know how to append %d", (int)obj->type());
+    }
 }
 
 Value StringObject::convert_float() {

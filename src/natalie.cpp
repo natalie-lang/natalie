@@ -481,7 +481,7 @@ Value shell_backticks(Env *env, Value command) {
         while (1) {
             result = fgets(buf, NAT_SHELL_READ_BYTES, process);
             if (!result) break;
-            out->append(env, buf);
+            out->append(buf);
         }
     } else {
         out = new StringObject {};
@@ -591,4 +591,5 @@ Value bool_object(bool b) {
     else
         return FalseObject::the();
 }
+
 }

@@ -44,19 +44,19 @@ Value RegexpObject::inspect(Env *env) {
         char c = str[i];
         switch (c) {
         case '\n':
-            out->append(env, "\\n");
+            out->append("\\n");
             break;
         case '\t':
-            out->append(env, "\\t");
+            out->append("\\t");
             break;
         case '/':
-            out->append(env, "\\/");
+            out->append("\\/");
             break;
         case '\\':
             if (i < (len - 1) && str[i + 1] == '/') {
                 break;
             }
-            out->append(env, "\\\\");
+            out->append("\\\\");
             break;
         default:
             out->append_char(c);
@@ -257,19 +257,19 @@ Value RegexpObject::to_s(Env *env) const {
         char c = str[i];
         switch (c) {
         case '\n':
-            out->append(env, "\\n");
+            out->append("\\n");
             break;
         case '\t':
-            out->append(env, "\\t");
+            out->append("\\t");
             break;
         case '/':
-            out->append(env, "\\/");
+            out->append("\\/");
             break;
         case '\\':
             if (i < (len - 1) && str[i + 1] == '/') {
                 break;
             }
-            out->append(env, "\\\\");
+            out->append("\\\\");
             break;
         default:
             out->append_char(c);

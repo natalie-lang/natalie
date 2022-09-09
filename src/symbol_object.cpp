@@ -41,9 +41,9 @@ StringObject *SymbolObject::inspect(Env *env) {
     }
     if (quote) {
         StringObject *quoted = StringObject { m_name }.inspect(env);
-        string->append(env, quoted);
+        string->append(quoted);
     } else {
-        string->append(env, m_name);
+        string->append(m_name);
     }
     return string;
 }

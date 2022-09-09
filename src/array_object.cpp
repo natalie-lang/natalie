@@ -140,12 +140,12 @@ Value ArrayObject::inspect(Env *env) {
             }
 
             if (inspected_repr->is_string())
-                out->append(env, inspected_repr->as_string());
+                out->append(inspected_repr->as_string());
             else
                 out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str()->c_str(), static_cast<uintptr_t>(inspected_repr));
 
             if (i < size() - 1) {
-                out->append(env, ", ");
+                out->append(", ");
             }
         }
         out->append_char(']');
@@ -892,18 +892,18 @@ Value ArrayObject::join(Env *env, Value joiner) {
             for (size_t i = 0; i < size(); i++) {
                 Value item = (*this)[i];
                 if (item->is_string())
-                    out->append(env, item->as_string());
+                    out->append(item->as_string());
                 else if (item->respond_to(env, to_str))
-                    out->append(env, item.send(env, to_str)->as_string());
+                    out->append(item.send(env, to_str)->as_string());
                 else if (item->is_array())
-                    out->append(env, item->as_array()->join(env, joiner));
+                    out->append(item->as_array()->join(env, joiner));
                 else if (item->respond_to(env, to_s))
-                    out->append(env, item.send(env, to_s)->as_string());
+                    out->append(item.send(env, to_s)->as_string());
                 else
-                    out->append(env, ManagedString::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
+                    out->append(ManagedString::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
 
                 if (i < (size() - 1))
-                    out->append(env, joiner->as_string());
+                    out->append(joiner->as_string());
             }
             return (Value)out;
         }

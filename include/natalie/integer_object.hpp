@@ -59,10 +59,12 @@ public:
 
     static Value sqrt(Env *, Value);
 
-    Value inspect(Env *env) { return to_s(env); }
+    Value inspect(Env *env) const { return to_s(env); }
 
-    Value to_s(Env *, Value = nullptr);
-    Value to_i();
+    String to_s() const { return m_integer.to_string(); }
+
+    Value to_s(Env *, Value = nullptr) const;
+    Value to_i() const;
     Value to_f() const;
     Value add(Env *, Value);
     Value sub(Env *, Value);

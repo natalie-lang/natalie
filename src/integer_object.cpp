@@ -9,11 +9,12 @@ Value IntegerObject::create(const Integer &integer) {
         return new IntegerObject { integer };
     return Value::integer(integer.to_nat_int_t());
 }
+
 Value IntegerObject::create(const char *string) {
     return new IntegerObject { BigInt(string) };
 };
 
-Value IntegerObject::to_s(Env *env, Value base_value) {
+Value IntegerObject::to_s(Env *env, Value base_value) const {
     if (m_integer == 0)
         return new StringObject { "0" };
 
@@ -51,7 +52,7 @@ Value IntegerObject::to_s(Env *env, Value base_value) {
     return str;
 }
 
-Value IntegerObject::to_i() {
+Value IntegerObject::to_i() const {
     return IntegerObject::create(m_integer);
 }
 

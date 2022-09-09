@@ -66,7 +66,7 @@ Value IoObject::read(Env *env, Value count_value) const {
         bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;
-        str->append(env, buf);
+        str->append(buf);
     }
     return str;
 }

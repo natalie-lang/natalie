@@ -32,9 +32,9 @@ public:
         for (size_t i = 0; i < size(); i++) {
             Value obj = (*this)[i];
             StringObject *repr = obj.send(env, "inspect"_s)->as_string();
-            out->append(env, repr);
+            out->append(repr);
             if (i < size() - 1) {
-                out->append(env, ", ");
+                out->append(", ");
             }
         }
         out->append_char(')');
