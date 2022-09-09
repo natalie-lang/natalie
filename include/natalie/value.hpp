@@ -52,7 +52,7 @@ public:
         return m_object;
     }
 
-    Object *object_or_null() {
+    Object *object_or_null() const {
         if (m_type == Type::Pointer)
             return m_object;
         else
@@ -99,11 +99,20 @@ public:
         return m_type == Type::Integer;
     }
 
+    bool is_fast_double() const {
+        return m_type == Type::Double;
+    }
+
     double as_double() const;
 
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
         return m_integer;
+    }
+
+    double get_fast_double() const {
+        assert(m_type == Type::Double);
+        return m_double;
     }
 
 private:

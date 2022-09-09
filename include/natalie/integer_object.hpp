@@ -115,6 +115,8 @@ public:
             env->raise("RangeError", "bignum too big to convert into `long'");
     }
 
+    virtual String dbg_inspect() const override { return to_s(); }
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<IntegerObject %p value=%s is_fixnum=%s>", this, m_integer.to_string().c_str(), m_integer.is_fixnum() ? "true" : "false");
     }

@@ -265,6 +265,10 @@ StringObject *StringObject::inspect(Env *env) {
     return out;
 }
 
+String StringObject::dbg_inspect() const {
+    return String::format("\"{}\"", m_string);
+}
+
 StringObject *StringObject::successive(Env *env) {
     auto str = m_string.successive();
     return new StringObject { str };
@@ -272,7 +276,6 @@ StringObject *StringObject::successive(Env *env) {
 
 bool StringObject::internal_start_with(Env *env, Value needle) const {
     nat_int_t i = index_int(env, needle, 0);
-
     return i == 0;
 }
 
@@ -1365,12 +1368,13 @@ void StringObject::append(long unsigned int i) {
     m_string.append(i);
 }
 
-void StringObject::append(const StringObject *str) {
-    m_string.append(str->string());
+void StringObject::append(double d) {
+    auto f = FloatObject(d);
+    m_string.append(f.to_s());
 }
 
-void StringObject::append(const SymbolObject *sym) {
-    m_string.append(sym->string());
+void StringObject::append(const FloatObject *f) {
+    m_string.append(f->to_s());
 }
 
 void StringObject::append(const IntegerObject *i) {
@@ -1381,20 +1385,44 @@ void StringObject::append(const String &str) {
     m_string.append(str);
 }
 
+void StringObject::append(const StringObject *str) {
+    m_string.append(str->string());
+}
+
+void StringObject::append(const SymbolObject *sym) {
+    m_string.append(sym->string());
+}
+
 void StringObject::append(Value val) {
     auto obj = val.object();
     switch (obj->type()) {
+    case Type::Array:
+    case Type::Hash:
+        append(obj->dbg_inspect());
+        break;
+    case Type::False:
+        append("false");
+        break;
+    case Type::Float:
+        append(obj->as_float());
+        break;
+    case Type::Integer:
+        append(obj->as_integer());
+        break;
+    case Type::Nil:
+        append("nil");
+        break;
     case Type::String:
         append(obj->as_string());
         break;
     case Type::Symbol:
         append(obj->as_symbol());
         break;
-    case Type::Integer:
-        append(obj->as_integer());
+    case Type::True:
+        append("true");
         break;
     default:
-        NAT_NOT_YET_IMPLEMENTED("don't know how to append %d", (int)obj->type());
+        append(obj->dbg_inspect());
     }
 }
 

@@ -198,6 +198,27 @@ Value RangeObject::last(Env *env, Value n) {
     return to_a(env)->as_array()->last(env, n);
 }
 
+String RangeObject::dbg_inspect() const {
+    String str;
+    auto append = [&](Value v) {
+        if (v.is_fast_integer()) {
+            str.append(v.get_fast_integer());
+        } else if (v.is_fast_double()) {
+            auto f = FloatObject(v.get_fast_double());
+            str.append(f.to_s());
+        } else {
+            auto obj = v.object_or_null();
+            assert(obj);
+            if (!obj->is_nil())
+                str.append(obj->dbg_inspect());
+        }
+    };
+    append(m_begin);
+    str.append(m_exclude_end ? "..." : "..");
+    append(m_end);
+    return str;
+}
+
 Value RangeObject::to_s(Env *env) {
     auto begin = m_begin->send(env, "to_s"_s)->as_string();
     auto end = m_end->send(env, "to_s"_s)->as_string();

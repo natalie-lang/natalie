@@ -153,6 +153,19 @@ Value ArrayObject::inspect(Env *env) {
     });
 }
 
+String ArrayObject::dbg_inspect() const {
+    String str("[");
+    size_t index = 0;
+    for (size_t index = 0; index < size(); index++) {
+        auto item = (*this)[index];
+        str.append(item->dbg_inspect());
+        if (index < size() - 1)
+            str.append(", ");
+    }
+    str.append("]");
+    return str;
+}
+
 Value ArrayObject::ltlt(Env *env, Value arg) {
     this->assert_not_frozen(env);
     push(arg);

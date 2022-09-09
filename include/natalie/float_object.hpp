@@ -129,7 +129,7 @@ public:
     Value sub(Env *, Value);
     Value to_f() const { return Value::floatingpoint(m_double); }
     Value to_i(Env *) const;
-    Value to_s(Env *) const;
+    Value to_s() const;
     Value truncate(Env *, Value);
 
     bool lt(Env *, Value);

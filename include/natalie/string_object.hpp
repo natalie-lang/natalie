@@ -104,10 +104,12 @@ public:
     void append(unsigned char);
     void append(const char *);
     void append(long unsigned int);
-    void append(const StringObject *);
-    void append(const SymbolObject *);
+    void append(double);
+    void append(const FloatObject *);
     void append(const IntegerObject *);
     void append(const String &);
+    void append(const StringObject *);
+    void append(const SymbolObject *);
     void append(Value);
 
     void append_sprintf(const char *format, ...) {
@@ -250,15 +252,23 @@ public:
     static void format(StringObject *out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == '}') {
-                c++;
                 out->append(first);
-                format(out, c + 1, rest...);
+                format(out, c + 2, rest...);
+                return;
+            } else if (*c == '{' && *(c + 1) == 'v' && *(c + 2) == '}') {
+                if constexpr (std::is_same_v<Value, std::remove_const<T>> || std::is_base_of_v<Object, std::remove_pointer_t<std::remove_const_t<T>>>)
+                    out->append(first->dbg_inspect());
+                else
+                    out->append(first);
+                format(out, c + 3, rest...);
                 return;
             } else {
                 out->append_char(*c);
             }
         }
     }
+
+    virtual String dbg_inspect() const override;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<StringObject %p str='%s'>", this, m_string.c_str());

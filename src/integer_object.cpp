@@ -680,4 +680,5 @@ int IntegerObject::convert_to_int(Env *env, Value arg) {
 
     return (int)result;
 }
+
 }

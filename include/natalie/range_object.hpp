@@ -37,6 +37,7 @@ public:
     Value first(Env *, Value);
     Value inspect(Env *);
     Value last(Env *, Value);
+    String to_s() const;
     Value to_s(Env *);
     bool eq(Env *, Value);
     bool eql(Env *, Value);
@@ -52,6 +53,8 @@ public:
         visitor.visit(m_begin);
         visitor.visit(m_end);
     }
+
+    virtual String dbg_inspect() const override;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RangeObject %p>", this);

@@ -226,7 +226,7 @@ public:
 
     Value itself() { return this; }
 
-    String pointer_id() {
+    String pointer_id() const {
         char buf[100]; // ought to be enough for anybody ;-)
         snprintf(buf, 100, "%p", this);
         return buf;
@@ -293,6 +293,8 @@ public:
     Value enum_for(Env *env, const char *method, Args args = {});
 
     virtual void visit_children(Visitor &visitor) override;
+
+    virtual String dbg_inspect() const;
 
     virtual void gc_inspect(char *buf, size_t len) const override;
 

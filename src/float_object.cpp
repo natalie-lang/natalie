@@ -82,7 +82,7 @@ ROUNDING_OPERATION(truncate, trunc)
 // from dtoa.c by David Gay
 extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
 
-Value FloatObject::to_s(Env *env) const {
+Value FloatObject::to_s() const {
     if (is_nan()) {
         return new StringObject { "NaN", EncodingObject::get(Encoding::US_ASCII) };
     } else if (is_positive_infinity()) {
@@ -192,7 +192,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
 
 Value FloatObject::to_i(Env *env) const {
     if (is_infinity()) {
-        env->raise("FloatDomainError", to_s(env)->as_string()->string());
+        env->raise("FloatDomainError", to_s()->as_string()->string());
     }
 
     return f_to_i_or_bigint(::floor(m_double));

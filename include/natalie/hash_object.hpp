@@ -189,6 +189,8 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
+    virtual String dbg_inspect() const override;
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<HashObject %p size=%zu>", this, size());
     }

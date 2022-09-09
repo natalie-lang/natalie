@@ -840,6 +840,14 @@ bool Object::neq(Env *env, Value other) {
     return send(env, "=="_s, { other })->is_falsey();
 }
 
+String Object::dbg_inspect() const {
+    auto klass = m_klass->class_name();
+    return String::format(
+        "#<{}:{}>",
+        klass ? *klass : "Object",
+        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
+}
+
 String Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
         return String::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));

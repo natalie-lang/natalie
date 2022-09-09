@@ -43,6 +43,10 @@ StringObject *SymbolObject::inspect(Env *env) {
     return string;
 }
 
+String SymbolObject::dbg_inspect() const {
+    return String::format(":{}", m_name);
+}
+
 Value SymbolObject::eqtilde(Env *env, Value other) {
     other->assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);

@@ -495,7 +495,7 @@ gen.binding('Float', 'fdiv', 'FloatObject', 'div', argc: 1, pass_env: true, pass
 gen.binding('Float', 'finite?', 'FloatObject', 'is_finite', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 gen.binding('Float', 'floor', 'FloatObject', 'floor', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'infinite?', 'FloatObject', 'is_infinite', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
-gen.binding('Float', 'inspect', 'FloatObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
+gen.binding('Float', 'inspect', 'FloatObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'magnitude', 'FloatObject', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'modulo', 'FloatObject', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'nan?', 'FloatObject', 'is_nan', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
@@ -509,7 +509,7 @@ gen.binding('Float', 'round', 'FloatObject', 'round', argc: 0..1, pass_env: true
 gen.binding('Float', 'to_f', 'FloatObject', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'to_i', 'FloatObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'to_int', 'FloatObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
-gen.binding('Float', 'to_s', 'FloatObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
+gen.binding('Float', 'to_s', 'FloatObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'truncate', 'FloatObject', 'truncate', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Float', 'zero?', 'FloatObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 
