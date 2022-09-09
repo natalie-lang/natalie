@@ -5,7 +5,6 @@
 #include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
-#include "natalie/managed_string.hpp"
 #include "natalie/string_object.hpp"
 #include "natalie/symbol_object.hpp"
 
@@ -45,7 +44,7 @@ namespace ArrayPacker {
                     String string;
                     auto item = m_source->at(m_index);
                     if (m_source->is_string()) {
-                        string = item->as_string()->to_low_level_string();
+                        string = item->as_string()->string();
                     } else if (item->is_nil()) {
                         if (d == 'u')
                             env->raise("TypeError", "no implicit conversion of nil into String");
@@ -53,7 +52,7 @@ namespace ArrayPacker {
                     } else if (item->respond_to(env, "to_str"_s)) {
                         auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
-                        string = str->as_string()->to_low_level_string();
+                        string = str->as_string()->string();
                     } else {
                         env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
                         NAT_UNREACHABLE();

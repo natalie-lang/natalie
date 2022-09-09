@@ -35,7 +35,7 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
 }
 
 EncodingObject *EncodingObject::find(Env *env, Value name) {
-    auto string = name->as_string()->to_low_level_string();
+    auto string = name->as_string()->string();
     for (auto value : *list(env)) {
         auto encoding = value->as_encoding();
         for (auto encodingName : encoding->m_names) {

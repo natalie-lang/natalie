@@ -13,7 +13,7 @@ module Natalie
 
       def generate(transform)
         string = transform.pop
-        transform.exec_and_push(:regexp, "Value(new RegexpObject(env, #{string}->as_string()->to_low_level_string(), #{@options}))")
+        transform.exec_and_push(:regexp, "Value(new RegexpObject(env, #{string}->as_string()->string(), #{@options}))")
       end
 
       def execute(vm)

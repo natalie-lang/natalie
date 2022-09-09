@@ -8,7 +8,7 @@ namespace Natalie {
 class Backtrace : public Cell {
 public:
     struct Item {
-        const ManagedString *source_location;
+        String source_location;
         const char *file;
         size_t line;
     };
@@ -18,12 +18,6 @@ public:
         m_items.push(Item { env->build_code_location_name(), file, line });
     }
     ArrayObject *to_ruby_array();
-
-    virtual void visit_children(Visitor &visitor) override final {
-        for (auto item : m_items) {
-            visitor.visit(item.source_location);
-        }
-    }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Backtrace %p size=%ld>", this, m_items.size());

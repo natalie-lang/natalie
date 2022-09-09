@@ -7,7 +7,6 @@
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/local_jump_error_type.hpp"
-#include "natalie/managed_string.hpp"
 #include "natalie/managed_vector.hpp"
 #include "natalie/value.hpp"
 #include "tm/shared_ptr.hpp"
@@ -41,7 +40,7 @@ public:
     Value global_set(SymbolObject *, Value);
 
     Method *current_method();
-    const ManagedString *build_code_location_name();
+    String build_code_location_name();
 
     Value var_get(const char *, size_t);
     Value var_set(const char *, size_t, bool, Value);
@@ -74,11 +73,11 @@ public:
         raise(class_name, message);
     }
 
-    void warn(const ManagedString *);
+    void warn(String);
 
     template <typename... Args>
     void warn(const char *format, Args... args) {
-        auto message = ManagedString::format(format, args...);
+        auto message = String::format(format, args...);
         warn(message);
     }
 

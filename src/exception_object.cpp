@@ -5,7 +5,7 @@ namespace Natalie {
 Value ExceptionObject::initialize(Env *env, Value message) {
     if (!message) {
         auto name = m_klass->inspect_str();
-        set_message(new StringObject { *name });
+        set_message(new StringObject { name });
     } else {
         if (!message->is_string()) {
             message = message.send(env, "inspect"_s);

@@ -39,7 +39,7 @@ public:
 
     Value call(Env *env, Value self, Args args, Block *block);
 
-    ManagedString *name() const { return new ManagedString(m_name); }
+    String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }
 
     int arity() const { return m_arity; }

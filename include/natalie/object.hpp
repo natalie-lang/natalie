@@ -226,10 +226,10 @@ public:
 
     Value itself() { return this; }
 
-    const ManagedString *pointer_id() {
+    String pointer_id() {
         char buf[100]; // ought to be enough for anybody ;-)
         snprintf(buf, 100, "%p", this);
-        return new ManagedString(buf);
+        return buf;
     }
 
     Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
@@ -288,7 +288,7 @@ public:
     void assert_type(Env *, Object::Type, const char *);
     void assert_not_frozen(Env *);
 
-    const ManagedString *inspect_str(Env *);
+    String inspect_str(Env *);
 
     Value enum_for(Env *env, const char *method, Args args = {});
 

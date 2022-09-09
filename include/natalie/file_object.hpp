@@ -51,8 +51,8 @@ public:
     static bool file(Env *env, Value path);
     static bool directory(Env *env, Value path);
 
-    const ManagedString *path() const { return new ManagedString(m_path); }
-    void set_path(const ManagedString *path) { m_path = path->to_low_level_string(); };
+    String path() const { return m_path; }
+    void set_path(String path) { m_path = path; };
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileObject %p>", this);

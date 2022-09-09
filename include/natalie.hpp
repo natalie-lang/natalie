@@ -39,7 +39,6 @@
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
 #include "natalie/local_jump_error_type.hpp"
-#include "natalie/managed_string.hpp"
 #include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"
 #include "natalie/method_object.hpp"

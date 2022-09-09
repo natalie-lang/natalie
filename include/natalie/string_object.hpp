@@ -9,7 +9,6 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/managed_string.hpp"
 #include "natalie/object.hpp"
 
 namespace Natalie {
@@ -77,7 +76,6 @@ public:
         m_string = str.clone();
     }
 
-    ManagedString *to_low_level_string() const { return new ManagedString(m_string); }
     const String &string() const { return m_string; }
 
     const char *c_str() const { return m_string.c_str(); }
@@ -108,7 +106,6 @@ public:
     void append(long unsigned int);
     void append(const StringObject *);
     void append(const SymbolObject *);
-    void append(const ManagedString *);
     void append(const IntegerObject *);
     void append(const String &);
     void append(Value);

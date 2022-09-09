@@ -102,11 +102,6 @@ public:
         return m_options;
     }
 
-    void set_options(const ManagedString *options) {
-        auto str = options->to_low_level_string();
-        set_options(str);
-    }
-
     void set_options(String &options) {
         parse_options(options, &m_options);
     }

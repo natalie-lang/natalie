@@ -16,7 +16,6 @@ namespace Natalie {
 class SymbolObject : public Object {
 public:
     static SymbolObject *intern(const char *, size_t length);
-    static SymbolObject *intern(const ManagedString *);
     static SymbolObject *intern(const String &);
 
     // TODO: let's try to get rid of this, as it will cause the loss of part of the symbol

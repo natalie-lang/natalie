@@ -576,16 +576,16 @@ Value StringObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, char_count);
 }
 
-static EncodingObject *find_encoding_by_name(Env *env, const ManagedString *name) {
-    ManagedString *lcase_name = name->lowercase();
+static EncodingObject *find_encoding_by_name(Env *env, String name) {
+    auto lcase_name = name.lowercase();
     ArrayObject *list = EncodingObject::list(env);
     for (size_t i = 0; i < list->size(); i++) {
         EncodingObject *encoding = (*list)[i]->as_encoding();
         ArrayObject *names = encoding->names(env);
         for (size_t n = 0; n < names->size(); n++) {
             StringObject *name_obj = (*names)[n]->as_string();
-            ManagedString *name = name_obj->to_low_level_string()->lowercase();
-            if (*name == *lcase_name) {
+            auto name = name_obj->string().lowercase();
+            if (name == lcase_name) {
                 return encoding;
             }
         }
@@ -602,7 +602,7 @@ Value StringObject::encode(Env *env, Value encoding) {
         encoding_obj = encoding->as_encoding();
         break;
     case Object::Type::String:
-        encoding_obj = find_encoding_by_name(env, encoding->as_string()->to_low_level_string());
+        encoding_obj = find_encoding_by_name(env, encoding->as_string()->string());
         break;
     default:
         env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
@@ -616,7 +616,7 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
         set_encoding(encoding->as_encoding());
         break;
     case Object::Type::String:
-        set_encoding(find_encoding_by_name(env, encoding->as_string()->to_low_level_string()));
+        set_encoding(find_encoding_by_name(env, encoding->as_string()->string()));
         break;
     default:
         env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
@@ -1375,10 +1375,6 @@ void StringObject::append(const SymbolObject *sym) {
 
 void StringObject::append(const IntegerObject *i) {
     m_string.append(i->to_s());
-}
-
-void StringObject::append(const ManagedString *str) {
-    m_string.append(str);
 }
 
 void StringObject::append(const String &str) {

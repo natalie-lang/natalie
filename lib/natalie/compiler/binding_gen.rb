@@ -275,7 +275,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
       when :StringObject
         "if (!return_value) return NilObject::the();\n" + 'return return_value;'
       when :String
-        "if (!return_value) return NilObject::the();\n" + 'return new StringObject { *return_value };'
+        'return new StringObject { return_value };'
       else
         raise "Unknown return type: #{return_type.inspect}"
       end

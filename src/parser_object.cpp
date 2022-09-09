@@ -15,8 +15,8 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
         source_path = new StringObject { "(string)" };
     code->assert_type(env, Object::Type::String, "String");
     auto parser = NatalieParser::Parser {
-        new String(code->as_string()->to_low_level_string()),
-        new String(source_path->as_string()->to_low_level_string())
+        new String(code->as_string()->string()),
+        new String(source_path->as_string()->string())
     };
     SharedPtr<NatalieParser::Node> tree;
     try {
@@ -31,7 +31,7 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
 Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numbers) {
     code->assert_type(env, Object::Type::String, "String");
     auto lexer = NatalieParser::Lexer {
-        new String(code->as_string()->to_low_level_string()),
+        new String(code->as_string()->string()),
         new String("(string)")
     };
     auto array = new ArrayObject {};

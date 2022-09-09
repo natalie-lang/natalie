@@ -384,7 +384,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
         Value arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringObject { *arg->as_class()->inspect_str() };
+            message = new StringObject { arg->as_class()->inspect_str() };
         } else if (arg->is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
@@ -550,10 +550,7 @@ Value KernelModule::tap(Env *env, Block *block) {
 
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
-    if (method->name()) {
-        return SymbolObject::intern(method->name());
-    } else {
-        return NilObject::the();
-    }
+    return SymbolObject::intern(method->name());
 }
+
 }
