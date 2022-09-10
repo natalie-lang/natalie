@@ -34,8 +34,7 @@ describe "Addrinfo#ip_address" do
   end
 
   describe 'with an Array as the socket address' do
-    # NATFIXME: Support Addrinfo.new with Array
-    xit 'returns the IP as a String' do
+    it 'returns the IP as a String' do
       sockaddr = ['AF_INET', 80, 'localhost', '127.0.0.1']
       addr     = Addrinfo.new(sockaddr)
 
