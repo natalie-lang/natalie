@@ -233,6 +233,13 @@ def as_user
   yield
 end
 
+def little_endian
+  yield
+end
+
+def big_endian
+end
+
 def suppress_warning
   old_stderr = $stderr
   $stderr = IOStub.new

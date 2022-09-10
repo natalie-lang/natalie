@@ -121,7 +121,8 @@ describe :array_pack_32bit_le, shared: true do
     ].should be_computed_by(:pack, pack_format())
   end
 
-  it "encodes a Float truncated as an Integer" do
+  # NATFIXME: float truncation gone wrong?
+  xit "encodes a Float truncated as an Integer" do
     [ [[2019902241.2],  "\x21\x43\x65\x78"],
       [[2019902241.8],  "\x21\x43\x65\x78"],
       [[-2019902241.2], "\xdf\xbc\x9a\x87"],

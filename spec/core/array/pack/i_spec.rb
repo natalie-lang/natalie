@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
 require_relative 'shared/basic'
@@ -22,7 +20,8 @@ describe "Array#pack with format 'i'" do
   it_behaves_like :array_pack_integer, 'i'
 end
 
-describe "Array#pack with format 'I'" do
+# NATFIXME: < modifier
+xdescribe "Array#pack with format 'I'" do
   describe "with modifier '<'" do
     it_behaves_like :array_pack_32bit_le, 'I<'
   end
@@ -52,7 +51,8 @@ describe "Array#pack with format 'I'" do
   end
 end
 
-describe "Array#pack with format 'i'" do
+# NATFIXME: < modifier
+xdescribe "Array#pack with format 'i'" do
   describe "with modifier '<'" do
     it_behaves_like :array_pack_32bit_le, 'i<'
   end
@@ -87,11 +87,13 @@ little_endian do
     it_behaves_like :array_pack_32bit_le, 'I'
   end
 
-  describe "Array#pack with format 'I' with modifier '_'" do
+  # NATFIXME: _ modifier
+  xdescribe "Array#pack with format 'I' with modifier '_'" do
     it_behaves_like :array_pack_32bit_le_platform, 'I_'
   end
 
-  describe "Array#pack with format 'I' with modifier '!'" do
+  # NATFIXME: ! modifier
+  xdescribe "Array#pack with format 'I' with modifier '!'" do
     it_behaves_like :array_pack_32bit_le_platform, 'I!'
   end
 
@@ -99,11 +101,13 @@ little_endian do
     it_behaves_like :array_pack_32bit_le, 'i'
   end
 
-  describe "Array#pack with format 'i' with modifier '_'" do
+  # NATFIXME: _ modifier
+  xdescribe "Array#pack with format 'i' with modifier '_'" do
     it_behaves_like :array_pack_32bit_le_platform, 'i_'
   end
 
-  describe "Array#pack with format 'i' with modifier '!'" do
+  # NATFIXME: ! modifier
+  xdescribe "Array#pack with format 'i' with modifier '!'" do
     it_behaves_like :array_pack_32bit_le_platform, 'i!'
   end
 end

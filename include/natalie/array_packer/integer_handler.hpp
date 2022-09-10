@@ -27,6 +27,12 @@ namespace ArrayPacker {
             case 'c':
                 pack_c();
                 break;
+            case 'I':
+                pack_I();
+                break;
+            case 'i':
+                pack_i();
+                break;
             default: {
                 char buf[2] = { d, '\0' };
                 env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -67,6 +73,16 @@ namespace ArrayPacker {
             }
 
             m_packed.append_char(static_cast<signed char>(source));
+        }
+
+        void pack_I() {
+            auto source = (unsigned int)m_source->to_nat_int_t();
+            m_packed.append(String((const char *)(&source), sizeof(source)));
+        }
+
+        void pack_i() {
+            auto source = (signed int)m_source->to_nat_int_t();
+            m_packed.append(String((const char *)(&source), sizeof(source)));
         }
 
         IntegerObject *m_source;

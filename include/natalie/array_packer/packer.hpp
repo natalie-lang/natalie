@@ -66,6 +66,8 @@ namespace ArrayPacker {
                 }
                 case 'C':
                 case 'c':
+                case 'I':
+                case 'i':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
                         auto integer = m_source->at(m_index)->to_int(env);
