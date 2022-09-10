@@ -805,6 +805,7 @@ gen.binding('Range', 'initialize', 'RangeObject', 'initialize', argc: 2..3, pass
 gen.binding('Range', 'inspect', 'RangeObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'last', 'RangeObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'member?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Range', 'step', 'RangeObject', 'step', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Range', 'to_a', 'RangeObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'to_s', 'RangeObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

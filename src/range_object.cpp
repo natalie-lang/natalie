@@ -323,4 +323,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
     }
 }
+
+Value RangeObject::step(Value step) {
+    return new Enumerator::ArithmeticSequenceObject { m_begin, m_end, step, m_exclude_end };
+}
 }
