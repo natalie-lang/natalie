@@ -26,6 +26,32 @@ bool ArithmeticSequenceObject::eq(Env *env, Value other) {
     return m_begin->send(env, "=="_s, { other_sequence->begin() })->is_truthy() && m_end->send(env, "=="_s, { other_sequence->end() })->is_truthy() && m_step->send(env, "=="_s, { other_sequence->step() })->is_truthy() && m_exclude_end == other_sequence->exclude_end();
 }
 
+Value ArithmeticSequenceObject::hash(Env *env) {
+    HashBuilder hash_builder {};
+    auto hash_method = "hash"_s;
+
+    auto add = [&hash_builder, &hash_method, env](Value value) {
+        auto hash = value->send(env, hash_method);
+
+        if (hash->is_nil())
+            return;
+
+        auto nat_int = IntegerObject::convert_to_nat_int_t(env, hash);
+        hash_builder.append(nat_int);
+    };
+
+    add(m_begin);
+    add(m_end);
+    add(m_step);
+
+    if (m_exclude_end)
+        add(TrueObject::the());
+    else
+        add(FalseObject::the());
+
+    return IntegerObject::create(hash_builder.digest());
+}
+
 Value ArithmeticSequenceObject::last(Env *env) {
     if (m_exclude_end) {
         auto steps = step_count(env);

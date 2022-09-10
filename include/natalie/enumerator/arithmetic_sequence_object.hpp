@@ -30,6 +30,7 @@ public:
     Value end() const { return m_end; }
     bool eq(Env *, Value);
     bool exclude_end() const { return m_exclude_end; }
+    Value hash(Env *);
     Value last(Env *);
     Value step() const { return m_step; }
 
