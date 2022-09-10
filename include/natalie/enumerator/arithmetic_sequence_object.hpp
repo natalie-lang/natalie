@@ -31,6 +31,7 @@ public:
     bool has_step() { return m_step && !m_step->is_nil(); }
     Value inspect(Env *);
     Value last(Env *);
+    Value size(Env *);
     Value step() {
         if (has_step())
             return m_step;

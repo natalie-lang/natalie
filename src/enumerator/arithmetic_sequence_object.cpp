@@ -12,8 +12,8 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         step_count = n->send(env, "+"_s, { n->send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) })->send(env, "floor"_s)->as_integer()->integer();
     }
 
-    if (exclude_end() && step_count > 0)
-        step_count -= 1;
+    if (!exclude_end())
+        step_count += 1;
 
     return step_count;
 }
@@ -91,5 +91,12 @@ Value ArithmeticSequenceObject::last(Env *env) {
     } else {
         return m_end;
     }
+}
+
+Value ArithmeticSequenceObject::size(Env *env) {
+    if (m_end->send(env, "infinite?"_s)->is_truthy())
+        return FloatObject::positive_infinity(env);
+
+    return IntegerObject::create(step_count(env));
 }
 };
