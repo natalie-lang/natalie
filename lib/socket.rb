@@ -4,7 +4,7 @@ require 'socket.cpp'
 class SocketError < StandardError
 end
 
-class BasicSocket
+class BasicSocket < IO
   def setsockopt(level, optname, optval)
     # TODO
   end
@@ -259,28 +259,18 @@ class Socket < BasicSocket
   SO_TYPE = __constant__('SO_TYPE', 'unsigned short')
   SO_WIFI_STATUS = __constant__('SO_WIFI_STATUS', 'unsigned short')
 
-  def initialize(domain, socktype, protocol = nil)
-    super()
-    @domain = domain
-    @socktype = socktype
-    @protocol = protocol
-  end
+  __bind_method__ :initialize, :Socket_initialize
 
-  def bind(address)
-    # TODO
-  end
+  __bind_method__ :bind, :Socket_bind
+  __bind_method__ :close, :Socket_close
+  __bind_method__ :closed?, :Socket_is_closed
+  __bind_method__ :listen, :Socket_listen
+
+  attr_reader :connect_address
 
   def local_address
     # TODO
     Addrinfo.new
-  end
-
-  def close
-    # TODO
-  end
-
-  def closed?
-    false # TODO
   end
 
   class << self
@@ -291,6 +281,18 @@ class Socket < BasicSocket
 
     alias sockaddr_in pack_sockaddr_in
     alias sockaddr_un pack_sockaddr_un
+
+    def tcp(host, port)
+      block_given = block_given?
+      Socket.new(:INET, :STREAM).tap do |socket|
+        addrinfo = Addrinfo.new(Socket.pack_sockaddr_in(port, host), nil, nil, Socket::IPPROTO_TCP)
+        socket.bind(addrinfo)
+        if block_given
+          yield(socket)
+          socket.close
+        end
+      end
+    end
   end
 end
 
