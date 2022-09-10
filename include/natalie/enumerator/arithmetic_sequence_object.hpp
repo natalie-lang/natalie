@@ -25,6 +25,7 @@ public:
 
     Value begin() { return m_begin; }
     Value end() { return m_end; }
+    bool exclude_end() { return m_exclude_end; }
     Value step() { return m_step; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
