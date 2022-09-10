@@ -228,6 +228,7 @@ public:
     Value strip_in_place(Env *);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
+    Value unpack(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);

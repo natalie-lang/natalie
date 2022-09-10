@@ -1032,6 +1032,23 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
     return Value::integer(number);
 }
 
+Value StringObject::unpack(Env *env, Value format) const {
+    auto ary = new ArrayObject;
+    const char *pointer = c_str();
+    auto format_str = format->as_string_or_raise(env)->c_str();
+    for (const char *c = format_str; *c != 0 && pointer < c_str() + length(); c++) {
+        switch (*c) {
+        case 'i':
+            ary->push(Value::integer(*(int *)pointer));
+            pointer += sizeof(int);
+            break;
+        default:
+            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle String#unpack with directive %c", *c);
+        }
+    }
+    return ary;
+}
+
 Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     ArrayObject *ary = new ArrayObject {};
     if (!splitter) {

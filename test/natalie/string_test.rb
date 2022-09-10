@@ -552,4 +552,10 @@ describe 'string' do
       'foo'.include?("foo\x00bar").should == false
     end
   end
+
+  describe '#unpack' do
+    it 'works with "i" directive' do
+      "\x01\x00\x00\x00\x02\x00\x00\x00".unpack('ii').should == [1, 2]
+    end
+  end
 end
