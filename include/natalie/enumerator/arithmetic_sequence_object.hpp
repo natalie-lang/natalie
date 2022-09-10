@@ -9,6 +9,17 @@ public:
     ArithmeticSequenceObject(ClassObject *klass)
         : Object { Object::Type::EnumeratorArithmeticSequence, klass } { }
 
+    ArithmeticSequenceObject()
+        : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->const_fetch("ArithmeticSequence"_s)->as_class() } { }
+
+    ArithmeticSequenceObject(Value begin, Value end, Value step, bool exclude_end)
+        : ArithmeticSequenceObject {} {
+        m_begin = begin;
+        m_end = end;
+        m_step = step;
+        m_exclude_end = exclude_end;
+    }
+
     Value begin() { return m_begin; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
