@@ -23,10 +23,10 @@ public:
         m_step = step;
     }
 
-    Value begin() { return m_begin; }
-    Value end() { return m_end; }
-    bool exclude_end() { return m_exclude_end; }
-    Value step() { return m_step; }
+    Value begin() const { return m_begin; }
+    Value end() const { return m_end; }
+    bool exclude_end() const { return m_exclude_end; }
+    Value step() const { return m_step; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);
