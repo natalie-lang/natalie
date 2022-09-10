@@ -51,6 +51,10 @@ module Natalie
           case type
           when 'double'
             "#{value}.as_double()"
+          when 'bool'
+            "#{value}->is_truthy()"
+          when 'Value'
+            value
           else
             raise "I don't yet know how to cast arg type #{type}"
           end
@@ -60,6 +64,8 @@ module Natalie
           case type
           when 'double'
             "Value::floatingpoint(#{value})"
+          when 'Value'
+            value
           else
             raise "I don't yet know how to cast return type #{type}"
           end
