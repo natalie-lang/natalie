@@ -27,11 +27,23 @@ static unsigned short Addrinfo_afamily(Env *env, Value family) {
     return 0;
 }
 
+static unsigned short Addrinfo_socktype(Env *env, Value socktype) {
+    if (socktype->is_string() || socktype->is_symbol()) {
+        auto sym = socktype->to_symbol(env, Object::Conversion::Strict);
+        if (sym == "STREAM"_s)
+            sym = "SOCK_STREAM"_s;
+        return find_top_level_const(env, "Socket"_s)->const_find(env, sym)->as_integer()->to_nat_int_t();
+    } else if (socktype->is_integer()) {
+        return socktype->as_integer()->to_nat_int_t();
+    }
+    return 0;
+}
+
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
     auto afamily = Addrinfo_afamily(env, args.at(1, NilObject::the()));
-    auto socktype = args.at(2, NilObject::the());
+    auto socktype = Addrinfo_socktype(env, args.at(2, NilObject::the()));
     auto protocol = args.at(3, Value::integer(0));
 
     self->ivar_set(env, "@protocol"_s, protocol);
@@ -40,33 +52,27 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     // It gets all the specs to pass though. ¯\_(ツ)_/¯
     bool socktype_hack = false;
 
-    if (socktype->is_string() || socktype->is_symbol()) {
-        auto sym = socktype->to_symbol(env, Object::Conversion::Strict);
-        if (sym == "STREAM"_s)
-            sym = "SOCK_STREAM"_s;
-        socktype = find_top_level_const(env, "Socket"_s)->const_find(env, sym);
-    }
-
-    StringObject *host = nullptr;
-    IntegerObject *port = nullptr;
     StringObject *unix_path = nullptr;
+    IntegerObject *port = nullptr;
+    StringObject *host = nullptr;
 
     if (!afamily)
         self->ivar_set(env, "@pfamily"_s, Value::integer(PF_UNSPEC));
 
-    if (sockaddr->is_string() && sockaddr->as_string()->length() > 0) {
-        int first_byte = sockaddr->as_string()->string().at(0);
-        switch (first_byte) {
+    if (sockaddr->is_string()) {
+        if (sockaddr->as_string()->is_empty())
+            env->raise("ArgumentError", "bad sockaddr");
+
+        afamily = sockaddr->as_string()->string().at(0);
+        switch (afamily) {
         case AF_UNIX:
-            afamily = first_byte;
-            unix_path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr })->as_string();
+            unix_path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr })->as_string_or_raise(env);
             break;
         case AF_INET:
         case AF_INET6:
-            afamily = first_byte;
-            auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array();
-            port = ary->at(0)->as_integer();
-            host = ary->at(1)->as_string();
+            auto ary = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_in"_s, { sockaddr })->as_array_or_raise(env);
+            port = ary->at(0)->as_integer_or_raise(env);
+            host = ary->at(1)->as_string_or_raise(env);
             break;
         }
     }
@@ -104,6 +110,9 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         assert(host);
         assert(port);
 
+        if (host->is_empty())
+            host = new StringObject { "0.0.0.0" };
+
         struct addrinfo hints { };
         struct addrinfo *getaddrinfo_result;
 
@@ -112,12 +121,9 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         else
             hints.ai_family = PF_UNSPEC;
 
-        if (socktype->is_integer())
-            hints.ai_socktype = (unsigned short)socktype->as_integer()->to_nat_int_t();
-        else {
-            hints.ai_socktype = 0;
+        hints.ai_socktype = socktype;
+        if (socktype == 0)
             self->ivar_set(env, "@socktype"_s, Value::integer(0));
-        }
 
         if (socktype_hack && hints.ai_socktype == 0)
             hints.ai_socktype = SOCK_DGRAM;
@@ -132,8 +138,12 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         if (hints.ai_socktype == SOCK_RAW)
             service_str = nullptr;
 
+        const char *host_str = host->c_str();
+        if (host->is_empty())
+            host_str = nullptr;
+
         int s = getaddrinfo(
-            host->c_str(),
+            host_str,
             service_str,
             &hints,
             &getaddrinfo_result);
@@ -178,6 +188,26 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     }
 
     return self;
+}
+
+Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
+    auto Socket = self->const_find(env, "Socket"_s, Object::ConstLookupSearchMode::NotStrict);
+
+    auto afamily = self->ivar_get(env, "@afamily"_s)->as_integer_or_raise(env)->to_nat_int_t();
+    switch (afamily) {
+    case AF_UNIX: {
+        auto unix_path = self->ivar_get(env, "@unix_path"_s);
+        return Socket->send(env, "pack_sockaddr_un"_s, { unix_path });
+    }
+    case AF_INET:
+    case AF_INET6: {
+        auto port = self->ivar_get(env, "@ip_port"_s);
+        auto address = self->ivar_get(env, "@ip_address"_s);
+        return Socket->send(env, "pack_sockaddr_in"_s, { port, address });
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED();
+    }
 }
 
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {

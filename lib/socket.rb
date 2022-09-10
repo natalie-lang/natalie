@@ -298,6 +298,10 @@ class Addrinfo
   attr_reader :afamily, :family, :pfamily, :protocol, :socktype, :unix_path
 
   class << self
+    def ip(ip)
+      Addrinfo.new(Socket.pack_sockaddr_in(0, ip), nil, nil, Socket::IPPROTO_IP)
+    end
+
     def tcp(ip, port)
       Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, nil, Socket::IPPROTO_TCP)
     end
@@ -311,13 +315,8 @@ class Addrinfo
     end
   end
 
-  # from: https://bugs.ruby-lang.org/issues/10907
-  # pfamily (and 2nd argument for Addrinfo.new) corresponds to ai_family field of struct addrinfo
-  #         and will be used for 1st argument of socket().
-  # afamily (and first 1 or 2 bytes in 1st argument for Addrinfo.new) corresponds to sa_family field
-  #         of struct sockaddr and will be used for bind() or connect().
-
   __bind_method__ :initialize, :Addrinfo_initialize
+  __bind_method__ :to_sockaddr, :Addrinfo_to_sockaddr
 
   def ip_address
     unless @ip_address
