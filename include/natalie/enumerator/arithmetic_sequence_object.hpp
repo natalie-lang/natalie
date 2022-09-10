@@ -24,6 +24,7 @@ public:
     }
 
     Value begin() const { return m_begin; }
+    Value each(Env *, Block *);
     Value end() const { return m_end; }
     bool eq(Env *, Value);
     bool exclude_end() const { return m_exclude_end; }
@@ -55,14 +56,7 @@ private:
         Numeric
     };
 
-    ArithmeticSequenceObject(Origin origin, Value begin, Value end, Value step, bool exclude_end)
-        : ArithmeticSequenceObject {} {
-        m_origin = origin;
-        m_begin = begin;
-        m_end = end;
-        m_exclude_end = exclude_end;
-        m_step = step;
-    }
+    ArithmeticSequenceObject(Origin, Value, Value, Value, bool);
 
     Integer step_count(Env *env) {
         if (!m_step_count.present())

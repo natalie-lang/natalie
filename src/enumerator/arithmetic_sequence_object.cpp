@@ -2,7 +2,19 @@
 #include "natalie.hpp"
 
 namespace Natalie::Enumerator {
+ArithmeticSequenceObject::ArithmeticSequenceObject(Origin origin, Value begin, Value end, Value step, bool exclude_end)
+    : ArithmeticSequenceObject {} {
+    m_origin = origin;
+    m_begin = begin;
+    m_end = end;
+    m_exclude_end = exclude_end;
+    m_step = step;
+}
+
 Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
+    if (m_end->send(env, "infinite?"_s)->is_truthy())
+        return 0;
+
     auto n = m_end->send(env, "-"_s, { m_begin })->send(env, "/"_s, { step() });
 
     Integer step_count;
@@ -16,6 +28,53 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         step_count += 1;
 
     return step_count;
+}
+
+Value ArithmeticSequenceObject::each(Env *env, Block *block) {
+    if (!block)
+        return this;
+
+    auto _step = step();
+    auto _begin = m_begin;
+    auto _end = m_end;
+
+    // This should be above the float conversion because String#to_f exists but should
+    // raise an ArgumentError here
+    auto ascending = _step->send(env, ">"_s, { Value::integer(0) })->is_truthy();
+    auto cmp = ascending ? ">"_s : "<"_s;
+
+    if (_step->is_float() || _begin->is_float() || _end->is_float()) {
+        _step = _step->to_f(env);
+        _begin = _begin->to_f(env);
+        _end = _end->to_f(env);
+    }
+
+    if (_step->send(env, "infinite?"_s)->is_truthy()) {
+        if (_begin->send(env, cmp, { _end })->is_falsey())
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { _begin }, nullptr);
+        return this;
+    }
+
+    if (_begin->send(env, "infinite?"_s)->is_truthy() && _begin->send(env, cmp, { Value::integer(0) })->is_truthy())
+        return this;
+
+    auto infinite = _end->send(env, "infinite?"_s)->is_truthy();
+    auto steps = step_count(env);
+
+    // Check that infinity goes in step's direction
+    infinite = infinite && _end->send(env, cmp, { Value::integer(0) })->is_truthy();
+
+    for (Integer i = 0; infinite || i < steps; ++i) {
+        auto value = _step->send(env, "*"_s, { IntegerObject::create(i) })->send(env, "+"_s, { _begin });
+
+        // Ensure that we do not yield a number that exceeds `_end`
+        if (value->send(env, cmp, { _end })->is_truthy())
+            value = _end;
+
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { value }, nullptr);
+    }
+
+    return this;
 }
 
 bool ArithmeticSequenceObject::eq(Env *env, Value other) {
