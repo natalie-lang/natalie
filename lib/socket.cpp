@@ -210,6 +210,63 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     }
 }
 
+Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 2, 3);
+    auto afamily = Addrinfo_afamily(env, args.at(0));
+    auto socktype = Addrinfo_socktype(env, args.at(1));
+    auto protocol = args.at(2, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
+
+    auto fd = socket(afamily, socktype, protocol);
+    if (fd == -1)
+        env->raise_errno();
+
+    self->as_io()->initialize(env, Value::integer(fd));
+
+    return self;
+}
+
+Value Socket_bind(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 1);
+    auto sockaddr = args.at(0);
+
+    auto Addrinfo = self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict);
+    if (!sockaddr->is_a(env, Addrinfo)) {
+        if (sockaddr->is_string())
+            sockaddr = Addrinfo->send(env, "new"_s, { sockaddr });
+        else
+            env->raise("TypeError", "expected string or Addrinfo");
+    }
+    self->ivar_set(env, "@connect_address"_s, sockaddr);
+
+    // TODO: build sockaddr struct here
+    struct sockaddr addr;
+
+    // auto result = bind(self->as_io()->fileno(), const struct sockaddr *addr,
+    // socklen_t addrlen);
+
+    return Value::integer(0);
+}
+
+Value Socket_close(Env *env, Value self, Args args, Block *block) {
+    self->as_io()->close(env);
+    return NilObject::the();
+}
+
+Value Socket_is_closed(Env *env, Value self, Args args, Block *block) {
+    return bool_object(self->as_io()->is_closed());
+}
+
+Value Socket_listen(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 1);
+    auto backlog = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+
+    auto result = listen(self->as_io()->fileno(), backlog);
+    if (result == -1)
+        env->raise_errno();
+
+    return Value::integer(result);
+}
+
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 2);
     auto service = args.at(0, NilObject::the());
