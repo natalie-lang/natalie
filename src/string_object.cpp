@@ -1364,6 +1364,10 @@ void StringObject::append(const char *str) {
     m_string.append(str);
 }
 
+void StringObject::append(int i) {
+    m_string.append(i);
+}
+
 void StringObject::append(long unsigned int i) {
     m_string.append(i);
 }

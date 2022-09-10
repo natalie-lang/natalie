@@ -364,11 +364,11 @@ describe "Addrinfo#initialize" do
 
         platform_is_not :windows, :aix, :solaris do
           (Socket.constants.grep(/^IPPROTO/) - valid).each do |type|
-            xit "raises SocketError when using #{type}" do
+            it "raises SocketError when using #{type}" do
               value = Socket.const_get(type)
               block = -> { Addrinfo.new(@sockaddr, nil, nil, value) }
 
-              block.should raise_error(SocketError)
+              block.should raise_error(SocketError, "getaddrinfo: ai_socktype not supported")
             end
           end
         end
@@ -425,7 +425,7 @@ describe "Addrinfo#initialize" do
         end
 
         Socket.constants.grep(/^IPPROTO/).each do |type|
-          xit "overwrites the protocol when using #{type}" do
+          it "overwrites the protocol when using #{type}" do
             value = Socket.const_get(type)
             addr  = Addrinfo.new(@sockaddr, nil, @socktype, value)
 

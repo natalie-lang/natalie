@@ -36,6 +36,10 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->ivar_set(env, "@protocol"_s, protocol);
 
+    // MRI uses this hack, but I don't really understand why.
+    // It gets all the specs to pass though. ¯\_(ツ)_/¯
+    bool socktype_hack = false;
+
     if (socktype->is_string() || socktype->is_symbol()) {
         auto sym = socktype->to_symbol(env, Object::Conversion::Strict);
         if (sym == "STREAM"_s)
@@ -88,6 +92,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         default:
             env->raise("ArgumentError", "bad sockaddr");
         }
+        socktype_hack = true;
     }
 
     if (afamily == AF_UNIX) {
@@ -104,14 +109,23 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
         if (afamily)
             hints.ai_family = afamily;
+        else
+            hints.ai_family = PF_UNSPEC;
 
         if (socktype->is_integer())
             hints.ai_socktype = (unsigned short)socktype->as_integer()->to_nat_int_t();
-        else
+        else {
+            hints.ai_socktype = 0;
             self->ivar_set(env, "@socktype"_s, Value::integer(0));
+        }
+
+        if (socktype_hack && hints.ai_socktype == 0)
+            hints.ai_socktype = SOCK_DGRAM;
 
         if (protocol->is_integer())
             hints.ai_protocol = (unsigned short)protocol->as_integer()->to_nat_int_t();
+        else
+            hints.ai_protocol = 0;
 
         const char *service_str = port->to_s(env)->as_string()->c_str();
 
@@ -123,16 +137,12 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
             service_str,
             &hints,
             &getaddrinfo_result);
-        // printf("socktype=%d, protocol=%d, host=%s, port=%s, family=%d\n",
-        // hints.ai_socktype,
-        // hints.ai_protocol,
-        // host->c_str(),
-        // port->inspect_str(env)->c_str(),
-        // hints.ai_family);
         if (s != 0)
             env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+
         if (self->ivar_get(env, "@pfamily"_s)->is_nil())
             self->ivar_set(env, "@pfamily"_s, Value::integer(getaddrinfo_result->ai_family));
+
         if (self->ivar_get(env, "@socktype"_s)->is_nil())
             self->ivar_set(env, "@socktype"_s, Value::integer(getaddrinfo_result->ai_socktype));
 

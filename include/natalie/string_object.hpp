@@ -103,6 +103,7 @@ public:
     void append(signed char);
     void append(unsigned char);
     void append(const char *);
+    void append(int);
     void append(long unsigned int);
     void append(double);
     void append(const FloatObject *);
