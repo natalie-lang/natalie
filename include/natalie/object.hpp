@@ -167,6 +167,10 @@ public:
     UnboundMethodObject *as_unbound_method();
     VoidPObject *as_void_p();
 
+    ArrayObject *as_array_or_raise(Env *);
+    IntegerObject *as_integer_or_raise(Env *);
+    StringObject *as_string_or_raise(Env *);
+
     KernelModule *as_kernel_module_for_method_binding();
     EnvObject *as_env_object_for_method_binding();
     ParserObject *as_parser_object_for_method_binding();

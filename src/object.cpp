@@ -293,6 +293,24 @@ SexpObject *Object::as_sexp_object_for_method_binding() {
     return static_cast<SexpObject *>(this);
 }
 
+ArrayObject *Object::as_array_or_raise(Env *env) {
+    if (!is_array())
+        env->raise("TypeError", "{} can't be coerced into Array", m_klass->inspect_str());
+    return static_cast<ArrayObject *>(this);
+}
+
+IntegerObject *Object::as_integer_or_raise(Env *env) {
+    if (!is_integer())
+        env->raise("TypeError", "{} can't be coerced into Integer", m_klass->inspect_str());
+    return static_cast<IntegerObject *>(this);
+}
+
+StringObject *Object::as_string_or_raise(Env *env) {
+    if (!is_string())
+        env->raise("TypeError", "{} can't be coerced into String", m_klass->inspect_str());
+    return static_cast<StringObject *>(this);
+}
+
 SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol();
