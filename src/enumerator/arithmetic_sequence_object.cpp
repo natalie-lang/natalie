@@ -3,7 +3,7 @@
 
 namespace Natalie::Enumerator {
 Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
-    auto n = m_end->send(env, "-"_s, { m_begin })->send(env, "/"_s, { m_step });
+    auto n = m_end->send(env, "-"_s, { m_begin })->send(env, "/"_s, { step() });
 
     Integer step_count;
     if (n->is_integer()) {
@@ -42,7 +42,7 @@ Value ArithmeticSequenceObject::hash(Env *env) {
 
     add(m_begin);
     add(m_end);
-    add(m_step);
+    add(step());
 
     if (m_exclude_end)
         add(TrueObject::the());
@@ -52,10 +52,42 @@ Value ArithmeticSequenceObject::hash(Env *env) {
     return IntegerObject::create(hash_builder.digest());
 }
 
+Value ArithmeticSequenceObject::inspect(Env *env) {
+    switch (m_origin) {
+    case Origin::Range: {
+        auto range_inspect = RangeObject(m_begin, m_end, m_exclude_end).inspect_str(env);
+        auto string = StringObject::format("(({}).step", range_inspect);
+
+        if (has_step()) {
+            string->append_char('(');
+            string->append(m_step);
+            string->append_char(')');
+        }
+
+        string->append_char(')');
+
+        return string;
+    }
+    case Origin::Numeric: {
+        auto string = StringObject::format("({}.step({}", m_begin, m_end);
+
+        if (has_step()) {
+            string->append(", ");
+            string->append(m_step);
+        }
+
+        string->append("))");
+
+        return string;
+    }
+    }
+    return nullptr;
+}
+
 Value ArithmeticSequenceObject::last(Env *env) {
     if (m_exclude_end) {
         auto steps = step_count(env);
-        return m_begin->send(env, "+"_s, { IntegerObject::create(steps)->send(env, "*"_s, { m_step }) });
+        return m_begin->send(env, "+"_s, { IntegerObject::create(steps)->send(env, "*"_s, { step() }) });
     } else {
         return m_end;
     }

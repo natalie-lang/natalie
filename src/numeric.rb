@@ -151,7 +151,7 @@ class Numeric
     self.to_i
   end
 
-  __function__('new Enumerator::ArithmeticSequenceObject', %w[Value Value Value bool], 'Value')
+  __function__('Enumerator::ArithmeticSequenceObject::from_numeric', %w[Value Value Value], 'Value')
 
   def step(to_pos = nil, by_pos = nil, by: nil, to: nil)
     if to_pos && to
@@ -162,12 +162,14 @@ class Numeric
       raise ArgumentError, 'by is given twice'
     end
 
-    by ||= by_pos || 1
+    by ||= by_pos
     to ||= to_pos
 
     unless block_given?
-      return __call__('new Enumerator::ArithmeticSequenceObject', self, to, by, false)
+      return __call__('Enumerator::ArithmeticSequenceObject::from_numeric', self, to, by)
     end
+
+    by ||= 1
 
     if !by.is_a?(Numeric) && by.respond_to?(:to_int)
       by = by.to_int

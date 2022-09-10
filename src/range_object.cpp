@@ -325,6 +325,6 @@ Value RangeObject::bsearch(Env *env, Block *block) {
 }
 
 Value RangeObject::step(Value step) {
-    return new Enumerator::ArithmeticSequenceObject { m_begin, m_end, step, m_exclude_end };
+    return Enumerator::ArithmeticSequenceObject::from_range(m_begin, m_end, step, m_exclude_end);
 }
 }

@@ -15,15 +15,12 @@ public:
     ArithmeticSequenceObject()
         : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->const_fetch("ArithmeticSequence"_s)->as_class() } { }
 
-    ArithmeticSequenceObject(Value begin, Value end, Value step, bool exclude_end)
-        : ArithmeticSequenceObject {} {
-        m_begin = begin;
-        m_end = end;
-        m_exclude_end = exclude_end;
+    static ArithmeticSequenceObject *from_range(Value begin, Value end, Value step, bool exclude_end) {
+        return new ArithmeticSequenceObject { Origin::Range, begin, end, step, exclude_end };
+    }
 
-        if (!step)
-            step = Value::integer(1);
-        m_step = step;
+    static ArithmeticSequenceObject *from_numeric(Value begin, Value end, Value step) {
+        return new ArithmeticSequenceObject { Origin::Numeric, begin, end, step, false };
     }
 
     Value begin() const { return m_begin; }
@@ -31,8 +28,14 @@ public:
     bool eq(Env *, Value);
     bool exclude_end() const { return m_exclude_end; }
     Value hash(Env *);
+    bool has_step() { return m_step && !m_step->is_nil(); }
+    Value inspect(Env *);
     Value last(Env *);
-    Value step() const { return m_step; }
+    Value step() {
+        if (has_step())
+            return m_step;
+        return Value::integer(1);
+    }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);
@@ -46,6 +49,20 @@ public:
     }
 
 private:
+    enum class Origin {
+        Range,
+        Numeric
+    };
+
+    ArithmeticSequenceObject(Origin origin, Value begin, Value end, Value step, bool exclude_end)
+        : ArithmeticSequenceObject {} {
+        m_origin = origin;
+        m_begin = begin;
+        m_end = end;
+        m_exclude_end = exclude_end;
+        m_step = step;
+    }
+
     Integer step_count(Env *env) {
         if (!m_step_count.present())
             m_step_count = calculate_step_count(env);
@@ -53,6 +70,7 @@ private:
     }
     Integer calculate_step_count(Env *);
 
+    Origin m_origin;
     Value m_begin { nullptr };
     Value m_end { nullptr };
     Value m_step { nullptr };
