@@ -1,7 +1,10 @@
 #pragma once
 
+#include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/integer.hpp"
 #include "natalie/object.hpp"
+#include "natalie/symbol_object.hpp"
 
 namespace Natalie {
 class Enumerator::ArithmeticSequenceObject : public Object {
@@ -26,6 +29,7 @@ public:
     Value begin() const { return m_begin; }
     Value end() const { return m_end; }
     bool exclude_end() const { return m_exclude_end; }
+    Value last(Env *);
     Value step() const { return m_step; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -40,9 +44,17 @@ public:
     }
 
 private:
+    Integer step_count(Env *env) {
+        if (!m_step_count.present())
+            m_step_count = calculate_step_count(env);
+        return m_step_count.value();
+    }
+    Integer calculate_step_count(Env *);
+
     Value m_begin { nullptr };
     Value m_end { nullptr };
     Value m_step { nullptr };
+    Optional<Integer> m_step_count {};
     bool m_exclude_end { false };
 };
 };

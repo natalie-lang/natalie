@@ -25,6 +25,7 @@ desc 'Remove temporary files created during build'
 task :clean do
   rm_rf 'build/build.log'
   rm_rf 'build/encoding'
+  rm_rf 'build/enumerator'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{SO_EXT}"
@@ -224,6 +225,7 @@ task libnatalie: [
 
 task :build_dir do
   mkdir_p 'build/encoding' unless File.exist?('build/encoding')
+  mkdir_p 'build/enumerator' unless File.exist?('build/enumerator')
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
@@ -335,6 +337,10 @@ rule '.cpp.o' => ['src/%n'] + HEADERS do |t|
 end
 
 rule %r{encoding/.*\.cpp\.o$} => ['src/encoding/%n'] + HEADERS do |t|
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+end
+
+rule %r{enumerator/.*\.cpp\.o$} => ['src/enumerator/%n'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 

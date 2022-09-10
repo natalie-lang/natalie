@@ -156,4 +156,13 @@ describe 'Enumerator' do
       end
     end
   end
+
+  describe 'ArithmeticSequence' do
+    describe '#last' do
+      it 'gets last possible float that the enumerator can find' do
+        (1.0...1.2).step.last.should == 1.0
+        (1.0...3.2).step(0.1).last.should == 3.1
+      end
+    end
+  end
 end
