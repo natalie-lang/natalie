@@ -16,12 +16,16 @@ public:
         : ArithmeticSequenceObject {} {
         m_begin = begin;
         m_end = end;
-        m_step = step;
         m_exclude_end = exclude_end;
+
+        if (!step)
+            step = Value::integer(1);
+        m_step = step;
     }
 
     Value begin() { return m_begin; }
     Value end() { return m_end; }
+    Value step() { return m_step; }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);

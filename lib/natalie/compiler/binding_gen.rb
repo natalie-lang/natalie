@@ -441,6 +441,7 @@ gen.binding('Encoding', 'names', 'EncodingObject', 'names', argc: 0, pass_env: t
 gen.undefine_singleton_method('EnumeratorArithmeticSequence', 'new')
 gen.binding('Enumerator::ArithmeticSequence', 'begin', 'Enumerator::ArithmeticSequenceObject', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Enumerator::ArithmeticSequence', 'end', 'Enumerator::ArithmeticSequenceObject', 'end', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSequenceObject', 'step', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
