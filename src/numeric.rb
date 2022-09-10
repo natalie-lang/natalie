@@ -1,3 +1,5 @@
+require 'natalie/inline'
+
 class Numeric
   include Comparable
 
@@ -149,6 +151,8 @@ class Numeric
     self.to_i
   end
 
+  __function__('new Enumerator::ArithmeticSequenceObject', %w[Value Value Value bool], 'Value')
+
   def step(to_pos = nil, by_pos = nil, by: nil, to: nil)
     if to_pos && to
       raise ArgumentError, 'to is given twice'
@@ -160,6 +164,10 @@ class Numeric
 
     by ||= by_pos || 1
     to ||= to_pos
+
+    unless block_given?
+      return __call__('new Enumerator::ArithmeticSequenceObject', self, to, by, false)
+    end
 
     if !by.is_a?(Numeric) && by.respond_to?(:to_int)
       by = by.to_int
