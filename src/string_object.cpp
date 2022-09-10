@@ -1036,10 +1036,14 @@ Value StringObject::unpack(Env *env, Value format) const {
     auto ary = new ArrayObject;
     const char *pointer = c_str();
     auto format_str = format->as_string_or_raise(env)->c_str();
-    for (const char *c = format_str; *c != 0 && pointer < c_str() + length(); c++) {
+    auto final_null = c_str() + length();
+    for (const char *c = format_str; *c != 0; c++) {
         switch (*c) {
         case 'i':
-            ary->push(Value::integer(*(int *)pointer));
+            if (pointer + sizeof(int) <= final_null)
+                ary->push(Value::integer(*(int *)pointer));
+            else
+                ary->push(NilObject::the());
             pointer += sizeof(int);
             break;
         default:

@@ -557,5 +557,9 @@ describe 'string' do
     it 'works with "i" directive' do
       "\x01\x00\x00\x00\x02\x00\x00\x00".unpack('ii').should == [1, 2]
     end
+
+    it 'returns nil if the string is not long enough' do
+      ''.unpack('ii').should == [nil, nil]
+    end
   end
 end
