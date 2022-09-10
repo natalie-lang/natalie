@@ -191,7 +191,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def rb_class_as_c_variable
-      rb_class.split('::').last
+      rb_class.gsub('::', '')
     end
 
     def needs_to_set_visibility?
@@ -253,7 +253,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
         underscored = cpp_class.gsub(/([a-z])([A-Z])/, '\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
-        underscored = cpp_class.sub(/Object|Object/, '').gsub(/([a-z])([A-Z])/, '\1_\2').downcase
+        underscored = cpp_class.sub(/Object|Object/, '').gsub(/([a-z])([A-Z])/, '\1_\2').gsub('::', '_').downcase
         "#{value}->as_#{underscored}()"
       end
     end
@@ -286,7 +286,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def generate_name
-      @name = "#{cpp_class}_#{cpp_method}"
+      @name = "#{rb_class_as_c_variable}_#{cpp_method}"
       if @module_function
         @name << '_module_function'
       else
@@ -437,6 +437,9 @@ gen.binding('Encoding', 'ascii_compatible?', 'EncodingObject', 'is_ascii_compati
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'name', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'names', 'EncodingObject', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+
+gen.undefine_singleton_method('EnumeratorArithmeticSequence', 'new')
+gen.binding('Enumerator::ArithmeticSequence', 'begin', 'Enumerator::ArithmeticSequenceObject', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

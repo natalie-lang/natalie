@@ -4,6 +4,9 @@
 
 namespace Natalie {
 
+namespace Enumerator {
+    class ArithmeticSequenceObject;
+};
 class ArrayObject;
 class Backtrace;
 class Block;

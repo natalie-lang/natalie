@@ -9,6 +9,8 @@ enum class ObjectType {
     Class,
     Complex,
     Encoding,
+    Enumerator,
+    EnumeratorArithmeticSequence,
     Exception,
     False,
     Fiber,

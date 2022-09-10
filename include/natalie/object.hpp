@@ -112,6 +112,7 @@ public:
     bool is_true() const { return m_type == Type::True; }
     bool is_false() const { return m_type == Type::False; }
     bool is_fiber() const { return m_type == Type::Fiber; }
+    bool is_enumerator_arithmetic_sequence() const { return m_type == Type::EnumeratorArithmeticSequence; }
     bool is_array() const { return m_type == Type::Array; }
     bool is_method() const { return m_type == Type::Method; }
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
@@ -139,6 +140,7 @@ public:
     bool is_numeric() const { return is_integer() || is_float(); }
     bool is_boolean() const { return is_true() || is_false(); }
 
+    Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
     ClassObject *as_class();
     ComplexObject *as_complex();
