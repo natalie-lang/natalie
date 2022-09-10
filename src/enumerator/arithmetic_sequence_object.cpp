@@ -18,6 +18,14 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
     return step_count;
 }
 
+bool ArithmeticSequenceObject::eq(Env *env, Value other) {
+    if (!other->is_enumerator_arithmetic_sequence())
+        return false;
+
+    ArithmeticSequenceObject *other_sequence = other->as_enumerator_arithmetic_sequence();
+    return m_begin->send(env, "=="_s, { other_sequence->begin() })->is_truthy() && m_end->send(env, "=="_s, { other_sequence->end() })->is_truthy() && m_step->send(env, "=="_s, { other_sequence->step() })->is_truthy() && m_exclude_end == other_sequence->exclude_end();
+}
+
 Value ArithmeticSequenceObject::last(Env *env) {
     if (m_exclude_end) {
         auto steps = step_count(env);
