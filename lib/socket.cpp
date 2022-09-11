@@ -210,6 +210,33 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     }
 }
 
+Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 2);
+    auto level = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+    auto optname = args.at(1)->as_integer_or_raise(env)->to_nat_int_t();
+
+    struct sockaddr addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self->as_io()->fileno(),
+        &addr,
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto family = addr.sa_family;
+
+    socklen_t len = 1024;
+    char buf[len];
+    auto result = getsockopt(self->as_io()->fileno(), level, optname, &buf, &len);
+    if (result == -1)
+        env->raise_errno();
+    auto data = new StringObject { buf, len };
+    auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
+    return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
+}
+
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     auto afamily = Addrinfo_afamily(env, args.at(0));
@@ -236,15 +263,24 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
         else
             env->raise("TypeError", "expected string or Addrinfo");
     }
-    self->ivar_set(env, "@connect_address"_s, sockaddr);
 
-    // TODO: build sockaddr struct here
-    struct sockaddr addr;
-
-    // auto result = bind(self->as_io()->fileno(), const struct sockaddr *addr,
-    // socklen_t addrlen);
-
-    return Value::integer(0);
+    auto afamily = sockaddr->send(env, "afamily"_s)->as_integer_or_raise(env)->to_nat_int_t();
+    switch (afamily) {
+    case AF_INET: {
+        struct sockaddr_in addr { };
+        auto packed = sockaddr->send(env, "to_sockaddr"_s)->as_string_or_raise(env);
+        memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
+        auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
+        if (result == -1)
+            env->raise_errno();
+        packed = new StringObject { (const char *)&addr, sizeof(addr) };
+        sockaddr = Addrinfo->send(env, "new"_s, { packed });
+        self->ivar_set(env, "@local_address"_s, sockaddr);
+        return Value::integer(result);
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED();
+    }
 }
 
 Value Socket_close(Env *env, Value self, Args args, Block *block) {
@@ -400,4 +436,41 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     const char *str = sockaddr->as_string()->c_str();
     auto un = (struct sockaddr_un *)str;
     return new StringObject { un->sun_path };
+}
+
+Value Socket_Option_bool(Env *env, Value self, Args, Block *) {
+    auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
+
+    switch (data->length()) {
+    case 1:
+        return bool_object(data->c_str()[0] != 0);
+    case sizeof(int): {
+        auto i = *(int *)data->c_str();
+        return bool_object(i != 0);
+    }
+    default:
+        return FalseObject::the();
+    }
+}
+
+Value Socket_Option_int(Env *env, Value self, Args, Block *) {
+    auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
+
+    if (data->length() != sizeof(int))
+        return Value::integer(0);
+
+    auto i = *(int *)data->c_str();
+    return Value::integer(i);
+}
+
+Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
+    auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
+
+    if (data->length() != sizeof(struct linger))
+        return Value::integer(0);
+
+    auto l = (struct linger *)data->c_str();
+    auto on_off = bool_object(l->l_onoff != 0);
+    auto linger = Value::integer(l->l_linger);
+    return new ArrayObject({ on_off, linger });
 }

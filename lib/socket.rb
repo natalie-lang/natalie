@@ -5,8 +5,37 @@ class SocketError < StandardError
 end
 
 class BasicSocket < IO
-  def setsockopt(level, optname, optval)
-    # TODO
+  __bind_method__ :getsockopt, :BasicSocket_getsockopt
+
+  attr_reader :local_address
+
+  def connect_address
+    addr = local_address
+    case addr
+    when '0.0.0.0'
+      '127.0.0.1'
+    when '::'
+      '::1'
+    else
+      addr
+    end
+  end
+end
+
+class IPSocket < BasicSocket
+
+end
+
+class TCPSocket < IPSocket
+
+end
+
+class TCPServer < TCPSocket
+  def initialize(hostname, port = nil)
+    if port.nil?
+      port = hostname
+      hostname = nil
+    end
   end
 end
 
@@ -259,19 +288,29 @@ class Socket < BasicSocket
   SO_TYPE = __constant__('SO_TYPE', 'unsigned short')
   SO_WIFI_STATUS = __constant__('SO_WIFI_STATUS', 'unsigned short')
 
+  class Option
+    def initialize(family, level, optname, data)
+      @family = family
+      @level = level
+      @optname = optname
+      @data = data
+    end
+
+    attr_reader :data
+
+    alias to_s data
+
+    __bind_method__ :bool, :Socket_Option_bool
+    __bind_method__ :int, :Socket_Option_int
+    __bind_method__ :linger, :Socket_Option_linger
+  end
+
   __bind_method__ :initialize, :Socket_initialize
 
   __bind_method__ :bind, :Socket_bind
   __bind_method__ :close, :Socket_close
   __bind_method__ :closed?, :Socket_is_closed
   __bind_method__ :listen, :Socket_listen
-
-  attr_reader :connect_address
-
-  def local_address
-    # TODO
-    Addrinfo.new
-  end
 
   class << self
     __bind_method__ :pack_sockaddr_in, :Socket_pack_sockaddr_in
@@ -282,14 +321,21 @@ class Socket < BasicSocket
     alias sockaddr_in pack_sockaddr_in
     alias sockaddr_un pack_sockaddr_un
 
-    def tcp(host, port)
+    def tcp(host, port, local_host = nil, local_port = nil)
       block_given = block_given?
       Socket.new(:INET, :STREAM).tap do |socket|
-        addrinfo = Addrinfo.new(Socket.pack_sockaddr_in(port, host), nil, nil, Socket::IPPROTO_TCP)
+        sockaddr = Socket.pack_sockaddr_in(
+          local_port || port,
+          local_host || host,
+        )
+        addrinfo = Addrinfo.new(sockaddr, nil, nil, Socket::IPPROTO_TCP)
         socket.bind(addrinfo)
         if block_given
-          yield(socket)
-          socket.close
+          begin
+            yield socket
+          ensure
+            socket.close
+          end
         end
       end
     end
