@@ -13,37 +13,33 @@ Value init(Env *env, Value self) {
     return NilObject::the();
 }
 
-static unsigned short Addrinfo_afamily(Env *env, Value family) {
-    if (family->is_string() || family->is_symbol()) {
-        auto sym = family->to_symbol(env, Object::Conversion::Strict);
-        if (sym == "INET"_s)
-            sym = "AF_INET"_s;
-        else if (sym == "INET6"_s)
-            sym = "AF_INET6"_s;
-        return find_top_level_const(env, "Socket"_s)->const_find(env, sym)->as_integer()->to_nat_int_t();
-    } else if (family->is_integer()) {
-        return family->as_integer()->to_nat_int_t();
+static unsigned short Socket_const_get(Env *env, Value name, bool default_zero = false) {
+    switch (name->type()) {
+    case Object::Type::Integer:
+        return name->as_integer()->to_nat_int_t();
+    case Object::Type::String:
+    case Object::Type::Symbol: {
+        auto sym = name->to_symbol(env, Object::Conversion::Strict);
+        auto Socket = find_top_level_const(env, "Socket"_s);
+        auto value = Socket->const_find(env, sym, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null);
+        if (!value)
+            value = Socket->const_find(env, "SHORT_CONSTANTS"_s)->as_hash_or_raise(env)->get(env, sym);
+        if (!value)
+            env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(env), sym->string());
+        return value->as_integer_or_raise(env)->to_nat_int_t();
     }
-    return 0;
-}
-
-static unsigned short Addrinfo_socktype(Env *env, Value socktype) {
-    if (socktype->is_string() || socktype->is_symbol()) {
-        auto sym = socktype->to_symbol(env, Object::Conversion::Strict);
-        if (sym == "STREAM"_s)
-            sym = "SOCK_STREAM"_s;
-        return find_top_level_const(env, "Socket"_s)->const_find(env, sym)->as_integer()->to_nat_int_t();
-    } else if (socktype->is_integer()) {
-        return socktype->as_integer()->to_nat_int_t();
+    default:
+        if (default_zero)
+            return 0;
+        env->raise("TypeError", "{} can't be coerced into String or Integer", name->klass()->inspect_str());
     }
-    return 0;
 }
 
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
-    auto afamily = Addrinfo_afamily(env, args.at(1, NilObject::the()));
-    auto socktype = Addrinfo_socktype(env, args.at(2, NilObject::the()));
+    auto afamily = Socket_const_get(env, args.at(1, NilObject::the()), true);
+    auto socktype = Socket_const_get(env, args.at(2, NilObject::the()), true);
     auto protocol = args.at(3, Value::integer(0));
 
     self->ivar_set(env, "@protocol"_s, protocol);
@@ -81,7 +77,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         // initialized with array like ["AF_INET", 49429, "hal", "192.168.0.128"]
         //                          or ["AF_UNIX", "/tmp/sock"]
         auto ary = sockaddr->as_array();
-        afamily = Addrinfo_afamily(env, ary->at(0));
+        afamily = Socket_const_get(env, ary->at(0), true);
         self->ivar_set(env, "@afamily"_s, Value::integer(afamily));
         self->ivar_set(env, "@pfamily"_s, Value::integer(afamily));
         switch (afamily) {
@@ -212,8 +208,8 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
 
 Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 2);
-    auto level = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
-    auto optname = args.at(1)->as_integer_or_raise(env)->to_nat_int_t();
+    auto level = Socket_const_get(env, args.at(0));
+    auto optname = Socket_const_get(env, args.at(1));
 
     struct sockaddr addr { };
     socklen_t addr_len = sizeof(addr);
@@ -239,8 +235,8 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
 
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
-    auto afamily = Addrinfo_afamily(env, args.at(0));
-    auto socktype = Addrinfo_socktype(env, args.at(1));
+    auto afamily = Socket_const_get(env, args.at(0), true);
+    auto socktype = Socket_const_get(env, args.at(1), true);
     auto protocol = args.at(2, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
 
     auto fd = socket(afamily, socktype, protocol);

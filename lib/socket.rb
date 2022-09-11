@@ -288,6 +288,18 @@ class Socket < BasicSocket
   SO_TYPE = __constant__('SO_TYPE', 'unsigned short')
   SO_WIFI_STATUS = __constant__('SO_WIFI_STATUS', 'unsigned short')
 
+  SHORT_CONSTANTS = {
+    INET: AF_INET,
+    INET6: AF_INET6,
+    IP: IPPROTO_IP,
+    LINGER: SO_LINGER,
+    REUSEADDR: SO_REUSEADDR,
+    SOCKET: SOL_SOCKET,
+    STREAM: SOCK_STREAM,
+    TTL: IP_TTL,
+    TYPE: SO_TYPE,
+  }.freeze
+
   class Option
     def initialize(family, level, optname, data)
       @family = family
@@ -296,7 +308,7 @@ class Socket < BasicSocket
       @data = data
     end
 
-    attr_reader :data
+    attr_reader :family, :level, :optname, :data
 
     alias to_s data
 

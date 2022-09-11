@@ -72,8 +72,7 @@ describe "BasicSocket#getsockopt" do
     -> { @sock.getsockopt(Socket::SOL_SOCKET, -1) }.should raise_error(Errno::ENOPROTOOPT)
   end
 
-  # NATFIXME
-  xdescribe 'using Symbols as arguments' do
+  describe 'using Symbols as arguments' do
     it 'returns a Socket::Option for arguments :SOCKET and :TYPE' do
       opt = @sock.getsockopt(:SOCKET, :TYPE)
 
@@ -117,8 +116,7 @@ describe "BasicSocket#getsockopt" do
     end
   end
 
-  # NATFIXME
-  xdescribe 'using Strings as arguments' do
+  describe 'using Strings as arguments' do
     it 'returns a Socket::Option for arguments "SOCKET" and "TYPE"' do
       opt = @sock.getsockopt("SOCKET", "TYPE")
 
@@ -162,8 +160,7 @@ describe "BasicSocket#getsockopt" do
     end
   end
 
-  # NATFIXME
-  xdescribe 'using a String based option' do
+  describe 'using a String based option' do
     it 'allows unpacking of a boolean option' do
       opt = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR).to_s
 
