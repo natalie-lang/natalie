@@ -13,10 +13,19 @@ Value init(Env *env, Value self) {
     return NilObject::the();
 }
 
-static unsigned short Socket_const_get(Env *env, Value name, bool default_zero = false) {
+Value Socket_const_name_to_i(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto name = args.at(0);
+    bool default_zero = false;
+    if (args.size() == 2 && args.at(1)->is_truthy())
+        default_zero = true;
+
+    if (!name->is_integer() && !name->is_string() && !name->is_symbol() && name->respond_to(env, "to_str"_s))
+        name = name.send(env, "to_str"_s);
+
     switch (name->type()) {
     case Object::Type::Integer:
-        return name->as_integer()->to_nat_int_t();
+        return name;
     case Object::Type::String:
     case Object::Type::Symbol: {
         auto sym = name->to_symbol(env, Object::Conversion::Strict);
@@ -26,13 +35,19 @@ static unsigned short Socket_const_get(Env *env, Value name, bool default_zero =
             value = Socket->const_find(env, "SHORT_CONSTANTS"_s)->as_hash_or_raise(env)->get(env, sym);
         if (!value)
             env->raise_name_error(sym, "uninitialized constant {}::{}", Socket->inspect_str(env), sym->string());
-        return value->as_integer_or_raise(env)->to_nat_int_t();
+        return value;
     }
     default:
         if (default_zero)
-            return 0;
+            return Value::integer(0);
         env->raise("TypeError", "{} can't be coerced into String or Integer", name->klass()->inspect_str());
     }
+}
+
+static unsigned short Socket_const_get(Env *env, Value name, bool default_zero = false) {
+    auto Socket = find_top_level_const(env, "Socket"_s);
+    auto value = Socket_const_name_to_i(env, Socket, Args({ name, bool_object(default_zero) }), nullptr);
+    return value->as_integer_or_raise(env)->to_nat_int_t();
 }
 
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
@@ -231,6 +246,69 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     auto data = new StringObject { buf, len };
     auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
     return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
+}
+
+Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 1, 3);
+
+    unsigned short level = 0;
+    unsigned short optname = 0;
+    StringObject *data;
+
+    auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
+    if (args.size() == 3) {
+        level = Socket_const_get(env, args.at(0));
+        optname = Socket_const_get(env, args.at(1));
+        auto data_obj = args.at(2);
+        switch (data_obj->type()) {
+        case Object::Type::String:
+            data = data_obj->as_string();
+            break;
+        case Object::Type::True: {
+            int val = 1;
+            data = new StringObject { (const char *)(&val), sizeof(int) };
+            break;
+        }
+        case Object::Type::False: {
+            int val = 0;
+            data = new StringObject { (const char *)(&val), sizeof(int) };
+            break;
+        }
+        case Object::Type::Integer: {
+            int val = data_obj->as_integer()->to_nat_int_t();
+            data = new StringObject { (const char *)(&val), sizeof(int) };
+            break;
+        }
+        default:
+            env->raise("TypeError", "{} can't be coerced into String", data_obj->klass()->inspect_str());
+        }
+    } else {
+        args.ensure_argc_is(env, 1);
+        auto option = args.at(0);
+        level = option.send(env, "level"_s)->as_integer_or_raise(env)->to_nat_int_t();
+        optname = option.send(env, "optname"_s)->as_integer_or_raise(env)->to_nat_int_t();
+        data = option.send(env, "data"_s)->as_string_or_raise(env);
+    }
+
+    struct sockaddr addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self->as_io()->fileno(),
+        &addr,
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto family = addr.sa_family;
+
+    socklen_t len = data->length();
+    char buf[len];
+    memcpy(buf, data->c_str(), len);
+    auto result = setsockopt(self->as_io()->fileno(), level, optname, &buf, len);
+    if (result == -1)
+        env->raise_errno();
+    return Value::integer(result);
 }
 
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
@@ -457,6 +535,24 @@ Value Socket_Option_int(Env *env, Value self, Args, Block *) {
 
     auto i = *(int *)data->c_str();
     return Value::integer(i);
+}
+
+Value Socket_Option_s_linger(Env *env, Value self, Args args, Block *) {
+    unsigned short family = 0; // TODO: what constant is this?
+    unsigned short level = SOL_SOCKET;
+    unsigned short optname = SO_LINGER;
+
+    args.ensure_argc_is(env, 2);
+    auto on_off = args.at(0)->is_truthy();
+    int linger = args.at(1)->to_int(env)->to_nat_int_t();
+
+    struct linger data {
+        on_off, linger
+    };
+
+    auto data_string = new StringObject { (const char *)(&data), sizeof(data) };
+
+    return self.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data_string });
 }
 
 Value Socket_Option_linger(Env *env, Value self, Args, Block *) {

@@ -240,6 +240,17 @@ end
 def big_endian
 end
 
+@tmp_uniq_id = 0
+
+def tmp(name, uniq = true)
+  if uniq
+    @tmp_uniq_id += 1
+    name += @tmp_uniq_id.to_s
+  end
+
+  File.join('tmp', name)
+end
+
 def suppress_warning
   old_stderr = $stderr
   $stderr = IOStub.new

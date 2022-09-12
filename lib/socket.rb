@@ -6,6 +6,7 @@ end
 
 class BasicSocket < IO
   __bind_method__ :getsockopt, :BasicSocket_getsockopt
+  __bind_method__ :setsockopt, :BasicSocket_setsockopt
 
   attr_reader :local_address
 
@@ -292,7 +293,9 @@ class Socket < BasicSocket
     INET: AF_INET,
     INET6: AF_INET6,
     IP: IPPROTO_IP,
+    KEEPALIVE: SO_KEEPALIVE,
     LINGER: SO_LINGER,
+    OOBINLINE: SO_OOBINLINE,
     REUSEADDR: SO_REUSEADDR,
     SOCKET: SOL_SOCKET,
     STREAM: SOCK_STREAM,
@@ -302,15 +305,27 @@ class Socket < BasicSocket
 
   class Option
     def initialize(family, level, optname, data)
-      @family = family
-      @level = level
-      @optname = optname
+      @family = Socket.const_name_to_i(family)
+      @level = Socket.const_name_to_i(level)
+      @optname = Socket.const_name_to_i(optname)
       @data = data
     end
 
     attr_reader :family, :level, :optname, :data
 
     alias to_s data
+
+    class << self
+      def bool(family, level, optname, data)
+        Option.new(family, level, optname, [data ? 1 : 0].pack('i'))
+      end
+
+      def int(family, level, optname, data)
+        Option.new(family, level, optname, [data].pack('i'))
+      end
+
+      __bind_method__ :linger, :Socket_Option_s_linger
+    end
 
     __bind_method__ :bool, :Socket_Option_bool
     __bind_method__ :int, :Socket_Option_int
@@ -329,6 +344,8 @@ class Socket < BasicSocket
     __bind_method__ :pack_sockaddr_un, :Socket_pack_sockaddr_un
     __bind_method__ :unpack_sockaddr_in, :Socket_unpack_sockaddr_in
     __bind_method__ :unpack_sockaddr_un, :Socket_unpack_sockaddr_un
+
+    __bind_method__ :const_name_to_i, :Socket_const_name_to_i
 
     alias sockaddr_in pack_sockaddr_in
     alias sockaddr_un pack_sockaddr_un
