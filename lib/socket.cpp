@@ -385,50 +385,32 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         host = new StringObject { "127.0.0.1" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
-    host->assert_type(env, Object::Type::String, "String");
-    auto host_string = host->as_string();
 
-    unsigned short port_in_host_byte_order = 0;
-    if (service->is_integer()) {
-        auto num = service->as_integer()->to_nat_int_t();
-        if (num >= 0 && num <= 65535)
-            port_in_host_byte_order = num;
-    } else if (service->is_string() && service->as_string()->string().contains_only_digits()) {
-        port_in_host_byte_order = service->as_string()->to_i(env)->as_integer()->to_nat_int_t();
-    } else if (service->is_string()) {
-        auto servent = getservbyname(service->as_string()->c_str(), nullptr);
-        if (servent)
-            port_in_host_byte_order = ntohs(servent->s_port);
+    struct addrinfo *addr;
+    auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service->to_s(env)->c_str(), nullptr, &addr);
+    if (result != 0)
+        env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
+
+    StringObject *packed = nullptr;
+
+    switch (addr->ai_family) {
+    case AF_INET: {
+        auto in = (struct sockaddr_in *)addr->ai_addr;
+        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in) };
+        break;
+    }
+    case AF_INET6: {
+        auto in = (struct sockaddr_in6 *)addr->ai_addr;
+        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in6) };
+        break;
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("unknown getaddrinfo family");
     }
 
-    if (host_string->include(":")) {
+    freeaddrinfo(addr);
 
-        // IPV6
-        struct sockaddr_in6 in { };
-#if defined(__OpenBSD__) or defined(__APPLE__)
-        in.sin6_len = sizeof(in);
-#endif
-        in.sin6_family = AF_INET6;
-        in.sin6_port = htons(port_in_host_byte_order);
-        memcpy(in.sin6_addr.s6_addr, host_string->c_str(), std::min(host_string->length(), (size_t)16));
-        return new StringObject { (const char *)&in, sizeof(in) };
-
-    } else {
-
-        // IPV4
-        struct in_addr a;
-        auto result = inet_aton(host->as_string()->c_str(), &a);
-        if (!result)
-            env->raise("SocketError", "getaddrinfo: Name or service not known");
-        struct sockaddr_in in { };
-#if defined(__OpenBSD__) or defined(__APPLE__)
-        in.sin_len = sizeof(in);
-#endif
-        in.sin_family = AF_INET;
-        in.sin_port = htons(port_in_host_byte_order);
-        in.sin_addr = a;
-        return new StringObject { (const char *)&in, sizeof(in) };
-    }
+    return packed;
 }
 
 Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
@@ -463,32 +445,42 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
-    if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in6)) {
+    auto family = ((struct sockaddr *)(sockaddr->as_string()->c_str()))->sa_family;
 
-        // IPV6
-        const char *str = sockaddr->as_string()->c_str();
-        auto in = (struct sockaddr_in6 *)str;
-        auto ary = new ArrayObject;
-        auto port_in_network_byte_order = in->sin6_port;
-        ary->push(Value::integer(ntohs(port_in_network_byte_order)));
-        ary->push(new StringObject((const char *)in->sin6_addr.s6_addr));
-        return ary;
+    const char *str = sockaddr->as_string()->c_str();
+    Value port;
+    Value host;
 
-    } else if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in)) {
-
-        // IPV4
-        const char *str = sockaddr->as_string()->c_str();
+    switch (family) {
+    case AF_INET: {
         auto in = (struct sockaddr_in *)str;
-        auto addr = inet_ntoa(in->sin_addr);
+        char host_buf[INET_ADDRSTRLEN];
+        auto result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
+        if (!result)
+            env->raise_errno();
+        port = Value::integer(ntohs(in->sin_port));
+        host = new StringObject(host_buf);
+        break;
+    }
+    case AF_INET6: {
+        auto in = (struct sockaddr_in6 *)str;
+        char host_buf[INET6_ADDRSTRLEN];
+        auto result = inet_ntop(AF_INET6, &in->sin6_addr, host_buf, INET6_ADDRSTRLEN);
+        if (!result)
+            env->raise_errno();
         auto ary = new ArrayObject;
-        auto port_in_network_byte_order = in->sin_port;
-        ary->push(Value::integer(ntohs(port_in_network_byte_order)));
-        ary->push(new StringObject(addr));
-        return ary;
-
-    } else {
+        port = Value::integer(ntohs(in->sin6_port));
+        host = new StringObject(host_buf);
+        break;
+    }
+    default:
         env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
     }
+
+    auto ary = new ArrayObject;
+    ary->push(port);
+    ary->push(host);
+    return ary;
 }
 
 Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
