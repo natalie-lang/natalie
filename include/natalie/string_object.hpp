@@ -105,6 +105,8 @@ public:
     void append(const char *);
     void append(int);
     void append(long unsigned int);
+    void append(long long int);
+    void append(unsigned int);
     void append(double);
     void append(const FloatObject *);
     void append(const IntegerObject *);

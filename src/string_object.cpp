@@ -1393,6 +1393,14 @@ void StringObject::append(long unsigned int i) {
     m_string.append(i);
 }
 
+void StringObject::append(long long int i) {
+    m_string.append(i);
+}
+
+void StringObject::append(unsigned int i) {
+    m_string.append((long long)i);
+}
+
 void StringObject::append(double d) {
     auto f = FloatObject(d);
     m_string.append(f.to_s());
