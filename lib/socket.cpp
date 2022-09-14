@@ -400,8 +400,13 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
 
+    struct addrinfo hints { };
+    struct addrinfo *getaddrinfo_result;
+
+    hints.ai_family = PF_UNSPEC;
+
     struct addrinfo *addr;
-    auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service->to_s(env)->c_str(), nullptr, &addr);
+    auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service->to_s(env)->c_str(), &hints, &addr);
     if (result != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
 
