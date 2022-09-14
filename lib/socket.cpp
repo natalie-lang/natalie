@@ -366,6 +366,20 @@ Value Socket_is_closed(Env *env, Value self, Args args, Block *block) {
     return bool_object(self->as_io()->is_closed());
 }
 
+Value Socket_connect(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 1);
+    auto remote_sockaddr = args.at(0)->as_string_or_raise(env);
+
+    auto addr = (struct sockaddr *)remote_sockaddr->c_str();
+    socklen_t len = remote_sockaddr->length();
+
+    auto result = connect(self->as_io()->fileno(), addr, len);
+    if (result == -1)
+        env->raise_errno();
+
+    return Value::integer(0);
+}
+
 Value Socket_listen(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto backlog = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
