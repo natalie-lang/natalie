@@ -222,6 +222,18 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     }
 }
 
+Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto fd = args.at(0);
+
+    auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
+
+    auto sock = BasicSocket.send(env, "new"_s);
+    sock->as_io()->initialize(env, fd);
+
+    return self;
+}
+
 Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto level = Socket_const_get(env, args.at(0));
@@ -310,6 +322,65 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     if (result == -1)
         env->raise_errno();
     return Value::integer(result);
+}
+
+Value IPSocket_addr(Env *env, Value self, Args, Block *) {
+    struct sockaddr addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self->as_io()->fileno(),
+        &addr,
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    Value family;
+    Value host;
+    Value port;
+
+    switch (addr.sa_family) {
+    case AF_INET: {
+        family = new StringObject("AF_INET");
+        struct sockaddr_in in { };
+        socklen_t len = sizeof(in);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        char host_buf[INET_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(AF_INET, &in.sin_addr, host_buf, INET_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        host = new StringObject { host_buf };
+        port = Value::integer(ntohs(in.sin_port));
+        break;
+    }
+    case AF_INET6: {
+        family = new StringObject("AF_INET6");
+        struct sockaddr_in in6 { };
+        socklen_t len = sizeof(in6);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in6,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        char host_buf[INET6_ADDRSTRLEN];
+        auto ntop_result = inet_ntop(AF_INET, &in6.sin_addr, host_buf, INET6_ADDRSTRLEN);
+        if (!ntop_result)
+            env->raise_errno();
+        host = new StringObject { host_buf };
+        port = Value::integer(ntohs(in6.sin_port));
+        break;
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.sa_family);
+    }
+
+    return new ArrayObject({ family, port, host, host });
 }
 
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
@@ -575,4 +646,28 @@ Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
     auto on_off = bool_object(l->l_onoff != 0);
     auto linger = Value::integer(l->l_linger);
     return new ArrayObject({ on_off, linger });
+}
+
+Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto hostname = args.at(0);
+    auto port = args.at(1, NilObject::the());
+
+    // TCPServer.new([hostname,] port)
+    if (port->is_nil()) {
+        port = hostname;
+        hostname = NilObject::the();
+    }
+
+    auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (fd == -1)
+        env->raise_errno();
+    self->as_io()->initialize(env, Value::integer(fd));
+
+    auto Socket = find_top_level_const(env, "Socket"_s);
+    auto sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { port, hostname });
+    Socket_bind(env, self, { sockaddr }, nullptr);
+    Socket_listen(env, self, { Value::integer(1) }, nullptr);
+
+    return self;
 }
