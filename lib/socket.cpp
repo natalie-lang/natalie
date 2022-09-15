@@ -401,8 +401,6 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         host = new StringObject { "0.0.0.0" };
 
     struct addrinfo hints { };
-    struct addrinfo *getaddrinfo_result;
-
     hints.ai_family = PF_UNSPEC;
 
     struct addrinfo *addr;
