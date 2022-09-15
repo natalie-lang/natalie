@@ -105,7 +105,7 @@ class SystemCallError < StandardError
         92 => [Errno::ENOPROTOOPT, 'Protocol not available'],
         93 => [Errno::EPROTONOSUPPORT, 'Protocol not supported'],
         94 => [Errno::ESOCKTNOSUPPORT, 'Socket type not supported'],
-        95 => [Errno::ENOTSUP, 'Operation not supported'],
+        95 => [Errno::EOPNOTSUPP, 'Operation not supported'],
         96 => [Errno::EPFNOSUPPORT, 'Protocol family not supported'],
         97 => [Errno::EAFNOSUPPORT, 'Address family not supported by protocol'],
         98 => [Errno::EADDRINUSE, 'Address already in use'],
