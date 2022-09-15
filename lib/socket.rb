@@ -10,6 +10,13 @@ class BasicSocket < IO
 
   attr_reader :local_address
 
+  attr_accessor :do_not_reverse_lookup
+
+  class << self
+    __bind_method__ :for_fd, :BasicSocket_s_for_fd
+    attr_accessor :do_not_reverse_lookup
+  end
+
   def connect_address
     addr = local_address
     case addr
@@ -24,7 +31,7 @@ class BasicSocket < IO
 end
 
 class IPSocket < BasicSocket
-
+  __bind_method__ :addr, :IPSocket_addr
 end
 
 class TCPSocket < IPSocket
@@ -32,12 +39,7 @@ class TCPSocket < IPSocket
 end
 
 class TCPServer < TCPSocket
-  def initialize(hostname, port = nil)
-    if port.nil?
-      port = hostname
-      hostname = nil
-    end
-  end
+  __bind_method__ :initialize, :TCPServer_initialize
 end
 
 class Socket < BasicSocket
