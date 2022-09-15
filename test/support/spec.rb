@@ -362,11 +362,20 @@ class Matcher
   end
 
   def method_missing(method, *args)
-    than = " than #{args.first.inspect}" if args.any?
+    target = if args.any?
+               case method
+               when :<, :<=, :>, :>=
+                 "be #{method} than #{args.first.inspect}"
+               else
+                 "#{method} #{args.first.inspect}"
+               end
+             else
+               "be #{method.to_s}"
+             end
     if !@inverted
-      raise SpecFailedException, "#{@subject.inspect} should be #{method}#{than}" if !@subject.send(method, *args)
+      raise SpecFailedException, "#{@subject.inspect} should #{target}" if !@subject.send(method, *args)
     else
-      raise SpecFailedException, "#{@subject.inspect} should not be #{method}#{than}" if @subject.send(method, *args)
+      raise SpecFailedException, "#{@subject.inspect} should not #{target}" if @subject.send(method, *args)
     end
   end
 
