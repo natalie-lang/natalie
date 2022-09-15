@@ -132,17 +132,18 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         else
             hints.ai_family = PF_UNSPEC;
 
-        hints.ai_socktype = socktype;
-        if (socktype == 0)
-            self->ivar_set(env, "@socktype"_s, Value::integer(0));
-
-        if (socktype_hack && hints.ai_socktype == 0)
-            hints.ai_socktype = SOCK_DGRAM;
-
         if (protocol->is_integer())
             hints.ai_protocol = (unsigned short)protocol->as_integer()->to_nat_int_t();
         else
             hints.ai_protocol = 0;
+
+        hints.ai_socktype = socktype;
+
+        if (hints.ai_socktype == 0)
+            self->ivar_set(env, "@socktype"_s, Value::integer(0));
+
+        if (socktype_hack && hints.ai_socktype == 0)
+            hints.ai_socktype = SOCK_DGRAM;
 
         const char *service_str = port->to_s(env)->as_string()->c_str();
 

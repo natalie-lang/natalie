@@ -290,6 +290,7 @@ class Socket < BasicSocket
   SO_WIFI_STATUS = __constant__('SO_WIFI_STATUS', 'unsigned short')
 
   SHORT_CONSTANTS = {
+    DGRAM: SOCK_DGRAM,
     INET: AF_INET,
     INET6: AF_INET6,
     IP: IPPROTO_IP,
@@ -381,11 +382,11 @@ class Addrinfo
     end
 
     def tcp(ip, port)
-      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, nil, Socket::IPPROTO_TCP)
+      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
     end
 
-    def udp(_ip, _port)
-      Addrinfo.new # TODO
+    def udp(ip, port)
+      Addrinfo.new(Socket.pack_sockaddr_in(port, ip), nil, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
     end
 
     def unix(path)
