@@ -638,6 +638,38 @@ static String Socket_getaddrinfo_result_host(struct addrinfo *result) {
     }
 }
 
+static String Socket_reverse_lookup_address(Env *env, struct addrinfo *info) {
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+    struct sockaddr *addr = info->ai_addr;
+    socklen_t length = sizeof(struct sockaddr);
+
+    switch (info->ai_family) {
+    case AF_INET:
+        length = sizeof(struct sockaddr_in);
+        break;
+    case AF_INET6:
+        length = sizeof(struct sockaddr_in6);
+        break;
+    default:
+        NAT_NOT_YET_IMPLEMENTED("reverse lookup for family %d", info->ai_family);
+    }
+
+    auto n = getnameinfo(
+        addr,
+        length,
+        hbuf,
+        sizeof(hbuf),
+        sbuf,
+        sizeof(sbuf),
+        NI_NAMEREQD);
+
+    if (n != 0)
+        env->raise("SocketError", "getnameinfo: {}", gai_strerror(n));
+
+    return hbuf;
+}
+
 Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     // getaddrinfo(nodename, servname[, family[, socktype[, protocol[, flags[, reverse_lookup]]]]]) => array
     args.ensure_argc_between(env, 2, 7);
@@ -648,6 +680,13 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     auto protocol = args.at(4, NilObject::the());
     auto flags = args.at(5, NilObject::the());
     auto reverse_lookup = args.at(6, NilObject::the());
+
+    if (reverse_lookup->is_nil()) {
+        auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
+        reverse_lookup = BasicSocket.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
+    } else if (reverse_lookup == "numeric"_s) {
+        reverse_lookup = FalseObject::the();
+    }
 
     struct addrinfo hints { };
     hints.ai_family = Socket_const_name_to_i(env, self, { family, TrueObject::the() }, nullptr)->as_integer_or_raise(env)->to_nat_int_t();
@@ -660,8 +699,10 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
 
     if (nodename->is_nil() || (nodename->is_string() && nodename->as_string()->is_empty()))
         host = "";
-    else
+    else if (nodename->is_string())
         host = nodename->as_string_or_raise(env)->string();
+    else if (nodename->respond_to(env, "to_str"_s))
+        host = nodename.send(env, "to_str"_s)->as_string_or_raise(env)->string();
 
     if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
         service = "0";
@@ -685,7 +726,10 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
         auto addr = new ArrayObject;
         addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
         addr->push(new IntegerObject(Socket_getaddrinfo_result_port(result)));
-        addr->push(new StringObject(Socket_getaddrinfo_result_host(result))); // FIXME: how to reverse lookup host?
+        if (reverse_lookup->is_truthy())
+            addr->push(new StringObject(Socket_reverse_lookup_address(env, result)));
+        else
+            addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));
         addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));
         addr->push(Value::integer(result->ai_family));
         addr->push(Value::integer(result->ai_socktype));

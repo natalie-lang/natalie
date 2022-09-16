@@ -168,6 +168,7 @@ public:
     VoidPObject *as_void_p();
 
     ArrayObject *as_array_or_raise(Env *);
+    ClassObject *as_class_or_raise(Env *);
     HashObject *as_hash_or_raise(Env *);
     IntegerObject *as_integer_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
