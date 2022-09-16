@@ -31,7 +31,7 @@ public:
     Value hash(Env *);
     bool has_step() { return m_step && !m_step->is_nil(); }
     Value inspect(Env *);
-    Value last(Env *);
+    Value last(Env *, Value);
     Value size(Env *);
     Value step() {
         if (has_step())
@@ -58,12 +58,13 @@ private:
 
     ArithmeticSequenceObject(Origin, Value, Value, Value, bool);
 
+    Integer calculate_step_count(Env *);
     Integer step_count(Env *env) {
         if (!m_step_count.present())
             m_step_count = calculate_step_count(env);
         return m_step_count.value();
     }
-    Integer calculate_step_count(Env *);
+    Value maybe_to_f(Env *, Value);
 
     Origin m_origin;
     Value m_begin { nullptr };

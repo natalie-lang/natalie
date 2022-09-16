@@ -15,17 +15,30 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
     if (m_end->send(env, "infinite?"_s)->is_truthy())
         return 0;
 
-    auto n = m_end->send(env, "-"_s, { m_begin })->send(env, "/"_s, { step() });
+    auto _step = step();
+    auto _begin = m_begin;
+    auto _end = m_end;
+
+    if (_step->is_float() || _begin->is_float() || _end->is_float()) {
+        _step = _step->to_f(env);
+        _begin = _begin->to_f(env);
+        _end = _end->to_f(env);
+    }
+
+    auto n = _end->send(env, "-"_s, { _begin })->send(env, "/"_s, { _step->to_f(env) });
+
+    if (n->send(env, "=="_s, { n->send(env, "floor"_s) })->is_truthy())
+        n = n->to_int(env);
 
     Integer step_count;
     if (n->is_integer()) {
         step_count = n->as_integer()->integer();
-    } else {
-        step_count = n->send(env, "+"_s, { n->send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) })->send(env, "floor"_s)->as_integer()->integer();
-    }
 
-    if (!exclude_end())
-        step_count += 1;
+        if (!exclude_end())
+            step_count += 1;
+    } else {
+        step_count = n->send(env, "+"_s, { n->send(env, "*"_s, { new FloatObject { std::numeric_limits<double>::epsilon() } }) })->send(env, "floor"_s)->as_integer()->integer() + 1;
+    }
 
     return step_count;
 }
@@ -143,13 +156,49 @@ Value ArithmeticSequenceObject::inspect(Env *env) {
     return nullptr;
 }
 
-Value ArithmeticSequenceObject::last(Env *env) {
-    if (m_exclude_end) {
-        auto steps = step_count(env);
-        return m_begin->send(env, "+"_s, { IntegerObject::create(steps)->send(env, "*"_s, { step() }) });
+Value ArithmeticSequenceObject::last(Env *env, Value n) {
+    auto _end = maybe_to_f(env, m_end);
+    auto steps = step_count(env);
+
+    if (n) {
+        auto n_as_int = n->to_int(env);
+        Integer count = n_as_int->integer();
+
+        if (count < 0)
+            env->raise("ArgumentError", "negative array size");
+
+        if (n_as_int->integer() > steps)
+            count = steps;
+
+        n_as_int->assert_fixnum(env);
+
+        auto array = new ArrayObject { (size_t)count.to_nat_int_t() };
+
+        auto _begin = maybe_to_f(env, m_begin);
+        auto last = _begin->send(env, "+"_s, { step().send(env, "*"_s, { IntegerObject::create(steps) }) });
+        if (last.send(env, ">="_s, { _end })->is_truthy())
+            last = last->send(env, "-"_s, { step() });
+
+        auto begin = last->send(env, "-"_s, { step().send(env, "*"_s, { IntegerObject::create(count) }) });
+
+        for (; count > 0; --count) {
+            begin = begin->send(env, "+"_s, { step() });
+            array->push(begin);
+        }
+
+        return array;
     } else {
-        return m_end;
+        auto last = m_begin->send(env, "+"_s, { step()->send(env, "*"_s, { IntegerObject::create(steps - 1) }) });
+        if (last->send(env, ">"_s, { m_end })->is_truthy())
+            last = last->send(env, "-"_s, { step() });
+        return last;
     }
+}
+
+Value ArithmeticSequenceObject::maybe_to_f(Env *env, Value v) {
+    if (m_begin->is_float() || m_end->is_float())
+        return v->to_f(env);
+    return v;
 }
 
 Value ArithmeticSequenceObject::size(Env *env) {
