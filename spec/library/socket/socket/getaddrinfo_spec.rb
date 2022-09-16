@@ -56,7 +56,7 @@ describe "Socket.getaddrinfo" do
     # sockets (AI_PASSIVE not set) it should return the loopback
     # address (127.0.0.1 or "::1").
 
-    xit "accepts empty addresses for IPv4 passive sockets" do
+    it "accepts empty addresses for IPv4 passive sockets" do
       res = Socket.getaddrinfo(nil, "discard",
                                Socket::AF_INET,
                                Socket::SOCK_STREAM,
@@ -67,7 +67,7 @@ describe "Socket.getaddrinfo" do
       res.should == expected
     end
 
-    xit "accepts empty addresses for IPv4 non-passive sockets" do
+    it "accepts empty addresses for IPv4 non-passive sockets" do
       res = Socket.getaddrinfo(nil, "discard",
                                Socket::AF_INET,
                                Socket::SOCK_STREAM,

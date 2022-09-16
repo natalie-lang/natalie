@@ -604,6 +604,40 @@ static String Socket_family_to_string(int family) {
     }
 }
 
+static int Socket_getaddrinfo_result_port(struct addrinfo *result) {
+    switch (result->ai_family) {
+    case AF_INET: {
+        auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
+        return ntohs(sockaddr->sin_port);
+    }
+    case AF_INET6: {
+        auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
+        return ntohs(sockaddr->sin6_port);
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("port for getaddrinfo result %d", result->ai_family);
+    }
+}
+
+static String Socket_getaddrinfo_result_host(struct addrinfo *result) {
+    switch (result->ai_family) {
+    case AF_INET: {
+        auto *sockaddr = (struct sockaddr_in *)result->ai_addr;
+        char address[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(sockaddr->sin_addr), address, INET_ADDRSTRLEN);
+        return address;
+    }
+    case AF_INET6: {
+        auto *sockaddr = (struct sockaddr_in6 *)result->ai_addr;
+        char address[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &(sockaddr->sin6_addr), address, INET6_ADDRSTRLEN);
+        return address;
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("port for getaddrinfo result %d", result->ai_family);
+    }
+}
+
 Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     // getaddrinfo(nodename, servname[, family[, socktype[, protocol[, flags[, reverse_lookup]]]]]) => array
     args.ensure_argc_between(env, 2, 7);
@@ -616,13 +650,16 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     auto reverse_lookup = args.at(6, NilObject::the());
 
     struct addrinfo hints { };
-    struct addrinfo *result;
+    hints.ai_family = Socket_const_name_to_i(env, self, { family, TrueObject::the() }, nullptr)->as_integer_or_raise(env)->to_nat_int_t();
+    hints.ai_socktype = Socket_const_name_to_i(env, self, { socktype, TrueObject::the() }, nullptr)->as_integer_or_raise(env)->to_nat_int_t();
+    hints.ai_protocol = Socket_const_name_to_i(env, self, { protocol, TrueObject::the() }, nullptr)->as_integer_or_raise(env)->to_nat_int_t();
+    hints.ai_flags = Socket_const_name_to_i(env, self, { flags, TrueObject::the() }, nullptr)->as_integer_or_raise(env)->to_nat_int_t();
 
     String host;
     String service;
 
     if (nodename->is_nil() || (nodename->is_string() && nodename->as_string()->is_empty()))
-        host = "0.0.0.0";
+        host = "";
     else
         host = nodename->as_string_or_raise(env)->string();
 
@@ -633,7 +670,12 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     else
         service = servname->as_string_or_raise(env)->string();
 
-    int s = getaddrinfo(host.c_str(), service.c_str(), &hints, &result);
+    struct addrinfo *result;
+    int s = getaddrinfo(
+        host.is_empty() ? nullptr : host.c_str(),
+        service.c_str(),
+        &hints,
+        &result);
     if (s != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
 
@@ -642,6 +684,12 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     do {
         auto addr = new ArrayObject;
         addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
+        addr->push(new IntegerObject(Socket_getaddrinfo_result_port(result)));
+        addr->push(new StringObject(Socket_getaddrinfo_result_host(result))); // FIXME: how to reverse lookup host?
+        addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));
+        addr->push(Value::integer(result->ai_family));
+        addr->push(Value::integer(result->ai_socktype));
+        addr->push(Value::integer(result->ai_protocol));
         ary->push(addr);
         result = result->ai_next;
     } while (result);
