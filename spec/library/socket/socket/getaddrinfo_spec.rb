@@ -79,7 +79,7 @@ describe "Socket.getaddrinfo" do
     end
 
 
-    xit "accepts empty addresses for IPv6 passive sockets" do
+    it "accepts empty addresses for IPv6 passive sockets" do
       res = Socket.getaddrinfo(nil, "discard",
                                Socket::AF_INET6,
                                Socket::SOCK_STREAM,
@@ -93,7 +93,7 @@ describe "Socket.getaddrinfo" do
       res.each { |a| expected.should include(a) }
     end
 
-    xit "accepts empty addresses for IPv6 non-passive sockets" do
+    it "accepts empty addresses for IPv6 non-passive sockets" do
       res = Socket.getaddrinfo(nil, "discard",
                                Socket::AF_INET6,
                                Socket::SOCK_STREAM,
@@ -111,11 +111,11 @@ end
 
 describe 'Socket.getaddrinfo' do
   describe 'without global reverse lookups' do
-    xit 'returns an Array' do
+    it 'returns an Array' do
       Socket.getaddrinfo(nil, 'ftp').should be_an_instance_of(Array)
     end
 
-    xit 'accepts an Integer as the address family' do
+    it 'accepts an Integer as the address family' do
       array = Socket.getaddrinfo(nil, 'ftp', Socket::AF_INET)[0]
 
       array[0].should == 'AF_INET'
@@ -127,7 +127,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts an Integer as the address family using IPv6' do
+    it 'accepts an Integer as the address family using IPv6' do
       array = Socket.getaddrinfo(nil, 'ftp', Socket::AF_INET6)[0]
 
       array[0].should == 'AF_INET6'
@@ -139,7 +139,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts a Symbol as the address family' do
+    it 'accepts a Symbol as the address family' do
       array = Socket.getaddrinfo(nil, 'ftp', :INET)[0]
 
       array[0].should == 'AF_INET'
@@ -151,7 +151,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts a Symbol as the address family using IPv6' do
+    it 'accepts a Symbol as the address family using IPv6' do
       array = Socket.getaddrinfo(nil, 'ftp', :INET6)[0]
 
       array[0].should == 'AF_INET6'
@@ -163,7 +163,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts a String as the address family' do
+    it 'accepts a String as the address family' do
       array = Socket.getaddrinfo(nil, 'ftp', 'INET')[0]
 
       array[0].should == 'AF_INET'
@@ -175,7 +175,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts a String as the address family using IPv6' do
+    it 'accepts a String as the address family using IPv6' do
       array = Socket.getaddrinfo(nil, 'ftp', 'INET6')[0]
 
       array[0].should == 'AF_INET6'
@@ -187,7 +187,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts an object responding to #to_str as the host' do
+    it 'accepts an object responding to #to_str as the host' do
       dummy = mock(:dummy)
 
       dummy.stub!(:to_str).and_return('127.0.0.1')
@@ -203,7 +203,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts an object responding to #to_str as the address family' do
+    it 'accepts an object responding to #to_str as the address family' do
       dummy = mock(:dummy)
 
       dummy.stub!(:to_str).and_return('INET')
@@ -219,7 +219,7 @@ describe 'Socket.getaddrinfo' do
       array[6].should be_kind_of(Integer)
     end
 
-    xit 'accepts an Integer as the socket type' do
+    it 'accepts an Integer as the socket type' do
       *array, proto = Socket.getaddrinfo(nil, 'ftp', :INET, Socket::SOCK_STREAM)[0]
       array.should == [
         'AF_INET',
@@ -232,7 +232,7 @@ describe 'Socket.getaddrinfo' do
       [0, Socket::IPPROTO_TCP].should include(proto)
     end
 
-    xit 'accepts a Symbol as the socket type' do
+    it 'accepts a Symbol as the socket type' do
       *array, proto = Socket.getaddrinfo(nil, 'ftp', :INET, :STREAM)[0]
       array.should == [
         'AF_INET',
@@ -245,7 +245,7 @@ describe 'Socket.getaddrinfo' do
       [0, Socket::IPPROTO_TCP].should include(proto)
     end
 
-    xit 'accepts a String as the socket type' do
+    it 'accepts a String as the socket type' do
       *array, proto = Socket.getaddrinfo(nil, 'ftp', :INET, 'STREAM')[0]
       array.should == [
         'AF_INET',
@@ -258,7 +258,7 @@ describe 'Socket.getaddrinfo' do
       [0, Socket::IPPROTO_TCP].should include(proto)
     end
 
-    xit 'accepts an object responding to #to_str as the socket type' do
+    it 'accepts an object responding to #to_str as the socket type' do
       dummy = mock(:dummy)
 
       dummy.stub!(:to_str).and_return('STREAM')
@@ -276,7 +276,7 @@ describe 'Socket.getaddrinfo' do
     end
 
     platform_is_not :windows do
-      xit 'accepts an Integer as the protocol family' do
+      it 'accepts an Integer as the protocol family' do
         *array, proto = Socket.getaddrinfo(nil, 'discard', :INET, :DGRAM, Socket::IPPROTO_UDP)[0]
         array.should == [
           'AF_INET',
@@ -290,7 +290,7 @@ describe 'Socket.getaddrinfo' do
       end
     end
 
-    xit 'accepts an Integer as the flags' do
+    it 'accepts an Integer as the flags' do
       *array, proto = Socket.getaddrinfo(nil, 'ftp', :INET, :STREAM,
                                 Socket::IPPROTO_TCP, Socket::AI_PASSIVE)[0]
       array.should == [
@@ -304,7 +304,7 @@ describe 'Socket.getaddrinfo' do
       [0, Socket::IPPROTO_TCP].should include(proto)
     end
 
-    xit 'performs a reverse lookup when the reverse_lookup argument is true' do
+    it 'performs a reverse lookup when the reverse_lookup argument is true' do
       addr = Socket.getaddrinfo(nil, 'ftp', :INET, :STREAM,
                                 Socket::IPPROTO_TCP, 0, true)[0]
 
@@ -317,7 +317,7 @@ describe 'Socket.getaddrinfo' do
       addr[3].should == '127.0.0.1'
     end
 
-    xit 'performs a reverse lookup when the reverse_lookup argument is :hostname' do
+    it 'performs a reverse lookup when the reverse_lookup argument is :hostname' do
       addr = Socket.getaddrinfo(nil, 'ftp', :INET, :STREAM,
                                 Socket::IPPROTO_TCP, 0, :hostname)[0]
 
@@ -330,7 +330,7 @@ describe 'Socket.getaddrinfo' do
       addr[3].should == '127.0.0.1'
     end
 
-    xit 'performs a reverse lookup when the reverse_lookup argument is :numeric' do
+    it 'performs a reverse lookup when the reverse_lookup argument is :numeric' do
       *array, proto = Socket.getaddrinfo(nil, 'ftp', :INET, :STREAM,
                                 Socket::IPPROTO_TCP, 0, :numeric)[0]
       array.should == [
@@ -355,7 +355,7 @@ describe 'Socket.getaddrinfo' do
       BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
     end
 
-    xit 'returns an address honoring the global lookup option' do
+    it 'returns an address honoring the global lookup option' do
       addr = Socket.getaddrinfo(nil, 'ftp', :INET)[0]
 
       addr[0].should == 'AF_INET'

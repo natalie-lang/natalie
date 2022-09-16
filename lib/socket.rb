@@ -10,11 +10,38 @@ class BasicSocket < IO
 
   attr_reader :local_address
 
-  attr_accessor :do_not_reverse_lookup
+  attr_writer :do_not_reverse_lookup
+
+  def do_not_reverse_lookup
+    if @do_not_reverse_lookup.nil?
+      self.class.do_not_reverse_lookup
+    else
+      @do_not_reverse_lookup
+    end
+  end
 
   class << self
     __bind_method__ :for_fd, :BasicSocket_s_for_fd
-    attr_accessor :do_not_reverse_lookup
+
+    def do_not_reverse_lookup
+      case @do_not_reverse_lookup
+      when nil
+        true
+      when false
+        false
+      else
+        true
+      end
+    end
+
+    def do_not_reverse_lookup=(do_not)
+      case do_not
+      when false, nil
+        @do_not_reverse_lookup = false
+      else
+        @do_not_reverse_lookup = true
+      end
+    end
   end
 
   def connect_address

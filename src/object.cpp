@@ -299,6 +299,12 @@ ArrayObject *Object::as_array_or_raise(Env *env) {
     return static_cast<ArrayObject *>(this);
 }
 
+ClassObject *Object::as_class_or_raise(Env *env) {
+    if (!is_class())
+        env->raise("TypeError", "{} can't be coerced into Class", m_klass->inspect_str());
+    return static_cast<ClassObject *>(this);
+}
+
 HashObject *Object::as_hash_or_raise(Env *env) {
     if (!is_hash())
         env->raise("TypeError", "{} can't be coerced into Hash", m_klass->inspect_str());
