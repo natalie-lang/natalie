@@ -58,6 +58,12 @@ private:
 
     ArithmeticSequenceObject(Origin, Value, Value, Value, bool);
 
+    bool ascending(Env *env) {
+        if (!m_ascending.present())
+            m_ascending = calculate_ascending(env);
+        return m_ascending.value();
+    }
+    bool calculate_ascending(Env *);
     Integer calculate_step_count(Env *);
     Integer step_count(Env *env) {
         if (!m_step_count.present())
@@ -72,5 +78,6 @@ private:
     Value m_step { nullptr };
     Optional<Integer> m_step_count {};
     bool m_exclude_end { false };
+    Optional<bool> m_ascending {};
 };
 };

@@ -20,47 +20,46 @@ describe "Numeric#step" do
     end
     it_behaves_like :numeric_step, :step
 
-  # NATFIXME: Implement Enumerator::ArithmeticSequence
-  #   describe "when no block is given" do
-  #     step_enum_class = Enumerator::ArithmeticSequence
+    describe "when no block is given" do
+      step_enum_class = Enumerator::ArithmeticSequence
 
-  #     ruby_version_is ""..."3.0" do
-  #       it "returns an #{step_enum_class} when step is 0" do
-  #         1.step(5, 0).should be_an_instance_of(step_enum_class)
-  #       end
+      ruby_version_is ""..."3.0" do
+        it "returns an #{step_enum_class} when step is 0" do
+          1.step(5, 0).should be_an_instance_of(step_enum_class)
+        end
 
-  #       it "returns an #{step_enum_class} when step is 0.0" do
-  #         1.step(2, 0.0).should be_an_instance_of(step_enum_class)
-  #       end
-  #     end
+        it "returns an #{step_enum_class} when step is 0.0" do
+          1.step(2, 0.0).should be_an_instance_of(step_enum_class)
+        end
+      end
 
-  #     describe "returned #{step_enum_class}" do
-  #       describe "size" do
-  #         ruby_version_is ""..."3.0" do
-  #           it "is infinity when step is 0" do
-  #             enum = 1.step(5, 0)
-  #             enum.size.should == Float::INFINITY
-  #           end
+      describe "returned #{step_enum_class}" do
+        describe "size" do
+          ruby_version_is ""..."3.0" do
+            it "is infinity when step is 0" do
+              enum = 1.step(5, 0)
+              enum.size.should == Float::INFINITY
+            end
 
-  #           it "is infinity when step is 0.0" do
-  #             enum = 1.step(2, 0.0)
-  #             enum.size.should == Float::INFINITY
-  #           end
-  #         end
+            it "is infinity when step is 0.0" do
+              enum = 1.step(2, 0.0)
+              enum.size.should == Float::INFINITY
+            end
+          end
 
-  #         it "defaults to an infinite size" do
-  #           enum = 1.step
-  #           enum.size.should == Float::INFINITY
-  #         end
-  #       end
+          it "defaults to an infinite size" do
+            enum = 1.step
+            enum.size.should == Float::INFINITY
+          end
+        end
 
-  #       describe "type" do
-  #         it "returns an instance of Enumerator::ArithmeticSequence" do
-  #           1.step(10).class.should == Enumerator::ArithmeticSequence
-  #         end
-  #       end
-  #     end
-  #   end
+        describe "type" do
+          it "returns an instance of Enumerator::ArithmeticSequence" do
+            1.step(10).class.should == Enumerator::ArithmeticSequence
+          end
+        end
+      end
+    end
   end
 
   describe 'with keyword arguments' do
@@ -80,8 +79,7 @@ describe "Numeric#step" do
       end
     end
 
-    # NATFIXME: Implement Enumerator::ArithmeticSequence
-    xdescribe "when no block is given" do
+    describe "when no block is given" do
       describe "returned Enumerator" do
         describe "size" do
           it "should return infinity_value when limit is nil" do

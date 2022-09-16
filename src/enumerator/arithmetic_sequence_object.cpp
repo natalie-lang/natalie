@@ -11,13 +11,21 @@ ArithmeticSequenceObject::ArithmeticSequenceObject(Origin origin, Value begin, V
     m_step = step;
 }
 
+bool ArithmeticSequenceObject::calculate_ascending(Env *env) {
+    return step()->send(env, ">"_s, { Value::integer(0) })->is_truthy();
+}
+
 Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
-    if (m_end->send(env, "infinite?"_s)->is_truthy())
+    if (!m_end || m_end->is_nil() || m_end->send(env, "infinite?"_s)->is_truthy())
         return 0;
 
     auto _step = step();
     auto _begin = m_begin;
     auto _end = m_end;
+
+    auto cmp = ascending(env) ? ">"_s : "<"_s;
+    if (m_begin->send(env, cmp, { m_end })->is_truthy())
+        return 0;
 
     if (_step->is_float() || _begin->is_float() || _end->is_float()) {
         _step = _step->to_f(env);
@@ -50,16 +58,18 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
     auto _step = step();
     auto _begin = m_begin;
     auto _end = m_end;
+    auto steps = step_count(env);
 
-    // This should be above the float conversion because String#to_f exists but should
-    // raise an ArgumentError here
-    auto ascending = _step->send(env, ">"_s, { Value::integer(0) })->is_truthy();
-    auto cmp = ascending ? ">"_s : "<"_s;
+    auto cmp = ascending(env) ? ">"_s : "<"_s;
+    auto infinite = !_end || _end->is_nil() || (_end->send(env, "infinite?"_s)->is_truthy() && _end->send(env, cmp, { Value::integer(0) })->is_truthy());
 
     if (_step->is_float() || _begin->is_float() || _end->is_float()) {
         _step = _step->to_f(env);
         _begin = _begin->to_f(env);
-        _end = _end->to_f(env);
+
+        // If m_end is nil #to_f would return 0.0
+        if (!infinite)
+            _end = _end->to_f(env);
     }
 
     if (_step->send(env, "infinite?"_s)->is_truthy()) {
@@ -71,17 +81,11 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
     if (_begin->send(env, "infinite?"_s)->is_truthy() && _begin->send(env, cmp, { Value::integer(0) })->is_truthy())
         return this;
 
-    auto infinite = _end->send(env, "infinite?"_s)->is_truthy();
-    auto steps = step_count(env);
-
-    // Check that infinity goes in step's direction
-    infinite = infinite && _end->send(env, cmp, { Value::integer(0) })->is_truthy();
-
     for (Integer i = 0; infinite || i < steps; ++i) {
         auto value = _step->send(env, "*"_s, { IntegerObject::create(i) })->send(env, "+"_s, { _begin });
 
         // Ensure that we do not yield a number that exceeds `_end`
-        if (value->send(env, cmp, { _end })->is_truthy())
+        if (!infinite && value->send(env, cmp, { _end })->is_truthy())
             value = _end;
 
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { value }, nullptr);
@@ -202,8 +206,25 @@ Value ArithmeticSequenceObject::maybe_to_f(Env *env, Value v) {
 }
 
 Value ArithmeticSequenceObject::size(Env *env) {
-    if (m_end->send(env, "infinite?"_s)->is_truthy())
+    if (!m_end || m_end->is_nil())
         return FloatObject::positive_infinity(env);
+
+    if (m_end->send(env, "infinite?"_s)->is_truthy()) {
+        auto cmp = ascending(env) ? ">"_s : "<"_s;
+        auto same_sign = m_end->send(env, cmp, { Value::integer(0) })->is_truthy();
+
+        if (step()->send(env, "infinite?"_s)->is_truthy()) {
+            if (same_sign)
+                return Value::integer(1);
+            else
+                return Value::integer(0);
+        }
+
+        if (same_sign)
+            return FloatObject::positive_infinity(env);
+        else
+            return Value::integer(0);
+    }
 
     return IntegerObject::create(step_count(env));
 }
