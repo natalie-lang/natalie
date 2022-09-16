@@ -349,6 +349,8 @@ class Socket < BasicSocket
     __bind_method__ :unpack_sockaddr_in, :Socket_unpack_sockaddr_in
     __bind_method__ :unpack_sockaddr_un, :Socket_unpack_sockaddr_un
 
+    __bind_method__ :getaddrinfo, :Socket_s_getaddrinfo
+
     __bind_method__ :const_name_to_i, :Socket_const_name_to_i
 
     alias sockaddr_in pack_sockaddr_in

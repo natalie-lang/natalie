@@ -12,7 +12,7 @@ describe "Socket.getaddrinfo" do
   end
 
   platform_is_not :solaris, :windows do
-    xit "gets the address information" do
+    it "gets the address information" do
       expected = []
       # The check for AP_INET6's class is needed because ipaddr.rb adds
       # fake AP_INET6 even in case when IPv6 is not really supported.

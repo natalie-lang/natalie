@@ -593,6 +593,64 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     return new StringObject { un->sun_path };
 }
 
+static String Socket_family_to_string(int family) {
+    switch (family) {
+    case AF_INET:
+        return "AF_INET";
+    case AF_INET6:
+        return "AF_INET6";
+    default:
+        NAT_NOT_YET_IMPLEMENTED("Socket_family_to_string(%d)", family);
+    }
+}
+
+Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
+    // getaddrinfo(nodename, servname[, family[, socktype[, protocol[, flags[, reverse_lookup]]]]]) => array
+    args.ensure_argc_between(env, 2, 7);
+    auto nodename = args.at(0);
+    auto servname = args.at(1);
+    auto family = args.at(2, NilObject::the());
+    auto socktype = args.at(3, NilObject::the());
+    auto protocol = args.at(4, NilObject::the());
+    auto flags = args.at(5, NilObject::the());
+    auto reverse_lookup = args.at(6, NilObject::the());
+
+    struct addrinfo hints { };
+    struct addrinfo *result;
+
+    String host;
+    String service;
+
+    if (nodename->is_nil() || (nodename->is_string() && nodename->as_string()->is_empty()))
+        host = "0.0.0.0";
+    else
+        host = nodename->as_string_or_raise(env)->string();
+
+    if (servname->is_nil() || (servname->is_string() && servname->as_string()->is_empty()))
+        service = "0";
+    else if (servname->is_integer())
+        service = servname->as_integer()->to_s();
+    else
+        service = servname->as_string_or_raise(env)->string();
+
+    int s = getaddrinfo(host.c_str(), service.c_str(), &hints, &result);
+    if (s != 0)
+        env->raise("SocketError", "getaddrinfo: {}", gai_strerror(s));
+
+    auto ary = new ArrayObject;
+
+    do {
+        auto addr = new ArrayObject;
+        addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
+        ary->push(addr);
+        result = result->ai_next;
+    } while (result);
+
+    freeaddrinfo(result);
+
+    return ary;
+}
+
 Value Socket_Option_bool(Env *env, Value self, Args, Block *) {
     auto data = self->ivar_get(env, "@data"_s)->as_string_or_raise(env);
 
