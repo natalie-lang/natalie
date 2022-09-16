@@ -192,5 +192,18 @@ describe 'Enumerator' do
         -> { (0..1).step.last(-1) }.should raise_error(ArgumentError, 'negative array size')
       end
     end
+
+    describe 'next' do
+      it 'works like a "normal" enumerator' do
+        enum = (1..2).step
+        enum.next.should == 1
+        enum.next.should == 2
+        -> { enum.next }.should raise_error(StopIteration)
+
+        enum = (1...2).step
+        enum.next.should == 1
+        -> { enum.next }.should raise_error(StopIteration)
+      end
+    end
   end
 end

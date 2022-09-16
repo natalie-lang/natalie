@@ -15,12 +15,12 @@ public:
     ArithmeticSequenceObject()
         : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->const_fetch("ArithmeticSequence"_s)->as_class() } { }
 
-    static ArithmeticSequenceObject *from_range(Value begin, Value end, Value step, bool exclude_end) {
-        return new ArithmeticSequenceObject { Origin::Range, begin, end, step, exclude_end };
+    static ArithmeticSequenceObject *from_range(Env *env, Value begin, Value end, Value step, bool exclude_end) {
+        return new ArithmeticSequenceObject { env, Origin::Range, begin, end, step, exclude_end };
     }
 
-    static ArithmeticSequenceObject *from_numeric(Value begin, Value end, Value step) {
-        return new ArithmeticSequenceObject { Origin::Numeric, begin, end, step, false };
+    static ArithmeticSequenceObject *from_numeric(Env *env, Value begin, Value end, Value step) {
+        return new ArithmeticSequenceObject { env, Origin::Numeric, begin, end, step, false };
     }
 
     Value begin() const { return m_begin; }
@@ -56,7 +56,8 @@ private:
         Numeric
     };
 
-    ArithmeticSequenceObject(Origin, Value, Value, Value, bool);
+    ArithmeticSequenceObject(Env *, Origin, Value, Value, Value, bool);
+    static Value enum_block(Env *, Value, Args, Block *);
 
     bool ascending(Env *env) {
         if (!m_ascending.present())
@@ -65,6 +66,7 @@ private:
     }
     bool calculate_ascending(Env *);
     Integer calculate_step_count(Env *);
+    Value iterate(Env *, std::function<Value(Value)>);
     Integer step_count(Env *env) {
         if (!m_step_count.present())
             m_step_count = calculate_step_count(env);

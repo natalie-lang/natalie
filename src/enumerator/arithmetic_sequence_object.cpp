@@ -2,13 +2,17 @@
 #include "natalie.hpp"
 
 namespace Natalie::Enumerator {
-ArithmeticSequenceObject::ArithmeticSequenceObject(Origin origin, Value begin, Value end, Value step, bool exclude_end)
+ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)
     : ArithmeticSequenceObject {} {
     m_origin = origin;
     m_begin = begin;
     m_end = end;
     m_exclude_end = exclude_end;
     m_step = step;
+
+    auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->as_module();
+    auto method_info = Enumerator->find_method(env, "initialize"_s);
+    method_info.method()->call(env, this, {}, new Block { env, this, enum_block, 1 });
 }
 
 bool ArithmeticSequenceObject::calculate_ascending(Env *env) {
@@ -55,6 +59,15 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
     if (!block)
         return this;
 
+    iterate(env, [&env, &block](Value value) -> Value {
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { value }, nullptr);
+        return nullptr;
+    });
+
+    return this;
+}
+
+Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> func) {
     auto _step = step();
     auto _begin = m_begin;
     auto _end = m_end;
@@ -74,7 +87,7 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
 
     if (_step->send(env, "infinite?"_s)->is_truthy()) {
         if (_begin->send(env, cmp, { _end })->is_falsey())
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { _begin }, nullptr);
+            func(_begin);
         return this;
     }
 
@@ -88,10 +101,22 @@ Value ArithmeticSequenceObject::each(Env *env, Block *block) {
         if (!infinite && value->send(env, cmp, { _end })->is_truthy())
             value = _end;
 
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { value }, nullptr);
+        func(value);
     }
 
     return this;
+}
+
+Value ArithmeticSequenceObject::enum_block(Env *env, Value self, Args args, Block *) {
+    auto yielder = args.at(0);
+    auto enumerator = self->as_enumerator_arithmetic_sequence();
+
+    // each { |value| yielder << value }
+    enumerator->iterate(env, [&yielder, &env](Value value) -> Value {
+        return yielder.send(env, "<<"_s, { value });
+    });
+
+    return enumerator;
 }
 
 bool ArithmeticSequenceObject::eq(Env *env, Value other) {
