@@ -3,13 +3,12 @@
 
 namespace Natalie::Enumerator {
 ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)
-    : ArithmeticSequenceObject {} {
-    m_origin = origin;
-    m_begin = begin;
-    m_end = end;
-    m_exclude_end = exclude_end;
-    m_step = step;
-
+    : Object { Object::Type::EnumeratorArithmeticSequence, fetch_nested_const({ "Enumerator"_s, "ArithmeticSequence"_s })->as_class() }
+    , m_origin { origin }
+    , m_begin { begin }
+    , m_end { end }
+    , m_step { step }
+    , m_exclude_end { exclude_end } {
     auto Enumerator = GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->as_module();
     auto method_info = Enumerator->find_method(env, "initialize"_s);
     method_info.method()->call(env, this, {}, new Block { env, this, enum_block, 1 });
