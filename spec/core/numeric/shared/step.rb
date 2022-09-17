@@ -16,13 +16,11 @@ describe :numeric_step, :shared => true do
     ScratchPad.recorded.should eql [1, 2, 3, 4, 5]
   end
 
-  # NATFIXME: Implement Enumerator::ArithmeticSequence
-  xit "defaults to an infinite limit with a step size of 1 for Integers" do
+  it "defaults to an infinite limit with a step size of 1 for Integers" do
     1.step.first(5).should == [1, 2, 3, 4, 5]
   end
 
-  # NATFIXME: Implement Enumerator::ArithmeticSequence
-  xit "defaults to an infinite limit with a step size of 1.0 for Floats" do
+  it "defaults to an infinite limit with a step size of 1.0 for Floats" do
     1.0.step.first(5).should == [1.0, 2.0, 3.0, 4.0, 5.0]
   end
 
@@ -257,163 +255,162 @@ describe :numeric_step, :shared => true do
     -> { @step.call(1, 2) { raise TypeError, "" } }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement Enumerator::ArithmeticSequence
-  # describe "when no block is given" do
-  #   step_enum_class = Enumerator::ArithmeticSequence
+  describe "when no block is given" do
+    step_enum_class = Enumerator::ArithmeticSequence
 
-  #   ruby_version_is ""..."3.0" do
-  #     it "returns an #{step_enum_class} when step is 0" do
-  #       @step.call(1, 2, 0).should be_an_instance_of(step_enum_class)
-  #     end
-  #   end
+    ruby_version_is ""..."3.0" do
+      it "returns an #{step_enum_class} when step is 0" do
+        @step.call(1, 2, 0).should be_an_instance_of(step_enum_class)
+      end
+    end
 
-  #   it "returns an #{step_enum_class} when not passed a block and self > stop" do
-  #     @step.call(1, 0, 2).should be_an_instance_of(step_enum_class)
-  #   end
+    it "returns an #{step_enum_class} when not passed a block and self > stop" do
+      @step.call(1, 0, 2).should be_an_instance_of(step_enum_class)
+    end
 
-  #   it "returns an #{step_enum_class} when not passed a block and self < stop" do
-  #     @step.call(1, 2, 3).should be_an_instance_of(step_enum_class)
-  #   end
+    it "returns an #{step_enum_class} when not passed a block and self < stop" do
+      @step.call(1, 2, 3).should be_an_instance_of(step_enum_class)
+    end
 
-  #   it "returns an #{step_enum_class} that uses the given step" do
-  #     @step.call(0, 5, 2).to_a.should eql [0, 2, 4]
-  #   end
+    it "returns an #{step_enum_class} that uses the given step" do
+      @step.call(0, 5, 2).to_a.should eql [0, 2, 4]
+    end
 
-  #   describe "when step is a String" do
-  #     describe "with self and stop as Integers" do
-  #       it "returns an Enumerator" do
-  #         @step.call(1, 5, "foo").should be_an_instance_of(Enumerator)
-  #       end
-  #     end
+    describe "when step is a String" do
+      describe "with self and stop as Integers" do
+        it "returns an Enumerator" do
+          @step.call(1, 5, "foo").should be_an_instance_of(Enumerator)
+        end
+      end
 
-  #     describe "with self and stop as Floats" do
-  #       it "returns an Enumerator" do
-  #         @step.call(1.1, 5.1, "foo").should be_an_instance_of(Enumerator)
-  #       end
-  #     end
-  #   end
+      describe "with self and stop as Floats" do
+        it "returns an Enumerator" do
+          @step.call(1.1, 5.1, "foo").should be_an_instance_of(Enumerator)
+        end
+      end
+    end
 
-  #   describe "returned Enumerator" do
-  #     describe "size" do
-  #       describe "when step is a String" do
-  #         describe "with self and stop as Integers" do
-  #           it "raises an ArgumentError when step is a numeric representation" do
-  #             -> { @step.call(1, 5, "1").size }.should raise_error(ArgumentError)
-  #             -> { @step.call(1, 5, "0.1").size }.should raise_error(ArgumentError)
-  #             -> { @step.call(1, 5, "1/3").size }.should raise_error(ArgumentError)
-  #           end
-  #           it "raises an ArgumentError with step as an alphanumeric string" do
-  #             -> { @step.call(1, 5, "foo").size }.should raise_error(ArgumentError)
-  #           end
-  #         end
+    describe "returned Enumerator" do
+      describe "size" do
+        describe "when step is a String" do
+          describe "with self and stop as Integers" do
+            it "raises an ArgumentError when step is a numeric representation" do
+              -> { @step.call(1, 5, "1").size }.should raise_error(ArgumentError)
+              -> { @step.call(1, 5, "0.1").size }.should raise_error(ArgumentError)
+              -> { @step.call(1, 5, "1/3").size }.should raise_error(ArgumentError)
+            end
+            it "raises an ArgumentError with step as an alphanumeric string" do
+              -> { @step.call(1, 5, "foo").size }.should raise_error(ArgumentError)
+            end
+          end
 
-  #         describe "with self and stop as Floats" do
-  #           it "raises an ArgumentError when step is a numeric representation" do
-  #             -> { @step.call(1.1, 5.1, "1").size }.should raise_error(ArgumentError)
-  #             -> { @step.call(1.1, 5.1, "0.1").size }.should raise_error(ArgumentError)
-  #             -> { @step.call(1.1, 5.1, "1/3").size }.should raise_error(ArgumentError)
-  #           end
-  #           it "raises an ArgumentError with step as an alphanumeric string" do
-  #             -> { @step.call(1.1, 5.1, "foo").size }.should raise_error(ArgumentError)
-  #           end
-  #         end
-  #       end
+          describe "with self and stop as Floats" do
+            it "raises an ArgumentError when step is a numeric representation" do
+              -> { @step.call(1.1, 5.1, "1").size }.should raise_error(ArgumentError)
+              -> { @step.call(1.1, 5.1, "0.1").size }.should raise_error(ArgumentError)
+              -> { @step.call(1.1, 5.1, "1/3").size }.should raise_error(ArgumentError)
+            end
+            it "raises an ArgumentError with step as an alphanumeric string" do
+              -> { @step.call(1.1, 5.1, "foo").size }.should raise_error(ArgumentError)
+            end
+          end
+        end
 
-  #       describe "when self, stop and step are Integers and step is positive" do
-  #         it "returns the difference between self and stop divided by the number of steps" do
-  #           @step.call(5, 10, 11).size.should == 1
-  #           @step.call(5, 10, 6).size.should == 1
-  #           @step.call(5, 10, 5).size.should == 2
-  #           @step.call(5, 10, 4).size.should == 2
-  #           @step.call(5, 10, 2).size.should == 3
-  #           @step.call(5, 10, 1).size.should == 6
-  #           @step.call(5, 10).size.should == 6
-  #           @step.call(10, 10, 1).size.should == 1
-  #         end
+        describe "when self, stop and step are Integers and step is positive" do
+          it "returns the difference between self and stop divided by the number of steps" do
+            @step.call(5, 10, 11).size.should == 1
+            @step.call(5, 10, 6).size.should == 1
+            @step.call(5, 10, 5).size.should == 2
+            @step.call(5, 10, 4).size.should == 2
+            @step.call(5, 10, 2).size.should == 3
+            @step.call(5, 10, 1).size.should == 6
+            @step.call(5, 10).size.should == 6
+            @step.call(10, 10, 1).size.should == 1
+          end
 
-  #         it "returns 0 if value > limit" do
-  #           @step.call(11, 10, 1).size.should == 0
-  #         end
-  #       end
+          it "returns 0 if value > limit" do
+            @step.call(11, 10, 1).size.should == 0
+          end
+        end
 
-  #       describe "when self, stop and step are Integers and step is negative" do
-  #         it "returns the difference between self and stop divided by the number of steps" do
-  #           @step.call(10, 5, -11).size.should == 1
-  #           @step.call(10, 5, -6).size.should == 1
-  #           @step.call(10, 5, -5).size.should == 2
-  #           @step.call(10, 5, -4).size.should == 2
-  #           @step.call(10, 5, -2).size.should == 3
-  #           @step.call(10, 5, -1).size.should == 6
-  #           @step.call(10, 10, -1).size.should == 1
-  #         end
+        describe "when self, stop and step are Integers and step is negative" do
+          it "returns the difference between self and stop divided by the number of steps" do
+            @step.call(10, 5, -11).size.should == 1
+            @step.call(10, 5, -6).size.should == 1
+            @step.call(10, 5, -5).size.should == 2
+            @step.call(10, 5, -4).size.should == 2
+            @step.call(10, 5, -2).size.should == 3
+            @step.call(10, 5, -1).size.should == 6
+            @step.call(10, 10, -1).size.should == 1
+          end
 
-  #         it "returns 0 if value < limit" do
-  #           @step.call(10, 11, -1).size.should == 0
-  #         end
-  #       end
+          it "returns 0 if value < limit" do
+            @step.call(10, 11, -1).size.should == 0
+          end
+        end
 
-  #       describe "when self, stop or step is a Float" do
-  #         describe "and step is positive" do
-  #           it "returns the difference between self and stop divided by the number of steps" do
-  #             @step.call(5, 10, 11.0).size.should == 1
-  #             @step.call(5, 10, 6.0).size.should == 1
-  #             @step.call(5, 10, 5.0).size.should == 2
-  #             @step.call(5, 10, 4.0).size.should == 2
-  #             @step.call(5, 10, 2.0).size.should == 3
-  #             @step.call(5, 10, 0.5).size.should == 11
-  #             @step.call(5, 10, 1.0).size.should == 6
-  #             @step.call(5, 10.5).size.should == 6
-  #             @step.call(10, 10, 1.0).size.should == 1
-  #           end
+        describe "when self, stop or step is a Float" do
+          describe "and step is positive" do
+            it "returns the difference between self and stop divided by the number of steps" do
+              @step.call(5, 10, 11.0).size.should == 1
+              @step.call(5, 10, 6.0).size.should == 1
+              @step.call(5, 10, 5.0).size.should == 2
+              @step.call(5, 10, 4.0).size.should == 2
+              @step.call(5, 10, 2.0).size.should == 3
+              @step.call(5, 10, 0.5).size.should == 11
+              @step.call(5, 10, 1.0).size.should == 6
+              @step.call(5, 10.5).size.should == 6
+              @step.call(10, 10, 1.0).size.should == 1
+            end
 
-  #           it "returns 0 if value > limit" do
-  #             @step.call(10, 5.5).size.should == 0
-  #             @step.call(11, 10, 1.0).size.should == 0
-  #             @step.call(11, 10, 1.5).size.should == 0
-  #             @step.call(10, 5, infinity_value).size.should == 0
-  #           end
+            it "returns 0 if value > limit" do
+              @step.call(10, 5.5).size.should == 0
+              @step.call(11, 10, 1.0).size.should == 0
+              @step.call(11, 10, 1.5).size.should == 0
+              @step.call(10, 5, infinity_value).size.should == 0
+            end
 
-  #           it "returns 1 if step is infinity_value" do
-  #             @step.call(5, 10, infinity_value).size.should == 1
-  #           end
-  #         end
+            it "returns 1 if step is infinity_value" do
+              @step.call(5, 10, infinity_value).size.should == 1
+            end
+          end
 
-  #         describe "and step is negative" do
-  #           it "returns the difference between self and stop divided by the number of steps" do
-  #             @step.call(10, 5, -11.0).size.should == 1
-  #             @step.call(10, 5, -6.0).size.should == 1
-  #             @step.call(10, 5, -5.0).size.should == 2
-  #             @step.call(10, 5, -4.0).size.should == 2
-  #             @step.call(10, 5, -2.0).size.should == 3
-  #             @step.call(10, 5, -0.5).size.should == 11
-  #             @step.call(10, 5, -1.0).size.should == 6
-  #             @step.call(10, 10, -1.0).size.should == 1
-  #           end
+          describe "and step is negative" do
+            it "returns the difference between self and stop divided by the number of steps" do
+              @step.call(10, 5, -11.0).size.should == 1
+              @step.call(10, 5, -6.0).size.should == 1
+              @step.call(10, 5, -5.0).size.should == 2
+              @step.call(10, 5, -4.0).size.should == 2
+              @step.call(10, 5, -2.0).size.should == 3
+              @step.call(10, 5, -0.5).size.should == 11
+              @step.call(10, 5, -1.0).size.should == 6
+              @step.call(10, 10, -1.0).size.should == 1
+            end
 
-  #           it "returns 0 if value < limit" do
-  #             @step.call(10, 11, -1.0).size.should == 0
-  #             @step.call(10, 11, -1.5).size.should == 0
-  #             @step.call(5, 10, -infinity_value).size.should == 0
-  #           end
+            it "returns 0 if value < limit" do
+              @step.call(10, 11, -1.0).size.should == 0
+              @step.call(10, 11, -1.5).size.should == 0
+              @step.call(5, 10, -infinity_value).size.should == 0
+            end
 
-  #           it "returns 1 if step is infinity_value" do
-  #             @step.call(10, 5, -infinity_value).size.should == 1
-  #           end
-  #         end
-  #       end
+            it "returns 1 if step is infinity_value" do
+              @step.call(10, 5, -infinity_value).size.should == 1
+            end
+          end
+        end
 
-  #       describe "when stop is not passed" do
-  #         it "returns infinity_value" do
-  #           @step.call(1).size.should == infinity_value
-  #         end
-  #       end
+        describe "when stop is not passed" do
+          it "returns infinity_value" do
+            @step.call(1).size.should == infinity_value
+          end
+        end
 
-  #       describe "when stop is nil" do
-  #         it "returns infinity_value" do
-  #           @step.call(1, nil, 5).size.should == infinity_value
-  #         end
-  #       end
-  #     end
-  #   end
-  # end
+        describe "when stop is nil" do
+          it "returns infinity_value" do
+            @step.call(1, nil, 5).size.should == infinity_value
+          end
+        end
+      end
+    end
+  end
 end

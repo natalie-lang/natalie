@@ -51,6 +51,10 @@ module Natalie
           case type
           when 'double'
             "#{value}.as_double()"
+          when 'bool'
+            "#{value}->is_truthy()"
+          when 'Value'
+            value
           else
             raise "I don't yet know how to cast arg type #{type}"
           end
@@ -60,14 +64,28 @@ module Natalie
           case type
           when 'double'
             "Value::floatingpoint(#{value})"
+          when 'Value'
+            value
           else
             raise "I don't yet know how to cast return type #{type}"
           end
         end
 
-        casted_args = args.each_with_index.map do |arg, index|
+        casted_args = []
+
+        if fn[:args][0] == 'Env *'
+          # Push the env directly. This allows us to ommit it from the __call__
+          # macro call.
+          casted_args << 'env'
+        end
+
+        args.each_with_index do |arg, index|
+          if fn[:args][0] == 'Env *'
+            index += 1
+          end
+
           type = fn[:args][index]
-          cast_value_to_cpp.(arg, type)
+          casted_args << cast_value_to_cpp.(arg, type)
         end
 
         transform.exec_and_push(

@@ -50,6 +50,12 @@ Env *build_top_env() {
     ModuleObject *Enumerable = new ModuleObject { "Enumerable" };
     Object->const_set("Enumerable"_s, Enumerable);
 
+    ClassObject *Enumerator = Object->subclass(env, "Enumerator", Object::Type::Enumerator);
+    Object->const_set("Enumerator"_s, Enumerator);
+
+    ClassObject *EnumeratorArithmeticSequence = Enumerator->subclass(env, "ArithmeticSequence", Object::Type::EnumeratorArithmeticSequence);
+    Enumerator->const_set("ArithmeticSequence"_s, EnumeratorArithmeticSequence);
+
     BasicObject->define_singleton_method(env, "new"_s, Object::_new, -1);
     BasicObject->define_singleton_method(env, "allocate"_s, Object::allocate, -1);
 

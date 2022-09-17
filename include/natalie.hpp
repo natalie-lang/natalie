@@ -23,6 +23,7 @@
 #include "natalie/encoding/us_ascii_encoding_object.hpp"
 #include "natalie/encoding/utf8_encoding_object.hpp"
 #include "natalie/encoding_object.hpp"
+#include "natalie/enumerator/arithmetic_sequence_object.hpp"
 #include "natalie/env.hpp"
 #include "natalie/env_object.hpp"
 #include "natalie/exception_object.hpp"

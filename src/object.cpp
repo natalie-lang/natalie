@@ -19,6 +19,10 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     Value obj;
     switch (klass->object_type()) {
+    case Object::Type::EnumeratorArithmeticSequence:
+        obj = new Enumerator::ArithmeticSequenceObject { klass };
+        break;
+
     case Object::Type::Array:
         obj = new ArrayObject {};
         obj->m_klass = klass;
@@ -34,6 +38,10 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::Encoding:
         obj = new EncodingObject { klass };
+        break;
+
+    case Object::Type::Enumerator:
+        obj = new Object { klass };
         break;
 
     case Object::Type::Exception:
@@ -124,6 +132,7 @@ Value Object::allocate(Env *env, Value klass_value, Args args, Block *block) {
     Value obj;
     switch (klass->object_type()) {
     case Object::Type::Proc:
+    case Object::Type::EnumeratorArithmeticSequence:
         obj = nullptr;
         break;
 
@@ -145,6 +154,11 @@ Value Object::initialize(Env *env) {
 NilObject *Object::as_nil() {
     assert(is_nil());
     return static_cast<NilObject *>(this);
+}
+
+Enumerator::ArithmeticSequenceObject *Object::as_enumerator_arithmetic_sequence() {
+    assert(is_enumerator_arithmetic_sequence());
+    return static_cast<Enumerator::ArithmeticSequenceObject *>(this);
 }
 
 ArrayObject *Object::as_array() {

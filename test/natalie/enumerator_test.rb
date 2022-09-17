@@ -156,4 +156,54 @@ describe 'Enumerator' do
       end
     end
   end
+
+  describe 'ArithmeticSequence' do
+    describe '#last' do
+      it 'gets last possible float that the enumerator can find' do
+        (1.0...1.2).step.last.should == 1.0
+        (1.0...1.3).step(0.2).last.should == 1.2
+        (1.0...3.2).step(0.1).last.should == 3.1
+      end
+
+      it 'converts result to float if begin or end are float' do
+        (1..2.0).step.last.should == 2.0
+        (1.0..2).step.last.should == 2.0
+        (1..5).step(0.1).last.should == 5
+      end
+
+      it 'returns last n elements' do
+        (1.0...1.2).step.last(1).should == [1.0]
+        (1.0..1.2).step.last(1).should == [1.0]
+
+        (1..5).step.last(10).should == [1, 2, 3, 4, 5]
+        (1...5).step.last(5).should == [1, 2, 3, 4]
+        (1..3).step.last(2).should == [2, 3]
+
+        (1..2.0).step.last(2).should == [1.0, 2.0]
+        (1..3).step(0.1).last(2).should == [2.9, 3.0]
+        (1...3).step(0.1).last(2).should == [2.8, 2.9]
+      end
+
+      it 'raises if size is bignum and n is bignum' do
+        -> { (1..bignum_value).step.last(bignum_value) }.should raise_error(RangeError, "bignum too big to convert into `long'")
+      end
+
+      it 'raises ArgumentError if n is negative' do
+        -> { (0..1).step.last(-1) }.should raise_error(ArgumentError, 'negative array size')
+      end
+    end
+
+    describe 'next' do
+      it 'works like a "normal" enumerator' do
+        enum = (1..2).step
+        enum.next.should == 1
+        enum.next.should == 2
+        -> { enum.next }.should raise_error(StopIteration)
+
+        enum = (1...2).step
+        enum.next.should == 1
+        -> { enum.next }.should raise_error(StopIteration)
+      end
+    end
+  end
 end

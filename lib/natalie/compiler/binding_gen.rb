@@ -191,7 +191,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def rb_class_as_c_variable
-      rb_class.split('::').last
+      rb_class.gsub('::', '')
     end
 
     def needs_to_set_visibility?
@@ -253,7 +253,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
         underscored = cpp_class.gsub(/([a-z])([A-Z])/, '\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
-        underscored = cpp_class.sub(/Object|Object/, '').gsub(/([a-z])([A-Z])/, '\1_\2').downcase
+        underscored = cpp_class.sub(/Object|Object/, '').gsub(/([a-z])([A-Z])/, '\1_\2').gsub('::', '_').downcase
         "#{value}->as_#{underscored}()"
       end
     end
@@ -286,7 +286,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def generate_name
-      @name = "#{cpp_class}_#{cpp_method}"
+      @name = "#{rb_class_as_c_variable}_#{cpp_method}"
       if @module_function
         @name << '_module_function'
       else
@@ -437,6 +437,18 @@ gen.binding('Encoding', 'ascii_compatible?', 'EncodingObject', 'is_ascii_compati
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'name', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'names', 'EncodingObject', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+
+gen.undefine_singleton_method('EnumeratorArithmeticSequence', 'new')
+gen.binding('Enumerator::ArithmeticSequence', '==', 'Enumerator::ArithmeticSequenceObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Enumerator::ArithmeticSequence', 'begin', 'Enumerator::ArithmeticSequenceObject', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'each', 'Enumerator::ArithmeticSequenceObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'end', 'Enumerator::ArithmeticSequenceObject', 'end', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'exclude_end?', 'Enumerator::ArithmeticSequenceObject', 'exclude_end', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Enumerator::ArithmeticSequence', 'hash', 'Enumerator::ArithmeticSequenceObject', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'inspect', 'Enumerator::ArithmeticSequenceObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'last', 'Enumerator::ArithmeticSequenceObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'size', 'Enumerator::ArithmeticSequenceObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSequenceObject', 'step', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -802,6 +814,7 @@ gen.binding('Range', 'initialize', 'RangeObject', 'initialize', argc: 2..3, pass
 gen.binding('Range', 'inspect', 'RangeObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'last', 'RangeObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'member?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Range', 'step', 'RangeObject', 'step', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'to_a', 'RangeObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Range', 'to_s', 'RangeObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
