@@ -50,6 +50,37 @@ static unsigned short Socket_const_get(Env *env, Value name, bool default_zero =
     return value->as_integer_or_raise(env)->to_nat_int_t();
 }
 
+static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+    socklen_t length = sizeof(struct sockaddr);
+
+    switch (addr->sa_family) {
+    case AF_INET:
+        length = sizeof(struct sockaddr_in);
+        break;
+    case AF_INET6:
+        length = sizeof(struct sockaddr_in6);
+        break;
+    default:
+        NAT_NOT_YET_IMPLEMENTED("reverse lookup for family %d", addr->sa_family);
+    }
+
+    auto n = getnameinfo(
+        addr,
+        length,
+        hbuf,
+        sizeof(hbuf),
+        sbuf,
+        sizeof(sbuf),
+        NI_NAMEREQD);
+
+    if (n != 0)
+        env->raise("SocketError", "getnameinfo: {}", gai_strerror(n));
+
+    return hbuf;
+}
+
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
@@ -209,13 +240,13 @@ Value Addrinfo_to_sockaddr(Env *env, Value self, Args args, Block *block) {
     switch (afamily) {
     case AF_UNIX: {
         auto unix_path = self->ivar_get(env, "@unix_path"_s);
-        return Socket->send(env, "pack_sockaddr_un"_s, { unix_path });
+        return Socket.send(env, "pack_sockaddr_un"_s, { unix_path });
     }
     case AF_INET:
     case AF_INET6: {
         auto port = self->ivar_get(env, "@ip_port"_s);
         auto address = self->ivar_get(env, "@ip_address"_s);
-        return Socket->send(env, "pack_sockaddr_in"_s, { port, address });
+        return Socket.send(env, "pack_sockaddr_in"_s, { port, address });
     }
     default:
         NAT_NOT_YET_IMPLEMENTED();
@@ -324,7 +355,10 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
-Value IPSocket_addr(Env *env, Value self, Args, Block *) {
+Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto reverse_lookup = args.at(0, NilObject::the());
+
     struct sockaddr addr { };
     socklen_t addr_len = sizeof(addr);
 
@@ -335,9 +369,17 @@ Value IPSocket_addr(Env *env, Value self, Args, Block *) {
     if (getsockname_result == -1)
         env->raise_errno();
 
-    Value family;
-    Value host;
+    StringObject *family;
+    StringObject *ip;
+    StringObject *host;
     Value port;
+
+    if (reverse_lookup->is_nil())
+        reverse_lookup = self.send(env, "do_not_reverse_lookup"_s).send(env, "!"_s);
+    else if (reverse_lookup == "numeric"_s)
+        reverse_lookup = FalseObject::the();
+    else if (!reverse_lookup->is_true() && !reverse_lookup->is_false() && reverse_lookup != "hostname"_s)
+        env->raise("ArgumentError", "invalid reverse_lookup flag: {}", reverse_lookup->inspect_str(env));
 
     switch (addr.sa_family) {
     case AF_INET: {
@@ -354,8 +396,10 @@ Value IPSocket_addr(Env *env, Value self, Args, Block *) {
         auto ntop_result = inet_ntop(AF_INET, &in.sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
-        host = new StringObject { host_buf };
+        host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in.sin_port));
+        if (reverse_lookup->is_truthy())
+            host = new StringObject(Socket_reverse_lookup_address(env, (struct sockaddr *)&in));
         break;
     }
     case AF_INET6: {
@@ -372,15 +416,17 @@ Value IPSocket_addr(Env *env, Value self, Args, Block *) {
         auto ntop_result = inet_ntop(AF_INET, &in6.sin_addr, host_buf, INET6_ADDRSTRLEN);
         if (!ntop_result)
             env->raise_errno();
-        host = new StringObject { host_buf };
+        host = ip = new StringObject { host_buf };
         port = Value::integer(ntohs(in6.sin_port));
+        if (reverse_lookup->is_truthy())
+            host = new StringObject(Socket_reverse_lookup_address(env, (struct sockaddr *)&in6));
         break;
     }
     default:
         NAT_NOT_YET_IMPLEMENTED("IPSocket#addr for family %d", addr.sa_family);
     }
 
-    return new ArrayObject({ family, port, host, host });
+    return new ArrayObject({ family, port, host, ip });
 }
 
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
@@ -402,26 +448,32 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
 
-    auto Addrinfo = self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict);
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
     if (!sockaddr->is_a(env, Addrinfo)) {
         if (sockaddr->is_string())
-            sockaddr = Addrinfo->send(env, "new"_s, { sockaddr });
+            sockaddr = Addrinfo.send(env, "new"_s, { sockaddr });
         else
             env->raise("TypeError", "expected string or Addrinfo");
     }
 
-    auto afamily = sockaddr->send(env, "afamily"_s)->as_integer_or_raise(env)->to_nat_int_t();
+    auto Socket = find_top_level_const(env, "Socket"_s);
+
+    auto afamily = sockaddr.send(env, "afamily"_s)->as_integer_or_raise(env)->to_nat_int_t();
     switch (afamily) {
     case AF_INET: {
         struct sockaddr_in addr { };
-        auto packed = sockaddr->send(env, "to_sockaddr"_s)->as_string_or_raise(env);
+        auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
         memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
+
         auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
         if (result == -1)
             env->raise_errno();
-        packed = new StringObject { (const char *)&addr, sizeof(addr) };
-        sockaddr = Addrinfo->send(env, "new"_s, { packed });
+
+        auto addr_ary = IPSocket_addr(env, self, {}, nullptr)->as_array_or_raise(env);
+        packed = Socket.send(env, "pack_sockaddr_in"_s, { addr_ary->at(1), addr_ary->at(3) }, nullptr)->as_string_or_raise(env);
+        sockaddr = Addrinfo.send(env, "new"_s, { packed });
         self->ivar_set(env, "@local_address"_s, sockaddr);
+
         return Value::integer(result);
     }
     default:
@@ -536,7 +588,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 
     auto family = ((struct sockaddr *)(sockaddr->as_string()->c_str()))->sa_family;
 
-    const char *str = sockaddr->as_string()->c_str();
+    const char *str = sockaddr->as_string()->c_str(); // FIXME: GC might collect this StringObject and then the cstr would be bad
     Value port;
     Value host;
 
@@ -638,38 +690,6 @@ static String Socket_getaddrinfo_result_host(struct addrinfo *result) {
     }
 }
 
-static String Socket_reverse_lookup_address(Env *env, struct addrinfo *info) {
-    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-    struct sockaddr *addr = info->ai_addr;
-    socklen_t length = sizeof(struct sockaddr);
-
-    switch (info->ai_family) {
-    case AF_INET:
-        length = sizeof(struct sockaddr_in);
-        break;
-    case AF_INET6:
-        length = sizeof(struct sockaddr_in6);
-        break;
-    default:
-        NAT_NOT_YET_IMPLEMENTED("reverse lookup for family %d", info->ai_family);
-    }
-
-    auto n = getnameinfo(
-        addr,
-        length,
-        hbuf,
-        sizeof(hbuf),
-        sbuf,
-        sizeof(sbuf),
-        NI_NAMEREQD);
-
-    if (n != 0)
-        env->raise("SocketError", "getnameinfo: {}", gai_strerror(n));
-
-    return hbuf;
-}
-
 Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
     // getaddrinfo(nodename, servname[, family[, socktype[, protocol[, flags[, reverse_lookup]]]]]) => array
     args.ensure_argc_between(env, 2, 7);
@@ -727,7 +747,7 @@ Value Socket_s_getaddrinfo(Env *env, Value self, Args args, Block *) {
         addr->push(new StringObject(Socket_family_to_string(result->ai_family)));
         addr->push(new IntegerObject(Socket_getaddrinfo_result_port(result)));
         if (reverse_lookup->is_truthy())
-            addr->push(new StringObject(Socket_reverse_lookup_address(env, result)));
+            addr->push(new StringObject(Socket_reverse_lookup_address(env, result->ai_addr)));
         else
             addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));
         addr->push(new StringObject(Socket_getaddrinfo_result_host(result)));

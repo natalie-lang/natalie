@@ -12,9 +12,9 @@ describe "Socket::IPSocket#addr" do
     BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
   end
 
-  xit "returns an array with the socket's information" do
+  it "returns an array with the socket's information" do
     @socket.do_not_reverse_lookup = false
-    #BasicSocket.do_not_reverse_lookup = false # NATFIXME
+    BasicSocket.do_not_reverse_lookup = false
     addrinfo = @socket.addr
     addrinfo[0].should == "AF_INET"
     addrinfo[1].should be_kind_of(Integer)
@@ -22,7 +22,7 @@ describe "Socket::IPSocket#addr" do
     addrinfo[3].should == "127.0.0.1"
   end
 
-  xit "returns an address in the array if do_not_reverse_lookup is true" do
+  it "returns an address in the array if do_not_reverse_lookup is true" do
     @socket.do_not_reverse_lookup = true
     BasicSocket.do_not_reverse_lookup = true
     addrinfo = @socket.addr
@@ -32,7 +32,7 @@ describe "Socket::IPSocket#addr" do
     addrinfo[3].should == "127.0.0.1"
   end
 
-  xit "returns an address in the array if passed false" do
+  it "returns an address in the array if passed false" do
     addrinfo = @socket.addr(false)
     addrinfo[0].should == "AF_INET"
     addrinfo[1].should be_kind_of(Integer)
@@ -57,7 +57,7 @@ describe 'Socket::IPSocket#addr' do
         @hostname = Socket.getaddrinfo(ip_address, nil)[0][2]
       end
 
-      xit 'returns an Array containing address information' do
+      it 'returns an Array containing address information' do
         @server.addr.should == [family_name, @port, @hostname, ip_address]
       end
     end
@@ -68,20 +68,20 @@ describe 'Socket::IPSocket#addr' do
       end
 
       describe 'using true as the argument' do
-        xit 'returns an Array containing address information' do
+        it 'returns an Array containing address information' do
           @server.addr(true).should == [family_name, @port, @hostname, ip_address]
         end
       end
 
       describe 'using :hostname as the argument' do
-        xit 'returns an Array containing address information' do
+        it 'returns an Array containing address information' do
           @server.addr(:hostname).should == [family_name, @port, @hostname, ip_address]
         end
       end
 
       describe 'using :cats as the argument' do
-        xit 'raises ArgumentError' do
-          -> { @server.addr(:cats) }.should raise_error(ArgumentError)
+        it 'raises ArgumentError' do
+          -> { @server.addr(:cats) }.should raise_error(ArgumentError, 'invalid reverse_lookup flag: :cats')
         end
       end
     end
@@ -97,7 +97,7 @@ describe 'Socket::IPSocket#addr' do
         @server.do_not_reverse_lookup = true
       end
 
-      xit 'returns an Array containing address information' do
+      it 'returns an Array containing address information' do
         @server.addr.should == [family_name, @port, @hostname, ip_address]
       end
     end

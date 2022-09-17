@@ -45,15 +45,7 @@ class BasicSocket < IO
   end
 
   def connect_address
-    addr = local_address
-    case addr
-    when '0.0.0.0'
-      '127.0.0.1'
-    when '::'
-      '::1'
-    else
-      addr
-    end
+    local_address
   end
 end
 
@@ -390,8 +382,7 @@ class Socket < BasicSocket
           local_port || port,
           local_host || host,
         )
-        addrinfo = Addrinfo.new(sockaddr, nil, nil, Socket::IPPROTO_TCP)
-        socket.bind(addrinfo)
+        socket.connect(sockaddr)
         if block_given
           begin
             yield socket
