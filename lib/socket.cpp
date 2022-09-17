@@ -527,8 +527,18 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     struct addrinfo hints { };
     hints.ai_family = PF_UNSPEC;
 
+    String service_str;
+    if (service->is_nil())
+        service_str = "";
+    else if (service->is_string())
+        service_str = service->as_string()->string();
+    else if (service->is_integer())
+        service_str = service->to_s(env)->string();
+    else
+        service_str = service->to_str(env)->string();
+
     struct addrinfo *addr;
-    auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service->to_s(env)->c_str(), &hints, &addr);
+    auto result = getaddrinfo(host->as_string_or_raise(env)->c_str(), service_str.c_str(), &hints, &addr);
     if (result != 0)
         env->raise("SocketError", "getaddrinfo: {}", gai_strerror(result));
 
@@ -833,6 +843,8 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
     if (fd == -1)
         env->raise_errno();
     self->as_io()->initialize(env, Value::integer(fd));
+
+    self.send(env, "setsockopt"_s, { "SOCKET"_s, "REUSEADDR"_s, TrueObject::the() });
 
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { port, hostname });

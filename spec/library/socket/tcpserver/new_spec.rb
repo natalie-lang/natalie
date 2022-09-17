@@ -18,7 +18,7 @@ describe "TCPServer.new" do
     addr[3].should == '127.0.0.1'
   end
 
-  xit "binds to localhost and a port with either IPv4 or IPv6" do
+  it "binds to localhost and a port with either IPv4 or IPv6" do
     @server = TCPServer.new(SocketSpecs.hostname, 0)
     addr = @server.addr
     addr[1].should be_kind_of(Integer)
@@ -31,7 +31,7 @@ describe "TCPServer.new" do
     end
   end
 
-  xit "binds to INADDR_ANY if the hostname is empty" do
+  it "binds to INADDR_ANY if the hostname is empty" do
     @server = TCPServer.new('', 0)
     addr = @server.addr
     addr[0].should == 'AF_INET'
@@ -40,7 +40,7 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
-  xit "binds to INADDR_ANY if the hostname is empty and the port is a string" do
+  it "binds to INADDR_ANY if the hostname is empty and the port is a string" do
     @server = TCPServer.new('', '0')
     addr = @server.addr
     addr[0].should == 'AF_INET'
@@ -49,6 +49,7 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
+  # NATFIXME: not sure why addr[2] is returning '127.0.0.1'
   xit "binds to a port if the port is explicitly nil" do
     @server = TCPServer.new('', nil)
     addr = @server.addr
@@ -58,7 +59,7 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
-  xit "binds to a port if the port is an empty string" do
+  it "binds to a port if the port is an empty string" do
     @server = TCPServer.new('', '')
     addr = @server.addr
     addr[0].should == 'AF_INET'
@@ -67,7 +68,7 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
-  xit "coerces port to string, then determines port from that number or service name" do
+  it "coerces port to string, then determines port from that number or service name" do
     -> { TCPServer.new(SocketSpecs.hostname, Object.new) }.should raise_error(TypeError)
 
     port = Object.new
@@ -81,13 +82,13 @@ describe "TCPServer.new" do
     # pick such a service port that will be able to reliably bind...
   end
 
-  xit "has a single argument form and treats it as a port number" do
+  it "has a single argument form and treats it as a port number" do
     @server = TCPServer.new(0)
     addr = @server.addr
     addr[1].should be_kind_of(Integer)
   end
 
-  xit "coerces port to a string when it is the only argument" do
+  it "coerces port to a string when it is the only argument" do
     -> { TCPServer.new(Object.new) }.should raise_error(TypeError)
 
     port = Object.new
@@ -98,7 +99,7 @@ describe "TCPServer.new" do
     addr[1].should be_kind_of(Integer)
   end
 
-  xit "raises Errno::EADDRNOTAVAIL when the address is unknown" do
+  it "raises Errno::EADDRNOTAVAIL when the address is unknown" do
     -> { TCPServer.new("1.2.3.4", 0) }.should raise_error(Errno::EADDRNOTAVAIL)
   end
 
@@ -106,14 +107,14 @@ describe "TCPServer.new" do
   # DNS servers like opendns return A records for ANY host, including
   # traditionally invalidly named ones.
   quarantine! do
-    xit "raises a SocketError when the host is unknown" do
+    it "raises a SocketError when the host is unknown" do
       -> {
         TCPServer.new("--notavalidname", 0)
       }.should raise_error(SocketError)
     end
   end
 
-  xit "raises Errno::EADDRINUSE when address is already in use" do
+  it "raises Errno::EADDRINUSE when address is already in use" do
     @server = TCPServer.new('127.0.0.1', 0)
     -> {
       @server = TCPServer.new('127.0.0.1', @server.addr[1])
@@ -123,7 +124,7 @@ describe "TCPServer.new" do
   platform_is_not :windows, :aix do
     # A known bug in AIX.  getsockopt(2) does not properly set
     # the fifth argument for SO_REUSEADDR.
-    xit "sets SO_REUSEADDR on the resulting server" do
+    it "sets SO_REUSEADDR on the resulting server" do
       @server = TCPServer.new('127.0.0.1', 0)
       @server.getsockopt(:SOCKET, :REUSEADDR).data.should_not == "\x00\x00\x00\x00"
       @server.getsockopt(:SOCKET, :REUSEADDR).int.should_not == 0
