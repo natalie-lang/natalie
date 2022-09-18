@@ -598,13 +598,13 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 
     auto family = ((struct sockaddr *)(sockaddr->as_string()->c_str()))->sa_family;
 
-    const char *str = sockaddr->as_string()->c_str(); // FIXME: GC might collect this StringObject and then the cstr would be bad
+    String sockaddr_string = sockaddr->as_string()->string();
     Value port;
     Value host;
 
     switch (family) {
     case AF_INET: {
-        auto in = (struct sockaddr_in *)str;
+        auto in = (struct sockaddr_in *)sockaddr_string.c_str();
         char host_buf[INET_ADDRSTRLEN];
         auto result = inet_ntop(AF_INET, &in->sin_addr, host_buf, INET_ADDRSTRLEN);
         if (!result)
@@ -614,7 +614,7 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
         break;
     }
     case AF_INET6: {
-        auto in = (struct sockaddr_in6 *)str;
+        auto in = (struct sockaddr_in6 *)sockaddr_string.c_str();
         char host_buf[INET6_ADDRSTRLEN];
         auto result = inet_ntop(AF_INET6, &in->sin6_addr, host_buf, INET6_ADDRSTRLEN);
         if (!result)
@@ -799,7 +799,7 @@ Value Socket_Option_int(Env *env, Value self, Args, Block *) {
 }
 
 Value Socket_Option_s_linger(Env *env, Value self, Args args, Block *) {
-    unsigned short family = 0; // TODO: what constant is this?
+    unsigned short family = 0; // any
     unsigned short level = SOL_SOCKET;
     unsigned short optname = SO_LINGER;
 
