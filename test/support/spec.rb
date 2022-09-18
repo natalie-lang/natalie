@@ -889,6 +889,24 @@ class IncludeExpectation
   end
 end
 
+class HaveConstantExpectation
+  def initialize(constant)
+    @constant = constant.to_sym
+  end
+
+  def match(subject)
+    unless subject.constants.include?(@constant)
+      raise SpecFailedException, "Expected #{subject} to have constant '#{@constant}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.constants.include?(@constant)
+      raise SpecFailedException, "Expected #{subject} NOT to have constant '#{@constant}' but it does"
+    end
+  end
+end
+
 class HaveMethodExpectation
   def initialize(method)
     @method = method.to_sym
@@ -896,13 +914,13 @@ class HaveMethodExpectation
 
   def match(subject)
     unless subject.methods.include?(@method)
-      raise SpecFailedException, "Expected #{subject} to have method '#{@method.to_s}' but it does not"
+      raise SpecFailedException, "Expected #{subject} to have method '#{@method}' but it does not"
     end
   end
 
   def inverted_match(subject)
     if subject.methods.include?(@method)
-      raise SpecFailedException, "Expected #{subject} NOT to have method '#{@method.to_s}' but it does"
+      raise SpecFailedException, "Expected #{subject} NOT to have method '#{@method}' but it does"
     end
   end
 end
@@ -1082,6 +1100,10 @@ class Object
   # This alias is here so that MRI can see it. We should figure out why Natalie can see 'include'
   # but MRI cannot. (That's a bug.)
   alias include_all include
+
+  def have_constant(method)
+    HaveConstantExpectation.new(method)
+  end
 
   def have_method(method)
     HaveMethodExpectation.new(method)
