@@ -358,6 +358,51 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
+Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    struct sockaddr addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self->as_io()->fileno(),
+        &addr,
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+
+    switch (addr.sa_family) {
+    case AF_INET: {
+        struct sockaddr_in in { };
+        socklen_t len = sizeof(in);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        auto sockaddr = new StringObject { (const char *)&in, len };
+        return Addrinfo.send(env, "new"_s, { sockaddr });
+    }
+    case AF_INET6: {
+        struct sockaddr_in in6 { };
+        socklen_t len = sizeof(in6);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in6,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        auto sockaddr = new StringObject { (const char *)&in6, len };
+        return Addrinfo.send(env, "new"_s, { sockaddr });
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
+    }
+}
+
 Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto reverse_lookup = args.at(0, NilObject::the());
@@ -447,6 +492,38 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
+Value Socket_accept(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 0);
+
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+    char buf[len];
+
+    auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    if (fd == -1)
+        env->raise_errno();
+
+    auto Socket = find_top_level_const(env, "Socket"_s)->as_class_or_raise(env);
+    auto socket = new IoObject { Socket };
+    socket->as_io()->set_fileno(fd);
+
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    auto sockaddr_string = new StringObject { buf, len };
+    auto addrinfo = Addrinfo.send(
+        env,
+        "new"_s,
+        {
+            sockaddr_string,
+            Value::integer(AF_INET),
+            Value::integer(SOCK_STREAM),
+            Value::integer(0),
+        });
+
+    return new ArrayObject({ socket, addrinfo });
+}
+
 Value Socket_bind(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto sockaddr = args.at(0);
@@ -475,7 +552,6 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
         auto addr_ary = IPSocket_addr(env, self, {}, nullptr)->as_array_or_raise(env);
         packed = Socket.send(env, "pack_sockaddr_in"_s, { addr_ary->at(1), addr_ary->at(3) }, nullptr)->as_string_or_raise(env);
         sockaddr = Addrinfo.send(env, "new"_s, { packed });
-        self->ivar_set(env, "@local_address"_s, sockaddr);
 
         return Value::integer(result);
     }
