@@ -42,7 +42,7 @@ describe 'Socket.tcp' do
     @socket.should.closed?
   end
 
-  xit 'binds to a local address and port when specified' do
+  it 'binds to a local address and port when specified' do
     @client = Socket.tcp(@host, @port, @host, 0)
 
     @client.local_address.ip_address.should == @host
@@ -51,12 +51,13 @@ describe 'Socket.tcp' do
     @client.local_address.ip_port.should_not == @port
   end
 
-  xit 'raises ArgumentError when 6 arguments are provided' do
+  it 'raises ArgumentError when 6 arguments are provided' do
     -> {
       Socket.tcp(@host, @port, @host, 0, {:connect_timeout => 1}, 10)
     }.should raise_error(ArgumentError)
   end
 
+  # NATFIXME: implement Socket#accept
   xit 'connects to the server' do
     @client = Socket.tcp(@host, @port)
 

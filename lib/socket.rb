@@ -136,10 +136,14 @@ class Socket < BasicSocket
     def tcp(host, port, local_host = nil, local_port = nil)
       block_given = block_given?
       Socket.new(:INET, :STREAM).tap do |socket|
-        sockaddr = Socket.pack_sockaddr_in(
-          local_port || port,
-          local_host || host,
-        )
+        if local_host || local_port
+          local_sockaddr = Socket.pack_sockaddr_in(
+            local_port || host,
+            local_host || port,
+          )
+          socket.bind(local_sockaddr)
+        end
+        sockaddr = Socket.pack_sockaddr_in(port, host)
         socket.connect(sockaddr)
         if block_given
           begin
