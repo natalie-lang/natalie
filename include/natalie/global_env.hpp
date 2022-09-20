@@ -67,6 +67,9 @@ public:
     ClassObject *Symbol() { return m_Symbol; }
     void set_Symbol(ClassObject *Symbol) { m_Symbol = Symbol; }
 
+    ClassObject *Time() { return m_Time; }
+    void set_Time(ClassObject *Time) { m_Time = Time; }
+
     Natalie::Object *main_obj() { return m_main_obj; }
     void set_main_obj(Natalie::Object *main_obj) { m_main_obj = main_obj; }
 
@@ -115,6 +118,7 @@ private:
     ClassObject *m_Regexp { nullptr };
     ClassObject *m_String { nullptr };
     ClassObject *m_Symbol { nullptr };
+    ClassObject *m_Time { nullptr };
     Natalie::Object *m_main_obj { nullptr };
 
     ClassObject *m_Encodings[EncodingCount];

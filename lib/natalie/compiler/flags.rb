@@ -14,6 +14,7 @@ module Natalie
         -Wall
         -Wextra
         -Werror
+        -Wno-missing-field-initializers
         -Wno-unused-parameter
         -Wno-unused-variable
         -Wno-unused-but-set-variable
