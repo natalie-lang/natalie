@@ -1000,3 +1000,23 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
 
     return self;
 }
+
+Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+    char buf[len];
+
+    auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    if (fd == -1)
+        env->raise_errno();
+
+    auto TCPSocket = find_top_level_const(env, "TCPSocket"_s)->as_class_or_raise(env);
+    auto tcpsocket = new IoObject { TCPSocket };
+    tcpsocket->as_io()->set_fileno(fd);
+
+    return tcpsocket;
+}
