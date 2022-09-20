@@ -5,11 +5,11 @@ class SocketError < StandardError
 end
 
 class BasicSocket < IO
-  __bind_method__ :getsockopt, :BasicSocket_getsockopt
-  __bind_method__ :setsockopt, :BasicSocket_setsockopt
-
   __bind_method__ :getsockname, :BasicSocket_getsockname
+  __bind_method__ :getsockopt, :BasicSocket_getsockopt
   __bind_method__ :local_address, :BasicSocket_local_address
+  __bind_method__ :recv, :BasicSocket_recv
+  __bind_method__ :setsockopt, :BasicSocket_setsockopt
 
   attr_writer :do_not_reverse_lookup
 

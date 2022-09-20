@@ -268,6 +268,49 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    struct sockaddr addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getsockname(
+        self->as_io()->fileno(),
+        &addr,
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+
+    switch (addr.sa_family) {
+    case AF_INET: {
+        struct sockaddr_in in { };
+        socklen_t len = sizeof(in);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        return new StringObject { (const char *)&in, len };
+    }
+    case AF_INET6: {
+        struct sockaddr_in in6 { };
+        socklen_t len = sizeof(in6);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&in6,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        return new StringObject { (const char *)&in6, len };
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
+    }
+}
+
 Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto level = Socket_const_get(env, args.at(0));
@@ -293,6 +336,40 @@ Value BasicSocket_getsockopt(Env *env, Value self, Args args, Block *block) {
     auto data = new StringObject { buf, len };
     auto Option = fetch_nested_const({ "Socket"_s, "Option"_s });
     return Option.send(env, "new"_s, { Value::integer(family), Value::integer(level), Value::integer(optname), data });
+}
+
+Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto packed = self.send(env, "getsockname"_s);
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    return Addrinfo.send(env, "new"_s, { packed });
+}
+
+Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
+    // recv(maxlen[, flags[, outbuf]]) => mesg
+    args.ensure_argc_between(env, 1, 3);
+    auto maxlen = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+    auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
+    auto outbuf = args.at(2, NilObject::the());
+
+    if (!outbuf->is_nil())
+        outbuf->assert_type(env, Object::Type::String, "String");
+
+    if (maxlen <= 0)
+        env->raise("ArgumentError", "maxlen must be positive");
+
+    if (flags < 0)
+        env->raise("ArgumentError", "flags cannot be negative");
+
+    char buf[maxlen];
+    auto bytes = recv(self->as_io()->fileno(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
+    if (bytes == -1)
+        env->raise_errno();
+
+    if (outbuf->is_string())
+        outbuf->as_string()->set_str(buf, bytes);
+
+    return new StringObject { buf, static_cast<size_t>(bytes) };
 }
 
 Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
@@ -356,56 +433,6 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     if (result == -1)
         env->raise_errno();
     return Value::integer(result);
-}
-
-Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 0);
-
-    struct sockaddr addr { };
-    socklen_t addr_len = sizeof(addr);
-
-    auto getsockname_result = getsockname(
-        self->as_io()->fileno(),
-        &addr,
-        &addr_len);
-    if (getsockname_result == -1)
-        env->raise_errno();
-
-    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-
-    switch (addr.sa_family) {
-    case AF_INET: {
-        struct sockaddr_in in { };
-        socklen_t len = sizeof(in);
-        auto getsockname_result = getsockname(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in,
-            &len);
-        if (getsockname_result == -1)
-            env->raise_errno();
-        return new StringObject { (const char *)&in, len };
-    }
-    case AF_INET6: {
-        struct sockaddr_in in6 { };
-        socklen_t len = sizeof(in6);
-        auto getsockname_result = getsockname(
-            self->as_io()->fileno(),
-            (struct sockaddr *)&in6,
-            &len);
-        if (getsockname_result == -1)
-            env->raise_errno();
-        return new StringObject { (const char *)&in6, len };
-    }
-    default:
-        NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
-    }
-}
-
-Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 0);
-    auto packed = self.send(env, "getsockname"_s);
-    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-    return Addrinfo.send(env, "new"_s, { packed });
 }
 
 Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
