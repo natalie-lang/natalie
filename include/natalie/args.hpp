@@ -9,6 +9,7 @@ namespace Natalie {
 
 class ArrayObject;
 class Env;
+class SymbolObject;
 class Value;
 
 class Args {
@@ -64,6 +65,7 @@ public:
     const Value *data() const { return m_data; }
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
+    Value keyword_arg(Env *, SymbolObject *) const;
 
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.

@@ -85,4 +85,12 @@ void Args::ensure_argc_at_least(Env *env, size_t expected) const {
         env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+)", m_size, expected);
 }
 
+Value Args::keyword_arg(Env *env, SymbolObject *name) const {
+    if (!m_has_keyword_hash || m_size == 0)
+        return NilObject::the();
+    auto hash = m_data[m_size - 1].object_or_null();
+    if (!hash || !hash->is_hash())
+        return NilObject::the();
+    return hash->as_hash()->get(env, name);
+}
 }
