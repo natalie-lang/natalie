@@ -207,7 +207,7 @@ TimeObject *TimeObject::build_time_object(Env *env, Value year, Value month, Val
 }
 
 struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
-    struct tm time = {0};
+    struct tm time = { 0 };
     time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
     time.tm_mday = 1;
     if (month)
