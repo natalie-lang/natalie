@@ -132,6 +132,7 @@ public:
     bool is_regexp() const { return m_type == Type::Regexp; }
     bool is_symbol() const { return m_type == Type::Symbol; }
     bool is_string() const { return m_type == Type::String; }
+    bool is_time() const { return m_type == Type::Time; }
     bool is_unbound_method() const { return m_type == Type::UnboundMethod; }
     bool is_void_p() const { return m_type == Type::VoidP; }
 
@@ -165,6 +166,7 @@ public:
     StringObject *as_string();
     const StringObject *as_string() const;
     SymbolObject *as_symbol();
+    TimeObject *as_time();
     TrueObject *as_true();
     UnboundMethodObject *as_unbound_method();
     VoidPObject *as_void_p();

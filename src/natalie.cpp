@@ -144,6 +144,10 @@ Env *build_top_env() {
     global_env->set_Complex(Complex);
     Object->const_set("Complex"_s, Complex);
 
+    ClassObject *Time = Object->subclass(env, "Time", Object::Type::Time);
+    global_env->set_Time(Time);
+    Object->const_set("Time"_s, Time);
+
     ClassObject *MatchData = Object->subclass(env, "MatchData", Object::Type::MatchData);
     Object->const_set("MatchData"_s, MatchData);
 

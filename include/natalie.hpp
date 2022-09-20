@@ -58,6 +58,7 @@
 #include "natalie/string_object.hpp"
 #include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"
+#include "natalie/time_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
 #include "natalie/unbound_method_object.hpp"
