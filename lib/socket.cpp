@@ -939,6 +939,42 @@ Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
     return new ArrayObject({ on_off, linger });
 }
 
+Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 2, 5);
+
+    auto host = args.at(0);
+    auto port = args.at(1);
+    auto local_host = args.at(2, NilObject::the());
+    auto local_port = args.at(3, NilObject::the());
+    auto connect_timeout = args.keyword_arg(env, "connect_timeout"_s);
+
+    auto fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd == -1)
+        env->raise_errno();
+    self->as_io()->initialize(env, Value::integer(fd));
+
+    auto Socket = find_top_level_const(env, "Socket"_s);
+
+    if (local_host->is_truthy() || local_port->is_truthy()) {
+        auto local_sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { local_port, local_host });
+        Socket_bind(env, self, { local_sockaddr }, nullptr);
+    }
+
+    auto sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { port, host });
+    Socket_connect(env, self, { sockaddr }, nullptr);
+
+    if (block) {
+        try {
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { self }, nullptr);
+            Socket_close(env, self, {}, nullptr);
+        } catch (ExceptionObject *exception) {
+            Socket_close(env, self, {}, nullptr);
+        }
+    }
+
+    return self;
+}
+
 Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto hostname = args.at(0);

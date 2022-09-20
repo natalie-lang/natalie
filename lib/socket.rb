@@ -55,7 +55,7 @@ class IPSocket < BasicSocket
 end
 
 class TCPSocket < IPSocket
-
+  __bind_method__ :initialize, :TCPSocket_initialize
 end
 
 class TCPServer < TCPSocket
