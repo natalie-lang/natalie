@@ -57,8 +57,7 @@ describe 'Socket.tcp' do
     }.should raise_error(ArgumentError)
   end
 
-  # NATFIXME: implement BasicSocket#recv
-  xit 'connects to the server' do
+  it 'connects to the server' do
     @client = Socket.tcp(@host, @port)
 
     @client.write('hello')

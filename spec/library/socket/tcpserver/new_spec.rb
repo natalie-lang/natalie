@@ -13,8 +13,7 @@ describe "TCPServer.new" do
     addr[1].should be_kind_of(Integer)
     # on some platforms (Mac), MRI
     # returns comma at the end.
-    # FIXME:
-    #addr[2].should =~ /^#{SocketSpecs.hostname}\b/
+    addr[2].should =~ /^#{SocketSpecs.hostname}\b/
     addr[3].should == '127.0.0.1'
   end
 
