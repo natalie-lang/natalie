@@ -49,8 +49,7 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
-  # NATFIXME: not sure why addr[2] is returning '127.0.0.1'
-  xit "binds to a port if the port is explicitly nil" do
+  it "binds to a port if the port is explicitly nil" do
     @server = TCPServer.new('', nil)
     addr = @server.addr
     addr[0].should == 'AF_INET'
@@ -85,7 +84,10 @@ describe "TCPServer.new" do
   it "has a single argument form and treats it as a port number" do
     @server = TCPServer.new(0)
     addr = @server.addr
+    addr[0].should == 'AF_INET'
     addr[1].should be_kind_of(Integer)
+    addr[2].should == '0.0.0.0'
+    addr[3].should == '0.0.0.0'
   end
 
   it "coerces port to a string when it is the only argument" do

@@ -358,7 +358,7 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
-Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
+Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
     struct sockaddr addr { };
@@ -383,8 +383,7 @@ Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
             &len);
         if (getsockname_result == -1)
             env->raise_errno();
-        auto sockaddr = new StringObject { (const char *)&in, len };
-        return Addrinfo.send(env, "new"_s, { sockaddr });
+        return new StringObject { (const char *)&in, len };
     }
     case AF_INET6: {
         struct sockaddr_in in6 { };
@@ -395,12 +394,18 @@ Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
             &len);
         if (getsockname_result == -1)
             env->raise_errno();
-        auto sockaddr = new StringObject { (const char *)&in6, len };
-        return Addrinfo.send(env, "new"_s, { sockaddr });
+        return new StringObject { (const char *)&in6, len };
     }
     default:
         NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
     }
+}
+
+Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto packed = self.send(env, "getsockname"_s);
+    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
+    return Addrinfo.send(env, "new"_s, { packed });
 }
 
 Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
@@ -913,9 +918,9 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
     auto port = args.at(1, NilObject::the());
 
     // TCPServer.new([hostname,] port)
-    if (port->is_nil()) {
+    if (args.size() == 1) {
         port = hostname;
-        hostname = NilObject::the();
+        hostname = new StringObject { "0.0.0.0" };
     }
 
     auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

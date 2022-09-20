@@ -8,6 +8,7 @@ class BasicSocket < IO
   __bind_method__ :getsockopt, :BasicSocket_getsockopt
   __bind_method__ :setsockopt, :BasicSocket_setsockopt
 
+  __bind_method__ :getsockname, :BasicSocket_getsockname
   __bind_method__ :local_address, :BasicSocket_local_address
 
   attr_writer :do_not_reverse_lookup
