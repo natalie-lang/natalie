@@ -54,19 +54,10 @@ private:
     Value inspect_usec(Env *);
     Value strip_zeroes(StringObject *);
 
-    Value m_hour;
     Value m_integer;
-    Value m_mday;
-    Value m_min;
     Mode m_mode;
-    Value m_month;
-    Value m_sec;
-    Value m_string;
     Value m_subsec;
     struct tm m_time;
-    Value m_wday;
-    Value m_yday;
-    Value m_year;
 };
 
 }
