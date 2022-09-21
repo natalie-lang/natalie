@@ -72,9 +72,7 @@ bool TimeObject::eql(Env *env, Value other) {
 }
 
 Value TimeObject::hour(Env *) {
-    if (!m_hour)
-        m_hour = Value::integer(m_time.tm_hour);
-    return m_hour;
+    return Value::integer(m_time.tm_hour);
 }
 
 Value TimeObject::inspect(Env *env) {
@@ -93,21 +91,15 @@ Value TimeObject::inspect(Env *env) {
 }
 
 Value TimeObject::mday(Env *) {
-    if (!m_mday)
-        m_mday = Value::integer(m_time.tm_mday);
-    return m_mday;
+    return Value::integer(m_time.tm_mday);
 }
 
 Value TimeObject::min(Env *) {
-    if (!m_min)
-        m_min = Value::integer(m_time.tm_min);
-    return m_min;
+    return Value::integer(m_time.tm_min);
 }
 
 Value TimeObject::month(Env *) {
-    if (!m_month)
-        m_month = Value::integer(m_time.tm_mon + 1);
-    return m_month;
+    return Value::integer(m_time.tm_mon + 1);
 }
 
 Value TimeObject::nsec(Env *env) {
@@ -119,9 +111,7 @@ Value TimeObject::nsec(Env *env) {
 }
 
 Value TimeObject::sec(Env *) {
-    if (!m_sec)
-        m_sec = Value::integer(m_time.tm_sec);
-    return m_sec;
+    return Value::integer(m_time.tm_sec);
 }
 
 Value TimeObject::strftime(Env *env, Value format) {
@@ -145,14 +135,11 @@ Value TimeObject::to_f(Env *env) {
 }
 
 Value TimeObject::to_s(Env *env) {
-    if (!m_string) {
-        if (is_utc(env)) {
-            m_string = build_string(env, "%Y-%m-%d %H:%M:%S UTC");
-        } else {
-            m_string = build_string(env, "%Y-%m-%d %H:%M:%S %z");
-        }
+    if (is_utc(env)) {
+        return build_string(env, "%Y-%m-%d %H:%M:%S UTC");
+    } else {
+        return build_string(env, "%Y-%m-%d %H:%M:%S %z");
     }
-    return m_string;
 }
 
 Value TimeObject::usec(Env *env) {
@@ -164,36 +151,19 @@ Value TimeObject::usec(Env *env) {
 }
 
 Value TimeObject::wday(Env *) {
-    if (!m_wday)
-        m_wday = Value::integer(m_time.tm_wday);
-    return m_wday;
+    return Value::integer(m_time.tm_wday);
 }
 
 Value TimeObject::yday(Env *) {
-    if (!m_yday)
-        m_yday = Value::integer(m_time.tm_yday + 1);
-    return m_yday;
+    return Value::integer(m_time.tm_yday + 1);
 }
 
 Value TimeObject::year(Env *) {
-    if (!m_year)
-        m_year = Value::integer(m_time.tm_year + 1900);
-    return m_year;
+    return Value::integer(m_time.tm_year + 1900);
 }
 
 TimeObject *TimeObject::build_time_object(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
     TimeObject *result = new TimeObject {};
-    result->m_year = year;
-    if (month)
-        result->m_month = month;
-    if (mday)
-        result->m_mday = mday;
-    if (hour)
-        result->m_hour = hour;
-    if (min)
-        result->m_min = min;
-    if (sec)
-        result->m_sec = sec;
     if (usec) {
         IntegerObject *integer = usec->as_integer();
         if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
