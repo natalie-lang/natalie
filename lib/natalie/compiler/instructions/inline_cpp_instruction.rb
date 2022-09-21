@@ -100,12 +100,18 @@ module Natalie
       def generate_constant(transform, name, type)
         name = comptime_string(name)
         type = comptime_string(type)
-        case type
-        when 'int', 'unsigned short'
-          transform.push("Value::integer(#{name})")
-        else
-          raise "I don't yet know how to handle constant of type #{type.inspect}"
-        end
+
+        code = case type
+               when 'int', 'unsigned short'
+                 "self->const_set(\"#{name}\"_s, Value::integer(#{name}))"
+               else
+                 raise "I don't yet know how to handle constant of type #{type.inspect}"
+               end
+
+        transform.exec("#ifdef #{name}")
+        transform.exec(code)
+        transform.exec('#endif')
+        transform.push('NilObject::the()')
       end
 
       def generate_define_method(transform, name, args, body = nil)

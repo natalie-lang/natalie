@@ -35,7 +35,7 @@ module Natalie
         end
 
         def semicolon(line)
-          line =~ /[{};]$/ ? line : "#{line};"
+          line.strip =~ /^\#|[{};]$/ ? line : "#{line};"
         end
 
         def exec(code)
