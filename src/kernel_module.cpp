@@ -167,6 +167,32 @@ Value KernelModule::Float(Env *env, Value value, bool exception) {
         return nullptr;
 }
 
+Value KernelModule::fork(Env *env, Block *block) {
+    auto pid = ::fork();
+
+    if (pid == -1)
+        env->raise_errno();
+
+    if (block) {
+        if (pid == 0) {
+            // child
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { Value::integer(pid) }, nullptr);
+            ::exit(0);
+        } else {
+            // parent
+            return Value::integer(pid);
+        }
+    } else {
+        if (pid == 0) {
+            // child
+            return NilObject::the();
+        } else {
+            // parent
+            return Value::integer(pid);
+        }
+    }
+}
+
 Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
