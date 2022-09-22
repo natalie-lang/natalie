@@ -30,12 +30,11 @@ pids = (1..10).map do
         client.write "\r\n"
         client.write "method not allowed\r\n"
       end
+    rescue StandardError
+      puts 'client misbehaved or connection dropped or something'
     ensure
       client.close
     end
-  rescue StandardError
-    puts 'client misbehaved or connection dropped or something'
-    :noop
   end
 end
 
