@@ -129,6 +129,11 @@ Value KernelModule::exit(Env *env, Value status) {
     return NilObject::the();
 }
 
+Value KernelModule::exit_bang(Env *env, Value status) {
+    env->global_get("$NAT_at_exit_handlers"_s)->as_array_or_raise(env)->clear(env);
+    return exit(env, status);
+}
+
 Value KernelModule::Float(Env *env, Value value, Value kwargs) {
     bool exception = true;
     // NATFIXME: Improve keyword argument handling.

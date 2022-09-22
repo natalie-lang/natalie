@@ -43,6 +43,7 @@ public:
     static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);
+    static Value exit_bang(Env *env, Value status);
     static Value Float(Env *env, Value value, Value kwargs);
     static Value Float(Env *env, Value value, bool exception = true);
     static Value gets(Env *env);

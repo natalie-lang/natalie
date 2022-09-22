@@ -1204,6 +1204,7 @@ def run_specs
         @failures << [context, test, e]
         formatter.print_failure(*@failures.last)
       rescue Exception => e
+        raise if e.is_a?(SystemExit)
         @errors << [context, test, e]
         formatter.print_error(*@errors.last)
       else
