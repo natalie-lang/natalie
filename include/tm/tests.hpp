@@ -47,6 +47,17 @@
         }                                                                                 \
     }
 
+#define assert_cstr_eq(expected, actual)                                        \
+    {                                                                           \
+        auto e = (expected);                                                    \
+        auto a = (actual);                                                      \
+        if (strcmp(a, e) != 0) {                                                \
+            std::cerr << "\n"                                                   \
+                      << "Expected \"" << e << "\" to equal \"" << a << "\"\n"; \
+            abort();                                                            \
+        }                                                                       \
+    }
+
 class Thing {
 public:
     Thing() = default;

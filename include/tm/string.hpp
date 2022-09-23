@@ -868,7 +868,8 @@ public:
     }
 
     /**
-     * Returns true if this is alphanumerically greater than the given String.
+     * Returns true if this is alphanumerically greater than
+     * the given String.
      *
      * ```
      * auto str1 = String { "def" };
@@ -876,31 +877,56 @@ public:
      * assert(str1 > str2);
      * assert_not(str2 > str1);
      * ```
+     *
+     * This works also with strings containing a null character
+     * in the middle.
+     *
+     * ```
+     * auto str1 = String { "abc\0def", 7 };
+     * auto str2 = String { "abc\0abc", 7 };
+     * auto str3 = String { "abc\0abc\0def", 11 };
+     * assert(str1 > str2);
+     * assert(str3 > str2);
+     * ```
      */
     bool operator>(const String &other) const {
-        // FIXME: cannot use strcmp here
-        return strcmp(c_str(), other.c_str()) > 0;
+        return cmp(other) > 0;
     }
 
     /**
-     * Returns true if this is alphanumerically greater than or equal to the given String.
+     * Returns true if this is alphanumerically greater than
+     * or equal to the given String.
      *
      * ```
      * auto str1 = String { "def" };
      * auto str2 = String { "abc" };
      * auto str3 = String { "abc" };
      * assert(str1 >= str2);
-     * assert(str1 >= str3);
-     * assert_not(str2 > str1);
+     * assert(str2 >= str3);
+     * assert_not(str2 >= str1);
+     * ```
+     *
+     * This works also with strings containing a null character
+     * in the middle.
+     *
+     * ```
+     * auto str1 = String { "abc\0def", 7 };
+     * auto str2 = String { "abc\0abc", 7 };
+     * auto str3 = String { "abc\0abc", 7 };
+     * auto str4 = String { "abc\0abc\0def", 11 };
+     * assert(str1 >= str2);
+     * assert(str2 >= str3);
+     * assert(str4 >= str2);
+     * assert_not(str2 >= str1);
      * ```
      */
     bool operator>=(const String &other) const {
-        // FIXME: cannot use strcmp here
-        return strcmp(c_str(), other.c_str()) >= 0;
+        return cmp(other) >= 0;
     }
 
     /**
-     * Returns true if this is alphanumerically less than the given String.
+     * Returns true if this is alphanumerically less than
+     * the given String.
      *
      * ```
      * auto str1 = String { "abc" };
@@ -908,10 +934,51 @@ public:
      * assert(str1 < str2);
      * assert_not(str2 < str1);
      * ```
+     *
+     * This works also with strings containing a null character
+     * in the middle.
+     *
+     * ```
+     * auto str1 = String { "abc\0abc", 7 };
+     * auto str2 = String { "abc\0def", 7 };
+     * auto str3 = String { "abc\0def\0def", 11 };
+     * assert(str1 < str2);
+     * assert(str2 < str3);
+     * ```
      */
     bool operator<(const String &other) const {
-        // FIXME: cannot use strcmp here
-        return strcmp(c_str(), other.c_str()) < 0;
+        return cmp(other) < 0;
+    }
+
+    /**
+     * Returns true if this is alphanumerically less than
+     * or equal to the given String.
+     *
+     * ```
+     * auto str1 = String { "abc" };
+     * auto str2 = String { "def" };
+     * auto str3 = String { "def" };
+     * assert(str1 <= str2);
+     * assert(str2 <= str3);
+     * assert_not(str2 <= str1);
+     * ```
+     *
+     * This works also with strings containing a null character
+     * in the middle.
+     *
+     * ```
+     * auto str1 = String { "abc\0abc", 7 };
+     * auto str2 = String { "abc\0def", 7 };
+     * auto str3 = String { "abc\0def", 7 };
+     * auto str4 = String { "abc\0def\0def", 11 };
+     * assert(str1 <= str2);
+     * assert(str2 <= str3);
+     * assert(str2 <= str4);
+     * assert_not(str2 <= str1);
+     * ```
+     */
+    bool operator<=(const String &other) const {
+        return cmp(other) <= 0;
     }
 
     /**
@@ -927,6 +994,8 @@ public:
      * assert_eq(-1, str2.cmp(str1));
      * auto str3 = String { "abc" };
      * assert_eq(0, str2.cmp(str3));
+     * auto str4 = String { "abcabc" };
+     * assert_eq(-1, str2.cmp(str4));
      * ```
      */
     int cmp(const String &other) const {
@@ -943,9 +1012,12 @@ public:
             else if (c1 > c2)
                 return 1;
         }
-        // "x" (len 1) <=> "xx" (len 2)
-        // 1 - 2 = -1
-        return m_length - other.m_length;
+        if (m_length == other.m_length)
+            return 0;
+        else if (m_length < other.m_length)
+            return -1;
+        else
+            return 1;
     }
 
     /**
@@ -959,8 +1031,10 @@ public:
      * auto str1 = String { "def" };
      * auto str2 = String { "DEF" };
      * auto str3 = String { "efg" };
-     * assert_eq(0, str1.cmp(str2));
-     * assert_eq(1, str2.cmp(str3));
+     * assert_eq(0, str1.casecmp(str2));
+     * assert_eq(-1, str2.casecmp(str3));
+     * auto str4 = String { "defdef" };
+     * assert_eq(-1, str2.casecmp(str4));
      * ```
      */
     int casecmp(const String &other) const {
@@ -978,9 +1052,12 @@ public:
             else if (c1 > c2)
                 return 1;
         }
-        // "x" (len 1) <=> "xx" (len 2)
-        // 1 - 2 = -1
-        return m_length - other.m_length;
+        if (m_length == other.m_length)
+            return 0;
+        else if (m_length < other.m_length)
+            return -1;
+        else
+            return 1;
     }
 
     /**
@@ -1165,6 +1242,17 @@ public:
      */
     bool is_empty() const { return m_length == 0; }
 
+    /**
+     * Returns true if the String contains only
+     * characters 0-9.
+     *
+     * ```
+     * auto str1 = String { "1234" };
+     * auto str2 = String { "1234abc" };
+     * assert(str1.contains_only_digits());
+     * assert_not(str2.contains_only_digits());
+     * ```
+     */
     bool contains_only_digits() const {
         for (size_t i = 0; i < m_length; ++i)
             if (at(i) < '0' || at(i) > '9')
@@ -1464,7 +1552,7 @@ public:
         return index + 1;
     }
 
-private:
+protected:
     void grow(size_t new_capacity) {
         assert(new_capacity >= m_length);
         auto old_str = m_str;
