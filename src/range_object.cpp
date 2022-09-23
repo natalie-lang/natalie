@@ -349,7 +349,7 @@ Value RangeObject::step(Env *env, Value n, Block *block) {
     if (m_begin->is_numeric() || m_end->is_numeric()) {
         auto begin = m_begin;
         auto end = m_end;
-        auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, m_begin, m_end, n, m_exclude_end);
+        auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, env->current_method()->name(), m_begin, m_end, n, m_exclude_end);
 
         if (block) {
             if (enumerator->step().send(env, "<"_s, { Value::integer(0) })->is_true())

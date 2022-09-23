@@ -2,9 +2,10 @@
 #include "natalie.hpp"
 
 namespace Natalie::Enumerator {
-ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)
+ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, const TM::String &range_origin_method, Value begin, Value end, Value step, bool exclude_end)
     : Object { Object::Type::EnumeratorArithmeticSequence, fetch_nested_const({ "Enumerator"_s, "ArithmeticSequence"_s })->as_class() }
     , m_origin { origin }
+    , m_range_origin_method { range_origin_method }
     , m_begin { begin }
     , m_end { end }
     , m_step { step }
@@ -13,6 +14,9 @@ ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Valu
     auto method_info = Enumerator->find_method(env, "initialize"_s);
     method_info.method()->call(env, this, {}, new Block { env, this, enum_block, 1 });
 }
+
+ArithmeticSequenceObject::ArithmeticSequenceObject(Env *env, Origin origin, Value begin, Value end, Value step, bool exclude_end)
+    : ArithmeticSequenceObject(env, origin, {}, begin, end, step, exclude_end) { }
 
 bool ArithmeticSequenceObject::calculate_ascending(Env *env) {
     return step().send(env, ">"_s, { Value::integer(0) })->is_truthy();
@@ -171,7 +175,7 @@ Value ArithmeticSequenceObject::inspect(Env *env) {
     switch (m_origin) {
     case Origin::Range: {
         auto range_inspect = RangeObject::create(env, m_begin, m_end, m_exclude_end)->inspect_str(env);
-        auto string = StringObject::format("(({}).step", range_inspect);
+        auto string = StringObject::format("(({}).{}", range_inspect, m_range_origin_method);
 
         if (has_step()) {
             string->append_char('(');

@@ -15,8 +15,8 @@ public:
     ArithmeticSequenceObject()
         : ArithmeticSequenceObject { GlobalEnv::the()->Object()->const_fetch("Enumerator"_s)->const_fetch("ArithmeticSequence"_s)->as_class() } { }
 
-    static ArithmeticSequenceObject *from_range(Env *env, Value begin, Value end, Value step, bool exclude_end) {
-        return new ArithmeticSequenceObject { env, Origin::Range, begin, end, step, exclude_end };
+    static ArithmeticSequenceObject *from_range(Env *env, const TM::String &origin_method, Value begin, Value end, Value step, bool exclude_end) {
+        return new ArithmeticSequenceObject { env, Origin::Range, origin_method, begin, end, step, exclude_end };
     }
 
     static ArithmeticSequenceObject *from_numeric(Env *env, Value begin, Value end, Value step) {
@@ -57,6 +57,7 @@ private:
     };
 
     ArithmeticSequenceObject(Env *, Origin, Value, Value, Value, bool);
+    ArithmeticSequenceObject(Env *, Origin, const TM::String &, Value, Value, Value, bool);
     static Value enum_block(Env *, Value, Args, Block *);
 
     bool ascending(Env *env) {
@@ -75,6 +76,7 @@ private:
     Value maybe_to_f(Env *, Value);
 
     Origin m_origin;
+    TM::String m_range_origin_method {};
     Value m_begin { nullptr };
     Value m_end { nullptr };
     Value m_step { nullptr };
