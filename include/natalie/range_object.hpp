@@ -37,7 +37,7 @@ public:
     bool eql(Env *, Value);
     bool include(Env *, Value);
     Value bsearch(Env *, Block *);
-    Value step(Env *, Value);
+    Value step(Env *, Value, Block *);
 
     static Value size_fn(Env *env, Value self, Args, Block *) {
         return Value::integer(self->as_range()->to_a(env)->as_array()->size());

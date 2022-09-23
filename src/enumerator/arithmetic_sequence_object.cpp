@@ -19,15 +19,18 @@ bool ArithmeticSequenceObject::calculate_ascending(Env *env) {
 }
 
 Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
-    if (!m_end || m_end->is_nil() || m_end.send(env, "infinite?"_s)->is_truthy())
-        return 0;
-
     auto _step = step();
     auto _begin = m_begin;
     auto _end = m_end;
 
+    if (!_end || _end->is_nil() || _end.send(env, "infinite?"_s)->is_truthy())
+        return 0;
+
+    if (_begin.send(env, "infinite?"_s)->is_truthy())
+        return 0;
+
     auto cmp = ascending(env) ? ">"_s : "<"_s;
-    if (m_begin.send(env, cmp, { m_end })->is_truthy())
+    if (_begin.send(env, cmp, { _end })->is_truthy())
         return 0;
 
     if (_step->is_float() || _begin->is_float() || _end->is_float()) {
@@ -36,7 +39,16 @@ Integer ArithmeticSequenceObject::calculate_step_count(Env *env) {
         _end = _end->to_f(env);
     }
 
+    if (_step->to_f(env)->is_infinity())
+        return 1;
+
     auto n = _end.send(env, "-"_s, { _begin }).send(env, "/"_s, { _step->to_f(env) });
+
+    // Try to fix float incorrections
+    // For example: begin: 1, end: 55.6, step: 18.2
+    // n = 3.0 but 1 + 3 * 18.2 = 55.599999999999994
+    if (_end.send(env, cmp, { _begin.send(env, "+"_s, { n.send(env, "*"_s, { _step }) }) })->is_truthy())
+        n = n.send(env, "+"_s, { Value::integer(1) });
 
     if (n.send(env, "=="_s, { n.send(env, "floor"_s) })->is_truthy())
         n = n->to_int(env);
@@ -90,8 +102,11 @@ Value ArithmeticSequenceObject::iterate(Env *env, std::function<Value(Value)> fu
         return this;
     }
 
-    if (_begin.send(env, "infinite?"_s)->is_truthy() && _begin.send(env, cmp, { Value::integer(0) })->is_truthy())
-        return this;
+    if (_begin.send(env, "infinite?"_s)->is_truthy()) {
+        if (_begin.send(env, cmp, { Value::integer(0) })->is_truthy() || _begin.send(env, "=="_s, { _end })->is_truthy())
+            return this;
+        infinite = true;
+    }
 
     for (Integer i = 0; infinite || i < steps; ++i) {
         auto value = _step.send(env, "*"_s, { IntegerObject::create(i) }).send(env, "+"_s, { _begin });

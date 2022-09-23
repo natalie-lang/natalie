@@ -336,7 +336,57 @@ Value RangeObject::bsearch(Env *env, Block *block) {
     }
 }
 
-Value RangeObject::step(Env *env, Value step) {
-    return Enumerator::ArithmeticSequenceObject::from_range(env, m_begin, m_end, step, m_exclude_end);
+Value RangeObject::step(Env *env, Value n, Block *block) {
+    if (!n)
+        n = NilObject::the();
+
+    if (!n->is_numeric() && !n->is_nil())
+        n = n->to_int(env);
+
+    if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
+        env->raise("ArgumentError", "step can't be 0");
+
+    if (m_begin->is_numeric() || m_end->is_numeric()) {
+        auto begin = m_begin;
+        auto end = m_end;
+        auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, m_begin, m_end, n, m_exclude_end);
+
+        if (block) {
+            if (enumerator->step().send(env, "<"_s, { Value::integer(0) })->is_true())
+                env->raise("ArgumentError", "step can't be negative");
+
+            enumerator->send(env, "each"_s, {}, block);
+        } else {
+            return enumerator;
+        }
+    } else {
+        if (n->is_nil())
+            n = Value::integer(1);
+
+        if (!block)
+            return enum_for(env, "step", { n });
+
+        if (n.send(env, "<"_s, { Value::integer(0) })->is_true())
+            env->raise("ArgumentError", "step can't be negative");
+
+        // This error is weird...
+        //   - It only appears for floats (not for rational for example)
+        //   - Class names are written in lower case?
+        if (n->is_float())
+            env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
+
+        auto step = n->to_int(env)->integer();
+
+        Integer index = 0;
+        iterate_over_range(env, [env, block, &index, step](Value item) -> Value {
+            if (index % step == 0)
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { item }, nullptr);
+
+            index += 1;
+            return nullptr;
+        });
+    }
+
+    return this;
 }
 }
