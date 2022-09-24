@@ -182,6 +182,7 @@ module Natalie
     private
 
     def transform
+      start_profiling if options[:profile] == :compiler
       @context = build_context
 
       ast = expand_macros
@@ -218,6 +219,8 @@ module Natalie
       return instructions if options[:interpret]
 
       CppBackend.new(instructions, compiler_context: @context).generate
+    ensure
+      stop_profiling if options[:profile] == :compiler
     end
 
     def libraries
@@ -289,6 +292,31 @@ module Natalie
         compiler_context: @context,
       )
       expander.expand
+    end
+
+    def start_profiling
+      require 'stackprof'
+      StackProf.start(mode: :wall, raw: true)
+    end
+
+    PROFILES_PATH = '/tmp/natalie/profiles'
+
+    def stop_profiling
+      StackProf.stop
+      # You can install speedscope using npm install -g speedscope
+      if use_speedscope?
+        require 'json'
+        FileUtils.mkdir_p(PROFILES_PATH)
+        profile = "#{PROFILES_PATH}/#{Time.new.to_i}.dump"
+        File.write(profile, JSON.generate(StackProf.results))
+        system("speedscope #{profile}")
+      else
+        StackProf::Report.new(StackProf.results).print_text
+      end
+    end
+
+    def use_speedscope?
+      system("speedscope --version > /dev/null 2>&1")
     end
 
     # FIXME: implement pp
