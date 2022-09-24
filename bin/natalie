@@ -5,7 +5,7 @@ require 'tempfile'
 
 require_relative '../lib/natalie'
 
-options = { load_path: [], require: [], profile: false }
+options = { load_path: [], require: [], profile: false, transform_only: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -18,6 +18,7 @@ OptionParser.new do |opts|
     options: {
       '{p1,p1,p3,p4}' => 'print intermediate AST from individual compiler pass',
       'cpp'           => 'print generated C++',
+      'transform'     => 'only transform the code to C++ without outputting it (can be used for profiling the compiler)',
       'cc-cmd'        => 'show the gcc/clang compiler command that will be run',
       'valgrind'      => 'run the resulting binary with valgrind',
       'kcachegrind'   => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
@@ -32,6 +33,8 @@ OptionParser.new do |opts|
     when 'gdb', 'lldb'
       options[:debug] = type
       options[:keep_cpp] = true
+    when 'transform'
+      options[:transform_only] = true
     else
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
@@ -43,8 +46,25 @@ OptionParser.new do |opts|
     options[:execute] = e
   end
 
-  opts.on('-p', '--profile', 'Profile a Natalie application with the embedded profiler') do
-    options[:profile] = true
+  opts.on(
+    '-p [type]', '--profile [type]',
+    'Start profiling an application or the compiler.',
+    options: {
+      'app'       => 'Execute the script and profile it using the embedded profiler.',
+      'compiler'  => 'Profile the compilation process using StackProf.'
+    }
+  ) do |type|
+    case type
+    when true, 'app'
+      options[:profile] = :app
+    when 'compiler'
+      options[:profile] = :compiler
+      options[:transform_only] = true
+    else
+      puts "Unrecognized -p argument: #{type.inspect}"
+      exit 1
+    end
+    options[:expecting_script] = true
   end
 
   opts.on('--ast', 'Show AST rather than compiling') do |ast|
@@ -138,6 +158,8 @@ class Runner
       show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
+    elsif options[:transform_only]
+      compiler.send(:transform)
     else
       compile_and_run
     end
@@ -149,7 +171,7 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
-    if options[:profile]
+    if options[:profile] == :app
       compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
     end
     if options[:print_objects]

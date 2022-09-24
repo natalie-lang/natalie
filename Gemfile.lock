@@ -13,6 +13,7 @@ GEM
       ruby-progressbar
     rake (13.0.6)
     ruby-progressbar (1.11.0)
+    stackprof (0.2.21)
 
 PLATFORMS
   arm64-darwin-21
@@ -24,6 +25,7 @@ DEPENDENCIES
   minitest-parallel_fork
   minitest-reporters
   rake
+  stackprof
 
 BUNDLED WITH
-   2.2.32
+   2.2.33
