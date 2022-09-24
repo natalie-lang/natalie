@@ -42,13 +42,6 @@ class Range
 
     result = true
 
-    if self.end && self.begin
-      compare_result = self.begin <=> self.end
-      if !compare_result || compare_result == 1 || (exclude_end? && compare_result == 0)
-        return false
-      end
-    end
-
     if self.begin
       result &&= greater_than_begin.()
     end
