@@ -3,11 +3,22 @@
 
 namespace Natalie {
 
+RangeObject *RangeObject::create(Env *env, Value begin, Value end, bool exclude_end) {
+    assert_no_bad_value(env, begin, end);
+    auto range = new RangeObject(begin, end, exclude_end);
+    range->freeze();
+    return range;
+}
+
+void RangeObject::assert_no_bad_value(Env *env, Value begin, Value end) {
+    if (!begin->is_nil() && !end->is_nil() && begin->send(env, "<=>"_s, { end })->is_nil())
+        env->raise("ArgumentError", "bad value for range");
+}
+
 Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_end_value) {
     assert_not_frozen(env);
 
-    if (!begin->is_nil() && !end->is_nil() && begin->send(env, "<=>"_s, { end })->is_nil())
-        env->raise("ArgumentError", "bad value for range");
+    assert_no_bad_value(env, begin, end);
 
     m_begin = begin;
     m_end = end;
@@ -21,16 +32,9 @@ template <typename Function>
 Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     Value item = m_begin;
 
-    // According to the spec, this call MUST happen before the #succ check.
-    // See core/range/each_spec.rb "raises a TypeError if the first element does not respond to #succ"
-    auto compare_result = item.send(env, "<=>"_s, { m_end });
-
     auto succ = "succ"_s;
     if (!m_begin->respond_to(env, succ))
         env->raise("TypeError", "can't iterate from {}", m_begin->klass()->inspect_str());
-
-    if (compare_result->equal(Value::integer(1)))
-        return nullptr;
 
     if (m_begin->is_string() && m_end->is_string())
         return iterate_over_string_range(env, func);
@@ -41,6 +45,15 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     // If we exclude the end, the loop should not be entered if m_begin (item) == m_end.
     bool done = m_exclude_end ? item.send(env, "=="_s, { m_end })->is_truthy() : false;
     while (!done) {
+        if (!m_end->is_nil()) {
+            auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
+            // We are done if we reached the end element.
+            done = compare_result == 0;
+            // If we exclude the end we break instantly, otherwise we yield the item once again. We also break if item is bigger than end.
+            if ((done && m_exclude_end) || compare_result == 1)
+                break;
+        }
+
         if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(item);
         } else {
@@ -48,17 +61,10 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
                 return ptr;
         }
 
-        if (!item->respond_to(env, "succ"_s))
-            break;
-        item = item.send(env, succ);
-
-        if (!m_end->is_nil()) {
-            auto compare_result = item.send(env, cmp, { m_end })->to_int(env)->integer();
-            // If range excludes the end,
-            //  we are done if item is bigger than or equal to m_end
-            // else
-            //  we are done if item is bigger than m_end.
-            done = compare_result > (m_exclude_end ? -1 : 0);
+        if (!done) {
+            if (!item->respond_to(env, "succ"_s))
+                break;
+            item = item.send(env, succ);
         }
     }
 
@@ -67,6 +73,9 @@ Value RangeObject::iterate_over_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
+    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+        return nullptr;
+
     TM::Optional<TM::String> current;
     auto end = m_end->as_string()->string();
     auto iterator = StringUptoIterator(m_begin->as_string()->string(), end, m_exclude_end);
@@ -85,6 +94,9 @@ Value RangeObject::iterate_over_string_range(Env *env, Function &&func) {
 
 template <typename Function>
 Value RangeObject::iterate_over_symbol_range(Env *env, Function &&func) {
+    if (m_begin.send(env, "<=>"_s, { m_end })->equal(Value::integer(1)))
+        return nullptr;
+
     TM::Optional<TM::String> current;
     auto end = m_end->as_symbol()->string();
     auto iterator = StringUptoIterator(m_begin->as_symbol()->string(), end, m_exclude_end);
@@ -324,7 +336,57 @@ Value RangeObject::bsearch(Env *env, Block *block) {
     }
 }
 
-Value RangeObject::step(Env *env, Value step) {
-    return Enumerator::ArithmeticSequenceObject::from_range(env, m_begin, m_end, step, m_exclude_end);
+Value RangeObject::step(Env *env, Value n, Block *block) {
+    if (!n)
+        n = NilObject::the();
+
+    if (!n->is_numeric() && !n->is_nil())
+        n = n->to_int(env);
+
+    if (n.send(env, "=="_s, { Value::integer(0) })->is_true())
+        env->raise("ArgumentError", "step can't be 0");
+
+    if (m_begin->is_numeric() || m_end->is_numeric()) {
+        auto begin = m_begin;
+        auto end = m_end;
+        auto enumerator = Enumerator::ArithmeticSequenceObject::from_range(env, env->current_method()->name(), m_begin, m_end, n, m_exclude_end);
+
+        if (block) {
+            if (enumerator->step().send(env, "<"_s, { Value::integer(0) })->is_true())
+                env->raise("ArgumentError", "step can't be negative");
+
+            enumerator->send(env, "each"_s, {}, block);
+        } else {
+            return enumerator;
+        }
+    } else {
+        if (n->is_nil())
+            n = Value::integer(1);
+
+        if (!block)
+            return enum_for(env, "step", { n });
+
+        if (n.send(env, "<"_s, { Value::integer(0) })->is_true())
+            env->raise("ArgumentError", "step can't be negative");
+
+        // This error is weird...
+        //   - It only appears for floats (not for rational for example)
+        //   - Class names are written in lower case?
+        if (n->is_float())
+            env->raise("TypeError", "no implicit conversion to float from {}", m_begin->klass()->inspect_str().lowercase());
+
+        auto step = n->to_int(env)->integer();
+
+        Integer index = 0;
+        iterate_over_range(env, [env, block, &index, step](Value item) -> Value {
+            if (index % step == 0)
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { item }, nullptr);
+
+            index += 1;
+            return nullptr;
+        });
+    }
+
+    return this;
 }
 }

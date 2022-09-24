@@ -797,6 +797,14 @@ class Stub
 
   def and_return(*results)
     @results.concat(results)
+
+    # Update count restrictions if results' size exceeds it
+    if @count_restriction.is_a?(Range) && @count_restriction.end && @results.size > @count_restriction.end
+      @count_restriction = (@count_restriction.first..@results.size)
+    elsif @count_restriction.is_a?(Integer) && @results.size > @count_restriction
+      @count_restriction = @results.size
+    end
+
     self
   end
 

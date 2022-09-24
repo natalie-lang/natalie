@@ -19,13 +19,7 @@ public:
     RangeObject(ClassObject *klass)
         : Object { Object::Type::Range, klass } { }
 
-    RangeObject(Value begin, Value end, bool exclude_end)
-        : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s)->as_class() }
-        , m_begin { begin }
-        , m_end { end }
-        , m_exclude_end { exclude_end } {
-        freeze();
-    }
+    static RangeObject *create(Env *, Value, Value, bool);
 
     Value begin() { return m_begin; }
     Value end() { return m_end; }
@@ -43,7 +37,7 @@ public:
     bool eql(Env *, Value);
     bool include(Env *, Value);
     Value bsearch(Env *, Block *);
-    Value step(Env *, Value);
+    Value step(Env *, Value, Block *);
 
     static Value size_fn(Env *env, Value self, Args, Block *) {
         return Value::integer(self->as_range()->to_a(env)->as_array()->size());
@@ -62,6 +56,14 @@ public:
     }
 
 private:
+    RangeObject(Value begin, Value end, bool exclude_end)
+        : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch("Range"_s)->as_class() }
+        , m_begin { begin }
+        , m_end { end }
+        , m_exclude_end { exclude_end } { }
+
+    static void assert_no_bad_value(Env *, Value, Value);
+
     Value m_begin { nullptr };
     Value m_end { nullptr };
     bool m_exclude_end { false };

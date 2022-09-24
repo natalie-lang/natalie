@@ -64,7 +64,7 @@ public:
     }
 
     virtual void append_range(long long first, long long last, bool exclude_end) override {
-        m_sexp->push(new RangeObject(Value::integer(first), Value::integer(last), exclude_end));
+        m_sexp->push(RangeObject::create(m_env, Value::integer(first), Value::integer(last), exclude_end));
     }
 
     virtual void append_regexp(TM::String &pattern, int options) override {
