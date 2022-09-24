@@ -745,6 +745,9 @@ Value Object::clone(Env *env) {
         duplicate->set_singleton_class(s_class->clone(env)->as_class());
     }
 
+    if (is_frozen())
+        duplicate->freeze();
+
     return duplicate;
 }
 
