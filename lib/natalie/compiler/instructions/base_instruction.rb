@@ -7,7 +7,8 @@ module Natalie
       end
 
       def label
-        underscore(self.class.name.sub(/Instruction$/, '')).to_sym
+        @label ||=
+          underscore(self.class.name.sub(/Instruction$/, '')).to_sym
       end
 
       def matching_label
