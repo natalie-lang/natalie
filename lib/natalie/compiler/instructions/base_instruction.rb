@@ -6,9 +6,9 @@ module Natalie
         false
       end
 
-      def label
+      def self.label
         @label ||=
-          underscore(self.class.name.sub(/Instruction$/, '')).to_sym
+          self.underscore(self.name.sub(/Instruction$/, '')).to_sym
       end
 
       def matching_label
@@ -19,7 +19,7 @@ module Natalie
 
       private
 
-      def underscore(name)
+      def self.underscore(name)
         name.split('::').last.gsub(/[A-Z]/) { |c| '_' + c.downcase }.sub(/^_/, '')
       end
     end

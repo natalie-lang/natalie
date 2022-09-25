@@ -19,7 +19,7 @@ module Natalie
 
       def transform
         @instructions.walk do |instruction|
-          method = "transform_#{instruction.label}"
+          method = "transform_#{instruction.class.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
           @env = instruction.env
           if respond_to?(method, true)

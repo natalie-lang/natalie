@@ -16,7 +16,7 @@ module Natalie
       def process
         while @ip < @instructions.size
           instruction = @instructions[@ip]
-          method = "process_#{instruction.label}"
+          method = "process_#{instruction.class.label}"
           method << "_#{instruction.matching_label}" if instruction.matching_label
 
           @instruction_stack << instruction if instruction.has_body?
