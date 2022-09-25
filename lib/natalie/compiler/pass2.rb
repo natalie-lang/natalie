@@ -21,7 +21,7 @@ module Natalie
 
       def transform
         @instructions.walk do |instruction|
-          method = "transform_#{instruction.label}"
+          method = "transform_#{instruction.class.label}"
           send(method, instruction) if respond_to?(method, true)
         end
       end

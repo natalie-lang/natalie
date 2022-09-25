@@ -83,7 +83,7 @@ module Natalie
           instructions << instruction
           break if instruction.is_a?(until_instruction)
 
-          instructions += fetch_block(expected_label: instruction.label) if instruction.has_body?
+          instructions += fetch_block(expected_label: instruction.class.label) if instruction.has_body?
         end
 
         unless expected_label.nil? || instruction.matching_label == expected_label
