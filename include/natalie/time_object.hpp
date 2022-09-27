@@ -40,6 +40,7 @@ public:
     Value subsec(Env *);
     Value to_f(Env *);
     Value to_i(Env *) const { return m_integer; }
+    Value to_r(Env *);
     Value to_s(Env *);
     Value usec(Env *);
     Value wday(Env *);

@@ -148,6 +148,14 @@ Value TimeObject::to_f(Env *env) {
     return result;
 }
 
+Value TimeObject::to_r(Env *env) {
+    Value result = RationalObject::create(env, m_integer->as_integer(), new IntegerObject { 1 });
+    if (m_subsec) {
+        result = result->as_rational()->add(env, m_subsec->as_rational());
+    }
+    return result;
+}
+
 Value TimeObject::to_s(Env *env) {
     if (is_utc(env)) {
         return build_string(env, "%Y-%m-%d %H:%M:%S UTC");
