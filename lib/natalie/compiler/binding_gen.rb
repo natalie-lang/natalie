@@ -974,6 +974,7 @@ gen.binding('Time', 'strftime', 'TimeObject', 'strftime', argc: 1, pass_env: tru
 gen.binding('Time', 'subsec', 'TimeObject', 'subsec', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_f', 'TimeObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_i', 'TimeObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'to_r', 'TimeObject', 'to_r', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_s', 'TimeObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'usec', 'TimeObject', 'usec', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'wday', 'TimeObject', 'wday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
