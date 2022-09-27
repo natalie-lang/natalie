@@ -15,6 +15,10 @@ public:
 
     static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
 
+    bool is_zero() const {
+        return m_numerator->is_zero();
+    }
+
     Value add(Env *, Value);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);

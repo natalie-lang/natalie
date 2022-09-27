@@ -4,13 +4,27 @@ namespace Natalie {
 
 TimeObject *TimeObject::at(Env *env, Value time, Value usec) {
     TimeObject *result = new TimeObject {};
-    time_t seconds = (time_t)time->as_integer()->to_nat_int_t();
+    RationalObject *rational;
+    if (time->is_integer()) {
+        rational = RationalObject::create(env, time->as_integer(), new IntegerObject { 1 });
+    } else if (time->is_rational()) {
+        rational = time->as_rational();
+    } else {
+        // NATFIXME: Support other arguments (Float, BigDecimal, Time etc)
+        env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspect_str());
+    }
+    if (usec && !usec->as_integer()->is_zero()) {
+        rational = rational->add(env, RationalObject::create(env, usec->as_integer(), new IntegerObject { 1000000 }))->as_rational();
+    }
+    IntegerObject *integer = rational->to_i(env)->as_integer();
+    RationalObject *subseconds = rational->sub(env, integer)->as_rational();
+    if (!subseconds->is_zero()) {
+        result->m_subsec = subseconds;
+    }
+    time_t seconds = (time_t)integer->to_nat_int_t();
     result->m_time = *localtime(&seconds);
     result->m_mode = Mode::Localtime;
-    result->m_integer = time->as_integer();
-    if (usec && !usec->as_integer()->is_zero()) {
-        result->m_subsec = RationalObject::create(env, usec->as_integer(), new IntegerObject { 1000000 });
-    }
+    result->m_integer = integer;
     return result;
 }
 
