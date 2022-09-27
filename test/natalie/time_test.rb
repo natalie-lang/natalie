@@ -5,6 +5,28 @@ describe 'Time' do
     Time.utc(1985, 4, 12, 23, 20, 50)
   end
 
+  describe '.at' do
+    context 'with a Rational argument' do
+      it 'returns a time' do
+        t = Time.at(Rational(1_486_570_508_539_759, 1_000_000))
+        t.should be_an_instance_of(Time)
+        t.usec.should == 539_759
+      end
+    end
+
+    context 'with a String argument' do
+      it 'raises an error' do
+        -> { Time.at('') }.should raise_error(TypeError)
+      end
+    end
+
+    context 'with a nil argument' do
+      it 'raises an error' do
+        -> { Time.at(nil) }.should raise_error(TypeError)
+      end
+    end
+  end
+
   describe '#asctime' do
     it 'returns a string' do
       time.asctime.should == 'Fri Apr 12 23:20:50 1985'
