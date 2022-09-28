@@ -27,6 +27,44 @@ describe 'Time' do
     end
   end
 
+  describe '#+' do
+    context 'with an Integer argument' do
+      it 'returns a time' do
+        t = Time.at(0) + 100
+        t.should be_an_instance_of(Time)
+        t.to_i.should == 100
+      end
+    end
+
+    context 'with a Rational argument' do
+      it 'returns a time' do
+        t = Time.at(Rational(11, 10)) + Rational(9, 10)
+        t.should be_an_instance_of(Time)
+        t.to_i.should == 2
+      end
+    end
+
+    context 'with a Time argument' do
+      it 'raises an error' do
+        -> { time + time }.should raise_error(TypeError)
+      end
+    end
+
+    context 'with a nil argument' do
+      it 'raises an error' do
+        -> { time + nil }.should raise_error(TypeError)
+      end
+    end
+
+    context 'with a utc time' do
+      it 'returns a utc time' do
+        t = Time.utc(2012) + 10
+        t.should be_an_instance_of(Time)
+        t.utc?.should be_true
+      end
+    end
+  end
+
   describe '#asctime' do
     it 'returns a string' do
       time.asctime.should == 'Fri Apr 12 23:20:50 1985'
