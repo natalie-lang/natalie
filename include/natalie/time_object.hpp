@@ -48,11 +48,13 @@ public:
     Value year(Env *);
 
 private:
-    static TimeObject *build_time_object(Env *, Value, Value, Value, Value, Value, Value, Value);
     static struct tm build_time_struct(Env *, Value, Value, Value, Value, Value, Value);
 
     Value build_string(Env *, const char *);
     Value inspect_usec(Env *);
+    void set_subsec(Env *, long);
+    void set_subsec(Env *, IntegerObject *);
+    void set_subsec(Env *, RationalObject *);
     Value strip_zeroes(StringObject *);
 
     Value m_integer;
