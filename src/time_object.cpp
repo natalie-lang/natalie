@@ -31,10 +31,13 @@ TimeObject *TimeObject::at(Env *env, Value time, Value usec) {
 TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
     struct tm time = build_time_struct(env, year, month, mday, hour, min, sec);
     int seconds = mktime(&time);
-    TimeObject *result = build_time_object(env, year, month, mday, hour, min, sec, usec);
+    TimeObject *result = new TimeObject {};
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(seconds);
+    if (usec && usec->is_integer()) {
+        result->set_subsec(env, usec->as_integer());
+    }
     return result;
 }
 
@@ -50,9 +53,7 @@ TimeObject *TimeObject::now(Env *env) {
     result->m_time = time;
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(ts.tv_sec);
-    if (ts.tv_nsec > 0) {
-        result->m_subsec = RationalObject::create(env, new IntegerObject { ts.tv_nsec }, new IntegerObject { 1000000000 });
-    }
+    result->set_subsec(env, ts.tv_nsec);
     return result;
 }
 
@@ -60,10 +61,13 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     struct tm time = build_time_struct(env, year, month, mday, hour, min, sec);
     time.tm_gmtoff = 0;
     int seconds = timegm(&time);
-    TimeObject *result = build_time_object(env, year, month, mday, hour, min, sec, usec);
+    TimeObject *result = new TimeObject {};
     result->m_time = time;
     result->m_mode = Mode::UTC;
     result->m_integer = Value::integer(seconds);
+    if (usec && usec->is_integer()) {
+        result->set_subsec(env, usec->as_integer());
+    }
     return result;
 }
 
@@ -184,20 +188,6 @@ Value TimeObject::year(Env *) {
     return Value::integer(m_time.tm_year + 1900);
 }
 
-TimeObject *TimeObject::build_time_object(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
-    TimeObject *result = new TimeObject {};
-    if (usec) {
-        IntegerObject *integer = usec->as_integer();
-        if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
-            env->raise("ArgumentError", "subsecx out of range");
-        }
-        if (!integer->is_zero()) {
-            result->m_subsec = RationalObject::create(env, integer, new IntegerObject { 1000000 });
-        }
-    }
-    return result;
-}
-
 struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
     struct tm time = { 0 };
     time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
@@ -214,6 +204,27 @@ struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value md
         time.tm_sec = sec->as_integer()->to_nat_int_t();
     time.tm_isdst = -1;
     return time;
+}
+
+void TimeObject::set_subsec(Env *env, long nsec) {
+    if (nsec > 0) {
+        m_subsec = RationalObject::create(env, new IntegerObject { nsec }, new IntegerObject { 1000000000 });
+    }
+}
+
+void TimeObject::set_subsec(Env *env, IntegerObject *usec) {
+    if (usec->lt(env, new IntegerObject { 0 }) || usec->gte(env, new IntegerObject { 1000000 })) {
+        env->raise("ArgumentError", "subsecx out of range");
+    }
+    if (!usec->is_zero()) {
+        m_subsec = RationalObject::create(env, usec, new IntegerObject { 1000000 });
+    }
+}
+
+void TimeObject::set_subsec(Env *, RationalObject *subsec) {
+    if (!subsec->is_zero()) {
+        m_subsec = subsec;
+    }
 }
 
 Value TimeObject::build_string(Env *, const char *format) {
