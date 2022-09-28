@@ -26,6 +26,7 @@ public:
     static TimeObject *now(Env *);
     static TimeObject *utc(Env *, Value, Value, Value, Value, Value, Value, Value);
 
+    Value add(Env *, Value);
     Value asctime(Env *);
     bool eql(Env *, Value);
     Value hour(Env *);
@@ -49,6 +50,7 @@ public:
 
 private:
     static struct tm build_time_struct(Env *, Value, Value, Value, Value, Value, Value);
+    static TimeObject *create(Env *, RationalObject *, Mode);
 
     Value build_string(Env *, const char *);
     Value inspect_usec(Env *);

@@ -16,16 +16,7 @@ TimeObject *TimeObject::at(Env *env, Value time, Value usec) {
     if (usec && !usec->as_integer()->is_zero()) {
         rational = rational->add(env, RationalObject::create(env, usec->as_integer(), new IntegerObject { 1000000 }))->as_rational();
     }
-    IntegerObject *integer = rational->to_i(env)->as_integer();
-    RationalObject *subseconds = rational->sub(env, integer)->as_rational();
-    if (!subseconds->is_zero()) {
-        result->m_subsec = subseconds;
-    }
-    time_t seconds = (time_t)integer->to_nat_int_t();
-    result->m_time = *localtime(&seconds);
-    result->m_mode = Mode::Localtime;
-    result->m_integer = integer;
-    return result;
+    return TimeObject::create(env, rational, Mode::Localtime);
 }
 
 TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
@@ -69,6 +60,17 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
         result->set_subsec(env, usec->as_integer());
     }
     return result;
+}
+
+Value TimeObject::add(Env *env, Value other) {
+    if (other->is_time()) {
+        env->raise("TypeError", "time + time?");
+    } else if (other->is_nil() || !other->respond_to(env, "to_r"_s)) {
+        env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
+    }
+    RationalObject *rational = to_r(env)->as_rational();
+    rational = rational->add(env, other->send(env, "to_r"_s)->as_rational())->as_rational();
+    return TimeObject::create(env, rational, m_mode);
 }
 
 Value TimeObject::asctime(Env *env) {
@@ -204,6 +206,22 @@ struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value md
         time.tm_sec = sec->as_integer()->to_nat_int_t();
     time.tm_isdst = -1;
     return time;
+}
+
+TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
+    TimeObject *result = new TimeObject {};
+    IntegerObject *integer = rational->to_i(env)->as_integer();
+    RationalObject *subseconds = rational->sub(env, integer)->as_rational();
+    time_t seconds = (time_t)integer->to_nat_int_t();
+    if (mode == Mode::UTC) {
+        result->m_time = *gmtime(&seconds);
+    } else {
+        result->m_time = *localtime(&seconds);
+    }
+    result->m_mode = mode;
+    result->m_integer = integer;
+    result->set_subsec(env, subseconds);
+    return result;
 }
 
 void TimeObject::set_subsec(Env *env, long nsec) {
