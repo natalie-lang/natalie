@@ -25,6 +25,22 @@ describe 'Time' do
         -> { Time.at(nil) }.should raise_error(TypeError)
       end
     end
+
+    context 'with an Integer microseconds argument' do
+      it 'returns a time' do
+        t = Time.at(100, 1)
+        t.should be_an_instance_of(Time)
+        t.nsec.should == 1000
+      end
+    end
+
+    context 'with a Rational microseconds argument' do
+      it 'returns a time' do
+        t = Time.at(100, Rational(1, 1000))
+        t.should be_an_instance_of(Time)
+        t.nsec.should == 1
+      end
+    end
   end
 
   describe '#+' do
