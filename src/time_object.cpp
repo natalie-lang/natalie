@@ -86,6 +86,33 @@ Value TimeObject::asctime(Env *env) {
     return build_string(env, "%a %b %e %T %Y");
 }
 
+Value TimeObject::cmp(Env *env, Value other) {
+    if (other->is_time()) {
+        auto time = other->as_time();
+        auto integer = m_integer->as_integer();
+        if (integer->gt(env, time->m_integer)) {
+            return Value::integer(1);
+        } else if (integer->lt(env, time->m_integer)) {
+            return Value::integer(-1);
+        } else {
+            return subsec(env)->send(env, "to_r"_s)->as_rational()->cmp(env, time->subsec(env)->send(env, "to_r"_s));
+        }
+    } else {
+        auto result = other->send(env, "<=>"_s, { this });
+        if (result->is_nil()) {
+            return result;
+        } else {
+            if (result->send(env, ">"_s, { Value::integer(0) })->is_true()) {
+                return Value::integer(-1);
+            } else if (result->send(env, "<"_s, { Value::integer(0) })->is_true()) {
+                return Value::integer(1);
+            } else {
+                return Value::integer(0);
+            }
+        }
+    }
+}
+
 bool TimeObject::eql(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
