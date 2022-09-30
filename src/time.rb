@@ -1,4 +1,6 @@
 class Time
+  include Comparable
+
   class << self
     alias gm utc
     alias mktime local
