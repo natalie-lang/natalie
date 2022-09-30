@@ -2,8 +2,7 @@
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Value usec) {
-    TimeObject *result = new TimeObject {};
+TimeObject *TimeObject::at(Env *env, Value time, Value subsec) {
     RationalObject *rational;
     if (time->is_integer()) {
         rational = RationalObject::create(env, time->as_integer(), new IntegerObject { 1 });
@@ -13,8 +12,18 @@ TimeObject *TimeObject::at(Env *env, Value time, Value usec) {
         // NATFIXME: Support other arguments (Float, BigDecimal, Time etc)
         env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspect_str());
     }
-    if (usec && !usec->as_integer()->is_zero()) {
-        rational = rational->add(env, RationalObject::create(env, usec->as_integer(), new IntegerObject { 1000000 }))->as_rational();
+    if (subsec) {
+        if (subsec->is_integer()) {
+            IntegerObject *integer = subsec->as_integer();
+            if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
+                env->raise("ArgumentError", "subsecx out of range");
+            }
+            rational = rational->add(env, RationalObject::create(env, integer, new IntegerObject { 1000000 }))->as_rational();
+        } else if (subsec->is_rational()) {
+            rational = rational->add(env, subsec->as_rational()->div(env, new IntegerObject { 1000000 }))->as_rational();
+        } else {
+            env->raise("TypeError", "can't convert {} into an exact number", subsec->klass()->inspect_str());
+        }
     }
     return TimeObject::create(env, rational, Mode::Localtime);
 }
