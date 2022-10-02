@@ -1385,6 +1385,10 @@ void StringObject::append(const char *str) {
     m_string.append(str);
 }
 
+void StringObject::append(const char *str, size_t bytes) {
+    m_string.append(str, bytes);
+}
+
 void StringObject::append(int i) {
     m_string.append(i);
 }

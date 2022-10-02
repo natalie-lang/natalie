@@ -43,15 +43,14 @@ Value IoObject::read(Env *env, Value count_value) const {
     if (count_value) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_nat_int_t();
-        char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
+        char *buf = new char[count + 1];
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
-            free(buf);
+            delete[] buf;
             return NilObject::the();
         } else {
-            buf[bytes_read] = 0;
-            Value result = new StringObject { buf };
-            free(buf);
+            Value result = new StringObject { buf, bytes_read };
+            delete[] buf;
             return result;
         }
     }
@@ -60,13 +59,12 @@ Value IoObject::read(Env *env, Value count_value) const {
     if (bytes_read == 0) {
         return new StringObject { "" };
     }
-    buf[bytes_read] = 0;
-    StringObject *str = new StringObject { buf };
+    StringObject *str = new StringObject { buf, bytes_read };
     while (1) {
         bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;
-        str->append(buf);
+        str->append(buf, bytes_read);
     }
     return str;
 }

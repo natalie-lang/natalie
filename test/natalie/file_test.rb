@@ -81,6 +81,12 @@ describe 'File' do
       f.close
     end
 
+    it 'reads the entire file, even if there are null characters' do
+      f = File.new('examples/icon.png')
+      content = f.read
+      content.bytesize.should == 13_750
+    end
+
     it 'reads specified number of bytes' do
       f = File.new('test/support/file.txt')
       f.read(4).should == 'foo '
@@ -88,6 +94,12 @@ describe 'File' do
       f.read(10).should == "baz\n"
       f.read(4).should be_nil
       f.close
+    end
+
+    it 'reads the specified number of bytes, even if there are null characters' do
+      f = File.new('examples/icon.png')
+      content = f.read(1000)
+      content.bytesize.should == 1000
     end
   end
 
