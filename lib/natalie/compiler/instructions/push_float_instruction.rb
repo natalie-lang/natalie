@@ -14,7 +14,15 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("Value(new FloatObject(#{@float}))")
+        if @float.infinite?
+          if @float.positive?
+            transform.push("Value(FloatObject::positive_infinity(env))")
+          else
+            transform.push("Value(FloatObject::negative_infinity(env))")
+          end
+        else
+          transform.push("Value(new FloatObject(#{@float}))")
+        end
       end
 
       def execute(vm)
