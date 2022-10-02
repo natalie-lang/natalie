@@ -795,6 +795,12 @@ module Natalie
             transform_lit(lit.begin, used: true),
             PushRangeInstruction.new(lit.exclude_end?),
           ]
+        when Rational
+          [
+            transform_lit(lit.numerator, used: true),
+            transform_lit(lit.denominator, used: true),
+            PushRationalInstruction.new,
+          ]
         when Regexp
           PushRegexpInstruction.new(lit)
         when Complex
@@ -804,7 +810,7 @@ module Natalie
             PushComplexInstruction.new,
           ]
         else
-          raise "I don't yet know how to handle lit: #{lit.inspect}"
+          raise "I don't yet know how to handle lit: \"#{lit.inspect}\" (#{exp.file}:#{exp.line}:#{exp.column})"
         end
       end
 
