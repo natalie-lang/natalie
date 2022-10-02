@@ -804,7 +804,7 @@ module Natalie
             PushComplexInstruction.new,
           ]
         else
-          raise "I don't yet know how to handle lit: #{lit.inspect}"
+          raise "I don't yet know how to handle lit: \"#{lit.inspect}\" (#{exp.file}:#{exp.line}:#{exp.column})"
         end
       end
 
