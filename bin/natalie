@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+if RUBY_ENGINE != 'natalie' && ENV.fetch('DEBUG', false)
+  require 'bundler/inline'
+
+  gemfile do
+    source 'https://rubygems.org'
+    gem 'debug', '1.6.2'
+  end
+end
+
 require_relative '../lib/optparse'
 require 'tempfile'
 
