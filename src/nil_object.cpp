@@ -28,6 +28,10 @@ Value NilObject::to_a(Env *env) {
     return new ArrayObject {};
 }
 
+Value NilObject::to_c(Env *env) {
+    return new ComplexObject { new IntegerObject { 0 } };
+}
+
 Value NilObject::to_h(Env *env) {
     return new HashObject {};
 }
