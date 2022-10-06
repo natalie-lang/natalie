@@ -9,6 +9,7 @@ class Time
   alias ctime asctime
   alias day mday
   alias gmt? utc?
+  alias isdst dst?
   alias mon month
   alias tv_nsec nsec
   alias tv_sec to_i
