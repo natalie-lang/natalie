@@ -229,16 +229,20 @@ Value TimeObject::year(Env *) {
 struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
     struct tm time = { 0 };
     time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
+    time.tm_mon = 0;
     time.tm_mday = 1;
-    if (month)
+    time.tm_hour = 0;
+    time.tm_min = 0;
+    time.tm_sec = 0;
+    if (month && month->is_integer())
         time.tm_mon = month->as_integer()->to_nat_int_t() - 1;
-    if (mday)
+    if (mday && mday->is_integer())
         time.tm_mday = mday->as_integer()->to_nat_int_t();
-    if (hour)
+    if (hour && hour->is_integer())
         time.tm_hour = hour->as_integer()->to_nat_int_t();
-    if (min)
+    if (min && min->is_integer())
         time.tm_min = min->as_integer()->to_nat_int_t();
-    if (sec)
+    if (sec && sec->is_integer())
         time.tm_sec = sec->as_integer()->to_nat_int_t();
     time.tm_isdst = -1;
     return time;
