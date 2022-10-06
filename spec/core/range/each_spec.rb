@@ -83,8 +83,7 @@ describe "Range#each" do
   end
 
   ruby_version_is "3.1" do
-    # NATFIXME: Implement Time
-    xit "supports Time objects that respond to #succ" do
+    it "supports Time objects that respond to #succ" do
       t = Time.utc(1970)
       def t.succ; self + 1 end
       t_succ = t.succ
