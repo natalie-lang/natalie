@@ -194,8 +194,10 @@ Value FloatObject::to_i(Env *env) const {
     if (is_infinity()) {
         env->raise("FloatDomainError", to_s()->as_string()->string());
     }
-
-    return f_to_i_or_bigint(::floor(m_double));
+    double num = m_double;
+    if (num > 0.0) num = ::floor(num);
+    if (num < 0.0) num = ::ceil(num);
+    return f_to_i_or_bigint(num);
 }
 
 Value FloatObject::add(Env *env, Value rhs) {
