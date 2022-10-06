@@ -29,6 +29,7 @@ public:
     Value add(Env *, Value);
     Value asctime(Env *);
     Value cmp(Env *, Value);
+    bool dst(Env *);
     bool eql(Env *, Value);
     Value hour(Env *);
     Value inspect(Env *);

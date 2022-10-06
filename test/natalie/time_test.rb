@@ -87,6 +87,20 @@ describe 'Time' do
     end
   end
 
+  describe '#dst?' do
+    context 'when time is during daylight saving time' do
+      it 'returns true' do
+        Time.local(2007, 9, 9, 0, 0, 0).dst?.should be_true
+      end
+    end
+
+    context 'when time is not during daylight saving time' do
+      it 'returns false' do
+        Time.local(2007, 1, 9, 0, 0, 0).dst?.should be_false
+      end
+    end
+  end
+
   describe '#hour' do
     it 'returns an integer' do
       time.hour.should == 23

@@ -113,6 +113,10 @@ Value TimeObject::cmp(Env *env, Value other) {
     }
 }
 
+bool TimeObject::dst(Env *env) {
+    return m_time.tm_isdst > 0;
+}
+
 bool TimeObject::eql(Env *env, Value other) {
     if (other->is_time()) {
         auto time = other->as_time();
