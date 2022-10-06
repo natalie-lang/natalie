@@ -49,6 +49,16 @@ public:
     Value yday(Env *);
     Value year(Env *);
 
+    virtual void visit_children(Visitor &visitor) override {
+        Object::visit_children(visitor);
+        visitor.visit(m_integer);
+        visitor.visit(m_subsec);
+    }
+
+    virtual void gc_inspect(char *buf, size_t len) const override {
+        snprintf(buf, len, "<TimeObject %p>", this);
+    }
+
 private:
     static struct tm build_time_struct(Env *, Value, Value, Value, Value, Value, Value);
     static TimeObject *create(Env *, RationalObject *, Mode);
