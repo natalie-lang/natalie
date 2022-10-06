@@ -43,6 +43,34 @@ describe 'Time' do
     end
   end
 
+  describe '.local' do
+    context 'with nil arguments' do
+      it 'returns a time' do
+        t = Time.local(1970, nil, nil, nil, nil, 1)
+        t.year.should == 1970
+        t.month.should == 1
+        t.mday.should == 1
+        t.hour.should == 0
+        t.min.should == 0
+        t.sec.should == 1
+      end
+    end
+  end
+
+  describe '.utc' do
+    context 'with nil arguments' do
+      it 'returns a time' do
+        t = Time.utc(1970, nil, nil, nil, nil, 1)
+        t.year.should == 1970
+        t.month.should == 1
+        t.mday.should == 1
+        t.hour.should == 0
+        t.min.should == 0
+        t.sec.should == 1
+      end
+    end
+  end
+
   describe '#+' do
     context 'with an Integer argument' do
       it 'returns a time' do
