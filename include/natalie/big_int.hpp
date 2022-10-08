@@ -53,10 +53,6 @@
 #include "tm/string.hpp"
 
 class BigInt {
-    // FIXME: members should be prefixed with m_
-    TM::String value;
-    char sign;
-
 public:
     // Constructors:
     BigInt();
@@ -158,7 +154,7 @@ public:
     BigInt operator<<(const size_t &num) const;
     BigInt operator>>(const size_t &num) const;
 
-    bool is_negative() const { return sign == '-'; }
+    bool is_negative() const { return m_sign == '-'; }
 
     // Conversion functions:
     TM::String to_string() const;
@@ -169,6 +165,10 @@ public:
 
     // Random number generating functions:
     friend BigInt big_random(size_t);
+
+private:
+    TM::String m_value;
+    char m_sign;
 };
 
 BigInt pow(const BigInt &base, long long exp);

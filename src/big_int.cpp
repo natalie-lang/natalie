@@ -155,15 +155,15 @@ BigInt big_random(size_t num_digits = 0) {
         num_digits = 1 + rand_generator() % MAX_RANDOM_LENGTH;
 
     BigInt big_rand;
-    big_rand.value = ""; // clear value to append digits
+    big_rand.m_value = ""; // clear value to append digits
 
     // ensure that the first digit is non-zero
-    big_rand.value.append((size_t)(1 + rand_generator() % 9));
+    big_rand.m_value.append((size_t)(1 + rand_generator() % 9));
 
-    while (big_rand.value.size() < num_digits)
-        big_rand.value.append((size_t)rand_generator());
-    if (big_rand.value.size() != num_digits)
-        big_rand.value.truncate(num_digits); // erase extra digits
+    while (big_rand.m_value.size() < num_digits)
+        big_rand.m_value.append((size_t)rand_generator());
+    if (big_rand.m_value.size() != num_digits)
+        big_rand.m_value.truncate(num_digits); // erase extra digits
 
     return big_rand;
 }
@@ -180,8 +180,8 @@ BigInt big_random(size_t num_digits = 0) {
 */
 
 BigInt::BigInt() {
-    value = "0";
-    sign = '+';
+    m_value = "0";
+    m_sign = '+';
 }
 
 /*
@@ -190,8 +190,8 @@ BigInt::BigInt() {
 */
 
 BigInt::BigInt(const BigInt &num) {
-    value = num.value;
-    sign = num.sign;
+    m_value = num.m_value;
+    m_sign = num.m_sign;
 }
 
 /*
@@ -200,11 +200,11 @@ BigInt::BigInt(const BigInt &num) {
 */
 
 BigInt::BigInt(const long long &num) {
-    value = TM::String(std::abs(num));
+    m_value = TM::String(std::abs(num));
     if (num < 0)
-        sign = '-';
+        m_sign = '-';
     else
-        sign = '+';
+        m_sign = '+';
 }
 
 /*
@@ -213,11 +213,11 @@ BigInt::BigInt(const long long &num) {
 */
 
 BigInt::BigInt(const int &num) {
-    value = TM::String(std::abs(num));
+    m_value = TM::String(std::abs(num));
     if (num < 0)
-        sign = '-';
+        m_sign = '-';
     else
-        sign = '+';
+        m_sign = '+';
 }
 
 /*
@@ -228,12 +228,12 @@ BigInt::BigInt(const int &num) {
 BigInt::BigInt(const double &num) {
     assert(floor(num) == num);
 
-    value = TM::String(std::abs(num), 1);
-    value.truncate(value.size() - 2);
+    m_value = TM::String(std::abs(num), 1);
+    m_value.truncate(m_value.size() - 2);
     if (num < 0)
-        sign = '-';
+        m_sign = '-';
     else
-        sign = '+';
+        m_sign = '+';
 }
 
 /*
@@ -246,15 +246,15 @@ BigInt::BigInt(const TM::String &num) {
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
         assert(is_valid_number(magnitude));
-        value = magnitude;
-        sign = num[0];
+        m_value = magnitude;
+        m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
         assert(is_valid_number(num));
-        value = num;
-        sign = '+'; // positive by default
+        m_value = num;
+        m_sign = '+'; // positive by default
     }
-    strip_leading_zeroes(value);
+    strip_leading_zeroes(m_value);
 }
 
 /*
@@ -271,12 +271,12 @@ BigInt::BigInt(const TM::String &num) {
 
 TM::String BigInt::to_string() const {
     // prefix with sign if negative
-    if (this->sign == '-') {
-        auto copy = this->value;
-        copy.prepend_char(this->sign);
+    if (m_sign == '-') {
+        auto copy = m_value;
+        copy.prepend_char(m_sign);
         return copy;
     } else {
-        return this->value;
+        return m_value;
     }
 }
 
@@ -334,8 +334,8 @@ double BigInt::to_double() const {
 BigInt &BigInt::operator=(const BigInt &num) {
     if (num == *this) return *this;
 
-    value = num.value;
-    sign = num.sign;
+    m_value = num.m_value;
+    m_sign = num.m_sign;
 
     return *this;
 }
@@ -347,8 +347,8 @@ BigInt &BigInt::operator=(const BigInt &num) {
 
 BigInt &BigInt::operator=(const long long &num) {
     BigInt temp(num);
-    value = temp.value;
-    sign = temp.sign;
+    m_value = temp.m_value;
+    m_sign = temp.m_sign;
 
     return *this;
 }
@@ -360,8 +360,8 @@ BigInt &BigInt::operator=(const long long &num) {
 
 BigInt &BigInt::operator=(const TM::String &num) {
     BigInt temp(num);
-    value = temp.value;
-    sign = temp.sign;
+    m_value = temp.m_value;
+    m_sign = temp.m_sign;
 
     return *this;
 }
@@ -393,12 +393,12 @@ BigInt BigInt::operator+() const {
 BigInt BigInt::operator-() const {
     BigInt temp;
 
-    temp.value = value;
-    if (value != "0") {
-        if (sign == '+')
-            temp.sign = '-';
+    temp.m_value = m_value;
+    if (m_value != "0") {
+        if (m_sign == '+')
+            temp.m_sign = '-';
         else
-            temp.sign = '+';
+            temp.m_sign = '+';
     }
 
     return temp;
@@ -417,7 +417,7 @@ BigInt BigInt::operator-() const {
 */
 
 bool BigInt::operator==(const BigInt &num) const {
-    return (sign == num.sign) and (value == num.value);
+    return (m_sign == num.m_sign) and (m_value == num.m_value);
 }
 
 /*
@@ -435,16 +435,16 @@ bool BigInt::operator!=(const BigInt &num) const {
 */
 
 bool BigInt::operator<(const BigInt &num) const {
-    if (sign == num.sign) {
-        if (sign == '+') {
-            if (value.length() == num.value.length())
-                return value < num.value;
+    if (m_sign == num.m_sign) {
+        if (m_sign == '+') {
+            if (m_value.length() == num.m_value.length())
+                return m_value < num.m_value;
             else
-                return value.length() < num.value.length();
+                return m_value.length() < num.m_value.length();
         } else
             return -(*this) > -num;
     } else
-        return sign == '-';
+        return m_sign == '-';
 }
 
 /*
@@ -1053,35 +1053,35 @@ const long long FLOOR_SQRT_LLONG_MAX = 3037000499;
 
 BigInt BigInt::operator+(const BigInt &num) const {
     // if the operands are of opposite signs, perform subtraction
-    if (this->sign == '+' and num.sign == '-') {
+    if (m_sign == '+' and num.m_sign == '-') {
         BigInt rhs = num;
-        rhs.sign = '+';
+        rhs.m_sign = '+';
         return *this - rhs;
-    } else if (this->sign == '-' and num.sign == '+') {
+    } else if (m_sign == '-' and num.m_sign == '+') {
         BigInt lhs = *this;
-        lhs.sign = '+';
+        lhs.m_sign = '+';
         return -(lhs - num);
     }
 
     // identify the numbers as `larger` and `smaller`
     TM::String larger, smaller;
-    std::tie(larger, smaller) = get_larger_and_smaller(this->value, num.value);
+    std::tie(larger, smaller) = get_larger_and_smaller(m_value, num.m_value);
 
     BigInt result; // the resultant sum
-    result.value = ""; // the value is cleared as the digits will be appended
+    result.m_value = ""; // the value is cleared as the digits will be appended
     short carry = 0, sum;
     // add the two values
     for (long i = larger.size() - 1; i >= 0; i--) {
         sum = larger[i] - '0' + smaller[i] - '0' + carry;
-        result.value.prepend_char((sum % 10) + '0');
+        result.m_value.prepend_char((sum % 10) + '0');
         carry = sum / (short)10;
     }
     if (carry)
-        result.value.prepend(carry);
+        result.m_value.prepend(carry);
 
     // if the operands are negative, the result is negative
-    if (this->sign == '-' and result.value != "0")
-        result.sign = '-';
+    if (m_sign == '-' and result.m_value != "0")
+        result.m_sign = '-';
 
     return result;
 }
@@ -1094,13 +1094,13 @@ BigInt BigInt::operator+(const BigInt &num) const {
 
 BigInt BigInt::operator-(const BigInt &num) const {
     // if the operands are of opposite signs, perform addition
-    if (this->sign == '+' and num.sign == '-') {
+    if (m_sign == '+' and num.m_sign == '-') {
         BigInt rhs = num;
-        rhs.sign = '+';
+        rhs.m_sign = '+';
         return *this + rhs;
-    } else if (this->sign == '-' and num.sign == '+') {
+    } else if (m_sign == '-' and num.m_sign == '+') {
         BigInt lhs = *this;
-        lhs.sign = '+';
+        lhs.m_sign = '+';
         return -(lhs + num);
     }
 
@@ -1108,22 +1108,22 @@ BigInt BigInt::operator-(const BigInt &num) const {
     // identify the numbers as `larger` and `smaller`
     TM::String larger, smaller;
     if (abs(*this) > abs(num)) {
-        larger = this->value;
-        smaller = num.value;
+        larger = m_value;
+        smaller = num.m_value;
 
-        if (this->sign == '-') // -larger - -smaller = -result
-            result.sign = '-';
+        if (m_sign == '-') // -larger - -smaller = -result
+            result.m_sign = '-';
     } else {
-        larger = num.value;
-        smaller = this->value;
+        larger = num.m_value;
+        smaller = m_value;
 
-        if (num.sign == '+') // smaller - larger = -result
-            result.sign = '-';
+        if (num.m_sign == '+') // smaller - larger = -result
+            result.m_sign = '-';
     }
     // pad the smaller number with zeroes
     add_leading_zeroes(smaller, larger.size() - smaller.size());
 
-    result.value = ""; // the value is cleared as the digits will be appended
+    result.m_value = ""; // the value is cleared as the digits will be appended
     signed char difference;
     long i, j;
     // subtract the two values
@@ -1143,13 +1143,13 @@ BigInt BigInt::operator-(const BigInt &num) const {
             }
             difference += 10; // add the borrow
         }
-        result.value.prepend_char(difference + '0');
+        result.m_value.prepend_char(difference + '0');
     }
-    strip_leading_zeroes(result.value);
+    strip_leading_zeroes(result.m_value);
 
     // if the result is 0, set its sign as +
-    if (result.value == "0")
-        result.sign = '+';
+    if (result.m_value == "0")
+        result.m_sign = '+';
 
     return result;
 }
@@ -1171,19 +1171,19 @@ BigInt BigInt::operator*(const BigInt &num) const {
 
     BigInt product;
     if (abs(*this) <= FLOOR_SQRT_LLONG_MAX and abs(num) <= FLOOR_SQRT_LLONG_MAX)
-        product = strtoll(this->value.c_str(), NULL, 10) * strtoll(num.value.c_str(), NULL, 10);
-    else if (is_power_of_10(this->value)) { // if LHS is a power of 10 do optimised operation
-        product.value = num.value;
-        if (this->value.length() > 1)
-            product.value.append(this->value.substring(1));
-    } else if (is_power_of_10(num.value)) { // if RHS is a power of 10 do optimised operation
-        product.value = this->value;
-        if (num.value.length() > 1)
-            product.value.append(num.value.substring(1));
+        product = strtoll(m_value.c_str(), NULL, 10) * strtoll(num.m_value.c_str(), NULL, 10);
+    else if (is_power_of_10(m_value)) { // if LHS is a power of 10 do optimised operation
+        product.m_value = num.m_value;
+        if (m_value.length() > 1)
+            product.m_value.append(m_value.substring(1));
+    } else if (is_power_of_10(num.m_value)) { // if RHS is a power of 10 do optimised operation
+        product.m_value = m_value;
+        if (num.m_value.length() > 1)
+            product.m_value.append(num.m_value.substring(1));
     } else {
         // identify the numbers as `larger` and `smaller`
         TM::String larger, smaller;
-        std::tie(larger, smaller) = get_larger_and_smaller(this->value, num.value);
+        std::tie(larger, smaller) = get_larger_and_smaller(m_value, num.m_value);
 
         size_t half_length = larger.size() / 2;
         auto half_length_ceil = (size_t)ceil(larger.size() / 2.0);
@@ -1196,10 +1196,10 @@ BigInt BigInt::operator*(const BigInt &num) const {
         num2_high = smaller.substring(0, half_length);
         num2_low = smaller.substring(half_length);
 
-        strip_leading_zeroes(num1_high.value);
-        strip_leading_zeroes(num1_low.value);
-        strip_leading_zeroes(num2_high.value);
-        strip_leading_zeroes(num2_low.value);
+        strip_leading_zeroes(num1_high.m_value);
+        strip_leading_zeroes(num1_low.m_value);
+        strip_leading_zeroes(num2_high.m_value);
+        strip_leading_zeroes(num2_low.m_value);
 
         BigInt prod_high, prod_mid, prod_low;
         prod_high = num1_high * num2_high;
@@ -1207,21 +1207,21 @@ BigInt BigInt::operator*(const BigInt &num) const {
         prod_mid = (num1_high + num1_low) * (num2_high + num2_low)
             - prod_high - prod_low;
 
-        add_trailing_zeroes(prod_high.value, 2 * half_length_ceil);
-        add_trailing_zeroes(prod_mid.value, half_length_ceil);
+        add_trailing_zeroes(prod_high.m_value, 2 * half_length_ceil);
+        add_trailing_zeroes(prod_mid.m_value, half_length_ceil);
 
-        strip_leading_zeroes(prod_high.value);
-        strip_leading_zeroes(prod_mid.value);
-        strip_leading_zeroes(prod_low.value);
+        strip_leading_zeroes(prod_high.m_value);
+        strip_leading_zeroes(prod_mid.m_value);
+        strip_leading_zeroes(prod_low.m_value);
 
         product = prod_high + prod_mid + prod_low;
     }
-    strip_leading_zeroes(product.value);
+    strip_leading_zeroes(product.m_value);
 
-    if (this->sign == num.sign)
-        product.sign = '+';
+    if (m_sign == num.m_sign)
+        product.m_sign = '+';
     else
-        product.sign = '-';
+        product.m_sign = '-';
 
     return product;
 }
@@ -1283,46 +1283,46 @@ BigInt BigInt::c_div(const BigInt &num) const {
 
     BigInt quotient;
     if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
-        quotient = strtoll(abs_dividend.value.c_str(), NULL, 10) / strtoll(abs_divisor.value.c_str(), NULL, 10);
+        quotient = strtoll(abs_dividend.m_value.c_str(), NULL, 10) / strtoll(abs_divisor.m_value.c_str(), NULL, 10);
     else if (abs_dividend == abs_divisor)
         quotient = 1;
-    else if (is_power_of_10(abs_divisor.value)) { // if divisor is a power of 10 do optimised calculation
-        size_t digits_in_quotient = abs_dividend.value.size() - abs_divisor.value.size() + 1;
-        quotient.value = abs_dividend.value.substring(0, digits_in_quotient);
+    else if (is_power_of_10(abs_divisor.m_value)) { // if divisor is a power of 10 do optimised calculation
+        size_t digits_in_quotient = abs_dividend.m_value.size() - abs_divisor.m_value.size() + 1;
+        quotient.m_value = abs_dividend.m_value.substring(0, digits_in_quotient);
     } else {
-        quotient.value = ""; // the value is cleared as digits will be appended
+        quotient.m_value = ""; // the value is cleared as digits will be appended
         BigInt chunk, chunk_quotient, chunk_remainder;
         size_t chunk_index = 0;
-        chunk_remainder.value = abs_dividend.value.substring(chunk_index, abs_divisor.value.size() - 1);
-        chunk_index = abs_divisor.value.size() - 1;
-        while (chunk_index < abs_dividend.value.size()) {
-            chunk_remainder.value.append(1, abs_dividend.value[chunk_index]);
-            chunk.value = chunk_remainder.value;
+        chunk_remainder.m_value = abs_dividend.m_value.substring(chunk_index, abs_divisor.m_value.size() - 1);
+        chunk_index = abs_divisor.m_value.size() - 1;
+        while (chunk_index < abs_dividend.m_value.size()) {
+            chunk_remainder.m_value.append(1, abs_dividend.m_value[chunk_index]);
+            chunk.m_value = chunk_remainder.m_value;
             chunk_index++;
             while (chunk < abs_divisor) {
-                quotient.value.append_char('0');
-                if (chunk_index < abs_dividend.value.size()) {
-                    chunk.value.append(1, abs_dividend.value[chunk_index]);
+                quotient.m_value.append_char('0');
+                if (chunk_index < abs_dividend.m_value.size()) {
+                    chunk.m_value.append(1, abs_dividend.m_value[chunk_index]);
                     chunk_index++;
                 } else
                     break;
             }
             if (chunk == abs_divisor) {
-                quotient.value.append_char('1');
+                quotient.m_value.append_char('1');
                 chunk_remainder = 0;
             } else if (chunk > abs_divisor) {
-                strip_leading_zeroes(chunk.value);
+                strip_leading_zeroes(chunk.m_value);
                 std::tie(chunk_quotient, chunk_remainder) = divide(chunk, abs_divisor);
-                quotient.value.append(chunk_quotient.value.c_str());
+                quotient.m_value.append(chunk_quotient.m_value.c_str());
             }
         }
     }
-    strip_leading_zeroes(quotient.value);
+    strip_leading_zeroes(quotient.m_value);
 
-    if (this->sign == num.sign)
-        quotient.sign = '+';
+    if (m_sign == num.m_sign)
+        quotient.m_sign = '+';
     else
-        quotient.sign = '-';
+        quotient.m_sign = '-';
 
     return quotient;
 }
@@ -1356,21 +1356,21 @@ BigInt BigInt::c_mod(const BigInt &num) const {
 
     BigInt remainder;
     if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
-        remainder = strtoll(abs_dividend.value.c_str(), NULL, 10) % strtoll(abs_divisor.value.c_str(), NULL, 10);
+        remainder = strtoll(abs_dividend.m_value.c_str(), NULL, 10) % strtoll(abs_divisor.m_value.c_str(), NULL, 10);
     else if (abs_dividend < abs_divisor)
         remainder = abs_dividend;
-    else if (is_power_of_10(num.value)) { // if num is a power of 10 use optimised calculation
-        size_t no_of_zeroes = num.value.size() - 1;
-        remainder.value = abs_dividend.value.substring(abs_dividend.value.size() - no_of_zeroes);
+    else if (is_power_of_10(num.m_value)) { // if num is a power of 10 use optimised calculation
+        size_t no_of_zeroes = num.m_value.size() - 1;
+        remainder.m_value = abs_dividend.m_value.substring(abs_dividend.m_value.size() - no_of_zeroes);
     } else {
         BigInt quotient = abs_dividend / abs_divisor;
         remainder = abs_dividend - quotient * abs_divisor;
     }
-    strip_leading_zeroes(remainder.value);
+    strip_leading_zeroes(remainder.m_value);
 
-    remainder.sign = this->sign;
-    if (remainder.value == "0")
-        remainder.sign = '+';
+    remainder.m_sign = m_sign;
+    if (remainder.m_value == "0")
+        remainder.m_sign = '+';
 
     return remainder;
 }
@@ -1385,7 +1385,7 @@ BigInt BigInt::c_mod(const BigInt &num) const {
 BigInt BigInt::operator%(const BigInt &num) const {
     BigInt remainder = c_mod(num);
 
-    if (remainder != 0 && num.sign != remainder.sign)
+    if (remainder != 0 && num.m_sign != remainder.m_sign)
         remainder += num;
 
     return remainder;
