@@ -15,9 +15,6 @@ SKIP_CLASS_MEMBERS = {
   'Natalie::HashObject::iterator' => '*',
   'Natalie::HeapBlock::iterator' => '*',
   'Natalie::StringObject::iterator' => '*',
-
-  # FIXME: members aren't properly named with m_ prefix
-  'Natalie::BigInt' => '*',
 }
 
 KNOWN_UNCOLLECTABLE_TYPES = [
