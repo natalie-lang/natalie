@@ -145,7 +145,7 @@ def garbage_collected?(type)
     elsif (superclass = @classes[klass[:superclass]])
       garbage_collected?(superclass[:name])
     else
-      binding.irb if klass[:name].strip =~ /.*Object$/
+      raise 'unlikely' if klass[:name].strip =~ /.*Object$/
       false
     end
   else
