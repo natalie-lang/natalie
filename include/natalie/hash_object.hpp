@@ -140,6 +140,9 @@ public:
         }
 
     private:
+        // cannot be heap-allocated, because the GC is not aware of it.
+        void *operator new(size_t size) = delete;
+
         Key *m_key;
         const HashObject *m_hash;
     };
