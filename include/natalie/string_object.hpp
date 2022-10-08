@@ -314,6 +314,9 @@ public:
         }
 
     private:
+        // cannot be heap-allocated, because the GC is not aware of it.
+        void *operator new(size_t size) = delete;
+
         const StringObject *m_string;
         StringView m_view;
     };

@@ -69,7 +69,7 @@ public:
 
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
-    void *operator new(size_t size) { TM_UNREACHABLE(); };
+    void *operator new(size_t size) = delete;
 
     size_t m_size { 0 };
     const Value *m_data { nullptr };

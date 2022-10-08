@@ -107,6 +107,9 @@ public:
         }
 
     private:
+        // cannot be heap-allocated, because the GC is not aware of it.
+        void *operator new(size_t size) = delete;
+
         HeapBlock *m_block;
         Cell *m_ptr { nullptr };
         size_t m_index { 0 };
