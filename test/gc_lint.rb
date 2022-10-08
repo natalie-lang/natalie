@@ -19,10 +19,9 @@ SKIP_CLASS_MEMBERS = {
   # FIXME: members aren't properly named with m_ prefix
   'Natalie::BigInt' => '*',
 
-  # FIXME: memory access bug when visiting these Envs
-  # (probably leaving an env behind after a call or break when we shouldn't be)
+  # FIXME: memory access bug when visiting this Env
+  # (probably leaving an env behind after a call when we shouldn't be)
   'Natalie::Block' => %w[m_calling_env],
-  'Natalie::ExceptionObject' => %w[m_local_jump_error_env],
 }
 
 KNOWN_UNCOLLECTABLE_TYPES = [

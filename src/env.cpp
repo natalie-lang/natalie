@@ -86,12 +86,8 @@ void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type, nat_
     exception->ivar_set(this, "@exit_value"_s, exit_value);
     if (break_point != 0)
         exception->set_break_point(break_point);
-    if (type == LocalJumpErrorType::Break) {
+    if (type == LocalJumpErrorType::Break)
         assert(m_this_block);
-        exception->set_local_jump_error_env(m_this_block->calling_env());
-    } else {
-        exception->set_local_jump_error_env(this);
-    }
     this->raise_exception(exception);
 }
 
