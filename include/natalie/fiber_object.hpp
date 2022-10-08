@@ -87,7 +87,7 @@ public:
         s_current = fiber;
     }
 
-    const int STACK_SIZE = 1024 * 1024;
+    constexpr static int STACK_SIZE = 1024 * 1024;
 
     FiberObject *initialize(Env *env, Block *block);
 

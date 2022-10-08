@@ -17,8 +17,6 @@ using namespace TM;
 
 class StringObject : public Object {
 public:
-    const int STRING_GROW_FACTOR = 2;
-
     StringObject(ClassObject *klass)
         : Object { Object::Type::String, klass }
         , m_encoding { EncodingObject::get(Encoding::ASCII_8BIT) } {
