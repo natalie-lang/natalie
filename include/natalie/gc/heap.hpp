@@ -19,9 +19,9 @@ class Heap {
 public:
     NAT_MAKE_NONCOPYABLE(Heap);
 
-    const int initial_blocks_per_allocator = 10;
-    const int min_percent_free_triggers_collection = 5;
-    const int min_percent_free_after_collection = 20;
+    constexpr static int initial_blocks_per_allocator = 10;
+    constexpr static int min_percent_free_triggers_collection = 5;
+    constexpr static int min_percent_free_after_collection = 20;
 
     static Heap &the() {
         if (s_instance)
