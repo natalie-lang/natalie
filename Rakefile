@@ -111,6 +111,9 @@ end
 desc 'Run clang-tidy'
 task tidy: %i[build tidy_internal]
 
+desc 'Lint GC visiting code'
+task gc_lint: %i[build gc_lint_internal]
+
 # # # # Docker Tasks (used for CI) # # # #
 
 DOCKER_FLAGS =
@@ -157,6 +160,10 @@ end
 
 task docker_tidy: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang tidy"
+end
+
+task docker_gc_lint: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang gc_lint"
 end
 
 # # # # Build Compile Database # # # #
@@ -369,6 +376,10 @@ end
 
 task :tidy_internal do
   sh "clang-tidy #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
+end
+
+task :gc_lint_internal do
+  sh "ruby test/gc_lint.rb"
 end
 
 task :bundle_install do
