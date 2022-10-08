@@ -51,9 +51,6 @@ public:
         snprintf(buf, len, "<ExceptionObject %p message='%s'>", this, m_message->c_str());
     }
 
-    void set_local_jump_error_env(Env *env) { m_local_jump_error_env = env; }
-    Env *local_jump_error_env() { return m_local_jump_error_env; }
-
     void set_local_jump_error_type(LocalJumpErrorType type) { m_local_jump_error_type = type; }
     LocalJumpErrorType local_jump_error_type() { return m_local_jump_error_type; }
 
@@ -69,7 +66,6 @@ private:
     StringObject *m_message { nullptr };
     Backtrace *m_backtrace { nullptr };
     nat_int_t m_break_point { 0 };
-    Env *m_local_jump_error_env { nullptr };
     LocalJumpErrorType m_local_jump_error_type { LocalJumpErrorType::None };
 };
 
