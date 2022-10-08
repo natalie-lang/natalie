@@ -20,10 +20,11 @@ Value Method::call(Env *env, Value self, Args args, Block *block) {
 
     auto call_fn = [&](Args args) {
         if (block && !block->calling_env()) {
+            Defer clear_calling_env([&]() {
+                block->clear_calling_env();
+            });
             block->set_calling_env(env);
-            auto result = m_fn(&e, self, args, block);
-            block->clear_calling_env();
-            return result;
+            return m_fn(&e, self, args, block);
         } else {
             return m_fn(&e, self, args, block);
         }
