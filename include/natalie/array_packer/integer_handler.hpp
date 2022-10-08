@@ -9,7 +9,7 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class IntegerHandler {
+    class IntegerHandler : public Cell {
     public:
         IntegerHandler(IntegerObject *source, Token token)
             : m_source { source }
@@ -40,6 +40,10 @@ namespace ArrayPacker {
             }
 
             return m_packed;
+        }
+
+        virtual void visit_children(Visitor &visitor) override {
+            visitor.visit(m_source);
         }
 
     private:

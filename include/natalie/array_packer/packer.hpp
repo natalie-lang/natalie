@@ -12,7 +12,7 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class Packer {
+    class Packer : public Cell {
     public:
         Packer(ArrayObject *source, String directives)
             : m_source { source }
@@ -103,6 +103,11 @@ namespace ArrayPacker {
                 }
             }
             return new StringObject { m_packed, m_encoding };
+        }
+
+        virtual void visit_children(Visitor &visitor) override {
+            visitor.visit(m_source);
+            visitor.visit(m_encoding);
         }
 
     private:

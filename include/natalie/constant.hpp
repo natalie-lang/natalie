@@ -16,9 +16,7 @@ public:
     bool is_deprecated() const { return m_deprecated; }
     void set_deprecated(bool is_deprecated) { this->m_deprecated = is_deprecated; }
 
-    void visit_children(Visitor &visitor) {
-        visitor.visit(m_value);
-    }
+    void visit_children(Visitor &visitor);
 
 private:
     SymbolObject *m_name;

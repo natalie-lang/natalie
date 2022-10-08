@@ -66,6 +66,11 @@ public:
 
     virtual String dbg_inspect() const override;
 
+    virtual void visit_children(Visitor &visitor) override {
+        Object::visit_children(visitor);
+        visitor.visit(m_string);
+    }
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         // NOTE: this won't properly print the null character '\0', but since this is only used
         // for debugging, we probably don't care.
