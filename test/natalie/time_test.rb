@@ -69,6 +69,22 @@ describe 'Time' do
         t.sec.should == 1
       end
     end
+
+    context 'with an Integer microseconds argument' do
+      it 'returns a time' do
+        t = Time.utc(1970, 1, 1, 0, 0, 0, 1)
+        t.should be_an_instance_of(Time)
+        t.nsec.should == 1000
+      end
+    end
+
+    context 'with a Rational microseconds argument' do
+      it 'returns a time' do
+        t = Time.utc(1970, 1, 1, 0, 0, 0, Rational(1, 1000))
+        t.should be_an_instance_of(Time)
+        t.nsec.should == 1
+      end
+    end
   end
 
   describe '#+' do

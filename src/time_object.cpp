@@ -57,7 +57,7 @@ TimeObject *TimeObject::now(Env *env) {
     return result;
 }
 
-TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
+TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value subsec) {
     struct tm time = build_time_struct(env, year, month, mday, hour, min, sec);
     time.tm_gmtoff = 0;
     int seconds = timegm(&time);
@@ -65,8 +65,18 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
     result->m_time = time;
     result->m_mode = Mode::UTC;
     result->m_integer = Value::integer(seconds);
-    if (usec && usec->is_integer()) {
-        result->set_subsec(env, usec->as_integer());
+    if (subsec) {
+        if (subsec->is_integer()) {
+            IntegerObject *integer = subsec->as_integer();
+            if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
+                env->raise("ArgumentError", "subsecx out of range");
+            }
+            result->m_subsec = RationalObject::create(env, integer, new IntegerObject { 1000000 });
+        } else if (subsec->is_rational()) {
+            result->m_subsec = subsec->as_rational()->div(env, new IntegerObject { 1000000 });
+        } else {
+            env->raise("TypeError", "can't convert {} into an exact number", subsec->klass()->inspect_str());
+        }
     }
     return result;
 }
