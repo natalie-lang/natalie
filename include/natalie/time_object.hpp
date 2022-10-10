@@ -64,7 +64,6 @@ private:
     static TimeObject *create(Env *, RationalObject *, Mode);
 
     Value build_string(Env *, const char *);
-    Value inspect_usec(Env *);
     void set_subsec(Env *, long);
     void set_subsec(Env *, IntegerObject *);
     void set_subsec(Env *, RationalObject *);
