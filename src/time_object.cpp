@@ -144,7 +144,19 @@ Value TimeObject::hour(Env *) {
 Value TimeObject::inspect(Env *env) {
     StringObject *result = build_string(env, "%Y-%m-%d %H:%M:%S")->as_string();
     if (m_subsec) {
-        result->append(inspect_usec(env));
+        auto integer = m_subsec->as_rational()->mul(env, new IntegerObject { 1000000000 })->as_rational()->to_i(env);
+        auto string = integer->to_s(env);
+        auto length = string->length();
+        if (length > 9) {
+            string->truncate(9);
+        } else if (length < 9) {
+            nat_int_t n;
+            for (n = 9 - length - 1; n >= 0; n--) {
+                string->prepend_char(env, '0');
+            }
+        }
+        result->append_char('.');
+        result->append(strip_zeroes(string));
     }
     if (is_utc(env)) {
         result->append(" UTC");
@@ -300,17 +312,6 @@ Value TimeObject::build_string(Env *, const char *format) {
     char buffer[maxsize];
     auto length = ::strftime(buffer, maxsize, format, &m_time);
     return new StringObject { buffer, length };
-}
-
-Value TimeObject::inspect_usec(Env *env) {
-    IntegerObject *integer = usec(env)->as_integer();
-    StringObject *string = integer->to_s(env)->as_string();
-    if (string->length() > 6) {
-        string->truncate(6);
-    }
-    string = strip_zeroes(string)->as_string();
-    string->prepend_char(env, '.');
-    return string;
 }
 
 Value TimeObject::strip_zeroes(StringObject *string) {

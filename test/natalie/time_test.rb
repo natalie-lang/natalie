@@ -147,6 +147,16 @@ describe 'Time' do
         time = Time.utc(1985, 4, 12, 23, 20, 50, 520_000)
         time.inspect.should == '1985-04-12 23:20:50.52 UTC'
       end
+
+      it 'preserves nanoseconds' do
+        time = Time.utc(1970, nil, nil, nil, nil, nil, Rational(1, 1000))
+        time.inspect.should == '1970-01-01 00:00:00.000000001 UTC'
+      end
+
+      it 'includes microseconds with leading zeroes' do
+        time = Time.utc(1970, nil, nil, nil, nil, nil, 1)
+        time.inspect.should == '1970-01-01 00:00:00.000001 UTC'
+      end
     end
   end
 
