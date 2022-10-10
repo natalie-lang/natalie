@@ -52,7 +52,7 @@ describe 'Fiber' do
 
     f = Fiber.new { f2.resume(f) }
 
-    -> { f.resume }.should raise_error(FiberError, /double resume/)
+    -> { f.resume }.should raise_error(FiberError, /attempt to resume the current fiber/)
   end
 
   it 'raises an error when attempting to yield from the main fiber' do
