@@ -375,7 +375,7 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
 end
 
 task :tidy_internal do
-  sh "clang-tidy #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
+  sh "clang-tidy --warnings-as-errors='*' #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
 end
 
 task :gc_lint_internal do

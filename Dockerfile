@@ -11,6 +11,7 @@ ENV LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config
 WORKDIR natalie
 COPY .git/ .git/
 COPY .gitmodules .gitmodules
+COPY .clang-tidy .clang-tidy
 RUN git submodule update --init
 
 COPY Gemfile Gemfile.lock /natalie/ 
