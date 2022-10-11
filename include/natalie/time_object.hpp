@@ -30,14 +30,14 @@ public:
     Value asctime(Env *);
     Value cmp(Env *, Value);
     bool eql(Env *, Value);
-    Value hour(Env *);
+    Value hour(Env *) const;
     Value inspect(Env *);
     bool is_utc(Env *) const { return m_mode == Mode::UTC; }
-    Value mday(Env *);
-    Value min(Env *);
-    Value month(Env *);
+    Value mday(Env *) const;
+    Value min(Env *) const;
+    Value month(Env *) const;
     Value nsec(Env *);
-    Value sec(Env *);
+    Value sec(Env *) const;
     Value strftime(Env *, Value);
     Value subsec(Env *);
     Value to_f(Env *);
@@ -45,9 +45,9 @@ public:
     Value to_r(Env *);
     Value to_s(Env *);
     Value usec(Env *);
-    Value wday(Env *);
-    Value yday(Env *);
-    Value year(Env *);
+    Value wday(Env *) const;
+    Value yday(Env *) const;
+    Value year(Env *) const;
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);

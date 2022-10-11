@@ -137,7 +137,7 @@ bool TimeObject::eql(Env *env, Value other) {
     return false;
 }
 
-Value TimeObject::hour(Env *) {
+Value TimeObject::hour(Env *) const {
     return Value::integer(m_time.tm_hour);
 }
 
@@ -168,15 +168,15 @@ Value TimeObject::inspect(Env *env) {
     return result;
 }
 
-Value TimeObject::mday(Env *) {
+Value TimeObject::mday(Env *) const {
     return Value::integer(m_time.tm_mday);
 }
 
-Value TimeObject::min(Env *) {
+Value TimeObject::min(Env *) const {
     return Value::integer(m_time.tm_min);
 }
 
-Value TimeObject::month(Env *) {
+Value TimeObject::month(Env *) const {
     return Value::integer(m_time.tm_mon + 1);
 }
 
@@ -188,7 +188,7 @@ Value TimeObject::nsec(Env *env) {
     }
 }
 
-Value TimeObject::sec(Env *) {
+Value TimeObject::sec(Env *) const {
     return Value::integer(m_time.tm_sec);
 }
 
@@ -236,15 +236,15 @@ Value TimeObject::usec(Env *env) {
     }
 }
 
-Value TimeObject::wday(Env *) {
+Value TimeObject::wday(Env *) const {
     return Value::integer(m_time.tm_wday);
 }
 
-Value TimeObject::yday(Env *) {
+Value TimeObject::yday(Env *) const {
     return Value::integer(m_time.tm_yday + 1);
 }
 
-Value TimeObject::year(Env *) {
+Value TimeObject::year(Env *) const {
     return Value::integer(m_time.tm_year + 1900);
 }
 
