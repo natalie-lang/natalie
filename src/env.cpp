@@ -43,7 +43,7 @@ String Env::build_code_location_name() {
         return String::format("block in {}", outer_name);
     }
     // fall back to just "block" if we don't know where this block came from
-    return new String("block");
+    return String("block");
 }
 
 void Env::raise(ClassObject *klass, StringObject *message) {

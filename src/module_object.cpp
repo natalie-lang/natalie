@@ -464,12 +464,12 @@ String ModuleObject::inspect_str() {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
             return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
         } else {
-            return new String(m_class_name.value());
+            return String(m_class_name.value());
         }
     } else if (is_class()) {
         return String::format("#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return new String(m_class_name.value());
+        return String(m_class_name.value());
     } else {
         return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
