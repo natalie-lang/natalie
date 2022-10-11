@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "tm/hashmap.hpp"
@@ -9,13 +10,14 @@ class Backtrace : public Cell {
 public:
     struct Item {
         String source_location;
-        const char *file;
+        String file;
         size_t line;
     };
 
-    void add_item(Env *env, const char *file, size_t line) {
+    void add_item(Env *env, String file, size_t line) {
         // NATFIXME: Ideally we could store the env and delay building the code location name
-        m_items.push(Item { env->build_code_location_name(), file, line });
+        auto name = env->build_code_location_name();
+        m_items.push(Item { name, file, line });
     }
     ArrayObject *to_ruby_array();
 
