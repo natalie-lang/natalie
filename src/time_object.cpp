@@ -162,7 +162,7 @@ Value TimeObject::inspect(Env *env) {
         result->append(" UTC");
     } else {
         char buffer[7];
-        auto length = ::strftime(buffer, 7, " %z", &m_time);
+        ::strftime(buffer, 7, " %z", &m_time);
         result->append(buffer);
     }
     return result;
