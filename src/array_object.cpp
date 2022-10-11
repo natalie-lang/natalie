@@ -1736,7 +1736,7 @@ Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_
                 return Value::integer(index);
         } else {
             Value args[] = { item };
-            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr); // NOLINT FIXME: Called C++ object pointer is null
+            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
             length = static_cast<nat_int_t>(size());
             if (result->is_truthy())
                 return Value::integer(index);

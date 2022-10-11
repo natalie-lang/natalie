@@ -226,7 +226,7 @@ Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
             abort();
         }
     }
-    m_vars->at(index) = val; // NOLINT FIXME: Called C++ object pointer is null
+    m_vars->at(index) = val;
     return val;
 }
 
