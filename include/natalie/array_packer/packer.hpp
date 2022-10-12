@@ -84,7 +84,9 @@ namespace ArrayPacker {
                     break;
                 }
                 case 'D':
-                case 'd': {
+                case 'd':
+                case 'F':
+                case 'f': {
                     pack_with_loop(env, token, [&]() {
                         auto value = m_source->at(m_index);
                         if (value->is_integer())

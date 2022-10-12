@@ -22,6 +22,10 @@ namespace ArrayPacker {
             case 'd':
                 pack_d();
                 break;
+            case 'F':
+            case 'f':
+                pack_f();
+                break;
             default: {
                 char buf[2] = { d, '\0' };
                 env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -37,17 +41,13 @@ namespace ArrayPacker {
 
     private:
         void pack_d() {
-            /*
-             * significand bits = 53
-             * decimal digits   = 15.95
-             * exponent bits    = 11
-             * exponent bias    = (2^10)−1 = 1023
-             */
             auto value = m_source->to_double();
-            auto double_bytes = (unsigned char *)&value;
-            for (size_t i = 0; i < sizeof(double); i++) {
-                m_packed.append_char((unsigned char)double_bytes[i]);
-            }
+            m_packed.append((char *)&value, sizeof(double));
+        }
+
+        void pack_f() {
+            auto value = (float)m_source->to_double();
+            m_packed.append((char *)&value, sizeof(float));
         }
 
         FloatObject *m_source;
