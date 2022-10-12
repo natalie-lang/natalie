@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/array_object.hpp"
+#include "natalie/array_packer/float_handler.hpp"
 #include "natalie/array_packer/integer_handler.hpp"
 #include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
@@ -80,6 +81,17 @@ namespace ArrayPacker {
                     else
                         m_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
 
+                    break;
+                }
+                case 'D':
+                case 'd': {
+                    pack_with_loop(env, token, [&]() {
+                        auto value = m_source->at(m_index);
+                        if (value->is_integer())
+                            value = value->as_integer()->to_f();
+                        auto packer = FloatHandler { value->as_float_or_raise(env), token };
+                        m_packed.append(packer.pack(env));
+                    });
                     break;
                 }
                 case 'x':

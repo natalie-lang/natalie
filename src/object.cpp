@@ -328,6 +328,12 @@ ClassObject *Object::as_class_or_raise(Env *env) {
     return static_cast<ClassObject *>(this);
 }
 
+FloatObject *Object::as_float_or_raise(Env *env) {
+    if (!is_float())
+        env->raise("TypeError", "{} can't be coerced into Float", m_klass->inspect_str());
+    return static_cast<FloatObject *>(this);
+}
+
 HashObject *Object::as_hash_or_raise(Env *env) {
     if (!is_hash())
         env->raise("TypeError", "{} can't be coerced into Hash", m_klass->inspect_str());
