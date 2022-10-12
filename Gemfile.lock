@@ -16,6 +16,7 @@ GEM
     stackprof (0.2.21)
 
 PLATFORMS
+  arm64-darwin-20
   arm64-darwin-21
   x86_64-linux
 
