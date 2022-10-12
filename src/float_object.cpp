@@ -200,6 +200,10 @@ Value FloatObject::to_i(Env *env) const {
     return f_to_i_or_bigint(num);
 }
 
+Value FloatObject::to_r(Env *env) const {
+    return KernelModule::Rational(env, m_double);
+}
+
 Value FloatObject::add(Env *env, Value rhs) {
     Value lhs = this;
 

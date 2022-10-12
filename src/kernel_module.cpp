@@ -489,8 +489,8 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
     Value y = radix.pow(env, Value::integer(DBL_MANT_DIG));
 
     int exponent;
-    FloatObject significand { std::frexp(arg, &exponent) };
-    Value x = significand.mul(env, y)->as_float()->to_i(env);
+    FloatObject *significand = new FloatObject { std::frexp(arg, &exponent) };
+    Value x = significand->mul(env, y)->as_float()->to_i(env);
 
     IntegerObject two { 2 };
     if (exponent < 0) {

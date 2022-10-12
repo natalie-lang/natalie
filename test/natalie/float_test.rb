@@ -17,4 +17,14 @@ describe 'float' do
       (2.2 ** 3).should be_close(10.648, TOLERANCE)
     end
   end
+
+  describe '#to_r' do
+    it 'returns a rational' do
+      2.0.to_r.should == Rational(2, 1)
+      2.5.to_r.should == Rational(5, 2)
+      -0.75.to_r.should == Rational(-3, 4)
+      0.0.to_r.should == Rational(0, 1)
+      0.3.to_r.should == Rational(5404319552844595, 18014398509481984)
+    end
+  end
 end
