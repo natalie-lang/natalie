@@ -191,6 +191,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
 }
 
 Value FloatObject::to_i(Env *env) const {
+    if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) {
         env->raise("FloatDomainError", to_s()->as_string()->string());
     }
