@@ -140,12 +140,12 @@ namespace ArrayPacker {
                     return at_end();
 
                 size_t count = token.count != -1 ? token.count : 1;
-                bool is_complete = m_index - starting_index >= static_cast<size_t>(count);
+                bool complete = m_index - starting_index >= count;
 
-                if (!is_complete && at_end())
+                if (!complete && at_end())
                     env->raise("ArgumentError", "too few Arguments");
 
-                return is_complete;
+                return complete;
             };
 
             while (!is_complete()) {

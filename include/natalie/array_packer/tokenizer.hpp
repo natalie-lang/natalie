@@ -41,10 +41,10 @@ namespace ArrayPacker {
 
     private:
         Token next_token() {
-            auto d = current_char();
-            if (!d) return {};
+            auto directive = current_char();
+            if (!directive) return {};
 
-            auto token = Token { d };
+            auto token = Token { directive };
 
             auto modifier = next_char();
 
@@ -109,30 +109,32 @@ namespace ArrayPacker {
         }
 
         signed char next_char() {
+            if (m_index >= m_directives.length())
+                return 0;
             m_index++;
             return current_char();
         }
 
         signed char current_char() {
-            if (m_index >= m_directives.length())
-                return 0;
-            signed char c = m_directives[m_index];
-            while (isspace(c) || c == '\0') {
-                if (m_index + 1 >= m_directives.length())
-                    return 0;
-                c = m_directives[++m_index];
-            }
+            signed char c = char_at_index(m_index);
+
+            while (m_index < m_directives.size() && (isspace(c) || c == '\0'))
+                c = char_at_index(++m_index);
+
             if (c == '#') {
-                while (c != '\n') {
-                    if (m_index + 1 >= m_directives.length())
-                        return 0;
-                    c = m_directives[++m_index];
-                }
-                if (m_index + 1 >= m_directives.length())
-                    return 0;
-                c = m_directives[++m_index];
+                while (c && c != '\n')
+                    c = char_at_index(++m_index);
+                if (c == '\n')
+                    c = char_at_index(++m_index);
             }
+
             return c;
+        }
+
+        signed char char_at_index(size_t index) {
+            if (index >= m_directives.length())
+                return 0;
+            return m_directives[index];
         }
 
         String m_directives;
