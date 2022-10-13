@@ -1,16 +1,24 @@
 require_relative '../../spec_helper'
-require_relative 'fixtures/classes'
 
 describe "Numeric#denominator" do
+  # The Numeric child classes override this method, so their behaviour is
+  # specified in the appropriate place
   before :each do
-    @obj = NumericSpecs::Subclass.new
+    @numbers = [
+      20,             # Integer
+      99999999**99,   # Bignum
+    ]
   end
 
-  it "calls self#to_r then returns the #denominator" do
-    result = mock("Numeric#to_r result")
-    result.should_receive(:denominator).and_return(12)
-    @obj.should_receive(:to_r).and_return(result)
+  it "returns 1" do
+    @numbers.each {|number| number.denominator.should == 1}
+  end
 
-    @obj.denominator.should == 12
+  it "works with Numeric subclasses" do
+    rational = mock_numeric('rational')
+    rational.should_receive(:denominator).and_return(:denominator)
+    numeric = mock_numeric('numeric')
+    numeric.should_receive(:to_r).and_return(rational)
+    numeric.denominator.should == :denominator
   end
 end

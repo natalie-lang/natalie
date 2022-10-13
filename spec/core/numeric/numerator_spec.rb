@@ -1,16 +1,33 @@
 require_relative '../../spec_helper'
-require_relative 'fixtures/classes'
 
 describe "Numeric#numerator" do
-  before :each do
-    @obj = NumericSpecs::Subclass.new
+  before :all do
+    @numbers = [
+      0,
+      29871,
+      99999999999999**99,
+      -72628191273,
+      29282.2827,
+      -2927.00091,
+      0.0,
+      12.0,
+      Float::MAX,
+    ]
   end
 
-  it "calls self#to_r then returns the #numerator" do
-    result = mock("Numeric#to_r result")
-    result.should_receive(:numerator).and_return(12)
-    @obj.should_receive(:to_r).and_return(result)
+  # This isn't entirely true, as NaN.numerator works, whereas
+  # Rational(NaN) raises an exception, but we test this in Float#numerator
+  it "converts self to a Rational object then returns its numerator" do
+    @numbers.each do |number|
+      number.numerator.should == Rational(number).numerator
+    end
+  end
 
-    @obj.numerator.should == 12
+  it "works with Numeric subclasses" do
+    rational = mock_numeric('rational')
+    rational.should_receive(:numerator).and_return(:numerator)
+    numeric = mock_numeric('numeric')
+    numeric.should_receive(:to_r).and_return(rational)
+    numeric.numerator.should == :numerator
   end
 end
