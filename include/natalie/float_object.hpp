@@ -63,7 +63,7 @@ public:
     }
 
     bool is_finite() const {
-        return !(is_negative_infinity() || is_positive_infinity() || is_nan());
+        return !(is_infinity() || is_nan());
     }
 
     bool is_nan() const {
@@ -117,11 +117,13 @@ public:
     Value ceil(Env *, Value);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);
+    Value denominator(Env *) const;
     Value div(Env *, Value);
     Value divmod(Env *, Value);
     Value floor(Env *, Value);
     Value mod(Env *, Value);
     Value mul(Env *, Value);
+    Value numerator(Env *) const;
     Value next_float(Env *) const;
     Value pow(Env *, Value);
     Value prev_float(Env *) const;
