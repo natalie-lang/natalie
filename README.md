@@ -131,7 +131,7 @@ bin/natalie test/runner.rb test/natalie/if_test.rb test/natalie/loop_test.rb
 The files in `spec/` come from the excellent [ruby/spec](https://github.com/ruby/spec)
 project, which is a community-curated repo of test files that any Ruby
 implementation can use to compare its conformance to what MRI (Matz's Ruby
-Intepreter) does. We copy specs over as we implement the part of the language
+Interpreter) does. We copy specs over as we implement the part of the language
 that they cover.
 
 Everything in `test/` is stuff we wrote while working on Natalie. These are

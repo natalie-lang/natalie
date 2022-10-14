@@ -42,4 +42,4 @@ RUBY_KEYWORDS = %w[
   yield
 ]
 
-RESET_STYLE_ASCCI_CODE = "\u001b[0m"
+RESET_STYLE_ASCII_CODE = "\u001b[0m"

@@ -33,11 +33,11 @@ module Natalie
     end
 
     def highlight(token, prev_token)
-      token.gsub(@regex, "#{@out_pattern}#{RESET_STYLE_ASCCI_CODE}")
+      token.gsub(@regex, "#{@out_pattern}#{RESET_STYLE_ASCII_CODE}")
     end
   end
 
   KEYWORD_HIGHLIGHT = RegexHighlightingRule.new(/(#{RUBY_KEYWORDS.join('|')})/, "\u001b[38;5;206m\\1")
-  PASCAL_CASE_HIGLIGHT = RegexHighlightingRule.new(/([A-Z][A-Za-z0-9]*)/, "\u001b[38;5;70m\\1")
-  CAMEL_CASE_HIGLIGHT = RegexHighlightingRule.new(/([a-z][A-Za-z0-9]*)/, "\u001b[38;5;220m\\1")
+  PASCAL_CASE_HIGHLIGHT = RegexHighlightingRule.new(/([A-Z][A-Za-z0-9]*)/, "\u001b[38;5;70m\\1")
+  CAMEL_CASE_HIGHLIGHT = RegexHighlightingRule.new(/([a-z][A-Za-z0-9]*)/, "\u001b[38;5;220m\\1")
 end

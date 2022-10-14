@@ -12,7 +12,7 @@ module Natalie
     end
 
     def to_s
-      "#{@style}#{@str}#{RESET_STYLE_ASCCI_CODE}"
+      "#{@style}#{@str}#{RESET_STYLE_ASCII_CODE}"
     end
 
     def length
@@ -22,7 +22,7 @@ module Natalie
 
   class GenericRepl
     def initialize(vars)
-      @highlighters = [Natalie::KEYWORD_HIGHLIGHT, Natalie::PASCAL_CASE_HIGLIGHT, Natalie::CAMEL_CASE_HIGLIGHT]
+      @highlighters = [Natalie::KEYWORD_HIGHLIGHT, Natalie::PASCAL_CASE_HIGHLIGHT, Natalie::CAMEL_CASE_HIGHLIGHT]
       @model = Natalie::ReplModel.new
       @suggestions = Natalie::SuggestionProvider.new(vars)
       reset
@@ -36,7 +36,7 @@ module Natalie
        ⡇⢸ ⠊⠂ ⠈⠊⠊ ⡇⢸
        ⣇⣀⣉⣉⣉⣉⣉⣉⣉⣉⣀⣸
      ⡔⣒⠒⠒⠒⠒⠚⠒⠒⠓⠒⠒⠒⠒⠒⢢
-     ⢇⣉⣀⣀⣀⣀⣀⣀⣀⣀⣁⣉⣉⣉⣁⡸#{RESET_STYLE_ASCCI_CODE}
+     ⢇⣉⣀⣀⣀⣀⣀⣀⣀⣀⣁⣉⣉⣉⣁⡸#{RESET_STYLE_ASCII_CODE}
     "
     end
 
