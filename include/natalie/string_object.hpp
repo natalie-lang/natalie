@@ -214,7 +214,8 @@ public:
     Value mul(Env *, Value) const;
     Value ord(Env *) const;
     Value prepend(Env *, Args);
-    Value ref(Env *, Value);
+    Value ref(Env *, Value, Value);
+    Value ref_slice_range_in_place(size_t, size_t);
     Value ref_fast_index(Env *, size_t) const;
     Value ref_fast_range(Env *, size_t, size_t) const;
     Value ref_fast_range_endless(Env *, size_t) const;
@@ -223,7 +224,9 @@ public:
     Value reverse_in_place(Env *);
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
+    size_t char_count(Env *) const;
     Value size(Env *) const;
+    Value slice_in_place(Env *, Value, Value);
     Value split(Env *, Value, Value);
     Value strip(Env *) const;
     Value strip_in_place(Env *);

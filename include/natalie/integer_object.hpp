@@ -54,6 +54,11 @@ public:
         return Value::integer(static_cast<nat_int_t>(number));
     }
 
+    static Value from_ssize_t(Env *env, ssize_t number) {
+        assert(number <= NAT_INT_MAX && number >= NAT_INT_MIN);
+        return Value::integer(static_cast<nat_int_t>(number));
+    }
+
     static nat_int_t convert_to_nat_int_t(Env *, Value);
     static int convert_to_int(Env *, Value);
 

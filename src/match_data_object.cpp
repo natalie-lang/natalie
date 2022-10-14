@@ -6,24 +6,36 @@ Value MatchDataObject::array(int start) {
     auto size = (size_t)(m_region->num_regs - start);
     auto array = new ArrayObject { size };
     for (int i = start; i < m_region->num_regs; i++) {
-        if (m_region->beg[i] == -1) {
-            array->push(NilObject::the());
-        } else {
-            const char *str = &m_string->c_str()[m_region->beg[i]];
-            size_t length = m_region->end[i] - m_region->beg[i];
-            array->push(new StringObject { str, length });
-        }
+        array->push(group(i));
     }
     return array;
 }
 
-size_t MatchDataObject::index(size_t index) {
+ssize_t MatchDataObject::index(size_t index) {
     if (index >= size()) return -1;
     return m_region->beg[index];
 }
 
-Value MatchDataObject::group(Env *env, size_t index) {
-    if (index >= size()) return NilObject::the();
+ssize_t MatchDataObject::ending(size_t index) {
+    if (index >= size()) return -1;
+    return m_region->end[index];
+}
+
+/**
+ * Return the capture indicated by the given index. This function supports
+ * negative indices as well, provided they are within one overall length of the
+ * number of captures.
+ */
+Value MatchDataObject::group(int index) {
+    if (index + m_region->num_regs <= 0 || index >= m_region->num_regs)
+        return NilObject::the();
+
+    if (index < 0)
+        index += m_region->num_regs;
+
+    if (m_region->beg[index] == -1)
+        return NilObject::the();
+
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
     return new StringObject { str, length };
@@ -56,7 +68,7 @@ Value MatchDataObject::to_a(Env *env) {
 
 Value MatchDataObject::to_s(Env *env) {
     assert(size() > 0);
-    return group(env, 0);
+    return group(0);
 }
 
 Value MatchDataObject::ref(Env *env, Value index_value) {
@@ -69,14 +81,7 @@ Value MatchDataObject::ref(Env *env, Value index_value) {
     } else {
         index = IntegerObject::convert_to_nat_int_t(env, index_value);
     }
-    if (index < 0) {
-        index = size() + index;
-    }
-    if (index < 0) {
-        return NilObject::the();
-    } else {
-        return group(env, index);
-    }
+    return group(index);
 }
 
 }

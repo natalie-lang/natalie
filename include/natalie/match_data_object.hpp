@@ -33,10 +33,11 @@ public:
 
     size_t size() { return m_region->num_regs; }
 
-    size_t index(size_t);
+    ssize_t index(size_t);
+    ssize_t ending(size_t);
 
     Value array(int);
-    Value group(Env *, size_t);
+    Value group(int);
     Value offset(Env *, Value);
 
     Value captures(Env *);
@@ -51,6 +52,15 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
         Object::visit_children(visitor);
         visitor.visit(m_string);
+    }
+
+    /**
+     * If the underlying string that this MatchDataObject references is going to
+     * be mutated in place, then we need to dup the source string so that we are
+     * not impacted by those changes.
+     */
+    void dup_string(Env *env) {
+        m_string = m_string->dup(env)->as_string();
     }
 
 private:
