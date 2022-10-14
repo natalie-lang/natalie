@@ -30,15 +30,15 @@ namespace ArrayPacker {
 
                 char d = token.directive;
                 switch (d) {
-                case 'a':
                 case 'A':
-                case 'b':
+                case 'a':
                 case 'B':
-                case 'Z':
-                case 'h':
+                case 'b':
                 case 'H':
+                case 'h':
                 case 'm':
-                case 'u': {
+                case 'u':
+                case 'Z': {
                     if (at_end())
                         env->raise("ArgumentError", "too few arguments");
 
@@ -69,6 +69,8 @@ namespace ArrayPacker {
                 case 'c':
                 case 'I':
                 case 'i':
+                case 'S':
+                case 's':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
                         auto integer = m_source->at(m_index)->to_int(env);
@@ -84,7 +86,13 @@ namespace ArrayPacker {
                     break;
                 }
                 case 'D':
-                case 'd': {
+                case 'd':
+                case 'E':
+                case 'e':
+                case 'F':
+                case 'G':
+                case 'g':
+                case 'f': {
                     pack_with_loop(env, token, [&]() {
                         auto value = m_source->at(m_index);
                         if (value->is_integer())
@@ -126,16 +134,20 @@ namespace ArrayPacker {
         template <typename Fn>
         void pack_with_loop(Env *env, Token token, Fn handler) {
             auto starting_index = m_index;
+
             auto is_complete = [&]() {
                 if (token.star)
                     return at_end();
 
                 size_t count = token.count != -1 ? token.count : 1;
-                bool is_complete = m_index - starting_index >= static_cast<size_t>(count);
-                if (!is_complete && at_end())
+                bool complete = m_index - starting_index >= count;
+
+                if (!complete && at_end())
                     env->raise("ArgumentError", "too few Arguments");
-                return is_complete;
+
+                return complete;
             };
+
             while (!is_complete()) {
                 handler();
                 m_index++;

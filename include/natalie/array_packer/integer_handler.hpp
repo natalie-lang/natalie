@@ -33,6 +33,12 @@ namespace ArrayPacker {
             case 'i':
                 pack_i();
                 break;
+            case 'S':
+                pack_S();
+                break;
+            case 's':
+                pack_s();
+                break;
             default: {
                 char buf[2] = { d, '\0' };
                 env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -81,12 +87,51 @@ namespace ArrayPacker {
 
         void pack_I() {
             auto source = (unsigned int)m_source->to_nat_int_t();
-            m_packed.append(String((const char *)(&source), sizeof(source)));
+            m_packed.append((const char *)(&source), sizeof(source));
         }
 
         void pack_i() {
             auto source = (signed int)m_source->to_nat_int_t();
-            m_packed.append(String((const char *)(&source), sizeof(source)));
+            m_packed.append((const char *)(&source), sizeof(source));
+        }
+
+        void pack_S() {
+            auto source = (unsigned short)m_source->to_nat_int_t();
+            auto size = m_token.native_size ? sizeof(unsigned short) : 2;
+            append_bytes((const char *)&source, size);
+        }
+
+        void pack_s() {
+            auto source = (signed short)m_source->to_nat_int_t();
+            auto size = m_token.native_size ? sizeof(signed short) : 2;
+            append_bytes((const char *)&source, size);
+        }
+
+        void append_bytes(const char *bytes, int size) {
+            switch (m_token.endianness) {
+            case Endianness::Native:
+                m_packed.append(bytes, size);
+                break;
+            case Endianness::Big:
+                if (system_is_little_endian())
+                    for (int i = size - 1; i >= 0; i--)
+                        m_packed.append_char(bytes[i]);
+                else
+                    m_packed.append(bytes, size);
+                break;
+            case Endianness::Little:
+                if (system_is_little_endian())
+                    m_packed.append(bytes, size);
+                else
+                    for (int i = size - 1; i >= 0; i--)
+                        m_packed.append_char(bytes[i]);
+                break;
+            }
+        }
+
+        bool system_is_little_endian() {
+            int i = 1;
+            return *((char *)&i) == 1;
         }
 
         IntegerObject *m_source;
