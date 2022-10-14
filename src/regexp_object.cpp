@@ -77,7 +77,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     } else {
         MatchDataObject *matchdata = result->as_match_data();
         assert(matchdata->size() > 0);
-        return IntegerObject::from_size_t(env, matchdata->index(0));
+        return IntegerObject::from_ssize_t(env, matchdata->index(0));
     }
 }
 

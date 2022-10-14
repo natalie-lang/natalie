@@ -568,7 +568,7 @@ Value StringObject::each_byte(Env *env, Block *block) {
     return this;
 }
 
-Value StringObject::size(Env *env) const {
+size_t StringObject::char_count(Env *env) const {
     size_t index = 0;
     size_t char_count = 0;
     auto c = next_char(&index);
@@ -576,7 +576,11 @@ Value StringObject::size(Env *env) const {
         char_count++;
         c = next_char(&index);
     }
-    return IntegerObject::from_size_t(env, char_count);
+    return char_count;
+}
+
+Value StringObject::size(Env *env) const {
+    return IntegerObject::from_size_t(env, char_count(env));
 }
 
 static EncodingObject *find_encoding_by_name(Env *env, String name) {
@@ -627,82 +631,431 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
     return this;
 }
 
-Value StringObject::ref(Env *env, Value index_obj) {
+/**
+ * String#[] and String#slice
+ *
+ * These methods can be called with a variety of call signatures. They include:
+ *
+ * slice(index) → new_str or nil
+ * slice(start, length) → new_str or nil
+ * slice(range) → new_str or nil
+ * slice(regexp) → new_str or nil
+ * slice(regexp, capture) → new_str or nil
+ * slice(match_str) → new_str or nil
+ */
+Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
     // not sure how we'd handle a string that big anyway
     assert(length() < NAT_INT_MAX);
 
-    if (index_obj->is_integer()) {
-        nat_int_t index = index_obj->as_integer()->to_nat_int_t();
+    // First, check if there's a second argument. This is important for the
+    // order in which things are attempted to be implicitly converted into
+    // integers.
+    if (length_obj != nullptr) {
+        // First, we'll check if the index is a regexp. If it's not and there
+        // _is_ a second argument, the index is assumed to be an integer or an
+        // object that can be implicitly converted into an integer.
+        if (index_obj->is_regexp()) {
+            auto regexp = index_obj->as_regexp();
+            auto match_result = regexp->match(env, this);
 
-        if (index >= 0)
-            return ref_fast_index(env, index);
+            // The second argument can be either an index into the match data's
+            // captures or the name of a group. If it's not a string, make sure
+            // we attempt to convert it into an integer _before_ we return nil
+            // if there we no match result.
+            if (!length_obj->is_string())
+                IntegerObject::convert_to_nat_int_t(env, length_obj);
 
-        ArrayObject *chars = this->chars(env)->as_array();
-        index = chars->size() + index;
+            // If the match failed, return nil. Note that this must happen after
+            // the implicit conversion of the index argument to an integer.
+            if (match_result->is_nil())
+                return match_result;
 
-        if (index < 0 || index >= (nat_int_t)chars->size())
-            return NilObject::the();
+            // Otherwise, return the region of the string that was captured
+            // indicated by the second argument.
+            return match_result->as_match_data()->ref(env, length_obj);
+        } else {
+            // First, attempt to convert the index object into an integer, and
+            // make sure it fits into a fixnum.
+            nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
 
-        return (*chars)[index];
-    } else if (index_obj->is_range()) {
+            // If we have a length, then attempt to convert the length object
+            // into an integer, and make sure it fits into a fixnum.
+            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+            nat_int_t count = static_cast<nat_int_t>(char_count(env));
+
+            // Now, check that the index is within the bounds of the string. If
+            // not, then return nil.
+            if (length < 0 || index > count || index + count < 0)
+                return NilObject::the();
+
+            // Shortcut here before doing anything else to return an empty
+            // string if the index is right at the end of the string.
+            if (index == count)
+                return new StringObject;
+
+            // If the index is negative, then we know at this point that it's
+            // only negative within one length of the string. So just make it
+            // positive here.
+            if (index < 0)
+                index += count;
+
+            nat_int_t end = index + length > count ? count : index + length;
+            return ref_fast_range(env, index, end);
+        }
+    }
+
+    if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
-
         auto begin_obj = range->begin();
+        auto end_obj = range->end();
+
+        // First, we're going to get the beginning from the range. If it's nil,
+        // it's going to be treated as 0. If it's not an integer, it's going to
+        // be implicitly converted. Finally, we'll assert that it fits into a
+        // fixnum.
         nat_int_t begin;
         if (begin_obj->is_nil()) {
             begin = 0;
         } else {
-            begin_obj->assert_type(env, Object::Type::Integer, "Integer");
-            begin = begin_obj->as_integer()->to_nat_int_t();
+            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
         }
 
-        auto end_obj = range->end();
-
-        if (begin >= 0 && end_obj->is_integer() && end_obj->as_integer()->to_nat_int_t() > 0) {
-            auto end = end_obj->as_integer()->to_nat_int_t();
-            if (!range->exclude_end())
-                end++;
-            return ref_fast_range(env, begin, end);
-        } else if (end_obj->is_nil()) {
-            return ref_fast_range_endless(env, begin);
-        }
-
-        ArrayObject *chars = this->chars(env)->as_array();
-
-        nat_int_t end;
-        if (end_obj->is_nil()) {
-            end = range->exclude_end() ? chars->size() + 1 : chars->size();
-        } else {
-            end_obj->assert_type(env, Object::Type::Integer, "Integer");
-            end = end_obj->as_integer()->to_nat_int_t();
-        }
-
-        if (begin < 0) begin = chars->size() + begin;
-        if (end < 0) end = chars->size() + end;
-
-        if ((begin < 0 || begin > (nat_int_t)chars->size()) && (end < 0 || end >= (nat_int_t)chars->size()))
-            return NilObject::the();
-
-        if (begin < 0 || end < 0)
+        // Shortcut here before doing anything else to return an empty
+        // string if the index is right at the end of the string.
+        auto count = static_cast<nat_int_t>(char_count(env));
+        if (begin == count)
             return new StringObject;
 
-        size_t u_begin = static_cast<size_t>(begin);
-        size_t u_end = static_cast<size_t>(end);
-        if (u_begin > chars->size()) return NilObject::the();
+        // Now, we're going to do some bounds checks on the beginning of the
+        // range. If it's too far outside, we'll return nil.
+        if (begin + count < 0 || begin > count)
+            return NilObject::the();
 
-        if (!range->exclude_end()) u_end++;
+        // Now, if the beginning is negative, we know it's within one length of
+        // the string, so we'll add that here to make it a valid positive index.
+        if (begin < 0)
+            begin += count;
 
-        size_t max = chars->size();
-        u_end = u_end > max ? max : u_end;
-        StringObject *result = new StringObject {};
-        for (size_t i = begin; i < u_end; i++) {
-            result->append((*chars)[i]);
+        // Now, we're going to shortcut here if the range is endless since we
+        // already have all of the information we need.
+        if (end_obj->is_nil())
+            return ref_fast_range_endless(env, begin);
+
+        // If it's not endless, then we'll go ahead and grab the ending now by
+        // converting to an integer and asserting it fits into a fixnum.
+        nat_int_t end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+
+        // Now, we're going to do some bounds checks on the ending of the range.
+        // If it's too negative, we'll return nil.
+        if (end + count < 0)
+            return new StringObject;
+
+        // If the ending is negative, we know it's within one length of the
+        // string, so we'll add that here to make it a valid positive index.
+        if (end < 0)
+            end += count;
+
+        // After we've done the bounds checks and the negative fixes, we can
+        // include the fact that it may be inclusive or not.
+        if (!range->exclude_end())
+            end++;
+
+        // Finally, we can call into our fast range method to get the value.
+        return ref_fast_range(env, begin, end);
+    } else if (index_obj->is_regexp()) {
+        // If the index object is a regular expression, then we'll return the
+        // matched substring if there is one. Otherwise, we'll return nil.
+        auto regexp = index_obj->as_regexp();
+        auto match_result = regexp->match(env, this);
+
+        // If the match failed, return nil.
+        if (match_result->is_nil())
+            return match_result;
+
+        // Otherwise, return the region of the string that matched.
+        return match_result->as_match_data()->to_s(env);
+    } else if (index_obj->is_string()) {
+        // If the index object is a string, then we return the string if it is
+        // found as a substring of this string.
+        if (m_string.find(index_obj->as_string()->m_string) != -1)
+            return index_obj;
+
+        // Otherwise we return nil.
+        return NilObject::the();
+    } else {
+        // First, attempt to convert the index object into an integer, and
+        // make sure it fits into a fixnum.
+        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        nat_int_t count = static_cast<nat_int_t>(char_count(env));
+
+        // Now, check that the index is within the bounds of the string. If
+        // not, then return nil.
+        if (index > count || index + count < 0)
+            return NilObject::the();
+
+        // If the index is negative, then we know at this point that it's
+        // only negative within one length of the string. So just make it
+        // positive here.
+        if (index < 0)
+            index += count;
+
+        if (length_obj != nullptr) {
+            // If we have a length, then attempt to convert the length object
+            // into an integer, and make sure it fits into a fixnum.
+            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+
+            // Now, check that the index is within the bounds of the string. If
+            // not, then return nil.
+            if (length < 0)
+                return NilObject::the();
+
+            // Shortcut here before doing anything else to return an empty
+            // string if the index is right at the end of the string.
+            if (index == count)
+                return new StringObject;
+
+            nat_int_t end = index + length > count ? count : index + length;
+            return ref_fast_range(env, index, end);
+        }
+
+        // Finally, access the index in the string.
+        return ref_fast_index(env, index);
+    }
+}
+
+Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) {
+    assert_not_frozen(env);
+
+    // not sure how we'd handle a string that big anyway
+    assert(length() < NAT_INT_MAX);
+
+    if (index_obj->is_range()) {
+        RangeObject *range = index_obj->as_range();
+        auto begin_obj = range->begin();
+        auto end_obj = range->end();
+
+        // First, we're going to get the beginning from the range. If it's nil,
+        // it's going to be treated as 0. If it's not an integer, it's going to
+        // be implicitly converted.
+        nat_int_t begin;
+        if (begin_obj->is_nil()) {
+            begin = 0;
+        } else {
+            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+        }
+
+        // Shortcut here before doing anything else to return an empty
+        // string if the index is right at the end of the string.
+        auto count = static_cast<nat_int_t>(char_count(env));
+        if (begin == count)
+            return new StringObject;
+
+        // Now, we're going to do some bounds checks on the beginning of the
+        // range. If it's too far outside, we'll return nil.
+        if (begin + count < 0 || begin > count)
+            return NilObject::the();
+
+        // Now, if the beginning is negative, we know it's within one length of
+        // the string, so we'll add that here to make it a valid positive index.
+        if (begin < 0)
+            begin += count;
+
+        // Now we're going to convert the end into a count that we can use.
+        nat_int_t end;
+        if (end_obj->is_nil()) {
+            end = count;
+        } else {
+            end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+        }
+
+        // Now, we're going to do some bounds checks on the ending of the range.
+        // If it's too negative, we'll return an empty string.
+        if (end + count < 0)
+            return new StringObject;
+
+        // If the ending is negative, we know it's within one length of the
+        // string, so we'll add that here to make it a valid positive index.
+        if (end < 0)
+            end += count;
+
+        // After we've done the bounds checks and the negative fixes, we can
+        // include the fact that it may be inclusive or not.
+        if (!end_obj->is_nil() && !range->exclude_end())
+            end++;
+
+        // Finally, we'll delegate over to the ref_slice_range_in_place
+        // function.
+        return ref_slice_range_in_place(begin, end);
+    } else if (index_obj->is_regexp()) {
+        // If the index object is a regular expression, then we match against
+        // the regular expression and delete the matched string if it exists.
+        auto regexp = index_obj->as_regexp();
+        auto match_result = regexp->match(env, this);
+        int capture = 0;
+
+        // The second argument can be either an index into the match data's
+        // captures or the name of a group. If it's not a string, make sure
+        // we attempt to convert it into an integer _before_ we return nil
+        // if there we no match result.
+        if (length_obj != nullptr && !length_obj->is_string())
+            capture = IntegerObject::convert_to_nat_int_t(env, length_obj);
+
+        // If the match failed, return nil. Note that this must happen after
+        // the implicit conversion of the index argument to an integer.
+        if (match_result->is_nil())
+            return match_result;
+
+        // Handle out of bounds checks for the capture index.
+        int captures = match_result->as_match_data()->size();
+        if (capture + captures <= 0 || capture >= captures)
+            return NilObject::the();
+
+        // Handle negative capture indices if necessary here.
+        if (capture < 0)
+            capture += captures;
+
+        // Check if there was a captured segment for the requested capture. If
+        // there wasn't return nil.
+        ssize_t start_byte_index = match_result->as_match_data()->index(capture);
+        ssize_t end_byte_index = match_result->as_match_data()->ending(capture);
+        if (start_byte_index == -1 || end_byte_index == -1)
+            return NilObject::the();
+
+        // Clone out the matched string for our result first before we mutate
+        // the source string.
+        ssize_t matched_length = end_byte_index - start_byte_index;
+        Value result = new StringObject(&m_string[start_byte_index], static_cast<size_t>(matched_length));
+
+        if (matched_length != 0) {
+            // Make sure we back up the match data's source string, since we're
+            // going to be modifying the string that its pointing to. This means
+            // that $~ should not be impacted by this mutation.
+            match_result->as_match_data()->dup_string(env);
+
+            ssize_t byte_length = static_cast<ssize_t>(length());
+            memmove(&m_string[start_byte_index], &m_string[end_byte_index], byte_length - end_byte_index);
+            m_string.truncate(byte_length - matched_length);
         }
 
         return result;
+    } else if (index_obj->is_string()) {
+        // If the index object is a string, then we return the string if it is
+        // found as a substring of this string.
+        auto start_byte_index = m_string.find(index_obj->as_string()->m_string);
+
+        // If the value wasn't found, we return nil.
+        if (start_byte_index == -1)
+            return NilObject::the();
+
+        // Otherwise, we remove the string and slice it out of the source.
+        auto byte_length = length();
+        auto end_byte_index = start_byte_index + index_obj->as_string()->length();
+
+        memmove(&m_string[start_byte_index], &m_string[end_byte_index], byte_length - end_byte_index);
+        m_string.truncate(byte_length - end_byte_index + start_byte_index);
+
+        return index_obj;
+    } else {
+        // First, attempt to convert the index object into an integer, and
+        // make sure it fits into a fixnum.
+        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        nat_int_t count = static_cast<nat_int_t>(char_count(env));
+
+        if (length_obj != nullptr) {
+            // First, convert the length to an integer.
+            nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+
+            // Now, check that the index is within the bounds of the string. If
+            // not, then return nil.
+            if (length < 0 || index >= count || index + count < 0)
+                return NilObject::the();
+
+            // Shortcut here before doing anything else to return an empty
+            // string if the index is right at the end of the string.
+            if (index == count || length == 0)
+                return new StringObject;
+
+            // If the index is negative, then we know at this point that it's
+            // only negative within one length of the string. So just make it
+            // positive here.
+            if (index < 0)
+                index += count;
+
+            nat_int_t end = index + length > count ? count : index + length;
+            return ref_slice_range_in_place(index, end);
+        }
+
+        // Now, check that the index is within the bounds of the string. If
+        // not, then return nil.
+        if (index >= count || index + count < 0)
+            return NilObject::the();
+
+        // If the index is negative, then we know at this point that it's
+        // only negative within one length of the string. So just make it
+        // positive here.
+        if (index < 0)
+            index += count;
+
+        // We're going to keep track of a moving window starting at the
+        // beginning of the string. The prev_byte_index will point to the start
+        // of the last character we read, and the next_byte_index will point to
+        // the end of the last character we read.
+        size_t prev_byte_index = 0;
+        size_t next_byte_index = 0;
+        size_t char_index = 0;
+        size_t byte_length = length();
+        StringView c;
+
+        do {
+            prev_byte_index = next_byte_index;
+            c = next_char(&next_byte_index);
+            if (!c.is_empty() && char_index == (size_t)index)
+                break;
+            char_index++;
+        } while (!c.is_empty());
+
+        Value result = new StringObject { c.clone(), m_encoding };
+        memmove(&m_string[prev_byte_index], &m_string[prev_byte_index + 1], byte_length - prev_byte_index);
+        m_string.truncate(byte_length - 1);
+        return result;
     }
-    index_obj->assert_type(env, Object::Type::Integer, "Integer");
-    abort();
+}
+
+Value StringObject::ref_slice_range_in_place(size_t begin, size_t end) {
+    // We're going to keep track of a moving window starting at the
+    // beginning of the string. The prev_byte_index will point to the start
+    // of the last character we read, and the next_byte_index will point to
+    // the end of the last character we read.
+    size_t prev_byte_index = 0;
+    size_t next_byte_index = 0;
+    size_t start_byte_index = 0;
+    size_t char_index = 0;
+    size_t byte_length = m_string.length();
+    String result;
+    StringView c;
+
+    // This loop's responsibility is to advance the prev_byte_index and
+    // start_byte_index to the correct point that we can use them to slice
+    // and truncate the string.
+    do {
+        prev_byte_index = next_byte_index;
+        c = next_char(&next_byte_index);
+
+        if (!c.is_empty()) {
+            if (char_index >= (size_t)end) {
+                break;
+            } else if (char_index >= (size_t)begin) {
+                if (char_index == (size_t)begin)
+                    start_byte_index = prev_byte_index;
+                result.append(c.clone());
+            }
+        }
+        char_index++;
+    } while (!c.is_empty());
+
+    memmove(&m_string[0] + start_byte_index, &m_string[0] + prev_byte_index, byte_length - prev_byte_index);
+    m_string.truncate(byte_length - prev_byte_index + start_byte_index);
+    return new StringObject { result, m_encoding };
 }
 
 Value StringObject::ref_fast_index(Env *env, size_t index) const {
@@ -956,7 +1309,7 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
     if (match_result == NilObject::the())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
-    size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();
+    size_t length = (*match)->as_match_data()->to_s(env)->as_string()->length();
     nat_int_t index = (*match)->as_match_data()->index(0);
     StringObject *out = new StringObject { c_str(), static_cast<size_t>(index) };
     if (block) {
@@ -998,7 +1351,7 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '8':
             case '9': {
                 int num = c - 48;
-                expanded->append(match->group(env, num)->as_string());
+                expanded->append(match->group(num)->as_string());
                 break;
             }
             case '\\':
