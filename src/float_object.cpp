@@ -190,6 +190,20 @@ Value FloatObject::coerce(Env *env, Value arg) {
     return ary;
 }
 
+Value FloatObject::denominator(Env *env) const {
+    if (!is_finite()) {
+        return Value::integer(1);
+    }
+    return to_r(env)->as_rational()->denominator(env);
+}
+
+Value FloatObject::numerator(Env *env) const {
+    if (!is_finite()) {
+        return to_f();
+    }
+    return to_r(env)->as_rational()->numerator(env);
+}
+
 Value FloatObject::to_i(Env *env) const {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) {
