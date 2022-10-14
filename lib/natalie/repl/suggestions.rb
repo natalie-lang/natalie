@@ -18,7 +18,7 @@ module Natalie
     end
 
     def token_with_suggestion(token, suggestion)
-      "#{token}\u001b[38;5;241m#{suggestion[(token.length)..]}#{RESET_STYLE_ASCCI_CODE}"
+      "#{token}\u001b[38;5;241m#{suggestion[(token.length)..]}#{RESET_STYLE_ASCII_CODE}"
     end
   end
 end

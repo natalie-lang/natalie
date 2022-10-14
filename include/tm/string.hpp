@@ -1086,7 +1086,7 @@ public:
     }
 
     /**
-     * Finds the given charcter inside this String and return its starting index.
+     * Finds the given character inside this String and return its starting index.
      * If not found, return -1.
      *
      * ```
