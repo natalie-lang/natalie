@@ -70,19 +70,34 @@ ArrayObject *Args::to_array_for_block(Env *env, ssize_t min_count, ssize_t max_c
     return ary;
 }
 
-void Args::ensure_argc_is(Env *env, size_t expected) const {
+void Args::ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
     if (m_size != expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", m_size, expected);
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}{})", m_size, expected, argc_error_suffix(keywords));
 }
 
-void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const {
+void Args::ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords) const {
     if (m_size < expected_low || m_size > expected_high)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{})", m_size, expected_low, expected_high);
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{}{})", m_size, expected_low, expected_high, argc_error_suffix(keywords));
 }
 
-void Args::ensure_argc_at_least(Env *env, size_t expected) const {
+void Args::ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords) const {
     if (m_size < expected)
-        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+)", m_size, expected);
+        env->raise("ArgumentError", "wrong number of arguments (given {}, expected {}+{})", m_size, expected, argc_error_suffix(keywords));
+}
+
+String Args::argc_error_suffix(std::initializer_list<const String> keywords) const {
+    if (std::empty(keywords))
+        return "";
+    auto kw_data = std::data(keywords);
+    if (keywords.size() == 1)
+        return String::format("; required keyword: {}", kw_data[0]);
+    String out { "; required keywords: " };
+    out.append(kw_data[0]);
+    for (size_t i = 1; i < keywords.size(); i++) {
+        out.append(", ");
+        out.append(kw_data[i]);
+    }
+    return out;
 }
 
 HashObject *Args::keyword_hash() const {

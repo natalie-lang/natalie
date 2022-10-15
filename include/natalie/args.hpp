@@ -1,11 +1,14 @@
 #pragma once
 
 #include "tm/macros.hpp"
+#include "tm/string.hpp"
 #include "tm/vector.hpp"
 #include <stddef.h>
 #include <stdio.h>
 
 namespace Natalie {
+
+using namespace TM;
 
 class ArrayObject;
 class Env;
@@ -58,9 +61,9 @@ public:
     ArrayObject *to_array() const;
     ArrayObject *to_array_for_block(Env *env, ssize_t min_count, ssize_t max_count, bool spread) const;
 
-    void ensure_argc_is(Env *env, size_t expected) const;
-    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high) const;
-    void ensure_argc_at_least(Env *env, size_t expected) const;
+    void ensure_argc_is(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords = {}) const;
+    void ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
 
     size_t size() const { return m_size; }
     const Value *data() const { return m_data; }
@@ -73,6 +76,8 @@ public:
 private:
     // Args cannot be heap-allocated, because the GC is not aware of it.
     void *operator new(size_t size) = delete;
+
+    String argc_error_suffix(std::initializer_list<const String> keywords) const;
 
     size_t m_size { 0 };
     const Value *m_data { nullptr };

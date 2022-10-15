@@ -472,7 +472,7 @@ describe 'method with keyword args' do
     method_with_kwargs6(**h, b: 3).should == [2, 3]
   end
 
-  xit 'raises an error when there are too many positional arguments' do
+  it 'raises an error when there are too many positional arguments' do
     -> { method_with_kwargs1(1, 2, b: 3) }.should raise_error(
                                                     ArgumentError,
                                                     'wrong number of arguments (given 2, expected 1; required keyword: b)',

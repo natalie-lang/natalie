@@ -513,8 +513,11 @@ module Natalie
           min_count = minimum_arg_count(args)
           max_count = maximum_arg_count(args)
 
+          instructions << PopKeywordArgsInstruction.new if any_keyword_args?(args)
+
           if check_args
-            instructions << CheckArgsInstruction.new(positional: min_count..max_count)
+            argc = min_count == max_count ? min_count : min_count..max_count
+            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords(args))
           end
 
           instructions << PushArgsInstruction.new(
@@ -529,7 +532,7 @@ module Natalie
         end
 
         if check_args
-          instructions << CheckArgsInstruction.new(positional: args.size)
+          instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
         end
 
         args.each_with_index do |arg_name, index|
@@ -1264,19 +1267,36 @@ module Natalie
 
       def minimum_arg_count(args)
         args.count do |arg|
-          (arg.is_a?(Symbol) && arg !~ /^&|^\*/) ||
+          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
             (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
         end
       end
 
       def maximum_arg_count(args)
-        if args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('*') && !arg.start_with?('**') }
+        if args.any? { |arg| arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**' }
           # splat, no maximum
           return nil
         end
 
         args.count do |arg|
-          !arg.is_a?(Symbol) || !arg.start_with?('&')
+          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
+            (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
+        end
+      end
+
+      def any_keyword_args?(args)
+        args.any? do |arg|
+          (arg.is_a?(Symbol) && arg[0..1] == '**') ||
+            (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
+        end
+      end
+
+      def required_keywords(args)
+        args.filter_map do |arg|
+          if arg.is_a?(Sexp) && arg.sexp_type == :kwarg
+            _, name, default = arg
+            name if default.nil?
+          end
         end
       end
 
