@@ -539,12 +539,12 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
     return create(Natalie::sqrt(argument));
 }
 
-Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
+Value IntegerObject::round(Env *env, Value ndigits, Value half) {
     if (!ndigits)
         return IntegerObject::create(m_integer);
 
     int digits = IntegerObject::convert_to_int(env, ndigits);
-    RoundingMode rounding_mode = rounding_mode_from_kwargs(env, kwargs);
+    RoundingMode rounding_mode = rounding_mode_from_value(env, half);
 
     if (digits >= 0)
         return IntegerObject::create(m_integer);
@@ -552,13 +552,13 @@ Value IntegerObject::round(Env *env, Value ndigits, Value kwargs) {
     auto result = m_integer;
     auto dividend = Natalie::pow(Integer(10), -digits);
 
-    auto half = dividend / 2;
+    auto dividend_half = dividend / 2;
     auto remainder = result.modulo_c(dividend);
     auto remainder_abs = Natalie::abs(remainder);
 
-    if (remainder_abs < half) {
+    if (remainder_abs < dividend_half) {
         result -= remainder;
-    } else if (remainder_abs > half) {
+    } else if (remainder_abs > dividend_half) {
         result += dividend - remainder;
     } else {
         switch (rounding_mode) {

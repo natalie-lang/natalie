@@ -10,6 +10,6 @@ enum class RoundingMode {
     Even,
 };
 
-RoundingMode rounding_mode_from_kwargs(Env *env, Value kwargs, RoundingMode default_rounding_mode = RoundingMode::Up);
+RoundingMode rounding_mode_from_value(Env *env, Value value, RoundingMode default_rounding_mode = RoundingMode::Up);
 
 }

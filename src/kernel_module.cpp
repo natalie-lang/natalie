@@ -61,16 +61,8 @@ Value KernelModule::caller(Env *env) {
     return ary;
 }
 
-Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value kwargs) {
-    bool exception = true;
-    // NATFIXME: Improve keyword argument handling.
-    if (kwargs) {
-        if (kwargs->is_hash()) {
-            auto value = kwargs->as_hash()->get(env, "exception"_s);
-            if (value) exception = value->is_true();
-        }
-    }
-    return Complex(env, real, imaginary, exception);
+Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
+    return Complex(env, real, imaginary, exception ? exception->is_true() : true);
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
@@ -134,16 +126,8 @@ Value KernelModule::exit_bang(Env *env, Value status) {
     return exit(env, status);
 }
 
-Value KernelModule::Float(Env *env, Value value, Value kwargs) {
-    bool exception = true;
-    // NATFIXME: Improve keyword argument handling.
-    if (kwargs) {
-        if (kwargs->is_hash()) {
-            auto value = kwargs->as_hash()->get(env, "exception"_s);
-            if (value) exception = value->is_true();
-        }
-    }
-    return Float(env, value, exception);
+Value KernelModule::Float(Env *env, Value value, Value exception) {
+    return Float(env, value, exception ? exception->is_true() : true);
 }
 
 Value KernelModule::Float(Env *env, Value value, bool exception) {
@@ -428,22 +412,8 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
     env->raise(klass->as_class(), message->as_string());
 }
 
-Value KernelModule::Rational(Env *env, Value x, Value y, Value kwargs) {
-    bool exception = true;
-    // NATFIXME: Improve keyword argument handling.
-    if (!kwargs) {
-        if (y && y->is_hash()) {
-            kwargs = y;
-            y = nullptr;
-        }
-    }
-    if (kwargs) {
-        if (kwargs->is_hash()) {
-            auto value = kwargs->as_hash()->get(env, "exception"_s);
-            if (value) exception = value->is_true();
-        }
-    }
-    return Rational(env, x, y, exception);
+Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
+    return Rational(env, x, y, exception ? exception->is_true() : true);
 }
 
 Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {

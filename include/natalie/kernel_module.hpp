@@ -39,12 +39,12 @@ public:
     static Value at_exit(Env *env, Block *block);
     static Value binding(Env *env);
     static Value caller(Env *env);
-    static Value Complex(Env *env, Value real, Value imaginary, Value kwargs);
+    static Value Complex(Env *env, Value real, Value imaginary, Value exception);
     static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);
     static Value exit_bang(Env *env, Value status);
-    static Value Float(Env *env, Value value, Value kwargs);
+    static Value Float(Env *env, Value value, Value exception);
     static Value Float(Env *env, Value value, bool exception = true);
     static Value fork(Env *env, Block *);
     static Value gets(Env *env);
@@ -56,7 +56,7 @@ public:
     static Value proc(Env *env, Block *block);
     static Value puts(Env *env, Args args);
     static Value raise(Env *env, Value klass, Value message);
-    static Value Rational(Env *env, Value x, Value y, Value kwargs);
+    static Value Rational(Env *env, Value x, Value y, Value exception);
     static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
     static RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
     static RationalObject *Rational(Env *env, double arg);

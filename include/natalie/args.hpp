@@ -9,6 +9,7 @@ namespace Natalie {
 
 class ArrayObject;
 class Env;
+class HashObject;
 class SymbolObject;
 class Value;
 
@@ -65,6 +66,8 @@ public:
     const Value *data() const { return m_data; }
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
+    HashObject *keyword_hash() const;
+    HashObject *pop_keyword_hash();
     Value keyword_arg(Env *, SymbolObject *) const;
 
 private:
