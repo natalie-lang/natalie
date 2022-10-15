@@ -75,6 +75,7 @@ class BindingGen
       singleton: false,
       static: false,
       pass_klass: false,
+      kwargs: [],
       visibility: :public,
       optimized: false
     )
@@ -87,6 +88,7 @@ class BindingGen
       @pass_env = pass_env
       @pass_block = pass_block
       @pass_klass = pass_klass
+      @kwargs = kwargs
       @return_type = return_type
       @singleton = singleton
       @static = static
@@ -133,6 +135,7 @@ class BindingGen
       type = cpp_class == 'Object' ? 'Value ' : "#{cpp_class} *"
       puts <<-FUNC
 Value #{name}(Env *env, Value self_value, Args args, Block *block) {
+    #{pop_kwargs}
     #{argc_assertion}
     #{type}self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
@@ -144,6 +147,7 @@ Value #{name}(Env *env, Value self_value, Args args, Block *block) {
     def write_static_function
       puts <<-FUNC
 Value #{name}(Env *env, Value klass, Args args, Block *block) {
+    #{pop_kwargs}
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -211,6 +215,10 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
 
     private
 
+    def pop_kwargs
+      'auto kwargs = args.pop_keyword_hash();' if @kwargs.any?
+    end
+
     def argc_assertion
       case argc
       when :any
@@ -233,7 +241,8 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def args
-      (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
+      (0...max_argc).map { |i| "args.at(#{i}, nullptr)" } +
+        @kwargs.map { |kw| "kwargs ? kwargs->get(env, #{kw.to_s.inspect}_s) : nullptr" }
     end
 
     def block_arg
@@ -625,7 +634,7 @@ gen.binding('Integer', 'next', 'IntegerObject', 'succ', argc: 0, pass_env: true,
 gen.binding('Integer', 'numerator', 'IntegerObject', 'numerator', argc: 0, pass_env: false, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', 'odd?', 'IntegerObject', 'is_odd', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 gen.binding('Integer', 'ord', 'IntegerObject', 'ord', argc: 0, pass_env: false, pass_block: false, return_type: :Object, optimized: true)
-gen.binding('Integer', 'round', 'IntegerObject', 'round', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
+gen.binding('Integer', 'round', 'IntegerObject', 'round', argc: 0..1, kwargs: [:half], pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', 'size', 'IntegerObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', 'succ', 'IntegerObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
 gen.binding('Integer', 'pow', 'IntegerObject', 'powmod', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object, optimized: true)
@@ -658,11 +667,11 @@ gen.module_function_binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc
 gen.module_function_binding('Kernel', 'binding', 'KernelModule', 'binding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'block_given?', 'KernelModule', 'block_given', argc: 0, pass_env: true, pass_block: true, return_type: :bool)
 gen.module_function_binding('Kernel', 'caller', 'KernelModule', 'caller', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_function_binding('Kernel', 'Complex', 'KernelModule', 'Complex', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'Complex', 'KernelModule', 'Complex', argc: 1..2, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', '__dir__', 'KernelModule', 'cur_dir', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'exit', 'KernelModule', 'exit', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'exit!', 'KernelModule', 'exit_bang', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'fork', 'KernelModule', 'fork', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'gets', 'KernelModule', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'get_usage', 'KernelModule', 'get_usage', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -674,7 +683,7 @@ gen.module_function_binding('Kernel', 'print', 'KernelModule', 'print', argc: :a
 gen.module_function_binding('Kernel', 'proc', 'KernelModule', 'proc', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'puts', 'KernelModule', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'raise', 'KernelModule', 'raise', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.module_function_binding('Kernel', 'Rational', 'KernelModule', 'Rational', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'Rational', 'KernelModule', 'Rational', argc: 1..2, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

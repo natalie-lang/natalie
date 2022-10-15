@@ -2,12 +2,9 @@
 
 namespace Natalie {
 
-RoundingMode rounding_mode_from_kwargs(Env *env, Value kwargs, RoundingMode default_rounding_mode) {
-    if (!kwargs) return default_rounding_mode;
-    if (!kwargs->is_hash()) return default_rounding_mode;
-
-    auto value = kwargs->as_hash()->get(env, "half"_s);
-    if (value->is_nil()) return RoundingMode::Up;
+RoundingMode rounding_mode_from_value(Env *env, Value value, RoundingMode default_rounding_mode) {
+    if (!value) return default_rounding_mode;
+    if (value->is_nil()) return default_rounding_mode;
     if (!value->is_symbol()) {
         env->raise("ArgumentError", "invalid rounding mode: {}", value->inspect_str(env));
     }
