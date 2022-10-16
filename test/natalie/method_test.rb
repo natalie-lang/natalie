@@ -477,6 +477,23 @@ describe 'method with keyword args' do
                                                     ArgumentError,
                                                     'wrong number of arguments (given 2, expected 1; required keyword: b)',
                                                   )
+    [
+      [:method_with_kwargs2, 'wrong number of arguments (given 3, expected 1; required keywords: b, c)'],
+      [:method_with_kwargs3, 'wrong number of arguments (given 3, expected 1; required keyword: b)'],
+      [:method_with_kwargs4, 'wrong number of arguments (given 3, expected 1; required keyword: c)'],
+      [:method_with_kwargs5, 'wrong number of arguments (given 3, expected 1)'],
+      [:method_with_kwargs6, 'wrong number of arguments (given 3, expected 0)'],
+      [:method_with_kwargs7, 'wrong number of arguments (given 3, expected 0; required keyword: a)'],
+      [:method_with_kwargs8, 'wrong number of arguments (given 3, expected 0; required keyword: a)'],
+      [:method_with_kwargs9, 'wrong number of arguments (given 3, expected 0..1)'],
+      [:method_with_kwargs10, 'wrong number of arguments (given 3, expected 0..1)'],
+      [:method_with_kwargs11, 'wrong number of arguments (given 3, expected 0; required keyword: a)'],
+      # method_with_kwargs12 has a splat parameter
+      [:method_with_kwargs13, 'wrong number of arguments (given 3, expected 0..2)'],
+      [:method_with_kwargs14, 'wrong number of arguments (given 3, expected 0..1)'],
+    ].each do |method_name, error_message|
+      -> { send(method_name, 0, 1, 2, b: 3) }.should raise_error(ArgumentError, error_message)
+    end
   end
 
   it 'raises an error when a required keyword argument is not supplied' do
