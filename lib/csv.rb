@@ -99,7 +99,11 @@ class CSV
   end
 
   def headers
-    @writer&.headers
+    if @writer
+      @writer.headers
+    else
+      parser.headers
+    end
   end
 
   def liberal_parsing?

@@ -22,6 +22,29 @@ class CSV
     end
 
     def next_line
+      line = consume_line
+
+      if @lineno == 1 && @options[:headers]
+        # We have just read the headers line
+        @headers = line
+
+        line = consume_line
+      end
+
+      if @headers && line
+        Row.new(@headers, line)
+      else
+        line
+      end
+    end
+
+    def headers
+      return nil unless @options[:headers]
+
+      @headers || true
+    end
+
+    def consume_line
       @line = @input.gets
       return nil unless @line
       @current_col = 0
