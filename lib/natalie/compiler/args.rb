@@ -161,7 +161,7 @@ module Natalie
 
       def move_keyword_arg_hash_from_args_array_to_stack
         return if @keyword_arg_hash_on_stack
-        @instructions << ArrayPopKeywordArgsInstruction.new
+        @instructions << SwapInstruction.new
         @keyword_arg_hash_on_stack = true
       end
 
