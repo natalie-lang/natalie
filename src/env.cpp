@@ -149,6 +149,28 @@ void Env::ensure_block_given(Block *block) {
     }
 }
 
+void Env::ensure_no_missing_keywords(HashObject *kwargs, std::initializer_list<const String> names) {
+    if (std::empty(names))
+        return;
+    Vector<SymbolObject *> missing;
+    for (auto name : names) {
+        auto symbol = SymbolObject::intern(name);
+        if (!kwargs || !kwargs->has_key(this, symbol))
+            missing.push(symbol);
+    }
+    if (missing.is_empty())
+        return;
+    if (missing.size() == 1)
+        raise("ArgumentError", "missing keyword: {}", missing[0]->inspect_str(this));
+    String message { "missing keywords: " };
+    message.append(missing[0]->inspect_str(this));
+    for (size_t i = 1; i < missing.size(); i++) {
+        message.append(", ");
+        message.append(missing[i]->inspect_str(this));
+    }
+    raise("ArgumentError", message);
+}
+
 Value Env::last_match(bool to_s) {
     Env *env = non_block_env();
     if (env->m_match) {

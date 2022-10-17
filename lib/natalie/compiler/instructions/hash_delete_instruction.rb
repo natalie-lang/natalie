@@ -3,24 +3,17 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class HashDeleteInstruction < BaseInstruction
-      def initialize(name, for_keyword_arg: false)
+      def initialize(name)
         @name = name.to_sym
-        @for_keyword_arg = for_keyword_arg
       end
 
       def to_s
-        s = "hash_delete #{@name}"
-        s << ' (for keyword arg)' if @for_keyword_arg
-        s
+        "hash_delete #{@name}"
       end
 
       def generate(transform)
         ary = transform.peek
-        if @for_keyword_arg
-          transform.exec_and_push(@name, "#{ary}->as_hash()->remove_keyword_arg(env, #{transform.intern(@name)})")
-        else
-          transform.exec_and_push(@name, "#{ary}->as_hash()->remove(env, #{transform.intern(@name)})")
-        end
+        transform.exec_and_push(@name, "#{ary}->as_hash()->remove(env, #{transform.intern(@name)})")
       end
 
       def execute(vm)

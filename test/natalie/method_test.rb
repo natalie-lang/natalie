@@ -497,7 +497,14 @@ describe 'method with keyword args' do
   end
 
   it 'raises an error when a required keyword argument is not supplied' do
+    -> { method_with_kwargs1(0) }.should raise_error(ArgumentError, 'missing keyword: :b')
+    -> { method_with_kwargs2(0) }.should raise_error(ArgumentError, 'missing keywords: :b, :c')
+    -> { method_with_kwargs3(0) }.should raise_error(ArgumentError, 'missing keyword: :b')
+    -> { method_with_kwargs4(0) }.should raise_error(ArgumentError, 'missing keyword: :c')
     -> { method_with_kwargs7 }.should raise_error(ArgumentError, 'missing keyword: :a')
+    -> { method_with_kwargs8 }.should raise_error(ArgumentError, 'missing keyword: :a')
+    -> { method_with_kwargs11 }.should raise_error(ArgumentError, 'missing keyword: :a')
+    -> { proc { |a, b:, c:| }.call }.should raise_error(ArgumentError, 'missing keywords: :b, :c')
   end
 
   xit 'raises an error when an extra keyword argument is supplied' do
