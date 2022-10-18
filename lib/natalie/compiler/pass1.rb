@@ -512,12 +512,17 @@ module Natalie
         if has_complicated_args || may_need_to_destructure_args_for_block
           min_count = minimum_arg_count(args)
           max_count = maximum_arg_count(args)
+          required_keywords = required_keywords(args)
 
           instructions << PopKeywordArgsInstruction.new if any_keyword_args?(args)
 
           if check_args
             argc = min_count == max_count ? min_count : min_count..max_count
-            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords(args))
+            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
+          end
+
+          if required_keywords.any?
+            instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
           end
 
           instructions << PushArgsInstruction.new(

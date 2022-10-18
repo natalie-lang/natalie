@@ -100,7 +100,7 @@ module Natalie
           @instructions << @pass.transform_expression(default, used: true)
           @instructions << HashDeleteWithDefaultInstruction.new(name)
         else
-          @instructions << HashDeleteInstruction.new(name, for_keyword_arg: true)
+          @instructions << HashDeleteInstruction.new(name)
         end
         @instructions << variable_set(name)
       end

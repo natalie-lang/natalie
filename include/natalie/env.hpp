@@ -82,6 +82,7 @@ public:
     }
 
     void ensure_block_given(Block *);
+    void ensure_no_missing_keywords(HashObject *, std::initializer_list<const String>);
 
     Value last_match(bool to_s = false);
     bool has_last_match();
