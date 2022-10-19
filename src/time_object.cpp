@@ -177,6 +177,17 @@ Value TimeObject::min(Env *) const {
     return Value::integer(m_time.tm_min);
 }
 
+Value TimeObject::minus(Env *env, Value other) {
+    if (other->is_time()) {
+        return to_r(env)->as_rational()->sub(env, other->as_time()->to_r(env))->as_rational()->to_f(env);
+    }
+    if (other->is_nil() || !other->respond_to(env, "to_r"_s)) {
+        env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
+    }
+    RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
+    return TimeObject::create(env, rational, m_mode);
+}
+
 Value TimeObject::month(Env *) const {
     return Value::integer(m_time.tm_mon + 1);
 }
@@ -272,9 +283,17 @@ struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value md
 }
 
 TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
+    IntegerObject *integer;
+    RationalObject *subseconds;
     TimeObject *result = new TimeObject {};
-    IntegerObject *integer = rational->to_i(env)->as_integer();
-    RationalObject *subseconds = rational->sub(env, integer)->as_rational();
+    if (rational->send(env, "<"_s, { Value::integer(0) })->is_true()) {
+        auto floor = rational->floor(env, nullptr);
+        integer = floor->send(env, "to_i"_s)->as_integer();
+        subseconds = rational->sub(env, floor)->as_rational();
+    } else {
+        integer = rational->to_i(env)->as_integer();
+        subseconds = rational->sub(env, integer)->as_rational();
+    }
     time_t seconds = (time_t)integer->to_nat_int_t();
     if (mode == Mode::UTC) {
         result->m_time = *gmtime(&seconds);

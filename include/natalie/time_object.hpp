@@ -35,6 +35,7 @@ public:
     bool is_utc(Env *) const { return m_mode == Mode::UTC; }
     Value mday(Env *) const;
     Value min(Env *) const;
+    Value minus(Env *, Value);
     Value month(Env *) const;
     Value nsec(Env *);
     Value sec(Env *) const;
