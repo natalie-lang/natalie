@@ -27,15 +27,13 @@ describe "Range#min" do
     (3003.20..908.1111).min.should be_nil
   end
 
-  # NATFIXME: Implement Time
-  xit "returns start point when the range is Time..Time(included end point)" do
+  it "returns start point when the range is Time..Time(included end point)" do
     time_start = Time.now
     time_end = Time.now + 1.0
     (time_start..time_end).min.should equal(time_start)
   end
 
-  # NATFIXME: Implement Time
-  xit "returns start point when the range is Time...Time(excluded end point)" do
+  it "returns start point when the range is Time...Time(excluded end point)" do
     time_start = Time.now
     time_end = Time.now + 1.0
     (time_start...time_end).min.should equal(time_start)
