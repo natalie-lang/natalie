@@ -215,7 +215,7 @@ end
 
 def platform_is(platform)
   if platform.is_a?(Hash)
-    yield if platform[:wordsize] == 64
+    yield if platform[:wordsize] == 64 || platform[:pointer_size] == 64
   elsif platform == :linux
     yield if RUBY_PLATFORM =~ /linux/
   end

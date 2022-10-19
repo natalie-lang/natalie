@@ -33,13 +33,22 @@ std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, 
     unsigned char c = string[i];
     bool valid = true;
     if ((c >> 3) == 0b11110) { // 11110xxx, 4 bytes
-        if (i + 3 >= len) return { false, StringView(&string, i) };
+        if (i + 3 >= len) {
+            *index = len;
+            return { false, StringView(&string, i) };
+        }
         length = 4;
     } else if ((c >> 4) == 0b1110) { // 1110xxxx, 3 bytes
-        if (i + 2 >= len) return { false, StringView(&string, i) };
+        if (i + 2 >= len) {
+            *index = len;
+            return { false, StringView(&string, i) };
+        }
         length = 3;
     } else if ((c >> 5) == 0b110) { // 110xxxxx, 2 bytes
-        if (i + 1 >= len) return { false, StringView(&string, i) };
+        if (i + 1 >= len) {
+            *index = len;
+            return { false, StringView(&string, i) };
+        }
         length = 2;
     } else if ((c >> 7) == 0b0) { // 0xxxxxxx, 1 byte
         length = 1;

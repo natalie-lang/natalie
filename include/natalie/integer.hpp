@@ -118,7 +118,7 @@ public:
     nat_int_t to_nat_int_t() const {
         if (is_fixnum())
             return m_fixnum;
-        else
+        else // FIXME: this should probably panic since the number likely won't fit in a long long
             return m_bignum->to_long_long();
     }
     double to_double() const;

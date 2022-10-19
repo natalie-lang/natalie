@@ -69,13 +69,16 @@ namespace ArrayPacker {
                 case 'c':
                 case 'I':
                 case 'i':
+                case 'J':
+                case 'j':
                 case 'S':
                 case 's':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
                         auto integer = m_source->at(m_index)->to_int(env);
                         auto packer = IntegerHandler { integer, token };
-                        m_packed.append(packer.pack(env));
+                        auto result = packer.pack(env);
+                        m_packed.append(result);
                     });
 
                     if (d == 'U')
