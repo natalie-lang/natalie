@@ -8,8 +8,9 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec) {
         rational = RationalObject::create(env, time->as_integer(), new IntegerObject { 1 });
     } else if (time->is_rational()) {
         rational = time->as_rational();
+    } else if (time->respond_to(env, "to_r"_s) && time->respond_to(env, "to_int"_s)) {
+        rational = time->send(env, "to_r"_s)->as_rational();
     } else {
-        // NATFIXME: Support other arguments (Float, BigDecimal, Time etc)
         env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspect_str());
     }
     if (subsec) {

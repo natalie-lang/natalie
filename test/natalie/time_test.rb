@@ -14,6 +14,14 @@ describe 'Time' do
       end
     end
 
+    context 'with a Float argument' do
+      it 'returns a time' do
+        t = Time.at(10.5)
+        t.usec.should == 500000
+        t.should_not == Time.at(10)
+      end
+    end
+
     context 'with a String argument' do
       it 'raises an error' do
         -> { Time.at('') }.should raise_error(TypeError)
