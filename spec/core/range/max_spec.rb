@@ -34,15 +34,13 @@ describe "Range#max" do
     (3003.20..908.1111).max.should be_nil
   end
 
-  # NATFIXME: Implement Time
-  xit "returns end point when the range is Time..Time(included end point)" do
+  it "returns end point when the range is Time..Time(included end point)" do
     time_start = Time.now
     time_end = Time.now + 1.0
     (time_start..time_end).max.should equal(time_end)
   end
 
-  # NATFIXME: Implement Time
-  xit "raises TypeError when called on a Time...Time(excluded end point)" do
+  it "raises TypeError when called on a Time...Time(excluded end point)" do
     time_start = Time.now
     time_end = Time.now + 1.0
     -> { (time_start...time_end).max  }.should raise_error(TypeError)
