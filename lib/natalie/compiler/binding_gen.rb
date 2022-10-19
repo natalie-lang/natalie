@@ -976,6 +976,7 @@ gen.static_binding('Time', 'new', 'TimeObject', 'create', argc: 0, pass_env: tru
 gen.static_binding('Time', 'now', 'TimeObject', 'now', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Time', 'utc', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '+', 'TimeObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', '-', 'TimeObject', 'minus', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '<=>', 'TimeObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'asctime', 'TimeObject', 'asctime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'eql?', 'TimeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
