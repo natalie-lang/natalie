@@ -91,20 +91,24 @@ namespace ArrayPacker {
         }
 
         void pack_I() {
-            if (m_source->is_bignum()) NAT_NOT_YET_IMPLEMENTED("bignum in Array#pack");
             auto source = (unsigned int)m_source->to_nat_int_t();
-            m_packed.append((const char *)(&source), sizeof(source));
+            if (m_source->is_bignum())
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(unsigned int))).to_long_long();
+
+            append_bytes((const char *)(&source), sizeof(source));
         }
 
         void pack_i() {
-            if (m_source->is_bignum()) NAT_NOT_YET_IMPLEMENTED("bignum in Array#pack");
             auto source = (signed int)m_source->to_nat_int_t();
-            m_packed.append((const char *)(&source), sizeof(source));
+            if (m_source->is_bignum())
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+
+            append_bytes((const char *)(&source), sizeof(source));
         }
 
         void pack_J() {
             if (m_source->is_bignum()) {
-                pack_j_bignum(sizeof(uintptr_t) * 8);
+                pack_bignum(sizeof(uintptr_t) * 8);
             } else {
                 auto source = (uintptr_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), sizeof(source));
@@ -113,46 +117,53 @@ namespace ArrayPacker {
 
         void pack_j() {
             if (m_source->is_bignum()) {
-                pack_j_bignum(sizeof(intptr_t) * 8);
+                pack_bignum(sizeof(intptr_t) * 8);
             } else {
                 auto source = (intptr_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), sizeof(source));
             }
         }
 
-        void pack_j_bignum(size_t max_bits) {
+        void pack_S() {
+            auto source = (unsigned short)m_source->to_nat_int_t();
+            if (m_source->is_bignum())
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+
+            auto size = m_token.native_size ? sizeof(unsigned short) : 2;
+            append_bytes((const char *)&source, size);
+        }
+
+        void pack_s() {
+            auto source = (signed short)m_source->to_nat_int_t();
+            if (m_source->is_bignum())
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+
+            auto size = m_token.native_size ? sizeof(signed short) : 2;
+            append_bytes((const char *)&source, size);
+        }
+
+        // NOTE: We probably don't need this monster method, but I could not figure out
+        // how to pack 'j'/'J' using the modulus trick. ¯\_(ツ)_/¯
+        void pack_bignum(size_t max_bits) {
             auto digits = m_source->to_bigint().to_binary();
 
             // TODO: support big endian systems
             assert(system_is_little_endian());
 
+            ssize_t start = std::max((ssize_t)0, (ssize_t)digits.size() - (ssize_t)max_bits);
+
             switch (m_token.endianness) {
             case Endianness::Big: {
-                size_t start = std::max((size_t)0, digits.size() - max_bits);
                 for (size_t i = start; i < digits.size(); i += 8)
                     append_8_ascii_bits_as_a_byte(digits, i);
                 break;
             }
             case Endianness::Little:
             case Endianness::Native:
-                for (ssize_t i = max_bits - 7; i >= 0; i -= 8)
+                for (ssize_t i = digits.size() - 8; i >= start; i -= 8)
                     append_8_ascii_bits_as_a_byte(digits, i);
                 break;
             }
-        }
-
-        void pack_S() {
-            if (m_source->is_bignum()) NAT_NOT_YET_IMPLEMENTED("bignum in Array#pack");
-            auto source = (unsigned short)m_source->to_nat_int_t();
-            auto size = m_token.native_size ? sizeof(unsigned short) : 2;
-            append_bytes((const char *)&source, size);
-        }
-
-        void pack_s() {
-            if (m_source->is_bignum()) NAT_NOT_YET_IMPLEMENTED("bignum in Array#pack");
-            auto source = (signed short)m_source->to_nat_int_t();
-            auto size = m_token.native_size ? sizeof(signed short) : 2;
-            append_bytes((const char *)&source, size);
         }
 
         void append_bytes(const char *bytes, int size) {
