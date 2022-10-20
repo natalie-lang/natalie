@@ -71,4 +71,22 @@ describe 'Kernel' do
       result.should == [1, 2, 3]
     end
   end
+
+  describe '#Complex' do
+    it 'raises error with extra keywords' do
+      -> { Complex(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
+    end
+  end
+
+  describe '#Float' do
+    it 'raises error with extra keywords' do
+      -> { Float(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
+    end
+  end
+
+  describe '#Rational' do
+    it 'raises error with extra keywords' do
+      -> { Rational(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
+    end
+  end
 end

@@ -137,6 +137,7 @@ class BindingGen
 Value #{name}(Env *env, Value self_value, Args args, Block *block) {
     #{pop_kwargs}
     #{argc_assertion}
+    #{kwargs_assertion}
     #{type}self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -149,6 +150,7 @@ Value #{name}(Env *env, Value self_value, Args args, Block *block) {
 Value #{name}(Env *env, Value klass, Args args, Block *block) {
     #{pop_kwargs}
     #{argc_assertion}
+    #{kwargs_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
 }\n
@@ -216,7 +218,10 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     private
 
     def pop_kwargs
-      'auto kwargs = args.pop_keyword_hash();' if @kwargs.any?
+      if @kwargs.any?
+        "auto kwargs = args.pop_keyword_hash();\n" +
+          @kwargs.map { |kw| "auto kwarg_#{kw} = kwargs ? kwargs->remove(env, #{kw.to_s.inspect}_s) : nullptr;" }.join("\n")
+      end
     end
 
     def argc_assertion
@@ -236,13 +241,17 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
       end
     end
 
+    def kwargs_assertion
+      'env->ensure_no_extra_keywords(kwargs);' if @kwargs.any?
+    end
+
     def env_arg
       'env' if pass_env
     end
 
     def args
       (0...max_argc).map { |i| "args.at(#{i}, nullptr)" } +
-        @kwargs.map { |kw| "kwargs ? kwargs->get(env, #{kw.to_s.inspect}_s) : nullptr" }
+        @kwargs.map { |kw| "kwarg_#{kw}" }
     end
 
     def block_arg

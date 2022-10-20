@@ -134,6 +134,7 @@ module Natalie
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the **splat is the last arg
         end
+        @has_keyword_splat = true
         :reverse
       end
 
@@ -166,7 +167,10 @@ module Natalie
       end
 
       def clean_up_keyword_args
-        @instructions << PopInstruction.new if @keyword_arg_hash_on_stack
+        if @keyword_arg_hash_on_stack
+          @instructions << CheckExtraKeywordsInstruction.new unless @has_keyword_splat
+          @instructions << PopInstruction.new
+        end
         @keyword_arg_hash_on_stack = false
       end
 
