@@ -230,6 +230,7 @@ public:
     Value split(Env *, Value, Value);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
+    Value sum(Env *, Value = nullptr);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
     Value unpack(Env *, Value) const;

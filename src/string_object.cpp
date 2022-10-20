@@ -1959,4 +1959,29 @@ Value StringObject::chop_in_place(Env *env) {
     return this;
 }
 
+Value StringObject::sum(Env *env, Value val) {
+  int base = 16;
+  int sum = 0;
+  
+  if (val) {
+      if (!val->is_integer() && val->respond_to(env, "to_int"_s)){
+        val = val->send(env, "to_int"_s);
+      }
+      
+      if (val->is_integer()) {
+        val->assert_type(env, Object::Type::Integer, "Integer");
+      }
+
+      base = val->as_integer()->to_nat_int_t();
+  }
+
+  for (size_t i = 0; i < length(); ++i) { sum += m_string[i]; }
+
+  if (base > 0 && base < 17) {
+    int power = ::pow(2, base);
+    return Value::integer(sum % power);
+  } 
+
+  return Value::integer(sum);
+}
 }
