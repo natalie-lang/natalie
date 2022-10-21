@@ -1218,6 +1218,23 @@ describe 'array' do
       end
     end
 
+    describe 'l' do
+      it 'handles bignums' do
+        %w[l L].each do |directive|
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".force_encoding(Encoding::BINARY)
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".force_encoding(Encoding::BINARY)
+
+          little_endian do
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".force_encoding(Encoding::BINARY)
+          end
+        end
+      end
+    end
+
     describe 's' do
       it 'handles bignums' do
         %w[s S].each do |directive|

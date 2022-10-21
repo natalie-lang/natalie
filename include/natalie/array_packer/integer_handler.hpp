@@ -39,6 +39,12 @@ namespace ArrayPacker {
             case 'j':
                 pack_j();
                 break;
+            case 'L':
+                pack_L();
+                break;
+            case 'l':
+                pack_l();
+                break;
             case 'S':
                 pack_S();
                 break;
@@ -121,6 +127,26 @@ namespace ArrayPacker {
             } else {
                 auto source = (intptr_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), sizeof(source));
+            }
+        }
+
+        void pack_L() {
+            auto size = m_token.native_size ? sizeof(unsigned long) : sizeof(unsigned int);
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (unsigned long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
+            }
+        }
+
+        void pack_l() {
+            auto size = m_token.native_size ? sizeof(long) : sizeof(int);
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
             }
         }
 

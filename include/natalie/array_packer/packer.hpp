@@ -71,6 +71,8 @@ namespace ArrayPacker {
                 case 'i':
                 case 'J':
                 case 'j':
+                case 'L':
+                case 'l':
                 case 'S':
                 case 's':
                 case 'U': {
