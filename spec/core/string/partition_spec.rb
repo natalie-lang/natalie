@@ -1,9 +1,9 @@
 require_relative '../../spec_helper'
-# require_relative 'fixtures/classes'
-# require_relative 'shared/partition'
+require_relative 'fixtures/classes'
+require_relative 'shared/partition'
 
 describe "String#partition with String" do
-  # it_behaves_like :string_partition, :partition
+  it_behaves_like :string_partition, :partition
 
   it "returns an array of substrings based on splitting on the given string" do
     "hello world".partition("o").should == ["hell", "o", " world"]
@@ -16,6 +16,8 @@ describe "String#partition with String" do
 
   it "accepts regexp" do
     "hello!".partition(/l./).should == ["he", "ll", "o!"]
+    "hello!".partition(/g./).should == ["hello!", "", ""]
+    "hello!".partition(/hello!/).should == ["", "hello!", ""]
   end
 
   it "sets global vars if regexp used" do

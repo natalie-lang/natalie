@@ -213,6 +213,7 @@ public:
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *) const;
+    Value partition(Env *, Value);
     Value prepend(Env *, Args);
     Value ref(Env *, Value, Value);
     Value ref_slice_range_in_place(size_t, size_t);
