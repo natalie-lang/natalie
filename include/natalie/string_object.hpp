@@ -270,6 +270,8 @@ public:
     Value sum(Env *, Value = nullptr);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
+    Value tr(Env *, Value, Value) const;
+    Value tr_in_place(Env *, Value, Value);
     Value unpack(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);
