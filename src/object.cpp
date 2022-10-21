@@ -878,7 +878,7 @@ Value Object::dup(Env *env) const {
     }
 }
 
-Value Object::clone(Env *env) {
+Value Object::clone(Env *env) const {
     auto duplicate = this->dup(env);
     auto s_class = singleton_class();
     if (s_class) {
@@ -1003,7 +1003,7 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
 }
 
-void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {
+void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) const {
     if ((type()) != expected_type) {
         if (type() == ObjectType::Nil) {
             // For some reason the errors with nil are slightly different...

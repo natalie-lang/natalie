@@ -285,7 +285,7 @@ public:
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
     Value dup(Env *) const;
-    Value clone(Env *env);
+    Value clone(Env *env) const;
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);
@@ -322,7 +322,7 @@ public:
 
     Value instance_eval(Env *, Value, Block *);
 
-    void assert_type(Env *, Object::Type, const char *);
+    void assert_type(Env *, Object::Type, const char *) const;
     void assert_not_frozen(Env *);
 
     String inspect_str(Env *);
