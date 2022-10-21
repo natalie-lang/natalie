@@ -98,7 +98,7 @@ public:
     static Value _new(Env *, Value, Args, Block *);
     static Value allocate(Env *, Value, Args, Block *);
 
-    Type type() { return m_type; }
+    Type type() const { return m_type; }
     ClassObject *klass() const { return m_klass; }
 
     ModuleObject *owner() const { return m_owner; }
@@ -143,33 +143,59 @@ public:
 
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
+    const ArrayObject *as_array() const;
     ClassObject *as_class();
+    const ClassObject *as_class() const;
     ComplexObject *as_complex();
+    const ComplexObject *as_complex() const;
     EncodingObject *as_encoding();
+    const EncodingObject *as_encoding() const;
     ExceptionObject *as_exception();
+    const ExceptionObject *as_exception() const;
     FalseObject *as_false();
+    const FalseObject *as_false() const;
     FiberObject *as_fiber();
+    const FiberObject *as_fiber() const;
     FileObject *as_file();
+    const FileObject *as_file() const;
     FloatObject *as_float();
+    const FloatObject *as_float() const;
     HashObject *as_hash();
+    const HashObject *as_hash() const;
     IntegerObject *as_integer();
+    const IntegerObject *as_integer() const;
     IoObject *as_io();
+    const IoObject *as_io() const;
     MatchDataObject *as_match_data();
+    const MatchDataObject *as_match_data() const;
     MethodObject *as_method();
+    const MethodObject *as_method() const;
     ModuleObject *as_module();
+    const ModuleObject *as_module() const;
     NilObject *as_nil();
+    const NilObject *as_nil() const;
     ProcObject *as_proc();
+    const ProcObject *as_proc() const;
     RandomObject *as_random();
+    const RandomObject *as_random() const;
     RangeObject *as_range();
+    const RangeObject *as_range() const;
     RationalObject *as_rational();
+    const RationalObject *as_rational() const;
     RegexpObject *as_regexp();
+    const RegexpObject *as_regexp() const;
     StringObject *as_string();
     const StringObject *as_string() const;
     SymbolObject *as_symbol();
+    const SymbolObject *as_symbol() const;
     TimeObject *as_time();
+    const TimeObject *as_time() const;
     TrueObject *as_true();
+    const TrueObject *as_true() const;
     UnboundMethodObject *as_unbound_method();
+    const UnboundMethodObject *as_unbound_method() const;
     VoidPObject *as_void_p();
+    const VoidPObject *as_void_p() const;
 
     ArrayObject *as_array_or_raise(Env *);
     ClassObject *as_class_or_raise(Env *);
@@ -258,7 +284,7 @@ public:
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
-    Value dup(Env *);
+    Value dup(Env *) const;
     Value clone(Env *env);
 
     bool is_a(Env *, Value) const;

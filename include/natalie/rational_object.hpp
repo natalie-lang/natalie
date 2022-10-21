@@ -13,6 +13,11 @@ public:
         , m_numerator { numerator }
         , m_denominator { denominator } { }
 
+    RationalObject(const RationalObject &other)
+        : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
+        , m_numerator { other.m_numerator }
+        , m_denominator { other.m_denominator } { }
+
     static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
 
     bool is_zero() const {

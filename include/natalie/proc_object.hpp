@@ -33,7 +33,7 @@ public:
         assert(m_block);
     }
 
-    ProcObject(ProcObject &other)
+    ProcObject(const ProcObject &other)
         : Object { other }
         , m_block { other.m_block }
         , m_type { other.m_type }

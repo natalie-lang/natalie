@@ -59,7 +59,7 @@ public:
 
     Value eqtilde(Env *, Value);
     Value length(Env *);
-    Value name(Env *);
+    Value name(Env *) const;
     Value ref(Env *, Value);
 
     const String &string() const { return m_name; }

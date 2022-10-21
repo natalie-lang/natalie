@@ -160,6 +160,11 @@ NilObject *Object::as_nil() {
     return static_cast<NilObject *>(this);
 }
 
+const NilObject *Object::as_nil() const {
+    assert(is_nil());
+    return static_cast<const NilObject *>(this);
+}
+
 Enumerator::ArithmeticSequenceObject *Object::as_enumerator_arithmetic_sequence() {
     assert(is_enumerator_arithmetic_sequence());
     return static_cast<Enumerator::ArithmeticSequenceObject *>(this);
@@ -170,9 +175,19 @@ ArrayObject *Object::as_array() {
     return static_cast<ArrayObject *>(this);
 }
 
+const ArrayObject *Object::as_array() const {
+    assert(is_array());
+    return static_cast<const ArrayObject *>(this);
+}
+
 MethodObject *Object::as_method() {
     assert(is_method());
     return static_cast<MethodObject *>(this);
+}
+
+const MethodObject *Object::as_method() const {
+    assert(is_method());
+    return static_cast<const MethodObject *>(this);
 }
 
 ModuleObject *Object::as_module() {
@@ -180,9 +195,19 @@ ModuleObject *Object::as_module() {
     return static_cast<ModuleObject *>(this);
 }
 
+const ModuleObject *Object::as_module() const {
+    assert(is_module());
+    return static_cast<const ModuleObject *>(this);
+}
+
 ClassObject *Object::as_class() {
     assert(is_class());
     return static_cast<ClassObject *>(this);
+}
+
+const ClassObject *Object::as_class() const {
+    assert(is_class());
+    return static_cast<const ClassObject *>(this);
 }
 
 ComplexObject *Object::as_complex() {
@@ -190,9 +215,19 @@ ComplexObject *Object::as_complex() {
     return static_cast<ComplexObject *>(this);
 }
 
+const ComplexObject *Object::as_complex() const {
+    assert(is_complex());
+    return static_cast<const ComplexObject *>(this);
+}
+
 EncodingObject *Object::as_encoding() {
     assert(is_encoding());
     return static_cast<EncodingObject *>(this);
+}
+
+const EncodingObject *Object::as_encoding() const {
+    assert(is_encoding());
+    return static_cast<const EncodingObject *>(this);
 }
 
 ExceptionObject *Object::as_exception() {
@@ -200,9 +235,19 @@ ExceptionObject *Object::as_exception() {
     return static_cast<ExceptionObject *>(this);
 }
 
+const ExceptionObject *Object::as_exception() const {
+    assert(is_exception());
+    return static_cast<const ExceptionObject *>(this);
+}
+
 FalseObject *Object::as_false() {
     assert(is_false());
     return static_cast<FalseObject *>(this);
+}
+
+const FalseObject *Object::as_false() const {
+    assert(is_false());
+    return static_cast<const FalseObject *>(this);
 }
 
 FiberObject *Object::as_fiber() {
@@ -210,9 +255,19 @@ FiberObject *Object::as_fiber() {
     return static_cast<FiberObject *>(this);
 }
 
+const FiberObject *Object::as_fiber() const {
+    assert(is_fiber());
+    return static_cast<const FiberObject *>(this);
+}
+
 FloatObject *Object::as_float() {
     assert(is_float());
     return static_cast<FloatObject *>(this);
+}
+
+const FloatObject *Object::as_float() const {
+    assert(is_float());
+    return static_cast<const FloatObject *>(this);
 }
 
 HashObject *Object::as_hash() {
@@ -220,9 +275,19 @@ HashObject *Object::as_hash() {
     return static_cast<HashObject *>(this);
 }
 
+const HashObject *Object::as_hash() const {
+    assert(is_hash());
+    return static_cast<const HashObject *>(this);
+}
+
 IntegerObject *Object::as_integer() {
     assert(is_integer());
     return static_cast<IntegerObject *>(this);
+}
+
+const IntegerObject *Object::as_integer() const {
+    assert(is_integer());
+    return static_cast<const IntegerObject *>(this);
 }
 
 IoObject *Object::as_io() {
@@ -230,9 +295,19 @@ IoObject *Object::as_io() {
     return static_cast<IoObject *>(this);
 }
 
+const IoObject *Object::as_io() const {
+    assert(is_io());
+    return static_cast<const IoObject *>(this);
+}
+
 FileObject *Object::as_file() {
     assert(is_io());
     return static_cast<FileObject *>(this);
+}
+
+const FileObject *Object::as_file() const {
+    assert(is_io());
+    return static_cast<const FileObject *>(this);
 }
 
 MatchDataObject *Object::as_match_data() {
@@ -240,9 +315,19 @@ MatchDataObject *Object::as_match_data() {
     return static_cast<MatchDataObject *>(this);
 }
 
+const MatchDataObject *Object::as_match_data() const {
+    assert(is_match_data());
+    return static_cast<const MatchDataObject *>(this);
+}
+
 ProcObject *Object::as_proc() {
     assert(is_proc());
     return static_cast<ProcObject *>(this);
+}
+
+const ProcObject *Object::as_proc() const {
+    assert(is_proc());
+    return static_cast<const ProcObject *>(this);
 }
 
 RandomObject *Object::as_random() {
@@ -250,9 +335,19 @@ RandomObject *Object::as_random() {
     return static_cast<RandomObject *>(this);
 }
 
+const RandomObject *Object::as_random() const {
+    assert(is_random());
+    return static_cast<const RandomObject *>(this);
+}
+
 RangeObject *Object::as_range() {
     assert(is_range());
     return static_cast<RangeObject *>(this);
+}
+
+const RangeObject *Object::as_range() const {
+    assert(is_range());
+    return static_cast<const RangeObject *>(this);
 }
 
 RationalObject *Object::as_rational() {
@@ -260,9 +355,19 @@ RationalObject *Object::as_rational() {
     return static_cast<RationalObject *>(this);
 }
 
+const RationalObject *Object::as_rational() const {
+    assert(is_rational());
+    return static_cast<const RationalObject *>(this);
+}
+
 RegexpObject *Object::as_regexp() {
     assert(is_regexp());
     return static_cast<RegexpObject *>(this);
+}
+
+const RegexpObject *Object::as_regexp() const {
+    assert(is_regexp());
+    return static_cast<const RegexpObject *>(this);
 }
 
 StringObject *Object::as_string() {
@@ -280,9 +385,19 @@ SymbolObject *Object::as_symbol() {
     return static_cast<SymbolObject *>(this);
 }
 
+const SymbolObject *Object::as_symbol() const {
+    assert(is_symbol());
+    return static_cast<const SymbolObject *>(this);
+}
+
 TimeObject *Object::as_time() {
     assert(is_time());
     return static_cast<TimeObject *>(this);
+}
+
+const TimeObject *Object::as_time() const {
+    assert(is_time());
+    return static_cast<const TimeObject *>(this);
 }
 
 TrueObject *Object::as_true() {
@@ -290,14 +405,29 @@ TrueObject *Object::as_true() {
     return static_cast<TrueObject *>(this);
 }
 
+const TrueObject *Object::as_true() const {
+    assert(is_true());
+    return static_cast<const TrueObject *>(this);
+}
+
 UnboundMethodObject *Object::as_unbound_method() {
     assert(is_unbound_method());
     return static_cast<UnboundMethodObject *>(this);
 }
 
+const UnboundMethodObject *Object::as_unbound_method() const {
+    assert(is_unbound_method());
+    return static_cast<const UnboundMethodObject *>(this);
+}
+
 VoidPObject *Object::as_void_p() {
     assert(is_void_p());
     return static_cast<VoidPObject *>(this);
+}
+
+const VoidPObject *Object::as_void_p() const {
+    assert(is_void_p());
+    return static_cast<const VoidPObject *>(this);
 }
 
 KernelModule *Object::as_kernel_module_for_method_binding() {
@@ -704,7 +834,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     return nullptr;
 }
 
-Value Object::dup(Env *env) {
+Value Object::dup(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
@@ -714,6 +844,8 @@ Value Object::dup(Env *env) {
         return new ComplexObject { *as_complex() };
     case Object::Type::Exception:
         return new ExceptionObject { *as_exception() };
+    case Object::Type::False:
+        return FalseObject::the();
     case Object::Type::Float:
         return Value::floatingpoint(as_float()->to_double());
     case Object::Type::Hash:
@@ -724,20 +856,22 @@ Value Object::dup(Env *env) {
         return Value::integer(as_integer()->to_nat_int_t());
     case Object::Type::Module:
         return new ModuleObject { *as_module() };
+    case Object::Type::Nil:
+        return NilObject::the();
+    case Object::Type::Object:
+        return new Object { *this };
     case Object::Type::Proc:
         return new ProcObject { *as_proc() };
     case Object::Type::Range:
         return new RangeObject { *as_range() };
+    case Object::Type::Rational:
+        return new RationalObject { *as_rational() };
     case Object::Type::String:
         return new StringObject { *as_string() };
-    case Object::Type::False:
-    case Object::Type::Nil:
-    case Object::Type::Rational:
     case Object::Type::Symbol:
+        return SymbolObject::intern(as_symbol()->string());
     case Object::Type::True:
-        return this;
-    case Object::Type::Object:
-        return new Object { *this };
+        return TrueObject::the();
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str().c_str(), static_cast<int>(m_type));
         abort();
