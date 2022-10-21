@@ -296,9 +296,10 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     };
 
     if (inverted_match) {
-        size_t index = 0;
         bool changes_made = false;
-        for (auto c : *this) {
+        size_t byte_index = length();
+        auto c = prev_char(&byte_index);
+        while (!c.is_empty()) {
             auto last_char_index = to_chars->size() >= 1 ? to_chars->size() - 1 : 0;
 
             bool found = false;
@@ -309,20 +310,22 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
                 }
             }
             if (!found)
-                replace_char(index, c.size(), last_char_index);
-            index += c.size();
+                replace_char(byte_index, c.size(), last_char_index);
+
+            c = prev_char(&byte_index);
         }
 
     } else { // regular match
-        size_t index = 0;
-        for (auto c : *this) {
+        size_t byte_index = length();
+        auto c = prev_char(&byte_index);
+        while (!c.is_empty()) {
             for (size_t j = 0; j < from_chars->size(); j++) {
                 if (*from_chars->at(j)->as_string() == c) {
-                    replace_char(index, c.size(), j);
+                    replace_char(byte_index, c.size(), j);
                     break;
                 }
             }
-            index += c.size();
+            c = prev_char(&byte_index);
         }
     }
 
