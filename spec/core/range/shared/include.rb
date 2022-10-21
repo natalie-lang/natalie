@@ -77,8 +77,7 @@ describe :range_include, shared: true do
     end
   end
 
-  # NATFIXME: Implement Time
-  xdescribe "with Time endpoints" do
+  describe "with Time endpoints" do
     it "uses cover? logic" do
       now = Time.now
       range = (now..(now + 60))
