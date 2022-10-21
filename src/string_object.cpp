@@ -1968,9 +1968,7 @@ Value StringObject::sum(Env *env, Value val) {
         val = val->send(env, "to_int"_s);
       }
       
-      if (val->is_integer()) {
-        val->assert_type(env, Object::Type::Integer, "Integer");
-      }
+      val->assert_type(env, Object::Type::Integer, "Integer");
 
       base = val->as_integer()->to_nat_int_t();
   }
