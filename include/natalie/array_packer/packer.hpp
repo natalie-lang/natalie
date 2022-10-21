@@ -36,6 +36,7 @@ namespace ArrayPacker {
                 case 'b':
                 case 'H':
                 case 'h':
+                case 'M':
                 case 'm':
                 case 'u':
                 case 'Z': {
@@ -54,6 +55,12 @@ namespace ArrayPacker {
                         auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
                         string = str->as_string()->string();
+                    } else if (d == 'M' && (item->respond_to(env, "to_s"_s))) {
+                        auto str = item->send(env, "to_s"_s);
+                        if (str->is_string())
+                            string = str->as_string()->string();
+                        else
+                            string = str->to_s(env)->string();
                     } else {
                         env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
                         NAT_UNREACHABLE();
@@ -62,7 +69,7 @@ namespace ArrayPacker {
                     auto packer = StringHandler { string, token };
                     m_packed.append(packer.pack(env));
 
-                    if (d == 'm')
+                    if (d == 'm' || d == 'M')
                         m_encoding = EncodingObject::get(Encoding::US_ASCII);
 
                     m_index++;
@@ -98,9 +105,9 @@ namespace ArrayPacker {
                 case 'E':
                 case 'e':
                 case 'F':
+                case 'f':
                 case 'G':
-                case 'g':
-                case 'f': {
+                case 'g': {
                     pack_with_loop(env, token, [&]() {
                         auto value = m_source->at(m_index);
                         if (value->is_integer())

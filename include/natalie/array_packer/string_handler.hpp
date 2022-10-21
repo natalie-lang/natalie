@@ -37,6 +37,9 @@ namespace ArrayPacker {
             case 'H':
                 pack_with_loop(&StringHandler::pack_H);
                 break;
+            case 'M':
+                pack_M();
+                break;
             case 'm':
                 pack_m();
                 break;
@@ -181,6 +184,45 @@ namespace ArrayPacker {
             auto const b64_fourth = encode_table[bits & 0b0011'1111];
 
             return { b64_first, b64_second, b64_third, b64_fourth };
+        }
+
+        void pack_M() {
+            size_t count = m_token.count;
+            if (m_token.star || m_token.count == -1 || m_token.count == 0 || m_token.count == 1)
+                count = 72;
+
+            size_t line_size = 0;
+
+            for (size_t index = 0; index < m_source.size(); index++) {
+                unsigned char c = m_source[index];
+
+                if (c != '=' && (c == '\t' || c == '\n' || isprint(c))) {
+                    m_packed.append_char(c);
+                    line_size++;
+                    if (c == '\n')
+                        line_size = 0;
+                } else {
+                    m_packed.append_sprintf("=%02X", (unsigned int)c);
+                    line_size += 3;
+                }
+
+                auto at_end_of_line = [&]() {
+                    return index + 1 >= m_source.size() || m_source[index + 1] == '\n';
+                };
+
+                if ((c == '\t' || c == ' ') && at_end_of_line()) {
+                    m_packed.append("=\n");
+                    line_size = 0;
+                }
+
+                if (count && line_size > count) {
+                    m_packed.append("=\n");
+                    line_size = 0;
+                }
+            }
+
+            if (line_size > 0)
+                m_packed.append("=\n");
         }
 
         void pack_m() {
