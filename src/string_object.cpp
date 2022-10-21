@@ -1754,6 +1754,10 @@ void StringObject::append(long long int i) {
     m_string.append(i);
 }
 
+void StringObject::append(long int i) {
+    m_string.append((long long)i);
+}
+
 void StringObject::append(unsigned int i) {
     m_string.append((long long)i);
 }
@@ -1773,6 +1777,10 @@ void StringObject::append(const IntegerObject *i) {
 
 void StringObject::append(const String &str) {
     m_string.append(str);
+}
+
+void StringObject::append(const StringView &view) {
+    m_string.append(view.to_string());
 }
 
 void StringObject::append(const StringObject *str) {

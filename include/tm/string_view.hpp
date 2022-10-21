@@ -219,6 +219,24 @@ public:
     }
 
     /**
+     * Returns true if this and the given String are equivalent.
+     *
+     * ```
+     * auto str = String("abc");
+     * auto view = StringView(&str);
+     * assert(view == str);
+     * assert_not(view == String());
+     * ```
+     */
+    bool operator==(const String &other) const {
+        return *this == StringView(&other);
+    }
+
+    bool operator!=(const String &other) const {
+        return !(*this == other);
+    }
+
+    /**
      * Returns a new String constructed from this view.
      *
      * ```
