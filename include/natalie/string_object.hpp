@@ -47,6 +47,13 @@ public:
         set_str(str, length);
     }
 
+    StringObject(const char *str, size_t length, EncodingObject *encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
     StringObject(const StringObject &other)
         : Object { other } {
         set_str(other.c_str(), other.length());
