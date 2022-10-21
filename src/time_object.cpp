@@ -294,7 +294,7 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
         m_time.tm_hour = hour->as_integer()->to_nat_int_t();
     if (min && min->is_integer())
         m_time.tm_min = min->as_integer()->to_nat_int_t();
-    if (sec) {
+    if (sec && !sec->is_nil()) {
         if (sec->is_integer()) {
             m_time.tm_sec = sec->as_integer()->to_nat_int_t();
         } else {
