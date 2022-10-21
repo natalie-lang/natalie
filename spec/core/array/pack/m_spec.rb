@@ -1,12 +1,10 @@
-# skip-test
-
 # -*- encoding: binary -*-
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
 require_relative 'shared/basic'
 require_relative 'shared/taint'
 
-describe "Array#pack with format 'M'" do
+xdescribe "Array#pack with format 'M'" do
   it_behaves_like :array_pack_basic, 'M'
   it_behaves_like :array_pack_basic_non_float, 'M'
   it_behaves_like :array_pack_arguments, 'M'

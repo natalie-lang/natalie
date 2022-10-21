@@ -47,7 +47,7 @@ namespace ArrayPacker {
                     if (m_source->is_string()) {
                         string = item->as_string()->string();
                     } else if (item->is_nil()) {
-                        if (d == 'u')
+                        if (d == 'u' || d == 'm')
                             env->raise("TypeError", "no implicit conversion of nil into String");
                         string = "";
                     } else if (item->respond_to(env, "to_str"_s)) {
@@ -61,6 +61,9 @@ namespace ArrayPacker {
 
                     auto packer = StringHandler { string, token };
                     m_packed.append(packer.pack(env));
+
+                    if (d == 'm')
+                        m_encoding = EncodingObject::get(Encoding::US_ASCII);
 
                     m_index++;
                     break;

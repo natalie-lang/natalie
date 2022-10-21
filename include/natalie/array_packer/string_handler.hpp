@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
 #include "tm/string.hpp"
@@ -162,8 +163,8 @@ namespace ArrayPacker {
             return six_bit == 0 ? '`' : (six_bit + 32);
         }
 
-        std::array<char, 4> base64_encode_triplet(char a, char b, char c) {
-            static constexpr char encode_table[] = {
+        std::array<unsigned char, 4> base64_encode_triplet(unsigned char a, unsigned char b, unsigned char c) {
+            static constexpr unsigned char encode_table[] = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
                 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
                 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
@@ -183,15 +184,22 @@ namespace ArrayPacker {
         }
 
         void pack_m() {
-            bool has_valid_count = !m_token.star && m_token.count >= 0;
-            size_t count = has_valid_count ? m_token.count : 60;
+            if (m_source.is_empty())
+                return;
+
+            bool has_valid_count = !m_token.star && (m_token.count == 0 || m_token.count >= 3);
+            size_t count = has_valid_count ? m_token.count : 45;
+            auto per_line_char_count = (count / 3) * 4;
 
             auto size = (int)m_source.size();
             auto triples = size / 3;
-            auto push = [&](char b64) {
+            size_t chars_pushed = 0;
+
+            auto push = [&](unsigned char b64) {
+                chars_pushed++;
                 m_packed.append_char(b64);
 
-                if (m_packed.size() == count)
+                if (per_line_char_count != 0 && chars_pushed % per_line_char_count == 0)
                     m_packed.append_char('\n');
             };
 
@@ -208,24 +216,32 @@ namespace ArrayPacker {
                 push(base64_chars[3]);
             }
 
-            auto const remaining = size - (triples * 3);
-            if (!at_end() && remaining == 2) {
-                auto base64_chars = base64_encode_triplet(next(), next(), 0x00);
+            if (!at_end()) {
+                auto const remaining = size - (triples * 3);
+                if (remaining == 2) {
+                    auto first = next();
+                    auto second = next();
+                    auto third = 0x00;
+                    auto base64_chars = base64_encode_triplet(first, second, third);
 
-                push(base64_chars[0]);
-                push(base64_chars[1]);
-                push(base64_chars[2]);
-                push('=');
-            } else {
-                auto base64_chars = base64_encode_triplet(next(), 0x00, 0x00);
+                    push(base64_chars[0]);
+                    push(base64_chars[1]);
+                    push(base64_chars[2]);
+                    push('=');
+                } else if (remaining == 1) {
+                    auto first = next();
+                    auto second = 0x00;
+                    auto third = 0x00;
+                    auto base64_chars = base64_encode_triplet(first, second, third);
 
-                push(base64_chars[0]);
-                push(base64_chars[1]);
-                push('=');
-                push('=');
+                    push(base64_chars[0]);
+                    push(base64_chars[1]);
+                    push('=');
+                    push('=');
+                }
             }
 
-            if (count > 0)
+            if (count > 0 && !m_packed.is_empty() && m_packed.last_char() != '\n')
                 m_packed.append_char('\n');
         }
 
