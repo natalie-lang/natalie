@@ -260,13 +260,13 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
             if (i - 2 < 0)
                 break;
 
-            auto c1 = ary->at(i - 2);
-            auto sep = ary->at(i - 1);
-            auto c2 = ary->at(i);
+            auto c1 = ary->at(i - 2)->as_string();
+            auto sep = ary->at(i - 1)->as_string();
+            auto c2 = ary->at(i)->as_string();
 
-            if (*(sep->as_string()) == "-" && *(c1->as_string()) != "-" && *(c2->as_string()) != "-") {
-                if (c1->as_string()->string().cmp(c2->as_string()->string()) == 1)
-                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", c1, c2);
+            if (*sep == "-" && *c1 != "-" && *c2 != "-") {
+                if (c1->string().cmp(c2->string()) == 1)
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", c1->string(), c2->string());
 
                 auto range = RangeObject::create(env, c1, c2, false);
                 auto all_chars = range->to_a(env);
