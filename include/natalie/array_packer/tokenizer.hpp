@@ -48,45 +48,17 @@ namespace ArrayPacker {
 
             auto modifier = next_char();
 
-            if (modifier == '>') {
-                token.endianness = Endianness::Big;
+            if (apply_endianness_modifier(token, modifier))
                 modifier = next_char();
-            }
-
-            if (modifier == '<') {
-                token.endianness = Endianness::Little;
-                modifier = next_char();
-            }
 
             if (modifier == '_' || modifier == '!') {
-                switch (token.directive) {
-                case 'i':
-                case 'I':
-                case 'j':
-                case 'J':
-                case 'l':
-                case 'L':
-                case 'q':
-                case 'Q':
-                case 's':
-                case 'S':
-                    token.native_size = true;
-                    break;
-                default:
-                    token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", modifier);
-                }
+                apply_modifier_error_if_not_allowed(token, modifier);
+                token.native_size = true;
                 modifier = next_char();
             }
 
-            if (modifier == '>') {
-                token.endianness = Endianness::Big;
+            if (apply_endianness_modifier(token, modifier))
                 modifier = next_char();
-            }
-
-            if (modifier == '<') {
-                token.endianness = Endianness::Little;
-                modifier = next_char();
-            }
 
             if (isdigit(modifier)) {
                 token.count = (int)modifier - '0';
@@ -135,6 +107,39 @@ namespace ArrayPacker {
             if (index >= m_directives.length())
                 return 0;
             return m_directives[index];
+        }
+
+        void apply_modifier_error_if_not_allowed(Token &token, signed char modifier) {
+            switch (token.directive) {
+            case 'i':
+            case 'I':
+            case 'j':
+            case 'J':
+            case 'l':
+            case 'L':
+            case 'q':
+            case 'Q':
+            case 's':
+            case 'S':
+                return;
+            default:
+                token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", modifier);
+            }
+        }
+
+        bool apply_endianness_modifier(Token &token, signed char modifier) {
+            switch (modifier) {
+            case '>':
+                apply_modifier_error_if_not_allowed(token, modifier);
+                token.endianness = Endianness::Big;
+                return true;
+            case '<':
+                apply_modifier_error_if_not_allowed(token, modifier);
+                token.endianness = Endianness::Little;
+                return true;
+            default:
+                return false;
+            }
         }
 
         String m_directives;

@@ -1170,11 +1170,68 @@ describe 'array' do
 
   describe '#pack' do
     describe 'c' do
-      it 'handle bignums' do
-        [fixnum_max + 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
-        [fixnum_max + 2].pack('c').should == "\x01".force_encoding(Encoding::BINARY)
-        [-fixnum_max - 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
-        [-fixnum_max - 2].pack('c').should == "\xFF".force_encoding(Encoding::BINARY)
+      it 'handles bignums' do
+        %w[c C].each do |directive|
+          [0xdef0_abcd_3412_7856].pack(directive).should == "V".force_encoding(Encoding::BINARY)
+          [fixnum_max + 1].pack(directive).should == "\x00".force_encoding(Encoding::BINARY)
+          [fixnum_max + 2].pack(directive).should == "\x01".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 1].pack(directive).should == "\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 2].pack(directive).should == "\xFF".force_encoding(Encoding::BINARY)
+
+          -> { [0xdef0_abcd_3412_7856].pack(directive + '>') }.should raise_error(ArgumentError, "'>' allowed only after types sSiIlLqQjJ")
+          -> { [0xdef0_abcd_3412_7856].pack(directive + '<') }.should raise_error(ArgumentError, "'<' allowed only after types sSiIlLqQjJ")
+        end
+      end
+    end
+
+    describe 'i' do
+      it 'handles bignums' do
+        %w[i I].each do |directive|
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124".force_encoding(Encoding::BINARY)
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF".force_encoding(Encoding::BINARY)
+
+          little_endian do
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "4\x12xV".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124".force_encoding(Encoding::BINARY)
+          end
+        end
+      end
+    end
+
+    describe 'j' do
+      it 'handles bignums' do
+        %w[j J].each do |directive|
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx\x124\xCD\xAB\xF0\xDE".force_encoding(Encoding::BINARY)
+          [fixnum_max + 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
+          [fixnum_max + 2].pack(directive).should == "\x01\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00\x00\x00\x00\x00\x00\x80".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F".force_encoding(Encoding::BINARY)
+
+          little_endian do
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "\xDE\xF0\xAB\xCD4\x12xV".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx\x124\xCD\xAB\xF0\xDE".force_encoding(Encoding::BINARY)
+          end
+        end
+      end
+    end
+
+    describe 's' do
+      it 'handles bignums' do
+        %w[s S].each do |directive|
+          [0xdef0_abcd_3412_7856].pack(directive).should == "Vx".force_encoding(Encoding::BINARY)
+          [fixnum_max + 1].pack(directive).should == "\x00\x00".force_encoding(Encoding::BINARY)
+          [fixnum_max + 2].pack(directive).should == "\x01\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 1].pack(directive).should == "\x00\x00".force_encoding(Encoding::BINARY)
+          [-fixnum_max - 2].pack(directive).should == "\xFF\xFF".force_encoding(Encoding::BINARY)
+
+          little_endian do
+            [0xdef0_abcd_3412_7856].pack(directive + '>').should == "xV".force_encoding(Encoding::BINARY)
+            [0xdef0_abcd_3412_7856].pack(directive + '<').should == "Vx".force_encoding(Encoding::BINARY)
+          end
+        end
       end
     end
   end
