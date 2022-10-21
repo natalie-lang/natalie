@@ -253,6 +253,8 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
 
     // convert ranges ('a-g') into literal characters
     auto expand_ranges = [&](ArrayObject *ary) {
+        if (ary->is_empty()) return;
+
         // (have to iterate backwards so we can insert chars)
         for (ssize_t i = ary->size() - 1; i >= 0; i--) {
             if (i - 2 < 0)
