@@ -13,10 +13,9 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec) {
 }
 
 TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
-    struct tm time = build_time_struct(env, year, month, mday, hour, min, sec);
-    int seconds = mktime(&time);
     TimeObject *result = new TimeObject {};
-    result->m_time = time;
+    result->build_time(env, year, month, mday, hour, min, sec);
+    int seconds = mktime(&result->m_time);
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(seconds);
     if (usec && usec->is_integer()) {
@@ -42,11 +41,10 @@ TimeObject *TimeObject::now(Env *env) {
 }
 
 TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value subsec) {
-    struct tm time = build_time_struct(env, year, month, mday, hour, min, sec);
-    time.tm_gmtoff = 0;
-    int seconds = timegm(&time);
     TimeObject *result = new TimeObject {};
-    result->m_time = time;
+    result->build_time(env, year, month, mday, hour, min, sec);
+    result->m_time.tm_gmtoff = 0;
+    int seconds = timegm(&result->m_time);
     result->m_mode = Mode::UTC;
     result->m_integer = Value::integer(seconds);
     if (subsec) {
@@ -243,28 +241,6 @@ Value TimeObject::year(Env *) const {
     return Value::integer(m_time.tm_year + 1900);
 }
 
-struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
-    struct tm time = { 0 };
-    time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
-    time.tm_mon = 0;
-    time.tm_mday = 1;
-    time.tm_hour = 0;
-    time.tm_min = 0;
-    time.tm_sec = 0;
-    if (month && month->is_integer())
-        time.tm_mon = month->as_integer()->to_nat_int_t() - 1;
-    if (mday && mday->is_integer())
-        time.tm_mday = mday->as_integer()->to_nat_int_t();
-    if (hour && hour->is_integer())
-        time.tm_hour = hour->as_integer()->to_nat_int_t();
-    if (min && min->is_integer())
-        time.tm_min = min->as_integer()->to_nat_int_t();
-    if (sec && sec->is_integer())
-        time.tm_sec = sec->as_integer()->to_nat_int_t();
-    time.tm_isdst = -1;
-    return time;
-}
-
 RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     if (value->is_integer()) {
         return RationalObject::create(env, value->as_integer(), new IntegerObject { 1 });
@@ -299,6 +275,35 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
     result->m_integer = integer;
     result->set_subsec(env, subseconds);
     return result;
+}
+
+void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
+    m_time = { 0 };
+    m_time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
+    m_time.tm_mon = 0;
+    m_time.tm_mday = 1;
+    m_time.tm_hour = 0;
+    m_time.tm_min = 0;
+    m_time.tm_sec = 0;
+    m_time.tm_isdst = -1;
+    if (month && month->is_integer())
+        m_time.tm_mon = month->as_integer()->to_nat_int_t() - 1;
+    if (mday && mday->is_integer())
+        m_time.tm_mday = mday->as_integer()->to_nat_int_t();
+    if (hour && hour->is_integer())
+        m_time.tm_hour = hour->as_integer()->to_nat_int_t();
+    if (min && min->is_integer())
+        m_time.tm_min = min->as_integer()->to_nat_int_t();
+    if (sec) {
+        if (sec->is_integer()) {
+            m_time.tm_sec = sec->as_integer()->to_nat_int_t();
+        } else {
+            RationalObject *rational = convert_rational(env, sec);
+            auto divmod = rational->send(env, "divmod"_s, { Value::integer(1) })->as_array();
+            m_time.tm_sec = divmod->first()->as_integer()->to_nat_int_t();
+            set_subsec(env, divmod->last()->as_rational());
+        }
+    }
 }
 
 void TimeObject::set_subsec(Env *env, long nsec) {

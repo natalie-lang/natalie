@@ -61,11 +61,11 @@ public:
     }
 
 private:
-    static struct tm build_time_struct(Env *, Value, Value, Value, Value, Value, Value);
     static RationalObject *convert_rational(Env *, Value);
     static TimeObject *create(Env *, RationalObject *, Mode);
 
     Value build_string(Env *, const char *);
+    void build_time(Env *, Value, Value, Value, Value, Value, Value);
     void set_subsec(Env *, long);
     void set_subsec(Env *, IntegerObject *);
     void set_subsec(Env *, RationalObject *);
