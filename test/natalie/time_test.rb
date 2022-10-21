@@ -49,6 +49,14 @@ describe 'Time' do
         t.nsec.should == 1
       end
     end
+
+    context 'with a Float microseconds argument' do
+      it 'returns a time' do
+        t = Time.at(0, 3.75)
+        t.should be_an_instance_of(Time)
+        t.nsec.should == 3750
+      end
+    end
   end
 
   describe '.local' do

@@ -3,28 +3,11 @@
 namespace Natalie {
 
 TimeObject *TimeObject::at(Env *env, Value time, Value subsec) {
-    RationalObject *rational;
-    if (time->is_integer()) {
-        rational = RationalObject::create(env, time->as_integer(), new IntegerObject { 1 });
-    } else if (time->is_rational()) {
-        rational = time->as_rational();
-    } else if (time->respond_to(env, "to_r"_s) && time->respond_to(env, "to_int"_s)) {
-        rational = time->send(env, "to_r"_s)->as_rational();
-    } else {
-        env->raise("TypeError", "can't convert {} into an exact number", time->klass()->inspect_str());
-    }
+    RationalObject *rational = convert_rational(env, time);
     if (subsec) {
-        if (subsec->is_integer()) {
-            IntegerObject *integer = subsec->as_integer();
-            if (integer->lt(env, new IntegerObject { 0 }) || integer->gte(env, new IntegerObject { 1000000 })) {
-                env->raise("ArgumentError", "subsecx out of range");
-            }
-            rational = rational->add(env, RationalObject::create(env, integer, new IntegerObject { 1000000 }))->as_rational();
-        } else if (subsec->is_rational()) {
-            rational = rational->add(env, subsec->as_rational()->div(env, new IntegerObject { 1000000 }))->as_rational();
-        } else {
-            env->raise("TypeError", "can't convert {} into an exact number", subsec->klass()->inspect_str());
-        }
+        // NATFIXME: Add support for other units
+        auto scale = new IntegerObject { 1000000 };
+        rational = rational->add(env, convert_rational(env, subsec)->div(env, scale))->as_rational();
     }
     return TimeObject::create(env, rational, Mode::Localtime);
 }
@@ -280,6 +263,18 @@ struct tm TimeObject::build_time_struct(Env *, Value year, Value month, Value md
         time.tm_sec = sec->as_integer()->to_nat_int_t();
     time.tm_isdst = -1;
     return time;
+}
+
+RationalObject *TimeObject::convert_rational(Env *env, Value value) {
+    if (value->is_integer()) {
+        return RationalObject::create(env, value->as_integer(), new IntegerObject { 1 });
+    } else if (value->is_rational()) {
+        return value->as_rational();
+    } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
+        return value->send(env, "to_r"_s)->as_rational();
+    } else {
+        env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
+    }
 }
 
 TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
