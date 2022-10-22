@@ -1969,8 +1969,7 @@ Value StringObject::partition(Env *env, Value val) {
         ssize_t end_byte_index;
 
         if (match_result->is_nil()){
-            auto empty = new StringObject { "" };
-            return new ArrayObject { this, empty, empty };
+            return new ArrayObject { new StringObject(*this), new StringObject, new StringObject };
         } else {
             start_byte_index = match_result->as_match_data()->index(0);
             end_byte_index = match_result->as_match_data()->ending(0);
@@ -1979,15 +1978,15 @@ Value StringObject::partition(Env *env, Value val) {
 
         ary->push(new StringObject(m_string.substring(start_byte_index, end_byte_index - start_byte_index)));
 
-        auto last_char = start_byte_index + (end_byte_index - start_byte_index);
-        auto len = m_string.length() - 1;
-        if (last_char < static_cast<long>(len)) {
+        auto last_val_index = start_byte_index + (end_byte_index - start_byte_index);
+        auto last_char_index = m_string.length() - 1;
+        if (last_val_index < static_cast<long>(last_char_index)) {
             ary->push(new StringObject((m_string.substring(end_byte_index, m_string.length() - end_byte_index))));
             return ary;
         }
     } else {
         if (!val->is_string() && val->respond_to(env, "to_str"_s)) {
-        val = val->send(env, "to_str"_s);
+            val = val->send(env, "to_str"_s);
         }
         val->assert_type(env, Type::String, "String");
 
@@ -1995,18 +1994,17 @@ Value StringObject::partition(Env *env, Value val) {
         auto query_idx = m_string.find(query);
 
         if (query_idx == -1) {
-            auto empty = new StringObject { "" };
-            return new ArrayObject { this, empty, empty };
+            return new ArrayObject { new StringObject(*this), new StringObject, new StringObject };
         } else {
             ary->push(new StringObject(m_string.substring(0, query_idx)));
         }
         
         ary->push(val);
 
-        auto last_char = query_idx + query.length();
-        auto len = m_string.length() - 1;
-        if (last_char < len) {
-            ary->push(new StringObject(m_string.substring(query_idx + 1, len - query_idx)));
+        auto last_val_index = query_idx + query.length();
+        auto last_char_index = m_string.length() - 1;
+        if (last_val_index < last_char_index) {
+            ary->push(new StringObject(m_string.substring(query_idx + 1, last_char_index - query_idx)));
             return ary;
         }
     }
