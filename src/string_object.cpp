@@ -738,6 +738,126 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
 }
 
 /**
+ * String#hex
+ * 
+ * Converts the string to a base 16 integer. Includes an optional type, as well
+ * as allowing an optional 0x prefix.
+ * 
+ * To implement this, we effectively run the string through a state machine. The
+ * state machine looks approximately like this:
+ *
+ *         +------------------- 0x ------------------+
+ *         |                                         V
+ *     +-------+            +------+           +--------+
+ * --> | start | -- +/- --> | sign | -- 0x --> | prefix |
+ *     +-------+            +------+           +--------+
+ *         |                  |                      |
+ *         |                  \h  +------- \h -------+
+ *         |                  V   V
+ *         |                +--------+ --- \h ---+ 
+ *         +---- \h ------> | number |           |
+ *                          +--------+ <---------+
+ *                           |     ^
+ *                           _     \h
+ *                           V     |
+ *                          +------------+
+ *                          | underscore |
+ *                          +------------+
+ */
+Value StringObject::hex(Env *env) const {
+    // Helper lambda to convert a character to its hex value. Returns -1 if the
+    // character is not a valid hex character.
+    auto hex_value = [](char c) { 
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        } else if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 10;
+        } else if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 10;
+        } else {
+            return -1;
+        }
+    };
+
+    // This is an enum that represents the states of the state machine.
+    enum {
+        start,
+        sign,
+        prefix,
+        number,
+        underscore,
+    } state = start;
+
+    bool negative = false;
+    nat_int_t value = 0;
+
+    const char *str_source = c_str();
+    size_t str_length = length();
+
+    for (size_t index = 0; index < str_length; index++) {
+        char c = str_source[index];
+        int char_value;
+
+        switch (state) {
+        case start:
+            if (c == '-') {
+                negative = true;
+                state = sign;
+            } else if (c == '+') {
+                state = sign;
+            } else if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
+                state = prefix;
+                index++;
+            } else if ((char_value = hex_value(c)) != -1) {
+                value = char_value;
+                state = number;
+            } else {
+                return new IntegerObject { 0 };
+            }
+            break;
+        case sign:
+            if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
+                state = prefix;
+                index++;
+            } else if ((char_value = hex_value(c)) != -1) {
+                value = char_value;
+                state = number;
+            } else {
+                return new IntegerObject { 0 };
+            }
+            break;
+        case prefix:
+            if ((char_value = hex_value(c)) != -1) {
+                value = char_value;
+                state = number;
+            } else {
+                return new IntegerObject { 0 };
+            }
+            break;
+        case number:
+            if ((char_value = hex_value(c)) != -1) {
+                value = (value * 16) + char_value;
+            } else if (c == '_') {
+                state = underscore;
+            } else {
+                return new IntegerObject { (negative ? -value : value) };
+            }
+            break;
+        case underscore:
+            if ((char_value = hex_value(c)) != -1) {
+                value = (value * 16) + char_value;
+                state = number;
+            } else {
+                return new IntegerObject { (negative ? -value : value) };
+            }
+            break;
+        }
+    }
+
+    return new IntegerObject { (negative ? -value : value) };
+}
+
+/**
  * String#[] and String#slice
  *
  * These methods can be called with a variety of call signatures. They include:
