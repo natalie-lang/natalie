@@ -700,6 +700,19 @@ public:
     }
 
     /**
+     * Adds the given character at the end of the string.
+     *
+     * ```
+     * auto str = String { "ab" };
+     * str.append((char)'c');
+     * assert_str_eq("abc", str);
+     * ```
+     */
+    void append(char c) {
+        append(static_cast<signed char>(c));
+    }
+
+    /**
      * Converts the given number and append the resulting string.
      *
      * ```
@@ -1328,12 +1341,12 @@ public:
 
     /**
      * Returns a new String by appending the given arguments according
-     * to the given format. This is a safer version of of String::sprintf
+     * to the given format. This is a safer version of String::sprintf
      * that does not rely on format specifiers matching the argument type.
      *
      * ```
      * auto cstr = "hello";
-     * unsigned char c = 'w'; // must specify signed or unsigned char
+     * char c = 'w';
      * int num = 999;
      * auto str = String::format("{} {}orld {}", cstr, c, num);
      * assert_str_eq("hello world 999", str);

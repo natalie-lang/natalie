@@ -45,6 +45,12 @@ namespace ArrayPacker {
             case 'l':
                 pack_l();
                 break;
+            case 'N':
+                pack_N();
+                break;
+            case 'n':
+                pack_n();
+                break;
             case 'S':
                 pack_S();
                 break;
@@ -142,6 +148,28 @@ namespace ArrayPacker {
 
         void pack_l() {
             auto size = m_token.native_size ? sizeof(long) : sizeof(int);
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
+            }
+        }
+
+        void pack_N() {
+            m_token.endianness = Endianness::Big;
+            auto size = 4;
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (unsigned long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
+            }
+        }
+
+        void pack_n() {
+            m_token.endianness = Endianness::Big;
+            auto size = 2;
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {

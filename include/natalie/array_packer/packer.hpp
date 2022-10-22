@@ -38,14 +38,18 @@ namespace ArrayPacker {
                 case 'h':
                 case 'M':
                 case 'm':
+                case 'P':
+                case 'p':
                 case 'u':
                 case 'Z': {
                     if (at_end())
                         env->raise("ArgumentError", "too few arguments");
 
                     String string;
+                    StringObject *string_object = nullptr;
                     auto item = m_source->at(m_index);
                     if (m_source->is_string()) {
+                        string_object = item->as_string();
                         string = item->as_string()->string();
                     } else if (item->is_nil()) {
                         if (d == 'u' || d == 'm')
@@ -54,19 +58,23 @@ namespace ArrayPacker {
                     } else if (item->respond_to(env, "to_str"_s)) {
                         auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
+                        string_object = str->as_string();
                         string = str->as_string()->string();
                     } else if (d == 'M' && (item->respond_to(env, "to_s"_s))) {
                         auto str = item->send(env, "to_s"_s);
-                        if (str->is_string())
+                        if (str->is_string()) {
+                            string_object = str->as_string();
                             string = str->as_string()->string();
-                        else
+                        } else {
+                            string_object = str->to_s(env)->as_string();
                             string = str->to_s(env)->string();
+                        }
                     } else {
                         env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
                         NAT_UNREACHABLE();
                     }
 
-                    auto packer = StringHandler { string, token };
+                    auto packer = StringHandler { string, string_object, token };
                     m_packed.append(packer.pack(env));
 
                     if (d == 'm' || d == 'M')
@@ -83,6 +91,8 @@ namespace ArrayPacker {
                 case 'j':
                 case 'L':
                 case 'l':
+                case 'N':
+                case 'n':
                 case 'S':
                 case 's':
                 case 'U': {
@@ -132,8 +142,7 @@ namespace ArrayPacker {
                     break;
                 }
                 default: {
-                    char buf[2] = { d, '\0' };
-                    env->raise("StandardError", "unknown directive: {}", buf); // FIXME
+                    env->raise("ArgumentError", "{} is not supported", d);
                 }
                 }
             }
