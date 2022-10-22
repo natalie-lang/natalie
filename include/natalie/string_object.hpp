@@ -47,6 +47,13 @@ public:
         set_str(str, length);
     }
 
+    StringObject(const char *str, size_t length, EncodingObject *encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
     StringObject(const StringObject &other)
         : Object { other } {
         set_str(other.c_str(), other.length());
@@ -231,6 +238,7 @@ public:
     Value split(Env *, Value, Value);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
+    Value sum(Env *, Value = nullptr);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
     Value unpack(Env *, Value) const;
