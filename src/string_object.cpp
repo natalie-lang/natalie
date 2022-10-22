@@ -1494,10 +1494,11 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 Value StringObject::unpack(Env *env, Value format) const {
     auto ary = new ArrayObject;
     const char *pointer = c_str();
-    auto format_str = format->as_string_or_raise(env)->c_str();
+    auto format_string = format->as_string_or_raise(env)->string();
     auto final_null = c_str() + length();
-    for (const char *c = format_str; *c != 0; c++) {
-        switch (*c) {
+    for (size_t i = 0; i < format_string.size(); i++) {
+        char c = format_string.at(i);
+        switch (c) {
         case 'i':
             if (pointer + sizeof(int) <= final_null)
                 ary->push(Value::integer(*(int *)pointer));
@@ -1505,8 +1506,22 @@ Value StringObject::unpack(Env *env, Value format) const {
                 ary->push(NilObject::the());
             pointer += sizeof(int);
             break;
+        case 'J':
+            if (pointer + sizeof(uintptr_t) <= final_null)
+                ary->push(Value::integer(*(uintptr_t *)pointer));
+            else
+                ary->push(NilObject::the());
+            pointer += sizeof(uintptr_t);
+            break;
+        case 'p':
+            if (pointer + sizeof(uintptr_t) <= final_null)
+                ary->push(new StringObject(*(const char **)pointer));
+            else
+                ary->push(NilObject::the());
+            pointer += sizeof(uintptr_t);
+            break;
         default:
-            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle String#unpack with directive %c", *c);
+            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle String#unpack with directive %c", c);
         }
     }
     return ary;

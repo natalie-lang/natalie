@@ -12,8 +12,9 @@ namespace ArrayPacker {
 
     class StringHandler {
     public:
-        StringHandler(String source, Token token)
+        StringHandler(String source, StringObject *string_object, Token token)
             : m_source { source }
+            , m_string_object { string_object }
             , m_token { token } { }
 
         String pack(Env *env) {
@@ -42,6 +43,9 @@ namespace ArrayPacker {
                 break;
             case 'm':
                 pack_m();
+                break;
+            case 'p':
+                pack_p();
                 break;
             case 'u':
                 pack_u();
@@ -287,6 +291,18 @@ namespace ArrayPacker {
                 m_packed.append_char('\n');
         }
 
+        void pack_p() {
+            if (!m_string_object) {
+                for (size_t i = 0; i < sizeof(uintptr_t); i++)
+                    m_packed.append_char(0x0);
+                return;
+            }
+            auto c_str = m_string_object->c_str();
+            auto ptr = (const char *)&c_str;
+            for (size_t i = 0; i < sizeof(uintptr_t); i++)
+                m_packed.append_char(ptr[i]);
+        }
+
         void pack_u() {
             bool has_valid_count = !m_token.star && m_token.count > 2;
             size_t count = has_valid_count ? (m_token.count - (m_token.count % 3)) : 45;
@@ -322,7 +338,9 @@ namespace ArrayPacker {
             return m_source.at(i);
         }
 
+        // TODO: we can probably get rid of m_source since we have m_string_object now.
         String m_source {};
+        StringObject *m_string_object { nullptr };
         Token m_token;
         String m_packed {};
         size_t m_index { 0 };
