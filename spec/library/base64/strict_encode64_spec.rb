@@ -13,8 +13,7 @@ describe "Base64#strict_encode64" do
       "dG8gbGVhcm4gUnVieQ=="
   end
 
-  # NATFIXME: Add back once we have the ASCII encoding.
-  xit "returns a US_ASCII encoded string" do
+  it "returns a US_ASCII encoded string" do
     Base64.strict_encode64("HI").encoding.should == Encoding::US_ASCII
   end
 end

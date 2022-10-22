@@ -7,8 +7,9 @@ module Base64
     [str].pack("m0")
   end
 
-  # NATFIXME: Make this spec-compliant.
   def self.urlsafe_encode64(bin, padding: true)
-    strict_encode64(bin)
+    encoded = strict_encode64(bin).tr('/+', '_-')
+    encoded.tr!('=', '') unless padding
+    encoded
   end
 end
