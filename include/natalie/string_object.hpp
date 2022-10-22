@@ -223,6 +223,7 @@ public:
     bool ascii_only(Env *) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
+    Value byteslice(Env *, Value, Value);
     Value center(Env *, Value, Value);
     Value chr(Env *);
     Value chomp(Env *, Value);

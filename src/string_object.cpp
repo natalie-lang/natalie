@@ -929,6 +929,132 @@ Value StringObject::ref(Env *env, Value index_obj, Value length_obj) {
     }
 }
 
+/**
+ * String#byteslice
+ *
+ * byteslice(index, length = 1) → string or nil
+ * byteslice(range) → string or nil
+ */
+Value StringObject::byteslice(Env *env, Value index_obj, Value length_obj) {
+    nat_int_t m_length = static_cast<nat_int_t>(length());
+
+    // not sure how we'd handle a string that big anyway
+    assert(m_length < NAT_INT_MAX);
+
+    if (length_obj != nullptr) {
+        // First, we're going to get the start index of the slice and make sure
+        // that it's not right at the end of the string. If it is, we'll just
+        // return an empty string.
+        nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+        if (index == m_length)
+            return new StringObject;
+
+        // Next, we're going to get the length that was passed in and make sure
+        // that it's not negative. If it is, or the index is too far out of
+        // bounds, we'll return nil.
+        nat_int_t length = IntegerObject::convert_to_nat_int_t(env, length_obj);
+        if (index + m_length < 0 || length < 0 || index > m_length)
+            return NilObject::the();
+
+        // Next, we'll add the length of the string to the index if it's
+        // negative. We know it's within one length of the string because of our
+        // previous bounds check. This handles negative indices like -1.
+        if (index < 0)
+            index += m_length;
+
+        // Finally, we'll determine the length of the substring and create a new
+        // string with those bounds.
+        nat_int_t s_length = index + length >= m_length ? m_length - index : length;
+        return new StringObject { m_string.substring(index, s_length), m_encoding };
+    }
+
+    if (index_obj->is_range()) {
+        RangeObject *range = index_obj->as_range();
+        auto begin_obj = range->begin();
+        auto end_obj = range->end();
+
+        // First, we're going to get the beginning from the range. If it's nil,
+        // it's going to be treated as 0. If it's not an integer, it's going to
+        // be implicitly converted. Finally, we'll assert that it fits into a
+        // fixnum.
+        nat_int_t begin;
+        if (begin_obj->is_nil()) {
+            begin = 0;
+        } else {
+            begin = IntegerObject::convert_to_nat_int_t(env, begin_obj);
+        }
+
+        // Shortcut here before doing anything else to return an empty
+        // string if the index is right at the end of the string.
+        if (begin == m_length)
+            return new StringObject;
+
+        // Now, we're going to do some bounds checks on the beginning of the
+        // range. If it's too far outside, we'll return nil.
+        if (begin + m_length < 0 || begin >= m_length)
+            return NilObject::the();
+
+        // Now, if the beginning is negative, we know it's within one length of
+        // the string, so we'll add that here to make it a valid positive index.
+        if (begin < 0)
+            begin += m_length;
+
+        // Now, we're going to shortcut here if the range is endless since we
+        // already have all of the information we need.
+        if (end_obj->is_nil())
+            return new StringObject { m_string.substring(begin) };
+
+        // If it's not endless, then we'll go ahead and grab the ending now by
+        // converting to an integer and asserting it fits into a fixnum.
+        nat_int_t end = IntegerObject::convert_to_nat_int_t(env, end_obj);
+
+        // Now, we're going to do some bounds checks on the ending of the range.
+        // If it's too negative, we'll return nil.
+        if (end + m_length < 0)
+            return new StringObject;
+
+        // If the ending is negative, we know it's within one length of the
+        // string, so we'll add that here to make it a valid positive index.
+        if (end < 0)
+            end += m_length;
+
+        // After we've done the bounds checks and the negative fixes, we can
+        // include the fact that it may be inclusive or not.
+        if (!range->exclude_end())
+            end++;
+
+        // Make sure we have a valid range here, otherwise return an empty
+        // string.
+        if (begin > end)
+            return new StringObject;
+
+        // Finally, we can return the substring.
+        if (end >= m_length) {
+            return new StringObject { m_string.substring(begin) };
+        } else {
+            return new StringObject { m_string.substring(begin, end - begin) };
+        }
+    }
+
+    // First, attempt to convert the index object into an integer, and
+    // make sure it fits into a fixnum.
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+
+    // Now, check that the index is within the bounds of the string. If
+    // not, then return nil.
+    if (index >= m_length || index + m_length < 0)
+        return NilObject::the();
+
+    // If the index is negative, then we know at this point that it's
+    // only negative within one length of the string. So just make it
+    // positive here.
+    if (index < 0)
+        index += m_length;
+
+    // Finally, access the index in the string.
+    return new StringObject { m_string.at(index) };
+}
+
 Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) {
     assert_not_frozen(env);
 
