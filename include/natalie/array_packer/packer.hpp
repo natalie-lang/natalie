@@ -134,8 +134,7 @@ namespace ArrayPacker {
                     break;
                 }
                 default: {
-                    char buf[2] = { d, '\0' };
-                    env->raise("StandardError", "unknown directive: {}", buf); // FIXME
+                    env->raise("ArgumentError", "{} is not supported", d);
                 }
                 }
             }

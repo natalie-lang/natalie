@@ -700,6 +700,19 @@ public:
     }
 
     /**
+     * Adds the given character at the end of the string.
+     *
+     * ```
+     * auto str = String { "ab" };
+     * str.append((char)'c');
+     * assert_str_eq("abc", str);
+     * ```
+     */
+    void append(char c) {
+        append(static_cast<signed char>(c));
+    }
+
+    /**
      * Converts the given number and append the resulting string.
      *
      * ```
