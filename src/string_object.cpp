@@ -2009,7 +2009,7 @@ Value StringObject::partition(Env *env, Value val) {
         }
     }
 
-    ary->push(new StringObject(""));
+    ary->push(new StringObject );
     return ary;
 }
 
