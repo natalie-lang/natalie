@@ -961,6 +961,7 @@ gen.binding('String', 'delete_prefix', 'StringObject', 'delete_prefix', argc: 1,
 gen.binding('String', 'delete_prefix!', 'StringObject', 'delete_prefix_in_place', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_suffix', 'StringObject', 'delete_suffix', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_suffix!', 'StringObject', 'delete_suffix_in_place', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'partition', 'StringObject', 'partition', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'sum', 'StringObject', 'sum', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('Symbol', 'new')
