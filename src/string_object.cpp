@@ -1498,6 +1498,14 @@ Value StringObject::unpack(Env *env, Value format) const {
     auto final_null = c_str() + length();
     for (size_t i = 0; i < format_string.size(); i++) {
         char c = format_string.at(i);
+
+        auto count = 0;
+        while (i + 1 < format_string.size() && isdigit(format_string.at(i + 1))) {
+            count *= 10;
+            count += format_string.at(++i) - '0';
+        }
+        if (count == 0) count = 1;
+
         switch (c) {
         case 'i':
             if (pointer + sizeof(int) <= final_null)
@@ -1509,6 +1517,13 @@ Value StringObject::unpack(Env *env, Value format) const {
         case 'J':
             if (pointer + sizeof(uintptr_t) <= final_null)
                 ary->push(Value::integer(*(uintptr_t *)pointer));
+            else
+                ary->push(NilObject::the());
+            pointer += sizeof(uintptr_t);
+            break;
+        case 'P':
+            if (pointer + sizeof(uintptr_t) <= final_null)
+                ary->push(new StringObject(*(const char **)pointer, count));
             else
                 ary->push(NilObject::the());
             pointer += sizeof(uintptr_t);

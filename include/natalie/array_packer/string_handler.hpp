@@ -44,6 +44,9 @@ namespace ArrayPacker {
             case 'm':
                 pack_m();
                 break;
+            case 'P':
+                pack_P();
+                break;
             case 'p':
                 pack_p();
                 break;
@@ -289,6 +292,18 @@ namespace ArrayPacker {
 
             if (count > 0 && !m_packed.is_empty() && m_packed.last_char() != '\n')
                 m_packed.append_char('\n');
+        }
+
+        void pack_P() {
+            if (!m_string_object) {
+                for (size_t i = 0; i < sizeof(uintptr_t); i++)
+                    m_packed.append_char(0x0);
+                return;
+            }
+            auto c_str = m_string_object->c_str();
+            auto ptr = (const char *)&c_str;
+            for (size_t i = 0; i < sizeof(uintptr_t); i++)
+                m_packed.append_char(ptr[i]);
         }
 
         void pack_p() {

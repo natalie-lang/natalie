@@ -38,6 +38,7 @@ namespace ArrayPacker {
                 case 'h':
                 case 'M':
                 case 'm':
+                case 'P':
                 case 'p':
                 case 'u':
                 case 'Z': {

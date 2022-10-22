@@ -3,7 +3,7 @@ require_relative '../fixtures/classes'
 require_relative 'shared/basic'
 require_relative 'shared/taint'
 
-xdescribe "Array#pack with format 'P'" do
+describe "Array#pack with format 'P'" do
   it_behaves_like :array_pack_basic_non_float, 'P'
   it_behaves_like :array_pack_taint, 'P'
 
@@ -11,13 +11,11 @@ xdescribe "Array#pack with format 'P'" do
     ["hello"].pack("P").size.should == [0].pack("J").size
   end
 
-  # NATFIXME: implement String#unpack 'P' directive
-  xit "round-trips a string through pack and unpack" do
+  it "round-trips a string through pack and unpack" do
     ["hello"].pack("P").unpack("P5").should == ["hello"]
   end
 
-  # NATFIXME: implement String#unpack 'J' directive
-  xit "with nil gives a null pointer" do
+  it "with nil gives a null pointer" do
     [nil].pack("P").unpack("J").should == [0]
   end
 end
