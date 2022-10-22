@@ -562,4 +562,10 @@ describe 'string' do
       ''.unpack('ii').should == [nil, nil]
     end
   end
+
+  describe '#tr' do
+    it 'can replace all chars' do
+      'tim'.tr('a-z', '').should == ''
+    end
+  end
 end

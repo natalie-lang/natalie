@@ -92,7 +92,7 @@ Value SymbolObject::length(Env *env) {
     return to_s(env)->size(env);
 }
 
-Value SymbolObject::name(Env *env) {
+Value SymbolObject::name(Env *env) const {
     SymbolObject *symbol = intern(m_name);
     if (!symbol->m_string) {
         symbol->m_string = symbol->to_s(env);

@@ -112,11 +112,13 @@ public:
     void append(int);
     void append(long unsigned int);
     void append(long long int);
+    void append(long int);
     void append(unsigned int);
     void append(double);
     void append(const FloatObject *);
     void append(const IntegerObject *);
     void append(const String &);
+    void append(const StringView &);
     void append(const StringObject *);
     void append(const SymbolObject *);
     void append(Value);
@@ -157,6 +159,34 @@ public:
 
     bool operator==(const StringObject &value) const {
         return m_string == value.m_string;
+    }
+
+    bool operator!=(const StringObject &value) const {
+        return m_string != value.m_string;
+    }
+
+    bool operator==(const String &str) const {
+        return str == m_string;
+    }
+
+    bool operator!=(const String &str) const {
+        return str != m_string;
+    }
+
+    bool operator==(const StringView &view) const {
+        return view == m_string;
+    }
+
+    bool operator!=(const StringView &view) const {
+        return view != m_string;
+    }
+
+    bool operator==(const char *str) const {
+        return m_string == str;
+    }
+
+    bool operator!=(const char *str) const {
+        return m_string != str;
     }
 
     StringObject *successive(Env *);
@@ -240,6 +270,8 @@ public:
     Value sum(Env *, Value = nullptr);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
+    Value tr(Env *, Value, Value) const;
+    Value tr_in_place(Env *, Value, Value);
     Value unpack(Env *, Value) const;
     Value upcase(Env *);
     Value uplus(Env *);

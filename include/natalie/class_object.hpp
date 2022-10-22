@@ -20,7 +20,7 @@ public:
     ClassObject(ClassObject *klass)
         : ModuleObject { Object::Type::Class, klass } { }
 
-    ClassObject(ClassObject &other)
+    ClassObject(const ClassObject &other)
         : ModuleObject { other }
         , m_object_type { other.m_object_type }
         , m_is_singleton { other.m_is_singleton }

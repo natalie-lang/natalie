@@ -739,6 +739,20 @@ public:
         return iterator<Hashmap> { *this, index, item };
     }
 
+    /**
+     * Returns a *const* iterator over the Hashmap.
+     * Otherwise works the same as a non-const iterator.
+     *
+     * ```
+     * auto map = Hashmap<String, Thing>(HashType::TMString);
+     * map.put("foo", Thing(1));
+     * const auto const_map = map;
+     * for (std::pair item : const_map) {
+     *     assert_str_eq("foo", item.first);
+     *     assert_eq(Thing(1), item.second);
+     * }
+     * ```
+     */
     iterator<const Hashmap> begin() const {
         if (m_size == 0) return end();
         assert(m_map);

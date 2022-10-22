@@ -26,7 +26,7 @@ public:
     ModuleObject(ClassObject *klass)
         : ModuleObject { Type::Module, klass } { }
 
-    ModuleObject(ModuleObject &other)
+    ModuleObject(const ModuleObject &other)
         : Object { other.type(), other.klass() }
         , m_constants { other.m_constants }
         , m_superclass { other.m_superclass }
