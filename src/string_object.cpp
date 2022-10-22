@@ -2108,11 +2108,11 @@ Value StringObject::partition(Env *env, Value val) {
 
     if (val->is_regexp()) {
         auto match_result = val->as_regexp()->match(env, this);
-    
+
         ssize_t start_byte_index;
         ssize_t end_byte_index;
 
-        if (match_result->is_nil()){
+        if (match_result->is_nil()) {
             return new ArrayObject { new StringObject(*this), new StringObject, new StringObject };
         } else {
             start_byte_index = match_result->as_match_data()->index(0);
@@ -2142,7 +2142,7 @@ Value StringObject::partition(Env *env, Value val) {
         } else {
             ary->push(new StringObject(m_string.substring(0, query_idx)));
         }
-        
+
         ary->push(val);
 
         auto last_val_index = query_idx + query.length();
@@ -2153,7 +2153,7 @@ Value StringObject::partition(Env *env, Value val) {
         }
     }
 
-    ary->push(new StringObject );
+    ary->push(new StringObject);
     return ary;
 }
 
