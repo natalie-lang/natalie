@@ -507,8 +507,21 @@ describe 'method with keyword args' do
     -> { proc { |a, b:, c:| }.call }.should raise_error(ArgumentError, 'missing keywords: :b, :c')
   end
 
-  xit 'raises an error when an extra keyword argument is supplied' do
+  it 'raises an error when an extra keyword argument is supplied' do
+    -> { method_with_kwargs1(1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
+    -> { method_with_kwargs2(1, b: 2, c: 3, d: 4) }.should raise_error(ArgumentError, 'unknown keyword: :d')
+    -> { method_with_kwargs3(1, b: 2, c: 3, d: 4) }.should raise_error(ArgumentError, 'unknown keyword: :d')
+    -> { method_with_kwargs4(1, b: 2, c: 3, d: 4) }.should raise_error(ArgumentError, 'unknown keyword: :d')
+    -> { method_with_kwargs5(1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
     -> { method_with_kwargs6(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
+    -> { method_with_kwargs7(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keywords: :b, :c')
+    -> { method_with_kwargs8(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
+    -> { method_with_kwargs9(1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
+    -> { method_with_kwargs10(1, b: 2, c: 3) }.should_not raise_error
+    -> { method_with_kwargs11(a: 1, b: 2, c: 3) }.should_not raise_error
+    -> { method_with_kwargs12(1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
+    -> { method_with_kwargs13(1, 2, c: 3) }.should_not raise_error
+    -> { method_with_kwargs14(1, b: 2, c: 3) }.should_not raise_error
   end
 
   it 'raises an error when the method is not defined' do

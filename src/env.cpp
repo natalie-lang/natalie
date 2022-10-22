@@ -171,6 +171,21 @@ void Env::ensure_no_missing_keywords(HashObject *kwargs, std::initializer_list<c
     raise("ArgumentError", message);
 }
 
+void Env::ensure_no_extra_keywords(HashObject *kwargs) {
+    if (!kwargs || kwargs->is_empty())
+        return;
+    auto it = kwargs->begin();
+    if (kwargs->size() == 1)
+        raise("ArgumentError", "unknown keyword: {}", it->key->inspect_str(this));
+    String message { "unknown keywords: " };
+    message.append(it->key->inspect_str(this));
+    for (it++; it != kwargs->end(); it++) {
+        message.append(", ");
+        message.append(it->key->inspect_str(this));
+    }
+    raise("ArgumentError", message);
+}
+
 Value Env::last_match(bool to_s) {
     Env *env = non_block_env();
     if (env->m_match) {
