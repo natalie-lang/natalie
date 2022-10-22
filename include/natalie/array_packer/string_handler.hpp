@@ -10,7 +10,7 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class StringHandler {
+    class StringHandler : public Cell {
     public:
         StringHandler(String source, StringObject *string_object, Token token)
             : m_source { source }
@@ -76,6 +76,10 @@ namespace ArrayPacker {
         }
 
         using PackHandlerFn = void (StringHandler::*)();
+
+        virtual void visit_children(Visitor &visitor) override {
+            visitor.visit(m_string_object);
+        }
 
     private:
         void pack_with_loop(PackHandlerFn handler) {
