@@ -767,7 +767,7 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
 Value StringObject::hex(Env *env) const {
     // Helper lambda to convert a character to its hex value. Returns -1 if the
     // character is not a valid hex character.
-    auto hex_value = [](char c) { 
+    auto hex_value = [](char c) {
         if (c >= '0' && c <= '9') {
             return c - '0';
         } else if (c >= 'a' && c <= 'f') {
@@ -786,7 +786,8 @@ Value StringObject::hex(Env *env) const {
         prefix,
         number,
         underscore,
-    } state = start;
+    } state
+        = start;
 
     bool negative = false;
     nat_int_t value = 0;
