@@ -180,6 +180,7 @@ public:
     bool is_empty() const { return m_string.is_empty(); }
 
     Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value getbyte(Env *, Value) const;
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;

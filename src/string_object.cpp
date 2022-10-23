@@ -1304,6 +1304,26 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     }
 }
 
+Value StringObject::getbyte(Env *env, Value index_obj) const {
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t length = static_cast<nat_int_t>(m_string.length());
+
+    if (index < 0) {
+        index += length;
+    }
+
+    if (index < 0) {
+        return NilObject::the();
+    }
+
+    if (index >= length) {
+        return NilObject::the();
+    }
+
+    unsigned char byte = m_string[index];
+    return IntegerObject::create(Integer(byte));
+}
+
 StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index, Block *block) {
     Value match_result = find->send(env, "match"_s, { this, Value::integer(start_index) });
     if (match_result == NilObject::the())
