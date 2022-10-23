@@ -15,8 +15,7 @@ describe "Base64#decode64" do
     Base64.decode64("XU2VuZCByZWluZm9yY2VtZW50cw===").should == "]M\x95\xB9\x90\x81\xC9\x95\xA5\xB9\x99\xBD\xC9\x8D\x95\xB5\x95\xB9\xD1\xCC".b
   end
 
-  # NATFIXME: stop at end of string without padding
-  xit "returns the Base64-decoded version of the given string that contains an invalid character" do
+  it "returns the Base64-decoded version of the given string that contains an invalid character" do
     Base64.decode64("%3D").should == "\xDC".b
   end
 
@@ -24,8 +23,7 @@ describe "Base64#decode64" do
     Base64.decode64("SEk=").encoding.should == Encoding::BINARY
   end
 
-  # NATFIXME: stop at end of string without padding
-  xit "decodes without padding suffix ==" do
+  it "decodes without padding suffix ==" do
     Base64.decode64("eyJrZXkiOnsibiI6InR0dCJ9fQ").should == "{\"key\":{\"n\":\"ttt\"}}"
   end
 end

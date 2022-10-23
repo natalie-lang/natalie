@@ -113,14 +113,14 @@ private:
 
             out.append_char(chars[0]);
 
-            if (c == '=')
-                // ignore padding
+            if (!c || c == '=')
+                // ignore end-of-input and padding
                 break;
 
             out.append_char(chars[1]);
 
-            if (d == '=')
-                // ignore padding
+            if (!d || d == '=')
+                // ignore end-of-input and padding
                 break;
 
             out.append_char(chars[2]);
