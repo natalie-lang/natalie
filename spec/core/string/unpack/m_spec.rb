@@ -4,7 +4,7 @@ require_relative '../fixtures/classes'
 require_relative 'shared/basic'
 require_relative 'shared/taint'
 
-xdescribe "String#unpack with format 'M'" do
+describe "String#unpack with format 'M'" do
   # NATFIXME: implement more directives :-)
   #it_behaves_like :string_unpack_basic, 'M'
   #it_behaves_like :string_unpack_no_platform, 'M'
@@ -97,6 +97,11 @@ xdescribe "String#unpack with format 'M'" do
       ["=F7=F8=F9=FA=FB=FC=FD=FE=\n", ["\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe"]],
       ["=FF=\n",                      ["\xff"]]
     ].should be_computed_by(:unpack, "M")
+  end
+
+  it "unpacks incomplete escape sequences as literal characters" do
+    "foo=".unpack("M").should == ["foo="]
+    "foo=4".unpack("M").should == ["foo=4"]
   end
 end
 

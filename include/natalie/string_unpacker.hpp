@@ -28,6 +28,9 @@ public:
             case 'J':
                 unpack_J();
                 break;
+            case 'M':
+                unpack_M(env, token);
+                break;
             case 'm':
                 unpack_m(env, token);
                 break;
@@ -68,6 +71,58 @@ private:
 
         m_unpacked->push(Value::integer(*(uintptr_t *)pointer()));
         m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_M(Env *env, Token &token) {
+        auto out = String();
+
+        auto next = [&]() -> unsigned char {
+            if (at_end())
+                return 0;
+
+            unsigned char c = pointer()[0];
+            m_index++;
+
+            return c;
+        };
+
+        auto peek = [&]() -> unsigned char {
+            if (m_index >= m_source->length())
+                return 0;
+
+            return pointer()[0];
+        };
+
+        while (!at_end()) {
+            auto c = next();
+
+            if (c == '=') {
+                if (at_end()) {
+                    out.append_char('=');
+                    continue;
+                }
+
+                c = next();
+
+                if (c == '\n') {
+                    void(); // skip it
+                } else if (isxdigit(c) && isxdigit(peek())) {
+                    auto value = hex_char_to_decimal_value(c);
+                    value *= 16;
+                    value += hex_char_to_decimal_value(next());
+                    out.append_char((unsigned char)value);
+                } else {
+                    out.append_char('=');
+                    out.append_char(c);
+                }
+                continue;
+            }
+
+            out.append_char(c);
+        }
+
+        auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
+        m_unpacked->push(str);
     }
 
     void unpack_m(Env *env, Token &token) {
