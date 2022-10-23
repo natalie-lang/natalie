@@ -579,6 +579,30 @@ size_t StringObject::char_count(Env *env) const {
     return char_count;
 }
 
+Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
+    assert_not_frozen(env);
+
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t value = IntegerObject::convert_to_nat_int_t(env, value_obj);
+    nat_int_t length = static_cast<nat_int_t>(m_string.length());
+    nat_int_t index_original = index;
+
+    if (index < 0) {
+        index += length;
+    }
+
+    if (index < 0) {
+        env->raise("IndexError", "index {} out of string", index_original);
+    }
+
+    if (index >= length) {
+        env->raise("IndexError", "index {} out of string", index_original);
+    }
+
+    m_string[index] = value % 256;
+    return value_obj;
+}
+
 Value StringObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, char_count(env));
 }

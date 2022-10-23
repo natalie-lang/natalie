@@ -226,6 +226,7 @@ public:
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
+    Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Value);
     Value split(Env *, Value, Value);
