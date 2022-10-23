@@ -23,7 +23,6 @@ namespace ArrayPacker {
         ~Packer() { delete m_directives; }
 
         StringObject *pack(Env *env) {
-            char directive = 0;
             for (auto token : *m_directives) {
                 if (token.error)
                     env->raise("ArgumentError", *token.error);
