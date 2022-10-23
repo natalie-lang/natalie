@@ -139,6 +139,8 @@ inline Value fetch_nested_const(std::initializer_list<SymbolObject *> names) {
 
 Value bool_object(bool b);
 
+int hex_char_to_decimal_value(char c);
+
 template <typename T>
 void dbg(T val) {
     dbg("{v}", val);

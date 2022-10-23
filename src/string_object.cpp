@@ -766,20 +766,6 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
  *                          +------------+
  */
 Value StringObject::hex(Env *env) const {
-    // Helper lambda to convert a character to its hex value. Returns -1 if the
-    // character is not a valid hex character.
-    auto hex_value = [](char c) {
-        if (c >= '0' && c <= '9') {
-            return c - '0';
-        } else if (c >= 'a' && c <= 'f') {
-            return c - 'a' + 10;
-        } else if (c >= 'A' && c <= 'F') {
-            return c - 'A' + 10;
-        } else {
-            return -1;
-        }
-    };
-
     // This is an enum that represents the states of the state machine.
     enum {
         start,
@@ -810,7 +796,7 @@ Value StringObject::hex(Env *env) const {
             } else if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
                 state = prefix;
                 index++;
-            } else if ((char_value = hex_value(c)) != -1) {
+            } else if ((char_value = hex_char_to_decimal_value(c)) != -1) {
                 value = char_value;
                 state = number;
             } else {
@@ -821,7 +807,7 @@ Value StringObject::hex(Env *env) const {
             if (c == '0' && index + 1 < str_length && str_source[index + 1] == 'x') {
                 state = prefix;
                 index++;
-            } else if ((char_value = hex_value(c)) != -1) {
+            } else if ((char_value = hex_char_to_decimal_value(c)) != -1) {
                 value = char_value;
                 state = number;
             } else {
@@ -829,7 +815,7 @@ Value StringObject::hex(Env *env) const {
             }
             break;
         case prefix:
-            if ((char_value = hex_value(c)) != -1) {
+            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
                 value = char_value;
                 state = number;
             } else {
@@ -837,7 +823,7 @@ Value StringObject::hex(Env *env) const {
             }
             break;
         case number:
-            if ((char_value = hex_value(c)) != -1) {
+            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
                 value = (value * 16) + char_value;
             } else if (c == '_') {
                 state = underscore;
@@ -846,7 +832,7 @@ Value StringObject::hex(Env *env) const {
             }
             break;
         case underscore:
-            if ((char_value = hex_value(c)) != -1) {
+            if ((char_value = hex_char_to_decimal_value(c)) != -1) {
                 value = (value * 16) + char_value;
                 state = number;
             } else {
