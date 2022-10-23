@@ -19,45 +19,25 @@ public:
     ~StringUnpacker() { delete m_directives; }
 
     ArrayObject *unpack(Env *env) {
-        const char *pointer = m_source->c_str();
-        auto final_null = m_source->c_str() + m_source->length();
-
         for (auto token : *m_directives) {
             if (token.error)
                 env->raise("ArgumentError", *token.error);
 
-            char d = token.directive;
-            switch (d) {
+            switch (token.directive) {
             case 'i':
-                if (pointer + sizeof(int) <= final_null)
-                    m_unpacked->push(Value::integer(*(int *)pointer));
-                else
-                    m_unpacked->push(NilObject::the());
-                pointer += sizeof(int);
+                unpack_i();
                 break;
             case 'J':
-                if (pointer + sizeof(uintptr_t) <= final_null)
-                    m_unpacked->push(Value::integer(*(uintptr_t *)pointer));
-                else
-                    m_unpacked->push(NilObject::the());
-                pointer += sizeof(uintptr_t);
+                unpack_J();
                 break;
             case 'P':
-                if (pointer + sizeof(uintptr_t) <= final_null)
-                    m_unpacked->push(new StringObject(*(const char **)pointer, token.count));
-                else
-                    m_unpacked->push(NilObject::the());
-                pointer += sizeof(uintptr_t);
+                unpack_P(token);
                 break;
             case 'p':
-                if (pointer + sizeof(uintptr_t) <= final_null)
-                    m_unpacked->push(new StringObject(*(const char **)pointer));
-                else
-                    m_unpacked->push(NilObject::the());
-                pointer += sizeof(uintptr_t);
+                unpack_p();
                 break;
             default:
-                env->raise("ArgumentError", "{} is not supported", d);
+                env->raise("ArgumentError", "{} is not supported", token.directive);
             }
         }
         return m_unpacked;
@@ -69,6 +49,48 @@ public:
     }
 
 private:
+    void unpack_i() {
+        if (at_end()) {
+            m_unpacked->push(NilObject::the());
+            return;
+        }
+
+        m_unpacked->push(Value::integer(*(int *)pointer()));
+        m_index += sizeof(int);
+    }
+
+    void unpack_J() {
+        if (at_end()) {
+            m_unpacked->push(NilObject::the());
+            return;
+        }
+
+        m_unpacked->push(Value::integer(*(uintptr_t *)pointer()));
+        m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_P(Token &token) {
+        if (at_end()) {
+            m_unpacked->push(NilObject::the());
+            return;
+        }
+
+        m_unpacked->push(new StringObject(*(const char **)pointer(), token.count));
+        m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_p() {
+        if (at_end()) {
+            m_unpacked->push(NilObject::the());
+            return;
+        }
+
+        m_unpacked->push(new StringObject(*(const char **)pointer()));
+        m_index += sizeof(uintptr_t);
+    }
+
+    const char *pointer() { return m_source->c_str() + m_index; }
+
     bool at_end() { return m_index >= m_source->length(); }
 
     const StringObject *m_source;
