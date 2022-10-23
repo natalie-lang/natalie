@@ -126,6 +126,13 @@ private:
             out.append_char(chars[2]);
         }
 
+        if (!at_end()) {
+            // extra unprocessed characters
+            if (token.count == 0)
+                // we only raise an error if the directive is m0
+                env->raise("ArgumentError", "invalid base64");
+        }
+
         auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
         m_unpacked->push(str);
     }

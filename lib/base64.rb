@@ -20,4 +20,9 @@ module Base64
     encoded.tr!('=', '') unless padding
     encoded
   end
+
+  def self.urlsafe_decode64(str)
+    converted = str.tr('_-', '/+')
+    strict_decode64(converted)
+  end
 end
