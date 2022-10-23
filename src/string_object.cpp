@@ -1,5 +1,6 @@
 #include "ctype.h"
 #include "natalie.hpp"
+#include "natalie/string_unpacker.hpp"
 #include "string.h"
 
 namespace Natalie {
@@ -739,10 +740,10 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
 
 /**
  * String#hex
- * 
+ *
  * Converts the string to a base 16 integer. Includes an optional type, as well
  * as allowing an optional 0x prefix.
- * 
+ *
  * To implement this, we effectively run the string through a state machine. The
  * state machine looks approximately like this:
  *
@@ -754,7 +755,7 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
  *         |                  |                      |
  *         |                  \h  +------- \h -------+
  *         |                  V   V
- *         |                +--------+ --- \h ---+ 
+ *         |                +--------+ --- \h ---+
  *         +---- \h ------> | number |           |
  *                          +--------+ <---------+
  *                           |     ^
@@ -1739,54 +1740,9 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 }
 
 Value StringObject::unpack(Env *env, Value format) const {
-    auto ary = new ArrayObject;
-    const char *pointer = c_str();
     auto format_string = format->as_string_or_raise(env)->string();
-    auto final_null = c_str() + length();
-    for (size_t i = 0; i < format_string.size(); i++) {
-        char c = format_string.at(i);
-
-        auto count = 0;
-        while (i + 1 < format_string.size() && isdigit(format_string.at(i + 1))) {
-            count *= 10;
-            count += format_string.at(++i) - '0';
-        }
-        if (count == 0) count = 1;
-
-        switch (c) {
-        case 'i':
-            if (pointer + sizeof(int) <= final_null)
-                ary->push(Value::integer(*(int *)pointer));
-            else
-                ary->push(NilObject::the());
-            pointer += sizeof(int);
-            break;
-        case 'J':
-            if (pointer + sizeof(uintptr_t) <= final_null)
-                ary->push(Value::integer(*(uintptr_t *)pointer));
-            else
-                ary->push(NilObject::the());
-            pointer += sizeof(uintptr_t);
-            break;
-        case 'P':
-            if (pointer + sizeof(uintptr_t) <= final_null)
-                ary->push(new StringObject(*(const char **)pointer, count));
-            else
-                ary->push(NilObject::the());
-            pointer += sizeof(uintptr_t);
-            break;
-        case 'p':
-            if (pointer + sizeof(uintptr_t) <= final_null)
-                ary->push(new StringObject(*(const char **)pointer));
-            else
-                ary->push(NilObject::the());
-            pointer += sizeof(uintptr_t);
-            break;
-        default:
-            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle String#unpack with directive %c", c);
-        }
-    }
-    return ary;
+    auto unpacker = new StringUnpacker { this, format_string };
+    return unpacker->unpack(env);
 }
 
 Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
