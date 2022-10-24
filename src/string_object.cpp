@@ -633,7 +633,7 @@ Value StringObject::prepend(Env *env, Args args) {
 }
 
 Value StringObject::b(Env *env) const {
-    return new StringObject { m_string.clone(), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { m_string, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
 Value StringObject::clone(Env *env) {
@@ -1728,9 +1728,10 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
     return Value::integer(number);
 }
 
-Value StringObject::unpack(Env *env, Value format) const {
+Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
+    auto offset = offset_value ? offset_value->to_int(env)->to_nat_int_t() : -1;
     auto format_string = format->as_string_or_raise(env)->string();
-    auto unpacker = new StringUnpacker { this, format_string };
+    auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
 

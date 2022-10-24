@@ -10,9 +10,10 @@ class StringUnpacker : public Cell {
     using Token = ArrayPacker::Token;
 
 public:
-    StringUnpacker(const StringObject *source, String directives)
+    StringUnpacker(const StringObject *source, String directives, nat_int_t offset)
         : m_source { source }
-        , m_directives { Tokenizer { directives }.tokenize() } { }
+        , m_directives { Tokenizer { directives }.tokenize() }
+        , m_index { (size_t)std::max(offset, (nat_int_t)0) } { }
 
     ~StringUnpacker() { delete m_directives; }
 
@@ -22,6 +23,12 @@ public:
                 env->raise("ArgumentError", *token.error);
 
             switch (token.directive) {
+            case 'A':
+                unpack_A(token);
+                break;
+            case 'a':
+                unpack_a(token);
+                break;
             case 'i':
                 unpack_i();
                 break;
@@ -53,6 +60,47 @@ public:
     }
 
 private:
+    void unpack_A(Token &token) {
+        auto out = String();
+
+        if (at_end()) {
+            m_unpacked->push(StringObject::binary());
+            return;
+        }
+
+        unpack_with_loop(token, [&]() {
+            out.append_char(next_char());
+        });
+
+        // remove trailing null and space
+        if (!out.is_empty()) {
+            auto c = out.last_char();
+            while (c == '\0' || c == ' ') {
+                out.truncate(out.size() - 1);
+                if (out.is_empty())
+                    break;
+                c = out.last_char();
+            }
+        }
+
+        m_unpacked->push(StringObject::binary(out));
+    }
+
+    void unpack_a(Token &token) {
+        auto out = String();
+
+        if (at_end()) {
+            m_unpacked->push(StringObject::binary());
+            return;
+        }
+
+        unpack_with_loop(token, [&]() {
+            out.append_char(next_char());
+        });
+
+        m_unpacked->push(StringObject::binary(out));
+    }
+
     void unpack_i() {
         if (at_end()) {
             m_unpacked->push(NilObject::the());
@@ -121,8 +169,7 @@ private:
             out.append_char(c);
         }
 
-        auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
-        m_unpacked->push(str);
+        m_unpacked->push(StringObject::binary(out));
     }
 
     void unpack_m(Env *env, Token &token) {
@@ -188,8 +235,7 @@ private:
                 env->raise("ArgumentError", "invalid base64");
         }
 
-        auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
-        m_unpacked->push(str);
+        m_unpacked->push(StringObject::binary(out));
     }
 
     void unpack_P(Token &token) {
@@ -247,7 +293,32 @@ private:
         return { out_a, out_b, out_c };
     }
 
+    template <typename Fn>
+    void unpack_with_loop(Token &token, Fn handler) {
+        if (token.star) {
+            while (!at_end())
+                handler();
+        } else if (token.count != -1) {
+            for (int i = 0; i < token.count; ++i)
+                handler();
+        } else {
+            handler();
+        }
+    }
+
     const char *pointer() { return m_source->c_str() + m_index; }
+
+    unsigned char next_char() {
+        if (at_end())
+            return 0;
+        return m_source->at(m_index++);
+    }
+
+    unsigned char peek_char() {
+        if (at_end())
+            return 0;
+        return m_source->at(m_index);
+    }
 
     bool at_end() { return m_index >= m_source->length(); }
 

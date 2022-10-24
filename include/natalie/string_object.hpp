@@ -81,6 +81,14 @@ public:
         m_string = str.clone();
     }
 
+    static StringObject *binary(const char *str = "") {
+        return new StringObject { str, EncodingObject::get(Encoding::ASCII_8BIT) };
+    }
+
+    static StringObject *binary(String &string) {
+        return new StringObject { string, EncodingObject::get(Encoding::ASCII_8BIT) };
+    }
+
     const String &string() const { return m_string; }
 
     const char *c_str() const { return m_string.c_str(); }
@@ -275,7 +283,7 @@ public:
     Value to_i(Env *, Value = nullptr) const;
     Value tr(Env *, Value, Value) const;
     Value tr_in_place(Env *, Value, Value);
-    Value unpack(Env *, Value) const;
+    Value unpack(Env *, Value, Value = nullptr) const;
     Value upcase(Env *);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
@@ -283,6 +291,10 @@ public:
     Value convert_float();
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
+
+    unsigned char at(size_t index) const {
+        return m_string.at(index);
+    }
 
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
