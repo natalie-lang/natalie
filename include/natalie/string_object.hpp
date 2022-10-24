@@ -283,7 +283,7 @@ public:
     Value to_i(Env *, Value = nullptr) const;
     Value tr(Env *, Value, Value) const;
     Value tr_in_place(Env *, Value, Value);
-    Value unpack(Env *, Value) const;
+    Value unpack(Env *, Value, Value = nullptr) const;
     Value upcase(Env *);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);

@@ -10,9 +10,10 @@ class StringUnpacker : public Cell {
     using Token = ArrayPacker::Token;
 
 public:
-    StringUnpacker(const StringObject *source, String directives)
+    StringUnpacker(const StringObject *source, String directives, nat_int_t offset)
         : m_source { source }
-        , m_directives { Tokenizer { directives }.tokenize() } { }
+        , m_directives { Tokenizer { directives }.tokenize() }
+        , m_index { (size_t)std::max(offset, (nat_int_t)0) } { }
 
     ~StringUnpacker() { delete m_directives; }
 

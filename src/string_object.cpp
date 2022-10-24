@@ -1728,9 +1728,10 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
     return Value::integer(number);
 }
 
-Value StringObject::unpack(Env *env, Value format) const {
+Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
+    auto offset = offset_value ? offset_value->to_int(env)->to_nat_int_t() : -1;
     auto format_string = format->as_string_or_raise(env)->string();
-    auto unpacker = new StringUnpacker { this, format_string };
+    auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }
 
