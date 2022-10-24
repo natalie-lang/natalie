@@ -121,8 +121,7 @@ private:
             out.append_char(c);
         }
 
-        auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
-        m_unpacked->push(str);
+        m_unpacked->push(StringObject::binary(out));
     }
 
     void unpack_m(Env *env, Token &token) {
@@ -188,8 +187,7 @@ private:
                 env->raise("ArgumentError", "invalid base64");
         }
 
-        auto str = new StringObject { out, EncodingObject::get(Encoding::ASCII_8BIT) };
-        m_unpacked->push(str);
+        m_unpacked->push(StringObject::binary(out));
     }
 
     void unpack_P(Token &token) {

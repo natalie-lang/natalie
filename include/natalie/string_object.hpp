@@ -81,6 +81,14 @@ public:
         m_string = str.clone();
     }
 
+    static StringObject *binary(const char *str = "") {
+        return new StringObject { str, EncodingObject::get(Encoding::ASCII_8BIT) };
+    }
+
+    static StringObject *binary(String &string) {
+        return new StringObject { string, EncodingObject::get(Encoding::ASCII_8BIT) };
+    }
+
     const String &string() const { return m_string; }
 
     const char *c_str() const { return m_string.c_str(); }

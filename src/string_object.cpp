@@ -633,7 +633,7 @@ Value StringObject::prepend(Env *env, Args args) {
 }
 
 Value StringObject::b(Env *env) const {
-    return new StringObject { m_string.clone(), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { m_string, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
 Value StringObject::clone(Env *env) {
