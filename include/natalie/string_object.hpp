@@ -292,6 +292,10 @@ public:
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
+    unsigned char at(size_t index) const {
+        return m_string.at(index);
+    }
+
     template <typename... Args>
     static StringObject *format(const char *fmt, Args... args) {
         auto out = new StringObject;
