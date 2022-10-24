@@ -47,6 +47,9 @@ public:
             case 'p':
                 unpack_p();
                 break;
+            case 'Z':
+                unpack_Z(token);
+                break;
             default:
                 env->raise("ArgumentError", "{} is not supported", token.directive);
             }
@@ -70,6 +73,7 @@ private:
 
         unpack_with_loop(token, [&]() {
             out.append_char(next_char());
+            return true;
         });
 
         // remove trailing null and space
@@ -96,13 +100,14 @@ private:
 
         unpack_with_loop(token, [&]() {
             out.append_char(next_char());
+            return true;
         });
 
         m_unpacked->push(StringObject::binary(out));
     }
 
     void unpack_i() {
-        if (at_end()) {
+        if (m_index + sizeof(int) > m_source->length()) {
             m_unpacked->push(NilObject::the());
             return;
         }
@@ -112,7 +117,7 @@ private:
     }
 
     void unpack_J() {
-        if (at_end()) {
+        if (m_index + sizeof(uintptr_t) > m_source->length()) {
             m_unpacked->push(NilObject::the());
             return;
         }
@@ -239,7 +244,7 @@ private:
     }
 
     void unpack_P(Token &token) {
-        if (at_end()) {
+        if (m_index + sizeof(uintptr_t) > m_source->length()) {
             m_unpacked->push(NilObject::the());
             return;
         }
@@ -249,13 +254,35 @@ private:
     }
 
     void unpack_p() {
-        if (at_end()) {
+        if (m_index + sizeof(uintptr_t) > m_source->length()) {
             m_unpacked->push(NilObject::the());
             return;
         }
 
         m_unpacked->push(new StringObject(*(const char **)pointer()));
         m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_Z(Token &token) {
+        auto out = String();
+
+        if (at_end()) {
+            m_unpacked->push(StringObject::binary());
+            return;
+        }
+
+        auto consumed = unpack_with_loop(token, [&]() {
+            auto c = next_char();
+            if (c == '\0')
+                return false;
+            out.append_char(c);
+            return true;
+        });
+
+        if (token.count > 0 && (ssize_t)consumed < token.count)
+            m_index += (token.count - consumed);
+
+        m_unpacked->push(StringObject::binary(out));
     }
 
     // return a value between 0-63
@@ -294,16 +321,27 @@ private:
     }
 
     template <typename Fn>
-    void unpack_with_loop(Token &token, Fn handler) {
+    size_t unpack_with_loop(Token &token, Fn handler) {
+        size_t start = m_index;
         if (token.star) {
-            while (!at_end())
-                handler();
+            while (!at_end()) {
+                auto keep_going = handler();
+                if (!keep_going)
+                    break;
+            }
         } else if (token.count != -1) {
-            for (int i = 0; i < token.count; ++i)
-                handler();
-        } else {
+            for (int i = 0; i < token.count; ++i) {
+                if (at_end())
+                    break;
+                auto keep_going = handler();
+                if (!keep_going)
+                    break;
+            }
+        } else if (!at_end()) {
             handler();
         }
+        assert(start <= m_index); // going backwards is unexpected
+        return m_index - start;
     }
 
     const char *pointer() { return m_source->c_str() + m_index; }
