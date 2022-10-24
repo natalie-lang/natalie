@@ -465,10 +465,13 @@ Value StringObject::add(Env *env, Value arg) const {
     String str;
     if (arg->is_string()) {
         str = arg->as_string()->string();
-    } else {
-        StringObject *str_obj = arg.send(env, "to_s"_s)->as_string();
+    } else if (arg->respond_to(env, "to_str"_s)) {
+        StringObject *str_obj = arg.send(env, "to_str"_s)->as_string();
         str_obj->assert_type(env, Object::Type::String, "String");
         str = str_obj->as_string()->string();
+    } else {
+      env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
+      NAT_UNREACHABLE();
     }
     StringObject *new_string = new StringObject { m_string };
     new_string->append(str);
