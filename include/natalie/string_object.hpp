@@ -225,6 +225,7 @@ public:
     bool is_empty() const { return m_string.is_empty(); }
 
     Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value getbyte(Env *, Value) const;
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
@@ -273,6 +274,7 @@ public:
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
+    Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Value);
     Value split(Env *, Value, Value);

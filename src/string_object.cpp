@@ -689,6 +689,30 @@ size_t StringObject::char_count(Env *env) const {
     return char_count;
 }
 
+Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
+    assert_not_frozen(env);
+
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t value = IntegerObject::convert_to_nat_int_t(env, value_obj);
+    nat_int_t length = static_cast<nat_int_t>(m_string.length());
+    nat_int_t index_original = index;
+
+    if (index < 0) {
+        index += length;
+    }
+
+    if (index < 0) {
+        env->raise("IndexError", "index {} out of string", index_original);
+    }
+
+    if (index >= length) {
+        env->raise("IndexError", "index {} out of string", index_original);
+    }
+
+    m_string[index] = value % 256;
+    return value_obj;
+}
+
 Value StringObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, char_count(env));
 }
@@ -1645,6 +1669,26 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     } else {
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
     }
+}
+
+Value StringObject::getbyte(Env *env, Value index_obj) const {
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
+    nat_int_t length = static_cast<nat_int_t>(m_string.length());
+
+    if (index < 0) {
+        index += length;
+    }
+
+    if (index < 0) {
+        return NilObject::the();
+    }
+
+    if (index >= length) {
+        return NilObject::the();
+    }
+
+    unsigned char byte = m_string[index];
+    return IntegerObject::create(Integer(byte));
 }
 
 StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index, Block *block) {
