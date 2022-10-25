@@ -2,6 +2,7 @@
 
 #include "natalie.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
+#include <array>
 
 namespace Natalie {
 
