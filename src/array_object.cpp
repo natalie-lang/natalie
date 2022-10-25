@@ -1641,9 +1641,8 @@ Value ArrayObject::reverse(Env *env) {
 
 Value ArrayObject::reverse_each(Env *env, Block *block) {
     if (!block) {
-        auto enumerator = send(env, "enum_for"_s, { "reverse_each"_s });
-        enumerator->ivar_set(env, "@size"_s, Value::integer(m_vector.size()));
-        return enumerator;
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "reverse_each"_s }, size_block);
     }
 
     for (size_t i = m_vector.size(); i > 0; --i) {
