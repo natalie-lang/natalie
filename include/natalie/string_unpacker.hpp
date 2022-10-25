@@ -36,6 +36,12 @@ public:
             case 'b':
                 unpack_b(token);
                 break;
+            case 'H':
+                unpack_H(token);
+                break;
+            case 'h':
+                unpack_h(token);
+                break;
             case 'i':
                 unpack_i();
                 break;
@@ -72,14 +78,14 @@ public:
 private:
     void unpack_A(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
         auto out = String();
 
-        unpack_with_loop(token, [&]() {
-            out.append_char(next_char());
+        unpack_bytes(token, [&](unsigned char c) {
+            out.append_char(c);
             return true;
         });
 
@@ -94,23 +100,23 @@ private:
             }
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_a(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
         auto out = String();
 
-        unpack_with_loop(token, [&]() {
-            out.append_char(next_char());
+        unpack_bytes(token, [&](unsigned char c) {
+            out.append_char(c);
             return true;
         });
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_B(Token &token) {
@@ -136,6 +142,30 @@ private:
             else
                 out.append_char('0');
             return c >> 1;
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+    }
+
+    void unpack_H(Token &token) {
+        auto out = String();
+
+        unpack_nibbles(token, [&](unsigned char c, int count) {
+            out.append_sprintf("%x", c >> 4);
+            if (count == 2)
+                out.append_sprintf("%x", c & 0x0F);
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+    }
+
+    void unpack_h(Token &token) {
+        auto out = String();
+
+        unpack_nibbles(token, [&](unsigned char c, int count) {
+            out.append_sprintf("%x", c & 0x0F);
+            if (count == 2)
+                out.append_sprintf("%x", c >> 4);
         });
 
         m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
@@ -209,7 +239,7 @@ private:
             out.append_char(c);
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_m(Env *env, Token &token) {
@@ -275,7 +305,7 @@ private:
                 env->raise("ArgumentError", "invalid base64");
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_P(Token &token) {
@@ -300,14 +330,13 @@ private:
 
     void unpack_Z(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
         auto out = String();
 
-        auto consumed = unpack_with_loop(token, [&]() {
-            auto c = next_char();
+        auto consumed = unpack_bytes(token, [&](unsigned char c) {
             if (c == '\0')
                 return false;
             out.append_char(c);
@@ -317,7 +346,7 @@ private:
         if (token.count > 0 && (ssize_t)consumed < token.count)
             m_index += (token.count - consumed);
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     // return a value between 0-63
@@ -356,11 +385,11 @@ private:
     }
 
     template <typename Fn>
-    size_t unpack_with_loop(Token &token, Fn handler) {
+    size_t unpack_bytes(Token &token, Fn handler) {
         size_t start = m_index;
         if (token.star) {
             while (!at_end()) {
-                auto keep_going = handler();
+                auto keep_going = handler(next_char());
                 if (!keep_going)
                     break;
             }
@@ -368,15 +397,29 @@ private:
             for (int i = 0; i < token.count; ++i) {
                 if (at_end())
                     break;
-                auto keep_going = handler();
+                auto keep_going = handler(next_char());
                 if (!keep_going)
                     break;
             }
         } else if (!at_end()) {
-            handler();
+            handler(next_char());
         }
         assert(start <= m_index); // going backwards is unexpected
         return m_index - start;
+    }
+
+    template <typename Fn>
+    void unpack_nibbles(Token &token, Fn handler) {
+        if (token.star) {
+            while (!at_end())
+                handler(next_char(), 2);
+        } else if (token.count != 0) {
+            auto count = std::max(1, token.count);
+            while (count > 0 && !at_end()) {
+                handler(next_char(), count >= 2 ? 2 : 1);
+                count -= 2;
+            }
+        }
     }
 
     template <typename Fn>
@@ -423,5 +466,4 @@ private:
     ArrayObject *m_unpacked { new ArrayObject };
     size_t m_index { 0 };
 };
-
 }

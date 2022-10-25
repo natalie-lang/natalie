@@ -74,19 +74,18 @@ public:
         m_string = str;
     }
 
+    StringObject(const String &str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        m_string = str;
+    }
+
     StringObject(const StringView &str, EncodingObject *encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         assert(m_encoding);
         m_string = str.clone();
-    }
-
-    static StringObject *binary(const char *str = "") {
-        return new StringObject { str, EncodingObject::get(Encoding::ASCII_8BIT) };
-    }
-
-    static StringObject *binary(String &string) {
-        return new StringObject { string, EncodingObject::get(Encoding::ASCII_8BIT) };
     }
 
     const String &string() const { return m_string; }
