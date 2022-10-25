@@ -78,8 +78,8 @@ private:
 
         auto out = String();
 
-        unpack_with_loop(token, [&]() {
-            out.append_char(next_char());
+        unpack_bytes(token, [&](unsigned char c) {
+            out.append_char(c);
             return true;
         });
 
@@ -105,8 +105,8 @@ private:
 
         auto out = String();
 
-        unpack_with_loop(token, [&]() {
-            out.append_char(next_char());
+        unpack_bytes(token, [&](unsigned char c) {
+            out.append_char(c);
             return true;
         });
 
@@ -306,8 +306,7 @@ private:
 
         auto out = String();
 
-        auto consumed = unpack_with_loop(token, [&]() {
-            auto c = next_char();
+        auto consumed = unpack_bytes(token, [&](unsigned char c) {
             if (c == '\0')
                 return false;
             out.append_char(c);
@@ -356,11 +355,11 @@ private:
     }
 
     template <typename Fn>
-    size_t unpack_with_loop(Token &token, Fn handler) {
+    size_t unpack_bytes(Token &token, Fn handler) {
         size_t start = m_index;
         if (token.star) {
             while (!at_end()) {
-                auto keep_going = handler();
+                auto keep_going = handler(next_char());
                 if (!keep_going)
                     break;
             }
@@ -368,12 +367,12 @@ private:
             for (int i = 0; i < token.count; ++i) {
                 if (at_end())
                     break;
-                auto keep_going = handler();
+                auto keep_going = handler(next_char());
                 if (!keep_going)
                     break;
             }
         } else if (!at_end()) {
-            handler();
+            handler(next_char());
         }
         assert(start <= m_index); // going backwards is unexpected
         return m_index - start;
