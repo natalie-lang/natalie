@@ -130,7 +130,7 @@ private:
             return c << 1;
         });
 
-        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+        m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
     }
 
     void unpack_b(Token &token) {
@@ -144,7 +144,7 @@ private:
             return c >> 1;
         });
 
-        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+        m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
     }
 
     void unpack_H(Token &token) {
@@ -156,7 +156,7 @@ private:
                 out.append_sprintf("%x", c & 0x0F);
         });
 
-        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+        m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
     }
 
     void unpack_h(Token &token) {
@@ -168,7 +168,7 @@ private:
                 out.append_sprintf("%x", c >> 4);
         });
 
-        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+        m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
     }
 
     void unpack_i() {

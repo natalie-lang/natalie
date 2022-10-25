@@ -124,7 +124,7 @@ Value ArrayObject::inspect(Env *env) {
             return new StringObject { "[...]" };
 
         if (is_empty())
-            return new StringObject { "[]", EncodingObject::get(Encoding::US_ASCII) };
+            return new StringObject { "[]", Encoding::US_ASCII };
 
         StringObject *out = new StringObject { "[" };
         for (size_t i = 0; i < size(); i++) {
@@ -966,7 +966,7 @@ Value ArrayObject::pack(Env *env, Value directives) {
     auto directives_string = directives->as_string()->string();
 
     if (directives_string.is_empty())
-        return new StringObject { "", EncodingObject::get(Encoding::US_ASCII) };
+        return new StringObject { "", Encoding::US_ASCII };
 
     return ArrayPacker::Packer { this, directives_string }.pack(env);
 }

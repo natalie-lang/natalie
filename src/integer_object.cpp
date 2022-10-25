@@ -28,9 +28,9 @@ Value IntegerObject::to_s(Env *env, Value base_value) const {
     }
 
     if (base == 10)
-        return new StringObject { m_integer.to_string(), EncodingObject::get(Encoding::US_ASCII) };
+        return new StringObject { m_integer.to_string(), Encoding::US_ASCII };
 
-    auto str = new StringObject { "", EncodingObject::get(Encoding::US_ASCII) };
+    auto str = new StringObject { "", Encoding::US_ASCII };
     auto num = m_integer;
     bool negative = false;
     if (num < 0) {

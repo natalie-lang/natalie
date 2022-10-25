@@ -84,11 +84,11 @@ extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, ch
 
 Value FloatObject::to_s() const {
     if (is_nan()) {
-        return new StringObject { "NaN", EncodingObject::get(Encoding::US_ASCII) };
+        return new StringObject { "NaN", Encoding::US_ASCII };
     } else if (is_positive_infinity()) {
-        return new StringObject { "Infinity", EncodingObject::get(Encoding::US_ASCII) };
+        return new StringObject { "Infinity", Encoding::US_ASCII };
     } else if (is_negative_infinity()) {
-        return new StringObject { "-Infinity", EncodingObject::get(Encoding::US_ASCII) };
+        return new StringObject { "-Infinity", Encoding::US_ASCII };
     }
 
     int decpt, sign;
@@ -132,7 +132,7 @@ Value FloatObject::to_s() const {
         string.prepend_char('-');
     }
 
-    return new StringObject { string, EncodingObject::get(Encoding::US_ASCII) };
+    return new StringObject { string, Encoding::US_ASCII };
 }
 
 Value FloatObject::cmp(Env *env, Value rhs) {
