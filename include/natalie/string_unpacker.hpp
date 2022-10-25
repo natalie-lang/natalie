@@ -78,7 +78,7 @@ public:
 private:
     void unpack_A(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
@@ -100,12 +100,12 @@ private:
             }
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_a(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
@@ -116,7 +116,7 @@ private:
             return true;
         });
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_B(Token &token) {
@@ -239,7 +239,7 @@ private:
             out.append_char(c);
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_m(Env *env, Token &token) {
@@ -305,7 +305,7 @@ private:
                 env->raise("ArgumentError", "invalid base64");
         }
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_P(Token &token) {
@@ -330,7 +330,7 @@ private:
 
     void unpack_Z(Token &token) {
         if (at_end()) {
-            m_unpacked->push(StringObject::binary());
+            m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
             return;
         }
 
@@ -346,7 +346,7 @@ private:
         if (token.count > 0 && (ssize_t)consumed < token.count)
             m_index += (token.count - consumed);
 
-        m_unpacked->push(StringObject::binary(out));
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     // return a value between 0-63
