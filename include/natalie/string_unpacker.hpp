@@ -36,6 +36,12 @@ public:
             case 'b':
                 unpack_b(token);
                 break;
+            case 'H':
+                unpack_H(token);
+                break;
+            case 'h':
+                unpack_h(token);
+                break;
             case 'i':
                 unpack_i();
                 break;
@@ -136,6 +142,30 @@ private:
             else
                 out.append_char('0');
             return c >> 1;
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+    }
+
+    void unpack_H(Token &token) {
+        auto out = String();
+
+        unpack_nibbles(token, [&](unsigned char c, int count) {
+            out.append_sprintf("%x", c >> 4);
+            if (count == 2)
+                out.append_sprintf("%x", c & 0x0F);
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+    }
+
+    void unpack_h(Token &token) {
+        auto out = String();
+
+        unpack_nibbles(token, [&](unsigned char c, int count) {
+            out.append_sprintf("%x", c & 0x0F);
+            if (count == 2)
+                out.append_sprintf("%x", c >> 4);
         });
 
         m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
@@ -379,6 +409,20 @@ private:
     }
 
     template <typename Fn>
+    void unpack_nibbles(Token &token, Fn handler) {
+        if (token.star) {
+            while (!at_end())
+                handler(next_char(), 2);
+        } else if (token.count != 0) {
+            auto count = std::max(1, token.count);
+            while (count > 0 && !at_end()) {
+                handler(next_char(), count >= 2 ? 2 : 1);
+                count -= 2;
+            }
+        }
+    }
+
+    template <typename Fn>
     void unpack_bits(Token &token, Fn handler) {
         auto bits_remaining = token.count;
         if (bits_remaining < 0)
@@ -422,5 +466,4 @@ private:
     ArrayObject *m_unpacked { new ArrayObject };
     size_t m_index { 0 };
 };
-
 }
