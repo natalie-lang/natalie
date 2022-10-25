@@ -710,8 +710,10 @@ Value StringObject::bytes(Env *env, Block *block) {
 }
 
 Value StringObject::each_byte(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each_byte"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, StringObject::bytesize_fn, 0 };
+        return send(env, "enum_for"_s, { "each_byte"_s }, size_block);
+    }
 
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];

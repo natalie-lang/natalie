@@ -48,8 +48,7 @@ describe "String#each_byte" do
 
     describe "returned enumerator" do
       describe "size" do
-        # NATFIXME: Make Enumerator#size spec compliant
-        xit "should return the bytesize of the string" do
+        it "should return the bytesize of the string" do
           str = "hello"
           str.each_byte.size.should == str.bytesize
           str = "ola"
