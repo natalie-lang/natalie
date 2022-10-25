@@ -29,6 +29,12 @@ public:
             case 'a':
                 unpack_a(token);
                 break;
+            case 'B':
+                unpack_B(token);
+                break;
+            case 'b':
+                unpack_b(token);
+                break;
             case 'i':
                 unpack_i();
                 break;
@@ -64,12 +70,12 @@ public:
 
 private:
     void unpack_A(Token &token) {
-        auto out = String();
-
         if (at_end()) {
             m_unpacked->push(StringObject::binary());
             return;
         }
+
+        auto out = String();
 
         unpack_with_loop(token, [&]() {
             out.append_char(next_char());
@@ -91,12 +97,12 @@ private:
     }
 
     void unpack_a(Token &token) {
-        auto out = String();
-
         if (at_end()) {
             m_unpacked->push(StringObject::binary());
             return;
         }
+
+        auto out = String();
 
         unpack_with_loop(token, [&]() {
             out.append_char(next_char());
@@ -104,6 +110,34 @@ private:
         });
 
         m_unpacked->push(StringObject::binary(out));
+    }
+
+    void unpack_B(Token &token) {
+        auto out = String();
+
+        unpack_bits(token, [&](unsigned char c) {
+            if ((c & 0b10'000'000) == 0b10'000'000)
+                out.append_char('1');
+            else
+                out.append_char('0');
+            return c << 1;
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
+    }
+
+    void unpack_b(Token &token) {
+        auto out = String();
+
+        unpack_bits(token, [&](unsigned char c) {
+            if ((c & 0b1) == 0b1)
+                out.append_char('1');
+            else
+                out.append_char('0');
+            return c >> 1;
+        });
+
+        m_unpacked->push(new StringObject { out, EncodingObject::get(Encoding::US_ASCII) });
     }
 
     void unpack_i() {
@@ -264,12 +298,12 @@ private:
     }
 
     void unpack_Z(Token &token) {
-        auto out = String();
-
         if (at_end()) {
             m_unpacked->push(StringObject::binary());
             return;
         }
+
+        auto out = String();
 
         auto consumed = unpack_with_loop(token, [&]() {
             auto c = next_char();
@@ -342,6 +376,29 @@ private:
         }
         assert(start <= m_index); // going backwards is unexpected
         return m_index - start;
+    }
+
+    template <typename Fn>
+    void unpack_bits(Token &token, Fn handler) {
+        auto bits_remaining = token.count;
+        if (bits_remaining < 0)
+            bits_remaining = 1;
+        if (token.star)
+            bits_remaining = 8;
+
+        while (bits_remaining > 0 && !at_end()) {
+            auto c = next_char();
+
+            for (int i = 0; i < std::min(8, bits_remaining); i++)
+                c = handler(c);
+
+            if (token.star)
+                bits_remaining = 8;
+            else if (bits_remaining >= 8)
+                bits_remaining -= 8;
+            else
+                bits_remaining = 0;
+        }
     }
 
     const char *pointer() { return m_source->c_str() + m_index; }
