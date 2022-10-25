@@ -76,6 +76,10 @@ public:
 
     const String &string() const { return m_string; }
 
+    static Value size_fn(Env *env, Value self, Args, Block *) {
+        return self->as_string()->size(env);
+    }
+
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
@@ -129,6 +133,7 @@ public:
     Value each_char(Env *, Block *);
     Value chars(Env *, Block * = nullptr);
 
+    Value each_codepoint(Env *, Block *);
     Value codepoints(Env *, Block *);
 
     SymbolObject *to_symbol(Env *) const;

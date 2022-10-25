@@ -40,7 +40,6 @@ Value StringObject::each_char(Env *env, Block *block) {
     if (!block)
         return send(env, "enum_for"_s, { "each_char"_s });
 
-    size_t index = 0;
     for (auto c : *this) {
         Value args[] = { new StringObject { c, m_encoding } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
@@ -60,6 +59,25 @@ Value StringObject::chars(Env *env, Block *block) {
     for (auto c : *this)
         ary->push(new StringObject { c, m_encoding });
     return ary;
+}
+
+Value StringObject::each_codepoint(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, StringObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_codepoint"_s }, size_block);
+    }
+
+    for (auto c : *this) {
+        auto char_obj = StringObject { c, m_encoding };
+
+        if (!char_obj.valid_encoding())
+            env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+
+        Value args[] = { char_obj.ord(env) };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    }
+
+    return this;
 }
 
 Value StringObject::codepoints(Env *env, Block *block) {
