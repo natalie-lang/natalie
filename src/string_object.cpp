@@ -62,6 +62,31 @@ Value StringObject::chars(Env *env, Block *block) {
     return ary;
 }
 
+Value StringObject::codepoints(Env *env, Block *block) {
+    if (block) {
+        for (auto c : *this) {
+            auto char_obj = StringObject { c, m_encoding };
+
+            if (!char_obj.valid_encoding())
+                env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+
+            Value args[] = { char_obj.ord(env) };
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        }
+        return this;
+    }
+
+    if (!this->valid_encoding())
+        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+
+    ArrayObject *ary = new ArrayObject {};
+    for (auto c : *this) {
+        auto char_obj = StringObject { c, m_encoding };
+        ary->push(char_obj.ord(env));
+    }
+    return ary;
+}
+
 String create_padding(String &padding, size_t length) {
     size_t quotient = ::floor(length / padding.size());
     size_t remainder = length % padding.size();

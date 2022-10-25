@@ -129,6 +129,8 @@ public:
     Value each_char(Env *, Block *);
     Value chars(Env *, Block * = nullptr);
 
+    Value codepoints(Env *, Block *);
+
     SymbolObject *to_symbol(Env *) const;
     Value to_sym(Env *) const;
 
