@@ -136,11 +136,23 @@ Value FloatObject::to_s() const {
 }
 
 Value FloatObject::cmp(Env *env, Value rhs) {
-    if (is_infinity() && rhs->is_integer() && rhs->as_integer()->is_bignum()) {
-        if (is_positive_infinity())
-            return Value::integer(1);
-        else
+    if (is_infinity()) {
+        if (rhs->is_integer() && rhs->as_integer()->is_bignum()) {
+            if (is_positive_infinity()) return Value::integer(1);
             return Value::integer(-1);
+        }
+
+        auto is_infinite_symbol = "infinite?"_s;
+        if (rhs->respond_to(env, is_infinite_symbol)) {
+            auto rhs_infinite = rhs.send(env, is_infinite_symbol);
+            if (rhs_infinite->is_nil()) {
+                if (is_positive_infinity()) return Value::integer(1);
+                return Value::integer(-1);
+            }
+            auto rhs_infinite_int = rhs_infinite->as_integer()->to_nat_int_t();
+            int rhs_cmp = is_positive_infinity() ? (rhs_infinite_int > 0 ? 0 : 1) : (rhs_infinite_int < 0 ? 0 : -1);
+            return Value::integer(rhs_cmp);
+        }
     }
 
     Value lhs = this;
