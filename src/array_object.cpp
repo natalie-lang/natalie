@@ -897,10 +897,9 @@ Value ArrayObject::join(Env *env, Value joiner) {
 
             auto to_str = "to_str"_s;
             auto to_s = "to_s"_s;
-            if (!joiner->is_string() && joiner->respond_to(env, to_str))
-                joiner = joiner->send(env, to_str);
+            if (!joiner->is_string())
+                joiner = joiner->to_str(env);
 
-            joiner->assert_type(env, Object::Type::String, "String");
             StringObject *out = new StringObject {};
             for (size_t i = 0; i < size(); i++) {
                 Value item = (*this)[i];
@@ -959,10 +958,9 @@ Value ArrayObject::cmp(Env *env, Value other) {
 }
 
 Value ArrayObject::pack(Env *env, Value directives) {
-    if (!directives->is_string() && directives->respond_to(env, "to_str"_s))
-        directives = directives->send(env, "to_str"_s);
+    if (!directives->is_string())
+        directives = directives->to_str(env);
 
-    directives->assert_type(env, Object::Type::String, "String");
     auto directives_string = directives->as_string()->string();
 
     if (directives_string.is_empty())

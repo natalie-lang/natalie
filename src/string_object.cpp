@@ -122,22 +122,14 @@ String create_padding(String &padding, size_t length) {
 Value StringObject::center(Env *env, Value length, Value padstr) {
     nat_int_t length_i = length->to_int(env)->to_nat_int_t();
 
-    auto to_str = "to_str"_s;
     String pad;
 
     if (!padstr) {
         pad = String { " " };
     } else if (padstr->is_string()) {
         pad = padstr->as_string()->string();
-    } else if (padstr->respond_to(env, to_str)) {
-        auto result = padstr->send(env, to_str);
-
-        if (!result->is_string())
-            env->raise("TypeError", "padstr can't be converted to a string");
-
-        pad = result->as_string()->string();
     } else {
-        env->raise("TypeError", "padstr can't be converted to a string");
+        pad = padstr->to_str(env)->string();
     }
 
     if (pad.is_empty())
@@ -510,14 +502,10 @@ Value StringObject::add(Env *env, Value arg) const {
     String str;
     if (arg->is_string()) {
         str = arg->as_string()->string();
-    } else if (arg->respond_to(env, "to_str"_s)) {
-        StringObject *str_obj = arg.send(env, "to_str"_s)->as_string();
-        str_obj->assert_type(env, Object::Type::String, "String");
-        str = str_obj->as_string()->string();
     } else {
-        env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
-        NAT_UNREACHABLE();
+        str = arg->to_str(env)->string();
     }
+
     StringObject *new_string = new StringObject { m_string };
     new_string->append(str);
     return new_string;
@@ -572,7 +560,6 @@ Value StringObject::concat(Env *env, Args args) {
 
     StringObject *original = new StringObject(*this);
 
-    auto to_str = "to_str"_s;
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
 
@@ -586,10 +573,8 @@ Value StringObject::concat(Env *env, Args args) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
-        } else if (arg->respond_to(env, to_str)) {
-            str_obj = arg.send(env, to_str)->as_string();
         } else {
-            env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
+            str_obj = arg->to_str(env);
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
@@ -648,7 +633,6 @@ Value StringObject::prepend(Env *env, Args args) {
 
     StringObject *original = new StringObject(*this);
 
-    auto to_str = "to_str"_s;
     String appendable;
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
@@ -663,10 +647,8 @@ Value StringObject::prepend(Env *env, Args args) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
-        } else if (arg->respond_to(env, to_str)) {
-            str_obj = arg.send(env, to_str)->as_string();
         } else {
-            env->raise("TypeError", "no implicit conversion of {} into String", arg->klass()->inspect_str());
+            str_obj = arg->to_str(env);
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
@@ -1890,10 +1872,8 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 }
 
 bool StringObject::include(Env *env, Value arg) {
-    auto to_str = "to_str"_s;
-    if (!arg->is_string() && arg->respond_to(env, to_str))
-        arg = arg->send(env, to_str);
-    arg->assert_type(env, Object::Type::String, "String");
+    if (!arg->is_string())
+        arg = arg->to_str(env);
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
@@ -2293,10 +2273,8 @@ bool StringObject::valid_encoding() const {
 }
 
 Value StringObject::delete_prefix(Env *env, Value val) {
-    auto to_str = "to_str"_s;
-    if (!val->is_string() && val->respond_to(env, to_str))
-        val = val->send(env, to_str);
-    val->assert_type(env, Object::Type::String, "String");
+    if (!val->is_string())
+        val = val->to_str(env);
 
     auto arg_len = val->as_string()->length();
     Value args[] = { val };
@@ -2322,10 +2300,8 @@ Value StringObject::delete_prefix_in_place(Env *env, Value val) {
 }
 
 Value StringObject::delete_suffix(Env *env, Value val) {
-    auto to_str = "to_str"_s;
-    if (!val->is_string() && val->respond_to(env, to_str))
-        val = val->send(env, to_str);
-    val->assert_type(env, Object::Type::String, "String");
+    if (!val->is_string())
+        val = val->to_str(env);
 
     auto arg_len = val->as_string()->length();
 
@@ -2413,10 +2389,9 @@ Value StringObject::partition(Env *env, Value val) {
             return ary;
         }
     } else {
-        if (!val->is_string() && val->respond_to(env, "to_str"_s)) {
-            val = val->send(env, "to_str"_s);
+        if (!val->is_string()) {
+            val = val->to_str(env);
         }
-        val->assert_type(env, Type::String, "String");
 
         auto query = val->as_string()->string();
         auto query_idx = m_string.find(query);
