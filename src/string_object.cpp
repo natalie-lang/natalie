@@ -38,14 +38,16 @@ StringView StringObject::next_char(Env *env, size_t *index) const {
 }
 
 Value StringObject::each_char(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each_char"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, StringObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_char"_s }, size_block);
+    }
 
     for (auto c : *this) {
         Value args[] = { new StringObject { c, m_encoding } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
     }
-    return NilObject::the();
+    return this;
 }
 
 Value StringObject::chars(Env *env, Block *block) {
@@ -710,8 +712,10 @@ Value StringObject::bytes(Env *env, Block *block) {
 }
 
 Value StringObject::each_byte(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each_byte"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, StringObject::bytesize_fn, 0 };
+        return send(env, "enum_for"_s, { "each_byte"_s }, size_block);
+    }
 
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];

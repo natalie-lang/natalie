@@ -94,6 +94,11 @@ public:
         return self->as_string()->size(env);
     }
 
+    static Value bytesize_fn(Env *env, Value self, Args, Block *) {
+        auto bytesize = self->as_string()->bytesize();
+        return Value::integer(bytesize);
+    }
+
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
