@@ -57,6 +57,24 @@ describe 'Time' do
         t.nsec.should == 3750
       end
     end
+
+    context 'with a valid unit argument' do
+      it 'returns a time' do
+        Time.at(0, 123456789, :nanosecond).nsec.should == 123456789
+        Time.at(0, 123456789, :nsec).nsec.should == 123456789
+        Time.at(0, 123456, :microsecond).nsec.should == 123456000
+        Time.at(0, 123456, :usec).nsec.should == 123456000
+        Time.at(0, 123, :millisecond).nsec.should == 123000000
+      end
+    end
+
+    context 'with an invalid unit argument' do
+      it 'raises an error' do
+        -> { Time.at(0, 123456, 2) }.should raise_error(ArgumentError)
+        -> { Time.at(0, 123456, nil) }.should raise_error(ArgumentError)
+        -> { Time.at(0, 123456, :invalid) }.should raise_error(ArgumentError)
+      end
+    end
   end
 
   describe '.local' do
