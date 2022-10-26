@@ -331,6 +331,7 @@ module Math
       rescue ArgumentError
         raise TypeError, "can't convert #{x.class.name} into Float"
       end
+      raise DomainError, 'Numerical argument is out of domain' if x.negative?
       __call__('::sqrt', x)
     end
   end
