@@ -20,7 +20,7 @@ public:
     TimeObject(ClassObject *klass)
         : Object { Object::Type::Time, klass } { }
 
-    static TimeObject *at(Env *, Value, Value);
+    static TimeObject *at(Env *, Value, Value, Value);
     static TimeObject *create(Env *);
     static TimeObject *local(Env *, Value, Value, Value, Value, Value, Value, Value);
     static TimeObject *now(Env *);
@@ -62,6 +62,7 @@ public:
 
 private:
     static RationalObject *convert_rational(Env *, Value);
+    static Value convert_unit(Env *, Value);
     static TimeObject *create(Env *, RationalObject *, Mode);
 
     Value build_string(Env *, const char *);

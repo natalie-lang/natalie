@@ -2,11 +2,10 @@
 
 namespace Natalie {
 
-TimeObject *TimeObject::at(Env *env, Value time, Value subsec) {
+TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit) {
     RationalObject *rational = convert_rational(env, time);
     if (subsec) {
-        // NATFIXME: Add support for other units
-        auto scale = new IntegerObject { 1000000 };
+        auto scale = convert_unit(env, unit ? unit : "microsecond"_s);
         rational = rational->add(env, convert_rational(env, subsec)->div(env, scale))->as_rational();
     }
     return TimeObject::create(env, rational, Mode::Localtime);
@@ -250,6 +249,18 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
         return value->send(env, "to_r"_s)->as_rational();
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
+    }
+}
+
+Value TimeObject::convert_unit(Env *env, Value value) {
+    if (value == "millisecond"_s) {
+        return Value::integer(1000);
+    } else if (value == "microsecond"_s || value == "usec"_s) {
+        return Value::integer(1000000);
+    } else if (value == "nanosecond"_s || value == "nsec"_s) {
+        return Value::integer(1000000000);
+    } else {
+        env->raise("ArgumentError", "unexpected unit: {}", value->inspect_str(env));
     }
 }
 
