@@ -17,8 +17,7 @@ describe "Time#eql?" do
     Time.at(100, 100).should_not eql(Time.at(100, 99))
   end
 
-  # NATFIXME: Support Time.at Rational argument
-  xit "returns false if self and other have differing fractional microseconds" do
+  it "returns false if self and other have differing fractional microseconds" do
     Time.at(100, Rational(100,1000)).should_not eql(Time.at(100, Rational(99,1000)))
   end
 
