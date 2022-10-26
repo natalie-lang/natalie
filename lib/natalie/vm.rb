@@ -130,6 +130,7 @@ module Natalie
 
     def build_main
       main = Object.new
+      def main.to_s; 'main'; end
       def main.inspect; 'main'; end
       def main.define_method(name, &block); Object.define_method(name, &block); end
       def main.private(*args); Object.send(:private, *args); end

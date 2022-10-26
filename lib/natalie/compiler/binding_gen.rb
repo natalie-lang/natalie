@@ -1035,6 +1035,7 @@ gen.binding('UnboundMethod', 'owner', 'UnboundMethodObject', 'owner', argc: 0, p
 
 gen.singleton_binding('main_obj', 'define_method', 'Object', 'main_obj_define_method', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('main_obj', 'inspect', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.singleton_binding('main_obj', 'to_s', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.init
 
