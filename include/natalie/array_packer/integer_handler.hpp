@@ -57,6 +57,12 @@ namespace ArrayPacker {
             case 's':
                 pack_s();
                 break;
+            case 'v':
+                pack_v();
+                break;
+            case 'V':
+                pack_V();
+                break;
             default: {
                 char buf[2] = { d, '\0' };
                 env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -195,6 +201,29 @@ namespace ArrayPacker {
             auto size = m_token.native_size ? sizeof(signed short) : 2;
             append_bytes((const char *)&source, size);
         }
+
+        void pack_V() {
+            m_token.endianness = Endianness::Little;
+            auto size = 4;
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (unsigned long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
+            }
+        }
+
+        void pack_v() {
+            m_token.endianness = Endianness::Little;
+            auto size = 2;
+            if (m_source->is_bignum()) {
+                pack_bignum(size * 8);
+            } else {
+                auto source = (long long)m_source->to_nat_int_t();
+                append_bytes((const char *)(&source), size);
+            }
+        }
+
 
         // NOTE: We probably don't need this monster method, but I could not figure out
         // how to pack 'j'/'J' using the modulus trick. ¯\_(ツ)_/¯
