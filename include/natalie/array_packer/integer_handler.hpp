@@ -224,7 +224,6 @@ namespace ArrayPacker {
             }
         }
 
-
         // NOTE: We probably don't need this monster method, but I could not figure out
         // how to pack 'j'/'J' using the modulus trick. ¯\_(ツ)_/¯
         void pack_bignum(size_t max_bits) {

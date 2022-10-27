@@ -94,9 +94,9 @@ namespace ArrayPacker {
                 case 'n':
                 case 'S':
                 case 's':
-                case 'U': 
+                case 'U':
                 case 'V':
-                case 'v':{
+                case 'v': {
                     pack_with_loop(env, token, [&]() {
                         auto integer = m_source->at(m_index)->to_int(env);
                         auto packer = IntegerHandler { integer, token };
