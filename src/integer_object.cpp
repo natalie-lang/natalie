@@ -219,7 +219,7 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
 
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg->is_integer() || arg->is_float();
+        return arg->is_integer() || arg->is_float() || arg->is_rational();
     };
 
     // Check if we might want to coerce the value
@@ -243,11 +243,13 @@ bool IntegerObject::eq(Env *env, Value other) {
     if (other->is_float())
         return m_integer == other->as_float()->to_double();
 
-    if (!other->is_integer())
-        other = Natalie::coerce(env, other, this).second;
-
     if (other->is_integer())
         return m_integer == other->as_integer()->integer();
+
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "=="_s, { result.second })->is_truthy();
+    }
 
     return other->send(env, "=="_s, { this })->is_truthy();
 }
@@ -256,11 +258,13 @@ bool IntegerObject::lt(Env *env, Value other) {
     if (other->is_float())
         return m_integer < other->as_float()->to_double();
 
-    if (!other->is_integer())
-        other = Natalie::coerce(env, other, this).second;
-
     if (other->is_integer())
         return m_integer < other->as_integer()->integer();
+
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "<"_s, { result.second })->is_truthy();
+    }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
@@ -269,11 +273,13 @@ bool IntegerObject::lte(Env *env, Value other) {
     if (other->is_float())
         return m_integer <= other->as_float()->to_double();
 
-    if (!other->is_integer())
-        other = Natalie::coerce(env, other, this).second;
-
     if (other->is_integer())
         return m_integer <= other->as_integer()->integer();
+
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, "<="_s, { result.second })->is_truthy();
+    }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
@@ -282,11 +288,13 @@ bool IntegerObject::gt(Env *env, Value other) {
     if (other->is_float())
         return m_integer > other->as_float()->to_double();
 
-    if (!other->is_integer())
-        other = Natalie::coerce(env, other, this).second;
-
     if (other->is_integer())
         return m_integer > other->as_integer()->integer();
+
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, ">"_s, { result.second })->is_truthy();
+    }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
@@ -295,11 +303,13 @@ bool IntegerObject::gte(Env *env, Value other) {
     if (other->is_float())
         return m_integer >= other->as_float()->to_double();
 
-    if (!other->is_integer())
-        other = Natalie::coerce(env, other, this).second;
-
     if (other->is_integer())
         return m_integer >= other->as_integer()->integer();
+
+    if (other->respond_to(env, "coerce"_s)) {
+        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        return result.first->send(env, ">="_s, { result.second })->is_truthy();
+    }
 
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
