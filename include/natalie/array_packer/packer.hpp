@@ -128,9 +128,33 @@ namespace ArrayPacker {
                     });
                     break;
                 }
-                case 'x':
-                    // TODO
+                case 'x': {
+                    // Asterisks have no effect on this directive.
+                    if (token.star)
+                        break;
+
+                    auto null_byte_count = (token.count < 0) ? 1: token.count;
+                    for (int count = 0; count < null_byte_count; count++) {
+                        m_packed.append_char('\0');
+                    }
                     break;
+                }
+                case 'X': {
+                    // Asterisks have no effect on this directive.
+                    if (token.star)
+                        break;
+
+                    auto amount_of_truncated_bytes = (token.count < 0) ? 1: token.count;
+
+                    // If the packed string is empty or if the amount of bytes to be truncated 
+                    // is greater than the packed string's current length, 
+                    // then we can't truncate it. Raise ArgumentError.
+                    if (m_packed.length() == 0 || (int)m_packed.length() < amount_of_truncated_bytes) {
+                        env->raise("ArgumentError", "X outside of the string");
+                    }
+                    m_packed.truncate(m_packed.length() - amount_of_truncated_bytes);
+                    break;
+                }
                 case '@': {
                     auto count = (token.count < 0) ? 1 : token.count;
                     auto missing_chars = static_cast<nat_int_t>(count) - static_cast<nat_int_t>(m_packed.size());
