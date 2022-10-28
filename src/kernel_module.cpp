@@ -22,9 +22,8 @@ Value KernelModule::abort_method(Env *env, Value message) {
     ExceptionObject *exception;
 
     if (message) {
-        auto to_str = "to_str"_s;
-        if (!message->is_string() && message->respond_to(env, to_str))
-            message = message->send(env, to_str);
+        if (!message->is_string())
+            message = message->to_str(env);
 
         message->assert_type(env, Type::String, "String");
 
