@@ -12,13 +12,55 @@ class CSV
   class Parser
     attr_reader :lineno
 
+    class Scanner
+      def initialize(input)
+        @input = input
+        @line_number = 0
+        @eof = input.eof?
+      end
+
+      def eof?
+        return false if @line && @current_index < @line.size
+
+        @input.eof?
+      end
+
+      def advance
+        peek.tap do
+          @current_index += 1
+        end
+      end
+
+      def read_line
+        @current_index = 0
+        @line = @input.gets
+
+        if @line
+          @line_number += 1
+        else
+          @eof = true
+        end
+
+        @line
+      end
+
+      # Current char or nil if input is exhausted
+      def peek
+        return nil if @eof
+
+        if !@line || @current_index >= @line.size
+          read_line
+        end
+
+        @line&.[](@current_index)
+      end
+    end
+
     def initialize(input, options)
       @input = input
       @options = options
-      @line = nil
       @lineno = 0
-      @current_col = 0
-      @current_index = 0
+      @scanner = Scanner.new(input)
     end
 
     def header_row?
@@ -44,17 +86,16 @@ class CSV
     end
 
     def consume_line
-      @line = @input.gets
-      return nil unless @line
-      @current_col = 0
-      @current_index = 0
+      return nil if eof?
+
       @lineno += 1
 
       [].tap do |out|
-        while !line_break? && !eol?
+        while !line_break? && !eof?
           advance if separator?
           out << next_col
         end
+        advance # skip line break if there is one
       end
     end
 
@@ -72,11 +113,11 @@ class CSV
         while true
           if quote?
             advance
-            if !@options[:liberal_parsing] && !(separator? || eol? || line_break?)
+            if !@options[:liberal_parsing] && !(separator? || eof? || line_break?)
               raise MalformedCSVError.new("Any value after quoted field isn't allowed", @lineno)
             end
             break
-          elsif !@options[:liberal_parsing] && (separator? || eol? || line_break?)
+          elsif !@options[:liberal_parsing] && eof?
             raise MalformedCSVError.new('Unclosed quoted field', @lineno)
           else
             out << advance
@@ -86,12 +127,12 @@ class CSV
     end
 
     def parse_unquoted_column_value
-      if separator? || eol? || line_break?
+      if separator? || eof? || line_break?
         return nil
       end
 
       "".tap do |out|
-        while !(separator? || eol? || line_break?)
+        while !(separator? || eof? || line_break?)
           if !@options[:liberal_parsing] && quote?
             raise MalformedCSVError.new('Illegal quoting', @lineno)
           end
@@ -102,19 +143,19 @@ class CSV
     end
 
     def advance
-      peek.tap { @current_index += 1 }
+      @scanner.advance
     end
 
     def peek
-      @line[@current_index]
+      @scanner.peek
     end
 
     def line_break?
       peek == "\n"
     end
 
-    def eol?
-      !peek
+    def eof?
+      @scanner.eof?
     end
 
     def separator?
