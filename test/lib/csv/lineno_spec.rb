@@ -16,8 +16,7 @@ describe "CSV#lineno" do
     csv.lineno.should == 1
   end
 
-  # NATFIXME: enable when newlines in quotes are supported
-  xit "increases only once when line-end characters are in fields" do
+  it "increases only once when line-end characters are in fields" do
     csv = CSV.new(%Q[a,"multi\n\n\nline",c\n1,2,3])
 
     csv.readline

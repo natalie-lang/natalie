@@ -10,6 +10,11 @@ describe 'CSV::Parser' do
     parser.next_line.should == nil
   end
 
+  it 'parse line terminators in quoted fields' do
+    parser = CSV::Parser.new(StringIO.new(%Q[a,"multi\nline",b]), CSV::DEFAULT_OPTIONS)
+    parser.next_line.should == ["a", "multi\nline", "b"]
+  end
+
   it 'parse unqouted columns' do
     parser = CSV::Parser.new(StringIO.new("foo,\nbar,baz"), CSV::DEFAULT_OPTIONS)
     parser.next_line.should == ["foo", nil]
