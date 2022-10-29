@@ -21,15 +21,14 @@ class CSV
       @current_index = 0
     end
 
+    def header_row?
+      @options[:headers] && !@headers
+    end
+
     def next_line
+      @headers = consume_line if header_row?
+
       line = consume_line
-
-      if @lineno == 1 && @options[:headers]
-        # We have just read the headers line
-        @headers = line
-
-        line = consume_line
-      end
 
       if @headers && line
         Row.new(@headers, line)
