@@ -136,6 +136,8 @@ Value FloatObject::to_s() const {
 }
 
 Value FloatObject::cmp(Env *env, Value rhs) {
+    Value lhs = this;
+
     if (is_infinity()) {
         if (rhs->is_integer() && rhs->as_integer()->is_bignum()) {
             if (is_positive_infinity()) return Value::integer(1);
@@ -149,13 +151,12 @@ Value FloatObject::cmp(Env *env, Value rhs) {
                 if (is_positive_infinity()) return Value::integer(1);
                 return Value::integer(-1);
             }
-            auto rhs_infinite_int = rhs_infinite->as_integer()->to_nat_int_t();
+            auto rhs_infinite_int = rhs_infinite->to_cmp_int(env, lhs, rhs);
             int rhs_cmp = is_positive_infinity() ? (rhs_infinite_int > 0 ? 0 : 1) : (rhs_infinite_int < 0 ? 0 : -1);
             return Value::integer(rhs_cmp);
         }
     }
 
-    Value lhs = this;
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;

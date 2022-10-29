@@ -341,6 +341,10 @@ public:
     StringObject *to_s(Env *env);
     StringObject *to_str(Env *env);
 
+    // If the object value will be returned from `<=>` and used in a comparison,
+    // then this method converts it into an integer in the set {-1, 0, 1}.
+    // If the conversion is not possible, then an ArgumentError is raised.
+    int to_cmp_int(Env *env, Value, Value);
 protected:
     ClassObject *m_klass { nullptr };
 

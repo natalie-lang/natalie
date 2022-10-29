@@ -132,6 +132,19 @@ void Env::raise_name_error(SymbolObject *name, const String message) {
     this->raise_exception(exception);
 }
 
+void Env::raise_not_comparable_error(Value lhs, Value rhs) {
+    String lhs_class = lhs->klass()->inspect_str();
+    String rhs_inspect;
+    if (rhs->is_integer() || rhs->is_float() || rhs->is_falsey()) {
+        rhs_inspect = rhs->inspect_str(this);
+    } else {
+        rhs_inspect = rhs->klass()->inspect_str();
+    }
+
+    String message = String::format("comparison of {} with {} failed", lhs_class, rhs_inspect);
+    raise("ArgumentError", message);
+}
+
 void Env::warn(String message) {
     Value _stderr = global_get("$stderr"_s);
     message = String::format("warning: {}", message);
