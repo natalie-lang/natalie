@@ -246,8 +246,9 @@ public:
     Value byteslice(Env *, Value, Value);
     Value center(Env *, Value, Value);
     Value chr(Env *);
-    Value chomp(Env *, Value);
-    Value chop(Env *);
+    Value chomp(Env *, Value) const;
+    Value chomp_in_place(Env *, Value);
+    Value chop(Env *) const;
     Value chop_in_place(Env *);
     Value clear(Env *);
     Value clone(Env *env);

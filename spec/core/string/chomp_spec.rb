@@ -160,7 +160,6 @@ describe "String#chomp" do
   end
 end
 
-# String#chomp unimplemented
 describe "String#chomp!" do
   describe "when passed no argument" do
     before do
@@ -174,104 +173,104 @@ describe "String#chomp!" do
       $VERBOSE = @verbose
     end
 
-    xit "modifies self" do
+    it "modifies self" do
       str = "abc\n"
       str.chomp!.should equal(str)
     end
 
-    xit "returns nil if self is not modified" do
+    it "returns nil if self is not modified" do
       "abc".chomp!.should be_nil
     end
 
-    xit "removes one trailing newline" do
+    it "removes one trailing newline" do
       "abc\n\n".chomp!.should == "abc\n"
     end
 
-    xit "removes one trailing carriage return" do
+    it "removes one trailing carriage return" do
       "abc\r\r".chomp!.should == "abc\r"
     end
 
-    xit "removes one trailing carriage return, newline pair" do
+    it "removes one trailing carriage return, newline pair" do
       "abc\r\n\r\n".chomp!.should == "abc\r\n"
     end
 
-    xit "returns nil when self is empty" do
+    it "returns nil when self is empty" do
       "".chomp!.should be_nil
     end
 
-    xit "returns subclass instances when called on a subclass" do
+    it "returns subclass instances when called on a subclass" do
       str = StringSpecs::MyString.new("hello\n").chomp!
       str.should be_an_instance_of(StringSpecs::MyString)
     end
 
-    xit "removes trailing characters that match $/ when it has been assigned a value" do
+    it "removes trailing characters that match $/ when it has been assigned a value" do
       $/ = "cdef"
       "abcdef".chomp!.should == "ab"
     end
   end
 
   describe "when passed nil" do
-    xit "returns nil" do
+    it "returns nil" do
       "abc\r\n".chomp!(nil).should be_nil
     end
 
-    xit "returns nil when self is empty" do
+    it "returns nil when self is empty" do
       "".chomp!(nil).should be_nil
     end
   end
 
   describe "when passed ''" do
-    xit "removes a final newline" do
+    it "removes a final newline" do
       "abc\n".chomp!("").should == "abc"
     end
 
-    xit "removes a final carriage return, newline" do
+    it "removes a final carriage return, newline" do
       "abc\r\n".chomp!("").should == "abc"
     end
 
-    xit "does not remove a final carriage return" do
+    it "does not remove a final carriage return" do
       "abc\r".chomp!("").should be_nil
     end
 
-    xit "removes more than one trailing newlines" do
+    it "removes more than one trailing newlines" do
       "abc\n\n\n".chomp!("").should == "abc"
     end
 
-    xit "removes more than one trailing carriage return, newline pairs" do
+    it "removes more than one trailing carriage return, newline pairs" do
       "abc\r\n\r\n\r\n".chomp!("").should == "abc"
     end
 
-    xit "returns nil when self is empty" do
+    it "returns nil when self is empty" do
       "".chomp!("").should be_nil
     end
   end
 
   describe "when passed '\\n'" do
-    xit "removes one trailing newline" do
+    it "removes one trailing newline" do
       "abc\n\n".chomp!("\n").should == "abc\n"
     end
 
-    xit "removes one trailing carriage return" do
+    it "removes one trailing carriage return" do
       "abc\r\r".chomp!("\n").should == "abc\r"
     end
 
-    xit "removes one trailing carriage return, newline pair" do
+    it "removes one trailing carriage return, newline pair" do
       "abc\r\n\r\n".chomp!("\n").should == "abc\r\n"
     end
 
-    xit "returns nil when self is empty" do
+    it "returns nil when self is empty" do
       "".chomp!("\n").should be_nil
     end
   end
 
   describe "when passed an Object" do
-    xit "calls #to_str to convert to a String" do
+    it "calls #to_str to convert to a String" do
       arg = mock("string chomp")
       arg.should_receive(:to_str).and_return("bc")
       "abc".chomp!(arg).should == "a"
     end
 
-    xit "raises a TypeError if #to_str does not return a String" do
+    it "raises a TypeError if #to_str does not return a String" do
       arg = mock("string chomp")
       arg.should_receive(:to_str).and_return(1)
       -> { "abc".chomp!(arg) }.should raise_error(TypeError)
@@ -279,20 +278,20 @@ describe "String#chomp!" do
   end
 
   describe "when passed a String" do
-    xit "removes the trailing characters if they match the argument" do
+    it "removes the trailing characters if they match the argument" do
       "abcabc".chomp!("abc").should == "abc"
     end
 
-    xit "returns nil if the argument does not match the trailing characters" do
+    it "returns nil if the argument does not match the trailing characters" do
       "abc".chomp!("def").should be_nil
     end
 
-    xit "returns nil when self is empty" do
+    it "returns nil when self is empty" do
       "".chomp!("abc").should be_nil
     end
   end
 
-  xit "raises a FrozenError on a frozen instance when it is modified" do
+  it "raises a FrozenError on a frozen instance when it is modified" do
     a = "string\n\r"
     a.freeze
 
@@ -300,7 +299,7 @@ describe "String#chomp!" do
   end
 
   # see [ruby-core:23666]
-  xit "raises a FrozenError on a frozen instance when it would not be modified" do
+  it "raises a FrozenError on a frozen instance when it would not be modified" do
     a = "string\n\r"
     a.freeze
     -> { a.chomp!(nil) }.should raise_error(FrozenError)
@@ -341,7 +340,6 @@ describe "String#chomp" do
   end
 end
 
-# String#chomp! unimplemented
 describe "String#chomp!" do
   before :each do
     @verbose, $VERBOSE = $VERBOSE, nil
@@ -353,19 +351,21 @@ describe "String#chomp!" do
     $VERBOSE = @verbose
   end
 
-  xit "returns nil when the String is not modified" do
+  it "returns nil when the String is not modified" do
     "あれ".chomp!.should be_nil
   end
 
-  xit "removes the final carriage return, newline from a multibyte String" do
+  it "removes the final carriage return, newline from a multibyte String" do
     "あれ\r\n".chomp!.should == "あれ"
   end
 
+  # NATFIXME: Implement UTF-32BE
   xit "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
     str.chomp!.should == "abc".encode("utf-32be")
   end
 
+  # NATFIXME: Implement UTF-32BE
   xit "removes the final carriage return, newline from a non-ASCII String when the record separator is changed" do
     $/ = "\n".encode("utf-8")
     str = "abc\r\n".encode "utf-32be"
