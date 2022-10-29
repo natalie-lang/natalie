@@ -60,6 +60,9 @@ public:
             case 'p':
                 unpack_p();
                 break;
+            case 'u':
+                unpack_u(token);
+                break;
             case 'Z':
                 unpack_Z(token);
                 break;
@@ -326,6 +329,70 @@ private:
 
         m_unpacked->push(new StringObject(*(const char **)pointer()));
         m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_u(Token &token) {
+        auto out = String();
+
+        ssize_t count = 0;
+
+        while (!at_end()) {
+            // count is the first byte and can represent a line up to 45 decoded chars
+            if (count == 0) {
+                auto length_char = next_char();
+                if (length_char >= 32 && length_char <= 95)
+                    count = length_char - 32;
+                else
+                    // invalid length char, treat as zero
+                    break;
+                if (count == 0)
+                    break;
+            }
+
+            // each encoded byte represents 6 bits of information, 24 bits in total
+            auto a = next_char();
+            auto b = next_char();
+            auto c = next_char();
+            auto d = next_char();
+
+            // skip newlines in between 4-byte groups
+            while (peek_char() == '\n')
+                next_char();
+
+            // ensure no number goes negative
+            a = a < ' ' ? ' ' : a;
+            b = b < ' ' ? ' ' : b;
+            c = c < ' ' ? ' ' : c;
+            d = d < ' ' ? ' ' : d;
+
+            // The 4 groups of 6 bits get rearranged into 3 groups of 8 bits,
+            // like this:
+            //               |   a    |   b    |   c    |   d    |
+            //     encoded:  |  '0'   |  'V'   |  '%'   |  'T'   |
+            // subtract 32:  |  -32   |  -32   |  -32   |  -32   |
+            //      mod 64:  |  %64   |  %64   |  %64   |  %64   |
+            //        bits:  | 010000 | 110110 | 000101 | 110100 |
+            //   regrouped:  |  01000011 | 01100001 |  01110100  |
+            //       bytes:  |     67    |    97    |     116    |
+            //       chars:  |    'C'    |   'a'    |     't'    |
+            unsigned char out_a = (((a - 32) % 64) << 2) | (((b - 32) % 64) >> 4);
+            unsigned char out_b = (((b - 32) % 64) << 4) | (((c - 32) % 64) >> 2);
+            unsigned char out_c = (((c - 32) % 64) << 6) | (((d - 32) % 64) >> 0);
+
+            out.append_char(out_a);
+            if (--count == 0)
+                continue;
+
+            out.append_char(out_b);
+            if (--count == 0)
+                continue;
+
+            out.append_char(out_c);
+            if (--count == 0)
+                continue;
+        }
+
+        m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
     }
 
     void unpack_Z(Token &token) {
