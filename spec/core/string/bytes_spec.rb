@@ -44,15 +44,13 @@ describe "String#bytes" do
     @utf8_ascii = @utf8 + @ascii
   end
 
-  # NATFIXME: Implement String#getbyte
-  xit "agrees with #getbyte" do
+  it "agrees with #getbyte" do
     @utf8_ascii.bytes.to_a.each_with_index do |byte,index|
       byte.should == @utf8_ascii.getbyte(index)
     end
   end
 
-  # NATFIXME: Support ASCII encoding
-  xit "is unaffected by #force_encoding" do
+  it "is unaffected by #force_encoding" do
     @utf8.force_encoding('ASCII').bytes.to_a.should == @utf8.bytes.to_a
   end
 end
