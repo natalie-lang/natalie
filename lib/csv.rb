@@ -155,4 +155,8 @@ class CSV
   def writer
     @writer ||= Writer.new(@io, @options)
   end
+
+  def header_row?
+    parser.header_row?
+  end
 end
