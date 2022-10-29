@@ -125,13 +125,29 @@ describe 'integer' do
   end
 
   describe '==' do
-    (2 == 2).should == true
-    (2 == 3).should == false
+    it 'works for integers' do
+      (2 == 2).should == true
+      (2 == 3).should == false
+    end
+
+    it 'works for rationals' do
+      (0 == Rational(1, 2)).should == false
+      (1 == Rational(1, 2)).should == false
+      (1 == Rational(1, 1)).should == true
+    end
   end
 
   describe 'eql?' do
     (2.eql?(2)).should == true
     (2.eql?(3)).should == false
+  end
+
+  describe '<=>' do
+    it 'works for rationals' do
+      (0 <=> Rational(1, 2)).should == -1
+      (1 <=> Rational(1, 2)).should == 1
+      (1 <=> Rational(1, 1)).should == 0
+    end
   end
 
   describe '<' do
@@ -143,6 +159,12 @@ describe 'integer' do
       (1 < 1).should == false
       (11 < 10).should == false
       (2 < 1).should == false
+    end
+
+    it 'works for rationals' do
+      (0 < Rational(1, 2)).should == true
+      (1 < Rational(1, 2)).should == false
+      (1 < Rational(1, 1)).should == false
     end
   end
 
@@ -156,6 +178,12 @@ describe 'integer' do
       (11 <= 10).should == false
       (2 <= 1).should == false
     end
+
+    it 'works for rationals' do
+      (0 <= Rational(1, 2)).should == true
+      (1 <= Rational(1, 2)).should == false
+      (1 <= Rational(1, 1)).should == true
+    end
   end
 
   describe '>' do
@@ -168,6 +196,12 @@ describe 'integer' do
       (10 > 11).should == false
       (1 > 2).should == false
     end
+
+    it 'works for rationals' do
+      (0 > Rational(1, 2)).should == false
+      (1 > Rational(1, 2)).should == true
+      (1 > Rational(1, 1)).should == false
+    end
   end
 
   describe '>=' do
@@ -179,6 +213,12 @@ describe 'integer' do
     it 'returns false if we are less than the given integer' do
       (10 >= 11).should == false
       (1 >= 2).should == false
+    end
+
+    it 'works for rationals' do
+      (0 >= Rational(1, 2)).should == false
+      (1 >= Rational(1, 2)).should == true
+      (1 >= Rational(1, 1)).should == true
     end
   end
 
