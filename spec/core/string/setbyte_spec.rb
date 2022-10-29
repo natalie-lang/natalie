@@ -32,7 +32,7 @@ describe "String#setbyte" do
   end
 
   # NATFIXME: Fix String#valid_encoding?
-  xit "can invalidate a String's encoding" do
+  it "can invalidate a String's encoding" do
     str = "glark"
     str.valid_encoding?.should be_true
     str.setbyte(2,253)
