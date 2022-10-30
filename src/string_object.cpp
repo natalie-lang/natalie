@@ -611,10 +611,15 @@ Value StringObject::match(Env *env, Value other) {
 
 Value StringObject::ord(Env *env) const {
     size_t index = 0;
-    auto c = next_char(&index);
+    auto result = next_char_result(&index);
+    if (!result.first)
+        env->raise("ArgumentError", "invalid byte sequence in UTF-8");
+    auto c = result.second;
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
     auto code = m_encoding->decode_codepoint(c);
+    if (code == -1)
+        env->raise("ArgumentError", "invalid byte sequence in UTF-8");
     return Value::integer(code);
 }
 
