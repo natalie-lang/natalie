@@ -36,10 +36,6 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ComplexObject { klass };
         break;
 
-    case Object::Type::Encoding:
-        obj = new EncodingObject { klass };
-        break;
-
     case Object::Type::Enumerator:
         obj = new Object { klass };
         break;
@@ -101,14 +97,15 @@ Value Object::create(Env *env, ClassObject *klass) {
         break;
 
     case Object::Type::Binding:
+    case Object::Type::Encoding:
+    case Object::Type::False:
+    case Object::Type::Float:
+    case Object::Type::Integer:
     case Object::Type::Method:
     case Object::Type::Nil:
-    case Object::Type::False:
-    case Object::Type::True:
-    case Object::Type::Integer:
-    case Object::Type::Float:
     case Object::Type::Rational:
     case Object::Type::Symbol:
+    case Object::Type::True:
     case Object::Type::UnboundMethod:
         obj = nullptr;
         break;

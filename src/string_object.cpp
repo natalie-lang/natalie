@@ -15,23 +15,31 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
+std::pair<bool, StringView> StringObject::prev_char_result(size_t *index) const {
+    return m_encoding->prev_char(m_string, index);
+}
+
 StringView StringObject::prev_char(size_t *index) const {
-    return m_encoding->prev_char(m_string, index).second;
+    return prev_char_result(index).second;
 }
 
 StringView StringObject::prev_char(Env *env, size_t *index) const {
-    auto pair = m_encoding->prev_char(m_string, index);
+    auto pair = prev_char_result(index);
     if (!pair.first)
         m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
     return pair.second;
 }
 
+std::pair<bool, StringView> StringObject::next_char_result(size_t *index) const {
+    return m_encoding->next_char(m_string, index);
+}
+
 StringView StringObject::next_char(size_t *index) const {
-    return m_encoding->next_char(m_string, index).second;
+    return next_char_result(index).second;
 }
 
 StringView StringObject::next_char(Env *env, size_t *index) const {
-    auto pair = m_encoding->next_char(m_string, index);
+    auto pair = next_char_result(index);
     if (!pair.first)
         m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
     return pair.second;
@@ -634,28 +642,15 @@ Value StringObject::match(Env *env, Value other) {
 
 Value StringObject::ord(Env *env) const {
     size_t index = 0;
-    auto c = next_char(&index);
+    auto result = next_char_result(&index);
+    if (!result.first)
+        env->raise("ArgumentError", "invalid byte sequence in UTF-8");
+    auto c = result.second;
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
-    unsigned int code;
-    switch (c.size()) {
-    case 0:
-        NAT_UNREACHABLE();
-    case 1:
-        code = (unsigned char)c[0];
-        break;
-    case 2:
-        code = (((unsigned char)c[0] ^ 0xC0) << 6) + (((unsigned char)c[1] ^ 0x80) << 0);
-        break;
-    case 3:
-        code = (((unsigned char)c[0] ^ 0xE0) << 12) + (((unsigned char)c[1] ^ 0x80) << 6) + (((unsigned char)c[2] ^ 0x80) << 0);
-        break;
-    case 4:
-        code = (((unsigned char)c[0] ^ 0xF0) << 18) + (((unsigned char)c[1] ^ 0x80) << 12) + (((unsigned char)c[2] ^ 0x80) << 6) + (((unsigned char)c[3] ^ 0x80) << 0);
-        break;
-    default:
-        NAT_UNREACHABLE();
-    }
+    auto code = m_encoding->decode_codepoint(c);
+    if (code == -1)
+        env->raise("ArgumentError", "invalid byte sequence in UTF-8");
     return Value::integer(code);
 }
 

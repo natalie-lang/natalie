@@ -60,6 +60,9 @@ public:
             case 'p':
                 unpack_p();
                 break;
+            case 'U':
+                unpack_U(env, token);
+                break;
             case 'u':
                 unpack_u(token);
                 break;
@@ -329,6 +332,19 @@ private:
 
         m_unpacked->push(new StringObject(*(const char **)pointer()));
         m_index += sizeof(uintptr_t);
+    }
+
+    void unpack_U(Env *env, Token &token) {
+        if (token.count == -1) token.count = 1;
+        nat_int_t consumed = 0;
+        while (!at_end() && (token.star || consumed < token.count)) {
+            auto pair = m_source->next_char_result(&m_index);
+            if (!pair.first)
+                env->raise("ArgumentError", "malformed UTF-8 character");
+            auto value = m_source->encoding()->decode_codepoint(pair.second);
+            m_unpacked->push(Value::integer(value));
+            consumed++;
+        }
     }
 
     void unpack_u(Token &token) {

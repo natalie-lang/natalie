@@ -146,8 +146,10 @@ public:
         va_end(args);
     }
 
+    std::pair<bool, StringView> prev_char_result(size_t *) const;
     StringView prev_char(size_t *) const;
     StringView prev_char(Env *, size_t *) const;
+    std::pair<bool, StringView> next_char_result(size_t *) const;
     StringView next_char(size_t *) const;
     StringView next_char(Env *, size_t *) const;
 

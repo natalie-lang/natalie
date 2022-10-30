@@ -57,29 +57,13 @@ public:
         }
     }
 
-    virtual bool valid_codepoint(nat_int_t codepoint) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::valid_codepoint()");
-    }
-
-    virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::prev_char()");
-    }
-
-    virtual std::pair<bool, StringView> next_char(const String &, size_t *) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::next_char()");
-    }
-
-    virtual String escaped_char(unsigned char c) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::escaped_char()");
-    }
-
-    virtual Value encode(Env *, EncodingObject *, StringObject *) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::encode()");
-    }
-
-    virtual String encode_codepoint(nat_int_t codepoint) const {
-        TM_NOT_YET_IMPLEMENTED("EncodingObject::encode_codepoint()");
-    }
+    virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
+    virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
+    virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
+    virtual String escaped_char(unsigned char c) const = 0;
+    virtual Value encode(Env *, EncodingObject *, StringObject *) const = 0;
+    virtual String encode_codepoint(nat_int_t codepoint) const = 0;
+    virtual nat_int_t decode_codepoint(StringView &str) const = 0;
 
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 

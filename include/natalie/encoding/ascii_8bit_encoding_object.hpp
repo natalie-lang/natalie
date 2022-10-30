@@ -27,6 +27,7 @@ public:
     virtual Value encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const override;
 
     virtual String encode_codepoint(nat_int_t codepoint) const override;
+    virtual nat_int_t decode_codepoint(StringView &str) const override;
 };
 
 }
