@@ -15,23 +15,31 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
+std::pair<bool, StringView> StringObject::prev_char_result(size_t *index) const {
+    return m_encoding->prev_char(m_string, index);
+}
+
 StringView StringObject::prev_char(size_t *index) const {
-    return m_encoding->prev_char(m_string, index).second;
+    return prev_char_result(index).second;
 }
 
 StringView StringObject::prev_char(Env *env, size_t *index) const {
-    auto pair = m_encoding->prev_char(m_string, index);
+    auto pair = prev_char_result(index);
     if (!pair.first)
         m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
     return pair.second;
 }
 
+std::pair<bool, StringView> StringObject::next_char_result(size_t *index) const {
+    return m_encoding->next_char(m_string, index);
+}
+
 StringView StringObject::next_char(size_t *index) const {
-    return m_encoding->next_char(m_string, index).second;
+    return next_char_result(index).second;
 }
 
 StringView StringObject::next_char(Env *env, size_t *index) const {
-    auto pair = m_encoding->next_char(m_string, index);
+    auto pair = next_char_result(index);
     if (!pair.first)
         m_encoding->raise_encoding_invalid_byte_sequence_error(env, m_string, *index);
     return pair.second;

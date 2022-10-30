@@ -5,7 +5,7 @@ require_relative 'shared/basic'
 require_relative 'shared/unicode'
 require_relative 'shared/taint'
 
-xdescribe "String#unpack with format 'U'" do
+describe "String#unpack with format 'U'" do
   # NATFIXME: implement more directives :-)
   #it_behaves_like :string_unpack_basic, 'U'
   #it_behaves_like :string_unpack_no_platform, 'U'
