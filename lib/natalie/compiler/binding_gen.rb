@@ -906,6 +906,7 @@ gen.binding('String', 'bytesize', 'StringObject', 'bytesize', argc: 0, pass_env:
 gen.binding('String', 'center', 'StringObject', 'center', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chars', 'StringObject', 'chars', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'chomp', 'StringObject', 'chomp', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'chomp!', 'StringObject', 'chomp_in_place', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chop', 'StringObject', 'chop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chop!', 'StringObject', 'chop_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chr', 'StringObject', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

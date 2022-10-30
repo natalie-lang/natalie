@@ -149,10 +149,19 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     return new StringObject { result, m_encoding };
 }
 
-Value StringObject::chomp(Env *env, Value record_separator) {
-    // When passed nil, return duplicate string
+
+Value StringObject::chomp(Env *env, Value record_separator) const {
+    auto new_str = new StringObject { *this };
+    new_str->chomp_in_place(env, record_separator);
+    return new_str;
+}
+
+Value StringObject::chomp_in_place(Env *env, Value record_separator) {
+    assert_not_frozen(env);
+
+    // When passed nil, return nil
     if (!record_separator.is_null() && record_separator->is_nil()) {
-        return new StringObject(m_string);
+        return NilObject::the();
     }
 
     // When passed a non nil object, call to_str();
@@ -160,11 +169,11 @@ Value StringObject::chomp(Env *env, Value record_separator) {
         record_separator = record_separator->to_str(env);
     }
 
-    size_t end_idx = m_string.length();
-    if (end_idx == 0) { // if this is an empty string, return empty sring
-        return new StringObject("", m_encoding);
+    if (is_empty()) { // if this is an empty string, return nil
+        return NilObject::the();
     }
 
+    size_t end_idx = m_string.length();
     String global_record_separator = env->global_get("$/"_s)->as_string()->string();
     // When using default record separator, also remove trailing \r
     if (record_separator.is_null() && global_record_separator == "\n") {
@@ -177,7 +186,13 @@ Value StringObject::chomp(Env *env, Value record_separator) {
             --end_idx;
         }
 
-        return new StringObject(m_string.substring(0, end_idx), m_encoding);
+        if (end_idx == m_string.length()) {
+          return NilObject::the();
+        } else {
+          m_string.truncate(end_idx);
+          return this;
+        }
+
         // When called with custom global record separator and no args
         // don't remove \r unless specified by record separator
     } else if (record_separator.is_null()) {
@@ -199,7 +214,12 @@ Value StringObject::chomp(Env *env, Value record_separator) {
             --sep_idx;
         }
 
-        return new StringObject(m_string.substring(0, end_idx), m_encoding);
+        if (end_idx == m_string.length()) {
+          return NilObject::the();
+        } else {
+          m_string.truncate(end_idx);
+          return this;
+        }
     }
 
     record_separator->assert_type(env, Object::Type::String, "String");
@@ -216,7 +236,12 @@ Value StringObject::chomp(Env *env, Value record_separator) {
             --end_idx;
         }
 
-        return new StringObject(m_string.substring(0, end_idx), m_encoding);
+        if (end_idx == m_string.length()) {
+          return NilObject::the();
+        } else {
+          m_string.truncate(end_idx);
+          return this;
+        }
     }
 
     size_t last_idx = end_idx - 1;
@@ -225,7 +250,8 @@ Value StringObject::chomp(Env *env, Value record_separator) {
     // remove only final \r when called with (non empty) string on
     // a string terminating in \r
     if (m_string.at(last_idx) == '\r') {
-        return new StringObject(m_string.substring(0, end_idx - 1), m_encoding);
+        m_string.truncate(end_idx - 1);
+        return this;
     }
 
     // called with (non empty) string
@@ -247,7 +273,12 @@ Value StringObject::chomp(Env *env, Value record_separator) {
         --rs_idx;
     }
 
-    return new StringObject(m_string.substring(0, end_idx), m_encoding);
+    if (end_idx == m_string.length()) {
+      return NilObject::the();
+    } else {
+      m_string.truncate(end_idx);
+      return this;
+    }
 }
 
 Value StringObject::chr(Env *env) {
@@ -2367,7 +2398,7 @@ bool StringObject::ascii_only(Env *env) const {
     return true;
 }
 
-Value StringObject::chop(Env *env) {
+Value StringObject::chop(Env *env) const {
     if (this->is_empty()) {
         return new StringObject { "", m_encoding };
     }
