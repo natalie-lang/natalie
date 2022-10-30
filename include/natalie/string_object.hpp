@@ -266,7 +266,7 @@ public:
     Value hex(Env *) const;
     bool include(Env *, Value);
     bool include(const char *) const;
-    Value ljust(Env *, Value, Value);
+    Value ljust(Env *, Value, Value) const;
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);
     Value match(Env *, Value);
@@ -282,6 +282,7 @@ public:
     Value refeq(Env *, Value, Value, Value);
     Value reverse(Env *);
     Value reverse_in_place(Env *);
+    Value rjust(Env *, Value, Value) const;
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
