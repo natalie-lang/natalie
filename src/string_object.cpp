@@ -606,25 +606,7 @@ Value StringObject::ord(Env *env) const {
     auto c = next_char(&index);
     if (c.is_empty())
         env->raise("ArgumentError", "empty string");
-    unsigned int code;
-    switch (c.size()) {
-    case 0:
-        NAT_UNREACHABLE();
-    case 1:
-        code = (unsigned char)c[0];
-        break;
-    case 2:
-        code = (((unsigned char)c[0] ^ 0xC0) << 6) + (((unsigned char)c[1] ^ 0x80) << 0);
-        break;
-    case 3:
-        code = (((unsigned char)c[0] ^ 0xE0) << 12) + (((unsigned char)c[1] ^ 0x80) << 6) + (((unsigned char)c[2] ^ 0x80) << 0);
-        break;
-    case 4:
-        code = (((unsigned char)c[0] ^ 0xF0) << 18) + (((unsigned char)c[1] ^ 0x80) << 12) + (((unsigned char)c[2] ^ 0x80) << 6) + (((unsigned char)c[3] ^ 0x80) << 0);
-        break;
-    default:
-        NAT_UNREACHABLE();
-    }
+    auto code = m_encoding->decode_codepoint(c);
     return Value::integer(code);
 }
 

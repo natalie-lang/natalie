@@ -81,6 +81,10 @@ public:
         TM_NOT_YET_IMPLEMENTED("EncodingObject::encode_codepoint()");
     }
 
+    virtual nat_int_t decode_codepoint(StringView &str) const {
+        TM_NOT_YET_IMPLEMENTED("EncodingObject::decode_codepoint()");
+    }
+
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 
     static HashObject *aliases(Env *);

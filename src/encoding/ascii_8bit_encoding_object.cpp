@@ -54,4 +54,13 @@ String Ascii8BitEncodingObject::encode_codepoint(nat_int_t codepoint) const {
     return String((char)codepoint);
 }
 
+nat_int_t Ascii8BitEncodingObject::decode_codepoint(StringView &str) const {
+    switch (str.size()) {
+    case 1:
+        return (unsigned char)str[0];
+    default:
+        return -1;
+    }
+}
+
 }

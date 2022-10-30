@@ -70,4 +70,17 @@ String UsAsciiEncodingObject::encode_codepoint(nat_int_t codepoint) const {
     return String((char)codepoint);
 }
 
+nat_int_t UsAsciiEncodingObject::decode_codepoint(StringView &str) const {
+    switch (str.size()) {
+    case 1: {
+        auto value = (unsigned char)str[0];
+        if ((int)value > 127)
+            return -1;
+        return value;
+    }
+    default:
+        return -1;
+    }
+}
+
 }

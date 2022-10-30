@@ -106,4 +106,25 @@ String Utf8EncodingObject::encode_codepoint(nat_int_t codepoint) const {
     return buf;
 }
 
+nat_int_t Utf8EncodingObject::decode_codepoint(StringView &str) const {
+    switch (str.size()) {
+    case 1:
+        return (unsigned char)str[0];
+    case 2:
+        return (((unsigned char)str[0] ^ 0xC0) << 6)
+            + (((unsigned char)str[1] ^ 0x80) << 0);
+    case 3:
+        return (((unsigned char)str[0] ^ 0xE0) << 12)
+            + (((unsigned char)str[1] ^ 0x80) << 6)
+            + (((unsigned char)str[2] ^ 0x80) << 0);
+    case 4:
+        return (((unsigned char)str[0] ^ 0xF0) << 18)
+            + (((unsigned char)str[1] ^ 0x80) << 12)
+            + (((unsigned char)str[2] ^ 0x80) << 6)
+            + (((unsigned char)str[3] ^ 0x80) << 0);
+    default:
+        return -1;
+    }
+}
+
 }
