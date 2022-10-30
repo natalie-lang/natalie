@@ -1881,7 +1881,7 @@ bool StringObject::include(const char *arg) const {
     return m_string.find(arg) != -1;
 }
 
-Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
+Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
 
@@ -1977,6 +1977,39 @@ Value StringObject::lstrip_in_place(Env *env) {
     memmove(&m_string[0], &m_string[0] + first_char, len - first_char);
     m_string.truncate(len - first_char);
     return this;
+}
+
+Value StringObject::rjust(Env *env, Value length_obj, Value pad_obj) const {
+    nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
+    size_t length = length_i < 0 ? 0 : length_i;
+
+    StringObject *padstr;
+    if (!pad_obj) {
+        padstr = new StringObject { " " };
+    } else {
+        padstr = pad_obj->to_str(env);
+    }
+
+    if (padstr->string().is_empty())
+        env->raise("ArgumentError", "zero width padding");
+
+    StringObject *padding = new StringObject { "", m_encoding };
+    size_t padding_length = length < this->length() ? 0 : length - this->length();
+
+    while (padding->length() < padding_length) {
+        bool truncate = padding->length() + padstr->length() > padding_length;
+        padding->append(padstr);
+        if (truncate) {
+            padding->truncate(padding_length);
+        }
+    }
+
+    StringObject *str_with_padding = new StringObject { "", m_encoding };
+    StringObject *copy = dup(env)->as_string();
+    str_with_padding->append(padding);
+    str_with_padding->append(copy);
+
+    return str_with_padding;
 }
 
 Value StringObject::rstrip(Env *env) const {
