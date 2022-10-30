@@ -157,7 +157,6 @@ Value StringObject::center(Env *env, Value length, Value padstr) {
     return new StringObject { result, m_encoding };
 }
 
-
 Value StringObject::chomp(Env *env, Value record_separator) const {
     auto new_str = new StringObject { *this };
     new_str->chomp_in_place(env, record_separator);
@@ -195,10 +194,10 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-          return NilObject::the();
+            return NilObject::the();
         } else {
-          m_string.truncate(end_idx);
-          return this;
+            m_string.truncate(end_idx);
+            return this;
         }
 
         // When called with custom global record separator and no args
@@ -223,10 +222,10 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-          return NilObject::the();
+            return NilObject::the();
         } else {
-          m_string.truncate(end_idx);
-          return this;
+            m_string.truncate(end_idx);
+            return this;
         }
     }
 
@@ -245,10 +244,10 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         }
 
         if (end_idx == m_string.length()) {
-          return NilObject::the();
+            return NilObject::the();
         } else {
-          m_string.truncate(end_idx);
-          return this;
+            m_string.truncate(end_idx);
+            return this;
         }
     }
 
@@ -282,10 +281,10 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
     }
 
     if (end_idx == m_string.length()) {
-      return NilObject::the();
+        return NilObject::the();
     } else {
-      m_string.truncate(end_idx);
-      return this;
+        m_string.truncate(end_idx);
+        return this;
     }
 }
 
