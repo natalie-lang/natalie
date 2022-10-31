@@ -279,6 +279,9 @@ class Complex
     raise TypeError, "#{other.inspect} can't be coerced into Complex"
   end
 
+  undef :positive?
+  undef :negative?
+
   private
   def marshal_dump
     [self.real, self.imaginary]
