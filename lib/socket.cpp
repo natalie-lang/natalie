@@ -84,6 +84,14 @@ static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
     return hbuf;
 }
 
+static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
+    if (sockaddr->length() == sizeof(struct sockaddr_un)) {
+        return AF_UNIX;
+    } else {
+        return ((struct sockaddr *)(sockaddr->c_str()))->sa_family;
+    }
+}
+
 Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 4);
     auto sockaddr = args.at(0);
@@ -108,7 +116,8 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
         if (sockaddr->as_string()->is_empty())
             env->raise("ArgumentError", "bad sockaddr");
 
-        afamily = sockaddr->as_string()->string().at(0);
+        afamily = Addrinfo_sockaddr_family(env, sockaddr->as_string());
+
         switch (afamily) {
         case AF_UNIX:
             unix_path = GlobalEnv::the()->Object()->const_fetch("Socket"_s).send(env, "unpack_sockaddr_un"_s, { sockaddr })->as_string_or_raise(env);
