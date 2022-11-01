@@ -102,7 +102,11 @@ module Natalie
           .each do |line|
             indent -= 4 if line =~ /^\s*\}/
             indent = [0, indent].max
-            out << line.sub(/^\s*/, ' ' * indent)
+            if line.start_with?('#')
+              out << line
+            else
+              out << line.sub(/^\s*/, ' ' * indent)
+            end
             indent += 4 if line.end_with?('{')
           end
         out.join("\n")
