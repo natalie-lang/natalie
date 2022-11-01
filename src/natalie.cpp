@@ -140,7 +140,7 @@ Env *build_top_env() {
     Object->const_set("Range"_s, Range);
     Range->include_once(env, Enumerable);
 
-    ClassObject *Complex = Object->subclass(env, "Complex", Object::Type::Complex);
+    ClassObject *Complex = Numeric->subclass(env, "Complex", Object::Type::Complex);
     global_env->set_Complex(Complex);
     Object->const_set("Complex"_s, Complex);
 

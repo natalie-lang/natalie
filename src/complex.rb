@@ -279,6 +279,20 @@ class Complex
     raise TypeError, "#{other.inspect} can't be coerced into Complex"
   end
 
+  def denominator
+    self.real.denominator.lcm(self.imag.denominator)
+  end
+
+  def numerator
+    denominator = self.denominator
+    real = self.real.numerator * (denominator / self.real.denominator)
+    imag = self.imag.numerator * (denominator / self.imag.denominator)
+    Complex(real, imag)
+  end
+
+  undef :positive?
+  undef :negative?
+
   private
   def marshal_dump
     [self.real, self.imaginary]
