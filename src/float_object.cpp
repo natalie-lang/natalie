@@ -136,14 +136,28 @@ Value FloatObject::to_s() const {
 }
 
 Value FloatObject::cmp(Env *env, Value rhs) {
-    if (is_infinity() && rhs->is_integer() && rhs->as_integer()->is_bignum()) {
-        if (is_positive_infinity())
+    Value lhs = this;
+
+    auto infinite_sym = "infinite?"_s;
+
+    auto call_is_infinite = [&](Value value) -> Value {
+        if (value->respond_to(env, infinite_sym))
+            return value->send(env, infinite_sym);
+        return NilObject::the();
+    };
+
+    if (is_positive_infinity()) {
+        if (call_is_infinite(rhs) == Value::integer(1))
+            return Value::integer(0);
+        else
             return Value::integer(1);
+    } else if (is_negative_infinity()) {
+        if (call_is_infinite(rhs) == Value::integer(-1))
+            return Value::integer(0);
         else
             return Value::integer(-1);
     }
 
-    Value lhs = this;
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
