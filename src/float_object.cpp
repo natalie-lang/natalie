@@ -138,23 +138,24 @@ Value FloatObject::to_s() const {
 Value FloatObject::cmp(Env *env, Value rhs) {
     Value lhs = this;
 
-    if (is_infinity()) {
-        if (rhs->is_integer() && rhs->as_integer()->is_bignum()) {
-            if (is_positive_infinity()) return Value::integer(1);
-            return Value::integer(-1);
-        }
+    auto infinite_sym = "infinite?"_s;
 
-        auto is_infinite_symbol = "infinite?"_s;
-        if (rhs->respond_to(env, is_infinite_symbol)) {
-            auto rhs_infinite = rhs.send(env, is_infinite_symbol);
-            if (rhs_infinite->is_nil()) {
-                if (is_positive_infinity()) return Value::integer(1);
-                return Value::integer(-1);
-            }
-            auto rhs_infinite_int = rhs_infinite->to_cmp_int(env, lhs, rhs);
-            int rhs_cmp = is_positive_infinity() ? (rhs_infinite_int > 0 ? 0 : 1) : (rhs_infinite_int < 0 ? 0 : -1);
-            return Value::integer(rhs_cmp);
-        }
+    auto call_is_infinite = [&](Value value) -> Value {
+        if (value->respond_to(env, infinite_sym))
+            return value->send(env, infinite_sym);
+        return NilObject::the();
+    };
+
+    if (is_positive_infinity()) {
+        if (call_is_infinite(rhs) == Value::integer(1))
+            return Value::integer(0);
+        else
+            return Value::integer(1);
+    } else if (is_negative_infinity()) {
+        if (call_is_infinite(rhs) == Value::integer(-1))
+            return Value::integer(0);
+        else
+            return Value::integer(-1);
     }
 
     if (!rhs->is_float()) {

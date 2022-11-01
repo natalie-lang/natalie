@@ -1166,26 +1166,4 @@ StringObject *Object::to_str(Env *env) {
         result->klass()->inspect_str());
 }
 
-int Object::to_cmp_int(Env *env, Value lhs, Value rhs) {
-    if (is_nil()) {
-        env->raise_not_comparable_error(lhs, rhs);
-    }
-
-    if (is_integer()) {
-        auto i = as_integer();
-        if (i->send(env, ">"_s, { Value::integer(0) })->is_truthy())
-            return 1;
-        if (i->send(env, "<"_s, { Value::integer(0) })->is_truthy())
-            return -1;
-        return 0;
-    }
-
-    if (send(env, ">"_s, { Value::integer(0) })->is_truthy())
-        return 1;
-    else if (send(env, "<"_s, { Value::integer(0) })->is_truthy())
-        return -1;
-
-    return 0;
-}
-
 }
