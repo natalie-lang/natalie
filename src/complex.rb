@@ -290,11 +290,36 @@ class Complex
     Complex(real, imag)
   end
 
+  def to_r
+    imaginary = self.imaginary
+    if not _exact_zero?(imaginary)
+      raise RangeError, "can't convert #{self} into Rational"
+    end
+
+    self.real.to_r
+  end
+
   undef :positive?
   undef :negative?
 
   private
   def marshal_dump
     [self.real, self.imaginary]
+  end
+
+  def _zero?(obj)
+    if obj.is_a?(Float)
+      return obj == 0.0
+    elsif obj.is_a?(Integer)
+      return obj == 0
+    elsif obj.is_a?(Rational)
+      return obj.numerator == 0
+    else
+      return obj == 0
+    end
+  end
+
+  def _exact_zero?(obj)
+    not imaginary.is_a?(Float) and _zero?(imaginary)
   end
 end
