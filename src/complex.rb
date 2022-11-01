@@ -299,6 +299,15 @@ class Complex
     self.real.to_r
   end
 
+  def rationalize(eps=0)
+    imaginary = self.imaginary
+    if not _exact_zero?(imaginary)
+      raise RangeError, "can't convert #{self} into Rational"
+    end
+
+    self.real.rationalize eps
+  end
+
   undef :positive?
   undef :negative?
 
