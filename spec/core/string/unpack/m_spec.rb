@@ -5,9 +5,8 @@ require_relative 'shared/basic'
 require_relative 'shared/taint'
 
 describe "String#unpack with format 'M'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'M'
-  #it_behaves_like :string_unpack_no_platform, 'M'
+  it_behaves_like :string_unpack_basic, 'M'
+  it_behaves_like :string_unpack_no_platform, 'M'
   it_behaves_like :string_unpack_taint, 'M'
 
   it "decodes an empty string" do
@@ -106,9 +105,8 @@ describe "String#unpack with format 'M'" do
 end
 
 describe "String#unpack with format 'm'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'm'
-  #it_behaves_like :string_unpack_no_platform, 'm'
+  it_behaves_like :string_unpack_basic, 'm'
+  it_behaves_like :string_unpack_no_platform, 'm'
   it_behaves_like :string_unpack_taint, 'm'
 
   it "decodes an empty string" do

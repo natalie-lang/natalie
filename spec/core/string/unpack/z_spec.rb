@@ -6,9 +6,8 @@ require_relative 'shared/string'
 require_relative 'shared/taint'
 
 describe "String#unpack with format 'Z'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'Z'
-  #it_behaves_like :string_unpack_no_platform, 'Z'
+  it_behaves_like :string_unpack_basic, 'Z'
+  it_behaves_like :string_unpack_no_platform, 'Z'
   it_behaves_like :string_unpack_string, 'Z'
   it_behaves_like :string_unpack_taint, 'Z'
 

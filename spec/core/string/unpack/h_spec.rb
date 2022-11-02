@@ -5,9 +5,8 @@ require_relative 'shared/basic'
 require_relative 'shared/taint'
 
 describe "String#unpack with format 'H'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'H'
-  #it_behaves_like :string_unpack_no_platform, 'H'
+  it_behaves_like :string_unpack_basic, 'H'
+  it_behaves_like :string_unpack_no_platform, 'H'
   it_behaves_like :string_unpack_taint, 'H'
 
   it "decodes one nibble from each byte for each format character starting with the most significant bit" do
@@ -71,9 +70,8 @@ describe "String#unpack with format 'H'" do
 end
 
 describe "String#unpack with format 'h'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'h'
-  #it_behaves_like :string_unpack_no_platform, 'h'
+  it_behaves_like :string_unpack_basic, 'h'
+  it_behaves_like :string_unpack_no_platform, 'h'
   it_behaves_like :string_unpack_taint, 'h'
 
   it "decodes one nibble from each byte for each format character starting with the least significant bit" do

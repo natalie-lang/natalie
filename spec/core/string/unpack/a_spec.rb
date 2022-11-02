@@ -6,9 +6,8 @@ require_relative 'shared/string'
 require_relative 'shared/taint'
 
 describe "String#unpack with format 'A'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'A'
-  #it_behaves_like :string_unpack_no_platform, 'A'
+  it_behaves_like :string_unpack_basic, 'A'
+  it_behaves_like :string_unpack_no_platform, 'A'
   it_behaves_like :string_unpack_string, 'A'
   it_behaves_like :string_unpack_Aa, 'A'
   it_behaves_like :string_unpack_taint, 'A'
@@ -39,9 +38,8 @@ describe "String#unpack with format 'A'" do
 end
 
 describe "String#unpack with format 'a'" do
-  # NATFIXME: implement more directives :-)
-  #it_behaves_like :string_unpack_basic, 'a'
-  #it_behaves_like :string_unpack_no_platform, 'a'
+  it_behaves_like :string_unpack_basic, 'a'
+  it_behaves_like :string_unpack_no_platform, 'a'
   it_behaves_like :string_unpack_string, 'a'
   it_behaves_like :string_unpack_Aa, 'a'
   it_behaves_like :string_unpack_taint, 'a'
