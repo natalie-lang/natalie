@@ -40,8 +40,10 @@ Prerequisites:
 - libtool
 - make
 - gcc or clang
-- Ruby 2.7.x or Ruby 3.0.x ([rbenv](https://github.com/rbenv/rbenv) preferred)
-- ccache (optional)
+- Ruby 2.7.x or Ruby 3.0.x with dev headers
+  - Using [rbenv](https://github.com/rbenv/rbenv) to install Ruby is preferred.
+  - Otherwise, you'll need the `ruby` and `ruby-dev` package from your system.
+- ccache (optional, but recommended)
 
 Install the above prerequisites on your platform, then run:
 
