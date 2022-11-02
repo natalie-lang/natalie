@@ -1827,8 +1827,17 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 }
 
 Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
-    auto offset = offset_value ? offset_value->to_int(env)->to_nat_int_t() : -1;
-    auto format_string = format->as_string_or_raise(env)->string();
+    nat_int_t offset = -1;
+    if (offset_value) {
+        offset = offset_value->to_int(env)->to_nat_int_t();
+        if (offset < 0)
+            env->raise("ArgumentError", "offset can't be negative");
+        else if (offset == (nat_int_t)bytesize())
+            return new ArrayObject({ NilObject::the() });
+        else if (offset > (nat_int_t)bytesize())
+            env->raise("ArgumentError", "offset outside of string");
+    }
+    auto format_string = format->to_str(env)->string();
     auto unpacker = new StringUnpacker { this, format_string, offset };
     return unpacker->unpack(env);
 }

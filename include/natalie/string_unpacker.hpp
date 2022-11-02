@@ -36,6 +36,12 @@ public:
             case 'b':
                 unpack_b(token);
                 break;
+            case 'C':
+                unpack_C(token);
+                break;
+            case 'c':
+                unpack_c(token);
+                break;
             case 'H':
                 unpack_H(token);
                 break;
@@ -137,6 +143,36 @@ private:
         });
 
         m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    }
+
+    void unpack_C(Token &token) {
+        nat_int_t consumed = 0;
+        if (token.count == -1) token.count = 1;
+        while (token.star ? !at_end() : consumed < token.count) {
+            if (at_end()) {
+                m_unpacked->push(NilObject::the());
+            } else {
+                unsigned char c = pointer()[0];
+                m_unpacked->push(Value::integer((unsigned int)c));
+                m_index++;
+            }
+            consumed++;
+        }
+    }
+
+    void unpack_c(Token &token) {
+        nat_int_t consumed = 0;
+        if (token.count == -1) token.count = 1;
+        while (token.star ? !at_end() : consumed < token.count) {
+            if (at_end()) {
+                m_unpacked->push(NilObject::the());
+            } else {
+                signed char c = pointer()[0];
+                m_unpacked->push(Value::integer((signed int)c));
+                m_index++;
+            }
+            consumed++;
+        }
     }
 
     void unpack_b(Token &token) {
