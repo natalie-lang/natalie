@@ -36,7 +36,7 @@ module Natalie
           ast = Natalie::Parser.new(multi_line_expr.join("\n"), '(repl)').ast
         rescue Parser::IncompleteExpression
           next
-        rescue Racc::ParseError => e
+        rescue SyntaxError
           puts e.message
           multi_line_expr = []
           next

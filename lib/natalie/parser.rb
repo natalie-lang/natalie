@@ -35,6 +35,12 @@ module Natalie
       else
         result.new(:block, result)
       end
+    rescue SyntaxError => e
+      if e.message =~ /unexpected end-of-input/
+        raise IncompleteExpression, e.message
+      else
+        raise
+      end
     end
   end
 end
