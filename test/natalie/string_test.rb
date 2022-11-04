@@ -53,6 +53,8 @@ describe 'string' do
       29.chr(enc).inspect.should == '"\x1D"'
       30.chr(enc).inspect.should == '"\x1E"'
       31.chr(enc).inspect.should == '"\x1F"'
+      127.chr(enc).inspect.should == '"\x7F"'
+      128.chr(enc).inspect.should == '"\x80"'
     end
   end
 
