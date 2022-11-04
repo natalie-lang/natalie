@@ -70,6 +70,11 @@ Value RegexpObject::inspect(Env *env) {
     return out;
 }
 
+Value RegexpObject::encoding(Env *env) {
+    // NATFIXME: Implement support for other encodings.
+    return EncodingObject::get(Encoding::US_ASCII);
+}
+
 Value RegexpObject::eqtilde(Env *env, Value other) {
     Value result = match(env, other);
     if (result->is_nil()) {
