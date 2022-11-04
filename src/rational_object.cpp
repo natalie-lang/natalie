@@ -137,6 +137,10 @@ Value RationalObject::inspect(Env *env) {
     return StringObject::format("({}/{})", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
+Value RationalObject::marshal_dump(Env *env) {
+    return new ArrayObject { m_numerator, m_denominator };
+}
+
 Value RationalObject::mul(Env *env, Value other) {
     if (other->is_integer()) {
         other = new RationalObject { other->as_integer(), new IntegerObject { 1 } };

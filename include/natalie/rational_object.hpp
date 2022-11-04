@@ -32,6 +32,7 @@ public:
     bool eq(Env *, Value);
     Value floor(Env *, Value);
     Value inspect(Env *);
+    Value marshal_dump(Env *);
     Value mul(Env *, Value);
     Value numerator(Env *);
     Value pow(Env *, Value);
