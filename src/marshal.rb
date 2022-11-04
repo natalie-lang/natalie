@@ -12,6 +12,20 @@ module Marshal
       writer.write_version
       writer.write(object)
     end
+
+    def load(source)
+      if source.respond_to?(:to_str)
+        reader = StringReader.new(source.to_str)
+      elsif source.respond_to?(:getbyte) && source.respond_to?(:read)
+        reader = Reader.new(source)
+      else
+        raise TypeError, 'instance of IO needed'
+      end
+      reader.read_version
+      reader.read_value
+    end
+
+    alias restore load
   end
 
   class Writer
@@ -220,6 +234,234 @@ module Marshal
 
     def write_bytes(value)
       @output.concat(value)
+    end
+  end
+
+  class Reader
+    def initialize(source)
+      @source = source
+    end
+
+    def read_byte
+      @source.getbyte
+    end
+
+    def read_bytes(integer)
+      @source.read(integer)
+    end
+
+    def read_version
+      major = read_byte
+      minor = read_byte
+
+      if major != MAJOR_VERSION || minor > MINOR_VERSION
+        raise TypeError, 'incompatible marshal file format'
+      end
+    end
+
+    def read_signed_byte
+      byte = read_byte
+      byte > 127 ? (byte - 256) : byte
+    end
+
+    def read_integer
+      byte = read_signed_byte
+
+      if byte == 0
+        return 0
+      elsif byte > 0
+        if byte > 4 && byte < 128
+          return byte - 5
+        end
+        integer = 0
+        byte.times do |i|
+          integer |= read_byte << (8 * i)
+        end
+        integer
+      else
+        if byte > -129 && byte < -4
+          return byte + 5
+        end
+        byte = -byte
+        integer = -1
+        byte.times do |i|
+          integer &= ~(255 << (8 * i))
+          integer |= read_byte << (8 * i)
+        end
+        integer
+      end
+    end
+
+    def read_string
+      integer = read_integer
+      return '' if integer.zero?
+      read_bytes(integer)
+    end
+
+    def read_symbol
+      read_string.to_sym
+    end
+
+    def read_float
+      string = read_string
+      case string
+      when 'nan' then Float::NAN
+      when 'inf' then Float::INFINITY
+      when '-inf' then -Float::INFINITY
+      when '0' then 0.0
+      when '-0' then -0.0
+      else
+        string.to_f
+      end
+    end
+
+    def read_array
+      result = []
+      size = read_integer
+      size.times { result << read_value }
+      result
+    end
+
+    def read_hash
+      result = {}
+      size = read_integer
+      size.times { result[read_value] = read_value }
+      result
+    end
+
+    def read_class
+      name = read_string
+      result = find_constant(name)
+      unless result.instance_of?(Class)
+        raise ArgumentError, "#{name} does not refer to class"
+      end
+      result
+    end
+
+    def read_module
+      name = read_string
+      result = find_constant(name)
+      unless result.instance_of?(Module)
+        raise ArgumentError, "#{name} does not refer to module"
+      end
+      result
+    end
+
+    def read_regexp
+      string = read_string
+      options = read_byte
+      read_ivars(string)
+      Regexp.new(string, options)
+    end
+
+    def read_user_marshaled_object
+      name = read_value
+      object_class = find_constant(name)
+      data = read_value
+      return Complex(data[0], data[1]) if object_class == Complex
+      return Rational(data[0], data[1]) if object_class == Rational
+      object = object_class.allocate
+      unless object.respond_to?(:marshal_load)
+        raise TypeError, "instance of #{object_class} needs to have method `marshal_load'"
+      end
+      object.marshal_load(data)
+      object
+    end
+
+    def read_object
+      name = read_value
+      object_class = find_constant(name)
+      object = object_class.allocate
+      ivars_hash = read_hash
+      ivars_hash.each do |ivar_name, value|
+        object.instance_variable_set(ivar_name, value)
+      end
+      object
+    end
+
+    def read_ivars(object)
+      read_hash.each do |name, value|
+        if name == :E
+          if value == false
+            object.force_encoding(Encoding::US_ASCII)
+          elsif value == true
+            object.force_encoding(Encoding::UTF_8)
+          end
+        else
+          ivar_name = '@' + name.to_s
+          object.instance_variable_set(ivar_name, value)
+        end
+      end
+    end
+
+    def read_value
+      char = read_byte.chr
+      case char
+      when '0'
+        nil
+      when 'T'
+        true
+      when 'F'
+        false
+      when 'i'
+        read_integer
+      when '"'
+        read_string
+      when ':'
+        read_symbol
+      when 'f'
+        read_float
+      when '['
+        read_array
+      when '{'
+        read_hash
+      when 'c'
+        read_class
+      when 'm'
+        read_module
+      when '/'
+        read_regexp
+      when 'U'
+        read_user_marshaled_object
+      when 'o'
+        read_object
+      when 'I'
+        result = read_value
+        read_ivars(result) unless result.is_a?(Regexp)
+        result
+      else
+        raise ArgumentError, 'dump format error'
+      end
+    end
+
+    def find_constant(name)
+      begin
+        Object.const_get(name)
+      rescue NameError
+        raise ArgumentError, "undefined class/module #{name}"
+      end
+    end
+  end
+
+  class StringReader < Reader
+    def initialize(source)
+      @source, @offset = source, 0
+    end
+
+    def read_byte
+      byte = @source.getbyte(@offset)
+      @offset += 1
+      byte
+    end
+
+    def read_bytes(integer)
+      if @source.length - @offset >= integer
+        string = @source.slice(@offset, integer)
+        @offset += integer
+        string
+      else
+        raise ArgumentError, 'marshal data too short'
+      end
     end
   end
 end
