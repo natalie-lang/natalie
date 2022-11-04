@@ -175,6 +175,7 @@ public:
     bool has_match(Env *env, Value, Value);
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
+    Value encoding(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
     Value source(Env *env) const;
