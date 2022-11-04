@@ -53,6 +53,10 @@ describe 'Module' do
       Object.const_get(:M3).should == M3
       M3.const_get('A').should == M3::A
     end
+
+    it 'raises a NameError if no constant is defined' do
+      -> { M1.const_get(:NameNotDefined) }.should raise_error(NameError)
+    end
   end
 
   describe '#name' do
