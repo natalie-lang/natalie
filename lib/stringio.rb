@@ -100,6 +100,14 @@ class StringIO
     0
   end
 
+  def getbyte
+    __assert_not_read_closed
+    return nil if eof?
+    byte = @string.getbyte(@index)
+    @index += 1
+    byte
+  end
+
   def getc
     __assert_not_read_closed
 
