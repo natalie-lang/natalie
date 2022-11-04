@@ -69,7 +69,11 @@ Value ModuleObject::const_get(SymbolObject *name) const {
 }
 
 Value ModuleObject::const_get(Env *env, Value name) const {
-    return const_get(name->to_symbol(env, Object::Conversion::Strict));
+    auto symbol = name->to_symbol(env, Object::Conversion::Strict);
+    auto constant = const_get(symbol);
+    if (!constant)
+        env->raise("NameError", "uninitialized constant {}", symbol->c_str());
+    return constant;
 }
 
 Value ModuleObject::const_fetch(SymbolObject *name) {
