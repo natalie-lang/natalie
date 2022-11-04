@@ -891,9 +891,7 @@ Value Object::clone(Env *env) const {
 bool Object::is_a(Env *env, Value val) const {
     if (!val->is_module()) return false;
     ModuleObject *module = val->as_module();
-    if (this == module) {
-        return false;
-    } else if (m_klass == module || singleton_class() == module) {
+    if (m_klass == module || singleton_class() == module) {
         return true;
     } else {
         ClassObject *klass = singleton_class();
