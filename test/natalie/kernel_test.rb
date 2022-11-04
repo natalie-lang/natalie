@@ -10,6 +10,28 @@ describe 'Kernel' do
     end
   end
 
+  describe '#is_a?' do
+    it 'returns false with a module and itself' do
+      Enumerable.is_a?(Enumerable).should == false
+    end
+
+    it 'returns true with the Module object and itself' do
+      Module.is_a?(Module).should == true
+    end
+
+    it 'returns true with a module and the Module object' do
+      Enumerable.is_a?(Module).should == true
+    end
+
+    it 'returns true with the Class object and the Module object' do
+      Class.is_a?(Module).should == true
+    end
+
+    it 'returns true with the Module object and the Class object' do
+      Module.is_a?(Class).should == true
+    end
+  end
+
   describe '#sleep' do
     it 'sleeps the number of seconds' do
       # TODO: add a way to measure time
