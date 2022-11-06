@@ -265,7 +265,8 @@ public:
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
-    Value downcase(Env *);
+    Value downcase(Env *, Value, Value);
+    Value downcase_in_place(Env *, Value, Value);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
     bool eq(Env *, Value arg);
@@ -310,7 +311,8 @@ public:
     Value uminus(Env *);
     Value unpack(Env *, Value, Value = nullptr) const;
     Value unpack1(Env *, Value, Value = nullptr) const;
-    Value upcase(Env *);
+    Value upcase(Env *, Value, Value);
+    Value upcase_in_place(Env *, Value, Value);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
 

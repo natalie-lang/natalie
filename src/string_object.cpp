@@ -2238,6 +2238,17 @@ Value StringObject::downcase(Env *env) {
     return str;
 }
 
+Value StringObject::downcase_in_place(Env *env) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *downcase(env)->as_string();
+
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
+}
+
 Value StringObject::upcase(Env *env) {
     auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
@@ -2254,6 +2265,17 @@ Value StringObject::upcase(Env *env) {
         }
     }
     return str;
+}
+
+Value StringObject::upcase_in_place(Env *env) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *upcase(env)->as_string();
+
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
 }
 
 Value StringObject::uplus(Env *env) {
