@@ -31,7 +31,6 @@ describe "String#setbyte" do
     str.getbyte(1).should == 254
   end
 
-  # NATFIXME: Fix String#valid_encoding?
   it "can invalidate a String's encoding" do
     str = "glark"
     str.valid_encoding?.should be_true
