@@ -2517,4 +2517,28 @@ Value StringObject::sum(Env *env, Value val) {
 
     return Value::integer(sum);
 }
+
+Value StringObject::try_convert(Env *env, Value val) {
+    auto to_str = "to_str"_s;
+
+    if (val->is_string()) {
+        return val;
+    }
+
+    if (!val->respond_to(env, to_str)) {
+        return NilObject::the();
+    }
+
+    auto result = val->send(env, to_str);
+
+    if (result->is_string() || result->is_nil())
+        return result;
+
+    env->raise(
+        "TypeError", "can't convert {} to String ({}#to_str gives {})",
+        val->klass()->inspect_str(),
+        val->klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
 }
