@@ -893,6 +893,7 @@ gen.binding('Sexp', 'line=', 'SexpObject', 'set_line', argc: 1, pass_env: true, 
 gen.binding('String', '*', 'StringObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '+', 'StringObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '+@', 'StringObject', 'uplus', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', '-@', 'StringObject', 'uminus', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '<<', 'StringObject', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '<=>', 'StringObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '==', 'StringObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

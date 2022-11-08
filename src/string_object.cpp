@@ -2130,6 +2130,15 @@ Value StringObject::uplus(Env *env) {
     }
 }
 
+Value StringObject::uminus(Env *env) {
+    if (this->is_frozen()) {
+        return this;
+    }
+    auto duplicate = this->dup(env);
+    duplicate->freeze();
+    return duplicate;
+}
+
 Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
     if (!exclusive)
         exclusive = FalseObject::the();
