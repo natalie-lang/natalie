@@ -182,9 +182,11 @@ Env *build_top_env() {
     Value EncodingUsAscii = new UsAsciiEncodingObject {};
     Encoding->const_set("US_ASCII"_s, EncodingUsAscii);
     Encoding->const_set("ASCII"_s, EncodingUsAscii);
+    Encoding->const_set("ANSI_X3_4_1968"_s, EncodingUsAscii);
 
     Value EncodingUTF8 = new Utf8EncodingObject {};
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
+    Encoding->const_set("CP65001"_s, EncodingUTF8);
 
     Value Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);

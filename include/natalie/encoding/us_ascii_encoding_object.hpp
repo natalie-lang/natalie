@@ -13,7 +13,7 @@ using namespace TM;
 class UsAsciiEncodingObject : public EncodingObject {
 public:
     UsAsciiEncodingObject()
-        : EncodingObject { Encoding::US_ASCII, { "US-ASCII", "ASCII" } } { }
+        : EncodingObject { Encoding::US_ASCII, { "US-ASCII", "ASCII", "ANSI_X3.4-1968", "646" } } { }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const override {
         return codepoint >= 0 && codepoint <= 127;
