@@ -300,6 +300,7 @@ public:
     Value to_i(Env *, Value = nullptr) const;
     Value tr(Env *, Value, Value) const;
     Value tr_in_place(Env *, Value, Value);
+    static Value try_convert(Env *, Value);
     Value uminus(Env *);
     Value unpack(Env *, Value, Value = nullptr) const;
     Value upcase(Env *);
