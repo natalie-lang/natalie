@@ -221,6 +221,37 @@ module Math
       sqrt(x**2 + y**2)
     end
 
+    ## NATFIXME: TODO: This is still broken
+    __function__('::ldexp', ['double', 'int'], 'double')
+    def ldexp(fraction, exponent)
+      begin
+        fraction = Float(fraction)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{fraction.class.name} into Float"
+      end
+      begin
+        exponent = Integer(exponent)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{exponent.class.name} into Integer"
+      end
+      __call__('::ldexp', fraction, exponent)
+    end
+
+    ## NATFIXME: TODO: This is still broken
+    __function__('::lgamma', ['double'], 'double')
+    def lgamma(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      
+      return [Float::INFINITY, 1] if x == Float::INFINITY
+      raise DomainError, 'Numerical argument is out of domain' if x == -Float::INFINITY
+      v = __call__('::lgamma', x)
+      [v, 1]
+    end
+    
     __function__('::log10', ['double'], 'double')
 
     def log10(x)
@@ -402,6 +433,14 @@ module Math
     Math.hypot(x, y)
   end
 
+  def ldexp(fraction, exponent)
+    Math.ldexp(fraction, exponent)
+  end
+
+  def lgamma(x)
+    Math.lgamma(x)
+  end
+  
   def log10(x)
     Math.log10(x)
   end
