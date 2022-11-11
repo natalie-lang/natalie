@@ -2220,7 +2220,59 @@ Value StringObject::rstrip_in_place(Env *env) {
     return this;
 }
 
-Value StringObject::downcase(Env *env) {
+enum CaseFoldType {
+    Ascii = 1,
+    FoldTurkicAzeri = 2,
+    FoldLithuanian = 4,
+    Upcase = 8,
+    Downcase = 16,
+    Fold = 32
+};
+
+inline CaseFoldType operator|(CaseFoldType a, CaseFoldType b) {
+    return static_cast<CaseFoldType>(static_cast<int>(a) | static_cast<int>(b));
+}
+inline CaseFoldType operator^(CaseFoldType a, CaseFoldType b) {
+    return static_cast<CaseFoldType>(static_cast<int>(a) ^ static_cast<int>(b));
+}
+
+// This implements checking the case-fold options passed into arguments like
+// downcase, upcase, casecmp, etc and sets a bitfield enum.
+static CaseFoldType check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
+    // return for zero arg case
+    if (arg1.is_null() && arg2.is_null())
+        return flags;
+    // two arg case only accepts turkic and lithuanian in either order
+    if (!arg1.is_null() && !arg2.is_null()) {
+        if ((arg1 == "turkic"_s && arg2 == "lithuanian"_s) || (arg1 == "lithuanian"_s && arg2 == "turkic"_s)) {
+            return flags | FoldTurkicAzeri | FoldLithuanian;
+        } else {
+            // any other pair of arguments is an error
+            env->raise("ArgumentError", "invalid option");
+        }
+    }
+    // acceptable symbols as options: [turkic lithuanian ascii fold]
+    if (arg1 == "ascii"_s) {
+        return flags | Ascii;
+    } else if (arg1 == "fold"_s) {
+        if ((flags & (Upcase | Downcase)) == Downcase) {
+            flags = flags ^ (Fold | Downcase);
+            return flags;
+        } else {
+            env->raise("ArgumentError", "option :fold only allowed for downcasing");
+        }
+    } else if (arg1 == "turkic"_s) {
+        return flags | FoldTurkicAzeri;
+    } else if (arg1 == "lithuanian"_s) {
+        return flags | FoldLithuanian;
+    } else {
+        env->raise("ArgumentError", "invalid option");
+    }
+    return flags;
+}
+
+Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
+    CaseFoldType flags = check_case_options(env, arg1, arg2, Downcase);
     auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
     for (auto c_val : *ary) {
@@ -2238,10 +2290,10 @@ Value StringObject::downcase(Env *env) {
     return str;
 }
 
-Value StringObject::downcase_in_place(Env *env) {
+Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
     StringObject *copy = dup(env)->as_string();
-    *this = *downcase(env)->as_string();
+    *this = *downcase(env, arg1, arg2)->as_string();
 
     if (*this == *copy) {
         return Value(NilObject::the());
@@ -2249,7 +2301,8 @@ Value StringObject::downcase_in_place(Env *env) {
     return this;
 }
 
-Value StringObject::upcase(Env *env) {
+Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
+    CaseFoldType flags = check_case_options(env, arg1, arg2, Downcase);
     auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
     for (auto c_val : *ary) {
@@ -2267,10 +2320,10 @@ Value StringObject::upcase(Env *env) {
     return str;
 }
 
-Value StringObject::upcase_in_place(Env *env) {
+Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     assert_not_frozen(env);
     StringObject *copy = dup(env)->as_string();
-    *this = *upcase(env)->as_string();
+    *this = *upcase(env, arg1, arg2)->as_string();
 
     if (*this == *copy) {
         return Value(NilObject::the());
