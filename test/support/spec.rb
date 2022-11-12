@@ -139,9 +139,15 @@ def with_feature(name)
   yield if MSpec.features[name]
 end
 
-def with_timezone(zone, offset)
+def with_timezone(zone, offset = nil)
   old_tz = ENV['TZ']
-  ENV['TZ'] = "#{zone}#{(-offset).to_s}:00:00"
+
+  if offset
+    zone += "#{(-offset).to_s}:00:00"
+  end
+
+  ENV['TZ'] = zone
+
   begin
     yield
   ensure
