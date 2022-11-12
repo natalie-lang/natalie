@@ -139,6 +139,19 @@ def with_feature(name)
   yield if MSpec.features[name]
 end
 
+def with_timezone(zone, offset)
+  old_tz = ENV['TZ']
+  ENV['TZ'] = "#{zone}#{(-offset).to_s}:00:00"
+  begin
+    yield
+  ensure
+    # Natalie does not allow setting ENV values that are not strings?
+    if old_tz.is_a?(String)
+      ENV['TZ'] = old_tz
+    end
+  end
+end
+
 def nan_value
   0 / 0.0
 end
