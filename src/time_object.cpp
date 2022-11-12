@@ -228,6 +228,10 @@ Value TimeObject::usec(Env *env) {
     }
 }
 
+Value TimeObject::utc_offset(Env *env) const {
+    return IntegerObject::create((nat_int_t)m_time.tm_gmtoff);
+}
+
 Value TimeObject::wday(Env *) const {
     return Value::integer(m_time.tm_wday);
 }

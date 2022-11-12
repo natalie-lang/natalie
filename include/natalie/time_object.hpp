@@ -46,6 +46,7 @@ public:
     Value to_r(Env *);
     Value to_s(Env *);
     Value usec(Env *);
+    Value utc_offset(Env *) const;
     Value wday(Env *) const;
     Value yday(Env *) const;
     Value year(Env *) const;
