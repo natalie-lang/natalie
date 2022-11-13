@@ -161,6 +161,9 @@ Env *build_top_env() {
     Object->const_set("File"_s, File);
     FileObject::build_constants(env, File);
 
+    ClassObject *Dir = IO->subclass(env, "Dir");
+    Object->const_set("Dir"_s, Dir);
+
     ClassObject *Exception = Object->subclass(env, "Exception", Object::Type::Exception);
     Object->const_set("Exception"_s, Exception);
     ClassObject *ScriptError = Exception->subclass(env, "ScriptError", Object::Type::Exception);
