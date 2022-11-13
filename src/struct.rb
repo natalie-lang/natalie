@@ -1,6 +1,7 @@
 class Struct
   class << self
     alias_method :_original_new, :new
+    alias_method :[], :new
   end
 
   def self.new(*attrs)
@@ -36,6 +37,16 @@ class Struct
             str << ', ' unless index == attrs.size - 1
           end
           str << '>'
+        end
+
+        define_method :[] do |arg|
+          case arg
+          when Integer
+            attribute = attrs.fetch(arg)
+            send(attribute)
+          else
+            send(arg)
+          end
         end
       end
     else

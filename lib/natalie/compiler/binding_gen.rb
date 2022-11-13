@@ -1019,10 +1019,11 @@ gen.binding('Time', 'to_i', 'TimeObject', 'to_i', argc: 0, pass_env: true, pass_
 gen.binding('Time', 'to_r', 'TimeObject', 'to_r', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_s', 'TimeObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'usec', 'TimeObject', 'usec', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'utc?', 'TimeObject', 'is_utc', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Time', 'utc_offset', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'wday', 'TimeObject', 'wday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'yday', 'TimeObject', 'yday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'year', 'TimeObject', 'year', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Time', 'utc?', 'TimeObject', 'is_utc', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 
 gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', '&', 'TrueObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
