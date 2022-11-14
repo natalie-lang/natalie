@@ -48,17 +48,25 @@ public:
         return stat(path->as_string()->c_str(), &sb) != -1;
     }
 
-    static bool is_file(Env *env, Value path);
+    static bool is_blockdev(Env *env, Value path);
+    static bool is_chardev(Env *env, Value path);
     static bool is_directory(Env *env, Value path);
-    static bool is_symlink(Env *env, Value path);
-    static bool is_pipe(Env *env, Value path);
-    static bool is_socket(Env *env, Value path);
-    static bool is_readable(Env *env, Value path);
-    static bool is_writable(Env *env, Value path);
     static bool is_executable(Env *env, Value path);
+    static bool is_file(Env *env, Value path);
+    static bool is_pipe(Env *env, Value path);
+    static bool is_readable(Env *env, Value path);
+    static bool is_setgid(Env *env, Value path);
+    static bool is_setuid(Env *env, Value path);
+    static bool is_socket(Env *env, Value path);
+    static bool is_sticky(Env *env, Value path);
+    static bool is_symlink(Env *env, Value path);
+    static bool is_writable(Env *env, Value path);
     static bool is_zero(Env *env, Value path);
 
     static bool is_identical(Env *env, Value file1, Value file2);
+
+    static Value world_readable(Env *env, Value path);
+    static Value world_writable(Env *env, Value path);
 
     static Value link(Env *env, Value from, Value to);
     static Value symlink(Env *env, Value from, Value to);

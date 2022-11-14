@@ -171,12 +171,52 @@ bool FileObject::is_identical(Env *env, Value file1, Value file2) {
     return true;
 }
 
+bool FileObject::is_sticky(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISVTX);
+}
+
+bool FileObject::is_setgid(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISGID);
+}
+
+bool FileObject::is_setuid(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISUID);
+}
+
 bool FileObject::is_symlink(Env *env, Value path) {
     struct stat sb;
     path = ConvertToPath(env, path);
     if (lstat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISLNK(sb.st_mode);
+}
+
+bool FileObject::is_blockdev(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISBLK(sb.st_mode);
+}
+
+bool FileObject::is_chardev(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISCHR(sb.st_mode);
 }
 
 bool FileObject::is_pipe(Env *env, Value path) {
@@ -200,6 +240,30 @@ bool FileObject::is_readable(Env *env, Value path) {
     if (access(path->as_string()->c_str(), R_OK) == -1)
         return false;
     return true;
+}
+
+Value FileObject::world_readable(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return NilObject::the();
+    if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
+        auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
+        return Value::integer(modenum);
+    }
+    return NilObject::the();
+}
+
+Value FileObject::world_writable(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return NilObject::the();
+    if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
+        auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
+        return Value::integer(modenum);
+    }
+    return NilObject::the();
 }
 
 bool FileObject::is_writable(Env *env, Value path) {

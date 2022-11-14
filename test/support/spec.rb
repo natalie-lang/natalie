@@ -266,12 +266,12 @@ end
 def big_endian
 end
 
-TMP_UNIQ_ID = 0
+@tmp_uniq_id = 0
 
 def tmp(name, uniq = true)
   if uniq
-    TMP_UNIQ_ID += 1
-    name += TMP_UNIQ_ID.to_s
+    @tmp_uniq_id += 1
+    name += @tmp_uniq_id.to_s
   end
 
   File.join('tmp', name)
