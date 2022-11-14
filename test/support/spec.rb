@@ -5,7 +5,7 @@ require_relative 'platform_guard'
 require_relative 'version'
 require_relative 'spec_helpers/fs'
 require_relative 'spec_helpers/mock_to_path'
-
+require_relative 'spec_helpers/tmp'
 require 'tempfile'
 
 class SpecFailedException < StandardError
@@ -264,17 +264,6 @@ def little_endian
 end
 
 def big_endian
-end
-
-@tmp_uniq_id = 0
-
-def tmp(name, uniq = true)
-  if uniq
-    @tmp_uniq_id += 1
-    name += @tmp_uniq_id.to_s
-  end
-
-  File.join('tmp', name)
 end
 
 def suppress_warning
