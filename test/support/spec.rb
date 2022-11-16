@@ -251,12 +251,18 @@ def not_supported_on(*)
   yield
 end
 
+# TODO: replace shell call with Process.uid when implemented
 def as_user
-  yield
+  if `id -ru`.chomp != "0"
+    yield
+  end
 end
 
+# TODO: replace shell call with Process.uid when implemented
 def as_superuser
-  nil
+  if `id -ru`.chomp == "0"
+    yield
+  end
 end
 
 def little_endian
