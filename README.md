@@ -155,7 +155,6 @@ belongs to the respective owner:
 | `fiber_object.*`              | Evan Jones                        | MIT               |
 | `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
 | `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
-| `test/support/spec_helpers/*` <br> (see `test/support/spec_helpers/LICENSE`) | Engine Yard, Inc. | MIT |
 | `version.rb`                  | Engine Yard, Inc.                 | MIT               |
 
 See each file above for full copyright and license text.
