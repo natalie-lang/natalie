@@ -211,6 +211,7 @@ public:
     }
 
     StringObject *successive(Env *);
+    StringObject *successive_in_place(Env *);
 
     Value index(Env *, Value) const;
     Value index(Env *, Value, size_t start) const;

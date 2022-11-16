@@ -20,6 +20,7 @@
 #include "natalie/class_object.hpp"
 #include "natalie/complex_object.hpp"
 #include "natalie/constant.hpp"
+#include "natalie/dir_object.hpp"
 #include "natalie/encoding/ascii_8bit_encoding_object.hpp"
 #include "natalie/encoding/us_ascii_encoding_object.hpp"
 #include "natalie/encoding/utf8_encoding_object.hpp"

@@ -3,6 +3,9 @@ require_relative 'formatters/yaml_formatter'
 require_relative 'mspec'
 require_relative 'platform_guard'
 require_relative 'version'
+require_relative 'spec_helpers/fs'
+require_relative 'spec_helpers/mock_to_path'
+require_relative 'spec_helpers/tmp'
 require 'tempfile'
 
 class SpecFailedException < StandardError
@@ -33,10 +36,11 @@ class Context
     @before_each = []
     @before_all = []
     @after_each = []
+    @after_all = []
     @skip = skip
   end
 
-  attr_reader :description, :before_each, :before_all, :after_each, :skip
+  attr_reader :description, :before_each, :before_all, :after_each, :after_all, :skip
 
   def add_before_each(block)
     @before_each << block
@@ -48,6 +52,10 @@ class Context
 
   def add_after_each(block)
     @after_each << block
+  end
+
+  def add_after_all(block)
+    @after_all << block
   end
 
   def to_s
@@ -232,11 +240,25 @@ def slow_test
   yield if ENV['ENABLE_SLOW_TESTS']
 end
 
-def platform_is(platform)
-  if platform.is_a?(Hash)
-    yield if platform[:wordsize] == 64 || platform[:pointer_size] == 64
-  elsif platform == :linux
-    yield if RUBY_PLATFORM =~ /linux/
+def platform_is(*args)
+
+   if args.last.is_a?(Hash)
+     options, platforms = args.last, args[0..-2]
+   else
+     options, platforms = {}, args
+   end
+
+   pmatch = if options[:wordsize] == 64 || options[:pointer_size] == 64
+     true
+   elsif platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
+     true
+   elsif platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
+     true
+   else
+     false
+   end
+   if pmatch
+     yield
   end
 end
 
@@ -248,8 +270,15 @@ def not_supported_on(*)
   yield
 end
 
+# TODO: replace shell call with Process.uid when implemented
 def as_user
-  yield
+  if `id -ru`.chomp != "0"
+    yield
+  end
+end
+
+def as_superuser
+  nil
 end
 
 def little_endian
@@ -257,17 +286,6 @@ def little_endian
 end
 
 def big_endian
-end
-
-@tmp_uniq_id = 0
-
-def tmp(name, uniq = true)
-  if uniq
-    @tmp_uniq_id += 1
-    name += @tmp_uniq_id.to_s
-  end
-
-  File.join('tmp', name)
 end
 
 def suppress_warning
@@ -290,6 +308,8 @@ end
 def after(type = :each, &block)
   if type == :each
     $context.last.add_after_each(block)
+  elsif type == :all
+    $context.last.add_after_all(block)
   else
     raise "I don't know how to do after(#{type.inspect})"
   end
@@ -1224,6 +1244,7 @@ def run_specs
   $stub_registry = StubRegistry.new
 
   before_all_done = []
+  after_all_done = []
   any_focused = @specs.any? { |_, _, _, focus| focus }
 
   formatter =
@@ -1256,6 +1277,16 @@ def run_specs
 
         $expectations.each { |expectation| expectation.validate! }
         context.each { |con| con.after_each.each { |a| a.call } }
+
+        context.each do |con|
+          con.after_all.each do |b|
+            unless after_all_done.include?(b)
+              b.call
+              after_all_done << b
+            end
+          end
+        end
+
       rescue SpecFailedException => e
         @failures << [context, test, e]
         formatter.print_failure(*@failures.last)

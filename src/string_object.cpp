@@ -456,6 +456,11 @@ StringObject *StringObject::successive(Env *env) {
     return new StringObject { str, m_encoding };
 }
 
+StringObject *StringObject::successive_in_place(Env *env) {
+    m_string = m_string.successive();
+    return this;
+}
+
 bool StringObject::internal_start_with(Env *env, Value needle) const {
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;

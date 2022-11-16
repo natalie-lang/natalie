@@ -7,6 +7,16 @@
 
 namespace Natalie {
 
+// If it's not a string but has a to_path method then execute that method.
+// make sure the path or to_path result is a String before continuing.
+// this is common to many functions probably belongs somewhere else
+Value ConvertToPath(Env *env, Value path) {
+    if (!path->is_string() && path->respond_to(env, "to_path"_s))
+        path = path->send(env, "to_path"_s, { path });
+    path->assert_type(env, Object::Type::String, "String");
+    return path;
+}
+
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *block) {
     filename->assert_type(env, Object::Type::String, "String");
     int flags = O_RDONLY;
@@ -82,14 +92,14 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     return merged;
 }
 
+// TODO: Accept variable arguments, return value is number of args instead of 1.
 Value FileObject::unlink(Env *env, Value path) {
+    path = ConvertToPath(env, path);
     int result = ::unlink(path->as_string()->c_str());
     if (result == 0) {
         return Value::integer(1);
     } else {
-        auto SystemCallError = GlobalEnv::the()->Object()->const_fetch("SystemCallError"_s);
-        auto exception = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
-        env->raise_exception(exception);
+        env->raise_errno();
     }
 }
 
@@ -120,22 +130,197 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
     Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
     klass->const_set("SYNC"_s, Value::integer(O_SYNC));
     Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
+
+    klass->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
+    Constants->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
+    klass->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
+    Constants->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
+    klass->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
+    Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
+    klass->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
+    Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
 }
 
-bool FileObject::file(Env *env, Value path) {
+bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
-    path->assert_type(env, Object::Type::String, "String");
+    path = ConvertToPath(env, path);
     if (stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISREG(sb.st_mode);
 }
 
-bool FileObject::directory(Env *env, Value path) {
+bool FileObject::is_directory(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISDIR(sb.st_mode);
+}
+
+bool FileObject::is_identical(Env *env, Value file1, Value file2) {
+    file1 = ConvertToPath(env, file1);
+    file2 = ConvertToPath(env, file2);
+    struct stat stat1;
+    struct stat stat2;
+    auto result1 = ::stat(file1->as_string()->c_str(), &stat1);
+    auto result2 = ::stat(file2->as_string()->c_str(), &stat2);
+    if (result1 < 0) return false;
+    if (result2 < 0) return false;
+    if (stat1.st_dev != stat2.st_dev) return false;
+    if (stat1.st_ino != stat2.st_ino) return false;
+    return true;
+}
+
+bool FileObject::is_sticky(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISVTX);
+}
+
+bool FileObject::is_setgid(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISGID);
+}
+
+bool FileObject::is_setuid(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_mode & S_ISUID);
+}
+
+bool FileObject::is_symlink(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (lstat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISLNK(sb.st_mode);
+}
+
+bool FileObject::is_blockdev(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISBLK(sb.st_mode);
+}
+
+bool FileObject::is_chardev(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISCHR(sb.st_mode);
+}
+
+bool FileObject::is_pipe(Env *env, Value path) {
     struct stat sb;
     path->assert_type(env, Object::Type::String, "String");
     if (stat(path->as_string()->c_str(), &sb) == -1)
         return false;
-    return S_ISDIR(sb.st_mode);
+    return S_ISFIFO(sb.st_mode);
+}
+
+bool FileObject::is_socket(Env *env, Value path) {
+    struct stat sb;
+    path->assert_type(env, Object::Type::String, "String");
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISSOCK(sb.st_mode);
+}
+
+bool FileObject::is_readable(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (access(path->as_string()->c_str(), R_OK) == -1)
+        return false;
+    return true;
+}
+
+Value FileObject::world_readable(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return NilObject::the();
+    if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
+        auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
+        return Value::integer(modenum);
+    }
+    return NilObject::the();
+}
+
+Value FileObject::world_writable(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return NilObject::the();
+    if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
+        auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
+        return Value::integer(modenum);
+    }
+    return NilObject::the();
+}
+
+bool FileObject::is_writable(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (access(path->as_string()->c_str(), W_OK) == -1)
+        return false;
+    return true;
+}
+
+bool FileObject::is_executable(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (access(path->as_string()->c_str(), X_OK) == -1)
+        return false;
+    return true;
+}
+
+bool FileObject::is_zero(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_size == 0);
+}
+
+Value FileObject::symlink(Env *env, Value from, Value to) {
+    from = ConvertToPath(env, from);
+    to = ConvertToPath(env, to);
+    int result = ::symlink(from->as_string()->c_str(), to->as_string()->c_str());
+    if (result < 0) env->raise_errno();
+    return Value::integer(0);
+}
+
+Value FileObject::link(Env *env, Value from, Value to) {
+    from = ConvertToPath(env, from);
+    to = ConvertToPath(env, to);
+    int result = ::link(from->as_string()->c_str(), to->as_string()->c_str());
+    if (result < 0) env->raise_errno();
+    return Value::integer(0);
+}
+
+// TODO: Handle mode properly
+Value FileObject::mkfifo(Env *env, Value path, Value mode) {
+    mode_t octmode = 0666;
+    path = ConvertToPath(env, path);
+    int result = ::mkfifo(path->as_string()->c_str(), octmode);
+    if (result < 0) env->raise_errno();
+    return Value::integer(0);
+}
+
+// TODO: chmod can take multiple paths, implement that later.
+Value FileObject::chmod(Env *env, Value mode, Value path) {
+    path = ConvertToPath(env, path);
+    mode->assert_type(env, Object::Type::Integer, "Integer");
+    mode_t modenum = IntegerObject::convert_to_int(env, mode);
+    int result = ::chmod(path->as_string()->c_str(), modenum);
+    if (result < 0) env->raise_errno();
+    return Value::integer(1); // return # of files
 }
 
 }
