@@ -456,7 +456,6 @@ StringObject *StringObject::successive(Env *env) {
     return new StringObject { str, m_encoding };
 }
 
-
 StringObject *StringObject::successive_in_place(Env *env) {
     m_string = m_string.successive();
     return this;

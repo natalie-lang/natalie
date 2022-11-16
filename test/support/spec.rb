@@ -258,11 +258,8 @@ def as_user
   end
 end
 
-# TODO: replace shell call with Process.uid when implemented
 def as_superuser
-  if `id -ru`.chomp == "0"
-    yield
-  end
+  nil
 end
 
 def little_endian
