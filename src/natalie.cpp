@@ -193,6 +193,12 @@ Env *build_top_env() {
 
     Value Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);
+    Value ProcessSys = new ModuleObject { "Sys" };
+    Process->const_set("Sys"_s, ProcessSys);
+    Value ProcessUID = new ModuleObject { "UID" };
+    Process->const_set("UID"_s, ProcessUID);
+    Value ProcessGID = new ModuleObject { "GID" };
+    Process->const_set("GID"_s, ProcessGID);
 
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
