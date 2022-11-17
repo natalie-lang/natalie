@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pwd.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -12,6 +13,85 @@ namespace Natalie {
 
 class ProcessModule : public Object {
 public:
+    static void build_constants(Env *env, ModuleObject *klass) {
+#ifdef PRIO_PGRP
+        klass->const_set("PRIO_PGRP"_s, Value::integer(PRIO_PGRP));
+#endif
+#ifdef PRIO_PROCESS
+        klass->const_set("PRIO_PROCESS"_s, Value::integer(PRIO_PROCESS));
+#endif
+#ifdef PRIO_USER
+        klass->const_set("PRIO_USER"_s, Value::integer(PRIO_USER));
+#endif
+
+#ifdef RLIMIT_AS
+        klass->const_set("RLIMIT_AS"_s, Value::integer(RLIMIT_AS));
+#endif
+#ifdef RLIMIT_CORE
+        klass->const_set("RLIMIT_CORE"_s, Value::integer(RLIMIT_CORE));
+#endif
+#ifdef RLIMIT_CPU
+        klass->const_set("RLIMIT_CPU"_s, Value::integer(RLIMIT_CPU));
+#endif
+#ifdef RLIMIT_DATA
+        klass->const_set("RLIMIT_DATA"_s, Value::integer(RLIMIT_DATA));
+#endif
+#ifdef RLIMIT_FSIZE
+        klass->const_set("RLIMIT_FSIZE"_s, Value::integer(RLIMIT_FSIZE));
+#endif
+#ifdef RLIMIT_MEMLOCK
+        klass->const_set("RLIMIT_MEMLOCK"_s, Value::integer(RLIMIT_MEMLOCK));
+#endif
+#ifdef RLIMIT_MSGQUEUE
+        klass->const_set("RLIMIT_MSGQUEUE"_s, Value::integer(RLIMIT_MSGQUEUE));
+#endif
+#ifdef RLIMIT_NICE
+        klass->const_set("RLIMIT_NICE"_s, Value::integer(RLIMIT_NICE));
+#endif
+#ifdef RLIMIT_NOFILE
+        klass->const_set("RLIMIT_NOFILE"_s, Value::integer(RLIMIT_NOFILE));
+#endif
+#ifdef RLIMIT_NPROC
+        klass->const_set("RLIMIT_NPROC"_s, Value::integer(RLIMIT_NPROC));
+#endif
+#ifdef RLIMIT_NPTS
+        klass->const_set("RLIMIT_NPTS"_s, Value::integer(RLIMIT_NPTS));
+#endif
+#ifdef RLIMIT_RSS
+        klass->const_set("RLIMIT_RSS"_s, Value::integer(RLIMIT_RSS));
+#endif
+#ifdef RLIMIT_RTPRIO
+        klass->const_set("RLIMIT_RTPRIO"_s, Value::integer(RLIMIT_RTPRIO));
+#endif
+#ifdef RLIMIT_RTTIME
+        klass->const_set("RLIMIT_RTTIME"_s, Value::integer(RLIMIT_RTTIME));
+#endif
+#ifdef RLIMIT_SBSIZE
+        klass->const_set("RLIMIT_SBSIZE"_s, Value::integer(RLIMIT_SBSIZE));
+#endif
+#ifdef RLIMIT_SIGPENDING
+        klass->const_set("RLIMIT_SIGPENDING"_s, Value::integer(RLIMIT_SIGPENDING));
+#endif
+#ifdef RLIMIT_STACK
+        klass->const_set("RLIMIT_STACK"_s, Value::integer(RLIMIT_STACK));
+#endif
+#ifdef RLIM_INFINITY
+        klass->const_set("RLIM_INFINITY"_s, Value::integer(RLIM_INFINITY));
+#endif
+#ifdef RLIM_SAVED_CUR
+        klass->const_set("RLIM_SAVED_CUR"_s, Value::integer(RLIM_SAVED_CUR));
+#endif
+#ifdef RLIM_SAVED_MAX
+        klass->const_set("RLIM_SAVED_MAX"_s, Value::integer(RLIM_SAVED_MAX));
+#endif
+#ifdef WNOHANG
+        klass->const_set("WNOHANG"_s, Value::integer(WNOHANG));
+#endif
+#ifdef WUNTRACED
+        klass->const_set("WUNTRACED"_s, Value::integer(WUNTRACED));
+#endif
+    }
+
     static Value egid(Env *env) {
         gid_t egid = getegid();
         return Value::integer(egid);
