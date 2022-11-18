@@ -58,6 +58,7 @@ public:
     BigInt();
     BigInt(const BigInt &);
     BigInt(const long long &);
+    BigInt(const unsigned long int &);
     BigInt(const int &);
     BigInt(const double &);
     BigInt(const TM::String &);

@@ -76,13 +76,13 @@ public:
         klass->const_set("RLIMIT_STACK"_s, Value::integer(RLIMIT_STACK));
 #endif
 #ifdef RLIM_INFINITY
-        klass->const_set("RLIM_INFINITY"_s, Value::integer(RLIM_INFINITY));
+        klass->const_set("RLIM_INFINITY"_s, IntegerObject::create(Integer(BigInt(RLIM_INFINITY))));
 #endif
 #ifdef RLIM_SAVED_CUR
-        klass->const_set("RLIM_SAVED_CUR"_s, Value::integer(RLIM_SAVED_CUR));
+        klass->const_set("RLIM_SAVED_CUR"_s, IntegerObject::create(Integer(BigInt(RLIM_SAVED_CUR))));
 #endif
 #ifdef RLIM_SAVED_MAX
-        klass->const_set("RLIM_SAVED_MAX"_s, Value::integer(RLIM_SAVED_MAX));
+        klass->const_set("RLIM_SAVED_MAX"_s, IntegerObject::create(Integer(BigInt(RLIM_SAVED_MAX))));
 #endif
 #ifdef WNOHANG
         klass->const_set("WNOHANG"_s, Value::integer(WNOHANG));
