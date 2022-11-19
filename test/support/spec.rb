@@ -199,7 +199,7 @@ def min_long
   -((2**(8 * 8 - 2)) * 2)
 end
 
-def ruby_exe(code, args: nil)
+def ruby_exe(code, args: nil, exit_status: 0)
   Tempfile.create('ruby_exe.rb') do |file|
     file.write(code)
     file.rewind
@@ -208,8 +208,9 @@ def ruby_exe(code, args: nil)
 
     output = `#{binary} #{file.path} #{args}`
 
-    raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
-
+    if $?.exitstatus != exit_status
+      raise SpecFailedException, "Expected exit status #{exit_status} but actual is #{$?.exitstatus}" 
+    end
     output
   end
 end
@@ -240,34 +241,41 @@ def slow_test
   yield if ENV['ENABLE_SLOW_TESTS']
 end
 
+def _platform_match(*args)
+   options, platforms = if args.last.is_a?(Hash)
+                          [args.last, args[0..-2]]
+                        else
+                          [{}, args]
+                        end
+   return true if options[:wordsize] == 64 || options[:pointer_size] == 64
+   return true if  platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
+   return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
+   false
+end
+
 def platform_is(*args)
-
-   if args.last.is_a?(Hash)
-     options, platforms = args.last, args[0..-2]
-   else
-     options, platforms = {}, args
-   end
-
-   pmatch = if options[:wordsize] == 64 || options[:pointer_size] == 64
-     true
-   elsif platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
-     true
-   elsif platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
-     true
-   else
-     false
-   end
-   if pmatch
-     yield
+  matched = _platform_match(*args)
+  return matched unless block_given?
+  if matched
+    yield
   end
 end
 
-def platform_is_not(*)
-  yield
+def platform_is_not(*args)
+  not_matched = !_platform_match(*args)
+  return not_matched unless block_given?
+  if not_matched
+    yield
+  end
 end
 
 def not_supported_on(*)
   yield
+end
+
+# NATFIXME
+def kernel_version_is(*)
+  false
 end
 
 # TODO: replace shell call with Process.uid when implemented
