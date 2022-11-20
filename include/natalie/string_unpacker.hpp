@@ -9,6 +9,7 @@ namespace Natalie {
 class StringUnpacker : public Cell {
     using Tokenizer = ArrayPacker::Tokenizer;
     using Token = ArrayPacker::Token;
+    using Endianness = ArrayPacker::Endianness;
 
 public:
     StringUnpacker(const StringObject *source, String directives, nat_int_t offset)
@@ -65,6 +66,12 @@ public:
                 break;
             case 'p':
                 unpack_p();
+                break;
+            case 'S':
+                unpack_s<uint16_t>(token);
+                break;
+            case 's':
+                unpack_s<int16_t>(token);
                 break;
             case 'U':
                 unpack_U(env, token);
@@ -170,6 +177,30 @@ private:
                 signed char c = pointer()[0];
                 m_unpacked->push(Value::integer((signed int)c));
                 m_index++;
+            }
+            consumed++;
+        }
+    }
+
+    template <typename T>
+    void unpack_s(Token &token) {
+        bool little_endian = (token.endianness == ArrayPacker::Endianness::Little) || (token.endianness == Endianness::Native && system_is_little_endian());
+        nat_int_t consumed = 0;
+        if (token.count == -1) token.count = 1;
+        while (token.star ? !at_end() : consumed < token.count) {
+            if ((m_index + 2) > m_source->length()) {
+                if (!token.star)
+                    m_unpacked->push(NilObject::the());
+                m_index++;
+            } else {
+                unsigned char c0 = next_char();
+                unsigned char c1 = next_char();
+                T result;
+                if (little_endian)
+                    result = (c1 << 8) + c0;
+                else
+                    result = (c0 << 8) + c1;
+                m_unpacked->push(Value::integer(result));
             }
             consumed++;
         }
@@ -579,6 +610,11 @@ private:
     }
 
     bool at_end() { return m_index >= m_source->length(); }
+
+    bool system_is_little_endian() {
+        int i = 1;
+        return *((char *)&i) == 1;
+    }
 
     const StringObject *m_source;
     TM::Vector<Token> *m_directives;
