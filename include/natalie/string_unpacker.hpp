@@ -258,7 +258,10 @@ private:
                     out.append_char(pointer()[realidx]);
                 }
                 m_index += sizeof(T);
-                m_unpacked->push(Value::integer(*(T *)out.c_str()));
+                // Previosly had pushed Value::integer() values, but for large unsigned values
+                // it produced incorrect results.
+                auto bigint = BigInt(*(T *)out.c_str());
+                m_unpacked->push(IntegerObject::create(Integer(bigint)));
             }
             consumed++;
         }
