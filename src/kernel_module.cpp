@@ -111,9 +111,17 @@ Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) 
 }
 
 Value KernelModule::exit(Env *env, Value status) {
-    if (!status || status->type() != Object::Type::Integer) {
+    if (!status || status->is_true()) {
         status = Value::integer(0);
+    } else if (status->is_false()) {
+        status = Value::integer(1);
+    } else if (status->is_integer()) {
+        // use status passed in
+    } else if (status->respond_to(env, "to_int"_s)) {
+        status = status->send(env, "to_int"_s);
     }
+    status->assert_type(env, Object::Type::Integer, "Integer");
+
     ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
     exception->ivar_set(env, "@status"_s, status);
     env->raise_exception(exception);

@@ -191,8 +191,14 @@ Env *build_top_env() {
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
     Encoding->const_set("CP65001"_s, EncodingUTF8);
 
-    Value Process = new ModuleObject { "Process" };
+    ModuleObject *Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);
+    Value ProcessSys = new ModuleObject { "Sys" };
+    Process->const_set("Sys"_s, ProcessSys);
+    Value ProcessUID = new ModuleObject { "UID" };
+    Process->const_set("UID"_s, ProcessUID);
+    Value ProcessGID = new ModuleObject { "GID" };
+    Process->const_set("GID"_s, ProcessGID);
 
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
