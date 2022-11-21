@@ -3,6 +3,32 @@ require 'natalie/inline'
 __inline__ '#include <sys/wait.h>'
 
 module Process
+  __constant__('PRIO_PGRP', 'int')
+  __constant__('PRIO_PROCESS', 'int')
+  __constant__('PRIO_USER', 'int')
+  __constant__('RLIMIT_AS', 'int')
+  __constant__('RLIMIT_CORE', 'int')
+  __constant__('RLIMIT_CPU', 'int')
+  __constant__('RLIMIT_DATA', 'int')
+  __constant__('RLIMIT_FSIZE', 'int')
+  __constant__('RLIMIT_MEMLOCK', 'int')
+  __constant__('RLIMIT_MSGQUEUE', 'int')
+  __constant__('RLIMIT_NICE', 'int')
+  __constant__('RLIMIT_NOFILE', 'int')
+  __constant__('RLIMIT_NPROC', 'int')
+  __constant__('RLIMIT_NPTS', 'int')
+  __constant__('RLIMIT_RSS', 'int')
+  __constant__('RLIMIT_RTPRIO', 'int')
+  __constant__('RLIMIT_RTTIME', 'int')
+  __constant__('RLIMIT_SBSIZE', 'int')
+  __constant__('RLIMIT_SIGPENDING', 'int')
+  __constant__('RLIMIT_STACK', 'int')
+  __constant__('RLIM_INFINITY', 'bigint')
+  __constant__('RLIM_SAVED_CUR', 'bigint')
+  __constant__('RLIM_SAVED_MAX', 'bigint')
+  __constant__('WNOHANG', 'int')
+  __constant__('WUNTRACED', 'int')
+
   class Status
     attr_accessor :pid
     attr_accessor :to_i

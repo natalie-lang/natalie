@@ -199,7 +199,6 @@ Env *build_top_env() {
     Process->const_set("UID"_s, ProcessUID);
     Value ProcessGID = new ModuleObject { "GID" };
     Process->const_set("GID"_s, ProcessGID);
-    ProcessModule::build_constants(env, Process);
 
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
