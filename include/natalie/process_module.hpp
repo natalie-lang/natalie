@@ -40,28 +40,28 @@ public:
 
     static Value setuid(Env *env, Value idval) {
         uid_t uid = value_to_uid(env, idval);
-        if (setresuid(uid, -1, -1) < 0)
+        if (::setuid(uid) < 0)
             env->raise_errno();
         return idval;
     }
 
     static Value seteuid(Env *env, Value idval) {
         uid_t euid = value_to_uid(env, idval);
-        if (setresuid(-1, euid, -1) < 0)
+        if (::seteuid(euid) < 0)
             env->raise_errno();
         return idval;
     }
 
     static Value setgid(Env *env, Value idval) {
         gid_t gid = value_to_gid(env, idval);
-        if (setresgid(gid, -1, -1) < 0)
+        if (::setgid(gid) < 0)
             env->raise_errno();
         return idval;
     }
 
     static Value setegid(Env *env, Value idval) {
         gid_t egid = value_to_gid(env, idval);
-        if (setresgid(-1, egid, -1) < 0)
+        if (::setegid(egid) < 0)
             env->raise_errno();
         return idval;
     }
