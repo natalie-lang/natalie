@@ -5,6 +5,73 @@ namespace Natalie {
 EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
+// Pretty naive implementation that doesn't support encoding options.
+//
+// TODO:
+// * support encoding options
+Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
+    StringObject temp_string = StringObject("", (EncodingObject *) this);
+    ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
+
+    for (auto c : *str) {
+        auto char_obj = StringObject { c, orig_encoding };
+        auto source_codepoint = char_obj.ord(env)->as_integer()->to_nat_int_t();
+        auto unicode_codepoint = orig_encoding->to_unicode_codepoint(source_codepoint);
+
+        // handle error
+        if (unicode_codepoint < 0) {
+            StringObject *message;
+
+            if (num() != Encoding::UTF_8) {
+                // Example: "\x8F" to UTF-8 in conversion from ASCII-8BIT to UTF-8 to US-ASCII
+                message = StringObject::format(
+                    "\"\\x{}\" to UTF-8 in conversion from {} to UTF-8 to {}",
+                    String::hex(source_codepoint, String::HexFormat::Uppercase),
+                    orig_encoding->name(),
+                    name());
+            } else {
+                message = StringObject::format(
+                    "\"\\x{}\" from {} to UTF-8",
+                    String::hex(source_codepoint, String::HexFormat::Uppercase),
+                    orig_encoding->name());
+            }
+
+            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+        }
+
+        auto destination_codepoint = from_unicode_codepoint(unicode_codepoint);
+
+        // handle error
+        if (destination_codepoint < 0) {
+            StringObject *message;
+
+            if (orig_encoding->num() != Encoding::UTF_8)
+                message = StringObject::format(
+                    // Example: "U+043F to WINDOWS-1252 in conversion from Windows-1251 to UTF-8 to WINDOWS-1252",
+                    "U+{} to {} in conversion from {} to UTF-8 to {}",
+                    String::hex(source_codepoint, String::HexFormat::Uppercase),
+                    name(),
+                    orig_encoding->name(),
+                    name());
+            else {
+                // Example: U+0439 from UTF-8 to ASCII-8BIT
+                auto hex = String();
+                hex.append_sprintf("%04X", source_codepoint);
+                message = StringObject::format("U+{} from UTF-8 to {}", hex, name());
+            }
+
+            env->raise(EncodingClass->const_find(env, "UndefinedConversionError"_s)->as_class(), message);
+        }
+
+        auto destination_char_obj = encode_codepoint(destination_codepoint);
+        temp_string.append(destination_char_obj);
+    }
+
+    str->set_str(temp_string.string().c_str(), temp_string.string().length());
+    str->set_encoding(EncodingObject::get(num()));
+    return str;
+}
+
 HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = new HashObject();
     for (auto encoding : *list(env)) {
