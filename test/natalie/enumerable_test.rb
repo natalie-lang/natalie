@@ -54,7 +54,7 @@ describe 'Enumerable' do
 
   describe '#zip' do
     it 'raises a TypeError if arguments contain non-list object' do
-      -> { [].zip [], Object.new, [] }.should raise_error(TypeError)
+      -> { [1].zip [], Object.new, [] }.should raise_error(TypeError)
     end
   end
 end
