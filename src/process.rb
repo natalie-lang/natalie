@@ -23,9 +23,9 @@ module Process
   __constant__('RLIMIT_SBSIZE', 'int')
   __constant__('RLIMIT_SIGPENDING', 'int')
   __constant__('RLIMIT_STACK', 'int')
-  __constant__('RLIM_INFINITY', 'bigint')
-  __constant__('RLIM_SAVED_CUR', 'bigint')
-  __constant__('RLIM_SAVED_MAX', 'bigint')
+  __constant__('RLIM_INFINITY', 'unsigned long long')
+  __constant__('RLIM_SAVED_CUR', 'unsigned long long')
+  __constant__('RLIM_SAVED_MAX', 'unsigned long long')
   __constant__('WNOHANG', 'int')
   __constant__('WUNTRACED', 'int')
 

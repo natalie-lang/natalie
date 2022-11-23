@@ -14,6 +14,10 @@ Value IntegerObject::create(const char *string) {
     return new IntegerObject { BigInt(string) };
 };
 
+Value IntegerObject::create(unsigned long long integer) {
+    return new IntegerObject { Integer(BigInt(integer)) };
+};
+
 Value IntegerObject::to_s(Env *env, Value base_value) const {
     if (m_integer == 0)
         return new StringObject { "0" };

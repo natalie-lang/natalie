@@ -28,6 +28,7 @@ public:
 
     static Value create(const Integer &);
     static Value create(const char *);
+    static Value create(unsigned long long);
 
     Integer integer() const {
         return m_integer;

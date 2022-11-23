@@ -155,6 +155,21 @@ public:
      * Constructs a new String by converting the given number.
      *
      * ```
+     * auto str = String { (unsigned long long)10 };
+     * assert_str_eq("10", str);
+     * ```
+     */
+    String(unsigned long long number) {
+        int length = snprintf(NULL, 0, "%llu", number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%llu", number);
+        set_str(buf);
+    }
+
+    /**
+     * Constructs a new String by converting the given number.
+     *
+     * ```
      * auto str = String { (int)10 };
      * assert_str_eq("10", str);
      * ```
