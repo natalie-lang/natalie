@@ -110,6 +110,7 @@ public:
 
     String inspect_str();
     Value inspect(Env *);
+    String dbg_inspect() const override;
     Value name(Env *);
     Optional<String> name() { return m_class_name; }
     Value attr_reader(Env *, Args);
