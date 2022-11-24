@@ -218,6 +218,16 @@ BigInt::BigInt(const unsigned long int &num) {
 }
 
 /*
+    Unsigned Long Long to BigInt
+    -----------------
+*/
+
+BigInt::BigInt(const unsigned long long &num) {
+    m_value = TM::String(num);
+    m_sign = '+';
+}
+
+/*
     Integer to BigInt
     -----------------
 */
