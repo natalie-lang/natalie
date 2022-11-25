@@ -151,20 +151,12 @@ String Utf8EncodingObject::escaped_char(unsigned char c) const {
     return String(buf);
 }
 
-Value Utf8EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
-    switch (orig_encoding->num()) {
-    case Encoding::UTF_8:
-        // nothing to do
-        return str;
-    case Encoding::ASCII_8BIT:
-    case Encoding::US_ASCII:
-        // TODO: some sort of conversion?
-        str->set_encoding(EncodingObject::get(num()));
-        return str;
-    default:
-        ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
-        env->raise(EncodingClass->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
-    }
+nat_int_t Utf8EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
+    return codepoint;
+}
+
+nat_int_t Utf8EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
+    return codepoint;
 }
 
 // public domain
