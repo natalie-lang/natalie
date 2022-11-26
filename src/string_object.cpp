@@ -1920,6 +1920,32 @@ bool StringObject::include(const char *arg) const {
     return m_string.find(arg) != -1;
 }
 
+Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
+    assert_not_frozen(env);
+    nat_int_t index_i = index_obj->to_int(env)->to_nat_int_t();
+    StringObject *string = other_str->to_str(env);
+    size_t count = char_count(env);
+    size_t index = index_i < 0 ? (count + index_i + 1) : index_i;
+    if (index_i == -1) {
+        append(string);
+        return this;
+    }
+    if (index > count) {
+        env->raise("IndexError", "index {} out of string", index_obj);
+    }
+    if (string->is_empty()) {
+        return this;
+    }
+    Value slice = slice_in_place(env, Value::integer(index), Value::integer(count - index));
+    append(string);
+    if (slice->is_string()) {
+        append(slice->as_string());
+    }
+    // NATFIXME: Return string with compatible encoding
+    // NATFIXME: Raise Encoding::CompatibilityError if the encodings are incompatible
+    return this;
+}
+
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;
