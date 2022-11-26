@@ -190,8 +190,10 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
         const char *service_str = port->to_s(env)->as_string()->c_str();
 
-        if (hints.ai_socktype == SOCK_RAW)
+        if (hints.ai_socktype == SOCK_RAW) {
             service_str = nullptr;
+            hints.ai_protocol = 0;
+        }
 
         const char *host_str = host->c_str();
         if (host->is_empty())
