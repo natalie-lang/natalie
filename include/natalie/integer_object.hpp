@@ -100,6 +100,7 @@ public:
     Value complement(Env *) const;
     Value ord() { return IntegerObject::create(m_integer); }
     Value denominator() { return Value::integer(1); }
+    Value quo(Env *, Value);
     Value round(Env *, Value, Value);
     Value truncate(Env *, Value);
     Value ref(Env *, Value, Value);

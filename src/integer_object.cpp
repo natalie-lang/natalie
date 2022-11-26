@@ -549,6 +549,11 @@ Value IntegerObject::sqrt(Env *env, Value arg) {
     return create(Natalie::sqrt(argument));
 }
 
+Value IntegerObject::quo(Env *env, Value quotient) {
+    auto rat = new RationalObject { this->as_integer(), new IntegerObject { 1 } };
+    return rat->div(env, quotient);
+}
+
 Value IntegerObject::round(Env *env, Value ndigits, Value half) {
     if (!ndigits)
         return IntegerObject::create(m_integer);
