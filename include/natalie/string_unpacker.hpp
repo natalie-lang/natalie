@@ -43,6 +43,26 @@ public:
             case 'c':
                 unpack_c(token);
                 break;
+            case 'D':
+            case 'd':
+                unpack_float<double>(token, system_is_little_endian());
+                break;
+            case 'E':
+                unpack_float<double>(token, true);
+                break;
+            case 'e':
+                unpack_float<float>(token, true);
+                break;
+            case 'F':
+            case 'f':
+                unpack_float<float>(token, system_is_little_endian());
+                break;
+            case 'G':
+                unpack_float<double>(token, false);
+                break;
+            case 'g':
+                unpack_float<float>(token, false);
+                break;
             case 'H':
                 unpack_H(token);
                 break;
@@ -212,6 +232,32 @@ private:
         });
 
         m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    }
+
+    template <typename T>
+    void unpack_float(Token &token, bool little_endian) {
+        nat_int_t consumed = 0;
+        if (token.count == -1) token.count = 1;
+        while (token.star ? !at_end() : consumed < token.count) {
+            if ((m_index + sizeof(T)) > m_source->length()) {
+                if (!token.star)
+                    m_unpacked->push(NilObject::the());
+                m_index++;
+            } else {
+                // NATFIXME: this method of fixing endianness may not be efficient
+                // reverse a character buffer based on endianness
+                auto out = String();
+                for (size_t idx = 0; idx < sizeof(T); idx++) {
+                    auto realidx = (little_endian) ? idx : (sizeof(T) - 1 - idx);
+                    out.append_char(pointer()[realidx]);
+                }
+                m_index += sizeof(T);
+                double double_val = double(*(T *)out.c_str());
+                auto fltobj = new FloatObject { double_val };
+                m_unpacked->push(fltobj);
+            }
+            consumed++;
+        }
     }
 
     void unpack_H(Token &token) {
