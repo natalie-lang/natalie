@@ -223,6 +223,35 @@ class StringIO
     arg
   end
 
+  def ungetbyte(integer)
+    __assert_not_read_closed
+    __assert_not_write_closed
+    return if integer.nil?
+    if integer.is_a?(String)
+      if @index.zero?
+        @string.prepend(integer)
+      else
+        integer.bytes.reverse.each do |byte|
+          if @index.zero?
+            @string.prepend(byte.chr)
+          else
+            @index -= 1
+            @string.setbyte(@index, byte)
+          end
+        end
+      end
+    else
+      integer &= 0xff
+      if @index.zero?
+        @string.prepend(integer.chr)
+      else
+        @index -= 1
+        @string.setbyte(@index, integer)
+      end
+    end
+    nil
+  end
+
   def write(argument)
     __assert_not_write_closed
 
