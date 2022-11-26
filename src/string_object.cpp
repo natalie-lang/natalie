@@ -2301,15 +2301,13 @@ void StringObject::append(Value val) {
 }
 
 Value StringObject::convert_integer(Env *env, nat_int_t base) {
-    // only input bases 0, 2..36 allowed.  Default of 0 is for automatic base determination.
+    // Only input bases 0, 2..36 allowed.
+    // base default of 0 is for automatic base determination.
     if (base < 0 || base == 1 || base > 36) return nullptr;
     if (m_string.length() < 1) return nullptr;
-    if (m_string[0] == '\0' || m_string.last_char() == '\0') return nullptr; // start/end w/ null byte case
+    // start/end w/ null byte case
+    if (m_string[0] == '\0' || m_string.last_char() == '\0') return nullptr;
     if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
-
-    // expplhex/oct/bin/dec cannot start with '_'
-    //if (m_string.length() > 2 && m_string[0] == '0' && (m_string[1] == 'x' || m_string[1] == 'X' || m_string[1] == 'o' || m_string[1] == 'O') && m_string[2] == '_')
-    //    return nullptr;
 
     auto str = this->strip(env)->as_string()->m_string;
 
@@ -2384,11 +2382,9 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     auto convint = strtoll(str.c_str(), &end, base);
 
     if (end == NULL || end[0] == '\0') {
-        //printf("...\n");
         return IntegerObject::create(Integer(convint * sign));
     }
 
-    //printf("Converted base=%lli: %s rest: %s to: %lli ... \n", base, str.c_str(), end, convint);
     return nullptr;
 }
 Value StringObject::convert_float() {
