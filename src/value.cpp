@@ -107,6 +107,13 @@ double Value::as_double() const {
     return m_object->as_float()->to_double();
 }
 
+nat_int_t Value::as_fast_integer() const {
+    assert(m_type == Type::Integer || (m_type == Type::Pointer && m_object->is_integer()));
+    if (m_type == Type::Integer)
+        return m_integer;
+    return m_object->as_integer()->to_nat_int_t();
+}
+
 #undef PROFILED_SEND
 
 }

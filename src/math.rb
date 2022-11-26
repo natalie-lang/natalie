@@ -221,7 +221,6 @@ module Math
       sqrt(x**2 + y**2)
     end
 
-    ## NATFIXME: TODO: This is still broken
     __function__('::ldexp', ['double', 'int'], 'double')
     def ldexp(fraction, exponent)
       begin
@@ -237,21 +236,33 @@ module Math
       __call__('::ldexp', fraction, exponent)
     end
 
-    ## NATFIXME: TODO: This is still broken
-    __function__('::lgamma', ['double'], 'double')
-    def lgamma(x)
-      begin
-        x = Float(x)
-      rescue ArgumentError
-        raise TypeError, "can't convert #{x.class.name} into Float"
-      end
+    __define_method__ :lgamma, [:x], <<-END
+      FloatObject *value;
+      try {
+          value = KernelModule::Float(env, x)->as_float();
+      } catch (ExceptionObject *exception) {
+          ClassObject *klass = exception->klass();
+          if (klass->inspect_str() == "ArgumentError") {
+              env->raise("TypeError", "can't convert {} into Float", x->klass()->inspect_str());
+          } else {
+              env->raise_exception(exception);
+          }
+      }
+      if (value->is_positive_infinity()) {
+        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
+      } else if (value->is_negative_infinity()) {
+        auto DomainError = self->const_fetch("DomainError"_s)->as_class();
+        env->raise(DomainError, "Numerical argument is out of domain");
+      } else if (value->is_positive_zero()) {
+        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(1) } };
+      } else if (value->is_negative_zero()) {
+        return new ArrayObject { {  Value(FloatObject::positive_infinity(env)), Value::integer(-1) } };
+      }
+      int sign = 1;
+      auto v = ::lgamma_r(value->to_double(), &sign);
+      return new ArrayObject { {  Value::floatingpoint(v), Value::integer(sign) } };
+    END
       
-      return [Float::INFINITY, 1] if x == Float::INFINITY
-      raise DomainError, 'Numerical argument is out of domain' if x == -Float::INFINITY
-      v = __call__('::lgamma', x)
-      [v, 1]
-    end
-    
     __function__('::log10', ['double'], 'double')
 
     def log10(x)

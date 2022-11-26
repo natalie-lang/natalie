@@ -44,6 +44,8 @@ public:
     static Value cur_dir(Env *env);
     static Value exit(Env *env, Value status);
     static Value exit_bang(Env *env, Value status);
+    static Value Integer(Env *env, Value value, Value base, Value exception);
+    static Value Integer(Env *env, Value value, nat_int_t base = 0, bool exception = true);
     static Value Float(Env *env, Value value, Value exception);
     static Value Float(Env *env, Value value, bool exception = true);
     static Value fork(Env *env, Block *);

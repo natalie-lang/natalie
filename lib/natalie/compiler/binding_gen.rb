@@ -680,6 +680,7 @@ gen.module_function_binding('Kernel', 'Complex', 'KernelModule', 'Complex', argc
 gen.module_function_binding('Kernel', '__dir__', 'KernelModule', 'cur_dir', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'exit', 'KernelModule', 'exit', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'exit!', 'KernelModule', 'exit_bang', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'Integer', 'KernelModule', 'Integer', argc: 1..2, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1, kwargs: [:exception], pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'fork', 'KernelModule', 'fork', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'gets', 'KernelModule', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

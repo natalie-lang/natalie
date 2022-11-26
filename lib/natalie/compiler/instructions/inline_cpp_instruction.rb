@@ -52,7 +52,7 @@ module Natalie
           when 'double'
             "#{value}.as_double()"
           when 'int'
-            "#{value}.get_fast_integer()"
+            "#{value}.as_fast_integer()"
           when 'bool'
             "#{value}->is_truthy()"
           when 'Value'
