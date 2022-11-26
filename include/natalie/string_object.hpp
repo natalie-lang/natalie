@@ -309,6 +309,7 @@ public:
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
 
     Value convert_float();
+    Value convert_integer(Env *, nat_int_t base);
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 

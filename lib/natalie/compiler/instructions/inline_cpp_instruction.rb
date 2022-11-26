@@ -51,6 +51,8 @@ module Natalie
           case type
           when 'double'
             "#{value}.as_double()"
+          when 'int'
+            "#{value}.as_fast_integer()"
           when 'bool'
             "#{value}->is_truthy()"
           when 'Value'

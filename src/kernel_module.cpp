@@ -133,6 +133,58 @@ Value KernelModule::exit_bang(Env *env, Value status) {
     return exit(env, status);
 }
 
+Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
+    nat_int_t base_int = 0; // default to zero if unset
+    if (base && base->is_integer())
+        base_int = base->as_integer()->to_nat_int_t();
+    return Integer(env, value, base_int, exception ? exception->is_true() : true);
+}
+
+Value KernelModule::Integer(Env *env, Value value, nat_int_t base, bool exception) {
+    if (value->is_string()) {
+        auto result = value->as_string()->convert_integer(env, base);
+        if (!result && exception) {
+            env->raise("ArgumentError", "invalid value for Integer(): {}", value->inspect_str(env));
+        }
+        return result;
+    }
+    // base can only be given for string values
+    if (base)
+        env->raise("ArgumentError", "Cannot give base for non-string value");
+
+    // return Integer as-is
+    if (value->is_integer())
+        return Value(value);
+
+    // Infinity/NaN cannot be converted to Integer
+    if (value->is_float()) {
+        auto float_obj = value->as_float();
+        if (float_obj->is_nan() || float_obj->is_infinity()) {
+            if (exception)
+                env->raise("FloatDomainError", "{}", float_obj->to_s());
+            else
+                return Value(NilObject::the());
+        }
+    }
+
+    if (!value->is_nil()) {
+        // Try using to_int to coerce to an Integer
+        if (value->respond_to(env, "to_int"_s)) {
+            auto result = value.send(env, "to_int"_s);
+            if (result->is_integer()) return result;
+        }
+        // If to_int doesn't exist or doesn't return an Integer, try to_i instead.
+        if (value->respond_to(env, "to_i"_s)) {
+            auto result = value.send(env, "to_i"_s);
+            if (result->is_integer()) return result;
+        }
+    }
+    if (exception)
+        env->raise("TypeError", "can't convert {} into Integer", value->klass()->inspect_str());
+    else
+        return Value(NilObject::the());
+}
+
 Value KernelModule::Float(Env *env, Value value, Value exception) {
     return Float(env, value, exception ? exception->is_true() : true);
 }

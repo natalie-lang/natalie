@@ -2305,6 +2305,93 @@ void StringObject::append(Value val) {
     }
 }
 
+Value StringObject::convert_integer(Env *env, nat_int_t base) {
+    // Only input bases 0, 2..36 allowed.
+    // base default of 0 is for automatic base determination.
+    if (base < 0 || base == 1 || base > 36) return nullptr;
+    if (m_string.length() < 1) return nullptr;
+    // start/end w/ null byte case
+    if (m_string[0] == '\0' || m_string.last_char() == '\0') return nullptr;
+    if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+
+    auto str = this->strip(env)->as_string()->m_string;
+
+    // remove the optional sign character
+    auto signchar = str[0];
+    auto sign = (signchar == '-') ? -1 : 1;
+    if (signchar == '-' || signchar == '+') {
+        str = str.substring(1);
+    }
+
+    // decode the optional base (0x/0o/0d/0b)
+    nat_int_t prefix_base = 0;
+    if (str[0] == '0' && str.length() > 1) {
+        bool next_underscore_valid = false;
+        switch (str[1]) {
+        case 'x':
+        case 'X':
+            prefix_base = 16;
+            str = str.substring(2);
+            break;
+        case 'd':
+        case 'D':
+            prefix_base = 10;
+            str = str.substring(2);
+            break;
+        case 'b':
+        case 'B':
+            prefix_base = 2;
+            str = str.substring(2);
+            break;
+        case 'o':
+        case 'O':
+            prefix_base = 8;
+            str = str.substring(2);
+            break;
+        default:
+            if (isdigit(str[1])) {
+                // "implicit" octal with leading zero
+                prefix_base = 8;
+                str = str.substring(1);
+            } else if (str.length() > 2 && str[1] == '_' && isdigit(str[2])) {
+                prefix_base = 8;
+                str = str.substring(2);
+            }
+        }
+        // Error if the given input numeric base is not consistent with
+        // what is represented in the string.
+        if ((base > 0) && (base != prefix_base)) {
+            return nullptr;
+        }
+    } else if (str[0] == '+' || str[0] == '-' || str[0] == '_' || str[0] == ' ') {
+        return nullptr;
+    } else if (str.length() > 0 && str.last_char() == '_') {
+        return nullptr;
+    }
+
+    // use the externally given base or the one from the string.
+    if (base == 0) {
+        base = (prefix_base == 0) ? 10 : prefix_base;
+    }
+    assert(base >= 2 && base <= 36);
+
+    // invalid for multiple underscores in a row.
+    for (size_t i = 0; i < str.length() - 1; ++i) {
+        if ((str[i] == '_') && (str[i + 1] == '_')) return nullptr;
+    }
+
+    // remove underscores.
+    str.remove('_');
+
+    char *end;
+    auto convint = strtoll(str.c_str(), &end, base);
+
+    if (end == NULL || end[0] == '\0') {
+        return IntegerObject::create(Integer(convint * sign));
+    }
+
+    return nullptr;
+}
 Value StringObject::convert_float() {
     if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
 

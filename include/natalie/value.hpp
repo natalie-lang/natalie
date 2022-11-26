@@ -104,6 +104,7 @@ public:
     }
 
     double as_double() const;
+    nat_int_t as_fast_integer() const;
 
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
