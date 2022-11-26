@@ -201,20 +201,17 @@ BigInt::BigInt(const BigInt &num) {
 
 BigInt::BigInt(const long long &num) {
     m_value = TM::String(std::abs(num));
-    if (num < 0)
-        m_sign = '-';
-    else
-        m_sign = '+';
+    m_sign = (num < 0) ? '-' : '+';
 }
 
 /*
-    Unsigned Long to BigInt
-    -----------------
+    Long Integer to BigInt
+    ----------------------
 */
 
-BigInt::BigInt(const unsigned long int &num) {
-    m_value = TM::String(num);
-    m_sign = '+';
+BigInt::BigInt(const long &num) {
+    m_value = TM::String(std::abs(num));
+    m_sign = (num < 0) ? '-' : '+';
 }
 
 /*
@@ -234,10 +231,27 @@ BigInt::BigInt(const unsigned long long &num) {
 
 BigInt::BigInt(const int &num) {
     m_value = TM::String(std::abs(num));
-    if (num < 0)
-        m_sign = '-';
-    else
-        m_sign = '+';
+    m_sign = (num < 0) ? '-' : '+';
+}
+
+/*
+    Unsigned Long Integer to BigInt
+    -------------------------------
+*/
+
+BigInt::BigInt(const unsigned long &num) {
+    m_value = TM::String(num);
+    m_sign = '+';
+}
+
+/*
+    Unsigned Integer to BigInt
+    --------------------------
+*/
+
+BigInt::BigInt(const unsigned int &num) {
+    m_value = TM::String(num);
+    m_sign = '+';
 }
 
 /*

@@ -49,11 +49,23 @@ public:
             case 'h':
                 unpack_h(token);
                 break;
+            case 'I':
+                unpack_int<unsigned int>(token);
+                break;
             case 'i':
-                unpack_i();
+                unpack_int<signed int>(token);
                 break;
             case 'J':
-                unpack_J();
+                unpack_int<uintptr_t>(token);
+                break;
+            case 'j':
+                unpack_int<intptr_t>(token);
+                break;
+            case 'L':
+                unpack_int<uint32_t>(token);
+                break;
+            case 'l':
+                unpack_int<int32_t>(token);
                 break;
             case 'M':
                 unpack_M(env, token);
@@ -67,11 +79,17 @@ public:
             case 'p':
                 unpack_p();
                 break;
+            case 'Q':
+                unpack_int<uint64_t>(token);
+                break;
+            case 'q':
+                unpack_int<int64_t>(token);
+                break;
             case 'S':
-                unpack_s<uint16_t>(token);
+                unpack_int<uint16_t>(token);
                 break;
             case 's':
-                unpack_s<int16_t>(token);
+                unpack_int<int16_t>(token);
                 break;
             case 'U':
                 unpack_U(env, token);
@@ -182,30 +200,6 @@ private:
         }
     }
 
-    template <typename T>
-    void unpack_s(Token &token) {
-        bool little_endian = (token.endianness == ArrayPacker::Endianness::Little) || (token.endianness == Endianness::Native && system_is_little_endian());
-        nat_int_t consumed = 0;
-        if (token.count == -1) token.count = 1;
-        while (token.star ? !at_end() : consumed < token.count) {
-            if ((m_index + 2) > m_source->length()) {
-                if (!token.star)
-                    m_unpacked->push(NilObject::the());
-                m_index++;
-            } else {
-                unsigned char c0 = next_char();
-                unsigned char c1 = next_char();
-                T result;
-                if (little_endian)
-                    result = (c1 << 8) + c0;
-                else
-                    result = (c0 << 8) + c1;
-                m_unpacked->push(Value::integer(result));
-            }
-            consumed++;
-        }
-    }
-
     void unpack_b(Token &token) {
         auto out = String();
 
@@ -244,24 +238,33 @@ private:
         m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
     }
 
-    void unpack_i() {
-        if (m_index + sizeof(int) > m_source->length()) {
-            m_unpacked->push(NilObject::the());
-            return;
+    template <typename T>
+    void unpack_int(Token &token) {
+        bool little_endian = (token.endianness == ArrayPacker::Endianness::Little) || (token.endianness == Endianness::Native && system_is_little_endian());
+
+        nat_int_t consumed = 0;
+        if (token.count == -1) token.count = 1;
+        while (token.star ? !at_end() : consumed < token.count) {
+            if ((m_index + sizeof(T)) > m_source->length()) {
+                if (!token.star)
+                    m_unpacked->push(NilObject::the());
+                m_index++;
+            } else {
+                // NATFIXME: this method of fixing endianness may not be efficient
+                // reverse a character buffer based on endianness
+                auto out = String();
+                for (size_t idx = 0; idx < sizeof(T); idx++) {
+                    auto realidx = (little_endian) ? idx : (sizeof(T) - 1 - idx);
+                    out.append_char(pointer()[realidx]);
+                }
+                m_index += sizeof(T);
+                // Previosly had pushed Value::integer() values, but for large unsigned values
+                // it produced incorrect results.
+                auto bigint = BigInt(*(T *)out.c_str());
+                m_unpacked->push(IntegerObject::create(Integer(bigint)));
+            }
+            consumed++;
         }
-
-        m_unpacked->push(Value::integer(*(int *)pointer()));
-        m_index += sizeof(int);
-    }
-
-    void unpack_J() {
-        if (m_index + sizeof(uintptr_t) > m_source->length()) {
-            m_unpacked->push(NilObject::the());
-            return;
-        }
-
-        m_unpacked->push(Value::integer(*(uintptr_t *)pointer()));
-        m_index += sizeof(uintptr_t);
     }
 
     void unpack_M(Env *env, Token &token) {
