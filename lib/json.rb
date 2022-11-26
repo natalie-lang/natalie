@@ -2,9 +2,103 @@ module JSON
   class JSONError < StandardError; end
   class ParserError < JSONError; end
 
+  def self.generate(object)
+    Generator.new(object).generate
+  end
+
   def self.parse(string, **options)
     tokens = Lexer.new(string).tokens
     Parser.new(tokens, **options).parse
+  end
+
+  class Generator
+    def initialize(object)
+      @object = object
+      @string = +''
+    end
+
+    def generate
+      generate_element(@object)
+      @string
+    end
+
+    private
+
+    def generate_element(value)
+      case value
+      when NilClass
+        @string << 'null'
+      when TrueClass
+        @string << 'true'
+      when FalseClass
+        @string << 'false'
+      when String, Symbol
+        generate_string(value)
+      when Array
+        generate_array(value)
+      when Hash
+        generate_object(value)
+      else
+        @string << value.to_s
+      end
+    end
+
+    def generate_string(value)
+      @string << '"'
+      if value.is_a?(Symbol)
+        @string << value.to_s
+      else
+        @string << escape_string(value)
+      end
+      @string << '"'
+    end
+
+    def generate_array(values)
+      @string << '['
+      generate_each(values) { |value| generate_element(value) }
+      @string << ']'
+    end
+
+    def generate_object(values)
+      @string << '{'
+      generate_each(values) { |key, value| generate_key_value_pair(key, value) }
+      @string << '}'
+    end
+
+    def generate_each(enumerable, &block)
+      index = 0
+      enumerable.each do |*args|
+        @string << ',' unless index.zero?
+        block.call(*args)
+        index += 1
+      end
+    end
+
+    def generate_key_value_pair(key, value)
+      generate_string(key)
+      @string << ':'
+      generate_element(value)
+    end
+
+    def escape_string(value)
+      result = +''
+      value.to_s.codepoints.each do |codepoint|
+        result << case codepoint
+        when 8 then '\\b'
+        when 9 then '\\t'
+        when 10 then '\\n'
+        when 12 then '\\f'
+        when 13 then '\\r'
+        when 34 then '\\"'
+        when 92 then '\\\\'
+        when 0...32
+          '\\u' + codepoint.to_s(16).rjust(4, '0')
+        else
+          codepoint
+        end
+      end
+      result
+    end
   end
 
   class Lexer

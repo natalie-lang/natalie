@@ -106,4 +106,56 @@ describe 'JSON' do
       end
     end
   end
+
+  describe '.generate' do
+    it 'generates booleans' do
+      JSON.generate(true).should == 'true'
+      JSON.generate(false).should == 'false'
+    end
+
+    it 'generates null' do
+      JSON.generate(nil).should == 'null'
+    end
+
+    it 'generates integers' do
+      JSON.generate(1234).should == '1234'
+      JSON.generate(-3000).should == '-3000'
+      JSON.generate(0).should == '0'
+    end
+
+    it 'generates floats' do
+      JSON.generate(1.1).should == '1.1'
+      JSON.generate(1.2e3).should == '1200.0'
+      JSON.generate(-123.4).should == '-123.4'
+    end
+
+    it 'generates strings' do
+      JSON.generate('').should == '""'
+      JSON.generate('foo').should == '"foo"'
+      JSON.generate(:foo).should == '"foo"'
+      JSON.generate('foo"bar').should == '"foo\"bar"'
+      JSON.generate('\\').should == '"\\\"'
+      JSON.generate("\b").should == '"\\b"'
+      JSON.generate("\t").should == '"\\t"'
+      JSON.generate("\n").should == '"\\n"'
+      JSON.generate("\f").should == '"\\f"'
+      JSON.generate("\r").should == '"\\r"'
+      JSON.generate("\u0000").should == '"\u0000"'
+      JSON.generate("\u001f").should == '"\u001f"'
+      JSON.generate("\u0020").should == '" "'
+    end
+
+    it 'generates arrays' do
+      JSON.generate([]).should == '[]'
+      JSON.generate([1]).should == '[1]'
+      JSON.generate([1, 2]).should == '[1,2]'
+    end
+
+    it 'generates objects' do
+      JSON.generate({}).should == '{}'
+      JSON.generate({ foo: 'bar' }).should == '{"foo":"bar"}'
+      JSON.generate({ 'foo' => 'bar' }).should == '{"foo":"bar"}'
+      JSON.generate({ '1' => 'foo', '2' => 'bar' }).should == '{"1":"foo","2":"bar"}'
+    end
+  end
 end
