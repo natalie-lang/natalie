@@ -53,7 +53,11 @@ class SystemCallError < StandardError
         38 => [Errno::ENOSYS, 'Function not implemented'],
         39 => [Errno::ENOTEMPTY, 'Directory not empty'],
         40 => [Errno::ELOOP, 'Too many levels of symbolic links'],
-        42 => [Errno::ENOMSG, 'No message of desired type'],
+        # FIXME: 42 is differs between Linux and macOS :-/
+        # We might need to generate this file per-platform,
+        # or at runtime. :-(
+        #42 => [Errno::ENOMSG, 'No message of desired type'],
+        42 => [Errno::ENOPROTOOPT, 'Protocol not available'],
         43 => [Errno::EIDRM, 'Identifier removed'],
         44 => [Errno::ECHRNG, 'Channel number out of range'],
         45 => [Errno::EL2NSYNC, 'Level 2 not synchronized'],
