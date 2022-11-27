@@ -137,8 +137,17 @@ public:
             case 'v':
                 unpack_int<uint16_t>(token, true);
                 break;
+            case 'X':
+                unpack_X(env, token);
+                break;
+            case 'x':
+                unpack_x(env, token);
+                break;
             case 'Z':
                 unpack_Z(token);
+                break;
+            case '@':
+                unpack_at(env, token);
                 break;
             default:
                 env->raise("ArgumentError", "{} is not supported", token.directive);
@@ -570,6 +579,50 @@ private:
             m_index += (token.count - consumed);
 
         m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    }
+
+    void unpack_X(Env *env, Token &token) {
+        nat_int_t new_position;
+        if (token.star) {
+            new_position = m_index - (m_source->length() - m_index);
+        } else {
+            if (token.count < 0) token.count = 1;
+            new_position = m_index - token.count;
+        }
+        if (new_position < 0) {
+            env->raise("ArgumentError", "movement cannot put pointer to less than zero");
+        } else {
+            m_index = (size_t)new_position;
+        }
+    }
+
+    void unpack_x(Env *env, Token &token) {
+        size_t new_position;
+        if (token.star) {
+            new_position = m_source->length();
+        } else {
+            if (token.count < 0) token.count = 1;
+            new_position = m_index + token.count;
+        }
+        if (new_position > m_source->length()) {
+            env->raise("ArgumentError", "movement cannot put pointer past the end");
+        } else {
+            m_index = new_position;
+        }
+    }
+
+    void unpack_at(Env *env, Token &token) {
+        if (token.star) return; // star does nothing
+        if (token.count < 0) {
+            m_index = 0;
+        } else {
+            size_t new_position = std::abs(token.count);
+            if (new_position > m_source->length()) {
+                env->raise("ArgumentError", "count exceeds size of string");
+            } else {
+                m_index = new_position;
+            }
+        }
     }
 
     // return a value between 0-63
