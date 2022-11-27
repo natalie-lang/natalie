@@ -35,3 +35,13 @@ jobs:
         run: git submodule update --init --recursive
       - name: test when hosted by Ruby 2.7
         run: rake docker_test_ruby27
+  macos:
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: install ruby
+        run: brew install ruby autoconf automake libtool
+      - name: test with clang on macOS
+        run: rake test

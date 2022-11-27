@@ -100,6 +100,7 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
     auto protocol = args.at(3, Value::integer(0));
 
     self->ivar_set(env, "@protocol"_s, protocol);
+    self->ivar_set(env, "@socktype"_s, Value::integer(socktype));
 
     // MRI uses this hack, but I don't really understand why.
     // It gets all the specs to pass though. ¯\_(ツ)_/¯
@@ -190,12 +191,30 @@ Value Addrinfo_initialize(Env *env, Value self, Args args, Block *block) {
 
         const char *service_str = port->to_s(env)->as_string()->c_str();
 
-        if (hints.ai_socktype == SOCK_RAW)
+        switch (hints.ai_socktype) {
+        case SOCK_RAW:
             service_str = nullptr;
+            hints.ai_protocol = 0;
+            break;
+        case SOCK_DGRAM:
+            if (hints.ai_protocol && hints.ai_protocol != IPPROTO_UDP)
+                env->raise("SocketError", "getaddrinfo: {}", gai_strerror(EAI_SOCKTYPE));
+            hints.ai_protocol = IPPROTO_UDP;
+            break;
+        }
 
         const char *host_str = host->c_str();
         if (host->is_empty())
             host_str = nullptr;
+
+        if (host_str) {
+            unsigned char buf[sizeof(struct in6_addr)];
+            auto result = inet_pton(hints.ai_family, (const char *)host_str, &buf);
+            if (result == 0)
+                env->raise("SocketError", "getaddrinfo: nodename nor servname provided, or not known");
+            else if (result == -1)
+                env->raise_errno();
+        }
 
         int s = getaddrinfo(
             host_str,
