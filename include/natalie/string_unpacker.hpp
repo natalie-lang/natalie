@@ -82,16 +82,30 @@ public:
                 unpack_int<intptr_t>(token);
                 break;
             case 'L':
-                unpack_int<uint32_t>(token);
+                if (token.native_size) {
+                    unpack_int<unsigned long>(token);
+                } else {
+                    unpack_int<uint32_t>(token);
+                }
                 break;
             case 'l':
-                unpack_int<int32_t>(token);
+                if (token.native_size) {
+                    unpack_int<signed long>(token);
+                } else {
+                    unpack_int<int32_t>(token);
+                }
                 break;
             case 'M':
                 unpack_M(env, token);
                 break;
             case 'm':
                 unpack_m(env, token);
+                break;
+            case 'N':
+                unpack_int<uint32_t>(token, false);
+                break;
+            case 'n':
+                unpack_int<uint16_t>(token, false);
                 break;
             case 'P':
                 unpack_P(token);
@@ -116,6 +130,12 @@ public:
                 break;
             case 'u':
                 unpack_u(token);
+                break;
+            case 'V':
+                unpack_int<uint32_t>(token, true);
+                break;
+            case 'v':
+                unpack_int<uint16_t>(token, true);
                 break;
             case 'Z':
                 unpack_Z(token);
@@ -287,7 +307,11 @@ private:
     template <typename T>
     void unpack_int(Token &token) {
         bool little_endian = (token.endianness == ArrayPacker::Endianness::Little) || (token.endianness == Endianness::Native && system_is_little_endian());
+        unpack_int<T>(token, little_endian);
+    }
 
+    template <typename T>
+    void unpack_int(Token &token, bool little_endian) {
         nat_int_t consumed = 0;
         if (token.count == -1) token.count = 1;
         while (token.star ? !at_end() : consumed < token.count) {
