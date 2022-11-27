@@ -517,8 +517,13 @@ Value IntegerObject::chr(Env *env, Value encoding) const {
     if (!encoding_obj->in_encoding_codepoint_range(m_integer.to_nat_int_t()))
         env->raise("RangeError", "{} out of char range", m_integer.to_string());
 
-    if (!encoding_obj->valid_codepoint(m_integer.to_nat_int_t()))
-        env->raise("RangeError", "invalid codepoint {} in {}", m_integer.to_nat_int_t(), encoding_obj->inspect_str(env));
+    if (!encoding_obj->valid_codepoint(m_integer.to_nat_int_t())) {
+        auto hex = String();
+        hex.append_sprintf("0x%X", m_integer.to_nat_int_t());
+
+        auto encoding_name = encoding_obj->name()->as_string()->string();
+        env->raise("RangeError", "invalid codepoint {} in {}", hex, encoding_name);
+    }
 
     auto encoded = encoding_obj->encode_codepoint(m_integer.to_nat_int_t());
     return new StringObject { encoded, encoding_obj };

@@ -512,6 +512,29 @@ describe 'string' do
     end
   end
 
+  describe '#chop!' do
+    # Test Utf32LeEncodingObject::prev_char method
+    describe 'UTF-32LE' do
+      it 'removes the last character' do
+        s = 'foo!'.encode('UTF-32LE')
+        s.chop!
+        s.should == 'foo'.encode('UTF-32LE')
+
+        s = ''.encode('UTF-32LE')
+        s.chop!
+        s.should == ''.encode('UTF-32LE')
+
+        s = "\x00\x00\x00".force_encoding('UTF-32LE') # incorrect binary representation - it should take 4 bytes, not 3
+        s.chop!
+        s.should == "".encode('UTF-32LE')
+
+        s = "\x00\x00\x00\x00\x00\xD8\x00\x00".force_encoding('UTF-32LE') # incorrect codepoint 0xDF00 - it isn't supported
+        s.chop!
+        s.should == "\u0000".encode('UTF-32LE')
+      end
+    end
+  end
+
   describe '#downcase' do
     it 'returns a copy of the string with all characters lower-cased' do
       'FoObAr'.downcase.should == 'foobar'

@@ -191,6 +191,9 @@ Env *build_top_env() {
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
     Encoding->const_set("CP65001"_s, EncodingUTF8);
 
+    Value EncodingUTF32LE = new Utf32LeEncodingObject {};
+    Encoding->const_set("UTF_32LE"_s, EncodingUTF32LE);
+
     ModuleObject *Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);
     Value ProcessSys = new ModuleObject { "Sys" };
