@@ -45,11 +45,7 @@ module JSON
 
     def generate_string(value)
       @string << '"'
-      if value.is_a?(Symbol)
-        @string << value.to_s
-      else
-        @string << escape_string(value)
-      end
+      @string << escape_string(value)
       @string << '"'
     end
 

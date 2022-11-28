@@ -134,6 +134,8 @@ describe 'JSON' do
       JSON.generate('foo').should == '"foo"'
       JSON.generate(:foo).should == '"foo"'
       JSON.generate('foo"bar').should == '"foo\"bar"'
+      JSON.generate(:'foo"bar').should == '"foo\"bar"'
+      JSON.generate(:"foo\0bar\n").should == '"foo\u0000bar\\n"'
       JSON.generate('\\').should == '"\\\"'
       JSON.generate("\b").should == '"\\b"'
       JSON.generate("\t").should == '"\\t"'
