@@ -57,9 +57,9 @@ public:
     // Constructors:
     BigInt();
     BigInt(const BigInt &);
-    BigInt(const long long &);
+    BigInt(const int64_t &);
     BigInt(const unsigned long int &);
-    BigInt(const unsigned long long &);
+    BigInt(const uint64_t &);
     BigInt(const long &);
     BigInt(const unsigned int &);
     BigInt(const int &);
@@ -68,7 +68,7 @@ public:
 
     // Assignment operators:
     BigInt &operator=(const BigInt &);
-    BigInt &operator=(const long long &);
+    BigInt &operator=(const int64_t &);
     BigInt &operator=(const TM::String &);
 
     // Unary arithmetic operators:
@@ -83,11 +83,11 @@ public:
     BigInt c_div(const BigInt &) const;
     BigInt operator%(const BigInt &) const;
     BigInt c_mod(const BigInt &) const;
-    BigInt operator+(const long long &) const;
-    BigInt operator-(const long long &) const;
-    BigInt operator*(const long long &) const;
-    BigInt operator/(const long long &) const;
-    BigInt operator%(const long long &) const;
+    BigInt operator+(const int64_t &) const;
+    BigInt operator-(const int64_t &) const;
+    BigInt operator*(const int64_t &) const;
+    BigInt operator/(const int64_t &) const;
+    BigInt operator%(const int64_t &) const;
     BigInt operator+(const TM::String &) const;
     BigInt operator-(const TM::String &) const;
     BigInt operator*(const TM::String &) const;
@@ -100,11 +100,11 @@ public:
     BigInt &operator*=(const BigInt &);
     BigInt &operator/=(const BigInt &);
     BigInt &operator%=(const BigInt &);
-    BigInt &operator+=(const long long &);
-    BigInt &operator-=(const long long &);
-    BigInt &operator*=(const long long &);
-    BigInt &operator/=(const long long &);
-    BigInt &operator%=(const long long &);
+    BigInt &operator+=(const int64_t &);
+    BigInt &operator-=(const int64_t &);
+    BigInt &operator*=(const int64_t &);
+    BigInt &operator/=(const int64_t &);
+    BigInt &operator%=(const int64_t &);
     BigInt &operator+=(const TM::String &);
     BigInt &operator-=(const TM::String &);
     BigInt &operator*=(const TM::String &);
@@ -124,12 +124,12 @@ public:
     bool operator>=(const BigInt &) const;
     bool operator==(const BigInt &) const;
     bool operator!=(const BigInt &) const;
-    bool operator<(const long long &) const;
-    bool operator>(const long long &) const;
-    bool operator<=(const long long &) const;
-    bool operator>=(const long long &) const;
-    bool operator==(const long long &) const;
-    bool operator!=(const long long &) const;
+    bool operator<(const int64_t &) const;
+    bool operator>(const int64_t &) const;
+    bool operator<=(const int64_t &) const;
+    bool operator>=(const int64_t &) const;
+    bool operator==(const int64_t &) const;
+    bool operator!=(const int64_t &) const;
     bool operator<(const int &) const;
     bool operator>(const int &) const;
     bool operator<=(const int &) const;
@@ -163,8 +163,7 @@ public:
     // Conversion functions:
     TM::String to_string() const;
     TM::String to_binary() const;
-    long to_long() const;
-    long long to_long_long() const;
+    int64_t to_int64_t() const;
     double to_double() const;
 
     // Random number generating functions:
@@ -175,16 +174,16 @@ private:
     char m_sign;
 };
 
-BigInt pow(const BigInt &base, long long exp);
+BigInt pow(const BigInt &base, int64_t exp);
 BigInt gcd(const BigInt &num1, const BigInt &num2);
 BigInt sqrt(const BigInt &num);
-BigInt operator+(const long long &lhs, const BigInt &rhs);
-BigInt operator-(const long long &lhs, const BigInt &rhs);
-BigInt operator*(const long long &lhs, const BigInt &rhs);
-BigInt operator/(const long long &lhs, const BigInt &rhs);
-BigInt operator%(const long long &lhs, const BigInt &rhs);
-bool operator<(const long long &lhs, const BigInt &rhs);
-bool operator==(const long long &lhs, const BigInt &rhs);
+BigInt operator+(const int64_t &lhs, const BigInt &rhs);
+BigInt operator-(const int64_t &lhs, const BigInt &rhs);
+BigInt operator*(const int64_t &lhs, const BigInt &rhs);
+BigInt operator/(const int64_t &lhs, const BigInt &rhs);
+BigInt operator%(const int64_t &lhs, const BigInt &rhs);
+bool operator<(const int64_t &lhs, const BigInt &rhs);
+bool operator==(const int64_t &lhs, const BigInt &rhs);
 
 BigInt abs(const BigInt &num);
 BigInt big_pow10(size_t exp);

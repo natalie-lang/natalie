@@ -25,6 +25,8 @@ KNOWN_UNCOLLECTABLE_TYPES = [
   'int',
   'long',
   'long long',
+  'int64_t',
+  'uint64_t',
   'Natalie::Allocator',
   'Natalie::ArrayPacker::Token',
   'Natalie::Backtrace::Item',

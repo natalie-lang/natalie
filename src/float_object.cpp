@@ -108,7 +108,7 @@ Value FloatObject::to_s() const {
 
     if (decpt > 0) {
         string = String(out);
-        long long s_length = string.length();
+        int64_t s_length = string.length();
         if (decpt < s_length) {
             string.insert(decpt, '.');
         } else if (decpt <= DBL_DIG) {

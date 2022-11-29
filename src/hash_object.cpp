@@ -135,7 +135,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
     auto proc = to_proc_value->as_proc();
     auto arity = proc->arity();
     if (proc->is_lambda() && arity != 2)
-        env->raise("TypeError", "default_proc takes two arguments (2 for {})", (long long)arity);
+        env->raise("TypeError", "default_proc takes two arguments (2 for {})", (int64_t)arity);
     m_default_proc = proc;
     return value;
 }

@@ -125,11 +125,11 @@ public:
      * Constructs a new String by converting the given number.
      *
      * ```
-     * auto str = String { (long long)10 };
+     * auto str = String { (int64_t)10 };
      * assert_str_eq("10", str);
      * ```
      */
-    String(long long number) {
+    String(int64_t number) {
         int length = snprintf(NULL, 0, "%lli", number);
         char buf[length + 1];
         snprintf(buf, length + 1, "%lli", number);
@@ -140,12 +140,12 @@ public:
      * Constructs a new String by converting the given number.
      *
      * ```
-     * auto str = String { (unsigned long long)10 };
+     * auto str = String { (uint64_t)10 };
      * assert_str_eq("10", str);
      * ```
      */
 
-    String(unsigned long long number) {
+    String(uint64_t number) {
         int length = snprintf(NULL, 0, "%llu", number);
         char buf[length + 1];
         snprintf(buf, length + 1, "%llu", number);
@@ -264,7 +264,7 @@ public:
      * assert_str_eq("fe", str);
      * ```
      */
-    static String hex(long long number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
+    static String hex(int64_t number, HexFormat format = HexFormat::UppercaseAndPrefixed) {
         bool uppercase = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::Uppercase;
         bool prefixed = format == HexFormat::UppercaseAndPrefixed || format == HexFormat::LowercaseAndPrefixed;
         const char *format_str = uppercase ? "%llX" : "%llx";
@@ -610,7 +610,7 @@ public:
      * assert_str_eq("123abc", str);
      * ```
      */
-    void prepend(long long i) {
+    void prepend(int64_t i) {
         int length = snprintf(NULL, 0, "%lli", i);
         char buf[length + 1];
         snprintf(buf, length + 1, "%lli", i);
@@ -795,11 +795,11 @@ public:
      *
      * ```
      * auto str = String { "a" };
-     * str.append((long long)123);
+     * str.append((int64_t)123);
      * assert_str_eq("a123", str);
      * ```
      */
-    void append(long long i) {
+    void append(int64_t i) {
         int length = snprintf(NULL, 0, "%lli", i);
         char buf[length + 1];
         snprintf(buf, length + 1, "%lli", i);

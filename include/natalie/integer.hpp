@@ -118,8 +118,8 @@ public:
     nat_int_t to_nat_int_t() const {
         if (is_fixnum())
             return m_fixnum;
-        else // FIXME: this should probably panic since the number likely won't fit in a long long
-            return m_bignum->to_long_long();
+        else // FIXME: this should probably panic since the number likely won't fit in a int64_t
+            return m_bignum->to_int64_t();
     }
     double to_double() const;
     TM::String to_string() const;
@@ -141,16 +141,16 @@ private:
     bool m_is_fixnum { true };
 };
 
-Integer operator+(const long long &, const Integer &);
-Integer operator-(const long long &, const Integer &);
-Integer operator*(const long long &, const Integer &);
-Integer operator/(const long long &, const Integer &);
-Integer operator<(const long long &, const Integer &);
-Integer operator>(const long long &, const Integer &);
-Integer operator<=(const long long &, const Integer &);
-Integer operator>=(const long long &, const Integer &);
-Integer operator==(const long long &, const Integer &);
-Integer operator!=(const long long &, const Integer &);
+Integer operator+(const int64_t &, const Integer &);
+Integer operator-(const int64_t &, const Integer &);
+Integer operator*(const int64_t &, const Integer &);
+Integer operator/(const int64_t &, const Integer &);
+Integer operator<(const int64_t &, const Integer &);
+Integer operator>(const int64_t &, const Integer &);
+Integer operator<=(const int64_t &, const Integer &);
+Integer operator>=(const int64_t &, const Integer &);
+Integer operator==(const int64_t &, const Integer &);
+Integer operator!=(const int64_t &, const Integer &);
 Integer pow(Integer, Integer);
 Integer abs(const Integer &);
 Integer gcd(const Integer &, const Integer &);

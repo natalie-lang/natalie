@@ -147,7 +147,7 @@ std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, 
 
 String Utf8EncodingObject::escaped_char(unsigned char c) const {
     char buf[7];
-    snprintf(buf, 7, "\\u%04llX", (long long)c);
+    snprintf(buf, 7, "\\u%04llX", (int64_t)c);
     return String(buf);
 }
 

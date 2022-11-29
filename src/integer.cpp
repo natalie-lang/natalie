@@ -31,7 +31,7 @@ Integer::Integer(const TM::String &other)
 
 Integer::Integer(const BigInt &other) {
     if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
-        m_fixnum = other.to_long_long();
+        m_fixnum = other.to_int64_t();
         m_is_fixnum = true;
     } else {
         m_bignum = new BigInt(other);
@@ -368,43 +368,43 @@ Integer Integer::bit_length() const {
     return ceil(log2(nat_int < 0 ? -nat_int : nat_int + 1));
 }
 
-Integer operator+(const long long &lhs, const Integer &rhs) {
+Integer operator+(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) + rhs;
 }
 
-Integer operator-(const long long &lhs, const Integer &rhs) {
+Integer operator-(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) - rhs;
 }
 
-Integer operator*(const long long &lhs, const Integer &rhs) {
+Integer operator*(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) * rhs;
 }
 
-Integer operator/(const long long &lhs, const Integer &rhs) {
+Integer operator/(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) / rhs;
 }
 
-Integer operator<(const long long &lhs, const Integer &rhs) {
+Integer operator<(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) < rhs;
 }
 
-Integer operator>(const long long &lhs, const Integer &rhs) {
+Integer operator>(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) > rhs;
 }
 
-Integer operator<=(const long long &lhs, const Integer &rhs) {
+Integer operator<=(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) <= rhs;
 }
 
-Integer operator>=(const long long &lhs, const Integer &rhs) {
+Integer operator>=(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) >= rhs;
 }
 
-Integer operator==(const long long &lhs, const Integer &rhs) {
+Integer operator==(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) == rhs;
 }
 
-Integer operator!=(const long long &lhs, const Integer &rhs) {
+Integer operator!=(const int64_t &lhs, const Integer &rhs) {
     return Integer(lhs) != rhs;
 }
 

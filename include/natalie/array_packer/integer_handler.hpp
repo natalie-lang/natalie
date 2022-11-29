@@ -103,7 +103,7 @@ namespace ArrayPacker {
         void pack_c() {
             auto source = m_source->to_nat_int_t();
             if (m_source->is_bignum())
-                source = (m_source->integer().to_bigint() % 256).to_long_long();
+                source = (m_source->integer().to_bigint() % 256).to_int64_t();
 
             m_packed.append_char(static_cast<signed char>(source));
         }
@@ -111,7 +111,7 @@ namespace ArrayPacker {
         void pack_I() {
             auto source = (unsigned int)m_source->to_nat_int_t();
             if (m_source->is_bignum())
-                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(unsigned int))).to_long_long();
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(unsigned int))).to_int64_t();
 
             append_bytes((const char *)(&source), sizeof(source));
         }
@@ -119,7 +119,7 @@ namespace ArrayPacker {
         void pack_i() {
             auto source = (signed int)m_source->to_nat_int_t();
             if (m_source->is_bignum())
-                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_int64_t();
 
             append_bytes((const char *)(&source), sizeof(source));
         }
@@ -147,7 +147,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (unsigned long long)m_source->to_nat_int_t();
+                auto source = (uint64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }
@@ -157,7 +157,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (long long)m_source->to_nat_int_t();
+                auto source = (int64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }
@@ -168,7 +168,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (unsigned long long)m_source->to_nat_int_t();
+                auto source = (uint64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }
@@ -179,7 +179,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (long long)m_source->to_nat_int_t();
+                auto source = (int64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }
@@ -187,7 +187,7 @@ namespace ArrayPacker {
         void pack_S() {
             auto source = (unsigned short)m_source->to_nat_int_t();
             if (m_source->is_bignum())
-                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_int64_t();
 
             auto size = m_token.native_size ? sizeof(unsigned short) : 2;
             append_bytes((const char *)&source, size);
@@ -196,7 +196,7 @@ namespace ArrayPacker {
         void pack_s() {
             auto source = (signed short)m_source->to_nat_int_t();
             if (m_source->is_bignum())
-                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+                source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_int64_t();
 
             auto size = m_token.native_size ? sizeof(signed short) : 2;
             append_bytes((const char *)&source, size);
@@ -208,7 +208,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (unsigned long long)m_source->to_nat_int_t();
+                auto source = (uint64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }
@@ -219,7 +219,7 @@ namespace ArrayPacker {
             if (m_source->is_bignum()) {
                 pack_bignum(size * 8);
             } else {
-                auto source = (long long)m_source->to_nat_int_t();
+                auto source = (int64_t)m_source->to_nat_int_t();
                 append_bytes((const char *)(&source), size);
             }
         }

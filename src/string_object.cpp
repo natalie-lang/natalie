@@ -2257,16 +2257,16 @@ void StringObject::append(long unsigned int i) {
     m_string.append(i);
 }
 
-void StringObject::append(long long int i) {
+void StringObject::append(int64_t i) {
     m_string.append(i);
 }
 
 void StringObject::append(long int i) {
-    m_string.append((long long)i);
+    m_string.append((int64_t)i);
 }
 
 void StringObject::append(unsigned int i) {
-    m_string.append((long long)i);
+    m_string.append((int64_t)i);
 }
 
 void StringObject::append(double d) {
