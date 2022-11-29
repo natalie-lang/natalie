@@ -4,7 +4,7 @@ packages:
   - cmake
   - libatomic_ops
   - libtool
-  - ruby-3.0.2p1
+  - ruby-3.1.2
 sources:
   - https://git.sr.ht/~tim/natalie
 environment:
@@ -15,9 +15,9 @@ environment:
 tasks:
   - setup: |
       cd natalie
-      doas ln -sf /usr/local/bin/ruby30 /usr/local/bin/ruby
-      doas ln -sf /usr/local/bin/bundle30 /usr/local/bin/bundle
-      doas ln -sf /usr/local/bin/rake30 /usr/local/bin/rake
+      doas ln -sf /usr/local/bin/ruby31 /usr/local/bin/ruby
+      doas ln -sf /usr/local/bin/bundle31 /usr/local/bin/bundle
+      doas ln -sf /usr/local/bin/rake31 /usr/local/bin/rake
       bundle config set deployment 'true'
       bundle install
   - build: |
