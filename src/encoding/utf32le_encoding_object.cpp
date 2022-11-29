@@ -50,7 +50,7 @@ std::pair<bool, StringView> Utf32LeEncodingObject::next_char(const String &strin
 
 String Utf32LeEncodingObject::escaped_char(unsigned char c) const {
     char buf[7];
-    snprintf(buf, 7, "\\u%04llX", (int64_t)c);
+    snprintf(buf, 7, "\\u%04llX", (long long)c);
     return String(buf);
 }
 

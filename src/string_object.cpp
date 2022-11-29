@@ -2253,16 +2253,12 @@ void StringObject::append(int i) {
     m_string.append(i);
 }
 
-void StringObject::append(long unsigned int i) {
+void StringObject::append(uint64_t i) {
     m_string.append(i);
 }
 
 void StringObject::append(int64_t i) {
     m_string.append(i);
-}
-
-void StringObject::append(long int i) {
-    m_string.append((int64_t)i);
 }
 
 void StringObject::append(unsigned int i) {
@@ -2410,7 +2406,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     str.remove('_');
 
     char *end;
-    auto convint = strtoll(str.c_str(), &end, base);
+    int64_t convint = strtoll(str.c_str(), &end, base);
 
     if (end == NULL || end[0] == '\0') {
         return IntegerObject::create(Integer(convint * sign));

@@ -30,7 +30,7 @@ public:
     Value seed() const { return Value::integer(m_seed); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<Random %p seed=%lld>", this, m_seed);
+        snprintf(buf, len, "<Random %p seed=%lld>", this, (long long)m_seed);
     }
 
     static Value new_seed(Env *env) {

@@ -195,7 +195,7 @@ BigInt::BigInt(const BigInt &num) {
 }
 
 /*
-    Long to BigInt
+    int64_t to BigInt
     -----------------
 */
 
@@ -205,17 +205,7 @@ BigInt::BigInt(const int64_t &num) {
 }
 
 /*
-    Long Integer to BigInt
-    ----------------------
-*/
-
-BigInt::BigInt(const long &num) {
-    m_value = TM::String(std::abs(num));
-    m_sign = (num < 0) ? '-' : '+';
-}
-
-/*
-    Unsigned Long Long to BigInt
+    uint64_t to BigInt
     -----------------
 */
 
@@ -232,16 +222,6 @@ BigInt::BigInt(const uint64_t &num) {
 BigInt::BigInt(const int &num) {
     m_value = TM::String(std::abs(num));
     m_sign = (num < 0) ? '-' : '+';
-}
-
-/*
-    Unsigned Long Integer to BigInt
-    -------------------------------
-*/
-
-BigInt::BigInt(const unsigned long &num) {
-    m_value = TM::String(num);
-    m_sign = '+';
 }
 
 /*
@@ -1067,7 +1047,7 @@ BigInt lcm(const TM::String &num1, const BigInt &num2) {
 #include <cmath>
 #include <string>
 
-const int64_t FLOOR_SQRT_LLONG_MAX = 3037000499;
+const int64_t FLOOR_SQRT_INT64_MAX = 3037000499;
 
 /*
     BigInt + BigInt
@@ -1194,7 +1174,7 @@ BigInt BigInt::operator*(const BigInt &num) const {
         return *this;
 
     BigInt product;
-    if (abs(*this) <= FLOOR_SQRT_LLONG_MAX and abs(num) <= FLOOR_SQRT_LLONG_MAX)
+    if (abs(*this) <= FLOOR_SQRT_INT64_MAX and abs(num) <= FLOOR_SQRT_INT64_MAX)
         product = strtoll(m_value.c_str(), NULL, 10) * strtoll(num.m_value.c_str(), NULL, 10);
     else if (is_power_of_10(m_value)) { // if LHS is a power of 10 do optimised operation
         product.m_value = num.m_value;
@@ -1266,7 +1246,7 @@ std::tuple<BigInt, BigInt> divide(const BigInt &dividend, const BigInt &divisor)
     while (temp < dividend) {
         temp += divisor;
         iterations++;
-        if (iterations == LLONG_MAX) {
+        if (iterations == INT64_MAX) {
             quotient += iterations;
             iterations = 0;
         }
@@ -1276,7 +1256,7 @@ std::tuple<BigInt, BigInt> divide(const BigInt &dividend, const BigInt &divisor)
 
     if (temp > dividend) {
         iterations++;
-        if (iterations == LLONG_MAX) {
+        if (iterations == INT64_MAX) {
             quotient -= iterations;
             iterations = 0;
         }
@@ -1306,7 +1286,7 @@ BigInt BigInt::c_div(const BigInt &num) const {
         return -(*this);
 
     BigInt quotient;
-    if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
+    if (abs_dividend <= INT64_MAX && abs_divisor <= INT64_MAX)
         quotient = strtoll(abs_dividend.m_value.c_str(), NULL, 10) / strtoll(abs_divisor.m_value.c_str(), NULL, 10);
     else if (abs_dividend == abs_divisor)
         quotient = 1;
@@ -1379,7 +1359,7 @@ BigInt BigInt::c_mod(const BigInt &num) const {
         return BigInt(0);
 
     BigInt remainder;
-    if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
+    if (abs_dividend <= INT64_MAX && abs_divisor <= INT64_MAX)
         remainder = strtoll(abs_dividend.m_value.c_str(), NULL, 10) % strtoll(abs_divisor.m_value.c_str(), NULL, 10);
     else if (abs_dividend < abs_divisor)
         remainder = abs_dividend;

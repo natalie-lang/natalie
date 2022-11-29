@@ -51,7 +51,7 @@ public:
         m_sexp->push(new IntegerObject(Integer(number)));
     }
 
-    virtual void append_fixnum(int64_t number) override {
+    virtual void append_fixnum(long long number) override {
         m_sexp->push(Value::integer(number));
     }
 
@@ -63,7 +63,7 @@ public:
         m_sexp->push(NilObject::the());
     }
 
-    virtual void append_range(int64_t first, int64_t last, bool exclude_end) override {
+    virtual void append_range(long long first, long long last, bool exclude_end) override {
         m_sexp->push(RangeObject::create(m_env, Value::integer(first), Value::integer(last), exclude_end));
     }
 

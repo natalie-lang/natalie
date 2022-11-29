@@ -3,8 +3,8 @@
 #include "natalie/types.hpp"
 #include <limits.h>
 
-#define NAT_MAX_FIXNUM LLONG_MAX
-#define NAT_MIN_FIXNUM LLONG_MIN + 1
+#define NAT_MAX_FIXNUM INT64_MAX
+#define NAT_MIN_FIXNUM INT64_MIN + 1
 
 namespace Natalie {
 

@@ -187,7 +187,7 @@ void Heap::dump() const {
             }
         }
     }
-    printf("Total allocations: %lld\n", allocation_count);
+    printf("Total allocations: %lld\n", (long long)allocation_count);
 }
 
 Cell *HeapBlock::find_next_free_cell() {

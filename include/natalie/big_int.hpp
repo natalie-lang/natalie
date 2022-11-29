@@ -51,6 +51,7 @@
 #pragma once
 
 #include "tm/string.hpp"
+#include <stdint.h>
 
 class BigInt {
 public:
@@ -58,9 +59,7 @@ public:
     BigInt();
     BigInt(const BigInt &);
     BigInt(const int64_t &);
-    BigInt(const unsigned long int &);
     BigInt(const uint64_t &);
-    BigInt(const long &);
     BigInt(const unsigned int &);
     BigInt(const int &);
     BigInt(const double &);

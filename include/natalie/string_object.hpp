@@ -126,9 +126,8 @@ public:
     void append(const char *);
     void append(const char *, size_t);
     void append(int);
-    void append(long unsigned int);
+    void append(uint64_t);
     void append(int64_t);
-    void append(long int);
     void append(unsigned int);
     void append(double);
     void append(const FloatObject *);

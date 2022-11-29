@@ -19,7 +19,7 @@ std::pair<bool, StringView> Ascii8BitEncodingObject::next_char(const String &str
 
 String Ascii8BitEncodingObject::escaped_char(unsigned char c) const {
     char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (int64_t)c);
+    snprintf(buf, 5, "\\x%02llX", (long long)c);
     return String(buf);
 }
 
