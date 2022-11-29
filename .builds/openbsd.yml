@@ -2,6 +2,7 @@ image: openbsd/7.0
 packages:
   - automake-1.16.3
   - cmake
+  - gmake
   - libatomic_ops
   - libtool
   - ruby-3.1.2
