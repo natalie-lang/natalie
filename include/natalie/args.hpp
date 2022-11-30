@@ -3,6 +3,7 @@
 #include "tm/macros.hpp"
 #include "tm/string.hpp"
 #include "tm/vector.hpp"
+#include <iterator>
 #include <stddef.h>
 #include <stdio.h>
 

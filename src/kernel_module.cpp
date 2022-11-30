@@ -450,9 +450,9 @@ Value KernelModule::puts(Env *env, Args args) {
 Value KernelModule::raise(Env *env, Value klass, Value message) {
     if (!klass) {
         if (env->exception())
-            return raise(env, env->exception(), nullptr);
+            klass = env->exception();
         else
-            return raise(env, find_top_level_const(env, "RuntimeError"_s), nullptr);
+            klass = find_top_level_const(env, "RuntimeError"_s);
     }
     if (!message) {
         Value arg = klass;

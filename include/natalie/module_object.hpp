@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <functional>
 #include <string.h>
 
 #include "natalie/constant.hpp"
