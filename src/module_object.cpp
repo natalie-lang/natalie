@@ -36,11 +36,15 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
         m_included_modules.push(this);
         m_included_modules.push(module);
     } else {
-        int index = 0;
-        while (m_included_modules[index] != this) {
-            index += 1;
+        ssize_t this_index = -1;
+        for (size_t i = 0; i < m_included_modules.size(); ++i) {
+            if (m_included_modules[i] == this)
+                this_index = i;
+            if (m_included_modules[i] == module)
+                return;
         }
-        m_included_modules.insert(index + 1, module);
+        assert(this_index != -1);
+        m_included_modules.insert(this_index + 1, module);
     }
 }
 
@@ -56,6 +60,10 @@ void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
         m_included_modules.push(module);
         m_included_modules.push(this);
     } else {
+        for (auto m : m_included_modules) {
+            if (m == module)
+                return;
+        }
         m_included_modules.push_front(module);
     }
 }

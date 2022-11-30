@@ -21,4 +21,8 @@ describe 'complex' do
     r.real.should == 0
     r.imaginary.should == 3
   end
+
+  it 'does not have have Comparable mixin more than once' do
+    Complex.ancestors.count(Comparable).should == 1
+  end
 end

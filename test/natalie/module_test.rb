@@ -25,6 +25,16 @@ module M3
   end
 end
 
+module M4
+  include M1
+  include M1
+end
+
+module M5
+  prepend M1
+  prepend M1
+end
+
 class C2 < C1
 end
 
@@ -45,6 +55,16 @@ describe 'Module' do
   describe 'include' do
     it 'works on the singleton class' do
       M3::A.m3a.should == 'm3a'
+    end
+
+    it 'does not include the same module more than once' do
+      M4.ancestors.count(M1).should == 1
+    end
+  end
+
+  describe 'prepend' do
+    it 'does not prepend the same module more than once' do
+      M5.ancestors.count(M1).should == 1
     end
   end
 
