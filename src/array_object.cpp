@@ -1586,6 +1586,20 @@ Value ArrayObject::intersection(Env *env, Args args) {
     return result;
 }
 
+bool ArrayObject::intersects(Env *env, Value arg) {
+    if (this->is_empty()) return false;
+
+    ArrayObject *other_array = arg->to_ary(env);
+
+    for (auto &item : *this) {
+        if (other_array->include_eql(env, item)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg->is_array()) {
         env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->inspect_str());
