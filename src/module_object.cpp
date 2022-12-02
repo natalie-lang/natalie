@@ -183,9 +183,23 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
     m_constants.put(name, new Constant { name, val.object() });
-    if (val->is_module() && !val->owner()) {
-        val->set_owner(this);
-        if (val->singleton_class()) val->singleton_class()->set_owner(this);
+    if (val->is_module()) {
+        if (!val->owner()) {
+            val->set_owner(this);
+            if (val->singleton_class()) val->singleton_class()->set_owner(this);
+        }
+
+        if (!val->as_module()->class_name()) {
+            auto class_name = name->string();
+            val->as_module()->set_class_name(class_name);
+
+            auto singleton_class = val->singleton_class();
+            while (singleton_class) {
+                class_name = String::format("#<Class:{}>", class_name);
+                singleton_class->set_class_name(class_name);
+                singleton_class = singleton_class->singleton_class();
+            }
+        }
     }
     return val;
 }

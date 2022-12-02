@@ -158,18 +158,8 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def args_to_pass
-      case argc
-      when :any
-        [env_arg, 'args', block_arg, klass_arg].compact.join(', ')
-      when Range
-        if argc.end
-          ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
-        else
-          [env_arg, 'args', block_arg, klass_arg].compact.join(', ')
-        end
-      when Integer
-        ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
-      end
+      kwargs = @kwargs.map { |kw| "kwarg_#{kw}" }
+      [env_arg, *args, *kwargs, block_arg, klass_arg].compact.join(', ')
     end
 
     def define_method_name
@@ -250,8 +240,11 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def args
-      (0...max_argc).map { |i| "args.at(#{i}, nullptr)" } +
-        @kwargs.map { |kw| "kwarg_#{kw}" }
+      if max_argc
+        (0...max_argc).map { |i| "args.at(#{i}, nullptr)" }
+      else
+        ['args']
+      end
     end
 
     def block_arg
@@ -300,7 +293,14 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
     end
 
     def max_argc
-      Range === argc ? argc.end : argc
+      case argc
+      when :any
+        nil
+      when Range
+        argc.end
+      when Integer
+        argc
+      end
     end
 
     def generate_name
