@@ -45,6 +45,9 @@ public:
         case Encoding::UTF_32LE:
             // it's positive and takes 1-4 bytes
             return codepoint >= 0 && codepoint < 0x10000000000;
+        case Encoding::UTF_32BE:
+            // it's positive and takes 1-4 bytes
+            return codepoint >= 0 && codepoint < 0x10000000000;
         }
         NAT_UNREACHABLE();
     }
