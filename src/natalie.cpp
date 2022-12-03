@@ -193,6 +193,7 @@ Env *build_top_env() {
 
     Value EncodingUTF32LE = new Utf32LeEncodingObject {};
     Encoding->const_set("UTF_32LE"_s, EncodingUTF32LE);
+    Encoding->const_set("UCS_4LE"_s, EncodingUTF32LE);
 
     Value EncodingUTF32BE = new Utf32BeEncodingObject {};
     Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
