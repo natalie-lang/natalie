@@ -5,7 +5,7 @@ describe "String#encode - to UTF-32LE" do
   context "from US-ASCII" do
     it "returns correct String in UTF-32LE" do
       a = "\x61".force_encoding("US-ASCII") # "a" - 0x61 (ASCII)
-      a.encode("UTF-32LE").should == "\x61\x0\x0\x0".force_encoding("UTF-32LE")
+      a.encode("UTF-32LE").should == "\x61\x00\x00\x00".force_encoding("UTF-32LE")
     end
   end
 
@@ -13,7 +13,7 @@ describe "String#encode - to UTF-32LE" do
     context "0-127" do
       it "returns correct String in UTF-32LE" do
         b = "\x61".force_encoding("ASCII-8BIT") # "a" - 0x61 (ASCII)
-        b.encode("UTF-32LE").should == "\x61\x0\x0\x0".force_encoding("UTF-32LE")
+        b.encode("UTF-32LE").should == "\x61\x00\x00\x00".force_encoding("UTF-32LE")
       end
     end
 
@@ -33,7 +33,7 @@ describe "String#encode - to UTF-32LE" do
     context "from 1-byte UTF-8" do
       it "returns correct String in UTF-32LE" do
         a = "\x61".force_encoding("UTF-8") # "a" - U+0061 (Unicode)
-        a.encode("UTF-32LE").should == "\x61\x0\x0\x0".force_encoding("UTF-32LE")
+        a.encode("UTF-32LE").should == "\x61\x00\x00\x00".force_encoding("UTF-32LE")
       end
     end
 
