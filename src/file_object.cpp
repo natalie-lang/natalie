@@ -141,6 +141,12 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
     Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
 }
 
+bool FileObject::exist(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    return stat(path->as_string()->c_str(), &sb) != -1;
+}
+
 bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
     path = ConvertToPath(env, path);
@@ -242,6 +248,13 @@ bool FileObject::is_readable(Env *env, Value path) {
     return true;
 }
 
+bool FileObject::is_readable_real(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (eaccess(path->as_string()->c_str(), R_OK) == -1)
+        return false;
+    return true;
+}
+
 Value FileObject::world_readable(Env *env, Value path) {
     struct stat sb;
     path = ConvertToPath(env, path);
@@ -273,11 +286,33 @@ bool FileObject::is_writable(Env *env, Value path) {
     return true;
 }
 
+bool FileObject::is_writable_real(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (eaccess(path->as_string()->c_str(), W_OK) == -1)
+        return false;
+    return true;
+}
+
 bool FileObject::is_executable(Env *env, Value path) {
     path = ConvertToPath(env, path);
     if (access(path->as_string()->c_str(), X_OK) == -1)
         return false;
     return true;
+}
+
+bool FileObject::is_executable_real(Env *env, Value path) {
+    path = ConvertToPath(env, path);
+    if (eaccess(path->as_string()->c_str(), X_OK) == -1)
+        return false;
+    return true;
+}
+
+bool FileObject::is_owned(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return (sb.st_uid == ::geteuid());
 }
 
 bool FileObject::is_zero(Env *env, Value path) {
@@ -286,6 +321,25 @@ bool FileObject::is_zero(Env *env, Value path) {
     if (stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_size == 0);
+}
+
+// oddball function that is ends in '?' but is not a boolean return.
+Value FileObject::is_size(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return NilObject::the();
+    if (sb.st_size == 0) // returns nil when file size is zero.
+        return NilObject::the();
+    return IntegerObject::create((nat_int_t)(sb.st_size));
+}
+
+Value FileObject::size(Env *env, Value path) {
+    struct stat sb;
+    path = ConvertToPath(env, path);
+    int result = stat(path->as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno();
+    return IntegerObject::create((nat_int_t)(sb.st_size));
 }
 
 Value FileObject::symlink(Env *env, Value from, Value to) {

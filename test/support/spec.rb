@@ -278,15 +278,22 @@ def kernel_version_is(*)
   false
 end
 
-# TODO: replace shell call with Process.uid when implemented
 def as_user
-  if `id -ru`.chomp != "0"
+  if Process.euid != 0
     yield
   end
 end
 
 def as_superuser
-  nil
+  if Process.euid == 0
+    yield
+  end
+end
+
+def as_real_superuser
+  if Process.uid == 0
+    yield
+  end
 end
 
 def little_endian

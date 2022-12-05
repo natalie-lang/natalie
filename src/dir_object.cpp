@@ -6,7 +6,9 @@
 namespace Natalie {
 
 Value DirObject::mkdir(Env *env, Value path, Value mode) {
-    int octmode = 0777;
+    mode_t octmode = 0777;
+    if (mode)
+        octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
     path->assert_type(env, Object::Type::String, "String");
     auto result = ::mkdir(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
