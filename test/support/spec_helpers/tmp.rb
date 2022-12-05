@@ -46,7 +46,7 @@ at_exit do
     if SPEC_TEMP_DIR_PID == Process.pid
       # TODO: revert when Dir.delete is implemented
       #Dir.delete SPEC_TEMP_DIR if File.directory? SPEC_TEMP_DIR
-      `rm -r #{SPEC_TEMP_DIR}` if File.directory? SPEC_TEMP_DIR
+      `rm -rf #{SPEC_TEMP_DIR}` if File.directory? SPEC_TEMP_DIR
     end
   rescue SystemCallError
     STDERR.puts <<-EOM
