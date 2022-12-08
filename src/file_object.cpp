@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <filesystem>
 #include <sys/param.h>
 #include <sys/stat.h>
 
@@ -200,11 +201,13 @@ bool FileObject::is_identical(Env *env, Value file1, Value file2) {
 }
 
 bool FileObject::is_sticky(Env *env, Value path) {
-    struct stat sb;
     path = ConvertToPath(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    std::error_code ec;
+    auto st = std::filesystem::status(path->as_string()->c_str(), ec);
+    if (ec)
         return false;
-    return (sb.st_mode & S_ISVTX);
+    auto perm = st.permissions();
+    return (perm & std::filesystem::perms::sticky_bit) != std::filesystem::perms::none;
 }
 
 bool FileObject::is_setgid(Env *env, Value path) {
