@@ -161,6 +161,9 @@ Env *build_top_env() {
     Object->const_set("File"_s, File);
     FileObject::build_constants(env, File);
 
+    ModuleObject *FileTest = new ModuleObject { "FileTest" };
+    Object->const_set("FileTest"_s, FileTest);
+
     ClassObject *Dir = IO->subclass(env, "Dir");
     Object->const_set("Dir"_s, Dir);
 

@@ -248,8 +248,14 @@ def _platform_match(*args)
                           [{}, args]
                         end
    return true if options[:wordsize] == 64 || options[:pointer_size] == 64
-   return true if  platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
+   return true if platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
    return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
+   return true if platforms.include?(:darwin) && RUBY_PLATFORM =~ /darwin/i
+   return true if platforms.include?(:openbsd) && RUBY_PLATFORM =~ /openbsd/i
+   return true if platforms.include?(:freebsd) && RUBY_PLATFORM =~ /freebsd/i
+   return true if platforms.include?(:netbsd) && RUBY_PLATFORM =~ /netbsd/i
+   return true if platforms.include?(:bsd) && RUBY_PLATFORM =~ /(bsd|darwin)/i
+   # TODO: cygwin, android, solaris and aix are currently uncovered
    false
 end
 
@@ -278,15 +284,22 @@ def kernel_version_is(*)
   false
 end
 
-# TODO: replace shell call with Process.uid when implemented
 def as_user
-  if `id -ru`.chomp != "0"
+  if Process.euid != 0
     yield
   end
 end
 
 def as_superuser
-  nil
+  if Process.euid == 0
+    yield
+  end
+end
+
+def as_real_superuser
+  if Process.uid == 0
+    yield
+  end
 end
 
 def little_endian

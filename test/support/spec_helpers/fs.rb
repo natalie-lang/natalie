@@ -70,7 +70,7 @@ def rm_r(*paths)
     if File.symlink? path
       File.unlink path
     elsif File.directory? path
-      `rm -r #{path}`
+      `rm -rf #{path}`
       #Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
       #Dir.rmdir path
     elsif File.exist? path
