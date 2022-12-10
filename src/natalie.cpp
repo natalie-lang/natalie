@@ -164,6 +164,9 @@ Env *build_top_env() {
     ModuleObject *FileTest = new ModuleObject { "FileTest" };
     Object->const_set("FileTest"_s, FileTest);
 
+    ClassObject *FileStat = Object->subclass(env, "Stat", Object::Type::FileStat);
+    File->const_set("Stat"_s, FileStat);
+
     ClassObject *Dir = IO->subclass(env, "Dir");
     Object->const_set("Dir"_s, Dir);
 

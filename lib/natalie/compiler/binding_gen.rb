@@ -518,6 +518,9 @@ gen.static_binding('File', 'setgid?', 'FileObject', 'is_setgid', argc: 1, pass_e
 gen.static_binding('File', 'size', 'FileObject', 'size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'size?', 'FileObject', 'is_size', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+
+gen.static_binding('File', 'stat', 'FileObject', 'stat', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+
 gen.static_binding('File', 'socket?', 'FileObject', 'is_socket', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -544,7 +547,6 @@ gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pas
 gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('File', 'path', 'FileObject', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
 
-
 gen.static_binding('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -570,6 +572,8 @@ gen.static_binding('FileTest', 'world_writable?', 'FileObject', 'world_writable'
 gen.static_binding('FileTest', 'writable?', 'FileObject', 'is_writable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'writable_real?', 'FileObject', 'is_writable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'zero?', 'FileObject', 'is_zero', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('File::Stat', 'initialize', 'FileStatObject', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('File::Stat', 'ftype', 'FileStatObject', 'ftype', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.static_binding('Dir', 'delete', 'DirObject', 'rmdir', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'empty?', 'DirObject', 'is_empty', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

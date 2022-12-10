@@ -84,6 +84,8 @@ public:
     static Value chmod(Env *env, Value mode, Value path);
     Value chmod(Env *env, Value mode);
 
+    static Value stat(Env *env, Value path);
+
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };
 

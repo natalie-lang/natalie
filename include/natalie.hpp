@@ -34,6 +34,7 @@
 #include "natalie/false_object.hpp"
 #include "natalie/fiber_object.hpp"
 #include "natalie/file_object.hpp"
+#include "natalie/file_stat_object.hpp"
 #include "natalie/float_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc_module.hpp"
