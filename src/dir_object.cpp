@@ -1,6 +1,7 @@
 #include "natalie.hpp"
 
 #include <errno.h>
+#include <filesystem>
 #include <sys/stat.h>
 
 namespace Natalie {
@@ -23,4 +24,35 @@ Value DirObject::rmdir(Env *env, Value path) {
     return Value::integer(0);
 }
 
+Value DirObject::home(Env *env, Value username) {
+    if (username) {
+        username->assert_type(env, Object::Type::String, "String");
+        // lookup home-dir for username
+        struct passwd *pw;
+        pw = getpwnam(username->as_string()->c_str());
+        if (!pw)
+            env->raise("ArgumentError", "user {} foobar doesn't exist", username->as_string()->c_str());
+        return new StringObject { pw->pw_dir };
+    } else {
+        // no argument version
+        Value home_str = new StringObject { "HOME" };
+        Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "fetch"_s, { home_str });
+        return home_dir->dup(env);
+    }
+}
+bool DirObject::is_empty(Env *env, Value dirname) {
+    dirname->assert_type(env, Object::Type::String, "String");
+    auto dir_cstr = dirname->as_string()->c_str();
+    std::error_code ec;
+    auto st = std::filesystem::symlink_status(dir_cstr, ec);
+    if (ec) {
+        errno = ec.value();
+        env->raise_errno();
+    }
+    if (st.type() != std::filesystem::file_type::directory)
+        return false;
+    const std::filesystem::path dirpath { dir_cstr };
+    auto dir_iter = std::filesystem::directory_iterator { dirpath };
+    return std::filesystem::begin(dir_iter) == std::filesystem::end(dir_iter);
+}
 }
