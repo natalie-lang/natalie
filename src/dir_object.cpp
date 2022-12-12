@@ -8,9 +8,11 @@ namespace Natalie {
 
 Value DirObject::mkdir(Env *env, Value path, Value mode) {
     mode_t octmode = 0777;
-    if (mode)
+    if (mode) {
+        mode->assert_type(env, Object::Type::Integer, "Integer");
         octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
-    path->assert_type(env, Object::Type::String, "String");
+    }
+    path = fileutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     // need to check dir exists and return nil if mkdir was unsuccessful.
@@ -18,7 +20,7 @@ Value DirObject::mkdir(Env *env, Value path, Value mode) {
 }
 
 Value DirObject::rmdir(Env *env, Value path) {
-    path->assert_type(env, Object::Type::String, "String");
+    path = fileutil::convert_using_to_path(env, path);
     auto result = ::rmdir(path->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);

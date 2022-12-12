@@ -14,6 +14,11 @@
 
 namespace Natalie {
 
+namespace fileutil {
+    // Utility Function Common to File and Dir
+    Value convert_using_to_path(Env *env, Value path);
+}
+
 class FileObject : public IoObject {
 public:
     FileObject()
