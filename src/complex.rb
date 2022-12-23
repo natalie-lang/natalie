@@ -120,6 +120,7 @@ class Complex
       return first / second
     end
   end
+  alias quo /
 
   def *(other)    
     # (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
