@@ -121,7 +121,11 @@ class Complex
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
-      return first / second
+      if first.is_a?(Integer) && second.is_a?(Integer) && first % second != 0
+        return Rational(first, second)
+      else
+        return first / second
+      end
     end
   end
   alias quo /
