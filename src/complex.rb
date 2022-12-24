@@ -112,20 +112,20 @@ class Complex
     end
 
     if other.is_a?(Numeric) && other.real?
-      if other.is_a?(Integer) && (self.real % other != 0 || self.imaginary % other != 0)
-        return Complex(Rational(self.real, other), Rational(self.imaginary, other))
-      else
-        return Complex(self.real / other, self.imaginary / other)
+      real = self.real.quo(other)
+      imaginary = self.imaginary.quo(other)
+      if other.is_a?(Integer)
+        real = real.numerator if real.denominator == 1
+        imaginary = imaginary.numerator if imaginary.denominator == 1
       end
+      return Complex(real, imaginary)
     end
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
-      if first.is_a?(Integer) && second.is_a?(Integer) && first % second != 0
-        return Rational(first, second)
-      else
-        return first / second
-      end
+      result = first.quo(second)
+      result = result.numerator if result.denominator == 1
+      return result
     end
   end
   alias quo /
