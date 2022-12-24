@@ -75,6 +75,27 @@ public:
     }
 
     /**
+     * Constructs a new String by moving the contents
+     * from an existing String.
+     *
+     * ```
+     * auto str1 = String { "foo" };
+     * auto str2 = String { std::move(str1) };
+     * assert_str_eq("foo", str2);
+     * assert_eq(0, str1.size());
+     * ```
+     */
+    String(String &&other) {
+        m_str = other.m_str;
+        m_length = other.m_length;
+        m_capacity = other.m_capacity;
+
+        other.m_str = nullptr;
+        other.m_length = 0;
+        other.m_capacity = 0;
+    }
+
+    /**
      * Constructs a new String by copying the contents
      * from an existing String pointer.
      *
@@ -295,6 +316,33 @@ public:
             m_length = other.m_length;
         else
             set_str(other.c_str(), other.size());
+        return *this;
+    }
+
+    /**
+     * Replaces the String data by moving from an another String.
+     *
+     * ```
+     * auto str1 = String { "foo" };
+     * auto str2 = String { std::move(str1) };
+     * assert_str_eq("foo", str2);
+     * assert_eq(0, str1.size());
+     * ```
+     */
+    String &operator=(String &&other) {
+        if (m_str == other.m_str)
+            m_length = other.m_length;
+        else {
+            delete[] m_str;
+
+            m_str = other.m_str;
+            m_length = other.m_length;
+            m_capacity = other.m_capacity;
+
+            other.m_str = nullptr;
+            other.m_length = 0;
+            other.m_capacity = 0;
+        }
         return *this;
     }
 
