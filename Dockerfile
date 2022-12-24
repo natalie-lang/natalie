@@ -25,6 +25,8 @@ ENV CXX=$CXX
 ARG NAT_CXX_FLAGS
 ENV NAT_CXX_FLAGS=$NAT_CXX_FLAGS
 
+ENV USER=root
+
 COPY ext ext
 COPY Rakefile Rakefile
 
