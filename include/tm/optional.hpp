@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <utility>
 
 namespace TM {
 
@@ -86,7 +87,7 @@ public:
      */
     Optional<T> &operator=(T &&value) {
         m_present = true;
-        m_value = value;
+        m_value = std::move(value);
         return *this;
     }
 
