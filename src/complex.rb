@@ -122,6 +122,14 @@ class Complex
   end
   alias quo /
 
+  def fdiv(other)
+    unless other.is_a?(Numeric)
+      raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+    end
+
+    return Complex(self.real / other.to_f, self.imaginary / other.to_f)
+  end
+
   def *(other)    
     # (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
     if other.is_a?(Complex)
