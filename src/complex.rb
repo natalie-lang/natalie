@@ -112,7 +112,11 @@ class Complex
     end
 
     if other.is_a?(Numeric) && other.real?
-      return Complex(self.real / other, self.imaginary / other)
+      if other.is_a?(Integer) && (self.real % other != 0 || self.imaginary % other != 0)
+        return Complex(Rational(self.real, other), Rational(self.imaginary, other))
+      else
+        return Complex(self.real / other, self.imaginary / other)
+      end
     end
 
     if other.respond_to?(:coerce)
