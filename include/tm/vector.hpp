@@ -296,19 +296,39 @@ public:
      * Pushes (appends) a value at the end (at index size()).
      *
      * ```
-     * auto vec = Vector<char> { 'a' };
-     * vec.push('b');
-     * assert_eq('a', vec[0]);
-     * assert_eq('b', vec[1]);
+     * auto vec = Vector<Thing> { Thing(1) };
+     * const auto thing2 = Thing(2);
+     * vec.push(thing2);
+     * assert_eq(1, vec[0].value());
+     * assert_eq(2, vec[1].value());
      * ```
      */
-    void push(T val) {
+    void push(const T &val) {
         size_t len = m_size;
         if (m_size >= m_capacity) {
             grow_at_least(m_size + 1);
         }
         m_size++;
         m_data[len] = val;
+    }
+
+    /**
+     * Pushes (appends) a value at the end (at index size()).
+     *
+     * ```
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.push(Thing(2));
+     * assert_eq(1, vec[0].value());
+     * assert_eq(2, vec[1].value());
+     * ```
+     */
+    void push(T &&val) {
+        size_t len = m_size;
+        if (m_size >= m_capacity) {
+            grow_at_least(m_size + 1);
+        }
+        m_size++;
+        m_data[len] = std::move(val);
     }
 
     /**
