@@ -22,8 +22,7 @@ describe :complex_divide, shared: true do
       -> { Complex(20, 40).send(@method, 0) }.should raise_error(ZeroDivisionError)
     end
 
-    # NATFIXME: Improve support for Rational results
-    xit "produces Rational parts" do
+    it "produces Rational parts" do
       Complex(5, 9).send(@method, 2).should eql(Complex(Rational(5,2), Rational(9,2)))
     end
   end
