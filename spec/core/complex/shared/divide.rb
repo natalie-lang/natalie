@@ -58,8 +58,7 @@ describe :complex_divide, shared: true do
     end
   end
 
-  # NATFIXME: Improve support for `#quo` calls.
-  xdescribe "with a Numeric which responds to #real? with true" do
+  describe "with a Numeric which responds to #real? with true" do
     it "returns Complex(real.quo(other), imag.quo(other))" do
       other = mock_numeric('other')
       real = mock_numeric('real')
