@@ -22,8 +22,7 @@ describe :complex_divide, shared: true do
       -> { Complex(20, 40).send(@method, 0) }.should raise_error(ZeroDivisionError)
     end
 
-    # NATFIXME: Improve support for Rational results
-    xit "produces Rational parts" do
+    it "produces Rational parts" do
       Complex(5, 9).send(@method, 2).should eql(Complex(Rational(5,2), Rational(9,2)))
     end
   end
@@ -59,8 +58,7 @@ describe :complex_divide, shared: true do
     end
   end
 
-  # NATFIXME: Improve support for `#quo` calls.
-  xdescribe "with a Numeric which responds to #real? with true" do
+  describe "with a Numeric which responds to #real? with true" do
     it "returns Complex(real.quo(other), imag.quo(other))" do
       other = mock_numeric('other')
       real = mock_numeric('real')
@@ -72,8 +70,7 @@ describe :complex_divide, shared: true do
     end
   end
 
-  # NATFIXME: Improve support for Rational results.
-  xdescribe "with a Numeric which responds to #real? with false" do
+  describe "with a Numeric which responds to #real? with false" do
     it "coerces the passed argument to Complex and divides the resulting elements" do
       complex = Complex(3, 0)
       other = mock_numeric('other')
