@@ -1479,9 +1479,8 @@ public:
     static void format(String &out, const char *fmt, T first, Args... rest) {
         for (const char *c = fmt; *c != 0; c++) {
             if (*c == '{' && *(c + 1) == '}') {
-                c++;
                 out.append(first);
-                format(out, c + 1, rest...);
+                format(out, c + 2, rest...);
                 return;
             } else {
                 out.append_char(*c);
