@@ -71,8 +71,7 @@ describe :complex_divide, shared: true do
     end
   end
 
-  # NATFIXME: Improve support for Rational results.
-  xdescribe "with a Numeric which responds to #real? with false" do
+  describe "with a Numeric which responds to #real? with false" do
     it "coerces the passed argument to Complex and divides the resulting elements" do
       complex = Complex(3, 0)
       other = mock_numeric('other')
