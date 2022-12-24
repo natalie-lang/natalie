@@ -92,10 +92,7 @@ public:
      * assert_str_eq("bar", view2);
      * ```
      */
-    StringView(const StringView &other)
-        : m_string { other.m_string }
-        , m_offset { other.m_offset }
-        , m_length { other.m_length } { }
+    StringView(const StringView &other) = default;
 
     /**
      * Replaces the StringView by copying from an another StringView.
@@ -109,12 +106,7 @@ public:
      * assert_str_eq("bar", view1);
      * ```
      */
-    StringView &operator=(const StringView &other) {
-        m_string = other.m_string;
-        m_offset = other.m_offset;
-        m_length = other.m_length;
-        return *this;
-    }
+    StringView &operator=(const StringView &other) = default;
 
     /**
      * Returns the offset into the String.
