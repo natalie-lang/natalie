@@ -174,7 +174,7 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
 bool FileObject::exist(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    return stat(path->as_string()->c_str(), &sb) != -1;
+    return ::stat(path->as_string()->c_str(), &sb) != -1;
 }
 
 bool FileObject::is_file(Env *env, Value path) {
@@ -462,7 +462,7 @@ Value FileObject::umask(Env *env, Value mask) {
 }
 
 Value FileObject::stat(Env *env, Value path) {
-    path = ConvertToPath(env, path);
+    path = fileutil::convert_using_to_path(env, path);
     return new FileStatObject { path->as_string()->c_str() };
 }
 
