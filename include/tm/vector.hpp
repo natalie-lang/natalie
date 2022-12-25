@@ -91,6 +91,25 @@ public:
         copy_data(m_data, other.m_data, other.m_size);
     }
 
+    /**
+     * Constructs a vector by moving from another vector.
+     *
+     * ```
+     * auto vec1 = Vector<char> { 'a', 'b', 'c' };
+     * auto vec2 = Vector<char>(std::move(vec1));
+     * assert_eq(3, vec2.size());
+     * assert_eq(0, vec1.size());
+     * ```
+     */
+    Vector(Vector &&other)
+        : m_size { other.m_size }
+        , m_capacity { other.m_size }
+        , m_data { other.m_data } {
+        other.m_size = 0;
+        other.m_capacity = 0;
+        other.m_data = nullptr;
+    }
+
     ~Vector() {
         delete_memory();
     }
