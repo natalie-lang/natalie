@@ -78,8 +78,7 @@ describe :kernel_Rational, shared: true do
     end
   end
 
-  # NATFIXME: Implement Complex
-  xdescribe "when passed a Complex" do
+  describe "when passed a Complex" do
     it "returns a Rational from the real part if the imaginary part is 0" do
       Rational(Complex(1, 0)).should == Rational(1)
     end
