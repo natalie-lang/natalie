@@ -62,13 +62,30 @@ class Thing {
 public:
     Thing() = default;
 
-    Thing(int value)
+    Thing(const int value)
         : m_value { value } { }
 
-    Thing(const Thing &other)
-        : m_value { other.m_value } { }
+    Thing(const Thing &other) = default;
 
-    ~Thing() { }
+    Thing(Thing &&other)
+        : m_value { std::move(other.m_value) } {
+        other.m_value = 0;
+    }
+
+    Thing &operator=(const int value) {
+        m_value = value;
+        return *this;
+    }
+
+    Thing &operator=(const Thing &other) = default;
+
+    Thing &operator=(Thing &&other) {
+        m_value = std::move(other.m_value);
+        other.m_value = 0;
+        return *this;
+    }
+
+    ~Thing() = default;
 
     bool operator==(const Thing &other) {
         return m_value == other.m_value;
