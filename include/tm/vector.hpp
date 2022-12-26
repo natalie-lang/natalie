@@ -401,9 +401,39 @@ public:
      * assert_eq(t2, vec[2]);
      * ```
      */
-    void insert(size_t index, T val) {
+    void insert(size_t index, const T &val) {
         insert_prepare(index);
         m_data[index] = val;
+    }
+
+    /**
+     * Inserts a value at the given index by moving the value.
+     * Index must be <= the size of the vector,
+     * i.e. you can only increase the vector size by one.
+     *
+     * ```
+     * auto t1 = Thing(1);
+     * auto t2 = Thing(2);
+     * auto vec = Vector<Thing> { t1, t2 };
+     * vec.insert(0, Thing(3));
+     * assert_eq(3, vec.size());
+     * assert_eq(3, vec[0].value());
+     * assert_eq(t1, vec[1]);
+     * assert_eq(t2, vec[2]);
+     * ```
+     *
+     * This method aborts if the given index is more than 1
+     * past the end.
+     *
+     * ```should_abort
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.insert(25, Thing(2)); // beyond the end
+     * ```
+     *
+     */
+    void insert(size_t index, T &&val) {
+        insert_prepare(index);
+        m_data[index] = std::move(val);
     }
 
     /**
