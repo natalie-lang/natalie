@@ -56,7 +56,7 @@ public:
      * ```
      * auto obj = Thing(1);
      * auto opt1 = Optional<Thing>(obj);
-     * auto opt2 = Optional<Thing>(opt1);
+     * auto opt2 = Optional<Thing>(std::move(opt1));
      * assert_not(opt1);
      * assert_eq(obj, opt2.value());
      * ```
