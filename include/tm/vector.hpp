@@ -402,25 +402,8 @@ public:
      * ```
      */
     void insert(size_t index, T val) {
-        assert(index <= m_size);
-        grow_at_least(m_size + 1);
-
-        if (index == m_size) {
-            m_size++;
-            m_data[index] = val;
-            return;
-        }
-
-        if constexpr (std::is_trivially_copyable<T>::value) {
-            memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
-        } else {
-            for (size_t i = m_size - 1; i > index; --i)
-                m_data[i + 1] = m_data[i];
-            m_data[index + 1] = m_data[index];
-        }
-
+        insert_prepare(index);
         m_data[index] = val;
-        m_size++;
     }
 
     /**
@@ -779,6 +762,26 @@ protected:
             free(m_data);
         else
             delete[] m_data;
+    }
+
+    void insert_prepare(size_t index) {
+        assert(index <= m_size);
+        grow_at_least(m_size + 1);
+
+        if (index == m_size) {
+            m_size++;
+            return;
+        }
+
+        if constexpr (std::is_trivially_copyable<T>::value) {
+            memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
+        } else {
+            for (size_t i = m_size - 1; i > index; --i)
+                m_data[i + 1] = m_data[i];
+            m_data[index + 1] = m_data[index];
+        }
+
+        m_size++;
     }
 
     size_t m_size { 0 };
