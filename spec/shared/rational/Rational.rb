@@ -68,8 +68,7 @@ describe :kernel_Rational, shared: true do
     end
   end
 
-  # NATFIXME: Implement Numeric#to_r
-  xdescribe "when passed a Numeric" do
+  describe "when passed a Numeric" do
     it "calls #to_r to convert the first argument to a Rational" do
       num = RationalSpecs::SubNumeric.new(2)
 
