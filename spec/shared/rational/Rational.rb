@@ -68,7 +68,6 @@ describe :kernel_Rational, shared: true do
     end
   end
 
-  # NATFIXME: bug in spec; 'when passed a Numeric' and co. should not be nested inside 'when passed a String'
   # NATFIXME: Implement Numeric#to_r
   xdescribe "when passed a Numeric" do
     it "calls #to_r to convert the first argument to a Rational" do
