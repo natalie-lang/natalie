@@ -18,9 +18,22 @@ public:
      * assert(opt);
      * ```
      */
-    Optional(T value)
+    Optional(const T &value)
         : m_present { true }
         , m_value { value } { }
+
+    /**
+     * Constructs a new Optional with a value.
+     *
+     * ```
+     * auto obj = Thing(1);
+     * auto opt = Optional<Thing>(std::move(obj));
+     * assert(opt);
+     * ```
+     */
+    Optional(T &&value)
+        : m_present { true }
+        , m_value { std::move(value) } { }
 
     /**
      * Constructs a new Optional without a value.
