@@ -18,7 +18,7 @@ public:
     Value tokens(Env *, Value, Value);
 
 private:
-    Value node_to_ruby(Env *env, SharedPtr<NatalieParser::Node> node);
+    Value node_to_ruby(Env *env, const NatalieParser::Node &node);
     Value token_to_ruby(Env *env, NatalieParser::Token &token, bool with_line_and_column_numbers = false);
     void validate_token(Env *env, NatalieParser::Token &token);
 };
