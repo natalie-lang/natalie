@@ -354,13 +354,28 @@ public:
      * Pushes (inserts) a value at the front (index 0).
      *
      * ```
-     * auto vec = Vector<char> { 'b' };
-     * vec.push_front('a');
-     * assert_eq('a', vec[0]);
+     * auto t1 = Thing(1);
+     * auto t2 = Thing(2);
+     * auto vec = Vector<Thing> { t1 };
+     * vec.push_front(t2);
+     * assert_eq(t2, vec[0]);
      * ```
      */
-    void push_front(T val) {
+    void push_front(const T &val) {
         insert(0, val);
+    }
+
+    /**
+     * Pushes (inserts) a value at the front (index 0).
+     *
+     * ```
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.push_front(Thing(2));
+     * assert_eq(2, vec[0].value());
+     * ```
+     */
+    void push_front(T &&val) {
+        insert(0, std::move(val));
     }
 
     /**
