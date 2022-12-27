@@ -21,7 +21,7 @@ jobs:
           extensions: "hpp,cpp"
           clangFormatVersion: 12
           inplace: True
-      - uses: EndBug/add-and-commit@v4
+      - uses: EndBug/add-and-commit@v9
         with:
           author_name: Tim Morgan
           author_email: tim@timmorgan.org
