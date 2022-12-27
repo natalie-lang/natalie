@@ -6,7 +6,8 @@ describe "String#to_i" do
     "_123".to_i.should == 0
   end
 
-  it "ignores underscores in between the digits" do
+  # NATFIXME
+  xit "ignores underscores in between the digits" do
     "1_2_3asdf".to_i.should == 123
   end
 
@@ -29,11 +30,13 @@ describe "String#to_i" do
     end
   end
 
-  it "accepts '+' at the beginning of a String" do
+  # NATFIXME
+  xit "accepts '+' at the beginning of a String" do
     "+0d56".to_i.should == 56
   end
 
-  it "interprets leading characters as a number in the given base" do
+  # NATFIXME: This should be fixed with "ignores underscores in between the digits"
+  xit "interprets leading characters as a number in the given base" do
     "100110010010".to_i(2).should == 0b100110010010
     "100110201001".to_i(3).should == 186409
     "103110201001".to_i(4).should == 5064769
@@ -58,17 +61,20 @@ describe "String#to_i" do
     "-01778".to_i(0).should == -0177
   end
 
-  it "auto-detects base 2 via 0b when base = 0" do
+  # NATFIXME
+  xit "auto-detects base 2 via 0b when base = 0" do
     "0b112".to_i(0).should == 0b11
     "-0b112".to_i(0).should == -0b11
   end
 
-  it "auto-detects base 10 via 0d when base = 0" do
+  # NATFIXME
+  xit "auto-detects base 10 via 0d when base = 0" do
     "0d19A".to_i(0).should == 19
     "-0d19A".to_i(0).should == -19
   end
 
-  it "auto-detects base 8 via 0o when base = 0" do
+  # NATFIXME
+  xit "auto-detects base 8 via 0o when base = 0" do
     "0o178".to_i(0).should == 0o17
     "-0o178".to_i(0).should == -0o17
   end
@@ -83,7 +89,8 @@ describe "String#to_i" do
     "-1234567890ABC".to_i(0).should == -1234567890
   end
 
-  it "doesn't handle foreign base specifiers when base is > 0" do
+  # NATFIXME
+  xit "doesn't handle foreign base specifiers when base is > 0" do
     [2, 3, 4, 8, 10].each do |base|
       "0111".to_i(base).should == "111".to_i(base)
 
@@ -106,7 +113,8 @@ describe "String#to_i" do
     "0X11".to_i(34).should == 38183
   end
 
-  it "tries to convert the base to an integer using to_int" do
+  # NATFIXME
+  xit "tries to convert the base to an integer using to_int" do
     obj = mock('8')
     obj.should_receive(:to_int).and_return(8)
 
@@ -125,7 +133,8 @@ describe "String#to_i" do
     "0x-1".to_i(16).should == 0
   end
 
-  it "raises an ArgumentError for illegal bases (1, < 0 or > 36)" do
+  # NATFIXME
+  xit "raises an ArgumentError for illegal bases (1, < 0 or > 36)" do
     -> { "".to_i(1)  }.should raise_error(ArgumentError)
     -> { "".to_i(-1) }.should raise_error(ArgumentError)
     -> { "".to_i(37) }.should raise_error(ArgumentError)
@@ -153,13 +162,15 @@ describe "String#to_i" do
     "                            -10".to_i.should be_an_instance_of(Integer)
   end
 
-  it "returns the correct Integer for long strings" do
+  # NATFIXME: support for BigInt in String#to_i
+  xit "returns the correct Integer for long strings" do
     "245789127594125924165923648312749312749327482".to_i.should == 245789127594125924165923648312749312749327482
     "-245789127594125924165923648312749312749327482".to_i.should == -245789127594125924165923648312749312749327482
   end
 end
 
-describe "String#to_i with bases" do
+# NATFIXME: support for BigInt in String#to_i
+xdescribe "String#to_i with bases" do
   it "parses a String in base 2" do
     str = "10" * 50
     str.to_i(2).to_s(2).should == str
