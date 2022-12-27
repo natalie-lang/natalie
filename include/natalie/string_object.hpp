@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "natalie/class_object.hpp"
@@ -337,6 +338,8 @@ public:
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Value);
     Value split(Env *, Value, Value);
+    Value split(Env *, RegexpObject *, int);
+    Value split(Env *, StringObject *, int);
     Value strip(Env *) const;
     Value strip_in_place(Env *);
     Value sum(Env *, Value = nullptr);
