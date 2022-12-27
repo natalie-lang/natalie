@@ -83,8 +83,8 @@ end
 # if it does not exist.
 def touch(name, mode = "w")
   mkdir_p File.dirname(name)
-
+  has_block = block_given? # NATFIXME: workaround for issue #742
   File.open(name, mode) do |f|
-    yield f if block_given?
+    yield f if has_block
   end
 end
