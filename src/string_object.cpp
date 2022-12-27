@@ -1826,6 +1826,9 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
     if (base_obj) {
         base_obj->assert_type(env, Object::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_nat_int_t();
+        if (base < 0 || base == 1 || base > 36) {
+            env->raise("ArgumentError", "invalid radix {}", base);
+        }
     }
     nat_int_t number = strtoll(c_str(), nullptr, base);
     return Value::integer(number);
