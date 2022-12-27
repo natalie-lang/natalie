@@ -91,6 +91,25 @@ public:
         copy_data(m_data, other.m_data, other.m_size);
     }
 
+    /**
+     * Constructs a vector by moving from another vector.
+     *
+     * ```
+     * auto vec1 = Vector<char> { 'a', 'b', 'c' };
+     * auto vec2 = Vector<char>(std::move(vec1));
+     * assert_eq(3, vec2.size());
+     * assert_eq(0, vec1.size());
+     * ```
+     */
+    Vector(Vector &&other)
+        : m_size { other.m_size }
+        , m_capacity { other.m_size }
+        , m_data { other.m_data } {
+        other.m_size = 0;
+        other.m_capacity = 0;
+        other.m_data = nullptr;
+    }
+
     ~Vector() {
         delete_memory();
     }
@@ -296,13 +315,14 @@ public:
      * Pushes (appends) a value at the end (at index size()).
      *
      * ```
-     * auto vec = Vector<char> { 'a' };
-     * vec.push('b');
-     * assert_eq('a', vec[0]);
-     * assert_eq('b', vec[1]);
+     * auto vec = Vector<Thing> { Thing(1) };
+     * const auto thing2 = Thing(2);
+     * vec.push(thing2);
+     * assert_eq(1, vec[0].value());
+     * assert_eq(2, vec[1].value());
      * ```
      */
-    void push(T val) {
+    void push(const T &val) {
         size_t len = m_size;
         if (m_size >= m_capacity) {
             grow_at_least(m_size + 1);
@@ -312,16 +332,50 @@ public:
     }
 
     /**
+     * Pushes (appends) a value at the end (at index size()).
+     *
+     * ```
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.push(Thing(2));
+     * assert_eq(1, vec[0].value());
+     * assert_eq(2, vec[1].value());
+     * ```
+     */
+    void push(T &&val) {
+        size_t len = m_size;
+        if (m_size >= m_capacity) {
+            grow_at_least(m_size + 1);
+        }
+        m_size++;
+        m_data[len] = std::move(val);
+    }
+
+    /**
      * Pushes (inserts) a value at the front (index 0).
      *
      * ```
-     * auto vec = Vector<char> { 'b' };
-     * vec.push_front('a');
-     * assert_eq('a', vec[0]);
+     * auto t1 = Thing(1);
+     * auto t2 = Thing(2);
+     * auto vec = Vector<Thing> { t1 };
+     * vec.push_front(t2);
+     * assert_eq(t2, vec[0]);
      * ```
      */
-    void push_front(T val) {
+    void push_front(const T &val) {
         insert(0, val);
+    }
+
+    /**
+     * Pushes (inserts) a value at the front (index 0).
+     *
+     * ```
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.push_front(Thing(2));
+     * assert_eq(2, vec[0].value());
+     * ```
+     */
+    void push_front(T &&val) {
+        insert(0, std::move(val));
     }
 
     /**
@@ -362,26 +416,39 @@ public:
      * assert_eq(t2, vec[2]);
      * ```
      */
-    void insert(size_t index, T val) {
-        assert(index <= m_size);
-        grow_at_least(m_size + 1);
-
-        if (index == m_size) {
-            m_size++;
-            m_data[index] = val;
-            return;
-        }
-
-        if constexpr (std::is_trivially_copyable<T>::value) {
-            memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
-        } else {
-            for (size_t i = m_size - 1; i > index; --i)
-                m_data[i + 1] = m_data[i];
-            m_data[index + 1] = m_data[index];
-        }
-
+    void insert(size_t index, const T &val) {
+        insert_prepare(index);
         m_data[index] = val;
-        m_size++;
+    }
+
+    /**
+     * Inserts a value at the given index by moving the value.
+     * Index must be <= the size of the vector,
+     * i.e. you can only increase the vector size by one.
+     *
+     * ```
+     * auto t1 = Thing(1);
+     * auto t2 = Thing(2);
+     * auto vec = Vector<Thing> { t1, t2 };
+     * vec.insert(0, Thing(3));
+     * assert_eq(3, vec.size());
+     * assert_eq(3, vec[0].value());
+     * assert_eq(t1, vec[1]);
+     * assert_eq(t2, vec[2]);
+     * ```
+     *
+     * This method aborts if the given index is more than 1
+     * past the end.
+     *
+     * ```should_abort
+     * auto vec = Vector<Thing> { Thing(1) };
+     * vec.insert(25, Thing(2)); // beyond the end
+     * ```
+     *
+     */
+    void insert(size_t index, T &&val) {
+        insert_prepare(index);
+        m_data[index] = std::move(val);
     }
 
     /**
@@ -740,6 +807,26 @@ protected:
             free(m_data);
         else
             delete[] m_data;
+    }
+
+    void insert_prepare(size_t index) {
+        assert(index <= m_size);
+        grow_at_least(m_size + 1);
+
+        if (index == m_size) {
+            m_size++;
+            return;
+        }
+
+        if constexpr (std::is_trivially_copyable<T>::value) {
+            memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
+        } else {
+            for (size_t i = m_size - 1; i > index; --i)
+                m_data[i + 1] = m_data[i];
+            m_data[index + 1] = m_data[index];
+        }
+
+        m_size++;
     }
 
     size_t m_size { 0 };
