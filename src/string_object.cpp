@@ -1831,6 +1831,9 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
         }
     }
     nat_int_t number = strtoll(c_str(), nullptr, base);
+    if (number == NAT_INT_MIN || number == NAT_INT_MAX) {
+        return IntegerObject::create(BigInt(string()));
+    }
     return Value::integer(number);
 }
 
