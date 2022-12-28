@@ -178,8 +178,9 @@ public:
      *
      * ```
      * auto str = String { (unsigned long int)10 };
-     * auto str = String { (long int)10 };
+     * auto str2 = String { (long int)10 };
      * assert_str_eq("10", str);
+     * assert_str_eq("10", str2);
      * ```
      */
     String(long int number) {
