@@ -31,7 +31,7 @@ public:
     }
 
     virtual void visit_children(Visitor &visitor) override final {
-        Object::visit_children(visitor);
+        AbstractMethodObject::visit_children(visitor);
         visitor.visit(m_object);
         visitor.visit(m_method);
     }
