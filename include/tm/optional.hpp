@@ -136,7 +136,7 @@ public:
      * auto obj2 = Thing(2);
      * auto opt = Optional<Thing>(obj1);
      * opt = std::move(obj2);
-     * assert_eq(obj2, opt.value());
+     * assert_eq(Thing(2), opt.value());
      * ```
      */
     Optional<T> &operator=(T &&value) {
