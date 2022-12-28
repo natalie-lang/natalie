@@ -461,9 +461,30 @@ Value FileObject::umask(Env *env, Value mask) {
     return Value::integer(old_mask);
 }
 
+// class method
 Value FileObject::stat(Env *env, Value path) {
     path = fileutil::convert_using_to_path(env, path);
-    return new FileStatObject { path->as_string()->c_str() };
+    std::error_code ec;
+    auto fs = std::filesystem::status(path->as_string()->c_str(), ec);
+    if (ec) {
+        errno = ec.value();
+        env->raise_errno();
+    }
+    return new FileStatObject { fs };
 }
+    
+// instance method
+// actually need to use fstat here to pull the file-descriptor and the
+// C++ interface doesnt provide access to that. :(    
+Value FileObject::stat(Env *env) {
+    std::error_code ec;
+    auto fs = std::filesystem::status(m_path.c_str(), ec);
+    if (ec) {
+        errno = ec.value();
+        env->raise_errno();
+    }
+    return new FileStatObject { fs };
+}
+
 
 }

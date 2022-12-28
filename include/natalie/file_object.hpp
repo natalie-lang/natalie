@@ -86,6 +86,8 @@ public:
 
     static Value stat(Env *env, Value path);
 
+    Value stat(Env *env); // instance method
+
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };
 
