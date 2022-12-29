@@ -554,6 +554,48 @@ describe 'string' do
         s.should == "\u0000".encode('UTF-32BE')
       end
     end
+
+    # Test Utf16LeEncodingObject::prev_char method
+    describe 'UTF-16LE' do
+      it 'removes the last character' do
+        s = 'foo!'.encode('UTF-16LE')
+        s.chop!
+        s.should == 'foo'.encode('UTF-16LE')
+
+        s = ''.encode('UTF-16LE')
+        s.chop!
+        s.should == ''.encode('UTF-16LE')
+
+        s = "foo\uD7FF".encode('UTF-16LE') # \uD7FF - single code unit character
+        s.chop!
+        s.should == 'foo'.encode('UTF-16LE')
+
+        s = "foo\u{10FFFF}".encode('UTF-16LE') # \u10FFFF - 2 code units character
+        s.chop!
+        s.should == 'foo'.encode('UTF-16LE')
+
+        # FIXME
+        # s = 'foo'.encode('UTF-16LE') + "\xFF".force_encoding('UTF-16LE') # incorrect 1-byte sequence
+        # s.chop!
+        # s.bytes.should == 'foo'.encode('UTF-16LE').bytes
+
+        # FIXME
+        # s = 'foo'.encode('UTF-16LE') + "\x00\xD8\x00".force_encoding('UTF-16LE') # incorrect 3-byte sequence
+        # s.chop!
+        # s.should == 'foo'.encode('UTF-16LE') + "\x00\xD8".force_encoding('UTF-16LE')
+
+        # incorrect sequence: the second code unit - DC00-1 - within D800-DFFF
+        s = 'foo'.encode('UTF-16LE') + "\x00\xD8\xFF\xDB".force_encoding('UTF-16LE')
+        s.chop!
+        s.should == 'foo'.encode('UTF-16LE') + "\x00\xD8".force_encoding('UTF-16LE')
+
+        # FIXME
+        # incorrect sequence: the first code unit - DBFF+1 - within D800-DFFF
+        # s = 'foo'.encode('UTF-16LE') + "\x00\xDC\x00\xDC".force_encoding('UTF-16LE')
+        # s.chop!
+        # s.should == 'foo'.encode('UTF-16LE')
+      end
+    end
   end
 
   describe '#downcase' do
