@@ -24,6 +24,8 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
             env->raise("ArgumentError", "HOME/LOGDIR not set");
 
         path = new StringObject { path_str };
+    } else {
+        path = fileutil::convert_using_to_path(env, path);
     }
 
     auto old_path = std::filesystem::current_path();
@@ -32,7 +34,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
     if (!block)
         return Value::integer(0);
-    
+
     Value args[] = { path };
     Value result;
     try {
