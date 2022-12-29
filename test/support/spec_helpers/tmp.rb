@@ -46,7 +46,7 @@ at_exit do
     if SPEC_TEMP_DIR_PID == Process.pid
       # TODO: revert when Dir.delete is implemented
       #Dir.delete SPEC_TEMP_DIR if File.directory? SPEC_TEMP_DIR
-      `rm -r #{SPEC_TEMP_DIR}` if File.directory? SPEC_TEMP_DIR
+      `rm -rf #{SPEC_TEMP_DIR}` if File.directory? SPEC_TEMP_DIR
     end
   rescue SystemCallError
     STDERR.puts <<-EOM
@@ -73,9 +73,8 @@ def tmp(name, uniquify = true)
     #index = slash ? slash + 1 : 0
     #name.insert index, "#{SPEC_TEMP_UNIQUIFIER.succ!}-"
     slash = name.reverse.index("/")
-    index = slash ? name.size - slash - 1 : 0
+    index = slash ? name.size - slash : 0
     name = name[0...index] + "#{SPEC_TEMP_UNIQUIFIER.succ!}-" + name[index..-1]
   end
-
   File.join SPEC_TEMP_DIR, name
 end

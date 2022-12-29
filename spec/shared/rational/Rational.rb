@@ -68,9 +68,7 @@ describe :kernel_Rational, shared: true do
     end
   end
 
-  # NATFIXME: bug in spec; 'when passed a Numeric' and co. should not be nested inside 'when passed a String'
-  # NATFIXME: Implement Numeric#to_r
-  xdescribe "when passed a Numeric" do
+  describe "when passed a Numeric" do
     it "calls #to_r to convert the first argument to a Rational" do
       num = RationalSpecs::SubNumeric.new(2)
 
@@ -78,8 +76,7 @@ describe :kernel_Rational, shared: true do
     end
   end
 
-  # NATFIXME: Implement Complex
-  xdescribe "when passed a Complex" do
+  describe "when passed a Complex" do
     it "returns a Rational from the real part if the imaginary part is 0" do
       Rational(Complex(1, 0)).should == Rational(1)
     end

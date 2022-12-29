@@ -22,7 +22,7 @@ describe "String#ord and UTF-32LE" do
     string = "\xFF\xFF\x11\x00".force_encoding("UTF-32LE") # U+10FFFF + 1
     -> { string.ord }.should raise_error(ArgumentError, "invalid byte sequence in UTF-32LE")
 
-    string = "\xFF\xDF\x00".force_encoding("UTF-32LE") # U+DFFF
+    string = "\xFF\xDF\x00\x00".force_encoding("UTF-32LE") # U+DFFF
     -> { string.ord }.should raise_error(ArgumentError, "invalid byte sequence in UTF-32LE")
   end
 end

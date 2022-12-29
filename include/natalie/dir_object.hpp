@@ -20,6 +20,8 @@ public:
     DirObject()
         : Object { GlobalEnv::the()->Object()->const_fetch("Dir"_s)->as_class() } { }
 
+    static bool is_empty(Env *, Value);
+    static Value home(Env *, Value);
     static Value chdir(Env *env, Value path, Block *block);
     static Value mkdir(Env *env, Value path, Value mode);
     static Value pwd(Env *env);

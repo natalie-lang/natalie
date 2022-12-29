@@ -24,6 +24,8 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
             env->raise("ArgumentError", "HOME/LOGDIR not set");
 
         path = new StringObject { path_str };
+    } else {
+        path = fileutil::convert_using_to_path(env, path);
     }
 
     auto old_path = std::filesystem::current_path();
@@ -32,7 +34,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
     if (!block)
         return Value::integer(0);
-    
+
     Value args[] = { path };
     Value result;
     try {
@@ -47,8 +49,12 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 }
 
 Value DirObject::mkdir(Env *env, Value path, Value mode) {
-    int octmode = 0777;
-    path->assert_type(env, Object::Type::String, "String");
+    mode_t octmode = 0777;
+    if (mode) {
+        mode->assert_type(env, Object::Type::Integer, "Integer");
+        octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
+    }
+    path = fileutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     // need to check dir exists and return nil if mkdir was unsuccessful.
@@ -60,10 +66,41 @@ Value DirObject::pwd(Env *env) {
 }
 
 Value DirObject::rmdir(Env *env, Value path) {
-    path->assert_type(env, Object::Type::String, "String");
+    path = fileutil::convert_using_to_path(env, path);
     auto result = ::rmdir(path->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);
 }
 
+Value DirObject::home(Env *env, Value username) {
+    if (username) {
+        username->assert_type(env, Object::Type::String, "String");
+        // lookup home-dir for username
+        struct passwd *pw;
+        pw = getpwnam(username->as_string()->c_str());
+        if (!pw)
+            env->raise("ArgumentError", "user {} foobar doesn't exist", username->as_string()->c_str());
+        return new StringObject { pw->pw_dir };
+    } else {
+        // no argument version
+        Value home_str = new StringObject { "HOME" };
+        Value home_dir = GlobalEnv::the()->Object()->const_fetch("ENV"_s).send(env, "fetch"_s, { home_str });
+        return home_dir->dup(env);
+    }
+}
+bool DirObject::is_empty(Env *env, Value dirname) {
+    dirname->assert_type(env, Object::Type::String, "String");
+    auto dir_cstr = dirname->as_string()->c_str();
+    std::error_code ec;
+    auto st = std::filesystem::symlink_status(dir_cstr, ec);
+    if (ec) {
+        errno = ec.value();
+        env->raise_errno();
+    }
+    if (st.type() != std::filesystem::file_type::directory)
+        return false;
+    const std::filesystem::path dirpath { dir_cstr };
+    auto dir_iter = std::filesystem::directory_iterator { dirpath };
+    return std::filesystem::begin(dir_iter) == std::filesystem::end(dir_iter);
+}
 }

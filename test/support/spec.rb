@@ -248,8 +248,14 @@ def _platform_match(*args)
                           [{}, args]
                         end
    return true if options[:wordsize] == 64 || options[:pointer_size] == 64
-   return true if  platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
+   return true if platforms.include?(:windows) && RUBY_PLATFORM =~ /(mswin|mingw)/
    return true if platforms.include?(:linux) && RUBY_PLATFORM =~ /linux/
+   return true if platforms.include?(:darwin) && RUBY_PLATFORM =~ /darwin/i
+   return true if platforms.include?(:openbsd) && RUBY_PLATFORM =~ /openbsd/i
+   return true if platforms.include?(:freebsd) && RUBY_PLATFORM =~ /freebsd/i
+   return true if platforms.include?(:netbsd) && RUBY_PLATFORM =~ /netbsd/i
+   return true if platforms.include?(:bsd) && RUBY_PLATFORM =~ /(bsd|darwin)/i
+   # TODO: cygwin, android, solaris and aix are currently uncovered
    false
 end
 
@@ -278,15 +284,22 @@ def kernel_version_is(*)
   false
 end
 
-# TODO: replace shell call with Process.uid when implemented
 def as_user
-  if `id -ru`.chomp != "0"
+  if Process.euid != 0
     yield
   end
 end
 
 def as_superuser
-  nil
+  if Process.euid == 0
+    yield
+  end
+end
+
+def as_real_superuser
+  if Process.uid == 0
+    yield
+  end
 end
 
 def little_endian
@@ -512,6 +525,20 @@ class EqualExpectation
 
   def inverted_match(subject)
     raise SpecFailedException, subject.inspect + ' should not be equal to ' + @other.inspect if subject.equal?(@other)
+  end
+end
+
+class TrueFalseExpectation
+  def match(subject)
+    unless subject == true || subject == false
+      raise SpecFailedException, subject.inspect + ' should be true or false'
+    end
+  end
+
+  def inverted_match(subject)
+    if subject == true || subject == false
+      raise SpecFailedException, subject.inspect + ' should not be true or false'
+    end
   end
 end
 
@@ -1120,6 +1147,10 @@ class Object
     EqualExpectation.new(false)
   end
 
+  def be_true_or_false
+    TrueFalseExpectation.new()
+  end
+
   def be_close(target, tolerance)
     BeCloseExpectation.new(target, tolerance)
   end
@@ -1265,6 +1296,7 @@ def run_specs
 
   @specs.each do |test|
     context, test, fn, focus = test
+
     next if any_focused && !focus
     if fn
       @test_count += 1
@@ -1284,16 +1316,6 @@ def run_specs
         fn.call
 
         $expectations.each { |expectation| expectation.validate! }
-        context.each { |con| con.after_each.each { |a| a.call } }
-
-        context.each do |con|
-          con.after_all.each do |b|
-            unless after_all_done.include?(b)
-              b.call
-              after_all_done << b
-            end
-          end
-        end
 
       rescue SpecFailedException => e
         @failures << [context, test, e]
@@ -1304,10 +1326,28 @@ def run_specs
         formatter.print_error(*@errors.last)
       else
         formatter.print_success(context, test)
+      ensure
+        # ensure that the after-each is executed
+        context.each { |con| con.after_each.each { |a| a.call } }
       end
+
+
     else
       @skipped << [context, test]
       formatter.print_skipped(*@skipped.last)
+    end
+  end
+
+  # after-all
+  @specs.each do |test|
+    context = test[0]
+    context.each do |con|
+      con.after_all.each do |b|
+        unless after_all_done.include?(b)
+          b.call
+          after_all_done << b
+        end
+      end
     end
   end
 

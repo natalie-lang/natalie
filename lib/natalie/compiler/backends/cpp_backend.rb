@@ -54,7 +54,7 @@ module Natalie
       end
 
       def declare_symbols
-        "SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
+        "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
       end
 
       def init_symbols

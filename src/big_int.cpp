@@ -280,7 +280,7 @@ BigInt::BigInt(const TM::String &num) {
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
         assert(is_valid_number(magnitude));
-        m_value = magnitude;
+        m_value = std::move(magnitude);
         m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
@@ -1948,9 +1948,8 @@ std::tuple<TM::String, TM::String> sign_extend_binary(const TM::String &num1, co
 */
 
 BigInt BigInt::operator&(const BigInt &num) const {
-    TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary();
-    rhs_binary = num.to_binary();
+    const TM::String lhs_binary = to_binary();
+    const TM::String rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -1974,9 +1973,8 @@ BigInt BigInt::operator&(const BigInt &num) const {
 */
 
 BigInt BigInt::operator|(const BigInt &num) const {
-    TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary();
-    rhs_binary = num.to_binary();
+    const TM::String lhs_binary = to_binary();
+    const TM::String rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -2000,9 +1998,8 @@ BigInt BigInt::operator|(const BigInt &num) const {
 */
 
 BigInt BigInt::operator^(const BigInt &num) const {
-    TM::String lhs_binary, rhs_binary;
-    lhs_binary = to_binary();
-    rhs_binary = num.to_binary();
+    const TM::String lhs_binary = to_binary();
+    const TM::String rhs_binary = num.to_binary();
 
     TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
@@ -2026,8 +2023,7 @@ BigInt BigInt::operator^(const BigInt &num) const {
 */
 
 BigInt BigInt::operator~() const {
-    TM::String lhs_binary;
-    lhs_binary = to_binary();
+    const TM::String lhs_binary = to_binary();
 
     TM::String complete_string;
     for (size_t i = 0; i < lhs_binary.size(); i++) {
@@ -2052,7 +2048,7 @@ BigInt BigInt::operator<<(const size_t &num) const {
 }
 
 BigInt BigInt::operator>>(const size_t &num) const {
-    TM::String binary = to_binary();
+    const TM::String binary = to_binary();
     TM::String complete_string;
 
     if (num > binary.size()) {

@@ -497,6 +497,10 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
         }
 
+        if (x->is_a(env, find_top_level_const(env, "Numeric"_s)->as_class()) && x->respond_to(env, "to_r"_s)) {
+            return x->public_send(env, "to_r"_s);
+        }
+
         x = Float(env, x, exception);
         if (!x) {
             return nullptr;

@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <utility>
 
 namespace TM {
 
@@ -17,9 +18,22 @@ public:
      * assert(opt);
      * ```
      */
-    Optional(T value)
+    Optional(const T &value)
         : m_present { true }
         , m_value { value } { }
+
+    /**
+     * Constructs a new Optional with a value.
+     *
+     * ```
+     * auto obj = Thing(1);
+     * auto opt = Optional<Thing>(std::move(obj));
+     * assert(opt);
+     * ```
+     */
+    Optional(T &&value)
+        : m_present { true }
+        , m_value { std::move(value) } { }
 
     /**
      * Constructs a new Optional without a value.
@@ -49,6 +63,25 @@ public:
             m_value = other.m_value;
     }
 
+    /**
+     * Moves the given Optional.
+     *
+     * ```
+     * auto obj = Thing(1);
+     * auto opt1 = Optional<Thing>(obj);
+     * auto opt2 = Optional<Thing>(std::move(opt1));
+     * assert_not(opt1);
+     * assert_eq(obj, opt2.value());
+     * ```
+     */
+    Optional(Optional &&other)
+        : m_present { other.m_present } {
+        if (m_present) {
+            m_value = std::move(other.m_value);
+            other.m_present = false;
+        }
+    }
+
     ~Optional() {
         clear();
     }
@@ -74,6 +107,28 @@ public:
     }
 
     /**
+     * Overwrites this Optional with the given one.
+     *
+     * ```
+     * auto obj1 = Thing(1);
+     * auto obj2 = Thing(2);
+     * auto opt1 = Optional<Thing>(obj1);
+     * auto opt2 = Optional<Thing>(obj2);
+     * opt1 = std::move(opt2);
+     * assert_eq(obj2, opt1.value());
+     * assert_not(opt2);
+     * ```
+     */
+    Optional<T> &operator=(Optional<T> &&other) {
+        m_present = other.m_present;
+        if (m_present) {
+            m_value = std::move(other.m_value);
+            other.m_present = false;
+        }
+        return *this;
+    }
+
+    /**
      * Overwrites this Optional with the given moved value.
      *
      * ```
@@ -81,12 +136,12 @@ public:
      * auto obj2 = Thing(2);
      * auto opt = Optional<Thing>(obj1);
      * opt = std::move(obj2);
-     * assert_eq(obj2, opt.value());
+     * assert_eq(Thing(2), opt.value());
      * ```
      */
     Optional<T> &operator=(T &&value) {
         m_present = true;
-        m_value = value;
+        m_value = std::move(value);
         return *this;
     }
 

@@ -14,6 +14,7 @@ public:
     Env *env() { return &m_env; }
 
     virtual void visit_children(Visitor &visitor) override final {
+        Object::visit_children(visitor);
         visitor.visit(&m_env);
     }
 

@@ -359,13 +359,13 @@ describe "String#chomp!" do
     "あれ\r\n".chomp!.should == "あれ"
   end
 
-  # NATFIXME: Implement UTF-32BE
+  # NATFIXME: handle multibyte characters
   xit "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
     str.chomp!.should == "abc".encode("utf-32be")
   end
 
-  # NATFIXME: Implement UTF-32BE
+  # NATFIXME: handle multibyte characters
   xit "removes the final carriage return, newline from a non-ASCII String when the record separator is changed" do
     $/ = "\n".encode("utf-8")
     str = "abc\r\n".encode "utf-32be"

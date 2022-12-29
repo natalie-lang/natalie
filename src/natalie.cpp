@@ -161,6 +161,9 @@ Env *build_top_env() {
     Object->const_set("File"_s, File);
     FileObject::build_constants(env, File);
 
+    ModuleObject *FileTest = new ModuleObject { "FileTest" };
+    Object->const_set("FileTest"_s, FileTest);
+
     ClassObject *Dir = IO->subclass(env, "Dir");
     Object->const_set("Dir"_s, Dir);
 
@@ -193,6 +196,11 @@ Env *build_top_env() {
 
     Value EncodingUTF32LE = new Utf32LeEncodingObject {};
     Encoding->const_set("UTF_32LE"_s, EncodingUTF32LE);
+    Encoding->const_set("UCS_4LE"_s, EncodingUTF32LE);
+
+    Value EncodingUTF32BE = new Utf32BeEncodingObject {};
+    Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
+    Encoding->const_set("UCS_4BE"_s, EncodingUTF32BE);
 
     ModuleObject *Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);

@@ -112,13 +112,30 @@ class Complex
     end
 
     if other.is_a?(Numeric) && other.real?
-      return Complex(self.real / other, self.imaginary / other)
+      real = self.real.quo(other)
+      imaginary = self.imaginary.quo(other)
+      if other.is_a?(Integer)
+        real = real.numerator if real.denominator == 1
+        imaginary = imaginary.numerator if imaginary.denominator == 1
+      end
+      return Complex(real, imaginary)
     end
 
     if other.respond_to?(:coerce)
       first, second = other.coerce(self)
-      return first / second
+      result = first.quo(second)
+      result = result.numerator if result.denominator == 1
+      return result
     end
+  end
+  alias quo /
+
+  def fdiv(other)
+    unless other.is_a?(Numeric)
+      raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+    end
+
+    return Complex(self.real / other.to_f, self.imaginary / other.to_f)
   end
 
   def *(other)    

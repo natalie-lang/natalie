@@ -65,6 +65,7 @@ gemfile do
 end
 
 @classes = {}
+@errors = []
 
 def get_canonical_class_name(cursor)
   if (override = TEMPLATE_TYPES[cursor.display_name])
@@ -168,21 +169,28 @@ def verify_visited(klass, type, name)
       visits_directly = method_lines.grep(/^\s*visitor\.visit\(&?#{name}/).any?
       loops_over = method_lines.grep(/for\s*\(.*:\s*\*?#{name}\)/).any?
       unless visits_directly || loops_over
-        puts "FAIL: #{klass}'s visit_children() method does not visit #{name} (type #{type})!"
-        exit 2
+        @errors << "#{klass}'s visit_children() method does not visit #{name} (type #{type})!"
       end
     else
       location = details[:location]
-      puts "FAIL: #{klass} (#{location.file}##{location.line}) does not have a visit_children() method!"
-      exit 1
+      @errors << "#{klass} (#{location.file}##{location.line}) does not have a visit_children() method!"
     end
   elsif !KNOWN_UNCOLLECTABLE_TYPES.include?(lookup_type(type))
     puts "CHECK - not a Natalie class? : #{type} (found in #{klass})"
   end
 end
 
+def verify_visits_superclass(klass)
+  details = @classes.fetch(klass)
+  if details[:superclass] && details[:visit_children_method]
+    superclass = details[:superclass].split('::').last
+    if klass != 'Natalie::Object' && superclass != 'Cell' && details[:visit_children_method].grep(/#{superclass}::visit_children\(visitor\)/).empty?
+      @errors << "#{klass}'s visit_children() method does not call #{superclass}::visit_children()!"
+    end
+  end
+end
+
 paths = (Dir['include/natalie/**/*.hpp'] + Dir['src/**/*.cpp']).to_a
-#paths = ['include/natalie/env.hpp', 'include/natalie/managed_vector.hpp', 'src/env.cpp']
 paths.each_with_index do |path, index|
   puts "processing file #{index + 1} of #{paths.size} : #{path}"
   next if path =~ /natalie_parser/
@@ -209,8 +217,17 @@ end
     else
       types = [member[:type]]
     end
+
     types.each do |t|
       verify_visited(klass, t, member[:name])
     end
   end
+
+  verify_visits_superclass(klass)
+end
+
+if @errors.any?
+  puts 'Errors:'
+  puts @errors
+  exit 1
 end
