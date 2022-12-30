@@ -43,7 +43,8 @@ public:
     }
 
     static Value expand_path(Env *env, Value path, Value root);
-    static Value unlink(Env *env, Value path);
+    static void unlink(Env *env, Value path);
+    static Value unlink(Env *env, Args args);
 
     static void build_constants(Env *env, ClassObject *klass);
 
@@ -71,6 +72,8 @@ public:
 
     static bool is_identical(Env *env, Value file1, Value file2);
 
+    static Value umask(Env *env, Value mask);
+    static Value ftype(Env *env, Value path);
     static Value size(Env *env, Value path);
     static Value world_readable(Env *env, Value path);
     static Value world_writable(Env *env, Value path);
@@ -79,6 +82,7 @@ public:
     static Value symlink(Env *env, Value from, Value to);
     static Value mkfifo(Env *env, Value path, Value mode);
     static Value chmod(Env *env, Value mode, Value path);
+    Value chmod(Env *env, Value mode);
 
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };

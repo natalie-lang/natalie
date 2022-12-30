@@ -36,7 +36,9 @@ namespace fileutil {
     // this is common to many functions probably belongs somewhere else
     Value convert_using_to_path(Env *env, Value path) {
         if (!path->is_string() && path->respond_to(env, "to_path"_s))
-            path = path->send(env, "to_path"_s, { path });
+            path = path->send(env, "to_path"_s);
+        if (!path->is_string() && path->respond_to(env, "to_str"_s))
+            path = path->send(env, "to_str"_s);
         path->assert_type(env, Object::Type::String, "String");
         return path;
     }
@@ -117,15 +119,18 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     return merged;
 }
 
-// TODO: Accept variable arguments, return value is number of args instead of 1.
-Value FileObject::unlink(Env *env, Value path) {
+void FileObject::unlink(Env *env, Value path) {
     path = fileutil::convert_using_to_path(env, path);
     int result = ::unlink(path->as_string()->c_str());
-    if (result == 0) {
-        return Value::integer(1);
-    } else {
+    if (result != 0)
         env->raise_errno();
+}
+
+Value FileObject::unlink(Env *env, Args args) {
+    for (size_t i = 0; i < args.size(); ++i) {
+        FileObject::unlink(env, args[i]);
     }
+    return Value::integer(args.size());
 }
 
 void FileObject::build_constants(Env *env, ClassObject *klass) {
@@ -385,9 +390,12 @@ Value FileObject::link(Env *env, Value from, Value to) {
     return Value::integer(0);
 }
 
-// TODO: Handle mode properly
 Value FileObject::mkfifo(Env *env, Value path, Value mode) {
     mode_t octmode = 0666;
+    if (mode) {
+        mode->assert_type(env, Object::Type::Integer, "Integer");
+        octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
+    }
     path = fileutil::convert_using_to_path(env, path);
     int result = ::mkfifo(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
@@ -402,6 +410,55 @@ Value FileObject::chmod(Env *env, Value mode, Value path) {
     int result = ::chmod(path->as_string()->c_str(), modenum);
     if (result < 0) env->raise_errno();
     return Value::integer(1); // return # of files
+}
+
+// Instance method (single arg)
+Value FileObject::chmod(Env *env, Value mode) {
+    mode_t modenum = IntegerObject::convert_to_int(env, mode);
+    auto file_desc = fileno(); // current file descriptor
+    int result = ::fchmod(file_desc, modenum);
+    if (result < 0) env->raise_errno();
+    return Value::integer(0); // always return 0
+}
+
+Value FileObject::ftype(Env *env, Value path) {
+    path = fileutil::convert_using_to_path(env, path);
+    std::error_code ec;
+    // use symlink_status instead of status bc we do not want to follow symlinks
+    auto st = std::filesystem::symlink_status(path->as_string()->c_str(), ec);
+    if (ec) {
+        errno = ec.value();
+        env->raise_errno();
+    }
+    switch (st.type()) {
+    case std::filesystem::file_type::regular:
+        return new StringObject { "file" };
+    case std::filesystem::file_type::directory:
+        return new StringObject { "directory" };
+    case std::filesystem::file_type::symlink:
+        return new StringObject { "link" };
+    case std::filesystem::file_type::block:
+        return new StringObject { "blockSpecial" };
+    case std::filesystem::file_type::character:
+        return new StringObject { "characterSpecial" };
+    case std::filesystem::file_type::fifo:
+        return new StringObject { "fifo" };
+    case std::filesystem::file_type::socket:
+        return new StringObject { "socket" };
+    default:
+        return new StringObject { "unknown" };
+    }
+}
+
+Value FileObject::umask(Env *env, Value mask) {
+    mode_t old_mask = 0;
+    if (mask) {
+        mode_t mask_mode = IntegerObject::convert_to_int(env, mask);
+        old_mask = ::umask(mask_mode);
+    } else {
+        old_mask = ::umask(0);
+    }
+    return Value::integer(old_mask);
 }
 
 }
