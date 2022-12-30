@@ -40,11 +40,22 @@
     Checks whether the given string is a valid integer.
 */
 
-static bool is_valid_number(const TM::String &num) {
-    for (size_t i = 0; i < num.size(); ++i) {
-        char digit = num[i];
-        if (digit < '0' or digit > '9')
-            return false;
+static bool is_valid_number(const TM::String &num, const int base) {
+    if (base == 0 || base <= 10) {
+        const char max = '0' + (base == 0 ? 10 : base) - 1;
+        for (size_t i = 0; i < num.size(); ++i) {
+            char digit = num[i];
+            if (digit < '0' or digit > max)
+                return false;
+        }
+    } else {
+        const char max_uc = 'A' + base - 11;
+        const char max_lc = 'a' + base - 11;
+        for (size_t i = 0; i < num.size(); ++i) {
+            char digit = num[i];
+            if (digit < '0' or (digit > '9' and digit < 'A') or (digit > max_uc && digit < 'a') or digit > max_lc)
+                return false;
+        }
     }
     return true;
 }
@@ -279,12 +290,12 @@ BigInt::BigInt(const TM::String &num) {
     if (num[0] == '+' or num[0] == '-') { // check for sign
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
-        assert(is_valid_number(magnitude));
+        assert(is_valid_number(magnitude, 10));
         m_value = std::move(magnitude);
         m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
-        assert(is_valid_number(num));
+        assert(is_valid_number(num, 10));
         m_value = num;
         m_sign = '+'; // positive by default
     }
