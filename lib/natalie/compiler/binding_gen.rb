@@ -536,8 +536,11 @@ gen.static_binding('File', 'world_readable?', 'FileObject', 'world_readable', ar
 gen.static_binding('File', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'expand_path', 'FileObject', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'open', 'FileObject', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
-gen.static_binding('File', 'unlink', 'FileObject', 'unlink', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'delete', 'FileObject', 'unlink', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'unlink', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'delete', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'ftype', 'FileObject', 'ftype', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'umask', 'FileObject', 'umask', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('File', 'path', 'FileObject', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
 

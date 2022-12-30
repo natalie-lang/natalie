@@ -143,6 +143,11 @@ def specify(test = nil, &block)
   @specs << [$context.dup, test, block]
 end
 
+# NATFIXME: implement this guard
+def with_block_device
+  nil
+end
+
 def with_feature(name)
   yield if MSpec.features[name]
 end
