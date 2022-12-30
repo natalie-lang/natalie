@@ -286,16 +286,17 @@ BigInt::BigInt(const double &num) {
     ----------------
 */
 
-BigInt::BigInt(const TM::String &num) {
+BigInt::BigInt(const TM::String &num, const int base) {
+    assert(base == 0 || (base > 1 && base <= 36));
     if (num[0] == '+' or num[0] == '-') { // check for sign
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
-        assert(is_valid_number(magnitude, 10));
+        assert(is_valid_number(magnitude, base));
         m_value = std::move(magnitude);
         m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
-        assert(is_valid_number(num, 10));
+        assert(is_valid_number(num, base));
         m_value = num;
         m_sign = '+'; // positive by default
     }
