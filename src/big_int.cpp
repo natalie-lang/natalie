@@ -40,7 +40,7 @@
     Checks whether the given string is a valid integer.
 */
 
-bool is_valid_number(const TM::String &num) {
+static bool is_valid_number(const TM::String &num) {
     for (size_t i = 0; i < num.size(); ++i) {
         char digit = num[i];
         if (digit < '0' or digit > '9')
@@ -55,7 +55,7 @@ bool is_valid_number(const TM::String &num) {
     Strip the leading zeroes from a number represented as a string.
 */
 
-void strip_leading_zeroes(TM::String &num) {
+static void strip_leading_zeroes(TM::String &num) {
     size_t i;
     for (i = 0; i < num.size(); i++)
         if (num[i] != '0')
@@ -73,7 +73,7 @@ void strip_leading_zeroes(TM::String &num) {
     Adds a given number of leading zeroes to a string-represented integer `num`.
 */
 
-void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
+static void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
     num.prepend(TM::String(num_zeroes, '0').c_str());
 }
 
@@ -83,7 +83,7 @@ void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
     Adds a given number of trailing zeroes to a string-represented integer `num`.
 */
 
-void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
+static void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
     num.append(TM::String(num_zeroes, '0').c_str());
 }
 
@@ -95,7 +95,7 @@ void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
     the larger number.
 */
 
-std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1,
+static std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1,
     const TM::String &num2) {
     TM::String larger, smaller;
     if (num1.size() > num2.size() or (num1.size() == num2.size() and num1 > num2)) {
@@ -118,7 +118,7 @@ std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1
     Checks whether a string-represented integer is a power of 10.
 */
 
-bool is_power_of_10(const TM::String &num) {
+static bool is_power_of_10(const TM::String &num) {
     if (num[0] != '1')
         return false;
     for (size_t i = 1; i < num.size(); i++)
@@ -139,7 +139,7 @@ bool is_power_of_10(const TM::String &num) {
 
 // when the number of digits are not specified, a random value is used for it
 // which is kept below the following:
-const size_t MAX_RANDOM_LENGTH = 1000;
+static const size_t MAX_RANDOM_LENGTH = 1000;
 
 /*
     big_random (num_digits)
@@ -1077,7 +1077,7 @@ BigInt lcm(const TM::String &num1, const BigInt &num2) {
 #include <cmath>
 #include <string>
 
-const long long FLOOR_SQRT_LLONG_MAX = 3037000499;
+static const long long FLOOR_SQRT_LLONG_MAX = 3037000499;
 
 /*
     BigInt + BigInt
