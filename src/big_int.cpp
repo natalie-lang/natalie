@@ -61,6 +61,33 @@ static bool is_valid_number(const TM::String &num, const int base) {
 }
 
 /*
+    convert_base
+    ------------
+    Converts a given string into another base
+    NATFIXME: Horribly inefficient, but still better than nothing
+*/
+static TM::String convert_base(const TM::String &num, const int base) {
+    BigInt multiplier(1);
+    BigInt output(0);
+
+    for (ssize_t idx = num.length() - 1; idx >= 0; idx--) {
+        int val = -1;
+        if (num[idx] >= '0' && num[idx] <= '9') {
+            val = num[idx] - '0';
+        } else if (num[idx] >= 'A' && num[idx] <= 'Z') {
+            val = 10 + num[idx] - 'A';
+        } else if (num[idx] >= 'a' && num[idx] <= 'z') {
+            val = 10 + num[idx] - 'a';
+        }
+        assert(val >= 0 && val < base);
+
+        output += multiplier * val;
+        multiplier *= base;
+    }
+    return output.to_string();
+}
+
+/*
     strip_leading_zeroes
     --------------------
     Strip the leading zeroes from a number represented as a string.
@@ -292,12 +319,19 @@ BigInt::BigInt(const TM::String &num, const int base) {
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
         assert(is_valid_number(magnitude, base));
+        if (base != 0 && base != 10) {
+            magnitude = convert_base(magnitude, base);
+        }
         m_value = std::move(magnitude);
         m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
         assert(is_valid_number(num, base));
-        m_value = num;
+        if (base == 0 || base == 10) {
+            m_value = num;
+        } else {
+            m_value = convert_base(num, base);
+        }
         m_sign = '+'; // positive by default
     }
     strip_leading_zeroes(m_value);
