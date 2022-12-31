@@ -478,7 +478,9 @@ bool StringObject::start_with(Env *env, Args args) const {
     return false;
 }
 
+// NATFIXME : broken for searching the middle of a multibyte char
 bool StringObject::end_with(Env *env, Value needle) const {
+    needle = needle->to_str(env);
     needle->assert_type(env, Object::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
@@ -487,10 +489,28 @@ bool StringObject::end_with(Env *env, Value needle) const {
     return i == 0;
 }
 
-Value StringObject::index(Env *env, Value needle) const {
-    return index(env, needle, 0);
+bool StringObject::end_with(Env *env, Args args) const {
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (end_with(env, args[i]))
+            return true;
+    }
+    return false;
 }
 
+Value StringObject::index(Env *env, Value needle, Value offset) const {
+    int offset_i = (offset) ? IntegerObject::convert_to_int(env, offset) : 0;
+    int len = char_count(env);
+    if (offset_i < -1 * len) {
+        // extremely negative offset larger than string length returns nil
+        return NilObject::the();
+    } else if (offset_i < 0) {
+        // negative offset adds to string length
+        offset_i += len;
+    }
+    return index(env, needle, ::abs(offset_i));
+}
+
+// TODO: Handle Regexp needle case
 Value StringObject::index(Env *env, Value needle, size_t start) const {
     auto byte_index = index_int(env, needle, start);
     if (byte_index == -1) {
@@ -1894,6 +1914,10 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         onig_region_free(region, true);
         return ary;
     } else if (splitter->is_string()) {
+        // special empty-split-string case, just return characters
+        if (splitter->as_string()->is_empty())
+            return this->chars(env);
+
         size_t last_index = 0;
         nat_int_t index = index_int(env, splitter->as_string(), 0);
         if (index == -1) {
