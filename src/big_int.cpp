@@ -67,10 +67,9 @@ static bool is_valid_number(const TM::String &num, const int base) {
     NATFIXME: Horribly inefficient, but still better than nothing
 */
 static TM::String convert_base(const TM::String &num, const int base) {
-    BigInt multiplier(1);
     BigInt output(0);
 
-    for (ssize_t idx = num.length() - 1; idx >= 0; idx--) {
+    for (size_t idx = 0; idx < num.length(); idx++) {
         int val = -1;
         if (num[idx] >= '0' && num[idx] <= '9') {
             val = num[idx] - '0';
@@ -81,8 +80,7 @@ static TM::String convert_base(const TM::String &num, const int base) {
         }
         assert(val >= 0 && val < base);
 
-        output += multiplier * val;
-        multiplier *= base;
+        output = output * base + val;
     }
     return output.to_string();
 }

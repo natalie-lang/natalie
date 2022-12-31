@@ -2417,6 +2417,9 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
 
     char *end;
     auto convint = strtoll(str.c_str(), &end, base);
+    if (convint == NAT_INT_MIN || convint == NAT_INT_MAX) {
+        return IntegerObject::create(BigInt(str, base));
+    }
 
     if (end == NULL || end[0] == '\0') {
         return IntegerObject::create(Integer(convint * sign));
