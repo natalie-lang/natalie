@@ -457,6 +457,7 @@ StringObject *StringObject::successive(Env *env) {
 }
 
 StringObject *StringObject::successive_in_place(Env *env) {
+    assert_not_frozen(env);
     m_string = m_string.successive();
     return this;
 }
