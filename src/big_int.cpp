@@ -64,24 +64,37 @@ static bool is_valid_number(const TM::String &num, const int base) {
     convert_base
     ------------
     Converts a given string into another base
-    NATFIXME: Horribly inefficient, but still better than nothing
 */
 static TM::String convert_base(const TM::String &num, const int base) {
     BigInt output(0);
 
-    for (size_t idx = 0; idx < num.length(); idx++) {
-        int val = -1;
-        if (num[idx] >= '0' && num[idx] <= '9') {
-            val = num[idx] - '0';
-        } else if (num[idx] >= 'A' && num[idx] <= 'Z') {
-            val = 10 + num[idx] - 'A';
-        } else if (num[idx] >= 'a' && num[idx] <= 'z') {
-            val = 10 + num[idx] - 'a';
-        }
-        assert(val >= 0 && val < base);
+    // Largest base supported is 36. In that case, using chunks of 12 characters
+    // is the largest possible size to still fit an unsigned long long.
+    size_t chunk_size = 12;
+    char buf[chunk_size + 1];
 
-        output = output * base + val;
+    // Use a few cached values to reduce the number of conversions from int to BigInt
+    const BigInt bigint_base(base);
+    const BigInt shift_left(pow(bigint_base, chunk_size));
+
+    for (size_t index = 0; index < num.length(); index += chunk_size) {
+        // Adapt chunk_size to prevent out of buffer reads at the end of the string
+        // In that case, we can't use the cached shift_left value
+        if (index + chunk_size > num.length()) {
+            chunk_size = num.length() - index;
+            output *= pow(bigint_base, chunk_size);
+        } else {
+            output *= shift_left;
+        }
+
+        // Create a copy of the num chunk, since strtoll does not support an input end terminator
+        memset(buf, '\0', sizeof(buf));
+        strncpy(buf, num.c_str() + index, chunk_size);
+
+        // Increment the output with the newly parsed value
+        output += strtoll(buf, nullptr, base);
     }
+
     return output.to_string();
 }
 
