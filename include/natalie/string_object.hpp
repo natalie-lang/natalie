@@ -221,7 +221,7 @@ public:
         m_string.truncate(length);
     }
 
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Value, Value, Value);
     Value initialize_copy(Env *, Value);
     Value ltlt(Env *, Value);
 

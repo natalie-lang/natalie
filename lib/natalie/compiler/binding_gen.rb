@@ -1039,7 +1039,7 @@ gen.binding('String', 'gsub', 'StringObject', 'gsub', argc: 1..2, pass_env: true
 gen.binding('String', 'hex', 'StringObject', 'hex', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'include?', 'StringObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'index', 'StringObject', 'index', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, kwargs: [:encoding, :capacity], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'initialize_copy', 'StringObject', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'insert', 'StringObject', 'insert', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
