@@ -1,15 +1,18 @@
 require_relative '../../spec_helper'
 
 describe "NilClass#=~" do
-  # NATFIXME: bug in spec, see https://github.com/ruby/spec/pull/909
   it "returns nil matching any object" do
-    (nil =~ /Object/).should   be_nil
-    (nil =~ 'Object').should   be_nil
-    (nil =~ Object).should     be_nil
-    (nil =~ Object.new).should be_nil
-    (nil =~ nil).should        be_nil
-    (nil =~ false).should      be_nil
-    (nil =~ true).should       be_nil
+    o = nil
+
+    suppress_warning do
+      (o =~ /Object/).should   be_nil
+      (o =~ 'Object').should   be_nil
+      (o =~ Object).should     be_nil
+      (o =~ Object.new).should be_nil
+      (o =~ nil).should        be_nil
+      (o =~ false).should      be_nil
+      (o =~ true).should       be_nil
+    end
   end
 
   it "should not warn" do

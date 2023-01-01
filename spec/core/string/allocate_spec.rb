@@ -13,7 +13,6 @@ describe "String.allocate" do
     str.should == "more"
   end
 
-  # NATFIXME: bug in spec, see https://github.com/ruby/spec/pull/909
   it "returns a binary String" do
     String.allocate.encoding.should == Encoding::BINARY
   end

@@ -100,8 +100,6 @@ describe "Enumerable#none?" do
       pattern.yielded.should == [[0], [1], [2], [-1]]
     end
 
-    # NATFIXME: bug in spec; see https://github.com/ruby/spec/pull/915
-    # may raise an exception in future versions
     it "always returns true on empty enumeration" do
       @empty.none?(Integer).should == true
       [].none?(Integer).should == true
