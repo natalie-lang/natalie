@@ -12,7 +12,7 @@ WORKDIR natalie
 COPY .git/ .git/
 COPY .gitmodules .gitmodules
 COPY .clang-tidy .clang-tidy
-RUN git submodule update --init
+RUN git submodule update --init --recursive
 
 COPY Gemfile Gemfile.lock /natalie/ 
 RUN bundle install

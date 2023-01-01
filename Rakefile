@@ -388,7 +388,7 @@ end
 
 task :update_submodules do
   unless ENV['SKIP_SUBMODULE_UPDATE']
-    sh 'git submodule update --init'
+    sh 'git submodule update --init --recursive'
   end
 end
 
@@ -435,6 +435,7 @@ end
 def include_paths
   [
     File.expand_path('include', __dir__),
+    File.expand_path('ext/tm/include', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/natalie_parser/include', __dir__),
   ]
