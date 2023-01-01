@@ -18,6 +18,7 @@ module Natalie
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
+      File.join(ROOT_DIR, 'ext/tm/include'),
       File.join(BUILD_DIR, 'onigmo/include'),
       File.join(BUILD_DIR, 'natalie_parser/include'),
     ]

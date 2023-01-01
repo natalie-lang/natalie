@@ -4,3 +4,6 @@
 [submodule "ext/natalie_parser"]
 	path = ext/natalie_parser
 	url = https://github.com/natalie-lang/natalie_parser
+[submodule "ext/tm"]
+	path = ext/tm
+	url = https://github.com/seven1m/tm
