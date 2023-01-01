@@ -13,8 +13,7 @@ describe "Encoding.default_internal" do
     Encoding.default_internal.should be_nil
   end
 
-  # NATFIXME: Implement Encoding::ASCII
-  xit "returns an Encoding object if a default internal encoding is set" do
+  it "returns an Encoding object if a default internal encoding is set" do
     Encoding.default_internal = Encoding::ASCII
     Encoding.default_internal.should be_an_instance_of(Encoding)
   end
@@ -51,8 +50,7 @@ describe "Encoding.default_internal=" do
     Encoding.default_internal.should == Encoding::SHIFT_JIS
   end
 
-  # NATFIXME: Implement Encoding::ASCII
-  xit "calls #to_str to convert an object to a String" do
+  it "calls #to_str to convert an object to a String" do
     obj = mock('string')
     obj.should_receive(:to_str).at_least(1).times.and_return('ascii')
 
