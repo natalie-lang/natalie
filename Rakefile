@@ -388,7 +388,7 @@ end
 
 task :update_submodules do
   unless ENV['SKIP_SUBMODULE_UPDATE']
-    sh 'git submodule update --init'
+    sh 'git submodule update --init --recursive'
   end
 end
 
