@@ -161,15 +161,13 @@ describe "String#to_i" do
     "                            -10".to_i.should be_an_instance_of(Integer)
   end
 
-  # NATFIXME: support for BigInt in String#to_i
-  xit "returns the correct Integer for long strings" do
+  it "returns the correct Integer for long strings" do
     "245789127594125924165923648312749312749327482".to_i.should == 245789127594125924165923648312749312749327482
     "-245789127594125924165923648312749312749327482".to_i.should == -245789127594125924165923648312749312749327482
   end
 end
 
-# NATFIXME: support for BigInt in String#to_i
-xdescribe "String#to_i with bases" do
+describe "String#to_i with bases" do
   it "parses a String in base 2" do
     str = "10" * 50
     str.to_i(2).to_s(2).should == str

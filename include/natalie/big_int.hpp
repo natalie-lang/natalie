@@ -64,7 +64,7 @@ public:
     BigInt(const unsigned int &);
     BigInt(const int &);
     BigInt(const double &);
-    BigInt(const TM::String &);
+    BigInt(const TM::String &, const int base = 10);
 
     // Assignment operators:
     BigInt &operator=(const BigInt &);

@@ -40,13 +40,62 @@
     Checks whether the given string is a valid integer.
 */
 
-bool is_valid_number(const TM::String &num) {
-    for (size_t i = 0; i < num.size(); ++i) {
-        char digit = num[i];
-        if (digit < '0' or digit > '9')
-            return false;
+static bool is_valid_number(const TM::String &num, const int base) {
+    if (base == 0 || base <= 10) {
+        const char max = '0' + (base == 0 ? 10 : base) - 1;
+        for (size_t i = 0; i < num.size(); ++i) {
+            char digit = num[i];
+            if (digit < '0' or digit > max)
+                return false;
+        }
+    } else {
+        const char max_uc = 'A' + base - 11;
+        const char max_lc = 'a' + base - 11;
+        for (size_t i = 0; i < num.size(); ++i) {
+            char digit = num[i];
+            if (digit < '0' or (digit > '9' and digit < 'A') or (digit > max_uc && digit < 'a') or digit > max_lc)
+                return false;
+        }
     }
     return true;
+}
+
+/*
+    convert_base
+    ------------
+    Converts a given string into another base
+*/
+static TM::String convert_base(const TM::String &num, const int base) {
+    BigInt output(0);
+
+    // Largest base supported is 36. In that case, using chunks of 12 characters
+    // is the largest possible size to still fit an unsigned long long.
+    size_t chunk_size = 12;
+    char buf[chunk_size + 1];
+
+    // Use a few cached values to reduce the number of conversions from int to BigInt
+    const BigInt bigint_base(base);
+    const BigInt shift_left(pow(bigint_base, chunk_size));
+
+    for (size_t index = 0; index < num.length(); index += chunk_size) {
+        // Adapt chunk_size to prevent out of buffer reads at the end of the string
+        // In that case, we can't use the cached shift_left value
+        if (index + chunk_size > num.length()) {
+            chunk_size = num.length() - index;
+            output *= pow(bigint_base, chunk_size);
+        } else {
+            output *= shift_left;
+        }
+
+        // Create a copy of the num chunk, since strtoll does not support an input end terminator
+        memset(buf, '\0', sizeof(buf));
+        strncpy(buf, num.c_str() + index, chunk_size);
+
+        // Increment the output with the newly parsed value
+        output += strtoll(buf, nullptr, base);
+    }
+
+    return output.to_string();
 }
 
 /*
@@ -55,7 +104,7 @@ bool is_valid_number(const TM::String &num) {
     Strip the leading zeroes from a number represented as a string.
 */
 
-void strip_leading_zeroes(TM::String &num) {
+static void strip_leading_zeroes(TM::String &num) {
     size_t i;
     for (i = 0; i < num.size(); i++)
         if (num[i] != '0')
@@ -73,7 +122,7 @@ void strip_leading_zeroes(TM::String &num) {
     Adds a given number of leading zeroes to a string-represented integer `num`.
 */
 
-void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
+static void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
     num.prepend(TM::String(num_zeroes, '0').c_str());
 }
 
@@ -83,7 +132,7 @@ void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
     Adds a given number of trailing zeroes to a string-represented integer `num`.
 */
 
-void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
+static void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
     num.append(TM::String(num_zeroes, '0').c_str());
 }
 
@@ -95,7 +144,7 @@ void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
     the larger number.
 */
 
-std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1,
+static std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1,
     const TM::String &num2) {
     TM::String larger, smaller;
     if (num1.size() > num2.size() or (num1.size() == num2.size() and num1 > num2)) {
@@ -118,7 +167,7 @@ std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1
     Checks whether a string-represented integer is a power of 10.
 */
 
-bool is_power_of_10(const TM::String &num) {
+static bool is_power_of_10(const TM::String &num) {
     if (num[0] != '1')
         return false;
     for (size_t i = 1; i < num.size(); i++)
@@ -139,7 +188,7 @@ bool is_power_of_10(const TM::String &num) {
 
 // when the number of digits are not specified, a random value is used for it
 // which is kept below the following:
-const size_t MAX_RANDOM_LENGTH = 1000;
+static const size_t MAX_RANDOM_LENGTH = 1000;
 
 /*
     big_random (num_digits)
@@ -275,17 +324,25 @@ BigInt::BigInt(const double &num) {
     ----------------
 */
 
-BigInt::BigInt(const TM::String &num) {
+BigInt::BigInt(const TM::String &num, const int base) {
+    assert(base == 0 || (base > 1 && base <= 36));
     if (num[0] == '+' or num[0] == '-') { // check for sign
         TM::String magnitude = num.substring(1);
         // Expected an integer, got num
-        assert(is_valid_number(magnitude));
+        assert(is_valid_number(magnitude, base));
+        if (base != 0 && base != 10) {
+            magnitude = convert_base(magnitude, base);
+        }
         m_value = std::move(magnitude);
         m_sign = num[0];
     } else { // if no sign is specified
         // Expected an integer, got num
-        assert(is_valid_number(num));
-        m_value = num;
+        assert(is_valid_number(num, base));
+        if (base == 0 || base == 10) {
+            m_value = num;
+        } else {
+            m_value = convert_base(num, base);
+        }
         m_sign = '+'; // positive by default
     }
     strip_leading_zeroes(m_value);
@@ -1077,7 +1134,7 @@ BigInt lcm(const TM::String &num1, const BigInt &num2) {
 #include <cmath>
 #include <string>
 
-const long long FLOOR_SQRT_LLONG_MAX = 3037000499;
+static const long long FLOOR_SQRT_LLONG_MAX = 3037000499;
 
 /*
     BigInt + BigInt
