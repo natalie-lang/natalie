@@ -49,7 +49,7 @@ describe "String#ascii_only?" do
     "".encode('UTF-8').ascii_only?.should be_true
   end
 
-  # FIXME: Implemet UTF-16LE and UTF-16BE encodings
+  # FIXME: Implemet UTF-16BE encoding
   xit "returns false for the empty String with a non-ASCII-compatible encoding" do
     "".force_encoding('UTF-16LE').ascii_only?.should be_false
     "".encode('UTF-16BE').ascii_only?.should be_false
