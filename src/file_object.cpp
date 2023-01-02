@@ -462,29 +462,38 @@ Value FileObject::umask(Env *env, Value mask) {
 }
 
 // class method
-Value FileObject::stat(Env *env, Value path) {
+Value FileObject::lstat(Env *env, Value path) {
+    struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    std::error_code ec;
-    auto fs = std::filesystem::status(path->as_string()->c_str(), ec);
-    if (ec) {
-        errno = ec.value();
-        env->raise_errno();
-    }
-    return new FileStatObject { fs };
-}
-    
-// instance method
-// actually need to use fstat here to pull the file-descriptor and the
-// C++ interface doesnt provide access to that. :(    
-Value FileObject::stat(Env *env) {
-    std::error_code ec;
-    auto fs = std::filesystem::status(m_path.c_str(), ec);
-    if (ec) {
-        errno = ec.value();
-        env->raise_errno();
-    }
-    return new FileStatObject { fs };
+    int result = ::lstat(path->as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path->as_string());
+    return new FileStatObject { sb };
 }
 
+// instance method
+Value FileObject::lstat(Env *env) {
+    struct stat sb;
+    int result = ::stat(path().c_str(), &sb);
+    if (result < 0) env->raise_errno();
+    return new FileStatObject { sb };
+}
+
+// class method
+Value FileObject::stat(Env *env, Value path) {
+    struct stat sb;
+    path = fileutil::convert_using_to_path(env, path);
+    int result = ::stat(path->as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path->as_string());
+    return new FileStatObject { sb };
+}
+
+// instance method
+Value FileObject::stat(Env *env) {
+    struct stat sb;
+    auto file_desc = fileno(); // current file descriptor
+    int result = ::fstat(file_desc, &sb);
+    if (result < 0) env->raise_errno();
+    return new FileStatObject { sb };
+}
 
 }
