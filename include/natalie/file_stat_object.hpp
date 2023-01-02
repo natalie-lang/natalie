@@ -3,6 +3,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/object.hpp"
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 
 namespace Natalie {
 
@@ -21,16 +22,41 @@ public:
     }
 
     Value initialize(Env *, Value);
-    Value ftype() const;
     bool is_blockdev() const;
     bool is_chardev() const;
     bool is_directory() const;
     bool is_pipe() const;
     bool is_file() const;
+    bool is_owned() const;
     Value is_size() const;
+    bool is_setgid() const;
+    bool is_setuid() const;
+    bool is_sticky() const;
     bool is_symlink() const;
+    Value world_readable() const;
+    Value world_writable() const;
     bool is_zero() const;
+
+    Value atime(Env *) const;
+    Value birthtime(Env *) const;
+    Value comparison(Env *, Value) const;
+    Value ctime(Env *) const;
+    Value mtime(Env *) const;
+    Value blksize() const;
+    Value blocks() const;
+    Value dev() const;
+    Value dev_major() const;
+    Value dev_minor() const;
+    Value ftype() const;
+    Value ino() const;
+    Value nlink() const;
+    Value mode() const;
+    Value rdev() const;
+    Value rdev_major() const;
+    Value rdev_minor() const;
     Value size() const;
+    Value uid() const;
+    Value gid() const;
 
 private:
     struct stat fstatus;
