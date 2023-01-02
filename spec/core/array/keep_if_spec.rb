@@ -1,4 +1,3 @@
-# NATFIXME: bug in spec; missing require_relative '../../spec_helper'
 require_relative '../../spec_helper'
 require_relative 'shared/keep_if'
 
