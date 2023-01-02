@@ -56,7 +56,11 @@ Value RegexpObject::inspect(Env *env) {
             if (i < (len - 1) && str[i + 1] == '/') {
                 break;
             }
-            out->append("\\\\");
+            out->append("\\");
+            if (i < (len - 1) && str[i + 1] == '\\') {
+                out->append("\\");
+                i++;
+            }
             break;
         default:
             out->append_char(c);
@@ -274,7 +278,11 @@ Value RegexpObject::to_s(Env *env) const {
             if (i < (len - 1) && str[i + 1] == '/') {
                 break;
             }
-            out->append("\\\\");
+            out->append("\\");
+            if (i < (len - 1) && str[i + 1] == '\\') {
+                out->append("\\");
+                i++;
+            }
             break;
         default:
             out->append_char(c);

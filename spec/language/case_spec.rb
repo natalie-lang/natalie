@@ -116,8 +116,7 @@ describe "The 'case'-construct" do
     $1.should == "44"
   end
 
-  # NATFIXME: regexp interpolated within another regexp
-  xit "tests with a regexp interpolated within another regexp" do
+  it "tests with a regexp interpolated within another regexp" do
     digits_regexp = /\d+/
     case "foo43"
     when /oo(#{digits_regexp})/
