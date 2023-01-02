@@ -23,7 +23,6 @@ describe "Float#divmod" do
 
   # Behaviour established as correct in r23953
   it "raises a FloatDomainError if other is NaN" do
-    # NATFIXME: bug in spec; '1.divmod' should be '1.0.divmod'
     -> { 1.0.divmod(nan_value) }.should raise_error(FloatDomainError)
   end
 

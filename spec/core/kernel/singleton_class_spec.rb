@@ -1,4 +1,3 @@
-# NATFIXME: bug in spec; require_relative is missing
 require_relative '../../spec_helper'
 
 describe "Kernel#singleton_class" do
