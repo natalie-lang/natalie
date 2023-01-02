@@ -537,11 +537,6 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     return ptr - c_str();
 }
 
-// TODO: according to documentation, "the given capacity is
-//  advisory only, and may or may not set the size of the internal
-//  buffer, which may in turn affect performance".  This said, it
-//  should be possible to set the m_capacity field of the
-//  underlying String object in the future.
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
     if (arg) {
         arg->assert_type(env, Object::Type::String, "String");
