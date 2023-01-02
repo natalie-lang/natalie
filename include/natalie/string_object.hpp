@@ -213,7 +213,7 @@ public:
     StringObject *successive(Env *);
     StringObject *successive_in_place(Env *);
 
-    Value index(Env *, Value) const;
+    Value index(Env *, Value, Value) const;
     Value index(Env *, Value, size_t start) const;
     nat_int_t index_int(Env *, Value, size_t start) const;
 
@@ -221,7 +221,7 @@ public:
         m_string.truncate(length);
     }
 
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Value, Value, Value);
     Value initialize_copy(Env *, Value);
     Value ltlt(Env *, Value);
 
@@ -236,6 +236,7 @@ public:
     bool internal_start_with(Env *, Value) const;
     bool start_with(Env *, Args) const;
     bool end_with(Env *, Value) const;
+    bool end_with(Env *, Args) const;
     bool is_empty() const { return m_string.is_empty(); }
 
     Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
