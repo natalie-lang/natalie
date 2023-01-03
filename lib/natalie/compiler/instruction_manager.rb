@@ -75,7 +75,9 @@ module Natalie
 
         instruction = nil
         loop do
-          raise 'ran out of instructions' if @ip >= @instructions.size
+          if @ip >= @instructions.size
+            raise "ran out of instructions while looking for #{until_instruction}"
+          end
 
           instruction = @instructions[@ip]
           @ip += 1

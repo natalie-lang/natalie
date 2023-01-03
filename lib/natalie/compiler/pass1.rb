@@ -1,6 +1,7 @@
 require_relative './args'
 require_relative './arity'
 require_relative './base_pass'
+require_relative './case_in'
 require_relative './case_when'
 require_relative './const_prepper'
 require_relative './multiple_assignment'
@@ -295,7 +296,7 @@ module Natalie
         in_clauses = clauses.select { |c| c.sexp_type == :in }
 
         if in_clauses.any?
-          CaseIn.new(self).transform(exp, used: used)
+          CaseIn.new(self, exp).transform(used: used)
         else
           CaseWhen.new(self).transform(exp, used: used)
         end
@@ -1282,9 +1283,21 @@ module Natalie
 
       class << self
         def debug_instructions(instructions)
+          indent = 0
           instructions.each_with_index do |instruction, index|
-            desc = "#{index} #{instruction}"
-            puts desc
+            case instruction
+            when ElseInstruction, EndInstruction
+              indent -= 1
+            end
+
+            puts "#{'  ' * indent}#{index} #{instruction}"
+
+            case instruction
+            when IfInstruction
+              indent += 1
+            when ElseInstruction
+              indent += 1
+            end
           end
         end
       end

@@ -16,7 +16,7 @@ module Natalie
         instructions << @pass.transform_expression(value, used: true)
         clauses.each do |clause|
           if clause.sexp_type != :when
-            raise "Unknown case clause: #{clause.sexp_type}"
+            raise "Unexpected case clause: #{clause.sexp_type}"
           end
           instructions += transform_when(clause)
         end
