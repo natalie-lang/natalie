@@ -1877,6 +1877,12 @@ Value StringObject::unpack(Env *env, Value format, Value offset_value) const {
     return unpacker->unpack(env);
 }
 
+// NATFIXME: This shouldn't make the temporary array
+Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
+    auto array = unpack(env, format, offset_value);
+    return array->as_array()->first();
+}
+
 Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     ArrayObject *ary = new ArrayObject {};
     if (!splitter) {
