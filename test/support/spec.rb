@@ -1111,6 +1111,24 @@ class HavePublicInstanceMethodExpectation
   end
 end
 
+class RespondToExpectation
+  def initialize(method)
+    @method = method
+  end
+
+  def match(subject)
+    unless subject.respond_to?(@method)
+      raise SpecFailedException, "Expected #{subject} to respond to '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.respond_to?(@method)
+      raise SpecFailedException, "Expected #{subject} to not respond to '#{@method.to_s}' but it does"
+    end
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -1243,6 +1261,10 @@ class Object
 
   def have_public_instance_method(method, include_super = true)
     HavePublicInstanceMethodExpectation.new(method, include_super)
+  end
+
+  def respond_to(method)
+    RespondToExpectation.new(method)
   end
 
   def stub!(message)
