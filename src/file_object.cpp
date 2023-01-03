@@ -471,7 +471,7 @@ Value FileObject::lstat(Env *env, Value path) {
 }
 
 // instance method
-Value FileObject::lstat(Env *env) {
+Value FileObject::lstat(Env *env) const {
     struct stat sb;
     int result = ::stat(path().c_str(), &sb);
     if (result < 0) env->raise_errno();
