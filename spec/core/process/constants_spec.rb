@@ -1,4 +1,4 @@
-require_relative '../../spec_helper' # NATFIXME: ruby spec forgot to include this line
+require_relative '../../spec_helper'
 
 describe "Process::Constants" do
   platform_is :darwin, :netbsd, :freebsd do
