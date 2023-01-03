@@ -12,8 +12,7 @@ describe "Enumerable#grep" do
     EnumerableSpecs::Numerous.new('2', 'a', 'nil', '3', false).grep(EnumerableSpecGrep.new).should == ['2']
   end
 
-  # TODO: String#upcase
-  xit "grep with a block should return an array of elements === pattern passed through block" do
+  it "grep with a block should return an array of elements === pattern passed through block" do
     class EnumerableSpecGrep2; def ===(obj); /^ca/ =~ obj; end; end
 
     EnumerableSpecs::Numerous.new("cat", "coat", "car", "cadr", "cost").grep(EnumerableSpecGrep2.new) { |i| i.upcase }.should == ["CAT", "CAR", "CADR"]
