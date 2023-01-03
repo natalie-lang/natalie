@@ -15,8 +15,7 @@ describe "Enumerator::Lazy#grep" do
   end
 
   it "requires an argument" do
-    # Enumerator::Lazy.instance_method(:grep).arity.should == 1
-    Enumerator::Lazy.new(nil) {}.method(:grep).arity.should == 1
+    Enumerator::Lazy.instance_method(:grep).arity.should == 1
   end
 
   it "returns a new instance of Enumerator::Lazy" do
