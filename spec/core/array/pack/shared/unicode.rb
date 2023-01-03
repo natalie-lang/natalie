@@ -29,7 +29,7 @@ describe :array_pack_unicode, shared: true do
     str.valid_encoding?.should be_true
   end
 
-  # FIXME: add this back once we get support for the C directive
+  # NATFIXME: add this back once we get support for the C directive
   xit "encodes values larger than UTF-8 max codepoints" do
     [
       [[0x00110000], [244, 144, 128, 128].pack('C*').force_encoding('utf-8')],

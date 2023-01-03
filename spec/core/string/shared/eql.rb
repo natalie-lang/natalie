@@ -12,17 +12,17 @@ describe :string_eql_value, shared: true do
     "less".send(@method, "greater").should be_false
   end
 
-  #FIXME: add back once we support iso-8859-1 encoding
+  # NATFIXME: add back once we support iso-8859-1 encoding
   xit "ignores encoding difference of compatible string" do
     "hello".force_encoding("utf-8").send(@method, "hello".force_encoding("iso-8859-1")).should be_true
   end
 
-  #FIXME: add back once we support iso-8859-1 encoding
+  # NATFIXME: add back once we support iso-8859-1 encoding
   xit "considers encoding difference of incompatible string" do
     "\xff".force_encoding("utf-8").send(@method, "\xff".force_encoding("iso-8859-1")).should be_false
   end
 
-  #FIXME: add back once we support utf-32le encoding
+  # NATFIXME: add back once we support utf-32le encoding
   xit "considers encoding compatibility" do
     "hello".force_encoding("utf-8").send(@method, "hello".force_encoding("utf-32le")).should be_false
   end

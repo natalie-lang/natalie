@@ -25,13 +25,13 @@ describe "Enumerable#grep" do
     @a.grep(3..7) {|a| a+1}.should == [5,7]
   end
 
-  # FIXME: nth ref inside block
+  # NATFIXME: nth ref inside block
   xit "can use $~ in the block when used with a Regexp" do
     ary = ["aba", "aba"]
     ary.grep(/a(b)a/) { $1 }.should == ["b", "b"]
   end
 
-  # FIXME: back ref inside block
+  # NATFIXME: back ref inside block
   xit "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep(/b/) { |e|
@@ -43,7 +43,7 @@ describe "Enumerable#grep" do
     $~.should == nil
   end
 
-  # FIXME: back ref outside block
+  # NATFIXME: back ref outside block
   xit "sets $~ to the last match when given no block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep(/b/).should == ["abc"]
