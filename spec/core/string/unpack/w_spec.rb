@@ -7,12 +7,12 @@ describe "String#unpack with directive 'w'" do
   it_behaves_like :string_unpack_basic, 'w'
   it_behaves_like :string_unpack_no_platform, 'w'
 
-  # NATFIXME: decodes a BER-compressed integer
-  xit "decodes a BER-compressed integer" do
+  # NATFIXME: BigInt support
+  it "decodes a BER-compressed integer" do
     [ ["\x00", [0]],
       ["\x01", [1]],
       ["\xce\x0f", [9999]],
-      ["\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00", [2**65]]
+      # ["\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00", [2**65]]
     ].should be_computed_by(:unpack, "w")
   end
 

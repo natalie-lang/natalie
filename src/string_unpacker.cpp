@@ -523,8 +523,16 @@ void StringUnpacker::unpack_u(Token &token) {
 }
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
+    nat_int_t result = 0;
+
+    unsigned char c;
+    do {
+        c = next_char();
+        result = (result << 7) | (c & 0x7f);
+    } while (c & 0x80);
+
     m_index++;
-    m_unpacked->push(new IntegerObject(0));
+    m_unpacked->push(new IntegerObject(result));
 }
 
 void StringUnpacker::unpack_X(Env *env, Token &token) {
