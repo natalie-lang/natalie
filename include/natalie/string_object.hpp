@@ -306,6 +306,7 @@ public:
     static Value try_convert(Env *, Value);
     Value uminus(Env *);
     Value unpack(Env *, Value, Value = nullptr) const;
+    Value unpack1(Env *, Value, Value = nullptr) const;
     Value upcase(Env *);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);

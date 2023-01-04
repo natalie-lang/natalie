@@ -1078,6 +1078,7 @@ gen.binding('String', 'tr', 'StringObject', 'tr', argc: 2, pass_env: true, pass_
 gen.binding('String', 'tr!', 'StringObject', 'tr_in_place', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('String', 'try_convert', 'StringObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'unpack', 'StringObject', 'unpack', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'unpack1', 'StringObject', 'unpack1', argc: 1, kwargs: [:offset], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'upcase', 'StringObject', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'upto', 'StringObject', 'upto', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'valid_encoding?', 'StringObject', 'valid_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

@@ -3,8 +3,7 @@ require_relative 'fixtures/common'
 
 describe "Enumerator#rewind" do
   before :each do
-    # @enum = 1.upto(3)
-    @enum = (1..3).to_enum
+    @enum = 1.upto(3)
   end
 
   it "resets the enumerator to its initial state" do
