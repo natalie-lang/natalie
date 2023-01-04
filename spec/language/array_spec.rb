@@ -98,7 +98,6 @@ describe "The unpacking splat operator (*)" do
 
   it "unpacks the start and count arguments in an array slice assignment" do
     alphabet_1 = ['a'..'z'].to_a
-    alphabet_1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     alphabet_2 = alphabet_1.dup
     start_and_count_args = [1, 10]
 
