@@ -224,7 +224,7 @@ describe "The alias keyword" do
     subclass.new.test("testing").should == 4
   end
 
-  it "is not allowed against Fixnum or String instances" do
+  it "is not allowed against Integer or String instances" do
     -> do
       1.instance_eval do
         alias :foo :to_s
@@ -240,7 +240,7 @@ describe "The alias keyword" do
 
   xit "on top level defines the alias on Object" do
     # because it defines on the default definee / current module
-    #ruby_exe("def foo; end; alias bla foo; print method(:bla).owner", escape: true).should == "Object"
+    ruby_exe("def foo; end; alias bla foo; print method(:bla).owner", escape: true).should == "Object"
   end
 
   it "raises a NameError when passed a missing name" do
@@ -254,11 +254,11 @@ end
 describe "The alias keyword" do
   xit "can create a new global variable, synonym of the original" do
     code = '$a = 1; alias $b $a; p [$a, $b]; $b = 2; p [$a, $b]'
-    #ruby_exe(code).should == "[1, 1]\n[2, 2]\n"
+    ruby_exe(code).should == "[1, 1]\n[2, 2]\n"
   end
 
   xit "can override an existing global variable and make them synonyms" do
     code = '$a = 1; $b = 2; alias $b $a; p [$a, $b]; $b = 3; p [$a, $b]'
-    #ruby_exe(code).should == "[1, 1]\n[3, 3]\n"
+    ruby_exe(code).should == "[1, 1]\n[3, 3]\n"
   end
 end

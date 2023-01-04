@@ -21,7 +21,7 @@ module BlockSpecs
     end
 
     def k(*a)
-      #yield(*a, b: true)
+      yield(*a, b: true)
     end
   end
 
