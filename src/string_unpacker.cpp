@@ -159,6 +159,9 @@ ArrayObject *StringUnpacker::unpack(Env *env) {
         case 'v':
             unpack_int<uint16_t>(token, true);
             break;
+        case 'w':
+            unpack_w(env, token);
+            break;
         case 'X':
             unpack_X(env, token);
             break;
@@ -517,6 +520,11 @@ void StringUnpacker::unpack_u(Token &token) {
     }
 
     m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+}
+
+void StringUnpacker::unpack_w(Env *env, Token &token) {
+    m_index++;
+    m_unpacked->push(new IntegerObject(0));
 }
 
 void StringUnpacker::unpack_X(Env *env, Token &token) {

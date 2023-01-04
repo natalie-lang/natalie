@@ -4,8 +4,8 @@ require_relative '../fixtures/classes'
 require_relative 'shared/basic'
 
 describe "String#unpack with directive 'w'" do
-  # it_behaves_like :string_unpack_basic, 'w'
-  # it_behaves_like :string_unpack_no_platform, 'w'
+  it_behaves_like :string_unpack_basic, 'w'
+  it_behaves_like :string_unpack_no_platform, 'w'
 
   # NATFIXME: decodes a BER-compressed integer
   xit "decodes a BER-compressed integer" do
