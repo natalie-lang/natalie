@@ -1,7 +1,3 @@
-# This file is taken from https://github.com/ruby/spec
-# Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
-# Licensed MIT.
-
 require_relative '../spec_helper'
 require_relative 'fixtures/array'
 
