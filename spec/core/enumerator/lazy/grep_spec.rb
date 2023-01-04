@@ -34,7 +34,7 @@ describe "Enumerator::Lazy#grep" do
     Enumerator::Lazy.new(Object.new, 100) {}.grep(Object).size.should == nil
   end
 
-  # FIXME: back ref inside block
+  # NATFIXME: back ref inside block
   xit "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/) { |e|
@@ -46,7 +46,7 @@ describe "Enumerator::Lazy#grep" do
     $~.should == nil
   end
 
-  # FIXME: back ref inside block
+  # NATFIXME: back ref inside block
   xit "sets $~ in the next block with each" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/).each { |e|
@@ -58,7 +58,7 @@ describe "Enumerator::Lazy#grep" do
     $~.should == nil
   end
 
-  # FIXME: back ref inside block
+  # NATFIXME: back ref inside block
   xit "sets $~ in the next block with map" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/).map { |e|

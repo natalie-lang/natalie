@@ -38,7 +38,7 @@ describe "Enumerator#rewind" do
     @enum.peek.should == 2
   end
 
-  # FIXME: Natalie does not keep a reference to the object yet
+  # NATFIXME: Natalie does not keep a reference to the object yet
   xit "calls the enclosed object's rewind method if one exists" do
     obj = mock('rewinder')
     enum = obj.to_enum
