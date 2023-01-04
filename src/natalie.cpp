@@ -194,6 +194,9 @@ Env *build_top_env() {
     Encoding->const_set("UTF_8"_s, EncodingUTF8);
     Encoding->const_set("CP65001"_s, EncodingUTF8);
 
+    Value EncodingUTF16LE = new Utf16LeEncodingObject {};
+    Encoding->const_set("UTF_16LE"_s, EncodingUTF16LE);
+
     Value EncodingUTF32LE = new Utf32LeEncodingObject {};
     Encoding->const_set("UTF_32LE"_s, EncodingUTF32LE);
     Encoding->const_set("UCS_4LE"_s, EncodingUTF32LE);

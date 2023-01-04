@@ -573,7 +573,7 @@ Value StringObject::add(Env *env, Value arg) const {
         str = arg->to_str(env)->string();
     }
 
-    StringObject *new_string = new StringObject { m_string };
+    StringObject *new_string = new StringObject { m_string, m_encoding }; // TODO: encoding should be negotiated
     new_string->append(str);
     return new_string;
 }

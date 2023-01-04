@@ -104,44 +104,40 @@ end
 
 describe :string_concat_encoding, shared: true do
   describe "when self is in an ASCII-incompatible encoding incompatible with the argument's encoding" do
-    # NATFIXME: Implement UTF-16LE
-    xit "uses self's encoding if both are empty" do
+    it "uses self's encoding if both are empty" do
       "".encode("UTF-16LE").send(@method, "").encoding.should == Encoding::UTF_16LE
     end
 
-    # NATFIXME: Implement UTF-16LE
-    xit "uses self's encoding if the argument is empty" do
+    it "uses self's encoding if the argument is empty" do
       "x".encode("UTF-16LE").send(@method, "").encoding.should == Encoding::UTF_16LE
     end
 
-    # NATFIXME: Implement UTF-16LE
+    # NATFIXME
     xit "uses the argument's encoding if self is empty" do
       "".encode("UTF-16LE").send(@method, "x".encode("UTF-8")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement UTF-16LE
+    # NATFIXME
     xit "raises Encoding::CompatibilityError if neither are empty" do
       -> { "x".encode("UTF-16LE").send(@method, "y".encode("UTF-8")) }.should raise_error(Encoding::CompatibilityError)
     end
   end
 
   describe "when the argument is in an ASCII-incompatible encoding incompatible with self's encoding" do
-    # NATFIXME: Implement UTF-16LE
-    xit "uses self's encoding if both are empty" do
+    it "uses self's encoding if both are empty" do
       "".encode("UTF-8").send(@method, "".encode("UTF-16LE")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement UTF-16LE
-    xit "uses self's encoding if the argument is empty" do
+    it "uses self's encoding if the argument is empty" do
       "x".encode("UTF-8").send(@method, "".encode("UTF-16LE")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement UTF-16LE
+    # NATFIXME
     xit "uses the argument's encoding if self is empty" do
       "".encode("UTF-8").send(@method, "x".encode("UTF-16LE")).encoding.should == Encoding::UTF_16LE
     end
 
-    # NATFIXME: Implement UTF-16LE
+    # NATFIXME
     xit "raises Encoding::CompatibilityError if neither are empty" do
       -> { "x".encode("UTF-8").send(@method, "y".encode("UTF-16LE")) }.should raise_error(Encoding::CompatibilityError)
     end
