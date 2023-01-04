@@ -9,7 +9,7 @@ describe 'Enumerable#sum' do
         yield 0
         yield(-1)
         yield 2
-        # NATFIXME: Support the last statement
+        # NATFIXME: Re-add rationals if implemented
         # yield 2/3r
       end
     end
