@@ -22,9 +22,7 @@ describe "String#unpack with format 'Z'" do
   end
 
   it "does not advance past the null byte when given a 'Z' format specifier" do
-    "a\x00\x00\x00\x11\x11".unpack('Zi').should == ['a', 285212672]
-    # NATFIXME: implement 'z' and 'c' directives
-    #"a\x00\x0f".unpack('Zxc').should == ['a', 15]
-    #"a\x00\x0f".unpack('Zcc').should == ['a', 0, 15]
+    "a\x00\x0f".unpack('Zxc').should == ['a', 15]
+    "a\x00\x0f".unpack('Zcc').should == ['a', 0, 15]
   end
 end
