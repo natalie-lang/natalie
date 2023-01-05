@@ -15,17 +15,20 @@ namespace Natalie {
 
 class EnvObject : public Object {
 public:
-    Value inspect(Env *);
-    Value size(Env *) const;
-    Value to_hash(Env *);
-    Value delete_key(Env *, Value name);
-    bool has_key(Env *, Value name);
     Value assoc(Env *, Value name);
+    Value clear(Env *);
+    Value delete_key(Env *, Value name, Block *block);
     Value fetch(Env *, Value name);
+    bool has_key(Env *, Value name);
+    Value inspect(Env *);
+    bool is_empty() const;
     Value ref(Env *, Value name);
     Value refeq(Env *, Value name, Value value);
-    Value to_s() const;
     Value rehash() const;
+    Value replace(Env *, Value hash);
+    Value size(Env *) const;
+    Value to_s() const;
+    Value to_hash(Env *);
 };
 
 }
