@@ -29,21 +29,24 @@ Value EnvObject::to_hash(Env *env) {
 
 Value EnvObject::size(Env *env) const {
     size_t idx = 0;
+    if (!environ) return Value::integer(0);
     char *pair = *environ;
-    if (!pair) return Value::integer(0); // paranoia, unsure if necessary
-    for (; pair; idx++) {
+    while (pair) {
+        idx++;
         pair = *(environ + idx);
     }
     return IntegerObject::from_size_t(env, idx);
 }
 
-Value EnvObject::delete_key(Env *env, Value name) {
+Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     name->assert_type(env, Object::Type::String, "String");
     auto namestr = name->as_string()->c_str();
     char *value = getenv(namestr);
     if (value) {
         ::unsetenv(namestr);
         return new StringObject { value };
+    } else if (block) {
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name }), nullptr);
     } else {
         return NilObject::the();
     }
@@ -109,4 +112,33 @@ Value EnvObject::to_s() const {
 Value EnvObject::rehash() const {
     return NilObject::the();
 }
+
+Value EnvObject::clear() {
+    ::clearenv();
+    return this;
+}
+
+Value EnvObject::replace(Env *env, Value hash) {
+    hash->assert_type(env, Object::Type::Hash, "Hash");
+    for (HashObject::Key &node : *hash->as_hash()) {
+        node.key->assert_type(env, Object::Type::String, "String");
+        node.val->assert_type(env, Object::Type::String, "String");
+    }
+    ::clearenv();
+    for (HashObject::Key &node : *hash->as_hash()) {
+        auto result = ::setenv(node.key->as_string()->c_str(), node.val->as_string()->c_str(), 1);
+        if (result == -1)
+            env->raise_errno();
+    }
+    return this;
+}
+
+bool EnvObject::is_empty() const {
+    size_t idx = 0;
+    if (!environ) return true;
+    char *pair = *environ;
+    if (!pair) return true;
+    return false;
+}
+
 }
