@@ -43,7 +43,7 @@ namespace ArrayPacker {
         Token next_token();
         signed char next_char();
         signed char current_char();
-        signed char char_at_index(size_t index);
+        signed char char_at_index(size_t index) const;
 
         String m_directives;
         size_t m_index { 0 };

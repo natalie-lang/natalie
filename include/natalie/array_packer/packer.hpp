@@ -53,7 +53,7 @@ namespace ArrayPacker {
             }
         }
 
-        bool at_end() { return m_index >= m_source->size(); }
+        bool at_end() const { return m_index >= m_source->size(); }
 
         ArrayObject *m_source;
         TM::Vector<Token> *m_directives;

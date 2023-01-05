@@ -37,7 +37,7 @@ namespace ArrayPacker {
         void pack_p();
         void pack_u();
 
-        bool at_end() { return m_index >= m_source.length(); }
+        bool at_end() const { return m_index >= m_source.length(); }
 
         unsigned char next();
 

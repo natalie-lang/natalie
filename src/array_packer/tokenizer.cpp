@@ -106,7 +106,7 @@ namespace ArrayPacker {
         return c;
     }
 
-    signed char Tokenizer::char_at_index(size_t index) {
+    signed char Tokenizer::char_at_index(size_t index) const {
         if (index >= m_directives.length())
             return 0;
         return m_directives[index];

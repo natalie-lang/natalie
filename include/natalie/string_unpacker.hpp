@@ -165,7 +165,7 @@ private:
         }
     }
 
-    const char *pointer() { return m_source->c_str() + m_index; }
+    const char *pointer() const { return m_source->c_str() + m_index; }
 
     unsigned char next_char() {
         if (at_end())
@@ -173,15 +173,15 @@ private:
         return m_source->at(m_index++);
     }
 
-    unsigned char peek_char() {
+    unsigned char peek_char() const {
         if (at_end())
             return 0;
         return m_source->at(m_index);
     }
 
-    bool at_end() { return m_index >= m_source->length(); }
+    bool at_end() const { return m_index >= m_source->length(); }
 
-    bool system_is_little_endian() {
+    bool system_is_little_endian() const {
         int i = 1;
         return *((char *)&i) == 1;
     }
