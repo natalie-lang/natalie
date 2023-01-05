@@ -16,7 +16,7 @@ namespace Natalie {
 class EnvObject : public Object {
 public:
     Value assoc(Env *, Value name);
-    Value clear();
+    Value clear(Env *);
     Value delete_key(Env *, Value name, Block *block);
     Value fetch(Env *, Value name);
     bool has_key(Env *, Value name);

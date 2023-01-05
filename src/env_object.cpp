@@ -113,8 +113,13 @@ Value EnvObject::rehash() const {
     return NilObject::the();
 }
 
-Value EnvObject::clear() {
-    ::clearenv();
+// Sadly, clearenv() is not available on some OS's
+// but is probably more optimal than this solution
+Value EnvObject::clear(Env *env) {
+    auto envhash = to_hash(env);
+    for (HashObject::Key &node : *envhash->as_hash()) {
+        ::unsetenv(node.key->as_string()->c_str());
+    }
     return this;
 }
 
@@ -124,7 +129,7 @@ Value EnvObject::replace(Env *env, Value hash) {
         node.key->assert_type(env, Object::Type::String, "String");
         node.val->assert_type(env, Object::Type::String, "String");
     }
-    ::clearenv();
+    clear(env);
     for (HashObject::Key &node : *hash->as_hash()) {
         auto result = ::setenv(node.key->as_string()->c_str(), node.val->as_string()->c_str(), 1);
         if (result == -1)

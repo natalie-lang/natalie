@@ -473,7 +473,7 @@ gen.binding('Enumerator::ArithmeticSequence', 'step', 'Enumerator::ArithmeticSeq
 gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', '[]=', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'assoc', 'EnvObject', 'assoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('ENV', 'clear', 'EnvObject', 'clear', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'clear', 'EnvObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'delete', 'EnvObject', 'delete_key', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
