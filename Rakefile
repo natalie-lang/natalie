@@ -4,6 +4,7 @@ task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
 SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
 task :build do
@@ -23,10 +24,11 @@ end
 
 desc 'Remove temporary files created during build'
 task :clean do
-  rm_rf 'build/array_packer'
+  SRC_DIRECTORIES.each do |subdir|
+    path = File.join('build', subdir)
+    rm_rf path
+  end
   rm_rf 'build/build.log'
-  rm_rf 'build/encoding'
-  rm_rf 'build/enumerator'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{SO_EXT}"
@@ -232,9 +234,10 @@ task libnatalie: [
 ]
 
 task :build_dir do
-  mkdir_p 'build/array_packer' unless File.exist?('build/array_packer')
-  mkdir_p 'build/encoding' unless File.exist?('build/encoding')
-  mkdir_p 'build/enumerator' unless File.exist?('build/enumerator')
+  SRC_DIRECTORIES.each do |subdir|
+    path = File.join('build', subdir)
+    mkdir_p path unless File.exist?(path)
+  end
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
@@ -345,16 +348,10 @@ rule '.cpp.o' => ['src/%n'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule %r{array_packer/.*\.cpp\.o$} => ['src/array_packer/%n'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
-rule %r{encoding/.*\.cpp\.o$} => ['src/encoding/%n'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
-rule %r{enumerator/.*\.cpp\.o$} => ['src/enumerator/%n'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+SRC_DIRECTORIES.each do |subdir|
+  rule %r{#{subdir}/.*\.cpp\.o$} => ["src/#{subdir}/%n"] + HEADERS do |t|
+    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+  end
 end
 
 rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
