@@ -426,7 +426,9 @@ void StringUnpacker::unpack_P(Token &token) {
         return;
     }
 
-    m_unpacked->push(new StringObject(*(const char **)pointer(), token.count));
+    const char *p = *(const char **)pointer();
+    const size_t size = std::min(static_cast<size_t>(token.count), strlen(p));
+    m_unpacked->push(new StringObject(p, size));
     m_index += sizeof(uintptr_t);
 }
 
