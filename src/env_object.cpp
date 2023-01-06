@@ -43,8 +43,9 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     auto namestr = name->as_string()->c_str();
     char *value = getenv(namestr);
     if (value) {
+        auto value_obj = new StringObject { value };
         ::unsetenv(namestr);
-        return new StringObject { value };
+        return value_obj;
     } else if (block) {
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name }), nullptr);
     } else {
