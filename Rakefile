@@ -23,6 +23,7 @@ end
 
 desc 'Remove temporary files created during build'
 task :clean do
+  rm_rf 'build/array_packer'
   rm_rf 'build/build.log'
   rm_rf 'build/encoding'
   rm_rf 'build/enumerator'
@@ -231,6 +232,7 @@ task libnatalie: [
 ]
 
 task :build_dir do
+  mkdir_p 'build/array_packer' unless File.exist?('build/array_packer')
   mkdir_p 'build/encoding' unless File.exist?('build/encoding')
   mkdir_p 'build/enumerator' unless File.exist?('build/enumerator')
   mkdir_p 'build/generated' unless File.exist?('build/generated')
@@ -340,6 +342,10 @@ rule %r{natalie_parser/.*\.cpp\.o$} => ['src/natalie_parser/%n'] + HEADERS do |t
 end
 
 rule '.cpp.o' => ['src/%n'] + HEADERS do |t|
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
+end
+
+rule %r{array_packer/.*\.cpp\.o$} => ['src/array_packer/%n'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 

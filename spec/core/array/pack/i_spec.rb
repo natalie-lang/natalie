@@ -20,8 +20,7 @@ describe "Array#pack with format 'i'" do
   it_behaves_like :array_pack_integer, 'i'
 end
 
-# NATFIXME: < modifier
-xdescribe "Array#pack with format 'I'" do
+describe "Array#pack with format 'I'" do
   describe "with modifier '<'" do
     it_behaves_like :array_pack_32bit_le, 'I<'
   end
@@ -51,8 +50,7 @@ xdescribe "Array#pack with format 'I'" do
   end
 end
 
-# NATFIXME: < modifier
-xdescribe "Array#pack with format 'i'" do
+describe "Array#pack with format 'i'" do
   describe "with modifier '<'" do
     it_behaves_like :array_pack_32bit_le, 'i<'
   end
@@ -87,13 +85,11 @@ little_endian do
     it_behaves_like :array_pack_32bit_le, 'I'
   end
 
-  # NATFIXME: _ modifier
-  xdescribe "Array#pack with format 'I' with modifier '_'" do
+  describe "Array#pack with format 'I' with modifier '_'" do
     it_behaves_like :array_pack_32bit_le_platform, 'I_'
   end
 
-  # NATFIXME: ! modifier
-  xdescribe "Array#pack with format 'I' with modifier '!'" do
+  describe "Array#pack with format 'I' with modifier '!'" do
     it_behaves_like :array_pack_32bit_le_platform, 'I!'
   end
 
@@ -101,13 +97,11 @@ little_endian do
     it_behaves_like :array_pack_32bit_le, 'i'
   end
 
-  # NATFIXME: _ modifier
-  xdescribe "Array#pack with format 'i' with modifier '_'" do
+  describe "Array#pack with format 'i' with modifier '_'" do
     it_behaves_like :array_pack_32bit_le_platform, 'i_'
   end
 
-  # NATFIXME: ! modifier
-  xdescribe "Array#pack with format 'i' with modifier '!'" do
+  describe "Array#pack with format 'i' with modifier '!'" do
     it_behaves_like :array_pack_32bit_le_platform, 'i!'
   end
 end
