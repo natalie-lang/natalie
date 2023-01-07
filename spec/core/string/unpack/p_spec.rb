@@ -23,8 +23,7 @@ describe "String#unpack with format 'P'" do
     ["hello"].pack("P").unpack("P1").should == ["h"]
   end
 
-  # NATFIXME: reads only as far as a NUL character
-  xit "reads only as far as a NUL character" do
+  it "reads only as far as a NUL character" do
     ["hello"].pack("P").unpack("P10").should == ["hello"]
   end
 end
