@@ -3,7 +3,13 @@
 #include "natalie/forward.hpp"
 #include "natalie/object.hpp"
 #include <sys/stat.h>
+
+// major/minor macro location
+#ifdef __linux__
 #include <sys/sysmacros.h>
+#else
+#include <sys/types.h>
+#endif
 
 namespace Natalie {
 
