@@ -53,6 +53,21 @@ Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     }
 }
 
+Value EnvObject::each(Env *env, Block *block) {
+    if (block) {
+        auto envhash = to_hash(env);
+        for (HashObject::Key &node : *envhash->as_hash()) {
+            auto name = node.key;
+            auto value = node.val;
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
+        }
+        return this;
+    } else {
+        // NATFIXME: return an enumerator
+        return NilObject::the();
+    }
+}
+
 Value EnvObject::assoc(Env *env, Value name) {
     StringObject *namestr;
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
@@ -75,13 +90,19 @@ Value EnvObject::ref(Env *env, Value name) {
     }
 }
 
-Value EnvObject::fetch(Env *env, Value name) {
+Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
     name->assert_type(env, Object::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
         return new StringObject { value };
+    } else if (block) {
+        if (default_value)
+            env->warn("block supersedes default value argument");
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name }), nullptr);
+    } else if (default_value) {
+        return default_value;
     } else {
-        env->raise("KeyError", "key not found: {}", name->as_string()->string());
+        env->raise_key_error(this, name);
     }
 }
 
@@ -97,6 +118,10 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
             env->raise_errno();
     }
     return value;
+}
+
+Value EnvObject::keys(Env *env) {
+    return to_hash(env)->as_hash()->keys(env);
 }
 
 bool EnvObject::has_key(Env *env, Value name) {
@@ -145,6 +170,30 @@ bool EnvObject::is_empty() const {
     char *pair = *environ;
     if (!pair) return true;
     return false;
+}
+
+Value EnvObject::update(Env *env, Args args, Block *block) {
+    for (size_t i = 0; i < args.size(); i++) {
+        auto h = args[i];
+
+        if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
+            h = h->send(env, "to_hash"_s);
+
+        h->assert_type(env, Object::Type::Hash, "Hash");
+
+        for (auto node : *h->as_hash()) {
+            auto old_value = ref(env, node.key);
+            auto new_value = node.val;
+            if (!old_value->is_nil()) {
+                if (block) {
+                    Value args[3] = { node.key, old_value, new_value };
+                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(3, args), nullptr);
+                }
+            }
+            refeq(env, node.key, new_value);
+        }
+    }
+    return this;
 }
 
 }
