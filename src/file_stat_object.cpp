@@ -152,7 +152,6 @@ Value FileStatObject::atime(Env *env) const {
 }
 
 Value FileStatObject::birthtime(Env *env) const {
-    Value sec, ns;
 #if defined(__FreeBSD__) or defined(__NetBSD__) or defined(__APPLE__)
     Value sec = Value::integer(fstatus.st_birthtimespec.tv_sec);
     Value ns = Value::integer(fstatus.st_birthtimespec.tv_nsec);
