@@ -224,18 +224,27 @@ def ruby_version_is(version, &block)
   version_is(RUBY_VERSION, version, &block)
 end
 
-def version_is(version, requirement_version)
+def _version_is(version, requirement_version)
   version = SpecVersion.new(version)
   case requirement_version
   when String
     requirement = SpecVersion.new requirement_version
-    yield if version >= requirement
+    return(version >= requirement)
   when Range
     a = SpecVersion.new requirement_version.begin
     b = SpecVersion.new requirement_version.end
-    yield if version >= a && (requirement_version.exclude_end? ? version < b : version <= b)
+    return(version >= a && (requirement_version.exclude_end? ? version < b : version <= b))
   else
     raise "version must be a String or Range but was a #{requirement_version.class}"
+  end
+  false
+end
+
+def version_is(*args)
+  matched = _version_is(*args)
+  return matched unless block_given?
+  if matched
+    yield
   end
 end
 

@@ -18,10 +18,12 @@ public:
     Value assoc(Env *, Value name);
     Value clear(Env *);
     Value delete_key(Env *, Value name, Block *block);
-    Value fetch(Env *, Value name);
+    Value each(Env *, Block *block);
+    Value fetch(Env *, Value name, Value default_value, Block *block);
     bool has_key(Env *, Value name);
     Value inspect(Env *);
     bool is_empty() const;
+    Value keys(Env *);
     Value ref(Env *, Value name);
     Value refeq(Env *, Value name, Value value);
     Value rehash() const;
@@ -29,6 +31,7 @@ public:
     Value size(Env *) const;
     Value to_s() const;
     Value to_hash(Env *);
+    Value update(Env *env, Args args, Block *block);
 };
 
 }

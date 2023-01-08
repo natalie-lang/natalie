@@ -241,6 +241,7 @@ Env *build_top_env() {
 
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
+    ENV->extend_once(env, Enumerable);
 
     ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "NatalieParser");
     Object->const_set("NatalieParser"_s, Parser);
