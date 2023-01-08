@@ -11,6 +11,12 @@
 #include <sys/types.h>
 #endif
 
+#if defined(__APPLE__)
+#define st_atim st_atimespec
+#define st_ctim st_ctimespec
+#define st_mtim st_mtimespec
+#endif
+
 namespace Natalie {
 
 class FileStatObject : public Object {
