@@ -62,6 +62,9 @@ namespace ArrayPacker {
         case 'V':
             pack_V();
             break;
+        case 'w':
+            pack_w();
+            break;
         default: {
             char buf[2] = { d, '\0' };
             env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -216,6 +219,10 @@ namespace ArrayPacker {
             auto source = (long long)m_source->to_nat_int_t();
             append_bytes((const char *)(&source), size);
         }
+    }
+
+    void IntegerHandler::pack_w() {
+        // NATFIXME: Implement
     }
 
     // NOTE: We probably don't need this monster method, but I could not figure out

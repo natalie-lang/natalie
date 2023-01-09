@@ -1,5 +1,3 @@
-# skip-test
-
 # -*- encoding: binary -*-
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
@@ -12,7 +10,8 @@ describe "Array#pack with format 'w'" do
   it_behaves_like :array_pack_arguments, 'w'
   it_behaves_like :array_pack_numeric_basic, 'w'
 
-  it "encodes a BER-compressed integer" do
+  # NATFIXME: encodes a BER-compressed integer
+  xit "encodes a BER-compressed integer" do
     [ [[0],     "\x00"],
       [[1],     "\x01"],
       [[9999],  "\xce\x0f"],
@@ -20,14 +19,16 @@ describe "Array#pack with format 'w'" do
     ].should be_computed_by(:pack, "w")
   end
 
-  it "calls #to_int to convert the pack argument to an Integer" do
+  # NATFIXME: calls #to_int to convert the pack argument to an Integer
+  xit "calls #to_int to convert the pack argument to an Integer" do
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(5)
     [obj].pack("w").should == "\x05"
   end
 
   ruby_version_is ""..."3.3" do
-    it "ignores NULL bytes between directives" do
+    # NATFIXME: ignores NULL bytes between directives
+    xit "ignores NULL bytes between directives" do
       [1, 2, 3].pack("w\x00w").should == "\x01\x02"
     end
   end
@@ -40,11 +41,13 @@ describe "Array#pack with format 'w'" do
     end
   end
 
-  it "ignores spaces between directives" do
+  # NATFIXME: ignores spaces between directives
+  xit "ignores spaces between directives" do
     [1, 2, 3].pack("w w").should == "\x01\x02"
   end
 
-  it "raises an ArgumentError when passed a negative value" do
+  # NATFIXME: raises an ArgumentError when passed a negative value
+  xit "raises an ArgumentError when passed a negative value" do
     -> { [-1].pack("w") }.should raise_error(ArgumentError)
   end
 
