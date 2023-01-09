@@ -10,12 +10,11 @@ describe "Array#pack with format 'w'" do
   it_behaves_like :array_pack_arguments, 'w'
   it_behaves_like :array_pack_numeric_basic, 'w'
 
-  # NATFIXME: Bignum support
   it "encodes a BER-compressed integer" do
     [ [[0],     "\x00"],
       [[1],     "\x01"],
       [[9999],  "\xce\x0f"],
-      # [[2**65], "\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00"]
+      [[2**65], "\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00"]
     ].should be_computed_by(:pack, "w")
   end
 
