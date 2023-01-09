@@ -33,9 +33,7 @@ SPEC_TEMP_DIR_PID = Process.pid
 if spec_temp_dir = ENV["SPEC_TEMP_DIR"]
   spec_temp_dir = File.realdirpath(spec_temp_dir)
 else
-  # TODO: revert when File.realpath is implemented
-  #spec_temp_dir = "#{File.realpath(Dir.pwd)}/rubyspec_temp/#{SPEC_TEMP_DIR_PID}"
-  spec_temp_dir = "./tmp.#{SPEC_TEMP_DIR_PID}"
+  spec_temp_dir = "#{File.realpath(Dir.pwd)}/rubyspec_temp/#{SPEC_TEMP_DIR_PID}"
 end
 SPEC_TEMP_DIR = spec_temp_dir
 
@@ -44,9 +42,7 @@ SPEC_TEMP_UNIQUIFIER = "0"
 at_exit do
   begin
     if SPEC_TEMP_DIR_PID == Process.pid
-      # TODO: revert when Dir.delete is implemented
-      #Dir.delete SPEC_TEMP_DIR if File.directory? SPEC_TEMP_DIR
-      `rm -rf #{SPEC_TEMP_DIR}` if File.directory? SPEC_TEMP_DIR
+      Dir.delete SPEC_TEMP_DIR if File.directory? SPEC_TEMP_DIR
     end
   rescue SystemCallError
     STDERR.puts <<-EOM

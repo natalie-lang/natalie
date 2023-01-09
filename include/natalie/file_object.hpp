@@ -75,6 +75,7 @@ public:
     static Value umask(Env *env, Value mask);
     static Value ftype(Env *env, Value path);
     static Value size(Env *env, Value path);
+    static Value realpath(Env *, Value, Value);
     static Value world_readable(Env *env, Value path);
     static Value world_writable(Env *env, Value path);
 

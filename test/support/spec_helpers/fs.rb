@@ -59,8 +59,7 @@ end
 def rm_r(*paths)
   paths.each do |path|
     path = File.expand_path path
-    #prefix = SPEC_TEMP_DIR # from mspec, need to revert when possible
-    prefix = "#{Dir.pwd}/tmp" 
+    prefix = SPEC_TEMP_DIR
     unless path[0, prefix.size] == prefix
       raise ArgumentError, "#{path} is not prefixed by #{prefix}"
     end
@@ -70,9 +69,10 @@ def rm_r(*paths)
     if File.symlink? path
       File.unlink path
     elsif File.directory? path
-      `rm -rf #{path}`
+      # NATFIXME: Revert when Dir.entries and Dir.rmdir are available
       #Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
       #Dir.rmdir path
+      `rm -rf #{path}`
     elsif File.exist? path
       File.delete path
     end
