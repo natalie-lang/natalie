@@ -525,13 +525,22 @@ void StringUnpacker::unpack_u(Token &token) {
 void StringUnpacker::unpack_w(Env *env, Token &token) {
     Integer result = 0;
 
-    unsigned char c;
-    do {
-        c = next_char();
-        result = (result << 7) | (c & 0x7f);
-    } while (c & 0x80);
+    const auto consumed = unpack_bytes(token, [&](unsigned char c) {
+        bool keep_going = true;
+        while (keep_going) {
+            result = (result << 7) | (c & 0x7f);
+            if (c & 0x80) {
+                c = next_char();
+            } else {
+                keep_going = false;
+            }
+        }
+        return !at_end();
+    });
 
-    m_index++;
+    if (token.count > 0 && (ssize_t)consumed < token.count)
+        m_index += (token.count - consumed);
+
     m_unpacked->push(new IntegerObject(result));
 }
 

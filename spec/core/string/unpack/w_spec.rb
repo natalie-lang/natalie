@@ -15,13 +15,11 @@ describe "String#unpack with directive 'w'" do
     ].should be_computed_by(:unpack, "w")
   end
 
-  # NATFIXME: ignore NULL bytes between directive
-  xit "ignores NULL bytes between directives" do
+  it "ignores NULL bytes between directives" do
     "\x01\x02\x03".unpack("w\x00w").should == [1, 2]
   end
 
-  # NATFIXME: ignore spaces between directives
-  xit "ignores spaces between directives" do
+  it "ignores spaces between directives" do
     "\x01\x02\x03".unpack("w w").should == [1, 2]
   end
 end
