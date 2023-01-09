@@ -523,10 +523,10 @@ void StringUnpacker::unpack_u(Token &token) {
 }
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
-    Integer result = 0;
-
     const auto consumed = unpack_bytes(token, [&](unsigned char c) {
+        Integer result = 0;
         bool keep_going = true;
+
         while (keep_going) {
             result = (result << 7) | (c & 0x7f);
             if (c & 0x80) {
@@ -535,13 +535,13 @@ void StringUnpacker::unpack_w(Env *env, Token &token) {
                 keep_going = false;
             }
         }
+        m_unpacked->push(new IntegerObject(result));
+
         return !at_end();
     });
 
     if (token.count > 0 && (ssize_t)consumed < token.count)
         m_index += (token.count - consumed);
-
-    m_unpacked->push(new IntegerObject(result));
 }
 
 void StringUnpacker::unpack_X(Env *env, Token &token) {

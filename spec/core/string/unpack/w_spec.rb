@@ -24,8 +24,7 @@ describe "String#unpack with directive 'w'" do
   end
 end
 
-# NATFIXME: String#unpack with directive 'w*
-xdescribe "String#unpack with directive 'w*'" do
+describe "String#unpack with directive 'w*'" do
 
   it "decodes BER-compressed integers" do
     "\x01\x02\x03\x04".unpack("w*").should == [1, 2, 3, 4]
