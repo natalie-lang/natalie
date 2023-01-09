@@ -523,7 +523,7 @@ void StringUnpacker::unpack_u(Token &token) {
 }
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
-    nat_int_t result = 0;
+    Integer result = 0;
 
     unsigned char c;
     do {
