@@ -63,7 +63,7 @@ namespace ArrayPacker {
             pack_V();
             break;
         case 'w':
-            pack_w();
+            pack_w(env);
             break;
         default: {
             char buf[2] = { d, '\0' };
@@ -221,7 +221,11 @@ namespace ArrayPacker {
         }
     }
 
-    void IntegerHandler::pack_w() {
+    void IntegerHandler::pack_w(Env *env) {
+        if (m_source->is_negative()) {
+            env->raise("ArgumentError", "can't compress negative numbers");
+        }
+
         // NATFIXME: Implement
     }
 

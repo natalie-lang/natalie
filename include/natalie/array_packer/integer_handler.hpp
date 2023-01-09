@@ -35,7 +35,7 @@ namespace ArrayPacker {
         void pack_s();
         void pack_V();
         void pack_v();
-        void pack_w();
+        void pack_w(Env *env);
         void pack_bignum(size_t max_bits);
         void append_bytes(const char *bytes, int size);
         void append_8_ascii_bits_as_a_byte(String &digits, size_t offset);

@@ -46,8 +46,7 @@ describe "Array#pack with format 'w'" do
     [1, 2, 3].pack("w w").should == "\x01\x02"
   end
 
-  # NATFIXME: raises an ArgumentError when passed a negative value
-  xit "raises an ArgumentError when passed a negative value" do
+  it "raises an ArgumentError when passed a negative value" do
     -> { [-1].pack("w") }.should raise_error(ArgumentError)
   end
 
