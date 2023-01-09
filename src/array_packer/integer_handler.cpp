@@ -226,7 +226,22 @@ namespace ArrayPacker {
             env->raise("ArgumentError", "can't compress negative numbers");
         }
 
-        // NATFIXME: Implement
+        if (m_source->is_bignum()) {
+            // NATFIXME: Implement
+        } else {
+            auto num = m_source->to_nat_int_t();
+            char bytes[sizeof(num)];
+            size_t size = 0;
+            do {
+                bytes[size] = num & 0x7f;
+                num = num >> 7;
+                if (size > 0) bytes[size] |= 0x80;
+                size++;
+            } while (num > 0);
+            for (ssize_t i = size - 1; i >= 0; i--) {
+                m_packed.append_char(bytes[i]);
+            }
+        }
     }
 
     // NOTE: We probably don't need this monster method, but I could not figure out

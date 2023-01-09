@@ -10,25 +10,23 @@ describe "Array#pack with format 'w'" do
   it_behaves_like :array_pack_arguments, 'w'
   it_behaves_like :array_pack_numeric_basic, 'w'
 
-  # NATFIXME: encodes a BER-compressed integer
-  xit "encodes a BER-compressed integer" do
+  # NATFIXME: Bignum support
+  it "encodes a BER-compressed integer" do
     [ [[0],     "\x00"],
       [[1],     "\x01"],
       [[9999],  "\xce\x0f"],
-      [[2**65], "\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00"]
+      # [[2**65], "\x84\x80\x80\x80\x80\x80\x80\x80\x80\x00"]
     ].should be_computed_by(:pack, "w")
   end
 
-  # NATFIXME: calls #to_int to convert the pack argument to an Integer
-  xit "calls #to_int to convert the pack argument to an Integer" do
+  it "calls #to_int to convert the pack argument to an Integer" do
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(5)
     [obj].pack("w").should == "\x05"
   end
 
   ruby_version_is ""..."3.3" do
-    # NATFIXME: ignores NULL bytes between directives
-    xit "ignores NULL bytes between directives" do
+    it "ignores NULL bytes between directives" do
       [1, 2, 3].pack("w\x00w").should == "\x01\x02"
     end
   end
@@ -41,8 +39,7 @@ describe "Array#pack with format 'w'" do
     end
   end
 
-  # NATFIXME: ignores spaces between directives
-  xit "ignores spaces between directives" do
+  it "ignores spaces between directives" do
     [1, 2, 3].pack("w w").should == "\x01\x02"
   end
 
