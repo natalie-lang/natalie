@@ -8,8 +8,8 @@ std::pair<bool, StringView> Utf16LeEncodingObject::prev_char(const String &strin
 
     size_t i = *index;
 
-    // there are no even 2 bytes
-    if (*index == 1) {
+    // there are not enough bytes left
+    if (*index < 2) {
         *index--;
         return { false, StringView(&string, i - 1, 1) };
     }
@@ -25,8 +25,8 @@ std::pair<bool, StringView> Utf16LeEncodingObject::prev_char(const String &strin
         return { true, StringView(&string, i - 2, 2) };
     }
 
-    // there are no even 4 bytes
-    if (*index == 3) {
+    // there are not enough bytes left
+    if (*index < 4) {
         *index--;
         return { false, StringView(&string, i - 1, 1) };
     }
@@ -57,8 +57,8 @@ std::pair<bool, StringView> Utf16LeEncodingObject::next_char(const String &strin
     if (*index >= len)
         return { true, StringView() };
 
-    // there are no even 2 bytes
-    if (*index + 1 == len) {
+    // there are not enough bytes left
+    if (*index + 1 >= len) {
         *index += 1;
         return { false, StringView(&string, i, 1) };
     }
@@ -74,8 +74,8 @@ std::pair<bool, StringView> Utf16LeEncodingObject::next_char(const String &strin
         return { true, StringView(&string, i, 2) };
     }
 
-    //  there are no even 4 bytes
-    if (*index + 3 == len) {
+    // there are not enough bytes left
+    if (*index + 3 >= len) {
         *index += 2;
         return { false, StringView(&string, i, 2) };
     }
