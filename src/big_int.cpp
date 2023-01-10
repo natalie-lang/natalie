@@ -919,8 +919,8 @@ BigInt abs(const BigInt &num) {
 */
 
 BigInt big_pow10(size_t exp) {
-    auto string = TM::String(exp, '0');
-    string.prepend_char('1');
+    auto string = TM::String(exp + 1, '0');
+    string[0] = '1';
     return BigInt(string);
 }
 
