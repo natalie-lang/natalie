@@ -159,6 +159,9 @@ ArrayObject *StringUnpacker::unpack(Env *env) {
         case 'v':
             unpack_int<uint16_t>(token, true);
             break;
+        case 'w':
+            unpack_w(env, token);
+            break;
         case 'X':
             unpack_X(env, token);
             break;
@@ -517,6 +520,28 @@ void StringUnpacker::unpack_u(Token &token) {
     }
 
     m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+}
+
+void StringUnpacker::unpack_w(Env *env, Token &token) {
+    const auto consumed = unpack_bytes(token, [&](unsigned char c) {
+        Integer result = 0;
+        bool keep_going = true;
+
+        while (keep_going) {
+            result = (result << 7) | (c & 0x7f);
+            if (c & 0x80) {
+                c = next_char();
+            } else {
+                keep_going = false;
+            }
+        }
+        m_unpacked->push(new IntegerObject(result));
+
+        return !at_end();
+    });
+
+    if (token.count > 0 && (ssize_t)consumed < token.count)
+        m_index += (token.count - consumed);
 }
 
 void StringUnpacker::unpack_X(Env *env, Token &token) {
