@@ -18,7 +18,7 @@ namespace Natalie {
 
 class IntegerObject : public Object {
 public:
-    IntegerObject(nat_int_t integer)
+    IntegerObject(const nat_int_t integer)
         : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
@@ -26,8 +26,16 @@ public:
         : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
+    IntegerObject(Integer &&integer)
+        : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
+        , m_integer { std::move(integer) } { }
+
+    static Value create(const nat_int_t);
     static Value create(const Integer &);
+    static Value create(Integer &&);
     static Value create(const char *);
+    static Value create(const TM::String &);
+    static Value create(TM::String &&);
 
     Integer integer() const {
         return m_integer;
