@@ -84,6 +84,12 @@ public:
     static Value chmod(Env *env, Value mode, Value path);
     Value chmod(Env *env, Value mode);
 
+    static Value lstat(Env *env, Value path);
+    static Value stat(Env *env, Value path);
+
+    Value lstat(Env *env) const; // instance method
+    Value stat(Env *env); // instance method
+
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };
 

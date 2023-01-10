@@ -52,6 +52,7 @@ public:
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType, nat_int_t break_point = 0);
     [[noreturn]] void raise_errno();
+    [[noreturn]] void raise_errno(StringObject *);
     [[noreturn]] void raise_no_method_error(Object *, SymbolObject *, MethodMissingReason);
     [[noreturn]] void raise_name_error(SymbolObject *name, String);
     [[noreturn]] void raise_not_comparable_error(Value lhs, Value rhs);

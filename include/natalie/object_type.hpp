@@ -14,6 +14,7 @@ enum class ObjectType {
     Exception,
     False,
     Fiber,
+    FileStat,
     Float,
     Hash,
     Integer,

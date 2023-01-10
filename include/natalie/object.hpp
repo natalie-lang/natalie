@@ -124,6 +124,7 @@ public:
     bool is_hash() const { return m_type == Type::Hash; }
     bool is_integer() const { return m_type == Type::Integer; }
     bool is_io() const { return m_type == Type::Io; }
+    bool is_file_stat() const { return m_type == Type::FileStat; }
     bool is_match_data() const { return m_type == Type::MatchData; }
     bool is_proc() const { return m_type == Type::Proc; }
     bool is_random() const { return m_type == Type::Random; }
@@ -158,6 +159,8 @@ public:
     const FiberObject *as_fiber() const;
     FileObject *as_file();
     const FileObject *as_file() const;
+    FileStatObject *as_file_stat();
+    const FileStatObject *as_file_stat() const;
     FloatObject *as_float();
     const FloatObject *as_float() const;
     HashObject *as_hash();
