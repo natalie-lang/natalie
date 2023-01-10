@@ -73,9 +73,8 @@ def tmp(name, uniquify = true)
     #index = slash ? slash + 1 : 0
     #name.insert index, "#{SPEC_TEMP_UNIQUIFIER.succ!}-"
     slash = name.reverse.index("/")
-    index = slash ? name.size - slash - 1 : 0
+    index = slash ? name.size - slash : 0
     name = name[0...index] + "#{SPEC_TEMP_UNIQUIFIER.succ!}-" + name[index..-1]
   end
-
   File.join SPEC_TEMP_DIR, name
 end

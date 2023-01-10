@@ -1332,6 +1332,7 @@ def run_specs
 
   @specs.each do |test|
     context, test, fn, focus = test
+
     next if any_focused && !focus
     if fn
       @test_count += 1
@@ -1351,16 +1352,6 @@ def run_specs
         fn.call
 
         $expectations.each { |expectation| expectation.validate! }
-        context.each { |con| con.after_each.each { |a| a.call } }
-
-        context.each do |con|
-          con.after_all.each do |b|
-            unless after_all_done.include?(b)
-              b.call
-              after_all_done << b
-            end
-          end
-        end
 
       rescue SpecFailedException => e
         @failures << [context, test, e]
@@ -1371,10 +1362,28 @@ def run_specs
         formatter.print_error(*@errors.last)
       else
         formatter.print_success(context, test)
+      ensure
+        # ensure that the after-each is executed
+        context.each { |con| con.after_each.each { |a| a.call } }
       end
+
+
     else
       @skipped << [context, test]
       formatter.print_skipped(*@skipped.last)
+    end
+  end
+
+  # after-all
+  @specs.each do |test|
+    context = test[0]
+    context.each do |con|
+      con.after_all.each do |b|
+        unless after_all_done.include?(b)
+          b.call
+          after_all_done << b
+        end
+      end
     end
   end
 

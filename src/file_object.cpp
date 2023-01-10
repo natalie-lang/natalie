@@ -31,9 +31,11 @@ int effective_uid_access(const char *path_name, int type) {
 }
 
 namespace fileutil {
-    // If it's not a string but has a to_path method then execute that method.
-    // make sure the path or to_path result is a String before continuing.
-    // this is common to many functions probably belongs somewhere else
+    // If the `path` is not a string, but has #to_path, then
+    // execute #to_path.  Otherwise if it has #to_str, then
+    // execute #to_str.  Make sure the path or to_path result is a String
+    // before continuing.
+    // This is common to many functions in FileObject and DirObject
     Value convert_using_to_path(Env *env, Value path) {
         if (!path->is_string() && path->respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
