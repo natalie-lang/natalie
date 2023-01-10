@@ -76,7 +76,7 @@ HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = new HashObject();
     for (auto encoding : *list(env)) {
         auto enc = encoding->as_encoding();
-        auto names = enc->m_names;
+        const auto &names = enc->m_names;
 
         if (names.size() < 2)
             continue;
@@ -105,7 +105,7 @@ EncodingObject *EncodingObject::find(Env *env, Value name) {
     auto string = name->as_string()->string();
     for (auto value : *list(env)) {
         auto encoding = value->as_encoding();
-        for (auto encodingName : encoding->m_names) {
+        for (const auto &encodingName : encoding->m_names) {
             if (encodingName.casecmp(string) == 0)
                 return encoding;
         }
@@ -125,7 +125,7 @@ EncodingObject::EncodingObject(Encoding num, std::initializer_list<const String>
     : EncodingObject {} {
     assert(s_encoding_list.get(num) == nullptr);
     m_num = num;
-    for (auto name : names)
+    for (const auto &name : names)
         m_names.push(name);
     s_encoding_list.put(num, this);
 }
@@ -140,7 +140,7 @@ const StringObject *EncodingObject::name() const {
 
 ArrayObject *EncodingObject::names(Env *env) {
     auto array = new ArrayObject { m_names.size() };
-    for (auto name : m_names)
+    for (const auto &name : m_names)
         array->push(new StringObject { name });
     return array;
 }
