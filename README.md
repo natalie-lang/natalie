@@ -152,10 +152,11 @@ belongs to the respective owner:
 
 | file(s)                       | copyright                         | license           |
 | ----------------------------- | --------------------------------- | ----------------- |
+| `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
 | `dtoa.c`                      | David M. Gay, Lucent Technologies | custom permissive |
 | `fiber_object.*`              | Evan Jones                        | MIT               |
-| `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
 | `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
 | `version.rb`                  | Engine Yard, Inc.                 | MIT               |
+| `zlib` (see `zlib/LICENSE`)   | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
