@@ -40,6 +40,7 @@ private:
     void unpack_p();
     void unpack_U(Env *env, Token &token);
     void unpack_u(Token &token);
+    void unpack_w(Env *env, Token &token);
     void unpack_X(Env *env, Token &token);
     void unpack_x(Env *env, Token &token);
     void unpack_Z(Token &token);

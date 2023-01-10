@@ -19,6 +19,7 @@ class ExceptionObject;
 class FalseObject;
 class FiberObject;
 class FileObject;
+class FileStatObject;
 class FloatObject;
 class GlobalEnv;
 class HashKey;

@@ -96,6 +96,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new VoidPObject { klass };
         break;
 
+    case Object::Type::FileStat:
+        obj = new FileStatObject { klass };
+        break;
+
     case Object::Type::Binding:
     case Object::Type::Encoding:
     case Object::Type::False:
@@ -305,6 +309,16 @@ FileObject *Object::as_file() {
 const FileObject *Object::as_file() const {
     assert(is_io());
     return static_cast<const FileObject *>(this);
+}
+
+FileStatObject *Object::as_file_stat() {
+    assert(is_file_stat());
+    return static_cast<FileStatObject *>(this);
+}
+
+const FileStatObject *Object::as_file_stat() const {
+    assert(is_file_stat());
+    return static_cast<const FileStatObject *>(this);
 }
 
 MatchDataObject *Object::as_match_data() {

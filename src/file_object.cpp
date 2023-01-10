@@ -31,9 +31,11 @@ int effective_uid_access(const char *path_name, int type) {
 }
 
 namespace fileutil {
-    // If it's not a string but has a to_path method then execute that method.
-    // make sure the path or to_path result is a String before continuing.
-    // this is common to many functions probably belongs somewhere else
+    // If the `path` is not a string, but has #to_path, then
+    // execute #to_path.  Otherwise if it has #to_str, then
+    // execute #to_str.  Make sure the path or to_path result is a String
+    // before continuing.
+    // This is common to many functions in FileObject and DirObject
     Value convert_using_to_path(Env *env, Value path) {
         if (!path->is_string() && path->respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
@@ -174,13 +176,13 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
 bool FileObject::exist(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    return stat(path->as_string()->c_str(), &sb) != -1;
+    return ::stat(path->as_string()->c_str(), &sb) != -1;
 }
 
 bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISREG(sb.st_mode);
 }
@@ -188,7 +190,7 @@ bool FileObject::is_file(Env *env, Value path) {
 bool FileObject::is_directory(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISDIR(sb.st_mode);
 }
@@ -220,7 +222,7 @@ bool FileObject::is_sticky(Env *env, Value path) {
 bool FileObject::is_setgid(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISGID);
 }
@@ -228,7 +230,7 @@ bool FileObject::is_setgid(Env *env, Value path) {
 bool FileObject::is_setuid(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISUID);
 }
@@ -236,7 +238,7 @@ bool FileObject::is_setuid(Env *env, Value path) {
 bool FileObject::is_symlink(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (lstat(path->as_string()->c_str(), &sb) == -1)
+    if (::lstat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISLNK(sb.st_mode);
 }
@@ -244,7 +246,7 @@ bool FileObject::is_symlink(Env *env, Value path) {
 bool FileObject::is_blockdev(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISBLK(sb.st_mode);
 }
@@ -252,7 +254,7 @@ bool FileObject::is_blockdev(Env *env, Value path) {
 bool FileObject::is_chardev(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISCHR(sb.st_mode);
 }
@@ -260,7 +262,7 @@ bool FileObject::is_chardev(Env *env, Value path) {
 bool FileObject::is_pipe(Env *env, Value path) {
     struct stat sb;
     path->assert_type(env, Object::Type::String, "String");
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISFIFO(sb.st_mode);
 }
@@ -268,7 +270,7 @@ bool FileObject::is_pipe(Env *env, Value path) {
 bool FileObject::is_socket(Env *env, Value path) {
     struct stat sb;
     path->assert_type(env, Object::Type::String, "String");
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISSOCK(sb.st_mode);
 }
@@ -290,7 +292,7 @@ bool FileObject::is_readable_real(Env *env, Value path) {
 Value FileObject::world_readable(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
@@ -302,7 +304,7 @@ Value FileObject::world_readable(Env *env, Value path) {
 Value FileObject::world_writable(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
         auto modenum = sb.st_mode & (S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH | S_IXUSR | S_IXGRP | S_IXOTH);
@@ -342,7 +344,7 @@ bool FileObject::is_executable_real(Env *env, Value path) {
 bool FileObject::is_owned(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_uid == ::geteuid());
 }
@@ -350,7 +352,7 @@ bool FileObject::is_owned(Env *env, Value path) {
 bool FileObject::is_zero(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_size == 0);
 }
@@ -359,7 +361,7 @@ bool FileObject::is_zero(Env *env, Value path) {
 Value FileObject::is_size(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    if (stat(path->as_string()->c_str(), &sb) == -1)
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if (sb.st_size == 0) // returns nil when file size is zero.
         return NilObject::the();
@@ -369,7 +371,7 @@ Value FileObject::is_size(Env *env, Value path) {
 Value FileObject::size(Env *env, Value path) {
     struct stat sb;
     path = fileutil::convert_using_to_path(env, path);
-    int result = stat(path->as_string()->c_str(), &sb);
+    int result = ::stat(path->as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno();
     return IntegerObject::create((nat_int_t)(sb.st_size));
 }
@@ -470,6 +472,41 @@ Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
     auto outstr = new StringObject { resolved_filepath };
     free(resolved_filepath);
     return outstr;
+}
+
+// class method
+Value FileObject::lstat(Env *env, Value path) {
+    struct stat sb;
+    path = fileutil::convert_using_to_path(env, path);
+    int result = ::lstat(path->as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path->as_string());
+    return new FileStatObject { sb };
+}
+
+// instance method
+Value FileObject::lstat(Env *env) const {
+    struct stat sb;
+    int result = ::stat(path().c_str(), &sb);
+    if (result < 0) env->raise_errno();
+    return new FileStatObject { sb };
+}
+
+// class method
+Value FileObject::stat(Env *env, Value path) {
+    struct stat sb;
+    path = fileutil::convert_using_to_path(env, path);
+    int result = ::stat(path->as_string()->c_str(), &sb);
+    if (result < 0) env->raise_errno(path->as_string());
+    return new FileStatObject { sb };
+}
+
+// instance method
+Value FileObject::stat(Env *env) {
+    struct stat sb;
+    auto file_desc = fileno(); // current file descriptor
+    int result = ::fstat(file_desc, &sb);
+    if (result < 0) env->raise_errno();
+    return new FileStatObject { sb };
 }
 
 }

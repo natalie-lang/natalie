@@ -22,9 +22,9 @@ public:
 
     static bool is_empty(Env *, Value);
     static Value home(Env *, Value);
+    static Value chdir(Env *env, Value path, Block *block);
     static Value mkdir(Env *env, Value path, Value mode);
-    //static Value pwd(Env *env);
-    //static Value chdir(Env *env, Value path) // also takes a block
+    static Value pwd(Env *env);
     static Value rmdir(Env *env, Value path); // same as .delete, .unlink
 };
 
