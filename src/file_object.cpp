@@ -463,6 +463,17 @@ Value FileObject::umask(Env *env, Value mask) {
     return Value::integer(old_mask);
 }
 
+Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
+    pathname = fileutil::convert_using_to_path(env, pathname);
+    char *resolved_filepath = nullptr;
+    resolved_filepath = ::realpath(pathname->as_string()->c_str(), nullptr);
+    if (!resolved_filepath)
+        env->raise_errno();
+    auto outstr = new StringObject { resolved_filepath };
+    free(resolved_filepath);
+    return outstr;
+}
+
 // class method
 Value FileObject::lstat(Env *env, Value path) {
     struct stat sb;

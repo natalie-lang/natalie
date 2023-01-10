@@ -551,6 +551,9 @@ gen.static_binding('File', 'unlink', 'FileObject', 'unlink', argc: :any, pass_en
 gen.static_binding('File', 'delete', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'ftype', 'FileObject', 'ftype', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'umask', 'FileObject', 'umask', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'realpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+# NATFIXME: realdirpath is subtly different from realpath and should bind to a unique function
+gen.static_binding('File', 'realdirpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('File', 'path', 'FileObject', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
