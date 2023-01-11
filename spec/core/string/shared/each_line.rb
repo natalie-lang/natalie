@@ -1,6 +1,5 @@
 describe :string_each_line, shared: true do
-  # NATFIXME: Blocks for String#lines
-  xit "splits using default newline separator when none is specified" do
+  it "splits using default newline separator when none is specified" do
     a = []
     "one\ntwo\r\nthree".send(@method) { |s| a << s }
     a.should == ["one\n", "two\r\n", "three"]
@@ -14,8 +13,7 @@ describe :string_each_line, shared: true do
     c.should == ["\n", "\n", "\n", "\n", "\n"]
   end
 
-  # NATFIXME: Blocks for String#lines
-  xit "splits self using the supplied record separator and passes each substring to the block" do
+  it "splits self using the supplied record separator and passes each substring to the block" do
     a = []
     "one\ntwo\r\nthree".send(@method, "\n") { |s| a << s }
     a.should == ["one\n", "two\r\n", "three"]
@@ -29,8 +27,7 @@ describe :string_each_line, shared: true do
     c.should == ["hello\n", "\n", "\n", "world"]
   end
 
-  # NATFIXME: Blocks for String#lines
-  xit "splits strings containing multibyte characters" do
+  it "splits strings containing multibyte characters" do
     s = <<~EOS
       foo
       🤡🤡🤡🤡🤡🤡🤡
@@ -43,14 +40,14 @@ describe :string_each_line, shared: true do
     b.should == ["foo\n", "🤡🤡🤡🤡🤡🤡🤡\n", "bar\n", "baz\n"]
   end
 
-  # NATFIXME: Blocks for String#lines
+  # NATFIXME: Support nil as separator
   xit "passes self as a whole to the block if the separator is nil" do
     a = []
     "one\ntwo\r\nthree".send(@method, nil) { |s| a << s }
     a.should == ["one\ntwo\r\nthree"]
   end
 
-  # NATFIXME: Blocks for String#lines
+  # NATFIXME: yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones
   xit "yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones" do
     a = []
     "hello\nworld\n\n\nand\nuniverse\n\n\n\n\n".send(@method, '') { |s| a << s }
@@ -61,7 +58,7 @@ describe :string_each_line, shared: true do
     a.should == ["hello\nworld\n\n", "and\nuniverse\n\n", "dog"]
   end
 
-  # NATFIXME: Blocks for String#lines
+  # NATFIXME: uses $/
   xdescribe "uses $/" do
     before :each do
       @before_separator = $/
@@ -100,8 +97,7 @@ describe :string_each_line, shared: true do
   end
 
   ruby_version_is '3.0' do
-    # NATFIXME: Blocks for String#lines
-    xit "yields String instances for subclasses" do
+    it "yields String instances for subclasses" do
       a = []
       StringSpecs::MyString.new("hello\nworld").send(@method) { |s| a << s.class }
       a.should == [String, String]
@@ -113,7 +109,7 @@ describe :string_each_line, shared: true do
     (s.send(@method) {}).should equal(s)
   end
 
-  # NATFIXME: Blocks for String#lines
+  # NATFIXME: tries to convert the separator to a string using to_str
   xit "tries to convert the separator to a string using to_str" do
     separator = mock('l')
     separator.should_receive(:to_str).and_return("l")
@@ -123,7 +119,7 @@ describe :string_each_line, shared: true do
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
 
-  # NATFIXME: Blocks for String#lines
+  # NATFIXME: does not care if the string is modified while substituting
   xit "does not care if the string is modified while substituting" do
     str = "hello\nworld."
     out = []
@@ -144,8 +140,7 @@ describe :string_each_line, shared: true do
     -> { "hello world".send(@method, :o).to_a }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Blocks for String#lines
-  xcontext "when `chomp` keyword argument is passed" do
+  context "when `chomp` keyword argument is passed" do
     it "removes new line characters when separator is not specified" do
       a = []
       "hello \nworld\n".send(@method, chomp: true) { |s| a << s }
@@ -156,14 +151,16 @@ describe :string_each_line, shared: true do
       a.should == ["hello ", "world"]
     end
 
-    it "removes only specified separator" do
+    # NATFIXME: removes only specified separator
+    xit "removes only specified separator" do
       a = []
       "hello world".send(@method, ' ', chomp: true) { |s| a << s }
       a.should == ["hello", "world"]
     end
 
     # https://bugs.ruby-lang.org/issues/14257
-    it "ignores new line characters when separator is specified" do
+    # NATFIXME: ignores new line characters when separator is specified
+    xit "ignores new line characters when separator is specified" do
       a = []
       "hello\n world\n".send(@method, ' ', chomp: true) { |s| a << s }
       a.should == ["hello\n", "world\n"]
