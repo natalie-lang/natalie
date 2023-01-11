@@ -151,16 +151,14 @@ describe :string_each_line, shared: true do
       a.should == ["hello ", "world"]
     end
 
-    # NATFIXME: removes only specified separator
-    xit "removes only specified separator" do
+    it "removes only specified separator" do
       a = []
       "hello world".send(@method, ' ', chomp: true) { |s| a << s }
       a.should == ["hello", "world"]
     end
 
     # https://bugs.ruby-lang.org/issues/14257
-    # NATFIXME: ignores new line characters when separator is specified
-    xit "ignores new line characters when separator is specified" do
+    it "ignores new line characters when separator is specified" do
       a = []
       "hello\n world\n".send(@method, ' ', chomp: true) { |s| a << s }
       a.should == ["hello\n", "world\n"]

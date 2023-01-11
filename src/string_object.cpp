@@ -2004,13 +2004,13 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
             do {
                 const auto u_index = static_cast<size_t>(index);
                 auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
-                if (chomp) out->chomp_in_place(env, nullptr);
+                if (chomp) out->chomp_in_place(env, separator);
                 callback(out);
                 last_index = u_index + separator->as_string()->length();
                 index = index_int(env, separator->as_string(), last_index);
             } while (index != -1);
             auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
-            if (chomp) out->chomp_in_place(env, nullptr);
+            if (chomp) out->chomp_in_place(env, separator);
             if (!out->is_empty()) callback(out);
         }
     };
