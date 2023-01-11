@@ -4,14 +4,32 @@
 
 namespace Natalie {
 
+Value IntegerObject::create(const nat_int_t integer) {
+    return Value::integer(integer);
+}
+
 Value IntegerObject::create(const Integer &integer) {
     if (integer.is_bignum())
         return new IntegerObject { integer };
     return Value::integer(integer.to_nat_int_t());
 }
 
+Value IntegerObject::create(Integer &&integer) {
+    if (integer.is_bignum())
+        return new IntegerObject { std::move(integer) };
+    return Value::integer(integer.to_nat_int_t());
+}
+
 Value IntegerObject::create(const char *string) {
     return new IntegerObject { BigInt(string) };
+};
+
+Value IntegerObject::create(const TM::String &string) {
+    return new IntegerObject { BigInt(string) };
+};
+
+Value IntegerObject::create(TM::String &&string) {
+    return new IntegerObject { BigInt(std::move(string)) };
 };
 
 Value IntegerObject::to_s(Env *env, Value base_value) const {

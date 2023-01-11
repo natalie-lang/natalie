@@ -535,7 +535,7 @@ void StringUnpacker::unpack_w(Env *env, Token &token) {
                 keep_going = false;
             }
         }
-        m_unpacked->push(new IntegerObject(result));
+        m_unpacked->push(new IntegerObject(std::move(result)));
 
         return !at_end();
     });

@@ -57,6 +57,7 @@ public:
     // Constructors:
     BigInt();
     BigInt(const BigInt &);
+    BigInt(BigInt &&);
     BigInt(const long long &);
     BigInt(const unsigned long int &);
     BigInt(const unsigned long long &);
@@ -68,6 +69,7 @@ public:
 
     // Assignment operators:
     BigInt &operator=(const BigInt &);
+    BigInt &operator=(BigInt &&);
     BigInt &operator=(const long long &);
     BigInt &operator=(const TM::String &);
 

@@ -244,6 +244,16 @@ BigInt::BigInt(const BigInt &num) {
 }
 
 /*
+    Move constructor
+    ----------------
+*/
+
+BigInt::BigInt(BigInt &&num) {
+    m_value = std::move(num.m_value);
+    m_sign = num.m_sign;
+}
+
+/*
     Long to BigInt
     -----------------
 */
@@ -426,6 +436,15 @@ BigInt &BigInt::operator=(const BigInt &num) {
     if (num == *this) return *this;
 
     m_value = num.m_value;
+    m_sign = num.m_sign;
+
+    return *this;
+}
+
+BigInt &BigInt::operator=(BigInt &&num) {
+    if (num == *this) return *this;
+
+    m_value = std::move(num.m_value);
     m_sign = num.m_sign;
 
     return *this;

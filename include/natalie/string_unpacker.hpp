@@ -99,7 +99,7 @@ private:
                 // Previosly had pushed Value::integer() values, but for large unsigned values
                 // it produced incorrect results.
                 auto bigint = BigInt(*(T *)out.c_str());
-                m_unpacked->push(IntegerObject::create(Integer(bigint)));
+                m_unpacked->push(IntegerObject::create(Integer(std::move(bigint))));
             }
             consumed++;
         }
