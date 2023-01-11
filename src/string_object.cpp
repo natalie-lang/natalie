@@ -1987,64 +1987,45 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
 }
 
 Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
-    ArrayObject *ary = new ArrayObject {};
-    if (is_empty()) return ary;
-
     if (separator) {
         separator->assert_type(env, Object::Type::String, "String");
     } else {
         separator = new StringObject { "\n" };
     }
 
-    if (separator->as_string()->is_empty()) {
-        if (block) {
-            Value args[] = { new StringObject { c_str(), m_encoding } };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-            return this;
-        }
-        ary->push(dup(env));
-        return ary;
-    }
-
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
     size_t last_index = 0;
     auto index = index_int(env, separator->as_string(), 0);
-    if (index == -1) {
-        if (block) {
-            Value args[] = { new StringObject { c_str(), m_encoding } };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+
+    auto run_split = [&](auto callback) {
+        if (separator->as_string()->is_empty() || index == -1) {
+            callback(dup(env));
         } else {
-            ary->push(dup(env));
-        }
-    } else {
-        do {
-            const auto u_index = static_cast<size_t>(index);
-            auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+            do {
+                const auto u_index = static_cast<size_t>(index);
+                auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+                if (chomp) out->chomp_in_place(env, nullptr);
+                callback(out);
+                last_index = u_index + separator->as_string()->length();
+                index = index_int(env, separator->as_string(), last_index);
+            } while (index != -1);
+            auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
             if (chomp) out->chomp_in_place(env, nullptr);
-            if (block) {
-                Value args[] = { out };
-                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-            } else {
-                ary->push(out);
-            }
-            last_index = u_index + separator->as_string()->length();
-            index = index_int(env, separator->as_string(), last_index);
-        } while (index != -1);
-        auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
-        if (chomp) out->chomp_in_place(env, nullptr);
-        if (!out->is_empty()) {
-            if (block) {
-                Value args[] = { out };
-                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
-            } else {
-                ary->push(out);
-            }
+            if (!out->is_empty()) callback(out);
         }
-    }
+    };
 
     if (block) {
+        run_split([&](Value out) {
+            Value args[] = { out };
+            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        });
         return this;
     } else {
+        ArrayObject *ary = new ArrayObject {};
+        run_split([&](Value out) {
+            ary->push(out);
+        });
         return ary;
     }
 }
