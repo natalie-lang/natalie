@@ -524,16 +524,31 @@ void StringUnpacker::unpack_u(Token &token) {
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
     const auto consumed = unpack_bytes(token, [&](unsigned char c) {
+        // Bit shift operations on nat_int_t are faster than on BigInt, so keep
+        // using native integers as long as possible and group the operations
+        // performed on BigInt.
+        constexpr auto max_fixnum_before_shift = NAT_MAX_FIXNUM >> 7;
         Integer result = 0;
+        nat_int_t temp_result = 0;
+        int shift = 0;
         bool keep_going = true;
 
         while (keep_going) {
-            result = (result << 7) | (c & 0x7f);
+            if (temp_result >= max_fixnum_before_shift) {
+                result = (result << shift) | temp_result;
+                temp_result = 0;
+                shift = 0;
+            }
+            temp_result = (temp_result << 7) | (c & 0x7f);
+            shift += 7;
             if (c & 0x80) {
                 c = next_char();
             } else {
                 keep_going = false;
             }
+        }
+        if (shift > 0) {
+            result = (result << shift) | temp_result;
         }
         m_unpacked->push(new IntegerObject(std::move(result)));
 
