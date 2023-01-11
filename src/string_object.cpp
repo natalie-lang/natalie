@@ -1986,7 +1986,7 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
-Value StringObject::lines(Env *env, Value separator) const {
+Value StringObject::lines(Env *env, Value separator, Value chomp_value) const {
     ArrayObject *ary = new ArrayObject {};
     if (is_empty()) return ary;
 
@@ -2001,6 +2001,7 @@ Value StringObject::lines(Env *env, Value separator) const {
         return ary;
     }
 
+    const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
     size_t last_index = 0;
     auto index = index_int(env, separator->as_string(), 0);
     if (index == -1) {
@@ -2008,11 +2009,15 @@ Value StringObject::lines(Env *env, Value separator) const {
     } else {
         do {
             const auto u_index = static_cast<size_t>(index);
-            ary->push(new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding });
+            auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+            if (chomp) out->chomp_in_place(env, nullptr);
+            ary->push(out);
             last_index = u_index + separator->as_string()->length();
             index = index_int(env, separator->as_string(), last_index);
         } while (index != -1);
-        ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
+        auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
+        if (chomp) out->chomp_in_place(env, nullptr);
+        if (!out->is_empty()) ary->push(out);
     }
 
     return ary;

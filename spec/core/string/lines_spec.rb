@@ -11,7 +11,7 @@ describe "String#lines" do
   end
 
   context "when `chomp` keyword argument is passed" do
-    xit "removes new line characters" do
+    it "removes new line characters" do
       "hello \nworld\n".lines(chomp: true).should == ["hello ", "world"]
       "hello \r\nworld\r\n".lines(chomp: true).should == ["hello ", "world"]
     end
