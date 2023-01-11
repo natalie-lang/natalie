@@ -222,6 +222,7 @@ task libnatalie: [
   :update_submodules,
   :bundle_install,
   :build_dir,
+  'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
   'build/libnatalie_parser.a',
   'build/generated/numbers.rb',
@@ -279,6 +280,17 @@ file 'build/onigmo/lib/libonigmo.a' do
     ./configure --with-pic --prefix #{build_dir} && \
     make -j 4 && \
     make install
+  SH
+end
+
+file 'build/zlib/libz.a' do
+  build_dir = File.expand_path('build/zlib', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/zlib', build_dir
+  sh <<-SH
+    cd #{build_dir} && \
+    ./configure && \
+    make -j 4
   SH
 end
 

@@ -7,3 +7,6 @@
 [submodule "ext/tm"]
 	path = ext/tm
 	url = https://github.com/seven1m/tm
+[submodule "ext/zlib"]
+	path = ext/zlib
+	url = https://github.com/madler/zlib

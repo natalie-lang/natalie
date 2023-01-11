@@ -39,6 +39,16 @@ Integer::Integer(const BigInt &other) {
     }
 }
 
+Integer::Integer(BigInt &&other) {
+    if (other <= NAT_MAX_FIXNUM && other >= NAT_MIN_FIXNUM) {
+        m_fixnum = other.to_long_long();
+        m_is_fixnum = true;
+    } else {
+        m_bignum = new BigInt(std::move(other));
+        m_is_fixnum = false;
+    }
+}
+
 Integer::Integer(const Integer &other) {
     if (other.is_fixnum()) {
         m_fixnum = other.m_fixnum;
@@ -49,6 +59,18 @@ Integer::Integer(const Integer &other) {
     }
 }
 
+Integer::Integer(Integer &&other) {
+    if (other.is_fixnum()) {
+        m_fixnum = other.m_fixnum;
+        m_is_fixnum = true;
+    } else {
+        m_bignum = other.m_bignum;
+        m_is_fixnum = false;
+        other.m_fixnum = 0;
+        other.m_is_fixnum = true;
+    }
+}
+
 Integer &Integer::operator=(const Integer &other) {
     if (other.is_fixnum()) {
         m_fixnum = other.m_fixnum;
@@ -56,6 +78,20 @@ Integer &Integer::operator=(const Integer &other) {
     } else {
         m_bignum = new BigInt { *other.m_bignum };
         m_is_fixnum = false;
+    }
+    return *this;
+}
+
+Integer &Integer::operator=(Integer &&other) {
+    if (&other == this) return *this;
+    if (other.is_fixnum()) {
+        m_fixnum = other.m_fixnum;
+        m_is_fixnum = true;
+    } else {
+        m_bignum = other.m_bignum;
+        m_is_fixnum = false;
+        other.m_fixnum = 0;
+        other.m_is_fixnum = true;
     }
     return *this;
 }
