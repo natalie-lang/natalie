@@ -1986,6 +1986,38 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
+Value StringObject::lines(Env *env, Value separator) const {
+    ArrayObject *ary = new ArrayObject {};
+    if (is_empty()) return ary;
+
+    if (separator) {
+        separator->assert_type(env, Object::Type::String, "String");
+    } else {
+        separator = new StringObject { "\n" };
+    }
+
+    if (separator->as_string()->is_empty()) {
+        ary->push(dup(env));
+        return ary;
+    }
+
+    size_t last_index = 0;
+    auto index = index_int(env, separator->as_string(), 0);
+    if (index == -1) {
+        ary->push(dup(env));
+    } else {
+        do {
+            const auto u_index = static_cast<size_t>(index);
+            ary->push(new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding });
+            last_index = u_index + separator->as_string()->length();
+            index = index_int(env, separator->as_string(), last_index);
+        } while (index != -1);
+        ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
+    }
+
+    return ary;
+}
+
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;

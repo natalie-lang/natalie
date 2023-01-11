@@ -5,7 +5,7 @@ require_relative 'shared/each_line'
 describe "String#lines" do
   # it_behaves_like :string_each_line, :lines
 
-  xit "returns an array when no block given" do
+  it "returns an array when no block given" do
     ary = "hello world".lines(' ')
     ary.should == ["hello ", "world"]
   end
