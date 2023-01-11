@@ -1986,7 +1986,7 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
-Value StringObject::lines(Env *env, Value separator, Value chomp_value) const {
+Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
     ArrayObject *ary = new ArrayObject {};
     if (is_empty()) return ary;
 
@@ -1999,6 +1999,11 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value) const {
     if (separator->as_string()->is_empty()) {
         ary->push(dup(env));
         return ary;
+    }
+
+    if (block) {
+        // NATFIXME: Run block
+        return this;
     }
 
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;

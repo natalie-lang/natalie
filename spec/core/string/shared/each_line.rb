@@ -108,8 +108,7 @@ describe :string_each_line, shared: true do
     end
   end
 
-  # NATFIXME: Blocks for String#lines
-  xit "returns self" do
+  it "returns self" do
     s = "hello\nworld"
     (s.send(@method) {}).should equal(s)
   end
