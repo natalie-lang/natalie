@@ -30,8 +30,7 @@ describe 'splat operators' do
     argument_proxy(*[1, 2, {}]).should == [[1, 2, {}], {}]
   end
 
-  # NATFIXME: splat operator and literal keywords
-  xit 'should work with splat operator and literal keywords' do
+  it 'should work with splat operator and literal keywords' do
     args = [1, 2]
     argument_proxy(*args, foo: 'a').should == [[1, 2], { foo: 'a' }]
     argument_proxy(*[1, 2], foo: 'a').should == [[1, 2], { foo: 'a' }]
