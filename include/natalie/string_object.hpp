@@ -272,6 +272,7 @@ public:
     bool include(Env *, Value);
     bool include(const char *) const;
     Value insert(Env *, Value, Value);
+    Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
     Value ljust(Env *, Value, Value) const;
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);

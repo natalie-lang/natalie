@@ -1986,6 +1986,50 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
+Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
+    if (separator) {
+        separator->assert_type(env, Object::Type::String, "String");
+    } else {
+        separator = new StringObject { "\n" };
+    }
+
+    const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
+    size_t last_index = 0;
+    auto index = index_int(env, separator->as_string(), 0);
+
+    auto run_split = [&](auto callback) {
+        if (separator->as_string()->is_empty() || index == -1) {
+            callback(dup(env));
+        } else {
+            do {
+                const auto u_index = static_cast<size_t>(index);
+                auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+                if (chomp) out->chomp_in_place(env, separator);
+                callback(out);
+                last_index = u_index + separator->as_string()->length();
+                index = index_int(env, separator->as_string(), last_index);
+            } while (index != -1);
+            auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
+            if (chomp) out->chomp_in_place(env, separator);
+            if (!out->is_empty()) callback(out);
+        }
+    };
+
+    if (block) {
+        run_split([&](Value out) {
+            Value args[] = { out };
+            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        });
+        return this;
+    } else {
+        ArrayObject *ary = new ArrayObject {};
+        run_split([&](Value out) {
+            ary->push(out);
+        });
+        return ary;
+    }
+}
+
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
     nat_int_t length_i = length_obj->to_int(env)->to_nat_int_t();
     size_t length = length_i < 0 ? 0 : length_i;

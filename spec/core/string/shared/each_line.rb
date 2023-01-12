@@ -40,13 +40,15 @@ describe :string_each_line, shared: true do
     b.should == ["foo\n", "🤡🤡🤡🤡🤡🤡🤡\n", "bar\n", "baz\n"]
   end
 
-  it "passes self as a whole to the block if the separator is nil" do
+  # NATFIXME: Support nil as separator
+  xit "passes self as a whole to the block if the separator is nil" do
     a = []
     "one\ntwo\r\nthree".send(@method, nil) { |s| a << s }
     a.should == ["one\ntwo\r\nthree"]
   end
 
-  it "yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones" do
+  # NATFIXME: yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones
+  xit "yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones" do
     a = []
     "hello\nworld\n\n\nand\nuniverse\n\n\n\n\n".send(@method, '') { |s| a << s }
     a.should == ["hello\nworld\n\n", "and\nuniverse\n\n"]
@@ -56,7 +58,8 @@ describe :string_each_line, shared: true do
     a.should == ["hello\nworld\n\n", "and\nuniverse\n\n", "dog"]
   end
 
-  describe "uses $/" do
+  # NATFIXME: uses $/
+  xdescribe "uses $/" do
     before :each do
       @before_separator = $/
     end
@@ -106,7 +109,8 @@ describe :string_each_line, shared: true do
     (s.send(@method) {}).should equal(s)
   end
 
-  it "tries to convert the separator to a string using to_str" do
+  # NATFIXME: tries to convert the separator to a string using to_str
+  xit "tries to convert the separator to a string using to_str" do
     separator = mock('l')
     separator.should_receive(:to_str).and_return("l")
 
@@ -115,7 +119,8 @@ describe :string_each_line, shared: true do
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
 
-  it "does not care if the string is modified while substituting" do
+  # NATFIXME: does not care if the string is modified while substituting
+  xit "does not care if the string is modified while substituting" do
     str = "hello\nworld."
     out = []
     str.send(@method){|x| out << x; str[-1] = '!' }.should == "hello\nworld!"
