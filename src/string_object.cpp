@@ -1912,13 +1912,13 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
                 ary->push(new StringObject { &c_str()[last_index], index - last_index, m_encoding });
                 last_index = index + len;
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                    ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
                     onig_region_free(region, true);
                     return ary;
                 }
                 result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
-            ary->push(new StringObject { &c_str()[last_index], m_encoding });
+            ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
         }
         onig_region_free(region, true);
         return ary;
@@ -1937,12 +1937,12 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
                 ary->push(new StringObject { &c_str()[last_index], u_index - last_index, m_encoding });
                 last_index = u_index + splitter->as_string()->length();
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                    ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
                     return ary;
                 }
                 index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
-            ary->push(new StringObject { &c_str()[last_index], m_encoding });
+            ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
         }
         return ary;
     } else {
