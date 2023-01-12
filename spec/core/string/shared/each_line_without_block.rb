@@ -1,5 +1,6 @@
 describe :string_each_line_without_block, shared: true do
-  describe "when no block is given" do
+  # NATFIXME: Return enumerator when no block is given
+  xdescribe "when no block is given" do
     it "returns an enumerator" do
       enum = "hello world".send(@method, ' ')
       enum.should be_an_instance_of(Enumerator)

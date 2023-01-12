@@ -1989,6 +1989,10 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
+Value StringObject::each_line(Env *env, Value separator, Value chomp_value, Block *block) {
+    return lines(env, separator, chomp_value, block);
+}
+
 Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
     if (separator) {
         separator->assert_type(env, Object::Type::String, "String");

@@ -159,6 +159,9 @@ public:
     Value each_codepoint(Env *, Block *);
     Value codepoints(Env *, Block *);
 
+    Value each_line(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
+    Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
+
     SymbolObject *to_symbol(Env *) const;
     Value to_sym(Env *) const;
 
@@ -272,7 +275,6 @@ public:
     bool include(Env *, Value);
     bool include(const char *) const;
     Value insert(Env *, Value, Value);
-    Value lines(Env *, Value = nullptr, Value = nullptr, Block * = nullptr);
     Value ljust(Env *, Value, Value) const;
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);
