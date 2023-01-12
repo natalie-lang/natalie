@@ -59,7 +59,6 @@ Value StringObject::each_char(Env *env, Block *block) {
 }
 
 Value StringObject::chars(Env *env, Block *block) {
-    ArrayObject *ary = new ArrayObject {};
     if (block) {
         for (auto c : *this) {
             auto str = new StringObject { c, m_encoding };
@@ -67,6 +66,7 @@ Value StringObject::chars(Env *env, Block *block) {
         }
         return this;
     }
+    ArrayObject *ary = new ArrayObject {};
     for (auto c : *this)
         ary->push(new StringObject { c, m_encoding });
     return ary;
