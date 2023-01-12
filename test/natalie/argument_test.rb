@@ -37,8 +37,7 @@ describe 'splat operators' do
     argument_proxy(*[1, 2], foo: 'a').should == [[1, 2], { foo: 'a' }]
   end
 
-  # NATFIXME: splat operator and double splat operator
-  xit 'should work with splat operator and double splat operator' do
+  it 'should work with splat operator and double splat operator' do
     args = [1, 2]
     kwargs = { foo: 'a' }
     argument_proxy(*args, **kwargs).should == [[1, 2], { foo: 'a' }]
