@@ -1989,11 +1989,8 @@ Value StringObject::insert(Env *env, Value index_obj, Value other_str) {
     return this;
 }
 
-Value StringObject::each_line(Env *env, Value separator, Value chomp_value, Block *block) {
-    return lines(env, separator, chomp_value, block);
-}
-
-Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
+// This function is used for both String#each_line and String#lines
+static Value lines_inner(Value self, EncodingObject *encoding, bool is_each_line, Env *env, Value separator, Value chomp_value, Block *block) {
     if (separator) {
         separator->assert_type(env, Object::Type::String, "String");
     } else {
@@ -2002,7 +1999,7 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
 
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
     size_t last_index = 0;
-    auto self_dup = dup(env)->as_string();
+    auto self_dup = self->dup(env)->as_string();
     auto index = self_dup->index_int(env, separator->as_string(), 0);
 
     auto run_split = [&](auto callback) {
@@ -2011,13 +2008,13 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
         } else {
             do {
                 const auto u_index = static_cast<size_t>(index);
-                auto out = new StringObject { &self_dup->c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+                auto out = new StringObject { &self_dup->c_str()[last_index], u_index - last_index + separator->as_string()->length(), encoding };
                 if (chomp) out->chomp_in_place(env, separator);
                 callback(out);
                 last_index = u_index + separator->as_string()->length();
                 index = self_dup->index_int(env, separator->as_string(), last_index);
             } while (index != -1);
-            auto out = new StringObject { &self_dup->c_str()[last_index], self_dup->length() - last_index, m_encoding };
+            auto out = new StringObject { &self_dup->c_str()[last_index], self_dup->length() - last_index, encoding };
             if (chomp) out->chomp_in_place(env, separator);
             if (!out->is_empty()) callback(out);
         }
@@ -2028,7 +2025,14 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
             Value args[] = { out };
             return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
         });
-        return this;
+        return self;
+    } else if (is_each_line) {
+        // NATFIXME: Return Enumerator
+        ArrayObject *ary = new ArrayObject {};
+        run_split([&](Value out) {
+            ary->push(out);
+        });
+        return ary;
     } else {
         ArrayObject *ary = new ArrayObject {};
         run_split([&](Value out) {
@@ -2036,6 +2040,14 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
         });
         return ary;
     }
+}
+
+Value StringObject::each_line(Env *env, Value separator, Value chomp_value, Block *block) {
+    return lines_inner(this, m_encoding, true, env, separator, chomp_value, block);
+}
+
+Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *block) {
+    return lines_inner(this, m_encoding, false, env, separator, chomp_value, block);
 }
 
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) const {
