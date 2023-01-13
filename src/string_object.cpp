@@ -1848,6 +1848,9 @@ Value StringObject::to_f(Env *env) const {
 Value StringObject::to_i(Env *env, Value base_obj) const {
     int base = 10;
     if (base_obj) {
+        if (!base_obj->is_integer() && base_obj->respond_to(env, "to_int"_s))
+            base_obj = base_obj->send(env, "to_int"_s);
+
         base_obj->assert_type(env, Object::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_nat_int_t();
         if (base < 0 || base == 1 || base > 36) {
