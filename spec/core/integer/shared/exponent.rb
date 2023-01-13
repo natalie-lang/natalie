@@ -86,7 +86,7 @@ describe :integer_exponent, shared: true do
       2.send(@method, Rational(2, 1)).should == Rational(4, 1)
     end
 
-    # NATFIXME: Implement Complex
+    # NATFIXME: Implement fractional exponents for negative numbers
     xit "returns a complex number when negative and raised to a fractional power" do
       (-8).send(@method, 1.0/3)         .should be_close(Complex(1, 1.73205), TOLERANCE)
       (-8).send(@method, Rational(1, 3)).should be_close(Complex(1, 1.73205), TOLERANCE)
@@ -118,7 +118,7 @@ describe :integer_exponent, shared: true do
       flt.infinite?.should == 1
     end
 
-    # NATFIXME: Implement Complex
+    # NATFIXME: Implement fractional exponents for negative numbers
     xit "returns a complex number when negative and raised to a fractional power" do
       (-bignum_value).send(@method, (1.0/2)).should be_close(Complex(0.0, 4294967296.0), TOLERANCE)
       (-@bignum).send(@method, (1.0/3))      .should be_close(Complex(1321122.9748145656, 2288252.1154253655), TOLERANCE)
