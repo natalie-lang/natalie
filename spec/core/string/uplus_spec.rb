@@ -16,8 +16,7 @@ describe 'String#+@' do
     output.equal?(input).should == true
   end
 
-  # NATFIXME: Implement fixture method and add freeze_magic_comment.rb fixture
-  xit 'returns mutable copy despite freeze-magic-comment in file' do
+  it 'returns mutable copy despite freeze-magic-comment in file' do
     ruby_exe(fixture(__FILE__, "freeze_magic_comment.rb")).should == 'mutable'
   end
 end
