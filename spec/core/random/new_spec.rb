@@ -1,5 +1,4 @@
-require_relative '../../spec_helper'
-
+require_relative "../../spec_helper"
 describe "Random.new" do
   it "returns a new instance of Random" do
     Random.new.should be_an_instance_of(Random)
@@ -27,13 +26,11 @@ describe "Random.new" do
     Random.new(Rational(20,2)).seed.should == 10
   end
 
-  # NATFIXME: Implement Complex
-  xit "accepts (and converts to Integer) a Complex (without imaginary part) seed value as an argument" do
+  it "accepts (and converts to Integer) a Complex (without imaginary part) seed value as an argument" do
     Random.new(Complex(20)).seed.should == 20
   end
 
-  # NATFIXME: Implement Complex
-  xit "raises a RangeError if passed a Complex (with imaginary part) seed value as an argument" do
+  it "raises a RangeError if passed a Complex (with imaginary part) seed value as an argument" do
     -> do
       Random.new(Complex(20,2))
     end.should raise_error(RangeError)

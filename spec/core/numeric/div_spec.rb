@@ -17,7 +17,6 @@ describe "Numeric#div" do
   it "raises ZeroDivisionError for 0" do
     -> { @obj.div(0) }.should raise_error(ZeroDivisionError)
     -> { @obj.div(0.0) }.should raise_error(ZeroDivisionError)
-    # NATFIXME: Implement Complex
-    # -> { @obj.div(Complex(0,0)) }.should raise_error(ZeroDivisionError)
+    -> { @obj.div(Complex(0,0)) }.should raise_error(ZeroDivisionError)
   end
 end

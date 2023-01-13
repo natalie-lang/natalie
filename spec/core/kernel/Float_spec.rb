@@ -13,8 +13,7 @@ describe :kernel_float, shared: true do
     @object.send(:Float, 1).should == 1.0
   end
 
-  # NATFIXME: Implement Complex
-  xit "returns a Float for Complex with only a real part" do
+  it "returns a Float for Complex with only a real part" do
     @object.send(:Float, Complex(1)).should == 1.0
   end
 
@@ -302,8 +301,7 @@ describe :kernel_float, shared: true do
     -> { @object.send(:Float, obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement Complex
-  xit "raises a RangeError when passed a Complex argument" do
+  it "raises a RangeError when passed a Complex argument" do
     c = Complex(2, 3)
     -> { @object.send(:Float, c) }.should raise_error(RangeError)
   end
