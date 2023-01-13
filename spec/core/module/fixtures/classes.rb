@@ -398,7 +398,7 @@ module ModuleSpecs
     class Child < Parent
     end
 
-# NATFIXME: Implement #fixture spec helper
+# NATFIXME: No such file or directory
 =begin
     module FromThread
       module A
