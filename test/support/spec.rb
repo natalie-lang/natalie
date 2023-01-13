@@ -192,16 +192,11 @@ def fixnum_min
 end
 
 def max_long
-  # 2**(0.size * 8 - 1) - 1
-  # NATFIXME: Support Integer#size
-  # NATFIXME: Make Integer#** spec compliant with bignums
-  (2**(8 * 8 - 2)) * 2 - 1
+  2**(0.size * 8 - 1) - 1
 end
 
 def min_long
-  # -(2**(0.size * 8 - 1))
-  # NATFIXME: Support Integer#size
-  -((2**(8 * 8 - 2)) * 2)
+  -(2**(0.size * 8 - 1))
 end
 
 def ruby_exe(code, args: nil, exit_status: 0)
