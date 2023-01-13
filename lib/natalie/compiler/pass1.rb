@@ -267,7 +267,7 @@ module Natalie
             instructions: instructions,
             with_block_pass: !!block,
             args_array_on_stack: true,
-            has_keyword_hash: false, # TODO
+            has_keyword_hash: args.last&.sexp_type == :bare_hash
           }
         end
 
