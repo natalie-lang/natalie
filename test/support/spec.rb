@@ -205,19 +205,23 @@ def min_long
 end
 
 def ruby_exe(code, args: nil, exit_status: 0)
-  Tempfile.create('ruby_exe.rb') do |file|
-    file.write(code)
-    file.rewind
+  binary = ENV['NAT_BINARY'] || 'bin/natalie'
 
-    binary = ENV['NAT_BINARY'] || 'bin/natalie'
+  output = if File.readable?(code)
+             `#{binary} #{code} #{args}`
+           else
+             Tempfile.create('ruby_exe.rb') do |file|
+               file.write(code)
+               file.rewind
 
-    output = `#{binary} #{file.path} #{args}`
+               `#{binary} #{file.path} #{args}`
+             end
+           end
 
-    if $?.exitstatus != exit_status
-      raise SpecFailedException, "Expected exit status #{exit_status} but actual is #{$?.exitstatus}" 
-    end
-    output
+  if $?.exitstatus != exit_status
+    raise SpecFailedException, "Expected exit status #{exit_status} but actual is #{$?.exitstatus}"
   end
+  output
 end
 
 def ruby_version_is(version, &block)
