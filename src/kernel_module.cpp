@@ -135,8 +135,12 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
-    if (base && base->is_integer())
+    if (base) {
+        if (!base->is_integer() && base->respond_to(env, "to_int"_s))
+            base = base->send(env, "to_int"_s);
+
         base_int = base->as_integer()->to_nat_int_t();
+    }
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 
