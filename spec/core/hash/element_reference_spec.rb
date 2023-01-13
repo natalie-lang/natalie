@@ -118,7 +118,7 @@ describe "Hash#[]" do
     { key => 42 }[key].should == 42
   end
 
-  # NATFIXME
+  # NATFIXME: This crashes with "panic: unreachable in src/gc.cpp#20"
   xit "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
     code = <<-EOC
       load '#{fixture __FILE__, "name.rb"}'
