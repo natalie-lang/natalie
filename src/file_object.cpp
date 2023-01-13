@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <filesystem>
+#include <fnmatch.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 
@@ -171,6 +172,13 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
     Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
     klass->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
     Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
+
+    klass->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    klass->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
+    Constants->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
+    klass->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
+    Constants->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
 }
 
 bool FileObject::exist(Env *env, Value path) {
