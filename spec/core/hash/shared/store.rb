@@ -96,7 +96,7 @@ describe :hash_store, shared: true do
       hash.should == {1 => :foo, 3 => 4, 5 => 6}
   end
 
-  # NATFIXME: No such file or directory
+  # NATFIXME: TrueClass#hash should not be called (RuntimeError)
   xit "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
     code = <<-EOC
       load '#{fixture __FILE__, "name.rb"}'

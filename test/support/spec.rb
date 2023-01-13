@@ -226,6 +226,7 @@ end
 
 def fixture(source, filename)
   dirname = File.dirname(File.realpath(source))
+  dirname.delete_suffix!('/shared')
   dirname = File.join(dirname, 'fixtures') unless dirname.end_with?('/fixtures')
   File.join(dirname, filename)
 end
