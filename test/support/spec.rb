@@ -225,7 +225,9 @@ def ruby_exe(code, args: nil, exit_status: 0)
 end
 
 def fixture(source, filename)
-  File.realpath(File.join(File.dirname(source), 'fixtures', filename))
+  dirname = File.dirname(File.realpath(source))
+  dirname = File.join(dirname, 'fixtures') unless dirname.end_with?('/fixtures')
+  File.join(dirname, filename)
 end
 
 def ruby_version_is(version, &block)

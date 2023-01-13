@@ -398,7 +398,7 @@ module ModuleSpecs
     class Child < Parent
     end
 
-# NATFIXME: No such file or directory
+# NATFIXME: undefined method `autoload'
 =begin
     module FromThread
       module A
