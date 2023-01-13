@@ -119,8 +119,7 @@ describe :string_each_line, shared: true do
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
 
-  # NATFIXME: does not care if the string is modified while substituting
-  xit "does not care if the string is modified while substituting" do
+  it "does not care if the string is modified while substituting" do
     str = "hello\nworld."
     out = []
     str.send(@method){|x| out << x; str[-1] = '!' }.should == "hello\nworld!"

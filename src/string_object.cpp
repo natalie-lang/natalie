@@ -1995,21 +1995,22 @@ Value StringObject::lines(Env *env, Value separator, Value chomp_value, Block *b
 
     const auto chomp = chomp_value ? chomp_value->is_truthy() : false;
     size_t last_index = 0;
-    auto index = index_int(env, separator->as_string(), 0);
+    auto self_dup = dup(env)->as_string();
+    auto index = self_dup->index_int(env, separator->as_string(), 0);
 
     auto run_split = [&](auto callback) {
         if (separator->as_string()->is_empty() || index == -1) {
-            callback(dup(env));
+            callback(self_dup);
         } else {
             do {
                 const auto u_index = static_cast<size_t>(index);
-                auto out = new StringObject { &c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
+                auto out = new StringObject { &self_dup->c_str()[last_index], u_index - last_index + separator->as_string()->length(), m_encoding };
                 if (chomp) out->chomp_in_place(env, separator);
                 callback(out);
                 last_index = u_index + separator->as_string()->length();
-                index = index_int(env, separator->as_string(), last_index);
+                index = self_dup->index_int(env, separator->as_string(), last_index);
             } while (index != -1);
-            auto out = new StringObject { &c_str()[last_index], length() - last_index, m_encoding };
+            auto out = new StringObject { &self_dup->c_str()[last_index], self_dup->length() - last_index, m_encoding };
             if (chomp) out->chomp_in_place(env, separator);
             if (!out->is_empty()) callback(out);
         }
