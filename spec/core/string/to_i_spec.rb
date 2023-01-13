@@ -113,8 +113,7 @@ describe "String#to_i" do
     "0X11".to_i(34).should == 38183
   end
 
-  # NATFIXME
-  xit "tries to convert the base to an integer using to_int" do
+  it "tries to convert the base to an integer using to_int" do
     obj = mock('8')
     obj.should_receive(:to_int).and_return(8)
 
