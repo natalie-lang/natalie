@@ -669,6 +669,14 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     return result;
 }
 
+Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
+    if (!block)
+        env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
+    Value self = this;
+    block->set_self(self);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
+}
+
 Value ModuleObject::private_method(Env *env, Args args) {
     set_method_visibility(env, args, MethodVisibility::Private);
     return this;

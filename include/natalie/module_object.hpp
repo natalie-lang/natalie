@@ -122,6 +122,7 @@ public:
     static Value attr_writer_block_fn(Env *, Value, Args, Block *);
 
     Value module_eval(Env *, Block *);
+    Value module_exec(Env *, Args, Block *);
 
     Value private_method(Env *, Args) override;
     Value protected_method(Env *, Args) override;
