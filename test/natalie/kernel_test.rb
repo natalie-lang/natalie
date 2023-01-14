@@ -32,6 +32,15 @@ describe 'Kernel' do
     end
   end
 
+  describe '#instance_of?' do
+    it "can be bound to BasicObject" do
+      klass = Class.new(BasicObject) do
+        define_method :instance_of?, Kernel.instance_method(:instance_of?)
+      end
+      klass.new.instance_of?(klass).should == true
+    end
+  end
+
   describe '#sleep' do
     it 'sleeps the number of seconds' do
       # TODO: add a way to measure time
