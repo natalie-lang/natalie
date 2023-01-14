@@ -567,7 +567,7 @@ Value ModuleObject::attr_writer(Env *env, Args args) {
         TM::String method_name = TM::String::format("{}=", name_obj->as_symbol()->c_str());
         auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 0 };
+        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 1 };
         define_method(env, SymbolObject::intern(method_name), attr_block);
     }
     return NilObject::the();
