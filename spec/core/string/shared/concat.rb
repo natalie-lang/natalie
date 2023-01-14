@@ -63,7 +63,7 @@ describe :string_concat, shared: true do
     end
 
     # #5855
-    # NATFIXME: Implement US-ASCII encoding
+    # NATFIXME: returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)
     xit "returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)" do
       a = ("".encode(Encoding::US_ASCII).send(@method, 128))
       a.encoding.should == Encoding::BINARY
@@ -74,10 +74,10 @@ describe :string_concat, shared: true do
       a.should == 255.chr
     end
 
-    # NATFIXME: Implement US-ASCII and EUC_JP encoding
-    xit "raises RangeError if the argument is an invalid codepoint for self's encoding" do
+    # NATFIXME: Implement EUC_JP encoding
+    it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
       -> { "".encode(Encoding::US_ASCII).send(@method, 256) }.should raise_error(RangeError)
-      -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
+      # -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
     end
 
     it "raises RangeError if the argument is negative" do
@@ -165,9 +165,8 @@ describe :string_concat_encoding, shared: true do
     end
   end
 
-  # NATFIXME: Implement US-ASCII encoding
   describe "when self is BINARY and argument is US-ASCII" do
-    xit "uses BINARY encoding" do
+    it "uses BINARY encoding" do
       "abc".encode("BINARY").send(@method, "123".encode("US-ASCII")).encoding.should == Encoding::BINARY
     end
   end
