@@ -978,7 +978,12 @@ class Stub
   end
 
   def exactly(n)
-    @count_restriction = n
+    @count_restriction = case n
+      when :once then 1
+      when :twice then 2
+      when Integer then n
+      else raise ArgumentError, "Invalid arg #{n} in exactly"
+    end
     self
   end
 
@@ -988,6 +993,7 @@ class Stub
   end
 
   def validate!
+    p restr: @count_restriction, cnt: @count
     unless @count_restriction == nil || @count_restriction === @count
       message = "#{@subject.inspect} should have received ##{@message}"
       if @count_restriction != nil
