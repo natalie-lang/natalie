@@ -151,12 +151,15 @@ Value IntegerObject::mod(Env *env, Value arg) {
     Integer argument;
     if (arg->is_float()) {
         return Value::floatingpoint(m_integer.to_double())->as_float()->mod(env, arg);
-    } else if (arg->is_rational()) {
-        return RationalObject { this, new IntegerObject { 1 } }.send(env, "%"_s, { arg });
-    } else {
-        arg->assert_type(env, Object::Type::Integer, "Integer");
-        argument = arg->as_integer()->integer();
+    } else if (!arg->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        if (!lhs->is_integer())
+            return lhs.send(env, "%"_s, { rhs });
+        arg = rhs;
     }
+
+    arg->assert_type(env, Object::Type::Integer, "Integer");
+    argument = arg->as_integer()->integer();
 
     if (argument == 0)
         env->raise("ZeroDivisionError", "divided by 0");
