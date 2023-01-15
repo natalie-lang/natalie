@@ -68,8 +68,7 @@ describe :array_pack_float_le, shared: true do
     [2 ** 65].pack(pack_format).should == [(2 ** 65).to_f].pack(pack_format)
   end
 
-  # NATFIXME: encodes a rational as a float
-  xit "encodes a rational as a float" do
+  it "encodes a rational as a float" do
     [Rational(3, 4)].pack(pack_format).should == [Rational(3, 4).to_f].pack(pack_format)
   end
 end
