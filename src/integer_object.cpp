@@ -81,10 +81,11 @@ Value IntegerObject::to_f() const {
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
         return Value::floatingpoint(m_integer + arg->as_float()->to_double());
-    } else if (arg->is_complex()) {
-        return arg->send(env, "+"_s, { this });
     } else if (!arg->is_integer()) {
-        arg = Natalie::coerce(env, arg, this).second;
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        if (!lhs->is_integer())
+            return lhs.send(env, "+"_s, { rhs });
+        arg = rhs;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
