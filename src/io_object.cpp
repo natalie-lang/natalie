@@ -180,7 +180,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     }
 }
 
-Value IoObject::stat(Env *env) {
+Value IoObject::stat(Env *env) const {
     struct stat sb;
     auto file_desc = fileno(); // current file descriptor
     int result = ::fstat(file_desc, &sb);
