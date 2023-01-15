@@ -8,10 +8,11 @@ describe "Rational#to_r" do
     -> { Rational(obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Call #to_r in Kernel::Rational
-  xit "works when a BasicObject has to_r" do
+  it "works when a BasicObject has to_r" do
     obj = BasicObject.new; def obj.to_r; 1 / 2.to_r end
-    Rational(obj).should == Rational('1/2')
+    # NATFIXME: Implement Rational(String)
+    # Rational(obj).should == Rational('1/2')
+    Rational(obj).should == Rational(1, 2)
   end
 
   it "fails when a BasicObject's to_r does not return a Rational" do

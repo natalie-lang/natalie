@@ -497,8 +497,15 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
         }
 
-        if (x->is_a(env, find_top_level_const(env, "Numeric"_s)->as_class()) && x->respond_to(env, "to_r"_s)) {
-            return x->public_send(env, "to_r"_s);
+        if (x->is_nil()) {
+            if (!exception) return nullptr;
+            env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
+        }
+
+        if (x->respond_to(env, "to_r"_s)) {
+            auto result = x->public_send(env, "to_r"_s);
+            result->assert_type(env, Object::Type::Rational, "Rational");
+            return result;
         }
 
         x = Float(env, x, exception);
