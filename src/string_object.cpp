@@ -2459,37 +2459,45 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
         switch (str[1]) {
         case 'x':
         case 'X':
-            prefix_base = 16;
-            str = str.substring(2);
+            if (base == 0 || base == 16) {
+                prefix_base = 16;
+                str = str.substring(2);
+            }
             break;
         case 'd':
         case 'D':
-            prefix_base = 10;
-            str = str.substring(2);
+            if (base == 0 || base == 10) {
+                prefix_base = 10;
+                str = str.substring(2);
+            }
             break;
         case 'b':
         case 'B':
-            prefix_base = 2;
-            str = str.substring(2);
+            if (base == 0 || base == 2) {
+                prefix_base = 2;
+                str = str.substring(2);
+            }
             break;
         case 'o':
         case 'O':
-            prefix_base = 8;
-            str = str.substring(2);
+            if (base == 0 || base == 8) {
+                prefix_base = 8;
+                str = str.substring(2);
+            }
             break;
         default:
-            if (isdigit(str[1])) {
+            if ((base == 0 || base == 8) && isdigit(str[1])) {
                 // "implicit" octal with leading zero
                 prefix_base = 8;
                 str = str.substring(1);
-            } else if (str.length() > 2 && str[1] == '_' && isdigit(str[2])) {
+            } else if ((base == 0 || base == 8) && str.length() > 2 && str[1] == '_' && isdigit(str[2])) {
                 prefix_base = 8;
                 str = str.substring(2);
             }
         }
         // Error if the given input numeric base is not consistent with
         // what is represented in the string.
-        if ((base > 0) && (base != prefix_base)) {
+        if ((base > 0) && (prefix_base > 0) && (base != prefix_base)) {
             return nullptr;
         }
     } else if (str[0] == '+' || str[0] == '-' || str[0] == '_' || is_strippable_whitespace(str[0])) {
