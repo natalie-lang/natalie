@@ -244,12 +244,16 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
 
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg->is_integer() || arg->is_float() || arg->is_rational();
+        return arg->is_integer() || arg->is_float();
     };
 
     // Check if we might want to coerce the value
-    if (!is_comparable_with(arg))
-        arg = Natalie::coerce(env, arg, this, Natalie::CoerceInvalidReturnValueMode::Allow).second;
+    if (!is_comparable_with(arg)) {
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this, Natalie::CoerceInvalidReturnValueMode::Allow);
+        if (!is_comparable_with(lhs))
+            return lhs.send(env, "<=>"_s, { rhs });
+        arg = rhs;
+    }
 
     // Check if compareable
     if (!is_comparable_with(arg))
