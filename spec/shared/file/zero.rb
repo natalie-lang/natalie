@@ -34,8 +34,7 @@ describe :file_zero, shared: true do
   end
 
   platform_is_not :windows do
-    # NATFIXME: Pending File.realpath implementation
-    xit "returns true for /dev/null" do
+    it "returns true for /dev/null" do
       @object.send(@method, File.realpath('/dev/null')).should == true
     end
   end
