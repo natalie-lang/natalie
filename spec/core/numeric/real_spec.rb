@@ -6,8 +6,7 @@ describe "Numeric#real" do
     @numbers = [
       20,             # Integer
       398.72,         # Float
-      # NATFIXME: Implement Rational
-      # Rational(3, 4), # Rational
+      Rational(3, 4), # Rational
       bignum_value,   # Bignum
       infinity_value,
       nan_value

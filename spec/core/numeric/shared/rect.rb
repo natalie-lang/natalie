@@ -5,8 +5,7 @@ describe :numeric_rect, shared: true do
     @numbers = [
       20,             # Integer
       398.72,         # Float
-      # NATFIXME: Implement Rational
-      # Rational(3, 4), # Rational
+      Rational(3, 4), # Rational
       99999999**99, # Bignum
       infinity_value,
       nan_value
