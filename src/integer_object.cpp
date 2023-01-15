@@ -132,10 +132,11 @@ Value IntegerObject::div(Env *env, Value arg) {
         if (isnan(result))
             return FloatObject::nan();
         return Value::floatingpoint(result);
-    } else if (arg->is_rational()) {
-        return RationalObject(this, new IntegerObject { 1 }).div(env, arg);
     } else if (!arg->is_integer()) {
-        arg = Natalie::coerce(env, arg, this).second;
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        if (!lhs->is_integer())
+            return lhs.send(env, "/"_s, { rhs });
+        arg = rhs;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
