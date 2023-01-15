@@ -199,8 +199,9 @@ def min_long
   -(2**(0.size * 8 - 1))
 end
 
-def ruby_exe(code, options: nil, args: nil, exit_status: 0)
+def ruby_exe(code = nil, options: nil, args: nil, exit_status: 0)
   binary = ENV['NAT_BINARY'] || 'bin/natalie'
+  return binary if code.nil?
 
   output = if File.readable?(code)
              `#{binary} #{options} #{code} #{args}`
