@@ -188,19 +188,14 @@ Value FloatObject::coerce(Env *env, Value arg) {
     switch (arg->type()) {
     case Object::Type::Float:
         ary->push(arg);
-        ary->push(this);
         break;
     case Object::Type::Integer:
         ary->push(new FloatObject { arg->as_integer()->to_nat_int_t() });
-        ary->push(this);
-        break;
-    case Object::Type::String:
-        printf("TODO\n");
-        abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): {}", arg->inspect_str(env));
+        ary->push(KernelModule::Float(env, arg, true));
     }
+    ary->push(this);
     return ary;
 }
 
