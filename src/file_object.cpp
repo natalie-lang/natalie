@@ -3,9 +3,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <filesystem>
-#include <fnmatch.h>
+//#include <fnmatch.h> // use ruby defined values instead of os-defined
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <utime.h>
 
 namespace Natalie {
 
@@ -173,12 +175,30 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
     klass->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
     Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
 
-    klass->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
-    Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    // MRI defines these constants differently than the OS does in fnmatch.h
+
+#define FNM_NOESCAPE 0x01
+#define FNM_PATHNAME 0x02
+#define FNM_DOTMATCH 0x04
+#define FNM_CASEFOLD 0x08
+#define FNM_EXTGLOB 0x10
+#define FNM_SYSCASE 0
+#define FNM_SHORTNAME 0
+
     klass->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
     Constants->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
     klass->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
     Constants->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
+    klass->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
+    Constants->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
+    klass->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    klass->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
+    Constants->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
+    klass->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
+    Constants->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
+    klass->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+    Constants->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
 }
 
 bool FileObject::exist(Env *env, Value path) {
@@ -508,13 +528,84 @@ Value FileObject::stat(Env *env, Value path) {
     return new FileStatObject { sb };
 }
 
-// instance method
-Value FileObject::stat(Env *env) {
-    struct stat sb;
-    auto file_desc = fileno(); // current file descriptor
-    int result = ::fstat(file_desc, &sb);
-    if (result < 0) env->raise_errno();
-    return new FileStatObject { sb };
+// class methods
+Value FileObject::atime(Env *env, Value path) {
+    FileStatObject *statobj;
+    if (path->is_io()) { // using file-descriptor
+        statobj = path->as_io()->stat(env)->as_file_stat();
+    } else {
+        path = fileutil::convert_using_to_path(env, path);
+        statobj = stat(env, path)->as_file_stat();
+    }
+    return statobj->atime(env);
+}
+Value FileObject::ctime(Env *env, Value path) {
+    FileStatObject *statobj;
+    if (path->is_io()) { // using file-descriptor
+        statobj = path->as_io()->stat(env)->as_file_stat();
+    } else {
+        path = fileutil::convert_using_to_path(env, path);
+        statobj = stat(env, path)->as_file_stat();
+    }
+    return statobj->ctime(env);
+}
+
+Value FileObject::mtime(Env *env, Value path) {
+    FileStatObject *statobj;
+    if (path->is_io()) { // using file-descriptor
+        statobj = path->as_io()->stat(env)->as_file_stat();
+    } else {
+        path = fileutil::convert_using_to_path(env, path);
+        statobj = stat(env, path)->as_file_stat();
+    }
+    return statobj->mtime(env);
+}
+
+Value FileObject::utime(Env *env, Args args) {
+    args.ensure_argc_at_least(env, 2);
+
+    TimeObject *atime, *mtime;
+
+    if (args[0]->is_nil()) {
+        atime = TimeObject::create(env);
+    } else if (args[0]->is_time()) {
+        atime = args[0]->as_time();
+    } else {
+        atime = TimeObject::at(env, args[0], nullptr, nullptr);
+    }
+    if (args[1]->is_nil()) {
+        mtime = TimeObject::create(env);
+    } else if (args[1]->is_time()) {
+        mtime = args[1]->as_time();
+    } else {
+        mtime = TimeObject::at(env, args[1], nullptr, nullptr);
+    }
+
+    struct timeval ubuf[2], *ubufp = nullptr;
+    ubuf[0].tv_sec = atime->to_r(env)->as_rational()->to_i(env)->as_integer()->to_nat_int_t();
+    ubuf[0].tv_usec = atime->usec(env)->as_integer()->to_nat_int_t();
+    ubuf[1].tv_sec = mtime->to_r(env)->as_rational()->to_i(env)->as_integer()->to_nat_int_t();
+    ubuf[1].tv_usec = mtime->usec(env)->as_integer()->to_nat_int_t();
+    ubufp = ubuf;
+
+    for (size_t i = 2; i < args.size(); ++i) {
+        Value path = args[i];
+        path = fileutil::convert_using_to_path(env, path);
+        if (::utimes(path->as_string()->c_str(), ubufp) != 0) {
+            env->raise_errno();
+        }
+    }
+    return IntegerObject::create((nat_int_t)(args.size() - 2));
+}
+
+Value FileObject::atime(Env *env) { // inst method
+    return as_io()->stat(env)->as_file_stat()->atime(env);
+}
+Value FileObject::ctime(Env *env) { // inst method
+    return as_io()->stat(env)->as_file_stat()->ctime(env);
+}
+Value FileObject::mtime(Env *env) { // inst method
+    return as_io()->stat(env)->as_file_stat()->mtime(env);
 }
 
 }

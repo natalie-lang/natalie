@@ -43,6 +43,7 @@ public:
     Value is_size() const;
     bool is_setgid() const;
     bool is_setuid() const;
+    bool is_socket() const;
     bool is_sticky() const;
     bool is_symlink() const;
     Value world_readable() const;

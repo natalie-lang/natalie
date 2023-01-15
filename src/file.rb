@@ -1,6 +1,9 @@
 class File
   SEPARATOR = '/'.freeze
-
+  Separator = SEPARATOR
+  ALT_SEPARATOR = nil
+  PATH_SEPARATOR = ":".freeze
+  
   # NATFIXME: File.join still has many unhandled special cases
   def self.join(*parts)
     parts = parts.flatten

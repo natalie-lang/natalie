@@ -14,6 +14,8 @@ class UnknownFormatterException < StandardError
 end
 
 TOLERANCE = 0.00003
+TIME_TOLERANCE = 20.0
+
 FORMATTERS = %w[default yaml]
 
 @formatter = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
@@ -993,7 +995,6 @@ class Stub
   end
 
   def validate!
-    p restr: @count_restriction, cnt: @count
     unless @count_restriction == nil || @count_restriction === @count
       message = "#{@subject.inspect} should have received ##{@message}"
       if @count_restriction != nil
