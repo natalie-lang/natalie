@@ -171,15 +171,11 @@ Value IntegerObject::pow(Env *env, Value arg) {
     if (arg->is_float())
         return Value::floatingpoint(m_integer.to_double())->as_float()->pow(env, arg);
 
-    if (arg->is_rational())
-        return RationalObject { this, new IntegerObject { 1 } }.pow(env, arg);
-
     if (!arg->is_integer()) {
-        auto coerced = Natalie::coerce(env, arg, this);
-        arg = coerced.second;
-        if (!coerced.first->is_integer()) {
-            return coerced.first->send(env, "**"_s, { arg });
-        }
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        if (!lhs->is_integer())
+            return lhs.send(env, "**"_s, { rhs });
+        arg = rhs;
     }
 
     arg->assert_type(env, Object::Type::Integer, "Integer");
