@@ -118,6 +118,21 @@ describe 'integer' do
       (-2 - fixnum_max).should < -fixnum_max
       (-fixnum_max - 2).should < -fixnum_max
     end
+
+    it 'works with type coercion that returns ints' do
+      obj = mock('type coercion')
+      obj.should_receive(:coerce).with(5).and_return([5, 3])
+      (5 - obj).should == 2
+    end
+
+    it 'works with type coercion that returns other datatypes' do
+      (5 - Complex(3)).should == Complex(2)
+      (5 - Complex(3, 1)).should == Complex(2, -1)
+    end
+
+    it 'raises for arguments that do not support coercion' do
+      -> { 1 - 'string' }.should raise_error(TypeError)
+    end
   end
 
   describe '/' do
