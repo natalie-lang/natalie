@@ -208,6 +208,9 @@ Env *build_top_env() {
     Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
     Encoding->const_set("UCS_4BE"_s, EncodingUTF32BE);
 
+    // Must set defaults after the encodings are defined above.
+    EncodingObject::initialize_defaults(env);
+
     ModuleObject *Process = new ModuleObject { "Process" };
     Object->const_set("Process"_s, Process);
     Value ProcessSys = new ModuleObject { "Sys" };

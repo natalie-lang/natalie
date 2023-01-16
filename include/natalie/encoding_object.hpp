@@ -66,6 +66,8 @@ public:
         }
     }
 
+    bool is_dummy() { return m_dummy; }
+
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
@@ -80,12 +82,18 @@ public:
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 
     static HashObject *aliases(Env *);
-    static EncodingObject *find(Env *, Value);
+    static Value find(Env *, Value);
     static ArrayObject *list(Env *env);
     static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
+    static EncodingObject *default_external() { return s_default_external; }
     static EncodingObject *default_internal() { return s_default_internal; }
+    static EncodingObject *locale() { return s_locale; }
+    static EncodingObject *filesystem() { return s_filesystem; }
+    static EncodingObject *set_default_external(Env *, Value);
     static EncodingObject *set_default_internal(Env *, Value);
     static EncodingObject *get(Encoding encoding) { return s_encoding_list.get(encoding); }
+    static Value locale_charmap();
+    static void initialize_defaults(Env *);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);
@@ -94,9 +102,14 @@ public:
 private:
     Vector<String> m_names {};
     Encoding m_num;
+    bool m_dummy { false };
 
     static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
     static inline EncodingObject *s_default_internal = nullptr;
+    // external, locale and filesystem are set by a static initializer function
+    static inline EncodingObject *s_default_external = nullptr;
+    static inline EncodingObject *s_locale = nullptr;
+    static inline EncodingObject *s_filesystem = nullptr;
 };
 
 }
