@@ -22,7 +22,7 @@ namespace ArrayPacker {
 
         ~Packer() { delete m_directives; }
 
-        StringObject *pack(Env *env);
+        StringObject *pack(Env *env, StringObject *buffer);
 
         virtual void visit_children(Visitor &visitor) override {
             visitor.visit(m_source);

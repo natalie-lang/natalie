@@ -4,7 +4,11 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    StringObject *Packer::pack(Env *env) {
+    StringObject *Packer::pack(Env *env, StringObject *buffer) {
+
+        m_packed = buffer->string();
+        m_encoding = buffer->encoding();
+
         for (auto token : *m_directives) {
             if (token.error)
                 env->raise("ArgumentError", *token.error);
@@ -58,7 +62,7 @@ namespace ArrayPacker {
                 auto packer = StringHandler { string, string_object, token };
                 m_packed.append(packer.pack(env));
 
-                if (d == 'm' || d == 'M')
+                if (d == 'm' || d == 'M' || d == 'u')
                     m_encoding = EncodingObject::get(Encoding::US_ASCII);
 
                 m_index++;
@@ -156,7 +160,10 @@ namespace ArrayPacker {
             }
             }
         }
-        return new StringObject { m_packed, m_encoding };
+        // must force str length in case m_packed was stuffed with '\0's
+        buffer->set_str(m_packed.c_str(), m_packed.length());
+        buffer->set_encoding(m_encoding);
+        return buffer;
     }
 
 }

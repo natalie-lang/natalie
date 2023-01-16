@@ -392,7 +392,7 @@ gen.binding('Array', 'min', 'ArrayObject', 'min', argc: 0..1, pass_env: true, pa
 gen.binding('Array', 'minmax', 'ArrayObject', 'minmax', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'none?', 'ArrayObject', 'none', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'one?', 'ArrayObject', 'one', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Array', 'pack', 'ArrayObject', 'pack', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Array', 'pack', 'ArrayObject', 'pack', argc: 1, kwargs: [:buffer], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'pop', 'ArrayObject', 'pop', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'product', 'ArrayObject', 'product', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'push', 'ArrayObject', 'push', argc: :any, pass_env: true, pass_block: false, return_type: :Object)

@@ -183,7 +183,7 @@ public:
     Value multiply(Env *, Value);
     Value none(Env *, Args, Block *);
     Value one(Env *, Args, Block *);
-    Value pack(Env *, Value);
+    Value pack(Env *, Value, Value);
     Value pop(Env *, Value);
     Value product(Env *, Args, Block *);
     Value push(Env *, Args);
