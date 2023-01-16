@@ -50,6 +50,12 @@ namespace ArrayPacker {
         case 'n':
             pack_n();
             break;
+        case 'Q':
+            pack_Q();
+            break;
+        case 'q':
+            pack_q();
+            break;
         case 'S':
             pack_S();
             break;
@@ -178,6 +184,26 @@ namespace ArrayPacker {
         } else {
             auto source = (long long)m_source->to_nat_int_t();
             append_bytes((const char *)(&source), size);
+        }
+    }
+
+    void IntegerHandler::pack_Q() {
+        auto size = sizeof(uint64_t);
+        if (m_source->is_bignum()) {
+            pack_bignum(size * 8);
+        } else {
+            auto source = (uint64_t)m_source->to_nat_int_t();
+            append_bytes((const char *)&source, size);
+        }
+    }
+
+    void IntegerHandler::pack_q() {
+        auto size = sizeof(int64_t);
+        if (m_source->is_bignum()) {
+            pack_bignum(size * 8);
+        } else {
+            auto source = (int64_t)m_source->to_nat_int_t();
+            append_bytes((const char *)&source, size);
         }
     }
 

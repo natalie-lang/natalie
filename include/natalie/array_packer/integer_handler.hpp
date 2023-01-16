@@ -31,6 +31,8 @@ namespace ArrayPacker {
         void pack_l();
         void pack_N();
         void pack_n();
+        void pack_Q();
+        void pack_q();
         void pack_S();
         void pack_s();
         void pack_V();
