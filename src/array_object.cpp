@@ -957,16 +957,23 @@ Value ArrayObject::cmp(Env *env, Value other) {
     });
 }
 
-Value ArrayObject::pack(Env *env, Value directives) {
+Value ArrayObject::pack(Env *env, Value directives, Value buffer) {
     if (!directives->is_string())
         directives = directives->to_str(env);
 
     auto directives_string = directives->as_string()->string();
-
     if (directives_string.is_empty())
         return new StringObject { "", Encoding::US_ASCII };
 
-    return ArrayPacker::Packer { this, directives_string }.pack(env);
+    if (buffer) {
+        if (!buffer->is_string()) {
+            env->raise("TypeError", "buffer must be String, not {}", buffer->klass()->inspect_str());
+        }
+        return ArrayPacker::Packer { this, directives_string }.pack(env, buffer->as_string());
+    } else {
+        StringObject *start_buffer = new StringObject { "", Encoding::ASCII_8BIT };
+        return ArrayPacker::Packer { this, directives_string }.pack(env, start_buffer);
+    }
 }
 
 Value ArrayObject::push(Env *env, Args args) {
