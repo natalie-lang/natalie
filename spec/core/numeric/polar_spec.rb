@@ -7,8 +7,7 @@ describe "Numeric#polar" do
       3898172610**9,
       987.18273,
       Float::MAX,
-      # NATFIXME: Implement Rational
-      # Rational(13,7),
+      Rational(13,7),
       infinity_value,
     ]
     @neg_numbers = @pos_numbers.map {|n| -n}
