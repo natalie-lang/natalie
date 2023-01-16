@@ -870,6 +870,11 @@ class StubRegistry
   end
 
   def reset
+    @stubs.values.each do |stubs|
+      stub = stubs.first
+      stub.subject.singleton_class.undef_method(stub.message)
+    end
+
     @stubs.clear
   end
 end

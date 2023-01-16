@@ -67,15 +67,16 @@ SymbolObject *SymbolObject::upcase(Env *env) {
 ProcObject *SymbolObject::to_proc(Env *env) {
     auto block_env = new Env {};
     block_env->var_set("name", 0, true, this);
-    Block *proc_block = new Block { block_env, this, SymbolObject::to_proc_block_fn, 1 };
+    Block *proc_block = new Block { block_env, this, SymbolObject::to_proc_block_fn, -2 };
     return new ProcObject { proc_block };
 }
 
 Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, Args args, Block *block) {
-    args.ensure_argc_is(env, 1);
+    args.ensure_argc_at_least(env, 1);
     SymbolObject *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
-    return args[0].send(env, name_obj);
+    auto method_args = Args::shift(args);
+    return args[0].send(env, name_obj, method_args);
 }
 
 Value SymbolObject::cmp(Env *env, Value other_value) {

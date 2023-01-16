@@ -63,6 +63,10 @@ describe 'symbol' do
     it 'returns a proc that calls a method on its given argument' do
       :to_i.to_proc.call('2').should == 2
     end
+
+    it 'returns a proc that can be called with multiple arguments' do
+      :+.to_proc.call(1, 2).should == 3
+    end
   end
 
   describe '#start_with?' do

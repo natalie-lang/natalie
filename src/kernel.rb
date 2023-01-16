@@ -38,7 +38,10 @@ module Kernel
 
   def instance_of?(clazz)
     raise TypeError, 'class or module required' unless clazz.is_a?(Module)
-    self.class == clazz
+
+    # We have to use this bind because #self might not respond to #class
+    # This can be the case if a BasicObject gets #instance_of? defined via #define_method
+    Kernel.instance_method(:class).bind(self).call == clazz
   end
 
   def rand(*args)

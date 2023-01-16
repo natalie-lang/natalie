@@ -567,7 +567,7 @@ Value ModuleObject::attr_writer(Env *env, Args args) {
         TM::String method_name = TM::String::format("{}=", name_obj->as_symbol()->c_str());
         auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 0 };
+        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 1 };
         define_method(env, SymbolObject::intern(method_name), attr_block);
     }
     return NilObject::the();
@@ -667,6 +667,14 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     m_method_visibility = old_method_visibility;
     m_module_function = old_module_function;
     return result;
+}
+
+Value ModuleObject::module_exec(Env *env, Args args, Block *block) {
+    if (!block)
+        env->raise_local_jump_error(NilObject::the(), Natalie::LocalJumpErrorType::None);
+    Value self = this;
+    block->set_self(self);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, args, nullptr);
 }
 
 Value ModuleObject::private_method(Env *env, Args args) {
