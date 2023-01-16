@@ -2492,7 +2492,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
         if ((base > 0) && (base != prefix_base)) {
             return nullptr;
         }
-    } else if (str[0] == '+' || str[0] == '-' || str[0] == '_' || str[0] == ' ') {
+    } else if (str[0] == '+' || str[0] == '-' || str[0] == '_' || is_strippable_whitespace(str[0])) {
         return nullptr;
     } else if (str.length() > 0 && str.last_char() == '_') {
         return nullptr;
