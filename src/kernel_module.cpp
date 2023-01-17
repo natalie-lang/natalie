@@ -139,7 +139,10 @@ Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) 
         if (!base->is_integer() && base->respond_to(env, "to_int"_s))
             base = base->send(env, "to_int"_s);
 
-        base_int = base->as_integer()->to_nat_int_t();
+        // NATFIXME: Discard base argument if it still isn't an int
+        // Likely a bug in Ruby: https://bugs.ruby-lang.org/issues/19349
+        if (base->is_integer())
+            base_int = base->as_integer()->to_nat_int_t();
     }
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
