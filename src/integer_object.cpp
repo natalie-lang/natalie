@@ -277,7 +277,7 @@ bool IntegerObject::lt(Env *env, Value other) {
         return m_integer < other->as_integer()->integer();
 
     if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "<"_s, { result.second })->is_truthy();
     }
 
@@ -292,7 +292,7 @@ bool IntegerObject::lte(Env *env, Value other) {
         return m_integer <= other->as_integer()->integer();
 
     if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "<="_s, { result.second })->is_truthy();
     }
 
@@ -307,7 +307,7 @@ bool IntegerObject::gt(Env *env, Value other) {
         return m_integer > other->as_integer()->integer();
 
     if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, ">"_s, { result.second })->is_truthy();
     }
 
@@ -322,7 +322,7 @@ bool IntegerObject::gte(Env *env, Value other) {
         return m_integer >= other->as_integer()->integer();
 
     if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, ">="_s, { result.second })->is_truthy();
     }
 

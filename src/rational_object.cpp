@@ -33,7 +33,7 @@ Value RationalObject::add(Env *env, Value other) {
         auto den2 = den1->mul(env, m_denominator)->as_integer();
         return create(env, c, den2);
     } else if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "+"_s, { result.second });
     } else {
         env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
@@ -57,7 +57,7 @@ Value RationalObject::cmp(Env *env, Value other) {
         return to_f(env)->as_float()->cmp(env, other->as_float());
     }
     if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "<=>"_s, { result.second });
     }
     return NilObject::the();
@@ -104,7 +104,7 @@ Value RationalObject::div(Env *env, Value other) {
     } else if (other->is_float()) {
         return this->to_f(env)->as_float()->div(env, other);
     } else if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "/"_s, { result.second });
     } else {
         env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
@@ -170,7 +170,7 @@ Value RationalObject::mul(Env *env, Value other) {
     } else if (other->is_float()) {
         return this->to_f(env)->as_float()->mul(env, other);
     } else if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "*"_s, { result.second });
     } else {
         env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
@@ -191,7 +191,7 @@ Value RationalObject::pow(Env *env, Value other) {
         denominator = other->as_rational()->denominator(env)->as_integer();
     } else if (!other->is_float()) {
         if (other->respond_to(env, "coerce"_s)) {
-            auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+            auto result = Natalie::coerce(env, other, this);
             return result.first->send(env, "**"_s, { result.second });
         } else {
             env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
@@ -241,7 +241,7 @@ Value RationalObject::sub(Env *env, Value other) {
         auto den2 = den1->mul(env, m_denominator)->as_integer();
         return create(env, c, den2);
     } else if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        auto result = Natalie::coerce(env, other, this);
         return result.first->send(env, "-"_s, { result.second });
     } else {
         env->raise("TypeError", "{} can't be coerced into Rational", other->klass()->inspect_str());
