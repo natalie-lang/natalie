@@ -274,6 +274,13 @@ bool IntegerObject::eq(Env *env, Value other) {
         return !f->is_nan() && m_integer == f->to_double();
     }
 
+    if (!other->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, other, this);
+        if (!lhs->is_integer())
+            return lhs->send(env, "=="_s, { rhs })->is_truthy();
+        other = rhs;
+    }
+
     if (other->is_integer())
         return m_integer == other->as_integer()->integer();
 
@@ -283,6 +290,13 @@ bool IntegerObject::eq(Env *env, Value other) {
 bool IntegerObject::lt(Env *env, Value other) {
     if (other->is_float())
         return m_integer < other->as_float()->to_double();
+
+    if (!other->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, other, this);
+        if (!lhs->is_integer())
+            return lhs->send(env, "<"_s, { rhs })->is_truthy();
+        other = rhs;
+    }
 
     if (other->is_integer())
         return m_integer < other->as_integer()->integer();
@@ -299,6 +313,13 @@ bool IntegerObject::lte(Env *env, Value other) {
     if (other->is_float())
         return m_integer <= other->as_float()->to_double();
 
+    if (!other->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, other, this);
+        if (!lhs->is_integer())
+            return lhs->send(env, "<="_s, { rhs })->is_truthy();
+        other = rhs;
+    }
+
     if (other->is_integer())
         return m_integer <= other->as_integer()->integer();
 
@@ -314,6 +335,13 @@ bool IntegerObject::gt(Env *env, Value other) {
     if (other->is_float())
         return m_integer > other->as_float()->to_double();
 
+    if (!other->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        if (!lhs->is_integer())
+            return lhs->send(env, ">"_s, { rhs })->is_truthy();
+        other = rhs;
+    }
+
     if (other->is_integer())
         return m_integer > other->as_integer()->integer();
 
@@ -328,6 +356,13 @@ bool IntegerObject::gt(Env *env, Value other) {
 bool IntegerObject::gte(Env *env, Value other) {
     if (other->is_float())
         return m_integer >= other->as_float()->to_double();
+
+    if (!other->is_integer()) {
+        auto [lhs, rhs] = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
+        if (!lhs->is_integer())
+            return lhs->send(env, ">="_s, { rhs })->is_truthy();
+        other = rhs;
+    }
 
     if (other->is_integer())
         return m_integer >= other->as_integer()->integer();
