@@ -171,6 +171,7 @@ public:
     Value intersection(Env *, Value);
     Value intersection(Env *, Args);
     bool intersects(Env *, Value);
+    Value _subjoin(Env *, Value, Value);
     Value join(Env *, Value);
     Value keep_if(Env *, Block *);
     Value last(Env *, Value);
