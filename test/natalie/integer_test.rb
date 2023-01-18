@@ -280,6 +280,36 @@ describe 'integer' do
     end
   end
 
+  describe '#&' do
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:&).with(obj1).and_return(:pass)
+      (6 & obj1).should == :pass
+    end
+  end
+
+  describe '#|' do
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:|).with(obj1).and_return(:pass)
+      (6 | obj1).should == :pass
+    end
+  end
+
+  describe '#^' do
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:^).with(obj1).and_return(:pass)
+      (6 ^ obj1).should == :pass
+    end
+  end
+
   describe '#round' do
     it 'returns zero if 10^-ndigits > NAT_MAX_FIXNUM' do
       fixnum_max.round(-71).should == 0

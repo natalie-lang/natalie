@@ -394,10 +394,12 @@ Value IntegerObject::times(Env *env, Block *block) {
 }
 
 Value IntegerObject::bitwise_and(Env *env, Value arg) {
-    if (!arg->is_integer()) {
-        auto result = Natalie::coerce(env, arg, this);
-        result.second->assert_type(env, Object::Type::Integer, "Integer");
-        return result.first.send(env, "&"_s, { result.second });
+    if (!arg->is_integer() && arg->respond_to(env, "coerce"_s)) {
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        auto and_symbol = "&"_s;
+        if (!lhs->is_integer() && lhs->respond_to(env, and_symbol))
+            return lhs.send(env, and_symbol, { rhs });
+        arg = rhs;
     }
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
@@ -406,30 +408,30 @@ Value IntegerObject::bitwise_and(Env *env, Value arg) {
 
 Value IntegerObject::bitwise_or(Env *env, Value arg) {
     Integer argument;
-    if (!arg->is_integer()) {
-        auto result = Natalie::coerce(env, arg, this);
-        result.second->assert_type(env, Object::Type::Integer, "Integer");
-        return result.first.send(env, "|"_s, { result.second });
-    } else {
-        arg->assert_type(env, Object::Type::Integer, "Integer");
-        argument = arg->as_integer()->integer();
+    if (!arg->is_integer() && arg->respond_to(env, "coerce"_s)) {
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        auto or_symbol = "|"_s;
+        if (!lhs->is_integer() && lhs->respond_to(env, or_symbol))
+            return lhs.send(env, or_symbol, { rhs });
+        arg = rhs;
     }
+    arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(m_integer | argument);
+    return create(m_integer | arg->as_integer()->integer());
 }
 
 Value IntegerObject::bitwise_xor(Env *env, Value arg) {
     Integer argument;
-    if (!arg->is_integer()) {
-        auto result = Natalie::coerce(env, arg, this);
-        result.second->assert_type(env, Object::Type::Integer, "Integer");
-        return result.first.send(env, "^"_s, { result.second });
-    } else {
-        arg->assert_type(env, Object::Type::Integer, "Integer");
-        argument = arg->as_integer()->integer();
+    if (!arg->is_integer() && arg->respond_to(env, "coerce"_s)) {
+        auto [lhs, rhs] = Natalie::coerce(env, arg, this);
+        auto xor_symbol = "^"_s;
+        if (!lhs->is_integer() && lhs->respond_to(env, xor_symbol))
+            return lhs.send(env, xor_symbol, { rhs });
+        arg = rhs;
     }
+    arg->assert_type(env, Object::Type::Integer, "Integer");
 
-    return create(m_integer ^ argument);
+    return create(m_integer ^ arg->as_integer()->integer());
 }
 
 Value IntegerObject::bit_length(Env *env) {
