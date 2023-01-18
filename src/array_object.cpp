@@ -881,39 +881,50 @@ Value ArrayObject::keep_if(Env *env, Block *block) {
     return this;
 }
 
+Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
+    if (item->is_string()) {
+        return item->as_string();
+    } else if (item->is_array()) {
+        return item->as_array()->join(env, joiner)->as_string();
+    } else {
+        auto to_str = "to_str"_s;
+        auto to_ary = "to_ary"_s;
+        auto to_s = "to_s"_s;
+        if (item->respond_to(env, to_str)) {
+            auto rval = item.send(env, to_str);
+            if (!rval->is_nil()) return rval->as_string();
+        }
+        if (item->respond_to(env, to_ary)) {
+            auto rval = item.send(env, to_ary);
+            if (!rval->is_nil()) return rval->as_array()->join(env, joiner)->as_string();
+        }
+        if (item->respond_to(env, to_s))
+            item = item.send(env, to_s);
+        if (item->is_string())
+            return item->as_string();
+    }
+    env->raise("NoMethodError", "needed to_str, to_ary, or to_s");
+}
+
 Value ArrayObject::join(Env *env, Value joiner) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             env->raise("ArgumentError", "recursive array join");
         if (size() == 0) {
-            return (Value) new StringObject {};
-        } else if (size() == 1) {
-            return (*this)[0].send(env, "to_s"_s);
+            return (Value) new StringObject { "", Encoding::US_ASCII };
         } else {
             if (!joiner || joiner->is_nil())
                 joiner = env->global_get("$,"_s);
             if (!joiner || joiner->is_nil()) joiner = new StringObject { "" };
 
-            auto to_str = "to_str"_s;
-            auto to_s = "to_s"_s;
             if (!joiner->is_string())
                 joiner = joiner->to_str(env);
 
             StringObject *out = new StringObject {};
             for (size_t i = 0; i < size(); i++) {
                 Value item = (*this)[i];
-                if (item->is_string())
-                    out->append(item->as_string());
-                else if (item->respond_to(env, to_str))
-                    out->append(item.send(env, to_str)->as_string());
-                else if (item->is_array())
-                    out->append(item->as_array()->join(env, joiner));
-                else if (item->respond_to(env, to_s))
-                    out->append(item.send(env, to_s)->as_string());
-                else
-                    out->append(String::format("#<{}:{}>", item->klass()->inspect_str(), static_cast<size_t>(item)));
-
+                out->append(_subjoin(env, item, joiner));
                 if (i < (size() - 1))
                     out->append(joiner->as_string());
             }

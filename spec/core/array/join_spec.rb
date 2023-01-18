@@ -4,7 +4,7 @@ require_relative 'shared/join'
 
 describe "Array#join" do
   it_behaves_like :array_join_with_string_separator,  :join
-  # it_behaves_like :array_join_with_default_separator, :join FIXME currently not supported, it seems to be breaking other tests when active.
+  it_behaves_like :array_join_with_default_separator, :join
 
   it "does not separate elements when the passed separator is nil" do
     [1, 2, 3].join(nil).should == '123'
