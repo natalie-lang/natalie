@@ -15,9 +15,7 @@ describe "File.ctime" do
   end
 
   platform_is :linux, :windows do
-    # NATFIXME: There is a bug in our implementation of Integer() for digits
-    # with a leading zero causing a failure, even when base10 is specified
-    xit "returns the change time for the named file (the time at which directory information about the file was changed, not the file itself) with microseconds." do
+    it "returns the change time for the named file (the time at which directory information about the file was changed, not the file itself) with microseconds." do
       supports_subseconds = Integer(`stat -c%z '#{__FILE__}'`[/\.(\d{1,6})/, 1], 10)
       if supports_subseconds != 0
         File.ctime(__FILE__).usec.should > 0
