@@ -11,8 +11,9 @@ describe "Rational#to_r" do
 
   it "works when a BasicObject has to_r" do
     obj = BasicObject.new; def obj.to_r; 1 / 2.to_r end
-    # NATFIXME: Implement Rational(String)
-    # Rational(obj).should == Rational('1/2')
+    NATFIXME 'Support Rational(String)' do
+      Rational(obj) == Rational('1/2')
+    end
     Rational(obj).should == Rational(1, 2)
   end
 

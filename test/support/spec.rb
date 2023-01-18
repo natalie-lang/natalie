@@ -152,6 +152,17 @@ def specify(test = nil, &block)
   @specs << [$context.dup, test, block]
 end
 
+def NATFIXME(description)
+  remove_natfixme = begin
+                      yield
+                    rescue
+                      false
+                    end
+  if remove_natfixme
+    raise SpecFailedException, 'issue has been fixed, please remove or update the NATFIXME marker'
+  end
+end
+
 # NATFIXME: implement this guard
 def with_block_device
   nil
