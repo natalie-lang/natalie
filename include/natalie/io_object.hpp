@@ -50,6 +50,7 @@ public:
     Value print(Env *, Args) const;
     Value close(Env *);
     Value seek(Env *, Value, Value) const;
+    Value stat(Env *) const;
     bool is_closed() const { return m_closed; }
 
 private:

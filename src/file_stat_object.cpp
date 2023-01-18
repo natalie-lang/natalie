@@ -52,6 +52,9 @@ bool FileStatObject::is_file() const {
 bool FileStatObject::is_owned() const {
     return (fstatus.st_uid == ::geteuid());
 }
+bool FileStatObject::is_socket() const {
+    return (S_ISSOCK(fstatus.st_mode));
+}
 bool FileStatObject::is_symlink() const {
     return (S_ISLNK(fstatus.st_mode));
 }
@@ -139,9 +142,10 @@ Value FileStatObject::world_writable() const {
     }
     return NilObject::the();
 }
+
 Value FileStatObject::comparison(Env *env, Value other) const {
     if (other->is_a(env, this->klass()))
-        mtime(env)->as_time()->cmp(env, other->as_file_stat()->mtime(env)->as_time());
+        return mtime(env)->as_time()->cmp(env, other->as_file_stat()->mtime(env)->as_time());
     return NilObject::the();
 }
 

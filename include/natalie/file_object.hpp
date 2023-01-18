@@ -72,6 +72,15 @@ public:
 
     static bool is_identical(Env *env, Value file1, Value file2);
 
+    static Value atime(Env *env, Value path);
+    static Value ctime(Env *env, Value path);
+    static Value mtime(Env *env, Value path);
+    static Value utime(Env *env, Args args);
+
+    Value atime(Env *env);
+    Value ctime(Env *env);
+    Value mtime(Env *env);
+
     static Value umask(Env *env, Value mask);
     static Value ftype(Env *env, Value path);
     static Value size(Env *env, Value path);
@@ -89,7 +98,6 @@ public:
     static Value stat(Env *env, Value path);
 
     Value lstat(Env *env) const; // instance method
-    Value stat(Env *env); // instance method
 
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };
