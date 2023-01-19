@@ -135,7 +135,6 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
             strm->avail_out = ZLIB_BUF_SIZE;
             strm->next_out = out;
             ret = inflate(strm, Z_NO_FLUSH);
-            assert(ret != Z_STREAM_ERROR);
 
             switch (ret) {
             case Z_NEED_DICT:
@@ -148,6 +147,10 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
                 inflateEnd(strm);
                 self->send(env, "_error"_s, { Value::integer(ret) });
                 break;
+            case Z_STREAM_ERROR: {
+                auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s })->as_class_or_raise(env);
+                env->raise(Error, "stream is not ready");
+            }
             }
 
             int have = ZLIB_BUF_SIZE - strm->avail_out;

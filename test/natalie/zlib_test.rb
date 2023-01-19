@@ -65,5 +65,11 @@ describe 'Zlib' do
       zstream.close                                                                                                                                                                           
       inflated.should == 'hello world'
     end
+
+    it 'raises an error after the stream is closed' do
+      zstream = Zlib::Inflate.new
+      zstream.close
+      -> { zstream << 'hello' }.should raise_error(Zlib::Error, 'stream is not ready')
+    end
   end
 end
