@@ -6,9 +6,6 @@ describe "Integer#nobits?" do
     0b1010_1010.nobits?(0b1000_0010).should == false
     0b1010_1010.nobits?(0b1000_0001).should == false
     0b0100_0101.nobits?(0b1010_1010).should == true
-  end
-
-  it "returns true if and only if all no bits of the argument are set in the receiver" do
     different_bignum = (2 * bignum_value) & (~bignum_value)
     (0b1010_1010 | different_bignum).nobits?(0b1000_0010 | bignum_value).should == false
     (0b1010_1010 | different_bignum).nobits?(0b1000_0001 | bignum_value).should == false
@@ -19,9 +16,6 @@ describe "Integer#nobits?" do
     (~0b1101).nobits?(0b1101).should == true
     (-42).nobits?(-42).should == false
     (~0b1101).nobits?(~0b10).should == false
-  end
-
-  it "handles negative values using two's complement notation" do
     (~(0b1101 | bignum_value)).nobits?(~(0b10 | bignum_value)).should == false
   end
 
