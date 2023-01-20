@@ -41,4 +41,8 @@ class Set
     @data.clear
     self
   end
+
+  def to_a
+    @data.keys
+  end
 end
