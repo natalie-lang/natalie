@@ -14,6 +14,11 @@ void Zlib_stream_cleanup(VoidPObject *self) {
     delete stream;
 }
 
+void Zlib_buffer_cleanup(VoidPObject *self) {
+    auto buffer = (unsigned char *)self->void_ptr();
+    delete[] buffer;
+}
+
 static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
 Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
@@ -23,10 +28,10 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject);
-    String in { ZLIB_BUF_SIZE, '\0' };
-    self->ivar_set(env, "@in"_s, new StringObject(std::move(in)));
-    String out { ZLIB_BUF_SIZE, '\0' };
-    self->ivar_set(env, "@out"_s, new StringObject(std::move(out)));
+    auto in = new unsigned char[ZLIB_BUF_SIZE];
+    self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
+    auto out = new unsigned char[ZLIB_BUF_SIZE];
+    self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
 
     int ret = deflateInit(stream, (int)level->as_integer()->to_nat_int_t());
     if (ret != Z_OK)
@@ -38,13 +43,8 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
 void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
-
-    auto in_string = self->ivar_get(env, "@in"_s)->as_string_or_raise(env);
-    assert(in_string->bytesize() == ZLIB_BUF_SIZE);
-    auto in = (unsigned char *)in_string->string().dangerous_pointer_to_underlying_data();
-    auto out_string = self->ivar_get(env, "@out"_s)->as_string_or_raise(env);
-    assert(out_string->bytesize() == ZLIB_BUF_SIZE);
-    auto out = (unsigned char *)out_string->string().dangerous_pointer_to_underlying_data();
+    auto in = (unsigned char *)self->ivar_get(env, "@in"_s)->as_void_p()->void_ptr();
+    auto out = (unsigned char *)self->ivar_get(env, "@out"_s)->as_void_p()->void_ptr();
 
     size_t index = 0;
     do {
@@ -94,10 +94,10 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject);
-    String in { ZLIB_BUF_SIZE, '\0' };
-    self->ivar_set(env, "@in"_s, new StringObject(std::move(in)));
-    String out { ZLIB_BUF_SIZE, '\0' };
-    self->ivar_set(env, "@out"_s, new StringObject(std::move(out)));
+    auto in = new unsigned char[ZLIB_BUF_SIZE];
+    self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
+    auto out = new unsigned char[ZLIB_BUF_SIZE];
+    self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
 
     int ret = inflateInit(stream);
     if (ret != Z_OK)
@@ -109,13 +109,8 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
 void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
-
-    auto in_string = self->ivar_get(env, "@in"_s)->as_string_or_raise(env);
-    assert(in_string->bytesize() == ZLIB_BUF_SIZE);
-    auto in = (unsigned char *)in_string->string().dangerous_pointer_to_underlying_data();
-    auto out_string = self->ivar_get(env, "@out"_s)->as_string_or_raise(env);
-    assert(out_string->bytesize() == ZLIB_BUF_SIZE);
-    auto out = (unsigned char *)out_string->string().dangerous_pointer_to_underlying_data();
+    auto in = (unsigned char *)self->ivar_get(env, "@in"_s)->as_void_p()->void_ptr();
+    auto out = (unsigned char *)self->ivar_get(env, "@out"_s)->as_void_p()->void_ptr();
 
     int ret;
 
