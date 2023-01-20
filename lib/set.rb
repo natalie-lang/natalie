@@ -36,4 +36,9 @@ class Set
   def include?(obj)
     @data.key?(obj)
   end
+
+  def clear
+    @data.clear
+    self
+  end
 end
