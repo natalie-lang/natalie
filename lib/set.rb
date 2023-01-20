@@ -7,6 +7,7 @@ class Set
     @data[obj] = true
     self
   end
+  alias << add
 
   def add?(obj)
     if include?(obj)
