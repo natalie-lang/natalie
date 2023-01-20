@@ -42,6 +42,10 @@ class Set
     self
   end
 
+  def join(sep = nil)
+    to_a.join(sep)
+  end
+
   def to_a
     @data.keys
   end
