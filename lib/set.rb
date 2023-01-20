@@ -1,7 +1,22 @@
 class Set
-  def initialize
+  def initialize(items = nil)
     @data = Hash.new
+    
+    return if items.nil?
+
+    items.each do |item|
+      add(item)
+    end
   end
+
+  def self.[](*items)
+    new(items)
+  end
+
+  def length
+    @data.length
+  end
+  alias size length
 
   def add(obj)
     @data[obj] = true
