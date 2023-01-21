@@ -451,6 +451,7 @@ def include_paths
   [
     File.expand_path('include', __dir__),
     File.expand_path('ext/tm/include', __dir__),
+    File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/natalie_parser/include', __dir__),
   ]
