@@ -677,17 +677,6 @@ module Natalie
         _, array, args, body = exp
         body = s(:nil) if body.nil?
         instructions = transform_for_declare_args(args)
-        #instructions += transform_iter(
-          #exp.new(
-            #:iter,
-            #exp.new(:call, array, :each),
-            ## FIXME: |i| here shadows the outer i variable
-            ## it should instead overwrite it
-            #exp.new(:args, args),
-            #body
-          #),
-          #used: used
-        #)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(s(:args, args), used: true)
         instructions += transform_expression(body, used: true)
