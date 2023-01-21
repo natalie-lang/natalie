@@ -127,6 +127,32 @@ describe 'each' do
   end
 end
 
+describe 'for' do
+  it 'sets the bound variable outside the scope of the loop' do
+    x = 0
+    for i in [1, 2, 3]
+      x = i
+    end
+    i.should == 3
+    x.should == 3
+  end
+
+  it 'can destructure its arguments' do
+    results = []
+    for a, b in { x: 1, y: 2 }
+      results << [a, b]
+    end
+    results.should == [[:x, 1], [:y, 2]]
+    a.should == :y
+    b.should == 2
+
+    for a, (b, (c, d)) in [[1, [2, [3, 4]]]]
+      results = [a, b, c, d]
+    end
+    results.should == [1, 2, 3, 4]
+  end
+end
+
 describe 'loop' do
   it 'can be invoked' do
     s = false

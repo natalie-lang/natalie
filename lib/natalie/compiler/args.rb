@@ -1,8 +1,9 @@
 module Natalie
   class Compiler
     class Args
-      def initialize(pass, file:, line:)
+      def initialize(pass, local_only: true, file:, line:)
         @pass = pass
+        @local_only = local_only
         @file = file
         @line = line
       end
@@ -29,9 +30,20 @@ module Natalie
             transform_keyword_arg(arg)
           when :lasgn
             clean_up_keyword_args
-            transform_optional_arg(arg)
+            if arg.size == 2
+              # for-loop args look like: s(:lasgn, :x)
+              transform_required_arg(arg[1])
+            else
+              # otherwise, they should look like: s(:lasgn, :x, s(:lit, 1))
+              transform_optional_arg(arg)
+            end
           when :masgn
             clean_up_keyword_args
+            if arg[1].is_a?(Sexp) && arg[1].sexp_type == :array
+              # for-loop masgn looks like: s(:masgn, s(:array, ...))
+              _, array = arg
+              arg = arg.new(:masgn, *array[1..-1])
+            end
             transform_destructured_arg(arg)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
@@ -109,7 +121,7 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         @instructions << DupInstruction.new
         @instructions << ToArrayInstruction.new
-        sub_processor = self.class.new(@pass, file: @file, line: @line)
+        sub_processor = self.class.new(@pass, local_only: @local_only, file: @file, line: @line)
         @instructions << sub_processor.transform(arg)
         @instructions << PopInstruction.new
       end
@@ -141,7 +153,7 @@ module Natalie
       def variable_set(name)
         name = name[1..] if name.start_with?('&')
         raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
-        VariableSetInstruction.new(name, local_only: true)
+        VariableSetInstruction.new(name, local_only: @local_only)
       end
 
       def shift_or_pop_next_arg
