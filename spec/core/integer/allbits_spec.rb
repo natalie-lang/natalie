@@ -6,9 +6,6 @@ describe "Integer#allbits?" do
     0b1010_1010.allbits?(0b1000_0010).should == true
     0b1010_1010.allbits?(0b1000_0001).should == false
     0b1000_0010.allbits?(0b1010_1010).should == false
-  end
-
-  it "returns true if and only if all the bits of the argument are set in the receiver" do
     (0b1010_1010 | bignum_value).allbits?(0b1000_0010 | bignum_value).should == true
     (0b1010_1010 | bignum_value).allbits?(0b1000_0001 | bignum_value).should == false
     (0b1000_0010 | bignum_value).allbits?(0b1010_1010 | bignum_value).should == false
@@ -19,9 +16,6 @@ describe "Integer#allbits?" do
     (-42).allbits?(-42).should == true
     (~0b1010_1010).allbits?(~0b1110_1011).should == true
     (~0b1010_1010).allbits?(~0b1000_0010).should == false
-  end
-
-  it "handles negative values using two's complement notation" do
     (~(0b1010_1010 | bignum_value)).allbits?(~(0b1110_1011 | bignum_value)).should == true
     (~(0b1010_1010 | bignum_value)).allbits?(~(0b1000_0010 | bignum_value)).should == false
   end

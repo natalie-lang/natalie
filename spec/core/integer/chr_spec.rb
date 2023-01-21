@@ -2,18 +2,20 @@ require_relative '../../spec_helper'
 
 describe "Integer#chr without argument" do
   it "returns a String" do
-    # 17.chr.should be_an_instance_of(String)
-    128.chr.should be_an_instance_of(String)
+    17.chr.should be_an_instance_of(String)
   end
 
   it "returns a new String for each call" do
-    # 82.chr.should_not equal(82.chr)
-    128.chr.should_not equal(128.chr)
+    82.chr.should_not equal(82.chr)
   end
 
   it "raises a RangeError is self is less than 0" do
     -> { -1.chr }.should raise_error(RangeError)
-    -> { -bignum_value.chr }.should raise_error(RangeError)
+    -> { (-bignum_value).chr }.should raise_error(RangeError)
+  end
+
+  it "raises a RangeError if self is too large" do
+    -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
   end
 
   describe "when Encoding.default_internal is nil" do
@@ -120,15 +122,15 @@ describe "Integer#chr without argument" do
         # 0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
       end
 
-      # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
-      xit "returns a String encoding self interpreted as a codepoint in the default internal encoding" do
+      it "returns a String encoding self interpreted as a codepoint in the default internal encoding" do
         Encoding.default_internal = Encoding::UTF_8
         0x0100.chr.bytes.to_a.should == [0xC4, 0x80]
         0x3000.chr.bytes.to_a.should == [0xE3, 0x80, 0x80]
 
-        Encoding.default_internal = Encoding::SHIFT_JIS
-        0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
-        0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
+        # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
+        # Encoding.default_internal = Encoding::SHIFT_JIS
+        # 0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+        # 0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
       end
 
       # NATFIXME: Implement various encodings
@@ -173,7 +175,7 @@ describe "Integer#chr with an encoding argument" do
   it "raises a RangeError is self is less than 0" do
     -> { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError)
     # NATFIXME: Implement Encoding::EUC_JP
-    # -> { -bignum_value.chr(Encoding::EUC_JP) }.should raise_error(RangeError)
+    # -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError)
   end
 
   it "raises a RangeError if self is too large" do
@@ -256,17 +258,15 @@ describe "Integer#chr with an encoding argument" do
     end
   end
 
-  ruby_version_is "2.7" do
-    # Implement Encoding::CESU_8
-    xit 'returns a String encoding self interpreted as a codepoint in the CESU-8 encoding' do
-      # see more details here https://en.wikipedia.org/wiki/CESU-8
-      # code points from U+0000 to U+FFFF is encoded in the same way as in UTF-8
-      0x0045.chr(Encoding::CESU_8).bytes.should == 0x0045.chr(Encoding::UTF_8).bytes
+  # NATFIXME: Implement Encoding::CESU_8
+  xit 'returns a String encoding self interpreted as a codepoint in the CESU-8 encoding' do
+    # see more details here https://en.wikipedia.org/wiki/CESU-8
+    # code points from U+0000 to U+FFFF is encoded in the same way as in UTF-8
+    0x0045.chr(Encoding::CESU_8).bytes.should == 0x0045.chr(Encoding::UTF_8).bytes
 
-      # code points in range from U+10000 to U+10FFFF is CESU-8 data containing a 6-byte surrogate pair,
-      # which decodes to a 4-byte UTF-8 string
-      0x10400.chr(Encoding::CESU_8).bytes.should != 0x10400.chr(Encoding::UTF_8).bytes
-      0x10400.chr(Encoding::CESU_8).bytes.to_a.should == [0xED, 0xA0, 0x81, 0xED, 0xB0, 0x80]
-    end
+    # code points in range from U+10000 to U+10FFFF is CESU-8 data containing a 6-byte surrogate pair,
+    # which decodes to a 4-byte UTF-8 string
+    0x10400.chr(Encoding::CESU_8).bytes.should != 0x10400.chr(Encoding::UTF_8).bytes
+    0x10400.chr(Encoding::CESU_8).bytes.to_a.should == [0xED, 0xA0, 0x81, 0xED, 0xB0, 0x80]
   end
 end

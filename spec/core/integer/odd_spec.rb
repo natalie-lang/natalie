@@ -20,19 +20,19 @@ describe "Integer#odd?" do
 
   context "bignum" do
     it "returns true if self is odd and positive" do
-      (987_279**19).odd?.should be_true
+      (987279**19).odd?.should be_true
     end
 
     it "returns true if self is odd and negative" do
-      (-9_873_389**97).odd?.should be_true
+      (-9873389**97).odd?.should be_true
     end
 
     it "returns false if self is even and positive" do
-      (10_000_000**10).odd?.should be_false
+      (10000000**10).odd?.should be_false
     end
 
     it "returns false if self is even and negative" do
-      (-1_000_000**100).odd?.should be_false
+      (-1000000**100).odd?.should be_false
     end
   end
 end
