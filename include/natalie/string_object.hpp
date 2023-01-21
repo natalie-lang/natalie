@@ -15,6 +15,22 @@ namespace Natalie {
 
 using namespace TM;
 
+enum CaseFoldType {
+    Ascii = 1,
+    FoldTurkicAzeri = 2,
+    FoldLithuanian = 4,
+    Upcase = 8,
+    Downcase = 16,
+    Fold = 32
+};
+
+inline CaseFoldType operator|(CaseFoldType a, CaseFoldType b) {
+    return static_cast<CaseFoldType>(static_cast<int>(a) | static_cast<int>(b));
+}
+inline CaseFoldType operator^(CaseFoldType a, CaseFoldType b) {
+    return static_cast<CaseFoldType>(static_cast<int>(a) ^ static_cast<int>(b));
+}
+
 class StringObject : public Object {
 public:
     StringObject(ClassObject *klass)
@@ -321,6 +337,8 @@ public:
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
 
+    static CaseFoldType check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags);
+
     unsigned char at(size_t index) const {
         return m_string.at(index);
     }
@@ -426,4 +444,5 @@ private:
     String m_string {};
     EncodingObject *m_encoding { nullptr };
 };
+
 }

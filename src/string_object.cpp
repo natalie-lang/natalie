@@ -2220,29 +2220,13 @@ Value StringObject::rstrip_in_place(Env *env) {
     return this;
 }
 
-enum CaseFoldType {
-    Ascii = 1,
-    FoldTurkicAzeri = 2,
-    FoldLithuanian = 4,
-    Upcase = 8,
-    Downcase = 16,
-    Fold = 32
-};
-
-inline CaseFoldType operator|(CaseFoldType a, CaseFoldType b) {
-    return static_cast<CaseFoldType>(static_cast<int>(a) | static_cast<int>(b));
-}
-inline CaseFoldType operator^(CaseFoldType a, CaseFoldType b) {
-    return static_cast<CaseFoldType>(static_cast<int>(a) ^ static_cast<int>(b));
-}
-
 // This implements checking the case-fold options passed into arguments like
 // downcase, upcase, casecmp, etc and sets a bitfield enum.
-static CaseFoldType check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
+CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
     // return for zero arg case
     if (arg1.is_null() && arg2.is_null())
         return flags;
-    // two arg case only accepts turkic and lithuanian in either order
+    // two arg case only accepts turkic and lithuanian (in either order)
     if (!arg1.is_null() && !arg2.is_null()) {
         if ((arg1 == "turkic"_s && arg2 == "lithuanian"_s) || (arg1 == "lithuanian"_s && arg2 == "turkic"_s)) {
             return flags | FoldTurkicAzeri | FoldLithuanian;
@@ -2281,7 +2265,7 @@ Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
             str->append(c_str);
         } else {
             auto c = c_str->c_str()[0];
-            if (c >= 65 && c <= 90) {
+            if (c >= 'A' && c <= 'Z') {
                 c += 32;
             }
             str->append_char(c);
@@ -2302,7 +2286,7 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
 }
 
 Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
-    CaseFoldType flags = check_case_options(env, arg1, arg2, Downcase);
+    CaseFoldType flags = check_case_options(env, arg1, arg2, Upcase);
     auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
     for (auto c_val : *ary) {
@@ -2311,7 +2295,7 @@ Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
             str->append(c_str);
         } else {
             auto c = c_str->c_str()[0];
-            if (c >= 97 && c <= 122) {
+            if (c >= 'a' && c <= 'z') {
                 c -= 32;
             }
             str->append_char(c);
