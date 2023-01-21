@@ -186,6 +186,10 @@ module Natalie
         transform_defn_args(exp, for_block: true, check_args: true, used: used)
       end
 
+      def transform_block_args_for_for(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
+      end
+
       def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
         value ||= s(:nil)
@@ -494,7 +498,7 @@ module Natalie
         ]
       end
 
-      def transform_defn_args(exp, used:, for_block: false, check_args: true)
+      def transform_defn_args(exp, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
         _, *args = exp
 
@@ -503,7 +507,7 @@ module Natalie
         if args.last.is_a?(Symbol) && args.last.start_with?('&')
           name = args.pop[1..]
           instructions << PushBlockInstruction.new
-          instructions << VariableSetInstruction.new(name, local_only: true)
+          instructions << VariableSetInstruction.new(name, local_only: local_only)
         end
 
         has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
@@ -532,7 +536,12 @@ module Natalie
             spread: for_block && args.size > 1,
           )
 
-          instructions << Args.new(self, file: exp.file, line: exp.line).transform(exp.new(:args, *args))
+          instructions << Args.new(
+            self,
+            local_only: local_only,
+            file: exp.file,
+            line: exp.line
+          ).transform(exp.new(:args, *args))
           return instructions
         end
 
@@ -542,7 +551,7 @@ module Natalie
 
         args.each_with_index do |arg_name, index|
           instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(arg_name, local_only: true)
+          instructions << VariableSetInstruction.new(arg_name, local_only: local_only)
         end
 
         instructions
@@ -646,6 +655,46 @@ module Natalie
       def transform_false(_, used:)
         return [] unless used
         PushFalseInstruction.new
+      end
+
+      def transform_for_declare_args(args)
+        instructions = []
+        case args.sexp_type
+        when :lasgn
+          instructions << VariableDeclareInstruction.new(args[1])
+        when :masgn
+          _, (_, *array) = args
+          array.each do |arg|
+            instructions += transform_for_declare_args(arg)
+          end
+        else
+          raise "I don't yet know how to declare this variable: #{args.inspect}"
+        end
+        instructions
+      end
+
+      def transform_for(exp, used:)
+        _, array, args, body = exp
+        body = s(:nil) if body.nil?
+        instructions = transform_for_declare_args(args)
+        #instructions += transform_iter(
+          #exp.new(
+            #:iter,
+            #exp.new(:call, array, :each),
+            ## FIXME: |i| here shadows the outer i variable
+            ## it should instead overwrite it
+            #exp.new(:args, args),
+            #body
+          #),
+          #used: used
+        #)
+        instructions << DefineBlockInstruction.new(arity: 1)
+        instructions += transform_block_args_for_for(s(:args, args), used: true)
+        instructions += transform_expression(body, used: true)
+        instructions << EndInstruction.new(:define_block)
+        call = exp.new(:call, array, :each)
+        instructions << transform_call(call, used: used, with_block: true)
+        instructions
       end
 
       def transform_gasgn(exp, used:)
