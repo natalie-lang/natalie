@@ -2220,40 +2220,97 @@ Value StringObject::rstrip_in_place(Env *env) {
     return this;
 }
 
-Value StringObject::downcase(Env *env) {
-    auto ary = chars(env)->as_array();
-    auto str = new StringObject { "", m_encoding };
-    for (auto c_val : *ary) {
-        auto c_str = c_val->as_string();
-        if (c_str->bytesize() > 1) {
-            str->append(c_str);
+// This implements checking the case-fold options passed into arguments like
+// downcase, upcase, casecmp, etc and sets a bitfield enum.
+CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
+    SymbolObject *turk = "turkic"_s;
+    SymbolObject *lith = "lithuanian"_s;
+    // return for zero arg case
+    if (arg1.is_null() && arg2.is_null())
+        return flags;
+    // two arg case only accepts turkic and lithuanian (in either order)
+    if (!arg1.is_null() && !arg2.is_null()) {
+        if ((arg1 == turk && arg2 == lith) || (arg1 == lith && arg2 == turk)) {
+            return flags | FoldTurkicAzeri | FoldLithuanian;
         } else {
-            auto c = c_str->c_str()[0];
-            if (c >= 65 && c <= 90) {
-                c += 32;
-            }
-            str->append_char(c);
+            // any other pair of arguments is an error
+            env->raise("ArgumentError", "invalid option");
+        }
+    }
+    // acceptable symbols as options: [turkic lithuanian ascii fold]
+    if (arg1 == "ascii"_s) {
+        return flags | Ascii;
+    } else if (arg1 == "fold"_s) {
+        if ((flags & (Upcase | Downcase)) == Downcase) {
+            flags = flags ^ (Fold | Downcase);
+            return flags;
+        } else {
+            env->raise("ArgumentError", "option :fold only allowed for downcasing");
+        }
+    } else if (arg1 == turk) {
+        return flags | FoldTurkicAzeri;
+    } else if (arg1 == lith) {
+        return flags | FoldLithuanian;
+    } else {
+        env->raise("ArgumentError", "invalid option");
+    }
+    return flags;
+}
+
+Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Downcase);
+    auto str = new StringObject { "", m_encoding };
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (codept >= 'A' && codept <= 'Z') {
+            codept += 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
+        } else {
+            str->append(c);
         }
     }
     return str;
 }
 
-Value StringObject::upcase(Env *env) {
-    auto ary = chars(env)->as_array();
+Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *downcase(env, arg1, arg2)->as_string();
+
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
+}
+
+Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Upcase);
     auto str = new StringObject { "", m_encoding };
-    for (auto c_val : *ary) {
-        auto c_str = c_val->as_string();
-        if (c_str->bytesize() > 1) {
-            str->append(c_str);
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (codept >= 'a' && codept <= 'z') {
+            codept -= 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
         } else {
-            auto c = c_str->c_str()[0];
-            if (c >= 97 && c <= 122) {
-                c -= 32;
-            }
-            str->append_char(c);
+            str->append(c);
         }
     }
     return str;
+}
+
+Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *upcase(env, arg1, arg2)->as_string();
+
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
 }
 
 Value StringObject::uplus(Env *env) {
