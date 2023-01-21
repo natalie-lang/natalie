@@ -2258,7 +2258,8 @@ CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, 
 }
 
 Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
-    CaseFoldType flags = check_case_options(env, arg1, arg2, Downcase);
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Downcase);
     auto str = new StringObject { "", m_encoding };
     for (StringView c : *this) {
         nat_int_t codept = m_encoding->decode_codepoint(c);
@@ -2285,7 +2286,8 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
 }
 
 Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
-    CaseFoldType flags = check_case_options(env, arg1, arg2, Upcase);
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Downcase);
     auto str = new StringObject { "", m_encoding };
     for (StringView c : *this) {
         nat_int_t codept = m_encoding->decode_codepoint(c);
