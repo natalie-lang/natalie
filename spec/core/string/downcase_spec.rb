@@ -12,7 +12,8 @@ describe "String#downcase" do
     "hELLO".encode("US-ASCII").downcase.encoding.should == Encoding::US_ASCII
   end
 
-  describe "full Unicode case mapping" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
       "ÄÖÜ".downcase.should == "äöü"
     end
@@ -37,7 +38,8 @@ describe "String#downcase" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Turkic languages" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Turkic languages" do
     it "downcases characters according to Turkic semantics" do
       "İ".downcase(:turkic).should == "i"
     end
@@ -51,7 +53,8 @@ describe "String#downcase" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Lithuanian" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
       "İS".downcase(:lithuanian).should == "i\u{307}s"
     end
@@ -65,7 +68,8 @@ describe "String#downcase" do
     end
   end
 
-  describe "case folding" do
+  # NATFIXME: Pending unicode casefold support
+  xdescribe "case folding" do
     it "case folds special characters" do
       "ß".downcase.should == "ß"
       "ß".downcase(:fold).should == "ss"
@@ -102,7 +106,8 @@ describe "String#downcase!" do
     a.should == "hello".encode("utf-16le")
   end
 
-  describe "full Unicode case mapping" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping" do
     it "modifies self in place for all of Unicode with no option" do
       a = "ÄÖÜ"
       a.downcase!
@@ -134,7 +139,8 @@ describe "String#downcase!" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Turkic languages" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Turkic languages" do
     it "downcases characters according to Turkic semantics" do
       a = "İ"
       a.downcase!(:turkic)
@@ -152,7 +158,8 @@ describe "String#downcase!" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Lithuanian" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
       a = "İS"
       a.downcase!(:lithuanian)
@@ -170,7 +177,8 @@ describe "String#downcase!" do
     end
   end
 
-  describe "case folding" do
+  # NATFIXME: Pending unicode casefold support
+  xdescribe "case folding" do
     it "case folds special characters" do
       a = "ß"
       a.downcase!

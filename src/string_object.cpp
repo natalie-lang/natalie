@@ -2223,12 +2223,14 @@ Value StringObject::rstrip_in_place(Env *env) {
 // This implements checking the case-fold options passed into arguments like
 // downcase, upcase, casecmp, etc and sets a bitfield enum.
 CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags) {
+    SymbolObject *turk = "turkic"_s;
+    SymbolObject *lith = "lithuanian"_s;
     // return for zero arg case
     if (arg1.is_null() && arg2.is_null())
         return flags;
     // two arg case only accepts turkic and lithuanian (in either order)
     if (!arg1.is_null() && !arg2.is_null()) {
-        if ((arg1 == "turkic"_s && arg2 == "lithuanian"_s) || (arg1 == "lithuanian"_s && arg2 == "turkic"_s)) {
+        if ((arg1 == turk && arg2 == lith) || (arg1 == lith && arg2 == turk)) {
             return flags | FoldTurkicAzeri | FoldLithuanian;
         } else {
             // any other pair of arguments is an error
@@ -2245,9 +2247,9 @@ CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, 
         } else {
             env->raise("ArgumentError", "option :fold only allowed for downcasing");
         }
-    } else if (arg1 == "turkic"_s) {
+    } else if (arg1 == turk) {
         return flags | FoldTurkicAzeri;
-    } else if (arg1 == "lithuanian"_s) {
+    } else if (arg1 == lith) {
         return flags | FoldLithuanian;
     } else {
         env->raise("ArgumentError", "invalid option");
@@ -2257,18 +2259,15 @@ CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, 
 
 Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
     CaseFoldType flags = check_case_options(env, arg1, arg2, Downcase);
-    auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
-    for (auto c_val : *ary) {
-        auto c_str = c_val->as_string();
-        if (c_str->bytesize() > 1) {
-            str->append(c_str);
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (codept >= 'A' && codept <= 'Z') {
+            codept += 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
         } else {
-            auto c = c_str->c_str()[0];
-            if (c >= 'A' && c <= 'Z') {
-                c += 32;
-            }
-            str->append_char(c);
+            str->append(c);
         }
     }
     return str;
@@ -2287,18 +2286,15 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
 
 Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
     CaseFoldType flags = check_case_options(env, arg1, arg2, Upcase);
-    auto ary = chars(env)->as_array();
     auto str = new StringObject { "", m_encoding };
-    for (auto c_val : *ary) {
-        auto c_str = c_val->as_string();
-        if (c_str->bytesize() > 1) {
-            str->append(c_str);
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (codept >= 'a' && codept <= 'z') {
+            codept -= 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
         } else {
-            auto c = c_str->c_str()[0];
-            if (c >= 'a' && c <= 'z') {
-                c -= 32;
-            }
-            str->append_char(c);
+            str->append(c);
         }
     }
     return str;

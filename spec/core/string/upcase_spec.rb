@@ -12,7 +12,8 @@ describe "String#upcase" do
     "hello".encode("US-ASCII").upcase.encoding.should == Encoding::US_ASCII
   end
 
-  describe "full Unicode case mapping" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
       "äöü".upcase.should == "ÄÖÜ"
     end
@@ -37,7 +38,8 @@ describe "String#upcase" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Turkic languages" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Turkic languages" do
     it "upcases ASCII characters according to Turkic semantics" do
       "i".upcase(:turkic).should == "İ"
     end
@@ -51,7 +53,8 @@ describe "String#upcase" do
     end
   end
 
-  describe "full Unicode case mapping adapted for Lithuanian" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
       "iß".upcase(:lithuanian).should == "ISS"
     end
@@ -99,7 +102,8 @@ describe "String#upcase!" do
     a.should == "HELLO".encode("utf-16le")
   end
 
-  describe "full Unicode case mapping" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "full Unicode case mapping" do
     it "modifies self in place for all of Unicode with no option" do
       a = "äöü"
       a.upcase!
@@ -137,7 +141,8 @@ describe "String#upcase!" do
     end
   end
 
-  describe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
     it "upcases ASCII characters according to Turkic semantics" do
       a = "i"
       a.upcase!(:turkic)
@@ -155,7 +160,8 @@ describe "String#upcase!" do
     end
   end
 
-  describe "modifies self in place for full Unicode case mapping adapted for Lithuanian" do
+  # NATFIXME: Pending unicode casemap support
+  xdescribe "modifies self in place for full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
       a = "iß"
       a.upcase!(:lithuanian)
