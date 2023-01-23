@@ -24,10 +24,10 @@ TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Val
 }
 
 TimeObject *TimeObject::create(Env *env) {
-    return now(env);
+    return now(env, nullptr);
 }
 
-TimeObject *TimeObject::now(Env *env) {
+TimeObject *TimeObject::now(Env *env, Value _in) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);

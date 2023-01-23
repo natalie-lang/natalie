@@ -23,7 +23,7 @@ public:
     static TimeObject *at(Env *, Value, Value, Value);
     static TimeObject *create(Env *);
     static TimeObject *local(Env *, Value, Value, Value, Value, Value, Value, Value);
-    static TimeObject *now(Env *);
+    static TimeObject *now(Env *, Value in);
     static TimeObject *utc(Env *, Value, Value, Value, Value, Value, Value, Value);
 
     Value add(Env *, Value);
