@@ -27,6 +27,24 @@ TimeObject *TimeObject::create(Env *env) {
     return now(env, nullptr);
 }
 
+TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value zone) {
+    if (!year) {
+        return now(env, nullptr);
+    } else if (year->is_nil()) {
+        env->raise("TypeError", "Year cannot be nil");
+    } else {
+
+        auto result = now(env, nullptr);
+        result->build_time(env, year, month, mday, hour, min, sec);
+        int seconds = mktime(&result->m_time);
+        result->m_mode = Mode::Localtime;
+        result->m_integer = Value::integer(seconds);
+        result->m_subsec = nullptr;
+        dbg("res: {}", result->inspect(env));
+        return result;
+    }
+}
+
 TimeObject *TimeObject::now(Env *env, Value _in) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
@@ -294,24 +312,47 @@ TimeObject *TimeObject::create(Env *env, RationalObject *rational, Mode mode) {
 
 void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec) {
     m_time = { 0 };
+    if (year->is_string()) year->as_string()->to_i(env);
+    year = year->to_int(env);
     m_time.tm_year = year->as_integer()->to_nat_int_t() - 1900;
+
     m_time.tm_mon = 0;
     m_time.tm_mday = 1;
     m_time.tm_hour = 0;
     m_time.tm_min = 0;
     m_time.tm_sec = 0;
     m_time.tm_isdst = -1;
-    if (month && month->is_integer())
-        m_time.tm_mon = month->as_integer()->to_nat_int_t() - 1;
-    if (mday && mday->is_integer())
-        m_time.tm_mday = mday->as_integer()->to_nat_int_t();
-    if (hour && hour->is_integer())
+    if (month && month->is_integer()) {
+        auto month_i = month->as_integer()->to_nat_int_t() - 1;
+        if (month_i < 0 || month_i > 11) {
+            env->raise("ArgumentError", "Month out of range 1..12");
+        }
+        m_time.tm_mon = month_i;
+    }
+    if (mday && mday->is_integer()) {
+        auto mday_i = mday->as_integer()->to_nat_int_t();
+        if (mday_i < 1 || mday_i > 31) {
+            env->raise("ArgumentError", "Day of month out of range 1..31");
+        }
+        m_time.tm_mday = mday_i;
+    }
+    if (hour && hour->is_integer()) {
         m_time.tm_hour = hour->as_integer()->to_nat_int_t();
-    if (min && min->is_integer())
-        m_time.tm_min = min->as_integer()->to_nat_int_t();
+    }
+    if (min && min->is_integer()) {
+        auto min_i = min->as_integer()->to_nat_int_t();
+        if (min_i < 0 || min_i > 59) {
+            env->raise("ArgumentError", "Minute out of range 0..59");
+        }
+        m_time.tm_min = min_i;
+    }
     if (sec && !sec->is_nil()) {
         if (sec->is_integer()) {
-            m_time.tm_sec = sec->as_integer()->to_nat_int_t();
+            auto sec_i = sec->as_integer()->to_nat_int_t();
+            if (sec_i < 0 || sec_i > 59) {
+                env->raise("ArgumentError", "Second out of range 0..59");
+            }
+            m_time.tm_sec = sec_i;
         } else {
             RationalObject *rational = convert_rational(env, sec);
             auto divmod = rational->send(env, "divmod"_s, { Value::integer(1) })->as_array();
