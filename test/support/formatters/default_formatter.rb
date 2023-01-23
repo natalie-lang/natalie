@@ -1,4 +1,6 @@
 class DefaultFormatter
+  def print_context(*) ; end
+  
   def print_success(*)
     print '.'
   end
