@@ -17,8 +17,7 @@ describe :rational_truncate, shared: true do
     end
   end
 
-  # NATFIXME: wrong number of arguments (given 1, expected 0) (ArgumentError)
-  xdescribe "with a precision < 0" do
+  describe "with a precision < 0" do
     it "returns an integer" do
       @rational.truncate(-2).should be_kind_of(Integer)
       @rational.truncate(-1).should be_kind_of(Integer)

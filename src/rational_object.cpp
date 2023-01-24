@@ -256,6 +256,8 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
         if (digits > 0) {
             const auto power = static_cast<nat_int_t>(std::pow(10, digits));
             return RationalObject::create(env, new IntegerObject { numerator * power / denominator }, new IntegerObject { power });
+        } else {
+            return IntegerObject(numerator / denominator).truncate(env, ndigits);
         }
     }
     return IntegerObject::create(numerator / denominator);
