@@ -41,6 +41,7 @@ public:
     Value to_i(Env *);
     Value to_r() { return this; }
     Value to_s(Env *);
+    Value truncate(Env *, Value);
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);

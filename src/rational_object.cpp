@@ -247,4 +247,8 @@ Value RationalObject::to_s(Env *env) {
     return StringObject::format("{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
+Value RationalObject::truncate(Env *env, Value ndigits) {
+    return IntegerObject::create(m_numerator->to_nat_int_t() / m_denominator->to_nat_int_t());
+}
+
 }
