@@ -250,17 +250,17 @@ Value RationalObject::to_s(Env *env) {
 Value RationalObject::truncate(Env *env, Value ndigits) {
     auto numerator = m_numerator->to_nat_int_t();
     auto denominator = m_denominator->to_nat_int_t();
-    if (ndigits) {
-        ndigits->assert_type(env, Object::Type::Integer, "Integer");
-        const auto digits = ndigits->as_integer()->to_nat_int_t();
-        if (digits > 0) {
-            const auto power = static_cast<nat_int_t>(std::pow(10, digits));
-            return RationalObject::create(env, new IntegerObject { numerator * power / denominator }, new IntegerObject { power });
-        } else {
-            return IntegerObject(numerator / denominator).truncate(env, ndigits);
-        }
-    }
-    return IntegerObject::create(numerator / denominator);
+
+    if (!ndigits)
+        return IntegerObject::create(numerator / denominator);
+
+    ndigits->assert_type(env, Object::Type::Integer, "Integer");
+    const auto digits = ndigits->as_integer()->to_nat_int_t();
+    if (digits < 0)
+        return IntegerObject(numerator / denominator).truncate(env, ndigits);
+
+    const auto power = static_cast<nat_int_t>(std::pow(10, digits));
+    return RationalObject::create(env, new IntegerObject { numerator * power / denominator }, new IntegerObject { power });
 }
 
 }
