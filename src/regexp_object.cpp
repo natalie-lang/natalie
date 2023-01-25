@@ -2,6 +2,37 @@
 
 namespace Natalie {
 
+static StringObject *regexp_stringify(const TM::String &str, const size_t start, const size_t len, StringObject *out) {
+    for (size_t i = start; i < len; i++) {
+        char c = str[i];
+        switch (c) {
+        case '\n':
+            out->append("\\n");
+            break;
+        case '\t':
+            out->append("\\t");
+            break;
+        case '/':
+            out->append("\\/");
+            break;
+        case '\\':
+            if (i < (len - 1) && str[i + 1] == '/') {
+                break;
+            }
+            out->append("\\");
+            if (i < (len - 1) && str[i + 1] == '\\') {
+                out->append("\\");
+                i++;
+            }
+            break;
+        default:
+            out->append_char(c);
+        }
+    }
+
+    return out;
+}
+
 Value RegexpObject::last_match(Env *env, Value ref) {
     auto match = env->caller()->last_match();
     if (ref && match->is_match_data())
@@ -40,32 +71,7 @@ Value RegexpObject::inspect(Env *env) {
     StringObject *out = new StringObject { "/" };
     auto str = pattern();
     size_t len = str.length();
-    for (size_t i = 0; i < len; i++) {
-        char c = str[i];
-        switch (c) {
-        case '\n':
-            out->append("\\n");
-            break;
-        case '\t':
-            out->append("\\t");
-            break;
-        case '/':
-            out->append("\\/");
-            break;
-        case '\\':
-            if (i < (len - 1) && str[i + 1] == '/') {
-                break;
-            }
-            out->append("\\");
-            if (i < (len - 1) && str[i + 1] == '\\') {
-                out->append("\\");
-                i++;
-            }
-            break;
-        default:
-            out->append_char(c);
-        }
-    }
+    regexp_stringify(str, 0, len, out);
     out->append_char('/');
     if (options() & RegexOpts::MultiLine) out->append_char('m');
     if (options() & RegexOpts::IgnoreCase) out->append_char('i');
@@ -261,34 +267,9 @@ Value RegexpObject::to_s(Env *env) const {
     if (!is_x) out->append_char('x');
 
     out->append_char(':');
-
-    for (size_t i = start; i < len; i++) {
-        char c = str[i];
-        switch (c) {
-        case '\n':
-            out->append("\\n");
-            break;
-        case '\t':
-            out->append("\\t");
-            break;
-        case '/':
-            out->append("\\/");
-            break;
-        case '\\':
-            if (i < (len - 1) && str[i + 1] == '/') {
-                break;
-            }
-            out->append("\\");
-            if (i < (len - 1) && str[i + 1] == '\\') {
-                out->append("\\");
-                i++;
-            }
-            break;
-        default:
-            out->append_char(c);
-        }
-    }
+    regexp_stringify(str, start, len, out);
     out->append_char(')');
+
     return out;
 }
 
