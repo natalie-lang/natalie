@@ -253,7 +253,8 @@ Value RationalObject::truncate(Env *env, Value ndigits) {
     nat_int_t digits = 0;
 
     if (ndigits) {
-        ndigits->assert_type(env, Object::Type::Integer, "Integer");
+        if (!ndigits->is_integer())
+            env->raise("TypeError", "not an integer");
         digits = ndigits->as_integer()->to_nat_int_t();
     }
 
