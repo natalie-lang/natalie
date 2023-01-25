@@ -16,11 +16,11 @@ static StringObject *regexp_stringify(const TM::String &str, const size_t start,
             out->append("\\/");
             break;
         case '\\':
-            if (i < (len - 1) && str[i + 1] == '/') {
+            if (str[i + 1] == '/') {
                 break;
             }
             out->append("\\");
-            if (i < (len - 1) && str[i + 1] == '\\') {
+            if (str[i + 1] == '\\') {
                 out->append("\\");
                 i++;
             }
