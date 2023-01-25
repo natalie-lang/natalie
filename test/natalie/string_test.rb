@@ -500,6 +500,18 @@ describe 'string' do
     end
   end
 
+  describe '#chmop' do
+    it 'does not read out of bounds' do
+      "\n".chomp.should == ''
+    end
+  end
+
+  describe '#chomp!' do
+    it 'does not read out of bounds' do
+      "\n".chomp!.should == ''
+    end
+  end
+
   describe '#chop' do
     it 'returns a new copy of the string with the last character removed' do
       'foo!'.encode('us-ascii').chop.should == 'foo'
