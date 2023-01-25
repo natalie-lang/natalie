@@ -250,12 +250,16 @@ Value RationalObject::to_s(Env *env) {
 Value RationalObject::truncate(Env *env, Value ndigits) {
     auto numerator = m_numerator->to_nat_int_t();
     auto denominator = m_denominator->to_nat_int_t();
+    nat_int_t digits = 0;
 
-    if (!ndigits)
+    if (ndigits) {
+        ndigits->assert_type(env, Object::Type::Integer, "Integer");
+        digits = ndigits->as_integer()->to_nat_int_t();
+    }
+
+    if (digits == 0)
         return IntegerObject::create(numerator / denominator);
 
-    ndigits->assert_type(env, Object::Type::Integer, "Integer");
-    const auto digits = ndigits->as_integer()->to_nat_int_t();
     if (digits < 0)
         return IntegerObject(numerator / denominator).truncate(env, ndigits);
 
