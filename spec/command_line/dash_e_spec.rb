@@ -10,13 +10,11 @@ describe "The -e command line option" do
     ruby_exe(nil, args: %Q{-e "puts 'hello" -e "world'" 2>&1}).chomp.should == "hello\nworld"
   end
 
-  # NATFIXME: Implement escape keyword in ruby_exe
-  xit "uses 'main' as self" do
+  it "uses 'main' as self" do
     ruby_exe("puts self", escape: false).chomp.should == "main"
   end
 
-  # NATFIXME: Implement escape keyword in ruby_exe
-  xit "uses '-e' as file" do
+  it "uses '-e' as file" do
     ruby_exe("puts __FILE__", escape: false).chomp.should == "-e"
   end
 
