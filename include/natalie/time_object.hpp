@@ -43,7 +43,7 @@ public:
     Value sec(Env *) const;
     Value strftime(Env *, Value);
     Value subsec(Env *);
-    Value to_a(Env *);
+    Value to_a(Env *) const;
     Value to_f(Env *);
     Value to_i(Env *) const { return m_integer; }
     Value to_r(Env *);
