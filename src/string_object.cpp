@@ -187,7 +187,7 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         if (m_string.at(end_idx - 1) == '\r') {
             --end_idx;
         } else if (m_string.at(end_idx - 1) == '\n') {
-            if (m_string.at(end_idx - 2) == '\r') {
+            if (end_idx > 1 && m_string.at(end_idx - 2) == '\r') {
                 --end_idx;
             }
             --end_idx;
