@@ -247,4 +247,25 @@ Value RationalObject::to_s(Env *env) {
     return StringObject::format("{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
+Value RationalObject::truncate(Env *env, Value ndigits) {
+    auto numerator = m_numerator->to_nat_int_t();
+    auto denominator = m_denominator->to_nat_int_t();
+    nat_int_t digits = 0;
+
+    if (ndigits) {
+        if (!ndigits->is_integer())
+            env->raise("TypeError", "not an integer");
+        digits = ndigits->as_integer()->to_nat_int_t();
+    }
+
+    if (digits == 0)
+        return IntegerObject::create(numerator / denominator);
+
+    if (digits < 0)
+        return IntegerObject(numerator / denominator).truncate(env, ndigits);
+
+    const auto power = static_cast<nat_int_t>(std::pow(10, digits));
+    return RationalObject::create(env, new IntegerObject { numerator * power / denominator }, new IntegerObject { power });
+}
+
 }
