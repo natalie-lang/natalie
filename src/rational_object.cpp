@@ -3,6 +3,9 @@
 namespace Natalie {
 
 RationalObject *RationalObject::create(Env *env, IntegerObject *numerator, IntegerObject *denominator) {
+    if (denominator->is_zero())
+        env->raise("ZeroDivisionError", "divided by 0");
+
     if (denominator->is_negative()) {
         numerator = numerator->negate(env)->as_integer();
         denominator = denominator->negate(env)->as_integer();
