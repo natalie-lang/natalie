@@ -28,4 +28,9 @@ describe 'Kernel.Integer' do
     Integer('0010', 8).should == 8
     Integer('0010', 10).should == 10
   end
+
+  # NATFIXME: Probably a bug in Ruby: https://bugs.ruby-lang.org/issues/19349
+  it 'ignores a base argument that does not respond to #to_int' do
+    Integer('10', '8').should == 10
+  end
 end
