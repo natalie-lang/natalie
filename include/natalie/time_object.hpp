@@ -22,7 +22,7 @@ public:
 
     static TimeObject *at(Env *, Value, Value, Value);
     static TimeObject *create(Env *);
-    static TimeObject *initialize(Env *, Value, Value, Value, Value, Value, Value, Value);
+    static TimeObject *initialize(Env *, Value, Value, Value, Value, Value, Value, Value, Value _in);
     static TimeObject *local(Env *, Value, Value, Value, Value, Value, Value, Value);
     static TimeObject *now(Env *, Value in);
     static TimeObject *utc(Env *, Value, Value, Value, Value, Value, Value, Value);
@@ -73,6 +73,7 @@ private:
     static nat_int_t normalize_month(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val);
     static nat_int_t normalize_field(Env *, Value val, nat_int_t minval, nat_int_t maxval);
+    static nat_int_t normalize_timezone(Env *, Value val);
 
     Value build_string(Env *, const char *);
     void build_time(Env *, Value, Value, Value, Value, Value, Value);
