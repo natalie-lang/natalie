@@ -71,6 +71,30 @@ describe 'File' do
       end
       file.closed?.should == true
     end
+
+    # NOTE: these modes do something on Windows only
+    it 'accepts "b" and "t" as a mode modifier' do
+      %w[rb r+b rb+ rt r+t rt+].each do |mode|
+        file = File.open('test/support/file.txt', mode)
+        file.read.should == "foo bar baz\n"
+        file.close
+      end
+      %w[wb w+b wb+ wt w+t wt+].each do |mode|
+        file = File.open('test/tmp/file.txt', mode)
+        file.write('stuff')
+        file.close
+      end
+      %w[ab a+b ab+ at a+t at+].each do |mode|
+        file = File.open('test/tmp/file.txt', mode)
+        file.write('stuff')
+        file.close
+      end
+    end
+
+    it 'does not accept "b" and "t" in the wrong position' do
+      -> { File.open('test/support/file.txt', 'br') }.should raise_error(ArgumentError, 'invalid access mode br')
+      -> { File.open('test/support/file.txt', 'tw') }.should raise_error(ArgumentError, 'invalid access mode tw')
+    end
   end
 
   describe '#read' do
