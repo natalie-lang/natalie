@@ -295,9 +295,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
         }
         if (val->is_string()) {
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
-            if (isdigit(monstr[0])) {
-                return val->send(env, "to_i"_s)->as_integer()->to_nat_int_t() - 1;
-            } else if (monstr == "jan") {
+            if (monstr == "jan") {
                 return 0;
             } else if (monstr == "feb") {
                 return 1;
@@ -321,6 +319,10 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
                 return 10;
             } else if (monstr == "dec") {
                 return 11;
+            }
+            auto monint = KernelModule::Integer(env, val, 10, true)->as_integer()->to_nat_int_t();
+            if (monint >= 1 && monint <= 12) {
+                return monint - 1;
             }
             env->raise("ArgumentError", "mon out of range");
         }
