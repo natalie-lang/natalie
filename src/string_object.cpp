@@ -2691,6 +2691,9 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
 }
 
 bool StringObject::ascii_only(Env *env) const {
+    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
+        return false;
+
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         if (c > 127) {
