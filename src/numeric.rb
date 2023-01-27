@@ -64,6 +64,10 @@ class Numeric
 
   alias conjugate conj
 
+  def i
+    Complex(0, self)
+  end
+
   def imag
     0
   end
