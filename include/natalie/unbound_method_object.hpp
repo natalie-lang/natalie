@@ -18,6 +18,16 @@ public:
         }
     }
 
+    Value bind_call(Env *env, Value obj, Args args, Block *block) {
+        return bind(env, obj)->as_method()->call(env, args, block);
+    }
+
+    Value bind_call(Env *env, Args args, Block *block) {
+        args.ensure_argc_at_least(env, 1);
+        auto obj = args[0];
+        return bind_call(env, obj, Args::shift(args), block);
+    }
+
     bool eq(Env *env, Value other_value) {
         if (other_value->is_unbound_method()) {
             auto other = other_value->as_unbound_method();
