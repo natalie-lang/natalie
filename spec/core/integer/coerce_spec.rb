@@ -1,6 +1,6 @@
 require_relative '../../spec_helper'
 
-# require 'bigdecimal'
+require 'bigdecimal'
 
 describe "Integer#coerce" do
   context "fixnum" do
