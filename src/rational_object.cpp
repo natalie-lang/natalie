@@ -70,6 +70,13 @@ Value RationalObject::coerce(Env *env, Value other) {
         return new ArrayObject { other, this->to_f(env) };
     } else if (other->is_rational()) {
         return new ArrayObject { other, this };
+    } else if (other->is_complex()) {
+        auto complex = other->as_complex();
+        if (complex->imaginary(env)->as_integer()->is_zero()) {
+            return new ArrayObject { new RationalObject { complex->real(env)->as_integer(), new IntegerObject { 1 } }, new ComplexObject(this) };
+        } else {
+            return new ArrayObject { other, new ComplexObject(this) };
+        }
     }
 
     env->raise("TypeError", "{} can't be coerced into {}", other->klass()->inspect_str(), this->klass()->inspect_str());
