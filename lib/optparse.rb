@@ -22,12 +22,16 @@ class OptionParser
 
     def match?(arg)
       name = arg.split('=', 2).first
-      name == "-#{short_name}" || name == "--#{long_name}"
+      name[0...2] == "-#{short_name}" || name == "--#{long_name}"
     end
 
     def consume!(args)
       arg = args.shift
-      arg, @value = arg.split('=', 2)
+      if arg.size > 2 && arg[0] == '-' && arg[1] != '-'
+        arg, @value = arg[0...2], arg[2..]
+      else
+        arg, @value = arg.split('=', 2)
+      end
       @value = args.shift if @value.nil? && consume_value?(args.first)
       @value = true if @value.nil?
       @block.call(@value) if @block
