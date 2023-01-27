@@ -325,6 +325,7 @@ class Complex
     self.real.rationalize eps
   end
 
+  undef :i
   undef :positive?
   undef :negative?
 
