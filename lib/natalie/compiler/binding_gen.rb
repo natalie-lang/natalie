@@ -1181,14 +1181,23 @@ gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: tru
 
 gen.static_binding('Time', 'at', 'TimeObject', 'at', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Time', 'new', 'TimeObject', 'create', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('Time', 'now', 'TimeObject', 'now', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Time', 'now', 'TimeObject', 'now', argc: 0, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Time', 'utc', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, return_type: :Object)
+
+gen.static_binding('Time', 'gm', 'TimeObject', 'utc', argc: 1..7, pass_env: true, pass_block: false, return_type: :Object) # alias
+gen.static_binding('Time', 'mktime', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, return_type: :Object) # alias
+
 gen.binding('Time', '+', 'TimeObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '-', 'TimeObject', 'minus', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', '<=>', 'TimeObject', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'asctime', 'TimeObject', 'asctime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'eql?', 'TimeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Time', 'dst?', 'TimeObject', 'isdst', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Time', 'gmt_offset', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'gmtoff', 'TimeObject', 'utc_offset', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'gmt?', 'TimeObject', 'is_utc', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Time', 'isdst', 'TimeObject', 'isdst', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Time', 'hour', 'TimeObject', 'hour', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'inspect', 'TimeObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'mday', 'TimeObject', 'mday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1198,6 +1207,7 @@ gen.binding('Time', 'nsec', 'TimeObject', 'nsec', argc: 0, pass_env: true, pass_
 gen.binding('Time', 'sec', 'TimeObject', 'sec', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'strftime', 'TimeObject', 'strftime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'subsec', 'TimeObject', 'subsec', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'to_a', 'TimeObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_f', 'TimeObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_i', 'TimeObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'to_r', 'TimeObject', 'to_r', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -1208,6 +1218,7 @@ gen.binding('Time', 'utc_offset', 'TimeObject', 'utc_offset', argc: 0, pass_env:
 gen.binding('Time', 'wday', 'TimeObject', 'wday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'yday', 'TimeObject', 'yday', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Time', 'year', 'TimeObject', 'year', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Time', 'zone', 'TimeObject', 'zone', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', '&', 'TrueObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

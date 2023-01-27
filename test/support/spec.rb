@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require_relative 'formatters/spec_formatter'
 require_relative 'mspec'
 require_relative 'platform_guard'
 require_relative 'version'
@@ -16,7 +17,7 @@ end
 TOLERANCE = 0.00003
 TIME_TOLERANCE = 20.0
 
-FORMATTERS = %w[default yaml]
+FORMATTERS = %w[default yaml spec]
 
 @formatter = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
 
@@ -1345,16 +1346,22 @@ def run_specs
 
   formatter =
     case @formatter
-    when 'yaml'
+    when 'y', 'yaml'
       YamlFormatter.new
+    when 's', 'spec', 'specdoc'
+      SpecFormatter.new
     else
       DefaultFormatter.new
     end
-
+  last_context = nil
   @specs.each do |test|
     context, test, fn, focus = test
 
     next if any_focused && !focus
+    
+    formatter.print_context(context) if (last_context != context)
+    last_context = context
+    
     if fn
       @test_count += 1
       begin

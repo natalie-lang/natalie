@@ -1,4 +1,6 @@
 class YamlFormatter
+  def print_context(*) ; end
+
   def print_success(*); end
 
   def print_error(*); end
