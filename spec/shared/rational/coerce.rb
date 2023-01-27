@@ -1,7 +1,6 @@
 require_relative '../../spec_helper'
 
-# NATFIXME: Implement BigDecimal
-# require 'bigdecimal'
+require 'bigdecimal'
 
 describe :rational_coerce, shared: true do
   it "returns the passed argument, self as Float, when given a Float" do
