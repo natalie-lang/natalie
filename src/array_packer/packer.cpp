@@ -110,8 +110,11 @@ namespace ArrayPacker {
             case 'g': {
                 pack_with_loop(env, token, [&]() {
                     auto value = m_source->at(m_index);
-                    if (value->is_integer())
+                    if (value->is_integer()) {
                         value = value->as_integer()->to_f();
+                    } else if (value->is_rational()) {
+                        value = value->as_rational()->to_f(env);
+                    }
                     auto packer = FloatHandler { value->as_float_or_raise(env), token };
                     m_packed.append(packer.pack(env));
                 });
