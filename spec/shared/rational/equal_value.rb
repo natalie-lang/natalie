@@ -12,8 +12,7 @@ describe :rational_equal_value_rat, shared: true do
 end
 
 describe :rational_equal_value_int, shared: true do
-  # NATFIXME: returns true if self has the passed argument as numerator and a denominator of 1
-  xit "returns true if self has the passed argument as numerator and a denominator of 1" do
+  it "returns true if self has the passed argument as numerator and a denominator of 1" do
     # Rational(x, y) reduces x and y automatically
     (Rational(4, 2) == 2).should be_true
     (Rational(-4, 2) == -2).should be_true
