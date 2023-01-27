@@ -113,7 +113,8 @@ Value RationalObject::div(Env *env, Value other) {
 
 bool RationalObject::eq(Env *env, Value other) {
     if (m_klass != other->klass()) {
-        return false;
+        // NATFIXME: Use Coercion
+        return m_denominator->to_nat_int_t() == 1 && m_numerator->eq(env, other);
     }
     if (!m_numerator->eq(env, other->as_rational()->m_numerator)) {
         return false;

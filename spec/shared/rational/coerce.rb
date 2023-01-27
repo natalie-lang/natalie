@@ -20,9 +20,7 @@ describe :rational_coerce, shared: true do
 
   it "coerces to Rational, when given a Complex" do
     Rational(3, 4).coerce(Complex(5)).should == [Rational(5, 1), Rational(3, 4)]
-    # NATFIXME: Coercion with comparison in Rational
-    # Rational(12, 4).coerce(Complex(5, 1)).should == [Complex(5, 1), Complex(3)]
-    Rational(12, 4).coerce(Complex(5, 1)).should == [Complex(5, 1), Complex(Rational(3))]
+    Rational(12, 4).coerce(Complex(5, 1)).should == [Complex(5, 1), Complex(3)]
   end
 
   it "returns [argument, self] when given a Rational" do
