@@ -1,4 +1,6 @@
 class Set
+  include Enumerable
+
   def initialize(items = nil)
     @data = Hash.new
     
@@ -48,5 +50,14 @@ class Set
 
   def to_a
     @data.keys
+  end
+
+  def each(&block)
+    if block
+      @data.keys.each(&block)
+      self
+    else
+      @data.keys.each(&block)
+    end
   end
 end
