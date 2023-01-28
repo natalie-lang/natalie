@@ -155,6 +155,10 @@ class Numeric
     self.to_i
   end
 
+  def to_c
+    Complex(self)
+  end
+
   __function__('Enumerator::ArithmeticSequenceObject::from_numeric', ['Env *', 'Value', 'Value', 'Value'], 'Value')
 
   def step(to_pos = nil, by_pos = nil, by: nil, to: nil, &block)
