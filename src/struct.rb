@@ -39,6 +39,10 @@ class Struct
           str << '>'
         end
 
+        define_method(:deconstruct) do
+          attrs.map { |attr| send(attr) }
+        end
+
         define_method :[] do |arg|
           case arg
           when Integer
