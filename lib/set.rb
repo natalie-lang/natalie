@@ -53,6 +53,11 @@ class Set
     @data.key?(obj)
   end
 
+  def inspect
+    "#<Set: {#{to_a}}"
+  end
+  alias to_s inspect
+
   def clear
     @data.clear
     self
