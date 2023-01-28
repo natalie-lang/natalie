@@ -139,6 +139,10 @@ class Numeric
     Float(self) / Float(other)
   end
 
+  def quo(quotient)
+    Rational(self) / quotient
+  end
+
   def finite?
     true
   end

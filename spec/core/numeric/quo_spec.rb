@@ -23,16 +23,14 @@ describe "Numeric#quo" do
     -> { (-bignum_value).quo(0) }.should raise_error(ZeroDivisionError)
   end
 
-  # NATFIXME: calls #to_r to convert the object to a Rational
-  xit "calls #to_r to convert the object to a Rational" do
+  it "calls #to_r to convert the object to a Rational" do
     obj = NumericSpecs::Subclass.new
     obj.should_receive(:to_r).and_return(Rational(1))
 
     obj.quo(19).should == Rational(1, 19)
   end
 
-  # NATFIXME: raises a TypeError of #to_r does not return a Rational
-  xit "raises a TypeError of #to_r does not return a Rational" do
+  it "raises a TypeError of #to_r does not return a Rational" do
     obj = NumericSpecs::Subclass.new
     obj.should_receive(:to_r).and_return(1)
 
@@ -48,8 +46,7 @@ describe "Numeric#quo" do
     -> { 13.quo(:symbol) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: returns the result of calling self#/ with other
-  xit "returns the result of calling self#/ with other" do
+  it "returns the result of calling self#/ with other" do
     obj = NumericSpecs::Subclass.new
     obj.should_receive(:to_r).and_return(19.quo(20))
 
