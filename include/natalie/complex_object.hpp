@@ -13,20 +13,28 @@ class ComplexObject : public Object {
 
 public:
     ComplexObject()
-        : Object { Object::Type::Complex, GlobalEnv::the()->Object()->const_fetch("Complex"_s)->as_class() } { }
+        : Object { Object::Type::Complex, GlobalEnv::the()->Object()->const_fetch("Complex"_s)->as_class() } {
+        freeze();
+    }
 
     ComplexObject(ClassObject *klass)
-        : Object { Object::Type::Complex, klass } { }
+        : Object { Object::Type::Complex, klass } {
+        freeze();
+    }
 
     ComplexObject(Value real)
         : Object { Object::Type::Complex, GlobalEnv::the()->Object()->const_fetch("Complex"_s)->as_class() }
         , m_real { real }
-        , m_imaginary { Value::integer(0) } { }
+        , m_imaginary { Value::integer(0) } {
+        freeze();
+    }
 
     ComplexObject(Value real, Value imaginary)
         : Object { Object::Type::Complex, GlobalEnv::the()->Object()->const_fetch("Complex"_s)->as_class() }
         , m_real { real }
-        , m_imaginary { imaginary } { }
+        , m_imaginary { imaginary } {
+        freeze();
+    }
 
     Value imaginary(Env *);
     Value inspect(Env *);
