@@ -208,10 +208,17 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
     return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
 }
 
-Value ModuleObject::constants(Env *env) const {
+Value ModuleObject::constants(Env *env, Value inherit) const {
     auto ary = new ArrayObject;
     for (auto pair : m_constants)
         ary->push(pair.first);
+    if (inherit == nullptr || inherit->is_truthy()) {
+        for (ModuleObject *module : m_included_modules) {
+            if (module != this) {
+                ary->concat(*module->constants(env, inherit)->as_array());
+            }
+        }
+    }
     return ary;
 }
 
