@@ -136,7 +136,7 @@ class Runner
     load_code
     if @repl
       repl = options[:experimental_repl_v2] ? Natalie::ExperimentalReplV2.new : Natalie::Repl.new
-      repl.go
+      repl.go(options)
     elsif options[:ast]
       if RUBY_ENGINE == 'natalie'
         # FIXME: implement PrettyPrinter

@@ -23,12 +23,12 @@ end
 
 module Natalie
   class Repl
-    def go
+    def go(options)
       GC.disable
       env = nil
       vars = {}
       repl_num = 0
-      multi_line_expr = []
+      multi_line_expr = options[:require].map { |file| "require '#{file}'" }
       loop do
         break unless (line = get_line)
         begin
