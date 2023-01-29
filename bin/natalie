@@ -14,7 +14,7 @@ require 'tempfile'
 
 require_relative '../lib/natalie'
 
-options = { load_path: [], require: [], profile: false, transform_only: false }
+options = { load_path: [], require: [], execute: [], profile: false, transform_only: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -52,7 +52,7 @@ OptionParser.new do |opts|
   end
 
   opts.on('-e one-line-script', 'Execute one-line script') do |e|
-    options[:execute] = e
+    options[:execute] << e
   end
 
   opts.on(
@@ -258,9 +258,9 @@ class Runner
   end
 
   def load_code
-    if options[:execute]
+    if options[:execute].any?
       @source_path = '-e'
-      @code = options[:execute].gsub(/\\n/, "\n")
+      @code = options[:execute].join("\n").gsub(/\\n/, "\n")
       if options[:require].any?
         @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
       end
