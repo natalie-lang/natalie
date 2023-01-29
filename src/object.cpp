@@ -553,6 +553,7 @@ ClassObject *Object::singleton_class(Env *env) {
     auto new_singleton_class = new ClassObject { singleton_superclass };
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     set_singleton_class(new_singleton_class);
+    if (is_frozen()) m_singleton_class->freeze();
     return m_singleton_class;
 }
 
