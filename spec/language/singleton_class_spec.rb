@@ -37,13 +37,13 @@ describe "A singleton class" do
     Class.should be_ancestor_of(Object.singleton_class)
   end
 
-  # NATFIXME: A singleton class should be a subclass of Class's singleton class
+  # NATFIXME: is a subclass of Class's singleton class
   xit "is a subclass of Class's singleton class" do
     ec = ClassSpecs::A.singleton_class
     ec.should be_kind_of(Class.singleton_class)
   end
 
-  # NATFIXME: A singleton class should be a subclass of the same level of Class's singleton class
+  # NATFIXME: is a subclass of the same level of Class's singleton class
   xit "is a subclass of the same level of Class's singleton class" do
     ecec = ClassSpecs::A.singleton_class.singleton_class
     class_ec = Class.singleton_class
@@ -80,7 +80,7 @@ describe "A singleton class" do
   end
 end
 
-# NATFIXME: constants on singleton classes
+# NATFIXME: A constant on a singleton class results in a time out
 xdescribe "A constant on a singleton class" do
   before :each do
     @object = Object.new
@@ -270,13 +270,13 @@ describe "Class methods of a singleton class" do
     end
   end
 
-  # NATFIXME: A singleton class should be a subclass of Class's singleton class
-  xdescribe "for a singleton class" do
+  describe "for a singleton class" do
     it "include instance methods of the singleton class of Class" do
       @a_c_sc.singleton_class.should have_method(:example_instance_method_of_singleton_class)
     end
 
-    it "include class methods of the singleton class of Class" do
+    # NATFIXME: include class methods of the singleton class of Class
+    xit "include class methods of the singleton class of Class" do
       @a_c_sc.singleton_class.should have_method(:example_class_method_of_singleton_class)
     end
   end
