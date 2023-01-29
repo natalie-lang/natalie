@@ -84,6 +84,12 @@ class ScratchPad
   end
 end
 
+class SpecEvaluate
+  # NATFIXME: Implement this method
+  def self.desc=(description)
+  end
+end
+
 def ci?
   !!ENV['CI']
 end
