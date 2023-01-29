@@ -5,7 +5,7 @@ require_relative 'repl'
 
 module Natalie
   class ExperimentalReplV2
-    def go
+    def go(_options)
       GC.disable
       env = nil
       vars = {}
