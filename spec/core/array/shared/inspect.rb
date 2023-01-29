@@ -127,7 +127,7 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "US-ASCII"
     end
 
-    # NATFIXME: implement Encoding.default_external
+    # NATFIXME: Implement String#encode!
     xit "does not raise if inspected result is not default external encoding" do
       utf_16be = mock("utf_16be")
       utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))

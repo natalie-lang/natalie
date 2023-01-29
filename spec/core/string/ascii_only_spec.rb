@@ -51,8 +51,7 @@ describe "String#ascii_only?" do
 
   it "returns false for the empty String with a non-ASCII-compatible encoding" do
     "".force_encoding('UTF-16LE').ascii_only?.should be_false
-    # NATFIXME: Implement UTF-16BE encoding
-    # "".encode('UTF-16BE').ascii_only?.should be_false
+    "".encode('UTF-16BE').ascii_only?.should be_false
   end
 
   it "returns false for a non-empty String with non-ASCII-compatible encoding" do
