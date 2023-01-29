@@ -35,9 +35,30 @@ class Set
     end
   end
 
+  def delete(obj)
+    if include?(obj)
+      @data.delete(obj)
+    end
+    self
+  end
+
+  def delete?(obj)
+    if include?(obj)
+      @data.delete(obj)
+      self
+    else
+      nil
+    end
+  end
+
   def include?(obj)
     @data.key?(obj)
   end
+
+  def inspect
+    "#<Set: {#{to_a}}"
+  end
+  alias to_s inspect
 
   def clear
     @data.clear
