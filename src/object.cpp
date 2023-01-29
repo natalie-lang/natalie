@@ -711,12 +711,16 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     ClassObject *klass = singleton_class(env);
+    if (klass->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, fn, arity, optimized);
     return name;
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
     ClassObject *klass = singleton_class(env);
+    if (klass->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, block);
     return name;
 }
