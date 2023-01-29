@@ -5,8 +5,7 @@ describe "The -e command line option" do
     ruby_exe("puts 'foo'").chomp.should == "foo"
   end
 
-  # NATFIXME: Support -e multiple times
-  xit "joins multiple strings with newlines" do
+  it "joins multiple strings with newlines" do
     ruby_exe(nil, args: %Q{-e "puts 'hello" -e "world'" 2>&1}).chomp.should == "hello\nworld"
   end
 
