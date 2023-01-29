@@ -166,45 +166,7 @@ Value FileObject::unlink(Env *env, Args args) {
     return Value::integer(args.size());
 }
 
-void FileObject::build_constants(Env *env, ClassObject *klass) {
-    Value Constants = new ModuleObject { "Constants" };
-    klass->const_set("Constants"_s, Constants);
-    klass->const_set("APPEND"_s, Value::integer(O_APPEND));
-    Constants->const_set("APPEND"_s, Value::integer(O_APPEND));
-    klass->const_set("RDONLY"_s, Value::integer(O_RDONLY));
-    Constants->const_set("RDONLY"_s, Value::integer(O_RDONLY));
-    klass->const_set("WRONLY"_s, Value::integer(O_WRONLY));
-    Constants->const_set("WRONLY"_s, Value::integer(O_WRONLY));
-    klass->const_set("TRUNC"_s, Value::integer(O_TRUNC));
-    Constants->const_set("TRUNC"_s, Value::integer(O_TRUNC));
-    klass->const_set("CREAT"_s, Value::integer(O_CREAT));
-    Constants->const_set("CREAT"_s, Value::integer(O_CREAT));
-    klass->const_set("DSYNC"_s, Value::integer(O_DSYNC));
-    Constants->const_set("DSYNC"_s, Value::integer(O_DSYNC));
-    klass->const_set("EXCL"_s, Value::integer(O_EXCL));
-    Constants->const_set("EXCL"_s, Value::integer(O_EXCL));
-    klass->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
-    Constants->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
-    klass->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
-    Constants->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
-    klass->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
-    Constants->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
-    klass->const_set("RDWR"_s, Value::integer(O_RDWR));
-    Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
-    klass->const_set("SYNC"_s, Value::integer(O_SYNC));
-    Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
-
-    klass->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
-    Constants->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
-    klass->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
-    Constants->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
-    klass->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
-    Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
-    klass->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
-    Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
-
-    // MRI defines these constants differently than the OS does in fnmatch.h
-
+// MRI defines these constants differently than the OS does in fnmatch.h
 #define FNM_NOESCAPE 0x01
 #define FNM_PATHNAME 0x02
 #define FNM_DOTMATCH 0x04
@@ -213,20 +175,37 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
 #define FNM_SYSCASE 0
 #define FNM_SHORTNAME 0
 
-    klass->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
+void FileObject::build_constants(Env *env, ClassObject *klass) {
+    ModuleObject *Constants = new ModuleObject { "Constants" };
+    klass->const_set("Constants"_s, Constants);
+    Constants->const_set("APPEND"_s, Value::integer(O_APPEND));
+    Constants->const_set("RDONLY"_s, Value::integer(O_RDONLY));
+    Constants->const_set("WRONLY"_s, Value::integer(O_WRONLY));
+    Constants->const_set("TRUNC"_s, Value::integer(O_TRUNC));
+    Constants->const_set("CREAT"_s, Value::integer(O_CREAT));
+    Constants->const_set("DSYNC"_s, Value::integer(O_DSYNC));
+    Constants->const_set("EXCL"_s, Value::integer(O_EXCL));
+    Constants->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
+    Constants->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
+    Constants->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
+    Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
+    Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
+    Constants->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
+    Constants->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
+    Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
+    Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
     Constants->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
-    klass->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
     Constants->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
-    klass->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
     Constants->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
-    klass->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
     Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
-    klass->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
     Constants->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
-    klass->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
     Constants->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
-    klass->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
     Constants->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+    Value null_file = new StringObject { "/dev/null", Encoding::US_ASCII };
+    null_file->freeze();
+    Constants->const_set("NULL"_s, null_file);
+    // include Constants module in File
+    klass->include_once(env, Constants);
 }
 
 bool FileObject::exist(Env *env, Value path) {
