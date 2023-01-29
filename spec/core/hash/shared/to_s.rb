@@ -89,7 +89,7 @@ describe :hash_to_s, shared: true do
     end
   end
 
-  # NATFIXME: we don't have this character encoding
+  # NATFIXME: Implement String#encode!
   xit "does not raise if inspected result is not default external encoding" do
     utf_16be = mock("utf_16be")
     utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
