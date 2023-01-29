@@ -12,4 +12,9 @@ describe 'rational' do
     reduced.numerator.should == 10
     reduced.denominator.should == 3
   end
+
+  it 'is frozen' do
+    r = Rational(1)
+    r.frozen?.should == true
+  end
 end
