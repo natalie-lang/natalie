@@ -86,8 +86,7 @@ describe "Time#-" do
     (Time.local(2012) - 10).should_not.utc?
   end
 
-  # NATFIXME: Implement time offsets
-  xit "returns a time with the same fixed offset as self" do
+  it "returns a time with the same fixed offset as self" do
     (Time.new(2012, 1, 1, 0, 0, 0, 3600) - 10).utc_offset.should == 3600
   end
 

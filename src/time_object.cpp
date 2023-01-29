@@ -8,14 +8,14 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit) {
         auto scale = convert_unit(env, unit ? unit : "microsecond"_s);
         rational = rational->add(env, convert_rational(env, subsec)->div(env, scale))->as_rational();
     }
-    return TimeObject::create(env, rational, Mode::Localtime);
+    return create(env, rational, Mode::Localtime);
 }
 
 TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit, Value in) {
     auto result = at(env, time, subsec, unit);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in);
-        result->m_time.tm_zone = (char*)"UTC";
+        result->m_time.tm_zone = (char *)"UTC";
     }
     return result;
 }
@@ -36,6 +36,7 @@ TimeObject *TimeObject::create(Env *env) {
     return now(env, nullptr);
 }
 
+// Time.new
 TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value tmzone, Value in) {
     if (!year) {
         return now(env, nullptr);
@@ -45,16 +46,20 @@ TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday
         auto result = now(env, nullptr);
         result->build_time(env, year, month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
-        result->m_mode = Mode::Localtime;
         result->m_integer = Value::integer(seconds);
         result->m_subsec = nullptr;
         if (tmzone && in) {
             env->raise("ArgumentError", "cannot specify zone and in:");
         } else if (tmzone) {
             result->m_time.tm_gmtoff = normalize_timezone(env, tmzone);
+            result->m_mode = Mode::UTC;
         } else if (in) {
             result->m_time.tm_gmtoff = normalize_timezone(env, in);
+            result->m_mode = Mode::UTC;
+        } else {
+            result->m_mode = Mode::Localtime;
         }
+
         return result;
     }
 }
@@ -105,7 +110,11 @@ Value TimeObject::add(Env *env, Value other) {
     }
     RationalObject *rational = to_r(env)->as_rational();
     rational = rational->add(env, other->send(env, "to_r"_s)->as_rational())->as_rational();
-    return TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, rational, m_mode);
+    if (is_utc(env)) { // preserve utc-offset for result if a utc-time
+        result->m_time.tm_gmtoff = utc_offset(env)->as_integer()->to_nat_int_t();
+    }
+    return result;
 }
 
 Value TimeObject::asctime(Env *env) {
@@ -200,7 +209,11 @@ Value TimeObject::minus(Env *env, Value other) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
-    return TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, rational, m_mode);
+    if (is_utc(env)) { // preserve utc-offset for result if a utc-time
+        result->m_time.tm_gmtoff = utc_offset(env)->as_integer()->to_nat_int_t();
+    }
+    return result;
 }
 
 Value TimeObject::month(Env *) const {
@@ -490,8 +503,6 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
         if (sec->is_string()) {
             // ensure base10 conversion for case of "01" input
             sec = KernelModule::Integer(env, sec, 10, true)->as_integer();
-        } else if (sec->respond_to(env, "to_int"_s)) {
-            sec = KernelModule::Integer(env, sec)->as_integer();
         }
         if (sec->is_integer()) {
             auto sec_i = sec->as_integer()->to_nat_int_t();
@@ -553,15 +564,14 @@ Value TimeObject::strip_zeroes(StringObject *string) {
     }
 }
 
-// NATFIXME: unclear conditions to return nil
-
+// NATFIXME: unclear conditions to return nil, logic may be off here.
 Value TimeObject::zone(Env *env) const {
+    if (m_time.tm_gmtoff != 0) {
+        return NilObject::the();
+    }
     if (is_utc(env)) {
         return new StringObject { "UTC", Encoding::US_ASCII };
     }
-    //if (m_time.tm_gmtoff != 0) {
-    //    return NilObject::the();
-    //}
     return new StringObject { m_time.tm_zone, Encoding::US_ASCII };
 }
 

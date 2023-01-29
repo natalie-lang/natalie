@@ -48,15 +48,13 @@ describe :time_gmt_offset, shared: true do
   end
 
   context 'given positive offset' do
-    # NATFIXME: Implement more of Time#new
-    xit 'returns a positive offset' do
+    it 'returns a positive offset' do
       Time.new(2013,3,17,nil,nil,nil,"+03:00").send(@method).should == 10800
     end
   end
 
   context 'given negative offset' do
-    # NATFIXME: Implement more of Time#new
-    xit 'returns a negative offset' do
+    it 'returns a negative offset' do
       Time.new(2013,3,17,nil,nil,nil,"-03:00").send(@method).should == -10800
     end
   end
