@@ -33,6 +33,10 @@ class Struct
           end
         end
 
+        self.class.define_method :keyword_init? do
+          options[:keyword_init]
+        end
+
         define_method :each do
           attrs.each { |attr| yield send(attr) }
         end
