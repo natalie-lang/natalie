@@ -26,7 +26,7 @@ describe "String#chop" do
   it "does not remove more than the final carriage return, newline" do
     "abc\r\n\r\n".chop.should == "abc\r\n"
   end
-  
+
   it "removes a multi-byte character" do
     "あれ".chop.should == "あ"
   end
@@ -35,12 +35,10 @@ describe "String#chop" do
     "あれ\r\n".chop.should == "あれ"
   end
 
-  it "removes the final carriage return, newline from a non-ASCII String" do
-    # NATFIXME: Implement utf-32be encoding
-    #str = "abc\r\n".encode "utf-32be"
-    #str.chop.should == "abc".encode("utf-32be")
-    str = "abc\r\n".encode "utf-8"
-    str.chop.should == "abc".encode("utf-8")
+  # NATFIXME: Respect character encodings when searching for CR/LF
+  xit "removes the final carriage return, newline from a non-ASCII String" do
+    str = "abc\r\n".encode "utf-32be"
+    str.chop.should == "abc".encode("utf-32be")
   end
 
   it "returns an empty string when applied to an empty string" do
@@ -62,6 +60,10 @@ describe "String#chop" do
     it "returns String instances when called on a subclass" do
       StringSpecs::MyString.new("hello\n").chop.should be_an_instance_of(String)
     end
+  end
+
+  it "returns a String in the same encoding as self" do
+    "abc\n\n".encode("US-ASCII").chop.encoding.should == Encoding::US_ASCII
   end
 end
 
@@ -98,12 +100,10 @@ describe "String#chop!" do
     "あれ\r\n".chop!.should == "あれ"
   end
 
-  it "removes the final carriage return, newline from a non-ASCII String" do
-    # NATFIXME: Implement utf-32be encoding
-    #str = "abc\r\n".encode "utf-32be"
-    #str.chop!.should == "abc".encode("utf-32be")
-    str = "abc\r\n".encode "utf-8"
-    str.chop!.should == "abc".encode("utf-8")
+  # NATFIXME: Respect character encodings when searching for CR/LF
+  xit "removes the final carriage return, newline from a non-ASCII String" do
+    str = "abc\r\n".encode "utf-32be"
+    str.chop!.should == "abc".encode("utf-32be")
   end
 
   it "returns self if modifications were made" do
