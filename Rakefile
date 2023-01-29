@@ -58,6 +58,20 @@ task test_last_modified: :build do
   sh ['bin/natalie', '-I', 'test/support', ENV['FLAGS'], last_edited].compact.join(' ')
 end
 
+desc 'Run a folder with tests'
+task :test_folder, [:folder] => :build do |task, args|
+  if args[:folder].nil?
+    warn("Please run with the folder as argument: `rake #{task.name}[<spec/X/Y>]")
+    exit(1)
+  elsif !File.directory?(args[:folder])
+    warn("The folder #{args[:folder]} does not exist or is not a directory")
+    exit(1)
+  else
+    specs = Dir["#{args[:folder]}/**/*_test.rb", "#{args[:folder]}/**/*_spec.rb"]
+    sh ['bin/natalie', 'test/runner.rb', specs.to_a].join(' ')
+  end
+end
+
 desc 'Run the most-recently-modified test when any source files change (requires entr binary)'
 task :watch do
   files = Rake::FileList['**/*.cpp', '**/*.hpp', '**/*.rb']
