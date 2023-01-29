@@ -47,6 +47,20 @@ namespace fileutil {
         path->assert_type(env, Object::Type::String, "String");
         return path;
     }
+    // accepts io or io-like object for fstat
+    // accepts path or string like object for stat
+    int object_stat(Env *env, Value file, struct stat *sb) {
+        if (file->is_io() || file->respond_to(env, "to_io"_s)) {
+            if (!file->is_io()) {
+                file = file->send(env, "to_io"_s);
+            }
+            auto file_desc = file->as_io()->fileno();
+            return ::fstat(file_desc, sb);
+        }
+
+        file = convert_using_to_path(env, file);
+        return ::stat(file->as_string()->c_str(), sb);
+    }
 }
 
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *block) {
@@ -231,8 +245,7 @@ bool FileObject::is_file(Env *env, Value path) {
 
 bool FileObject::is_directory(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (fileutil::object_stat(env, path, &sb) == -1)
         return false;
     return S_ISDIR(sb.st_mode);
 }
@@ -402,8 +415,7 @@ bool FileObject::is_zero(Env *env, Value path) {
 // oddball function that is ends in '?' but is not a boolean return.
 Value FileObject::is_size(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (fileutil::object_stat(env, path, &sb) == -1)
         return NilObject::the();
     if (sb.st_size == 0) // returns nil when file size is zero.
         return NilObject::the();
@@ -412,9 +424,8 @@ Value FileObject::is_size(Env *env, Value path) {
 
 Value FileObject::size(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    int result = ::stat(path->as_string()->c_str(), &sb);
-    if (result < 0) env->raise_errno();
+    if (fileutil::object_stat(env, path, &sb) == -1)
+        env->raise_errno();
     return IntegerObject::create((nat_int_t)(sb.st_size));
 }
 
