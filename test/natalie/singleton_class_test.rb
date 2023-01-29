@@ -71,4 +71,11 @@ describe 'singleton_class' do
     o.freeze
     klass.frozen?.should == true
   end
+
+  it 'cannot define a method on a frozen singleton class' do
+    o = Object.new
+    o.freeze
+    klass = o.singleton_class
+    -> { o.define_singleton_method(:foo) { 1 } }.should raise_error(FrozenError)
+  end
 end
