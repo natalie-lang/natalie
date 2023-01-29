@@ -61,6 +61,16 @@ class Struct
             send(arg)
           end
         end
+
+        define_method :to_h do |&block|
+          attrs.to_h do |attr|
+            result = [attr.to_sym, send(attr)]
+            if block
+              result = block.call(*result)
+            end
+            result
+          end
+        end
       end
     else
       _original_new(*attrs)
