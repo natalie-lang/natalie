@@ -460,7 +460,6 @@ Value FileObject::mkfifo(Env *env, Value path, Value mode) {
 // TODO: chmod can take multiple paths, implement that later.
 Value FileObject::chmod(Env *env, Value mode, Value path) {
     path = fileutil::convert_using_to_path(env, path);
-    mode->assert_type(env, Object::Type::Integer, "Integer");
     mode_t modenum = IntegerObject::convert_to_int(env, mode);
     int result = ::chmod(path->as_string()->c_str(), modenum);
     if (result < 0) env->raise_errno();
