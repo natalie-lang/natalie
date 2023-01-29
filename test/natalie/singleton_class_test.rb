@@ -56,4 +56,19 @@ describe 'singleton_class' do
     true.singleton_class.singleton_class?.should == false
     false.singleton_class.singleton_class?.should == false
   end
+
+  it 'is frozen if the object it is created from is frozen' do
+    o = Object.new
+    o.freeze
+    klass = o.singleton_class
+    klass.frozen?.should == true
+  end
+
+  it 'will be frozen if the object it is created from becomes frozen' do
+    o = Object.new
+    klass = o.singleton_class
+    klass.frozen?.should == false
+    o.freeze
+    klass.frozen?.should == true
+  end
 end
