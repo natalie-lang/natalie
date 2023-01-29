@@ -56,7 +56,7 @@ class Set
   end
 
   def inspect
-    "#<Set: {#{to_a}}"
+    "#<Set: {#{to_a}}>"
   end
   alias to_s inspect
 
