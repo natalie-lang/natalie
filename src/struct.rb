@@ -1,4 +1,6 @@
 class Struct
+  include Enumerable
+
   class << self
     alias_method :_original_new, :new
     alias_method :[], :new
@@ -13,6 +15,11 @@ class Struct
       end
       Class.new(Struct) do
         include Enumerable
+
+        define_method :length do
+          attrs.length
+        end
+        alias_method :size, :length
 
         attrs.each { |attr| attr_accessor attr }
 
