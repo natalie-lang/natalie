@@ -1001,6 +1001,11 @@ ProcObject *Object::to_proc(Env *env) {
     }
 }
 
+void Object::freeze() {
+    m_flags = m_flags | Flag::Frozen;
+    if (m_singleton_class) m_singleton_class->freeze();
+}
+
 Value Object::instance_eval(Env *env, Value string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");

@@ -302,7 +302,7 @@ public:
 
     bool is_main_object() const { return this == GlobalEnv::the()->main_obj(); }
 
-    void freeze() { m_flags = m_flags | Flag::Frozen; }
+    void freeze();
     bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
 
     void add_synthesized_flag() { m_flags = m_flags | Flag::Synthesized; }
