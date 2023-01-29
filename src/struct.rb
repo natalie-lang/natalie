@@ -16,6 +16,11 @@ class Struct
       Class.new(Struct) do
         include Enumerable
 
+        define_method :length do
+          attrs.length
+        end
+        alias_method :size, :length
+
         attrs.each { |attr| attr_accessor attr }
 
         if options[:keyword_init]
