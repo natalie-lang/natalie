@@ -888,6 +888,8 @@ Value Object::dup(Env *env) const {
         return SymbolObject::intern(as_symbol()->string());
     case Object::Type::True:
         return TrueObject::the();
+    case Object::Type::UnboundMethod:
+        return new UnboundMethodObject { *as_unbound_method() };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str().c_str(), static_cast<int>(m_type));
         abort();

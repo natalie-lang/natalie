@@ -10,6 +10,10 @@ public:
         : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s)->as_class(), method }
         , m_module_or_class { module_or_class } { }
 
+    UnboundMethodObject(const UnboundMethodObject &other)
+        : AbstractMethodObject { Object::Type::UnboundMethod, GlobalEnv::the()->Object()->const_fetch("UnboundMethod"_s)->as_class(), other.m_method }
+        , m_module_or_class { other.m_module_or_class } { }
+
     Value bind(Env *env, Value obj) {
         if (!owner()->is_class() || obj->is_a(env, owner())) {
             return new MethodObject { obj, m_method };
