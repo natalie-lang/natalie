@@ -57,6 +57,7 @@ describe 'singleton_class' do
     false.singleton_class.singleton_class?.should == false
   end
 
+  # NATFIXME: Remove this and sync upstream spec once https://github.com/ruby/spec/pull/1008 is merged
   it 'is frozen if the object it is created from is frozen' do
     o = Object.new
     o.freeze
@@ -64,6 +65,7 @@ describe 'singleton_class' do
     klass.frozen?.should == true
   end
 
+  # NATFIXME: Remove this and sync upstream spec once https://github.com/ruby/spec/pull/1008 is merged
   it 'will be frozen if the object it is created from becomes frozen' do
     o = Object.new
     klass = o.singleton_class
@@ -72,6 +74,7 @@ describe 'singleton_class' do
     klass.frozen?.should == true
   end
 
+  # NATFIXME: Remove this and sync upstream spec once https://github.com/ruby/spec/pull/1008 is merged
   it 'cannot define a method on a frozen singleton class' do
     o = Object.new
     o.freeze
