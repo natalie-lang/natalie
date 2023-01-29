@@ -553,6 +553,7 @@ ClassObject *Object::singleton_class(Env *env) {
     auto new_singleton_class = new ClassObject { singleton_superclass };
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     set_singleton_class(new_singleton_class);
+    if (is_frozen()) m_singleton_class->freeze();
     return m_singleton_class;
 }
 
@@ -710,12 +711,16 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     ClassObject *klass = singleton_class(env);
+    if (klass->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, fn, arity, optimized);
     return name;
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
     ClassObject *klass = singleton_class(env);
+    if (klass->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
     klass->define_method(env, name, block);
     return name;
 }
@@ -998,6 +1003,11 @@ ProcObject *Object::to_proc(Env *env) {
     } else {
         env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->inspect_str());
     }
+}
+
+void Object::freeze() {
+    m_flags = m_flags | Flag::Frozen;
+    if (m_singleton_class) m_singleton_class->freeze();
 }
 
 Value Object::instance_eval(Env *env, Value string, Block *block) {

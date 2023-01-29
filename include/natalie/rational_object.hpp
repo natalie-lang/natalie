@@ -11,12 +11,16 @@ public:
     RationalObject(IntegerObject *numerator, IntegerObject *denominator)
         : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
         , m_numerator { numerator }
-        , m_denominator { denominator } { }
+        , m_denominator { denominator } {
+        freeze();
+    }
 
     RationalObject(const RationalObject &other)
         : Object { Object::Type::Rational, GlobalEnv::the()->Object()->const_fetch("Rational"_s)->as_class() }
         , m_numerator { other.m_numerator }
-        , m_denominator { other.m_denominator } { }
+        , m_denominator { other.m_denominator } {
+        freeze();
+    }
 
     static RationalObject *create(Env *env, IntegerObject *numerator, IntegerObject *denominator);
 
