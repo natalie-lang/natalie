@@ -47,6 +47,7 @@ class Struct
           end
           str << '>'
         end
+        alias_method :to_s, :inspect
 
         define_method(:deconstruct) do
           attrs.map { |attr| send(attr) }
