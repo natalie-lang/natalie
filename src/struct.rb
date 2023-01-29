@@ -1,4 +1,6 @@
 class Struct
+  include Enumerable
+
   class << self
     alias_method :_original_new, :new
     alias_method :[], :new
