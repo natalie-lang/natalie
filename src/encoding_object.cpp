@@ -1,4 +1,6 @@
 #include "natalie.hpp"
+#include <langinfo.h>
+#include <locale.h>
 
 namespace Natalie {
 
@@ -88,6 +90,17 @@ HashObject *EncodingObject::aliases(Env *env) {
     return aliases;
 }
 
+EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
+    if (arg->is_encoding()) {
+        s_default_external = arg->as_encoding();
+    } else if (arg->is_nil()) {
+        env->raise("ArgumentError", "default external cannot be nil");
+    } else {
+        auto name = arg->to_str(env);
+        s_default_external = find(env, name)->as_encoding();
+    }
+    return default_external();
+}
 EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
     if (arg->is_encoding()) {
         s_default_internal = arg->as_encoding();
@@ -95,14 +108,30 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
         s_default_internal = nullptr;
     } else {
         auto name = arg->to_str(env);
-        s_default_internal = find(env, name);
+        s_default_internal = find(env, name)->as_encoding();
     }
 
     return default_internal();
 }
 
-EncodingObject *EncodingObject::find(Env *env, Value name) {
+// Typically returns an EncodingObject, but can return nil.
+Value EncodingObject::find(Env *env, Value name) {
+    if (name->is_encoding())
+        return name;
+    if (!name->is_string())
+        name = name->to_str(env);
     auto string = name->as_string()->string();
+    if (string == "internal") {
+        auto intenc = EncodingObject::default_internal();
+        if (!intenc) return NilObject::the();
+        return intenc;
+    } else if (string == "external") {
+        return EncodingObject::default_external();
+    } else if (string == "locale") {
+        return EncodingObject::locale();
+    } else if (string == "filesystem") {
+        return EncodingObject::filesystem();
+    }
     for (auto value : *list(env)) {
         auto encoding = value->as_encoding();
         for (const auto &encodingName : encoding->m_names) {
@@ -153,6 +182,22 @@ void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const 
 
 Value EncodingObject::inspect(Env *env) const {
     return StringObject::format("#<Encoding:{}>", name());
+}
+
+Value EncodingObject::locale_charmap() {
+    auto codeset = ::nl_langinfo(CODESET);
+    assert(codeset);
+    return new StringObject { codeset, Encoding::US_ASCII };
+}
+
+void EncodingObject::initialize_defaults(Env *env) {
+    ::setlocale(LC_CTYPE, "");
+    auto codestr = EncodingObject::locale_charmap();
+    s_locale = EncodingObject::find(env, codestr)->as_encoding();
+    // NATFIXME: find a way to get -E option (which forces external encoding)
+    // to factor into this default external encoding
+    s_default_external = s_locale;
+    s_filesystem = s_default_external;
 }
 
 }

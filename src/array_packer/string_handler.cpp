@@ -192,7 +192,7 @@ namespace ArrayPacker {
         for (size_t index = 0; index < m_source.size(); index++) {
             unsigned char c = m_source[index];
 
-            if (c != '=' && (c == '\t' || c == '\n' || isprint(c))) {
+            if (c == '\t' || c == '\n' || (isprint(c) && c != '=' && (unsigned int)c <= 0176)) {
                 m_packed.append_char(c);
                 line_size++;
                 if (c == '\n')
