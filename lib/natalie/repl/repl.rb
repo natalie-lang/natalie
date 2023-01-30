@@ -90,7 +90,7 @@ module Natalie
       getch
     end
 
-    def get_command
+    def prompt
       save_cursor
       loop do
         c = get_char
@@ -101,6 +101,7 @@ module Natalie
           # backspace
           @model.backspace
         when 10..13
+          puts
           outcome = yield @model.input
           case outcome
           when :continue
@@ -148,6 +149,26 @@ module Natalie
           return nil
         else
           puts c.ord
+        end
+      end
+    end
+  end
+
+  class NonTTYRepl
+    def initialize(_vars); end
+
+    def ps1
+      'nat> '
+    end
+
+    def prompt
+      loop do
+        print ps1
+        line = gets
+        if line
+          yield line
+        else
+          return
         end
       end
     end
