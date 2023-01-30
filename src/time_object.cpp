@@ -15,7 +15,7 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit, Value
     auto result = at(env, time, subsec, unit);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in);
-        result->m_time.tm_zone = (char *)"UTC";
+        result->m_time.tm_zone = "UTC";
     }
     return result;
 }
