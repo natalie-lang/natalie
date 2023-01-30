@@ -57,6 +57,7 @@ class StringScanner
   end
 
   def check_until(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     until (matched = check(pattern))
       @pos += 1
