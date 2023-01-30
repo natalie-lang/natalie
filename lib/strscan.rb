@@ -238,6 +238,10 @@ class StringScanner
     @matched = nil
   end
 
+  def size
+    @match.size if @match
+  end
+
   def terminate
     @pos = @string.size
   end
