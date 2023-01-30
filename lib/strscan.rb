@@ -100,6 +100,7 @@ class StringScanner
   end
 
   def skip_until(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     until scan(pattern)
       return nil if @pos > @string.size
