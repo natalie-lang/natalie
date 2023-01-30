@@ -48,7 +48,12 @@ class StringScanner
   alias empty? eos?
 
   def check(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+    if pattern.is_a?(Regexp)
+      anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+    else
+      raise TypeError, "no implicit conversion of #{pattern.class.name} into String" unless pattern.respond_to?(:to_str)
+      anchored_pattern = Regexp.new('^' + pattern.to_str)
+    end
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
     else
