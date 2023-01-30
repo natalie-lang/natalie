@@ -137,6 +137,7 @@ class StringScanner
   alias peep peek
 
   def scan_full(pattern, advance_pointer_p, return_string_p)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     scan(pattern)
     distance = @pos - start
