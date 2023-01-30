@@ -25,7 +25,7 @@ module Natalie
           end
 
           next :continue if ast == s(:block)
-          puts "\n\n"
+          puts "\n"
           last_node = ast.pop
           ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
           temp = Tempfile.create('natalie.so')

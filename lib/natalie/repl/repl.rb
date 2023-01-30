@@ -28,18 +28,6 @@ module Natalie
       reset
     end
 
-    def hello_natalie
-      puts "\u001b[32m
-       ⡎⠉⣉⣉⣉⣉⣉⣉⣉⣉⠉⢱
-       ⡇⢸ ⡢⡢⡀ ⠠⡢ ⡇⢸
-       ⡇⢸ ⡪⡊⠪⡢⡨⡪ ⡇⢸
-       ⡇⢸ ⠊⠂ ⠈⠊⠊ ⡇⢸
-       ⣇⣀⣉⣉⣉⣉⣉⣉⣉⣉⣀⣸
-     ⡔⣒⠒⠒⠒⠒⠚⠒⠒⠓⠒⠒⠒⠒⠒⢢
-     ⢇⣉⣀⣀⣀⣀⣀⣀⣀⣀⣁⣉⣉⣉⣁⡸#{RESET_STYLE_ASCII_CODE}
-    "
-    end
-
     def reset
       @index = 0
       @in = ''
@@ -89,7 +77,7 @@ module Natalie
         .join
     end
 
-    def get_line
+    def get_char
       row, col = @model.cursor
       reset_cursor
       echo "\u001b[0J" # Clear
@@ -103,10 +91,9 @@ module Natalie
     end
 
     def get_command
-      hello_natalie
       save_cursor
       loop do
-        c = get_line
+        c = get_char
         case c.ord
         when 32..126
           @model.append(c)
@@ -121,7 +108,6 @@ module Natalie
           when :next
             @model.save_last_in_history
             @model.reset
-            puts "\n"
             save_cursor
           when :abort
             return nil
