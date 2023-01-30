@@ -175,37 +175,33 @@ Value FileObject::unlink(Env *env, Args args) {
 #define FNM_SYSCASE 0
 #define FNM_SHORTNAME 0
 
-void FileObject::build_constants(Env *env, ClassObject *klass) {
-    ModuleObject *Constants = new ModuleObject { "Constants" };
-    klass->const_set("Constants"_s, Constants);
-    Constants->const_set("APPEND"_s, Value::integer(O_APPEND));
-    Constants->const_set("RDONLY"_s, Value::integer(O_RDONLY));
-    Constants->const_set("WRONLY"_s, Value::integer(O_WRONLY));
-    Constants->const_set("TRUNC"_s, Value::integer(O_TRUNC));
-    Constants->const_set("CREAT"_s, Value::integer(O_CREAT));
-    Constants->const_set("DSYNC"_s, Value::integer(O_DSYNC));
-    Constants->const_set("EXCL"_s, Value::integer(O_EXCL));
-    Constants->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
-    Constants->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
-    Constants->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
-    Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
-    Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
-    Constants->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
-    Constants->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
-    Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
-    Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
-    Constants->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
-    Constants->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
-    Constants->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
-    Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
-    Constants->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
-    Constants->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
-    Constants->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
+    fcmodule->const_set("APPEND"_s, Value::integer(O_APPEND));
+    fcmodule->const_set("RDONLY"_s, Value::integer(O_RDONLY));
+    fcmodule->const_set("WRONLY"_s, Value::integer(O_WRONLY));
+    fcmodule->const_set("TRUNC"_s, Value::integer(O_TRUNC));
+    fcmodule->const_set("CREAT"_s, Value::integer(O_CREAT));
+    fcmodule->const_set("DSYNC"_s, Value::integer(O_DSYNC));
+    fcmodule->const_set("EXCL"_s, Value::integer(O_EXCL));
+    fcmodule->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
+    fcmodule->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
+    fcmodule->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
+    fcmodule->const_set("RDWR"_s, Value::integer(O_RDWR));
+    fcmodule->const_set("SYNC"_s, Value::integer(O_SYNC));
+    fcmodule->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
+    fcmodule->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
+    fcmodule->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
+    fcmodule->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
+    fcmodule->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
+    fcmodule->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
+    fcmodule->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
+    fcmodule->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    fcmodule->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
+    fcmodule->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
+    fcmodule->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
     Value null_file = new StringObject { "/dev/null", Encoding::US_ASCII };
     null_file->freeze();
-    Constants->const_set("NULL"_s, null_file);
-    // include Constants module in File
-    klass->include_once(env, Constants);
+    fcmodule->const_set("NULL"_s, null_file);
 }
 
 bool FileObject::exist(Env *env, Value path) {

@@ -46,7 +46,7 @@ public:
     static void unlink(Env *env, Value path);
     static Value unlink(Env *env, Args args);
 
-    static void build_constants(Env *env, ClassObject *klass);
+    static void build_constants(Env *env, ModuleObject *);
 
     static bool exist(Env *env, Value path);
 
