@@ -41,6 +41,7 @@ public:
     Value offset(Env *, Value);
 
     Value captures(Env *);
+    Value inspect(Env *);
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);

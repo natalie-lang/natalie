@@ -62,6 +62,20 @@ Value MatchDataObject::captures(Env *env) {
     return this->array(1);
 }
 
+Value MatchDataObject::inspect(Env *env) {
+    StringObject *out = new StringObject { "#<MatchData" };
+    for (int i = 0; i < m_region->num_regs; i++) {
+        out->append_char(' ');
+        if (i > 0) {
+            out->append(i);
+            out->append_char(':');
+        }
+        out->append(this->group(i)->as_string()->inspect(env));
+    }
+    out->append_char('>');
+    return out;
+}
+
 Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
