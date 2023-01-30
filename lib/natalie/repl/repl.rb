@@ -128,6 +128,12 @@ module Natalie
               @model.go_left
             end
           end
+        when 14
+          # ctrl-n
+          @model.go_down
+        when 16
+          # ctrl-p
+          @model.go_up
         when 9
           # tab
           @model.append(tab)
