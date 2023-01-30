@@ -169,6 +169,7 @@ class StringScanner
   end
 
   def exist?(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     return 0 if pattern == //
     start = @pos
     loop do
