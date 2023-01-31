@@ -15,6 +15,16 @@ class Set
     new(items)
   end
 
+  def ==(other)
+    if eql?(other)
+      return true
+    end
+    if other.is_a?(Set) && self.size == other.size
+      return other.all? { |element| @data.include?(element) }
+    end
+    false
+  end
+
   def length
     @data.length
   end
