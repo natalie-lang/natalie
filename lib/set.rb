@@ -51,6 +51,10 @@ class Set
     end
   end
 
+  def eql?(other)
+    self.class == other.class && @data == other.instance_variable_get(:@data)
+  end
+
   def include?(obj)
     @data.key?(obj)
   end
