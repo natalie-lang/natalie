@@ -2364,15 +2364,15 @@ Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
 }
 
 Value StringObject::reverse(Env *env) {
+    auto str = new StringObject { "", m_encoding };
     if (length() == 0)
-        return new StringObject { "", m_encoding };
-    auto ary = new ArrayObject { length() };
+        return str;
     auto characters = chars(env)->as_array();
     for (size_t i = characters->size() - 1;; i--) {
-        ary->push((*characters)[i]);
+        str->append((*characters)[i]);
         if (i == 0) break;
     }
-    return ary->join(env, nullptr);
+    return str;
 }
 
 Value StringObject::reverse_in_place(Env *env) {
