@@ -26,7 +26,7 @@ public:
         , m_data { data }
         , m_has_keyword_hash { has_keyword_hash } { }
 
-    Args(TM::Vector<Value> vec)
+    Args(TM::Vector<Value>& vec)
         : m_size { vec.size() }
         , m_data { vec.data() } { }
 
