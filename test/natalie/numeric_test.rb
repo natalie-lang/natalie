@@ -20,8 +20,7 @@ describe 'Equals methods on numeric classes' do
     (3.0 == Rational(3)).should be_true
     (3.0 == Complex(3)).should be_true
     (3.0 == Complex(3.0)).should be_true
-    # NATFIXME: Should raise NoMethodError
-    (3.0 == @no_equals_method).should be_false
+    -> { 3.0 == @no_equals_method }.should raise_error(NoMethodError)
 
     # NATFIXME: These should all be_true
     (0.75 == Rational(3, 4)).should be_false
@@ -66,7 +65,6 @@ describe 'Equals methods on numeric classes' do
     (Complex(3.0) == Rational(3)).should be_true
     (Complex(3.0) == Complex(3)).should be_true
     (Complex(3.0) == Complex(3.0)).should be_true
-    # NATFIXME: Should raise NoMethodError
-    (Complex(3.0) == @no_equals_method).should be_false
+    -> { Complex(3.0) == @no_equals_method }.should raise_error(NoMethodError)
   end
 end

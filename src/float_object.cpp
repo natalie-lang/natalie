@@ -29,11 +29,7 @@ bool FloatObject::eq(Env *env, Value other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    auto equal_symbol = "=="_s;
-    if (other->respond_to(env, equal_symbol)) {
-        return other.send(env, equal_symbol, { this })->is_truthy();
-    }
-    return false;
+    return other.send(env, "=="_s, { this })->is_truthy();
 }
 
 bool FloatObject::eql(Value other) const {
