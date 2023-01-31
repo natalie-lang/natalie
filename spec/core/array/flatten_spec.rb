@@ -121,23 +121,20 @@ describe "Array#flatten" do
       -> { [@obj].flatten }.should raise_error(TypeError)
     end
 
-    # NATFIXME: Implement Kernel#respond_to_missing?
-    xit "calls respond_to_missing?(:to_ary, true) to try coercing" do
+    it "calls respond_to_missing?(:to_ary, true) to try coercing" do
       def @obj.respond_to_missing?(*args) ScratchPad << args; false end
       [@obj].flatten.should == [@obj]
       ScratchPad.recorded.should == [[:to_ary, true]]
     end
 
-    # NATFIXME: Implement Kernel#respond_to_missing?
-    xit "does not call #to_ary if not defined when #respond_to_missing? returns false" do
+    it "does not call #to_ary if not defined when #respond_to_missing? returns false" do
       def @obj.respond_to_missing?(name, priv) ScratchPad << name; false end
 
       [@obj].flatten.should == [@obj]
       ScratchPad.recorded.should == [:to_ary]
     end
 
-    # NATFIXME: Implement Kernel#respond_to_missing?
-    xit "calls #to_ary if not defined when #respond_to_missing? returns true" do
+    it "calls #to_ary if not defined when #respond_to_missing? returns true" do
       def @obj.respond_to_missing?(name, priv) ScratchPad << name; true end
 
       -> { [@obj].flatten }.should raise_error(NoMethodError)

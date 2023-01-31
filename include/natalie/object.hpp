@@ -292,8 +292,9 @@ public:
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);
-    bool respond_to_method(Env *, Value, Value) const;
-    bool respond_to_method(Env *, Value, bool) const;
+    bool respond_to_method(Env *, Value, Value);
+    bool respond_to_method(Env *, Value, bool);
+    bool respond_to_missing(Env *, Value, Value);
 
     const char *defined(Env *, SymbolObject *, bool);
     Value defined_obj(Env *, SymbolObject *, bool = false);
