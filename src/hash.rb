@@ -112,23 +112,47 @@ class Hash
     first.tap { |key, _| delete(key) }
   end
 
-  def transform_keys
-    return enum_for(:transform_keys) { size } unless block_given?
+  def transform_keys(hash2 = nil, &block)
+    return enum_for(:transform_keys) { size } if hash2.nil? && !block_given?
 
     new_hash = {}
-    each { |key, value| new_hash[yield(key)] = value }
+    unless empty?
+      each do |key, value|
+        new_key = if !hash2.nil? && hash2.key?(key)
+          hash2[key]
+        elsif block
+          block.call(key)
+        else
+          key
+        end
+        new_hash[new_key] = value
+      end
+    end
     new_hash
   end
 
-  def transform_keys!(&block)
-    return enum_for(:transform_keys!) { size } unless block_given?
+  def transform_keys!(hash2 = nil, &block)
+    return enum_for(:transform_keys!) { size } if hash2.nil? && !block_given?
 
     raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
 
-    # NOTE: have to do it this way due to behavior of break
-    duped = dup
-    clear
-    duped.each { |key, value| self[yield(key)] = value }
+    unless empty?
+      new_keys = Hash.new(0)
+      duped = dup
+      duped.each do |key, value|
+        new_key = if !hash2.nil? && hash2.key?(key)
+          hash2[key]
+        elsif block
+          block.call(key)
+        else
+          key
+        end
+        self.delete(key) if new_keys[key]
+        self[new_key] = value
+        new_keys[new_key] = nil
+      end
+      new_keys.clear
+    end
     self
   end
 
