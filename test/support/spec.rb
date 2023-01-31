@@ -235,6 +235,11 @@ def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0)
   output
 end
 
+def ruby_cmd(code, options: nil, args: nil)
+  binary = ENV['NAT_BINARY'] || 'bin/natalie'
+  "#{binary} #{options} -e #{code.inspect} #{args}"
+end
+
 def fixture(source, filename)
   dirname = File.dirname(File.realpath(source))
   dirname.delete_suffix!('/shared')
