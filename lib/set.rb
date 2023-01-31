@@ -45,6 +45,17 @@ class Set
     end
   end
 
+  def classify
+    return enum_for(:classify) unless block_given?
+    hash = Hash.new
+    each do |element|
+      block_result = yield element
+      hash[block_result] = Set.new unless hash.key?(block_result)
+      hash[block_result] << element
+    end
+    hash
+  end
+
   def delete(obj)
     if include?(obj)
       @data.delete(obj)
