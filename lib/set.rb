@@ -54,6 +54,7 @@ class Set
   def include?(obj)
     @data.key?(obj)
   end
+  alias === include?
 
   def inspect
     "#<Set: {#{to_a}}>"
