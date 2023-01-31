@@ -1956,6 +1956,8 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 bool StringObject::include(Env *env, Value arg) {
     if (!arg->is_string())
         arg = arg->to_str(env);
+    if (arg->as_string()->is_empty())
+        return true;
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
