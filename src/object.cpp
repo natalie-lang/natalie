@@ -813,7 +813,7 @@ Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, Method
         new_args.push(name);
         for (size_t i = 0; i < args.size(); i++)
             new_args.push(args[i]);
-        return send(env, "method_missing"_s, Args(new_args), block);
+        return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
