@@ -22,8 +22,7 @@ describe 'Equals methods on numeric classes' do
     (3.0 == Complex(3.0)).should be_true
     -> { 3.0 == @no_equals_method }.should raise_error(NoMethodError)
 
-    # NATFIXME: These should all be_true
-    (0.75 == Rational(3, 4)).should be_false
+    (0.75 == Rational(3, 4)).should be_true
     (2.0 == Rational(4, 2)).should be_true
     (-2.0 == Rational(-4, 2)).should be_true
     (-2.0 == Rational(4, -2)).should be_true
@@ -37,19 +36,15 @@ describe 'Equals methods on numeric classes' do
     (Rational(3) == Complex(3.0)).should be_true
     -> { Rational(3) == @no_equals_method }.should raise_error(NoMethodError)
 
-    # NATFIXME: These should all be_true
-    (Rational(3, 4) == 0.75).should be_false
+    (Rational(3, 4) == 0.75).should be_true
     (Rational(4, 2) == 2.0).should be_true
     (Rational(-4, 2) == -2.0).should be_true
     (Rational(4, -2) == -2.0).should be_true
-    # NATFIXME: Should raise NoMethodError
-    (Rational(3, 4) == @no_equals_method).should be_false
+    -> { Rational(3, 4) == @no_equals_method }.should raise_error(NoMethodError)
 
-    # NATFIXME: This should be be_false
     obj = mock("Object")
     obj.should_receive(:==).and_return(:result)
-    (Rational(3, 4) == obj).should_not be_true
-    obj == 1 # NATFXIME: Handle expectation to make the test pass
+    (Rational(3, 4) == obj).should_not be_false
   end
 
   it 'should work on Complex' do
