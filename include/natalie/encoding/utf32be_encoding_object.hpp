@@ -19,6 +19,10 @@ public:
         // 0x0..0x10FFFF are valid, with exception of 0xD800-0xDFFF
         return (codepoint >= 0 && codepoint < 0xD800) || (codepoint > 0xDFFF && codepoint <= 0x10FFFF);
     }
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) {
+        // it's positive and takes 1-4 bytes
+        return codepoint >= 0 && codepoint < 0x10000000000;
+    }
 
     virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;
     virtual std::pair<bool, StringView> next_char(const String &string, size_t *index) const override;

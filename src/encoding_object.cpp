@@ -24,7 +24,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         if (unicode_codepoint < 0) {
             StringObject *message;
 
-            if (num() != Encoding::UTF_8) {
+            if (name()->string() != "UTF-8") {
                 // Example: "\x8F" to UTF-8 in conversion from ASCII-8BIT to UTF-8 to US-ASCII
                 message = StringObject::format(
                     "\"\\x{}\" to UTF-8 in conversion from {} to UTF-8 to {}",
@@ -47,7 +47,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
         if (destination_codepoint < 0) {
             StringObject *message;
 
-            if (orig_encoding->num() != Encoding::UTF_8)
+            if (orig_encoding->name()->string() != "UTF-8") {
                 message = StringObject::format(
                     // Example: "U+043F to WINDOWS-1252 in conversion from Windows-1251 to UTF-8 to WINDOWS-1252",
                     "U+{} to {} in conversion from {} to UTF-8 to {}",
@@ -55,7 +55,7 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
                     name(),
                     orig_encoding->name(),
                     name());
-            else {
+            } else {
                 // Example: U+0439 from UTF-8 to ASCII-8BIT
                 auto hex = String();
                 hex.append_sprintf("%04X", source_codepoint);
@@ -70,6 +70,9 @@ Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObje
     }
 
     str->set_str(temp_string.string().c_str(), temp_string.string().length());
+
+    // Would prefer to do the following but cannot because 'this' is a const EncodingObject*
+    // str->set_encoding(this);
     str->set_encoding(EncodingObject::get(num()));
     return str;
 }
