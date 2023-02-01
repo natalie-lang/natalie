@@ -831,7 +831,7 @@ Value Object::method_missing(Env *env, Args args, Block *block) {
     }
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) const {
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
