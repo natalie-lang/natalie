@@ -285,7 +285,7 @@ public:
     Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
     Value method_missing(Env *, Args, Block *);
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility);
+    Method *find_method(Env *, SymbolObject *, MethodVisibility) const;
 
     Value dup(Env *) const;
     Value clone(Env *env) const;
