@@ -264,11 +264,6 @@ bool IntegerObject::eq(Env *env, Value other) {
     if (other->is_integer())
         return m_integer == other->as_integer()->integer();
 
-    if (other->respond_to(env, "coerce"_s)) {
-        auto result = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
-        return result.first->send(env, "=="_s, { result.second })->is_truthy();
-    }
-
     return other->send(env, "=="_s, { this })->is_truthy();
 }
 
