@@ -39,7 +39,7 @@ public:
     Value global_get(SymbolObject *);
     Value global_set(SymbolObject *, Value);
 
-    Method *current_method();
+    const Method *current_method();
     String build_code_location_name();
 
     Value var_get(const char *, size_t);
