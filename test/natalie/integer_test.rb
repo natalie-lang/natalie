@@ -250,6 +250,29 @@ describe 'integer' do
     end
   end
 
+  describe '#&' do
+    it 'returns self bitwise AND other when one operand is negative' do
+      ((1 << 33) & -1).should == 8_589_934_592
+      (-1 & (1 << 33)).should == 8_589_934_592
+
+      ((-(1 << 33) - 1) & 5).should == 5
+      (5 & (-(1 << 33) - 1)).should == 5
+    end
+
+    it 'returns self bitwise AND other when both operands are negative' do
+      (-5 & -1).should == -5
+      (-3 & -4).should == -4
+      (-12 & -13).should == -16
+      (-13 & -12).should == -16
+    end
+
+    it 'coerce argument if needed' do
+      obj = mock('fixnum bit and')
+      obj.should_receive(:coerce).with(6).and_return([6, 3])
+      (6 & obj).should == 2
+    end
+  end
+
   describe '#|' do
     it 'returns self bitwise OR other when one operand is negative' do
       ((1 << 33) | -1).should == -1
@@ -267,8 +290,8 @@ describe 'integer' do
     end
 
     it 'coerce argument if needed' do
-      obj = mock('fixnum bit and')
-      obj.should_receive(:coerce).with(6).and_return([3, 6])
+      obj = mock('fixnum bit or')
+      obj.should_receive(:coerce).with(6).and_return([6, 3])
       (6 | obj).should == 7
     end
   end
@@ -290,8 +313,8 @@ describe 'integer' do
     end
 
     it 'coerce argument if needed' do
-      obj = mock('fixnum bit and')
-      obj.should_receive(:coerce).with(6).and_return([3, 6])
+      obj = mock('fixnum bit xor')
+      obj.should_receive(:coerce).with(6).and_return([6, 3])
       (6 ^ obj).should == 5
     end
   end
