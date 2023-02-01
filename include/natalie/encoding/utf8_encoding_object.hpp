@@ -19,7 +19,7 @@ public:
         // from RFC3629: 0x0..0x10FFFF are valid, with exception of 0xD800-0xDFFF
         return (codepoint >= 0 && codepoint < 0xD800) || (codepoint > 0xDFFF && codepoint <= 0x10FFFF);
     }
-    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) {
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) override {
         return codepoint >= 0 && codepoint < 0x110000;
     }
 
@@ -33,7 +33,7 @@ public:
 
     virtual String encode_codepoint(nat_int_t codepoint) const override;
     virtual nat_int_t decode_codepoint(StringView &str) const override;
-    virtual bool is_ascii_compatible() const { return true; };
+    virtual bool is_ascii_compatible() const override { return true; };
 };
 
 }

@@ -18,7 +18,7 @@ public:
     virtual bool valid_codepoint(nat_int_t codepoint) const override {
         return codepoint >= 0 && codepoint <= 255;
     }
-    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) {
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) override {
         return codepoint >= 0 && codepoint < 256;
     }
 
@@ -32,7 +32,7 @@ public:
 
     virtual String encode_codepoint(nat_int_t codepoint) const override;
     virtual nat_int_t decode_codepoint(StringView &str) const override;
-    virtual bool is_ascii_compatible() const { return true; };
+    virtual bool is_ascii_compatible() const override { return true; };
 };
 
 }
