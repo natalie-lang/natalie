@@ -113,7 +113,7 @@ public:
     size_t line() const { return m_line; }
     void set_line(size_t line) { m_line = line; }
 
-    Method *method() { return m_method; }
+    const Method *method() { return m_method; }
     void set_method(Method *method) { m_method = method; }
 
     Value match() { return m_match; }
