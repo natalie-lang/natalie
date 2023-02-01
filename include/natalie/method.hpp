@@ -31,13 +31,13 @@ public:
     MethodFnPtr fn() { return m_fn; }
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
-    bool has_env() { return !!m_env; }
-    Env *env() { return m_env; }
+    bool has_env() const { return !!m_env; }
+    Env *env() const { return m_env; }
 
     bool is_optimized() const { return m_optimized; }
     void set_optimized(bool optimized) { m_optimized = optimized; }
 
-    Value call(Env *env, Value self, Args args, Block *block);
+    Value call(Env *env, Value self, Args args, Block *block) const;
 
     String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }

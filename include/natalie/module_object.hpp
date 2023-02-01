@@ -91,8 +91,8 @@ public:
 
     void methods(Env *, ArrayObject *, bool = true);
     void define_method(Env *, SymbolObject *, Method *, MethodVisibility);
-    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method ** = nullptr) const;
-    MethodInfo find_method(Env *, SymbolObject *, Method *) const;
+    MethodInfo find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, const Method ** = nullptr) const;
+    MethodInfo find_method(Env *, SymbolObject *, const Method *) const;
     void assert_method_defined(Env *, SymbolObject *, MethodInfo);
 
     Value instance_method(Env *, Value);

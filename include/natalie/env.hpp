@@ -39,7 +39,7 @@ public:
     Value global_get(SymbolObject *);
     Value global_set(SymbolObject *, Value);
 
-    Method *current_method();
+    const Method *current_method();
     String build_code_location_name();
 
     Value var_get(const char *, size_t);
@@ -113,8 +113,8 @@ public:
     size_t line() const { return m_line; }
     void set_line(size_t line) { m_line = line; }
 
-    Method *method() { return m_method; }
-    void set_method(Method *method) { m_method = method; }
+    const Method *method() { return m_method; }
+    void set_method(const Method *method) { m_method = method; }
 
     Value match() { return m_match; }
     void set_match(Value match) { m_match = match; }
@@ -143,7 +143,7 @@ private:
     Env *m_caller { nullptr };
     const char *m_file { nullptr };
     size_t m_line { 0 };
-    Method *m_method { nullptr };
+    const Method *m_method { nullptr };
     Value m_match { nullptr };
     ExceptionObject *m_exception { nullptr };
 };
