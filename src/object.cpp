@@ -944,7 +944,7 @@ bool Object::respond_to(Env *env, Value name_val, bool include_all) {
     return respond_to_method(env, name_val, include_all);
 }
 
-bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const {
+bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
 
     ClassObject *klass = singleton_class();
@@ -952,19 +952,35 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const
         klass = m_klass;
 
     auto method_info = klass->find_method(env, name_symbol);
-    if (!method_info.is_defined())
+    if (!method_info.is_defined()) {
+        if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+            auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
+            return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+        }
         return false;
+    }
 
     if (include_all)
         return true;
 
     MethodVisibility visibility = method_info.visibility();
-    return visibility == MethodVisibility::Public;
+    if (visibility == MethodVisibility::Public) {
+        return true;
+    } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+        auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+    } else {
+        return false;
+    }
 }
 
-bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) const {
+bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) {
     bool include_all = include_all_val ? include_all_val->is_truthy() : false;
     return respond_to_method(env, name_val, include_all);
+}
+
+bool Object::respond_to_missing(Env *, Value, Value) {
+    return false;
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
