@@ -25,6 +25,14 @@ class Set
     false
   end
 
+  def ^(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    (self | other) - (self & other)
+  end
+
   def length
     @data.length
   end
