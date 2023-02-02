@@ -21,7 +21,7 @@ describe "Zlib::Deflate.deflate" do
                       [24, 128, 0, 0, 1]).pack('C*')
   end
 
-  # NATFIXME: Implement Random#bytes
+  # NATFIXME: deflates chunked data
   xit "deflates chunked data" do
     random_generator = Random.new(0)
     deflated         = ''
@@ -68,7 +68,7 @@ xdescribe "Zlib::Deflate#deflate" do
   end
 end
 
-# NATFIXME: Implement Random#bytes
+# NATFIXME: deflates chunked data
 xdescribe "Zlib::Deflate#deflate" do
 
   before :each do
