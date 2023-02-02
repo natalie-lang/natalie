@@ -87,6 +87,14 @@ Value MatchDataObject::match(Env *env, Value index) {
     return match;
 }
 
+Value MatchDataObject::match_length(Env *env, Value index) {
+    auto match = this->match(env, index);
+    if (match->is_nil()) {
+        return match;
+    }
+    return match->as_string()->size(env);
+}
+
 Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
