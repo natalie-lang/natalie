@@ -8,8 +8,7 @@ describe :regexp_quote, shared: true do
     Regexp.send(@method, "\n\r\f\t").should == '\\n\\r\\f\\t'
   end
 
-  # NATFIXME: works with symbols
-  xit "works with symbols" do
+  it "works with symbols" do
     Regexp.send(@method, :symbol).should == 'symbol'
   end
 

@@ -41,6 +41,8 @@ Value RegexpObject::last_match(Env *env, Value ref) {
 }
 
 Value RegexpObject::quote(Env *env, Value string) {
+    if (string->is_symbol())
+        string = string->to_s(env);
     auto str = string->as_string_or_raise(env);
 
     String out;
