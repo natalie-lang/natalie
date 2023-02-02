@@ -38,14 +38,12 @@ describe "Encoding.default_internal=" do
     Encoding.default_internal = @original_encoding
   end
 
-  # NATFIXME: Implement Encoding::SHIFT_JIS
-  xit "sets the default internal encoding" do
+  it "sets the default internal encoding" do
     Encoding.default_internal = Encoding::SHIFT_JIS
     Encoding.default_internal.should == Encoding::SHIFT_JIS
   end
 
-  # NATFIXME: Implement Encoding::SHIFT_JIS
-  xit "can accept a name of an encoding as a String" do
+  it "can accept a name of an encoding as a String" do
     Encoding.default_internal = 'Shift_JIS'
     Encoding.default_internal.should == Encoding::SHIFT_JIS
   end
