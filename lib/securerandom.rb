@@ -8,6 +8,10 @@ class SecureRandom
       Random.urandom(n)
     end
 
+    def hex(n=nil)
+      random_bytes(n).unpack1('H*')
+    end
+
     def random_bytes(n=nil)
       Random.urandom(n ? n.to_int : 16)
     end
