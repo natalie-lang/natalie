@@ -824,6 +824,13 @@ Value Object::send(Env *env, Args args, Block *block) {
 
 Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, name, visibility_at_least);
+    // Remove empty keyword arguments
+    // This can be created with `send(m, *args, **kwargs)` where kwargs is empty
+    if (args.has_keyword_hash()) {
+        auto hash = args.keyword_hash();
+        if (hash && hash->is_empty())
+            args.pop_keyword_hash();
+    }
     if (method) {
         return method->call(env, this, args, block);
     } else if (respond_to(env, "method_missing"_s)) {
