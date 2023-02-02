@@ -82,7 +82,13 @@ Value RegexpObject::quote(Env *env, Value string) {
             out.append_char(c);
         }
     }
-    return new StringObject { std::move(out) };
+
+    auto encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+    if (str->ascii_only(env))
+        encoding = EncodingObject::get(Encoding::US_ASCII);
+    else if (str->valid_encoding())
+        encoding = str->encoding();
+    return new StringObject { std::move(out), encoding };
 }
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
