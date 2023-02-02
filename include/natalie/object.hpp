@@ -262,7 +262,7 @@ public:
     void alias(Env *env, Value new_name, Value old_name);
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
-    nat_int_t object_id() const { return reinterpret_cast<nat_int_t>(this); }
+    nat_int_t object_id() const;
 
     Value itself() { return this; }
 

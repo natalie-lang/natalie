@@ -16,8 +16,7 @@ describe :object_id, shared: true do
     o1.__send__(@method).should_not == o2.__send__(@method)
   end
 
-  # NATFIXME: BasicObject#__id__ should return the same value for two Fixnums with the same value
-  xit "returns the same value for two Fixnums with the same value" do
+  it "returns the same value for two Fixnums with the same value" do
     o1 = 1
     o2 = 1
     o1.send(@method).should == o2.send(@method)
