@@ -212,6 +212,26 @@ Env *build_top_env() {
     Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
     Encoding->const_set("UCS_4BE"_s, EncodingUTF32BE);
 
+    Value EncodingIBM437 = new Ibm437EncodingObject {};
+    Encoding->const_set("IBM437"_s, EncodingIBM437);
+    Encoding->const_set("CP437"_s, EncodingIBM437);
+
+    Value EncodingIBM866 = new Ibm866EncodingObject {};
+    Encoding->const_set("IBM866"_s, EncodingIBM866);
+    Encoding->const_set("CP866"_s, EncodingIBM866);
+
+    Value EncodingShiftJis = new ShiftJisEncodingObject {};
+    Encoding->const_set("Shift_JIS"_s, EncodingShiftJis);
+    Encoding->const_set("SHIFT_JIS"_s, EncodingShiftJis);
+
+    Value EncodingEucJp = new EucJpEncodingObject {};
+    Encoding->const_set("EUC_JP"_s, EncodingEucJp);
+    Encoding->const_set("EUCJP"_s, EncodingEucJp);
+
+    Value EncodingIso88591 = new Iso88591EncodingObject {};
+    Encoding->const_set("ISO_8859_1"_s, EncodingIso88591);
+    Encoding->const_set("ISO8859_1"_s, EncodingIso88591);
+
     // Must set defaults after the encodings are defined above.
     EncodingObject::initialize_defaults(env);
 
