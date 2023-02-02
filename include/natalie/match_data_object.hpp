@@ -42,6 +42,8 @@ public:
 
     Value captures(Env *);
     Value inspect(Env *);
+    Value match(Env *, Value);
+    Value match_length(Env *, Value);
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);
