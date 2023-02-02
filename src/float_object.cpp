@@ -21,6 +21,8 @@ Value FloatObject::is_infinite(Env *env) const {
 }
 
 bool FloatObject::eq(Env *env, Value other) {
+    if (is_nan())
+        return false;
     if (other->is_integer()) {
         auto integer = other->as_integer();
         return integer->integer() == m_double;

@@ -258,8 +258,10 @@ Value IntegerObject::cmp(Env *env, Value arg) {
 }
 
 bool IntegerObject::eq(Env *env, Value other) {
-    if (other->is_float())
-        return m_integer == other->as_float()->to_double();
+    if (other->is_float()) {
+        auto *f = other->as_float();
+        return !f->is_nan() && m_integer == f->to_double();
+    }
 
     if (other->is_integer())
         return m_integer == other->as_integer()->integer();
