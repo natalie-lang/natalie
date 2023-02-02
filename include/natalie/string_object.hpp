@@ -83,6 +83,13 @@ public:
         m_string = str;
     }
 
+    StringObject(String &&str)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
+        assert(m_encoding);
+        m_string = std::move(str);
+    }
+
     StringObject(const String &str, EncodingObject *encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
@@ -90,11 +97,25 @@ public:
         m_string = str;
     }
 
+    StringObject(String &&str, EncodingObject *encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        m_string = std::move(str);
+    }
+
     StringObject(const String &str, Encoding encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { EncodingObject::get(encoding) } {
         assert(m_encoding);
         m_string = str;
+    }
+
+    StringObject(String &&str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        m_string = std::move(str);
     }
 
     StringObject(const StringView &str, EncodingObject *encoding)
