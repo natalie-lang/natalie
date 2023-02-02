@@ -72,6 +72,15 @@ class Set
     end
   end
 
+  def difference(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a - other.to_a)
+  end
+  alias - difference
+
   def eql?(other)
     self.class == other.class && @data == other.instance_variable_get(:@data)
   end
