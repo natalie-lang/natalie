@@ -263,6 +263,10 @@ Value RationalObject::to_s(Env *env) {
     return StringObject::format("{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
 }
 
+Value RationalObject::rationalize(Env *env) {
+    return this;
+}
+
 Value RationalObject::truncate(Env *env, Value ndigits) {
     auto numerator = m_numerator->to_nat_int_t();
     auto denominator = m_denominator->to_nat_int_t();
