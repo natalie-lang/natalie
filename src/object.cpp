@@ -1,6 +1,7 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
 #include <cctype>
+#include <climits>
 
 namespace Natalie {
 
@@ -707,6 +708,23 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     } else {
         singleton_class(env)->make_alias(env, new_name, old_name);
     }
+}
+
+nat_int_t Object::object_id() const {
+    if (is_integer()) {
+        const auto val = as_integer()->to_nat_int_t();
+        /* Recreate the logic from Ruby: Use a long as tagged pointer, where
+         * the rightmost bit is 1, and the remaning bits are the number shifted
+         * one right.
+         * The regular object ids are the actual memory addresses, these are at
+         * least 8 bit aligned, so the rightmost bit will never be set. This
+         * means we don't risk duplicate object ids for different objects.
+         */
+        if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
+            return (val << 1) | 1;
+    }
+
+    return reinterpret_cast<nat_int_t>(this);
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
