@@ -10,6 +10,10 @@
 #include "natalie/object.hpp"
 #include <random>
 
+#ifdef __linux__
+#include <sys/random.h>
+#endif
+
 namespace Natalie {
 
 using namespace TM;
@@ -47,6 +51,21 @@ public:
         default_random->m_seed = new_seed;
         default_random->m_generator = new std::mt19937(new_seed);
         return old_seed;
+    }
+
+    static Value urandom(Env *env, Value size) {
+        auto integer = size->as_integer();
+        if (integer->is_negative()) {
+            env->raise("ArgumentError", "negative string size (or size too big)");
+        }
+        size_t length = (size_t)integer->to_nat_int_t();
+        char buffer[length];
+#ifdef __linux__
+        getrandom(buffer, length, 0);
+#else
+        arc4random_buf(buffer, length);
+#endif
+        return new StringObject { buffer, length, EncodingObject::get(Encoding::ASCII_8BIT) };
     }
 
 private:
