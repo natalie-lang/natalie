@@ -30,6 +30,7 @@ public:
 
     Value initialize(Env *, Value);
 
+    Value bytes(Env *, Value);
     Value rand(Env *, Value);
     Value seed() const { return Value::integer(m_seed); }
 
