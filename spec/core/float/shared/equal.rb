@@ -14,4 +14,26 @@ describe :float_equal, shared: true do
     1.0.send(@method, x).should == false
     2.0.send(@method, x).should == true
   end
+
+  # NATFIXME: src/big_int.cpp:322: BigInt::BigInt(const double&): Assertion `floor(num) == num' failed.
+  xit "returns false if one side is NaN" do
+    [1.0, 42, bignum_value].each { |n|
+      (nan_value.send(@method, n)).should == false
+      (n.send(@method, nan_value)).should == false
+    }
+  end
+
+  it "handles positive infinity" do
+    [1.0, 42, bignum_value].each { |n|
+      (infinity_value.send(@method, n)).should == false
+      (n.send(@method, infinity_value)).should == false
+    }
+  end
+
+  it "handles negative infinity" do
+    [1.0, 42, bignum_value].each { |n|
+      ((-infinity_value).send(@method, n)).should == false
+      (n.send(@method, -infinity_value)).should == false
+    }
+  end
 end
