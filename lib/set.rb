@@ -86,6 +86,15 @@ class Set
   end
   alias to_s inspect
 
+  def intersection(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(other.select { |obj| include?(obj) })
+  end
+  alias & intersection
+
   def clear
     @data.clear
     self
