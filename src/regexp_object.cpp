@@ -40,6 +40,57 @@ Value RegexpObject::last_match(Env *env, Value ref) {
     return match;
 }
 
+Value RegexpObject::quote(Env *env, Value string) {
+    if (string->is_symbol())
+        string = string->to_s(env);
+    auto str = string->as_string_or_raise(env);
+
+    String out;
+    for (size_t i = 0; i < str->length(); i++) {
+        const char c = str->c_str()[i];
+        switch (c) {
+        case '\\':
+        case '*':
+        case '?':
+        case '{':
+        case '}':
+        case '.':
+        case '+':
+        case '^':
+        case '[':
+        case ']':
+        case '(':
+        case ')':
+        case '-':
+        case ' ':
+            out.append_char('\\');
+            out.append_char(c);
+            break;
+        case '\n':
+            out.append("\\n");
+            break;
+        case '\r':
+            out.append("\\r");
+            break;
+        case '\f':
+            out.append("\\f");
+            break;
+        case '\t':
+            out.append("\\t");
+            break;
+        default:
+            out.append_char(c);
+        }
+    }
+
+    auto encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+    if (str->ascii_only(env))
+        encoding = EncodingObject::get(Encoding::US_ASCII);
+    else if (str->valid_encoding())
+        encoding = str->encoding();
+    return new StringObject { std::move(out), encoding };
+}
+
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
     if (is_initialized())
