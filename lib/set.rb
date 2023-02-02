@@ -116,4 +116,14 @@ class Set
       @data.keys.each(&block)
     end
   end
+
+  def union(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a + other.to_a)
+  end
+  alias + union
+  alias | union
 end
