@@ -32,9 +32,7 @@ describe "Float constant" do
 
   it "MAX is 1.7976931348623157e+308" do
     # See https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Double-precision_examples
-    # NATFIXME: no implicit conversion of Rational into Integer (TypeError)
-    #Float::MAX.should == (1 + (1 - (2 ** -52))) * (2.0 ** 1023)
-    Float::MAX.should == (1 + (1 - (2 ** -52).to_f)) * (2.0 ** 1023)
+    Float::MAX.should == (1 + (1 - (2 ** -52))) * (2.0 ** 1023)
     Float::MAX.should == 1.7976931348623157e+308
   end
 

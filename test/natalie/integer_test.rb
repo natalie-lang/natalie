@@ -84,6 +84,21 @@ describe 'integer' do
       (-fixnum_max + -2).should < -fixnum_max
       (-2 + -fixnum_max).should < -fixnum_max
     end
+
+    it 'works with type coercion that returns ints' do
+      obj = mock('type coercion')
+      obj.should_receive(:coerce).with(2).and_return([2, 3])
+      (2 + obj).should == 5
+    end
+
+    it 'works with type coercion that returns other datatypes' do
+      (2 + Complex(3)).should == Complex(5)
+      (2 + Complex(3, 1)).should == Complex(5, 1)
+    end
+
+    it 'raises for arguments that do not support coercion' do
+      -> { 1 + 'string' }.should raise_error(TypeError)
+    end
   end
 
   describe '-' do
@@ -102,6 +117,21 @@ describe 'integer' do
       (2 - -fixnum_max).should > fixnum_max
       (-2 - fixnum_max).should < -fixnum_max
       (-fixnum_max - 2).should < -fixnum_max
+    end
+
+    it 'works with type coercion that returns ints' do
+      obj = mock('type coercion')
+      obj.should_receive(:coerce).with(5).and_return([5, 3])
+      (5 - obj).should == 2
+    end
+
+    it 'works with type coercion that returns other datatypes' do
+      (5 - Complex(3)).should == Complex(2)
+      (5 - Complex(3, 1)).should == Complex(2, -1)
+    end
+
+    it 'raises for arguments that do not support coercion' do
+      -> { 1 - 'string' }.should raise_error(TypeError)
     end
   end
 
@@ -251,71 +281,32 @@ describe 'integer' do
   end
 
   describe '#&' do
-    it 'returns self bitwise AND other when one operand is negative' do
-      ((1 << 33) & -1).should == 8_589_934_592
-      (-1 & (1 << 33)).should == 8_589_934_592
-
-      ((-(1 << 33) - 1) & 5).should == 5
-      (5 & (-(1 << 33) - 1)).should == 5
-    end
-
-    it 'returns self bitwise AND other when both operands are negative' do
-      (-5 & -1).should == -5
-      (-3 & -4).should == -4
-      (-12 & -13).should == -16
-      (-13 & -12).should == -16
-    end
-
-    it 'coerce argument if needed' do
-      obj = mock('fixnum bit and')
-      obj.should_receive(:coerce).with(6).and_return([6, 3])
-      (6 & obj).should == 2
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:&).with(obj1).and_return(:pass)
+      (6 & obj1).should == :pass
     end
   end
 
   describe '#|' do
-    it 'returns self bitwise OR other when one operand is negative' do
-      ((1 << 33) | -1).should == -1
-      (-1 | (1 << 33)).should == -1
-
-      ((-(1 << 33) - 1) | 5).should == -8_589_934_593
-      (5 | (-(1 << 33) - 1)).should == -8_589_934_593
-    end
-
-    it 'returns self bitwise OR other when both operands are negative' do
-      (-5 | -1).should == -1
-      (-3 | -4).should == -3
-      (-12 | -13).should == -9
-      (-13 | -12).should == -9
-    end
-
-    it 'coerce argument if needed' do
-      obj = mock('fixnum bit or')
-      obj.should_receive(:coerce).with(6).and_return([6, 3])
-      (6 | obj).should == 7
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:|).with(obj1).and_return(:pass)
+      (6 | obj1).should == :pass
     end
   end
 
   describe '#^' do
-    it 'returns self bitwise XOR other when one operand is negative' do
-      ((1 << 33) ^ -1).should == -8_589_934_593
-      (-1 ^ (1 << 33)).should == -8_589_934_593
-
-      ((-(1 << 33) - 1) ^ 5).should == -8_589_934_598
-      (5 ^ (-(1 << 33) - 1)).should == -8_589_934_598
-    end
-
-    it 'returns self bitwise XOR other when both operands are negative' do
-      (-5 ^ -1).should == 4
-      (-3 ^ -4).should == 1
-      (-12 ^ -13).should == 7
-      (-13 ^ -12).should == 7
-    end
-
-    it 'coerce argument if needed' do
-      obj = mock('fixnum bit xor')
-      obj.should_receive(:coerce).with(6).and_return([6, 3])
-      (6 ^ obj).should == 5
+    it 'can coerce into two other objects' do
+      obj1 = mock('fixnum bit and lhs')
+      obj2 = mock('fixnum bit and rhs')
+      obj1.should_receive(:coerce).with(6).and_return([obj2, obj1])
+      obj2.should_receive(:^).with(obj1).and_return(:pass)
+      (6 ^ obj1).should == :pass
     end
   end
 
