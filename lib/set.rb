@@ -25,6 +25,14 @@ class Set
     false
   end
 
+  def ^(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    (self | other) - (self & other)
+  end
+
   def length
     @data.length
   end
@@ -72,6 +80,15 @@ class Set
     end
   end
 
+  def difference(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a - other.to_a)
+  end
+  alias - difference
+
   def eql?(other)
     self.class == other.class && @data == other.instance_variable_get(:@data)
   end
@@ -85,6 +102,15 @@ class Set
     "#<Set: {#{to_a}}>"
   end
   alias to_s inspect
+
+  def intersection(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(other.select { |obj| include?(obj) })
+  end
+  alias & intersection
 
   def clear
     @data.clear
@@ -107,4 +133,14 @@ class Set
       @data.keys.each(&block)
     end
   end
+
+  def union(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a + other.to_a)
+  end
+  alias + union
+  alias | union
 end
