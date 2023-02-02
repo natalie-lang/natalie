@@ -1036,6 +1036,7 @@ gen.binding('Rational', 'inspect', 'RationalObject', 'inspect', argc: 0, pass_en
 gen.binding('Rational', 'marshal_dump', 'RationalObject', 'marshal_dump', argc: 0, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('Rational', 'numerator', 'RationalObject', 'numerator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'quo', 'RationalObject', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Rational', 'rationalize', 'RationalObject', 'rationalize', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'to_f', 'RationalObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'to_i', 'RationalObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Rational', 'to_r', 'RationalObject', 'to_r', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
