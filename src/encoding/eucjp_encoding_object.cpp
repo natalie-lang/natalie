@@ -1,8 +1,8 @@
 #include "natalie.hpp"
 
-// NATFIXME: actual implementation is wrong for nearly all of this file
 namespace Natalie {
 
+// NATFIXME: actual implementation is wrong for much of this file
 std::pair<bool, StringView> EucJpEncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
         return { true, StringView() };
@@ -11,11 +11,39 @@ std::pair<bool, StringView> EucJpEncodingObject::prev_char(const String &string,
 }
 
 std::pair<bool, StringView> EucJpEncodingObject::next_char(const String &string, size_t *index) const {
-    if (*index >= string.size())
+    size_t len = string.size();
+    if (*index >= len)
         return { true, StringView() };
     size_t i = *index;
-    (*index)++;
-    return { true, StringView(&string, i, 1) };
+    int length = 0;
+    unsigned char c = string[i];
+    if (c < 0x80) {
+        // is a single byte char, no trail byte.
+        *index += 1;
+        return { true, StringView(&string, i, 1) };
+    } else if (c == 0x8E || (c >= 0xA1 && c <= 0xFE)) {
+        length = 2;
+    } else if (c == 0x8F) {
+        length = 3;
+    } else {
+        *index += 1;
+        return { false, StringView(&string, i, 1) };
+    }
+    if (i + length > len) {
+        // missing required remaining bytes, this is bad.
+        *index = len;
+        return { false, StringView(&string, i) };
+    }
+    // validate any mid/trail bytes.
+    for (size_t j = i + 1; j <= i + length - 1; j++) {
+        unsigned char cj = string[j];
+        if (!(cj >= 0xA1 && cj <= 0xFE)) {
+            *index += 1;
+            return { false, StringView(&string, i, 1) };
+        }
+    }
+    *index += length;
+    return { true, StringView(&string, i, length) };
 }
 
 String EucJpEncodingObject::escaped_char(unsigned char c) const {
