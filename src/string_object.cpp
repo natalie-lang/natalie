@@ -2029,11 +2029,13 @@ static Value lines_inner(Value self, EncodingObject *encoding, bool is_each_line
         });
         return self;
     } else if (is_each_line) {
-        // NATFIXME: Include chomp_value as keyword argument (blocked by https://github.com/natalie-lang/natalie/pull/816)
+        Vector<Value> args { separator };
         if (chomp) {
-            NAT_NOT_YET_IMPLEMENTED();
+            auto hash = new HashObject {};
+            hash->put(env, "chomp"_s, chomp_value);
+            args.push(hash);
         }
-        return self->enum_for(env, "each_line", { separator });
+        return self->enum_for(env, "each_line", Args(args, chomp));
     } else {
         ArrayObject *ary = new ArrayObject {};
         run_split([&](Value out) {

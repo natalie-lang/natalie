@@ -1122,7 +1122,7 @@ Value Object::enum_for(Env *env, const char *method, Args args) {
     for (size_t i = 0; i < args.size(); i++) {
         args2[i + 1] = args[i];
     }
-    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2));
+    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2, args.has_keyword_hash()));
 }
 
 void Object::visit_children(Visitor &visitor) {

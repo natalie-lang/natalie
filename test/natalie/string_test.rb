@@ -668,4 +668,12 @@ describe 'string' do
       'tim'.tr('a-z', '').should == ''
     end
   end
+
+  describe '#each_line' do
+    it 'can save keyword arguments' do
+      'aXbXc'.each_line('X').to_a.should == %w[aX bX c]
+      'aXbXc'.each_line('X', chomp: true).to_a.should == %w[a b c]
+      "a\nb\nc".each_line(chomp: true).to_a.should == %w[a b c]
+    end
+  end
 end
