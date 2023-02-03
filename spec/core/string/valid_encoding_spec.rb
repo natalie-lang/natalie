@@ -21,7 +21,7 @@ describe "String#valid_encoding?" do
     #str.force_encoding('Big5').valid_encoding?.should be_false
     #str.force_encoding('CP949').valid_encoding?.should be_false
     #str.force_encoding('Emacs-Mule').valid_encoding?.should be_false
-    #str.force_encoding('EUC-JP').valid_encoding?.should be_false
+    str.force_encoding('EUC-JP').valid_encoding?.should be_false
     #str.force_encoding('EUC-KR').valid_encoding?.should be_false
     #str.force_encoding('EUC-TW').valid_encoding?.should be_false
     #str.force_encoding('GB18030').valid_encoding?.should be_false
@@ -43,7 +43,7 @@ describe "String#valid_encoding?" do
     #str.force_encoding('ISO-8859-16').valid_encoding?.should be_true
     #str.force_encoding('KOI8-R').valid_encoding?.should be_true
     #str.force_encoding('KOI8-U').valid_encoding?.should be_true
-    #str.force_encoding('Shift_JIS').valid_encoding?.should be_false
+    str.force_encoding('Shift_JIS').valid_encoding?.should be_false
     #"\xD8\x00".force_encoding('UTF-16BE').valid_encoding?.should be_false
     "\x00\xD8".force_encoding('UTF-16LE').valid_encoding?.should be_false
     "\x04\x03\x02\x01".force_encoding('UTF-32BE').valid_encoding?.should be_false
