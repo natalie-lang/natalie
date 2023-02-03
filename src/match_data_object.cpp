@@ -70,7 +70,7 @@ Value MatchDataObject::inspect(Env *env) {
             out->append(i);
             out->append_char(':');
         }
-        out->append(this->group(i)->as_string()->inspect(env));
+        out->append(this->group(i)->inspect_str(env));
     }
     out->append_char('>');
     return out;
