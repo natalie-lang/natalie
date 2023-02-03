@@ -76,8 +76,9 @@ public:
         OnigErrorInfo einfo;
         m_pattern = pattern;
         UChar *pat = (UChar *)(m_pattern.c_str());
+        // NATFIXME: Fully support character encodings in capture groups
         int result = onig_new(&regex, pat, pat + m_pattern.length(),
-            options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
+            options, ONIG_ENCODING_UTF_8, ONIG_SYNTAX_DEFAULT, &einfo);
         if (result != ONIG_NORMAL) {
             OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
             onig_error_code_to_str(s, result, &einfo);
