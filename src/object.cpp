@@ -654,14 +654,11 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
+    if (m_type == Object::Type::Integer || m_type == Object::Type::Float || !m_ivars) {
         return new ArrayObject;
     }
 
     ArrayObject *ary = new ArrayObject { m_ivars->size() };
-
-    if (!m_ivars)
-        return ary;
 
     for (auto pair : *m_ivars)
         ary->push(pair.first);
