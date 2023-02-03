@@ -1002,6 +1002,7 @@ gen.static_binding('Random', 'new_seed', 'RandomObject', 'new_seed', argc: 0, pa
 gen.static_binding('Random', 'srand', 'RandomObject', 'srand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Random', 'urandom', 'RandomObject', 'urandom', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Random', 'initialize', 'RandomObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
+gen.binding('Random', 'bytes', 'RandomObject', 'bytes', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Random', 'rand', 'RandomObject', 'rand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Random', 'seed', 'RandomObject', 'seed', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
