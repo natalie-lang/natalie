@@ -14,11 +14,11 @@ module Kernel
   end
   alias yield_self then
 
-  def enum_for(method = :each, *args, &block)
+  def enum_for(method = :each, *args, **kwargs, &block)
     enum =
       Enumerator.new do |yielder|
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
-        send(method, *args, &the_proc)
+        send(method, *args, **kwargs, &the_proc)
       end
     if block_given?
       enum.instance_variable_set(:@size_block, block)
