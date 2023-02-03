@@ -37,6 +37,8 @@ class Struct
           attrs.each { |attr| yield send(attr) }
         end
 
+        alias_method :values :to_a
+
         define_method :inspect do
           str = '#<struct '
           attrs.each_with_index do |attr, index|
