@@ -44,12 +44,8 @@ class Struct
         end
 
         define_method :inspect do
-          str = '#<struct '
-          attrs.each_with_index do |attr, index|
-            str << "#{attr}=#{send(attr).inspect}"
-            str << ', ' unless index == attrs.size - 1
-          end
-          str << '>'
+          inspected_attrs = attrs.map { |attr| "#{attr}=#{send(attr).inspect}" }
+          "#<struct #{inspected_attrs.join(', ')}>"
         end
 
         define_method(:deconstruct) do
