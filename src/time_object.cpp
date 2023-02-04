@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <string.h>
 
 namespace Natalie {
 
@@ -15,7 +16,8 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit, Value
     auto result = at(env, time, subsec, unit);
     if (in) {
         result->m_time.tm_gmtoff = normalize_timezone(env, in);
-        result->m_time.tm_zone = "UTC";
+        result->m_zone = strdup("UTC");
+        result->m_time.tm_zone = result->m_zone;
     }
     return result;
 }
@@ -572,7 +574,7 @@ Value TimeObject::zone(Env *env) const {
     if (is_utc(env)) {
         return new StringObject { "UTC", Encoding::US_ASCII };
     }
-    return new StringObject { m_time.tm_zone, Encoding::US_ASCII };
+    return new StringObject { m_zone, Encoding::US_ASCII };
 }
 
 }

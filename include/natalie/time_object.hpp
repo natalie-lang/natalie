@@ -20,6 +20,10 @@ public:
     TimeObject(ClassObject *klass)
         : Object { Object::Type::Time, klass } { }
 
+    ~TimeObject() {
+        free(m_zone);
+    }
+
     static TimeObject *at(Env *, Value, Value, Value);
     static TimeObject *at(Env *, Value, Value, Value, Value in);
     static TimeObject *create(Env *);
@@ -87,6 +91,7 @@ private:
     Mode m_mode;
     Value m_subsec;
     struct tm m_time;
+    char *m_zone { nullptr };
 };
 
 }
