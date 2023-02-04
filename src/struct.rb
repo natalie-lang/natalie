@@ -2,13 +2,12 @@ class Struct
   include Enumerable
 
   class << self
-    alias _original_new new
     alias [] new
   end
 
   def self.new(*attrs)
     if respond_to?(:members)
-      _original_new(*attrs)
+      BasicObject.method(:new).unbind.bind(self).(*attrs)
     else
       if attrs.last.is_a?(Hash)
         options = attrs.pop
