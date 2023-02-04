@@ -46,6 +46,14 @@ class Struct
           end
         end
 
+        define_method :each_pair do
+          if block_given?
+            attrs.each { |attr| yield attr, send(attr) }
+          else
+            enum_for(:each_pair)
+          end
+        end
+
         define_method :inspect do
           inspected_attrs = attrs.map { |attr| "#{attr}=#{send(attr).inspect}" }
           "#<struct #{inspected_attrs.join(', ')}>"

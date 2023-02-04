@@ -55,6 +55,24 @@ describe 'Struct' do
     end
   end
 
+  describe '#each_pair' do
+    it 'iterates the attribute/value pairs' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      collected = []
+      i.each_pair { |key, val| collected << [key, val] }
+      collected.should == [[:a, 1], [:b, 2], [:c, 3]]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      iter = i.each_pair
+      iter.should be_an_instance_of(Enumerator)
+      iter.to_a.should == [[:a, 1], [:b, 2], [:c, 3]]
+    end
+  end
+
   it 'is an Enumerable' do
     s = Struct.new(:a, :b, :c, :d)
     i = s.new(1, 2, 3, 4)
