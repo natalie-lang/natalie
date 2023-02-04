@@ -1736,8 +1736,11 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         replacement = replacement_value->as_string();
     }
     if (find->is_string()) {
-        NAT_NOT_YET_IMPLEMENTED();
-    } else if (find->is_regexp()) {
+        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+        const int options = 0;
+        find = new RegexpObject { env, pattern, options };
+    }
+    if (find->is_regexp()) {
         MatchDataObject *match = nullptr;
         StringObject *expanded_replacement = nullptr;
         StringObject *result = this;
