@@ -33,6 +33,10 @@ class Struct
           end
         end
 
+        self.class.define_method :keyword_init? do
+          options[:keyword_init]
+        end
+
         define_method :each do
           attrs.each { |attr| yield send(attr) }
         end
@@ -47,6 +51,7 @@ class Struct
           end
           str << '>'
         end
+        alias_method :to_s, :inspect
 
         define_method(:deconstruct) do
           attrs.map { |attr| send(attr) }
@@ -59,6 +64,16 @@ class Struct
             send(attribute)
           else
             send(arg)
+          end
+        end
+
+        define_method :to_h do |&block|
+          attrs.to_h do |attr|
+            result = [attr.to_sym, send(attr)]
+            if block
+              result = block.call(*result)
+            end
+            result
           end
         end
       end
