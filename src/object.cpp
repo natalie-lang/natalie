@@ -913,6 +913,8 @@ Value Object::dup(Env *env) const {
         return TrueObject::the();
     case Object::Type::UnboundMethod:
         return new UnboundMethodObject { *as_unbound_method() };
+    case Object::Type::MatchData:
+        return new MatchDataObject { *as_match_data() };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str().c_str(), static_cast<int>(m_type));
         abort();
