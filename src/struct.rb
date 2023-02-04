@@ -7,7 +7,9 @@ class Struct
   end
 
   def self.new(*attrs)
-    if self == Struct
+    if respond_to?(:members)
+      _original_new(*attrs)
+    else
       if attrs.last.is_a?(Hash)
         options = attrs.pop
       else
@@ -15,6 +17,10 @@ class Struct
       end
       Class.new(Struct) do
         include Enumerable
+
+        define_singleton_method :members do
+          attrs
+        end
 
         define_method :length do
           attrs.length
@@ -60,8 +66,6 @@ class Struct
           end
         end
       end
-    else
-      _original_new(*attrs)
     end
   end
 end

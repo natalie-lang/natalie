@@ -1,5 +1,8 @@
 require_relative '../spec_helper'
 
+class Foo < Struct; end
+class Bar < Foo; end
+
 describe 'Struct' do
   it 'can be created' do
     s = Struct.new(:a, :b)
@@ -52,5 +55,18 @@ describe 'Struct' do
     s = Struct.new(:a, :b, :c, :d)
     i = s.new(1, 2.3, 'foo', nil)
     i.inspect.should == "#<struct a=1, b=2.3, c=\"foo\", d=nil>"
+  end
+
+  it 'can subclass Struct' do
+    c = Class.new(Struct)
+    s = c.new(:a, :b)
+    i = s.new(1, 2)
+    i.a.should == 1
+    i.b.should == 2
+
+    s = Bar.new(:a, :b)
+    i = s.new(1, 2)
+    i.a.should == 1
+    i.b.should == 2
   end
 end
