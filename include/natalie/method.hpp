@@ -24,8 +24,11 @@ public:
         , m_owner { owner }
         , m_arity { block->arity() }
         , m_env { new Env(*block->env()) } {
-        block->copy_fn_pointer_to_method(this);
         assert(m_env);
+        block->copy_fn_pointer_to_method(this);
+
+        if (block->is_from_method())
+            m_self = block->self();
     }
 
     MethodFnPtr fn() { return m_fn; }
@@ -47,6 +50,7 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);
+        visitor.visit(m_self);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -57,6 +61,7 @@ private:
     String m_name {};
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
+    Value m_self { nullptr };
     int m_arity { 0 };
     Env *m_env { nullptr };
     bool m_optimized { false };
