@@ -9,8 +9,7 @@ describe "MatchData#dup" do
     duplicate.instance_variable_get(:@custom_ivar).should == 42
     # NATFIXME: Implement MatchData#regexp
     # original.regexp.should == duplicate.regexp
-    # NATFIXME: Implement MatchData#string
-    # original.string.should == duplicate.string
+    original.string.should == duplicate.string
     original.offset(0).should == duplicate.offset(0)
   end
 end
