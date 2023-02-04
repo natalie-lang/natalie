@@ -37,12 +37,22 @@ describe 'Struct' do
     i.a.should == 100
   end
 
-  it 'can be iterated' do
-    s = Struct.new(:a, :b, :c)
-    i = s.new(1, 2, 3)
-    collected = []
-    i.each { |val| collected << val }
-    collected.should == [1, 2, 3]
+  describe '#each' do
+    it 'iterates the struct when a block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      collected = []
+      i.each { |val| collected << val }
+      collected.should == [1, 2, 3]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      iter = i.each
+      iter.should be_an_instance_of(Enumerator)
+      iter.to_a.should == [1, 2, 3]
+    end
   end
 
   it 'is an Enumerable' do

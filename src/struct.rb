@@ -39,7 +39,11 @@ class Struct
         end
 
         define_method :each do
-          attrs.each { |attr| yield send(attr) }
+          if block_given?
+            attrs.each { |attr| yield send(attr) }
+          else
+            enum_for(:each)
+          end
         end
 
         define_method :inspect do
