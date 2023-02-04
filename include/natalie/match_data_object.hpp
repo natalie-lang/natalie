@@ -29,7 +29,7 @@ public:
         onig_region_free(m_region, true);
     }
 
-    const StringObject *string() { return m_string; }
+    StringObject *string() const { return m_string; }
 
     size_t size() { return m_region->num_regs; }
 
