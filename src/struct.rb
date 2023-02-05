@@ -6,6 +6,11 @@ class Struct
   end
 
   def self.new(*attrs)
+    duplicates = attrs.tally.find { |_, size| size > 1 }
+    unless duplicates.nil?
+      raise ArgumentError, "duplicate member: #{duplicates.first}"
+    end
+
     if respond_to?(:members)
       BasicObject.method(:new).unbind.bind(self).(*attrs)
     else

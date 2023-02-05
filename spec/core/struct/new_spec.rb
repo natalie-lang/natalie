@@ -83,8 +83,7 @@ describe "Struct.new" do
     end
   end
 
-  # NATFIXME: raises ArgumentError when there is a duplicate member
-  xit "raises ArgumentError when there is a duplicate member" do
+  it "raises ArgumentError when there is a duplicate member" do
     -> { Struct.new(:foo, :foo) }.should raise_error(ArgumentError, "duplicate member: foo")
   end
 
@@ -187,8 +186,7 @@ describe "Struct.new" do
       obj.legs.should == 4
     end
 
-    # NATFIXME: raises when there is a duplicate member
-    xit "raises when there is a duplicate member" do
+    it "raises when there is a duplicate member" do
       -> { Struct.new(:foo, :foo, keyword_init: true) }.should raise_error(ArgumentError, "duplicate member: foo")
     end
 
