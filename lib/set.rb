@@ -99,7 +99,8 @@ class Set
   alias === include?
 
   def inspect
-    "#<Set: {#{to_a}}>"
+    items = to_a.map { |e| equal?(e) ? '#<Set: {...}>' : e.to_s }
+    "#<Set: {#{items.join(', ')}}>"
   end
   alias to_s inspect
 

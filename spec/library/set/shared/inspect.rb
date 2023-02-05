@@ -7,7 +7,7 @@ describe :set_inspect, shared: true do
     Set[:a, "b", Set[?c]].send(@method).should be_kind_of(String)
   end
 
-  xit "correctly handles self-references" do
+  it "correctly handles self-references" do
     # NATFIXME: Support this syntax
     # (set = Set[]) << set
     set = Set[]
