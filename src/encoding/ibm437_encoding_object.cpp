@@ -24,17 +24,15 @@ String Ibm437EncodingObject::escaped_char(unsigned char c) const {
 }
 
 nat_int_t Ibm437EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 128)
-        return -1;
-
-    return codepoint;
+    if (codepoint >= 0x00 && codepoint <= 0x7F)
+        return codepoint;
+    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 
 nat_int_t Ibm437EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 128)
-        return -1;
-
-    return codepoint;
+    if (codepoint >= 0x00 && codepoint <= 0x7F)
+        return codepoint;
+    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 
 String Ibm437EncodingObject::encode_codepoint(nat_int_t codepoint) const {

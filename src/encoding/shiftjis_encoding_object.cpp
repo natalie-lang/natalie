@@ -2,12 +2,8 @@
 
 namespace Natalie {
 
-// NATFIXME: actual implementation is wrong for much of this file
 std::pair<bool, StringView> ShiftJisEncodingObject::prev_char(const String &string, size_t *index) const {
-    if (*index == 0)
-        return { true, StringView() };
-    (*index)--;
-    return { true, StringView(&string, *index, 1) };
+    NAT_NOT_YET_IMPLEMENTED();
 }
 
 std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &string, size_t *index) const {
@@ -44,36 +40,34 @@ std::pair<bool, StringView> ShiftJisEncodingObject::next_char(const String &stri
 }
 
 String ShiftJisEncodingObject::escaped_char(unsigned char c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
+    long long cint = (long long)c;
+    char buf[7];
+    if (cint <= 0xFF) {
+        snprintf(buf, 5, "\\x%02llX", cint);
+    } else {
+        snprintf(buf, 7, "\\u%04llX", cint);
+    }
     return String(buf);
 }
 
 nat_int_t ShiftJisEncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 128)
-        return -1;
-
-    return codepoint;
+    if (codepoint >= 0x00 && codepoint <= 0x7F)
+        return codepoint;
+    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 
 nat_int_t ShiftJisEncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 128)
-        return -1;
-
-    return codepoint;
+    if (codepoint >= 0x00 && codepoint <= 0x7F)
+        return codepoint;
+    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 
 String ShiftJisEncodingObject::encode_codepoint(nat_int_t codepoint) const {
-    return String((char)codepoint);
+    NAT_NOT_YET_IMPLEMENTED();
 }
 
 nat_int_t ShiftJisEncodingObject::decode_codepoint(StringView &str) const {
-    switch (str.size()) {
-    case 1:
-        return (unsigned char)str[0];
-    default:
-        return -1;
-    }
+    NAT_NOT_YET_IMPLEMENTED();
 }
 
 }

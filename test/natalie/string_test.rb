@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 
 require_relative '../spec_helper'
 
@@ -668,4 +668,84 @@ describe 'string' do
       'tim'.tr('a-z', '').should == ''
     end
   end
+
+  describe "Shift_JIS" do
+    it "returns a code representation of a string" do
+      # tests EncodingObject::escaped_char
+      # ascii, single-byte halfwid-katakana, and two-byte
+      "foo\xA1\xc4\xDF\x81\x77\xe9\xF0".force_encoding("shift_jis").inspect.should == '"foo\xA1\xC4\xDF\x{8177}\x{E9F0}"'
+    end
+
+    # Test ShiftJisEncoding::prev_char method
+    xit "chops the last char of an empty string" do
+      # empty string case
+      s = ''.encode('Shift_JIS')
+      s.chop!
+      s.should == ''.encode('Shift_JIS')
+    end
+
+    # NATFIXME: Pending prev_char implementation
+    xit "chops the last char of a string" do
+      # single-byte char
+      s = "foo\xA1".force_encoding('Shift_JIS')
+      s.chop!
+      s.should == 'foo'.encode('Shift_JIS')
+
+      # two-byte char removal
+      s = "foo\x81\x77".force_encoding('Shift_JIS')
+      s.chop!
+      s.should == 'foo'.encode('Shift_JIS')
+    end
+  end
+
+  describe "EUC_JP" do
+    # NATFIXME : Suspect that String#inspect is incorrect
+    it "returns a code representation of a string" do
+      # tests EncodingObject::escaped_char
+      "foo\xAa\xBb\xA1\xA1\xFE\xfe".force_encoding("eucjp").inspect.should == '"foo\x{AABB}\x{A1A1}\x{FEFE}"'
+      # two byte
+      "\x8E\xA1\x8E\xFE".force_encoding("eucjp").inspect.should == '"\x{8EA1}\x{8EFE}"'
+      # triple byte
+      "\x8F\xA1\xA1\x8F\xFE\xFE".force_encoding("eucjp").inspect.should == '"\x{8FA1A1}\x{8FFEFE}"'
+      # passes through invalid codepoints
+      "\xff\x80\x90".force_encoding("eucjp").inspect.should == '"\xFF\x80\x90"'
+    end
+
+    # Test EucJpEncoding::prev_char method
+    it "chops the last char of an empty string" do
+      # empty string case
+      s = ''.force_encoding('EUCJP')
+      s.chop!
+      s.should == ''.force_encoding('EUCJP')
+    end
+    it "chops the last char of a string with single-byte final char" do
+      # single-byte char
+      s = "foo\x77".force_encoding('EUCJP')
+      s.chop!
+      s.should == 'foo'.force_encoding('EUCJP')
+    end
+    
+    # NATFIXME : Pending implementation of EucJpEncoding::prev_char
+    xit "chops the last char of a string with two-byte final char" do
+      # two-byte char removal
+      s = "foo\xA1\xA1".force_encoding('EUCJP')
+      s.chop!
+      s.should == 'foo'.force_encoding('EUCJP')
+
+      # two-byte char removal (8E lead)
+      s = "foo\x8E\xA1".force_encoding('EUCJP')
+      s.chop!
+      s.should == 'foo'.force_encoding('EUCJP')
+    end
+    
+    # NATFIXME : Pending implementation of EucJpEncoding::prev_char
+    xit "chops the last char of a string with three-byte final char" do
+      # three-byte char removal (8E lead)
+      s = "foo\x8F\xA1\xA2".force_encoding('EUCJP')
+      s.chop!
+      s.should == 'foo'.force_encoding('EUCJP')
+    end
+  end
+
+
 end
