@@ -751,9 +751,9 @@ describe "Module#public_constant marked constants" do
   end
 end
 
-# NATFIXME: Eval with string
-xdescribe 'Allowed characters' do
-  it 'allows not ASCII characters in the middle of a name' do
+describe 'Allowed characters' do
+  # NATFIXME: Eval with string
+  xit 'allows not ASCII characters in the middle of a name' do
     mod = Module.new
     mod.const_set("BBἍBB", 1)
 
@@ -766,7 +766,8 @@ xdescribe 'Allowed characters' do
     end.should raise_error(NameError, /wrong constant name/)
   end
 
-  it 'allows not ASCII upcased characters at the beginning' do
+  # NATFIXME: Eval with string
+  xit 'allows not ASCII upcased characters at the beginning' do
     mod = Module.new
     mod.const_set("ἍBB", 1)
 

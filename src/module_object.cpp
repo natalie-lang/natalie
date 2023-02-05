@@ -205,7 +205,10 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
 }
 
 Value ModuleObject::const_set(Env *env, Value name, Value val) {
-    return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
+    auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
+    if (!name_as_sym->is_constant_name())
+        env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
+    return const_set(name_as_sym, val);
 }
 
 Value ModuleObject::constants(Env *env, Value inherit) const {
