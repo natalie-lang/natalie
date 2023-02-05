@@ -93,14 +93,12 @@ describe "Struct.new" do
     -> { Struct.new(:animal, obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: processes passed block with instance_eval
-  xit "processes passed block with instance_eval" do
+  it "processes passed block with instance_eval" do
     klass = Struct.new(:something) { @something_else = 'something else entirely!' }
     klass.instance_variables.should include(:@something_else)
   end
 
-  # NATFIXME: with a block
-  xcontext "with a block" do
+  context "with a block" do
     it "allows class to be modified via the block" do
       klass = Struct.new(:version) do
         def platform

@@ -5,7 +5,7 @@ class Struct
     alias [] new
   end
 
-  def self.new(*attrs)
+  def self.new(*attrs, &block)
     duplicates = attrs.tally.find { |_, size| size > 1 }
     unless duplicates.nil?
       raise ArgumentError, "duplicate member: #{duplicates.first}"
@@ -114,6 +114,10 @@ class Struct
             end
             result
           end
+        end
+
+        if block
+          instance_eval(&block)
         end
       end
     end
