@@ -73,11 +73,13 @@ class Struct
         define_method :[] do |arg|
           case arg
           when Integer
-            attribute = attrs.fetch(arg)
-            send(attribute)
-          else
-            send(arg)
+            arg = attrs.fetch(arg)
+          when String, Symbol
+            unless attrs.include?(arg.to_sym)
+              raise NameError, "no member '#{arg}' in struct"
+            end
           end
+          send(arg)
         end
 
         define_method :dig do |*args|
@@ -87,7 +89,7 @@ class Struct
           arg = args.shift
           res = begin
                   self[arg]
-                rescue NoMethodError
+                rescue
                   nil
                 end
           if args.empty? || res.nil?
