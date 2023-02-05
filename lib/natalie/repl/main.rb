@@ -5,7 +5,7 @@ require_relative 'repl'
 
 module Natalie
   class ExperimentalReplV2
-    def go(_options)
+    def go(options)
       GC.disable
       env = nil
       vars = {}
@@ -14,6 +14,11 @@ module Natalie
         .new(vars)
         .get_command do |cmd|
           begin
+            if repl_num.zero? && options[:require].any?
+              requires = options[:require].map { |req| "require '#{req}'\n" }
+              cmd = requires.join + cmd
+            end
+
             ast = Natalie::Parser.new(cmd, '(repl)').ast
           rescue Parser::IncompleteExpression
             next :continue
