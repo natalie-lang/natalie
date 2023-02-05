@@ -41,7 +41,13 @@ class Struct
 
         if options[:keyword_init]
           define_method :initialize do |args = {}|
-            args.each { |attr, value| send("#{attr}=", value) }
+            invalid_keywords = args.each_key.reject { |arg| attrs.include?(arg) }
+            unless invalid_keywords.empty?
+              raise ArgumentError, "unknown keywords: #{invalid_keywords.join(', ')}"
+            end
+            args.each do |attr, value|
+              send("#{attr}=", value)
+            end
           end
         else
           define_method :initialize do |*vals|

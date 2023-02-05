@@ -200,8 +200,7 @@ describe "Struct.new" do
         obj.legs.should be_nil
       end
 
-      # NATFIXME: raises ArgumentError when passed not declared keyword argument
-      xit "raises ArgumentError when passed not declared keyword argument" do
+      it "raises ArgumentError when passed not declared keyword argument" do
         -> {
           @struct_with_kwa.new(name: "elefant", legs: 4, foo: "bar")
         }.should raise_error(ArgumentError, /unknown keywords: foo/)
