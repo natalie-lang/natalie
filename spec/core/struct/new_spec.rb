@@ -8,8 +8,7 @@ describe "Struct.new" do
     struct.name.should == "Struct::Animal"
   end
 
-  # NATFIXME: overwrites previously defined constants with string as first argument
-  xit "overwrites previously defined constants with string as first argument" do
+  it "overwrites previously defined constants with string as first argument" do
     first = Struct.new('Person', :height, :weight)
     first.should == Struct::Person
 

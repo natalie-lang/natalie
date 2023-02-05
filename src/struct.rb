@@ -15,7 +15,7 @@ class Struct
       BasicObject.method(:new).unbind.bind(self).(*attrs)
     else
       if !attrs.first.is_a?(Symbol) && attrs.first.respond_to?(:to_str)
-        klass = attrs.shift
+        klass = attrs.shift.to_str.to_sym
       elsif attrs.first.nil?
         attrs.shift
       end
@@ -128,6 +128,9 @@ class Struct
       end
 
       if klass
+        if Struct.constants.include?(klass)
+          warn("warning: redefining constant Struct::#{klass}")
+        end
         Struct.const_set(klass, result)
       end
 
