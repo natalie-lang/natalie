@@ -40,7 +40,7 @@ class Struct
         attrs.each { |attr| attr_accessor attr }
 
         if options[:keyword_init]
-          define_method :initialize do |args|
+          define_method :initialize do |args = {}|
             args.each { |attr, value| send("#{attr}=", value) }
           end
         else

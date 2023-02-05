@@ -194,8 +194,7 @@ describe "Struct.new" do
         obj.legs.should be_nil
       end
 
-      # NATFIXME: allows no arguments
-      xit "allows no arguments" do
+      it "allows no arguments" do
         obj = @struct_with_kwa.new
         obj.name.should be_nil
         obj.legs.should be_nil
