@@ -66,6 +66,8 @@ public:
         return idval;
     }
 
+    static Value groups(Env *env);
+
 private:
     static uid_t value_to_uid(Env *env, Value idval) {
         uid_t uid;
