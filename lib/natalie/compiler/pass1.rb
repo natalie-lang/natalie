@@ -28,6 +28,7 @@ module Natalie
 
       INLINE_CPP_MACROS = %i[
         __bind_method__
+        __bind_static_method__
         __call__
         __constant__
         __cxx_flags__
