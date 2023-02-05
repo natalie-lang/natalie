@@ -13,7 +13,12 @@ module Natalie
 
       def generate(transform)
         block = transform.pop
-        transform.exec_and_push(:lambda, "Value(new ProcObject(#{block}, ProcObject::ProcType::Lambda, #{@break_point || 0}))")
+        block_temp = transform.temp('block')
+        transform.exec_and_push(:lambda, [
+          "auto #{block_temp} = #{block}",
+          "#{block_temp}->set_type(Block::BlockType::Lambda)",
+          "Value(new ProcObject(#{block_temp}, #{@break_point || 0}))"
+        ])
       end
 
       def execute(vm)

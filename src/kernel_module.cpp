@@ -367,7 +367,8 @@ bool KernelModule::is_a(Env *env, Value module) {
 
 Value KernelModule::lambda(Env *env, Block *block) {
     if (block) {
-        return new ProcObject { block, ProcObject::ProcType::Lambda };
+        block->set_type(Block::BlockType::Lambda);
+        return new ProcObject { block };
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }

@@ -14,21 +14,15 @@ namespace Natalie {
 
 class ProcObject : public Object {
 public:
-    enum class ProcType {
-        Proc,
-        Lambda
-    };
-
     ProcObject()
         : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() } { }
 
     ProcObject(ClassObject *klass)
         : Object { Object::Type::Proc, klass } { }
 
-    ProcObject(Block *block, ProcType type = ProcType::Proc, nat_int_t break_point = 0)
+    ProcObject(Block *block, nat_int_t break_point = 0)
         : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() }
         , m_block { block }
-        , m_type { type }
         , m_break_point { break_point } {
         assert(m_block);
     }
@@ -36,7 +30,6 @@ public:
     ProcObject(const ProcObject &other)
         : Object { other }
         , m_block { other.m_block }
-        , m_type { other.m_type }
         , m_break_point { other.m_break_point } { }
 
     static Value from_block_maybe(Block *block) {
@@ -49,7 +42,7 @@ public:
     Value initialize(Env *, Block *);
 
     Block *block() { return m_block; }
-    bool is_lambda() { return m_type == ProcType::Lambda; }
+    bool is_lambda() { return m_block->is_lambda(); }
 
     virtual ProcObject *to_proc(Env *) override {
         return this;
@@ -72,7 +65,6 @@ public:
 
 private:
     Block *m_block { nullptr };
-    ProcType m_type { ProcType::Proc };
     nat_int_t m_break_point { 0 };
 };
 
