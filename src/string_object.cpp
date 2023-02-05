@@ -1794,11 +1794,13 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         out->append(*expanded_replacement);
         if (index + length < m_string.length())
             out->append(m_string.substring(index + length));
-    } else {
+    } else if (replacement) {
         *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
         out->append(*expanded_replacement);
         if (index + length < m_string.length())
             out->append(m_string.substring(index + length));
+    } else {
+        NAT_NOT_YET_IMPLEMENTED("Enumerator reply in String#gsub");
     }
     return out;
 }

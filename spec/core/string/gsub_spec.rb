@@ -516,7 +516,7 @@ describe "String#gsub with pattern and block" do
   end
 end
 
-# NATFIXME: Segfault
+# NATFIXME: String#gsub with pattern and without replacement and block
 xdescribe "String#gsub with pattern and without replacement and block" do
   it "returns an enumerator" do
     enum = "abca".gsub(/a/)
