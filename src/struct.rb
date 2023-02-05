@@ -73,10 +73,31 @@ class Struct
         define_method :[] do |arg|
           case arg
           when Integer
-            attribute = attrs.fetch(arg)
-            send(attribute)
+            arg = attrs.fetch(arg)
+          when String, Symbol
+            unless attrs.include?(arg.to_sym)
+              raise NameError, "no member '#{arg}' in struct"
+            end
+          end
+          send(arg)
+        end
+
+        define_method :dig do |*args|
+          if args.empty?
+            raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
+          end
+          arg = args.shift
+          res = begin
+                  self[arg]
+                rescue
+                  nil
+                end
+          if args.empty? || res.nil?
+            res
+          elsif !res.respond_to?(:dig)
+            raise TypeError, "#{res.class} does not have #dig method"
           else
-            send(arg)
+            res.dig(*args)
           end
         end
 
