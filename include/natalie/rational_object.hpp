@@ -40,6 +40,7 @@ public:
     Value mul(Env *, Value);
     Value numerator(Env *);
     Value pow(Env *, Value);
+    Value rationalize(Env *);
     Value sub(Env *, Value);
     Value to_f(Env *);
     Value to_i(Env *);

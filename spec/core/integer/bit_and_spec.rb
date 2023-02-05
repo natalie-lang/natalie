@@ -28,9 +28,10 @@ describe "Integer#&" do
       (-1 & 2**64).should == 18446744073709551616
     end
 
+    # NATFIXME: Upstream bug (https://github.com/ruby/spec/pull/1011)
     it "coerces the rhs and calls #coerce" do
       obj = mock("fixnum bit and")
-      obj.should_receive(:coerce).with(6).and_return([3, 6])
+      obj.should_receive(:coerce).with(6).and_return([6, 3])
       (6 & obj).should == 2
     end
 

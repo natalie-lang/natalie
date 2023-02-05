@@ -1736,8 +1736,11 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         replacement = replacement_value->as_string();
     }
     if (find->is_string()) {
-        NAT_NOT_YET_IMPLEMENTED();
-    } else if (find->is_regexp()) {
+        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+        const int options = 0;
+        find = new RegexpObject { env, pattern, options };
+    }
+    if (find->is_regexp()) {
         MatchDataObject *match = nullptr;
         StringObject *expanded_replacement = nullptr;
         StringObject *result = this;
@@ -1791,11 +1794,13 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         out->append(*expanded_replacement);
         if (index + length < m_string.length())
             out->append(m_string.substring(index + length));
-    } else {
+    } else if (replacement) {
         *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
         out->append(*expanded_replacement);
         if (index + length < m_string.length())
             out->append(m_string.substring(index + length));
+    } else {
+        NAT_NOT_YET_IMPLEMENTED("Enumerator reply in String#gsub");
     }
     return out;
 }
@@ -1956,6 +1961,8 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 bool StringObject::include(Env *env, Value arg) {
     if (!arg->is_string())
         arg = arg->to_str(env);
+    if (arg->as_string()->is_empty())
+        return true;
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
@@ -2027,11 +2034,13 @@ static Value lines_inner(Value self, EncodingObject *encoding, bool is_each_line
         });
         return self;
     } else if (is_each_line) {
-        // NATFIXME: Include chomp_value as keyword argument (blocked by https://github.com/natalie-lang/natalie/pull/816)
+        Vector<Value> args { separator };
         if (chomp) {
-            NAT_NOT_YET_IMPLEMENTED();
+            auto hash = new HashObject {};
+            hash->put(env, "chomp"_s, chomp_value);
+            args.push(hash);
         }
-        return self->enum_for(env, "each_line", { separator });
+        return self->enum_for(env, "each_line", Args(args, chomp));
     } else {
         ArrayObject *ary = new ArrayObject {};
         run_split([&](Value out) {
@@ -2364,15 +2373,15 @@ Value StringObject::upto(Env *env, Value other, Value exclusive, Block *block) {
 }
 
 Value StringObject::reverse(Env *env) {
+    auto str = new StringObject { "", m_encoding };
     if (length() == 0)
-        return new StringObject { "", m_encoding };
-    auto ary = new ArrayObject { length() };
+        return str;
     auto characters = chars(env)->as_array();
     for (size_t i = characters->size() - 1;; i--) {
-        ary->push((*characters)[i]);
+        str->append((*characters)[i]);
         if (i == 0) break;
     }
-    return ary->join(env, nullptr);
+    return str;
 }
 
 Value StringObject::reverse_in_place(Env *env) {

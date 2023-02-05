@@ -26,9 +26,10 @@ public:
         , m_data { data }
         , m_has_keyword_hash { has_keyword_hash } { }
 
-    Args(TM::Vector<Value> vec)
+    Args(TM::Vector<Value> &vec, bool has_keyword_hash = false)
         : m_size { vec.size() }
-        , m_data { vec.data() } { }
+        , m_data { vec.data() }
+        , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(ArrayObject *array, bool has_keyword_hash = false);
 

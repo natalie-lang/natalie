@@ -329,7 +329,7 @@ void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, M
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method **after_method) const {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method **after_method) const {
     MethodInfo method_info;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
@@ -372,7 +372,7 @@ MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Module
     }
 }
 
-MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, Method *after_method) const {
+MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, const Method *after_method) const {
     return find_method(env, method_name, nullptr, &after_method);
 }
 

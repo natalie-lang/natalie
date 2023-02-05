@@ -24,20 +24,23 @@ public:
         , m_owner { owner }
         , m_arity { block->arity() }
         , m_env { new Env(*block->env()) } {
-        block->copy_fn_pointer_to_method(this);
         assert(m_env);
+        block->copy_fn_pointer_to_method(this);
+
+        if (block->is_from_method())
+            m_self = block->self();
     }
 
     MethodFnPtr fn() { return m_fn; }
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
-    bool has_env() { return !!m_env; }
-    Env *env() { return m_env; }
+    bool has_env() const { return !!m_env; }
+    Env *env() const { return m_env; }
 
     bool is_optimized() const { return m_optimized; }
     void set_optimized(bool optimized) { m_optimized = optimized; }
 
-    Value call(Env *env, Value self, Args args, Block *block);
+    Value call(Env *env, Value self, Args args, Block *block) const;
 
     String name() const { return m_name; }
     ModuleObject *owner() const { return m_owner; }
@@ -47,6 +50,7 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);
+        visitor.visit(m_self);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -57,6 +61,7 @@ private:
     String m_name {};
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
+    Value m_self { nullptr };
     int m_arity { 0 };
     Env *m_env { nullptr };
     bool m_optimized { false };

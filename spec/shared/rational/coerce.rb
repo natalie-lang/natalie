@@ -26,8 +26,7 @@ describe :rational_coerce, shared: true do
     Rational(3, 7).coerce(Rational(9, 2)).should == [Rational(9, 2), Rational(3, 7)]
   end
 
-  # NATFIXME: Implement BigDecimal
-  xit "raises an error when passed a BigDecimal" do
+  it "raises an error when passed a BigDecimal" do
     -> {
       Rational(500, 3).coerce(BigDecimal('166.666666666'))
     }.should raise_error(TypeError, /BigDecimal can't be coerced into Rational/)

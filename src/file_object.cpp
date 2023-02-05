@@ -47,6 +47,20 @@ namespace fileutil {
         path->assert_type(env, Object::Type::String, "String");
         return path;
     }
+    // accepts io or io-like object for fstat
+    // accepts path or string like object for stat
+    int object_stat(Env *env, Value file, struct stat *sb) {
+        if (file->is_io() || file->respond_to(env, "to_io"_s)) {
+            if (!file->is_io()) {
+                file = file->send(env, "to_io"_s);
+            }
+            auto file_desc = file->as_io()->fileno();
+            return ::fstat(file_desc, sb);
+        }
+
+        file = convert_using_to_path(env, file);
+        return ::stat(file->as_string()->c_str(), sb);
+    }
 }
 
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *block) {
@@ -152,45 +166,7 @@ Value FileObject::unlink(Env *env, Args args) {
     return Value::integer(args.size());
 }
 
-void FileObject::build_constants(Env *env, ClassObject *klass) {
-    Value Constants = new ModuleObject { "Constants" };
-    klass->const_set("Constants"_s, Constants);
-    klass->const_set("APPEND"_s, Value::integer(O_APPEND));
-    Constants->const_set("APPEND"_s, Value::integer(O_APPEND));
-    klass->const_set("RDONLY"_s, Value::integer(O_RDONLY));
-    Constants->const_set("RDONLY"_s, Value::integer(O_RDONLY));
-    klass->const_set("WRONLY"_s, Value::integer(O_WRONLY));
-    Constants->const_set("WRONLY"_s, Value::integer(O_WRONLY));
-    klass->const_set("TRUNC"_s, Value::integer(O_TRUNC));
-    Constants->const_set("TRUNC"_s, Value::integer(O_TRUNC));
-    klass->const_set("CREAT"_s, Value::integer(O_CREAT));
-    Constants->const_set("CREAT"_s, Value::integer(O_CREAT));
-    klass->const_set("DSYNC"_s, Value::integer(O_DSYNC));
-    Constants->const_set("DSYNC"_s, Value::integer(O_DSYNC));
-    klass->const_set("EXCL"_s, Value::integer(O_EXCL));
-    Constants->const_set("EXCL"_s, Value::integer(O_EXCL));
-    klass->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
-    Constants->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
-    klass->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
-    Constants->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
-    klass->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
-    Constants->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
-    klass->const_set("RDWR"_s, Value::integer(O_RDWR));
-    Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
-    klass->const_set("SYNC"_s, Value::integer(O_SYNC));
-    Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
-
-    klass->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
-    Constants->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
-    klass->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
-    Constants->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
-    klass->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
-    Constants->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
-    klass->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
-    Constants->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
-
-    // MRI defines these constants differently than the OS does in fnmatch.h
-
+// MRI defines these constants differently than the OS does in fnmatch.h
 #define FNM_NOESCAPE 0x01
 #define FNM_PATHNAME 0x02
 #define FNM_DOTMATCH 0x04
@@ -199,20 +175,33 @@ void FileObject::build_constants(Env *env, ClassObject *klass) {
 #define FNM_SYSCASE 0
 #define FNM_SHORTNAME 0
 
-    klass->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
-    Constants->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
-    klass->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
-    Constants->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
-    klass->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
-    Constants->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
-    klass->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
-    Constants->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
-    klass->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
-    Constants->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
-    klass->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
-    Constants->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
-    klass->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
-    Constants->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
+    fcmodule->const_set("APPEND"_s, Value::integer(O_APPEND));
+    fcmodule->const_set("RDONLY"_s, Value::integer(O_RDONLY));
+    fcmodule->const_set("WRONLY"_s, Value::integer(O_WRONLY));
+    fcmodule->const_set("TRUNC"_s, Value::integer(O_TRUNC));
+    fcmodule->const_set("CREAT"_s, Value::integer(O_CREAT));
+    fcmodule->const_set("DSYNC"_s, Value::integer(O_DSYNC));
+    fcmodule->const_set("EXCL"_s, Value::integer(O_EXCL));
+    fcmodule->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
+    fcmodule->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
+    fcmodule->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
+    fcmodule->const_set("RDWR"_s, Value::integer(O_RDWR));
+    fcmodule->const_set("SYNC"_s, Value::integer(O_SYNC));
+    fcmodule->const_set("LOCK_EX"_s, Value::integer(LOCK_EX));
+    fcmodule->const_set("LOCK_NB"_s, Value::integer(LOCK_NB));
+    fcmodule->const_set("LOCK_SH"_s, Value::integer(LOCK_SH));
+    fcmodule->const_set("LOCK_UN"_s, Value::integer(LOCK_UN));
+    fcmodule->const_set("FNM_NOESCAPE"_s, Value::integer(FNM_NOESCAPE));
+    fcmodule->const_set("FNM_PATHNAME"_s, Value::integer(FNM_PATHNAME));
+    fcmodule->const_set("FNM_DOTMATCH"_s, Value::integer(FNM_DOTMATCH));
+    fcmodule->const_set("FNM_CASEFOLD"_s, Value::integer(FNM_CASEFOLD));
+    fcmodule->const_set("FNM_EXTGLOB"_s, Value::integer(FNM_EXTGLOB));
+    fcmodule->const_set("FNM_SYSCASE"_s, Value::integer(FNM_SYSCASE));
+    fcmodule->const_set("FNM_SHORTNAME"_s, Value::integer(FNM_SHORTNAME));
+    Value null_file = new StringObject { "/dev/null", Encoding::US_ASCII };
+    null_file->freeze();
+    fcmodule->const_set("NULL"_s, null_file);
 }
 
 bool FileObject::exist(Env *env, Value path) {
@@ -231,8 +220,7 @@ bool FileObject::is_file(Env *env, Value path) {
 
 bool FileObject::is_directory(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (fileutil::object_stat(env, path, &sb) == -1)
         return false;
     return S_ISDIR(sb.st_mode);
 }
@@ -402,8 +390,7 @@ bool FileObject::is_zero(Env *env, Value path) {
 // oddball function that is ends in '?' but is not a boolean return.
 Value FileObject::is_size(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    if (::stat(path->as_string()->c_str(), &sb) == -1)
+    if (fileutil::object_stat(env, path, &sb) == -1)
         return NilObject::the();
     if (sb.st_size == 0) // returns nil when file size is zero.
         return NilObject::the();
@@ -412,9 +399,8 @@ Value FileObject::is_size(Env *env, Value path) {
 
 Value FileObject::size(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
-    int result = ::stat(path->as_string()->c_str(), &sb);
-    if (result < 0) env->raise_errno();
+    if (fileutil::object_stat(env, path, &sb) == -1)
+        env->raise_errno();
     return IntegerObject::create((nat_int_t)(sb.st_size));
 }
 
@@ -449,7 +435,6 @@ Value FileObject::mkfifo(Env *env, Value path, Value mode) {
 // TODO: chmod can take multiple paths, implement that later.
 Value FileObject::chmod(Env *env, Value mode, Value path) {
     path = fileutil::convert_using_to_path(env, path);
-    mode->assert_type(env, Object::Type::Integer, "Integer");
     mode_t modenum = IntegerObject::convert_to_int(env, mode);
     int result = ::chmod(path->as_string()->c_str(), modenum);
     if (result < 0) env->raise_errno();

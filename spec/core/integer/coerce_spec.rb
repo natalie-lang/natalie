@@ -91,8 +91,7 @@ describe "Integer#coerce" do
     end
   end
 
-  # NATFIXME: Implement BigDecimal
-  xcontext "bigdecimal" do
+  context "bigdecimal" do
     it "produces Floats" do
       x, y = 3.coerce(BigDecimal("3.4"))
       x.class.should == Float

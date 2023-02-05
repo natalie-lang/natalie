@@ -156,10 +156,11 @@ Env *build_top_env() {
 
     ClassObject *IO = Object->subclass(env, "IO", Object::Type::Io);
     Object->const_set("IO"_s, IO);
+    IO->include_once(env, Enumerable);
 
     ClassObject *File = IO->subclass(env, "File");
     Object->const_set("File"_s, File);
-    FileObject::build_constants(env, File);
+    File->include_once(env, Enumerable);
 
     ModuleObject *FileTest = new ModuleObject { "FileTest" };
     Object->const_set("FileTest"_s, FileTest);
@@ -249,6 +250,17 @@ Env *build_top_env() {
 
     ClassObject *UnboundMethod = Object->subclass(env, "UnboundMethod", Object::Type::UnboundMethod);
     Object->const_set("UnboundMethod"_s, UnboundMethod);
+
+    ModuleObject *FileConstants = new ModuleObject { "Constants" };
+    File->const_set("Constants"_s, FileConstants);
+
+    // Build File Constants after Encodings are defined since some
+    // strings depend on the encoding.
+    FileObject::build_constants(env, FileConstants);
+
+    // include File::Constants module in File and IO
+    File->include_once(env, FileConstants);
+    IO->include_once(env, FileConstants);
 
     env->global_set("$NAT_at_exit_handlers"_s, new ArrayObject {});
 

@@ -9,26 +9,22 @@ describe 'Enumerable#sum' do
         yield 0
         yield(-1)
         yield 2
-        # NATFIXME: Re-add rationals if implemented
-        # yield 2/3r
+        yield 2/3r
       end
     end
   end
 
   it 'returns amount of the elements with taking an argument as the initial value' do
-    # @enum.sum(10).should == 35/3r
-    @enum.sum(10).should == 11
+    @enum.sum(10).should == 35/3r
   end
 
   it 'gives 0 as a default argument' do
-    # @enum.sum.should == 5/3r
-    @enum.sum.should == 1
+    @enum.sum.should == 5/3r
   end
 
   context 'with a block' do
     it 'transforms the elements' do
-      # @enum.sum { |element| element * 2 }.should == 10/3r
-      @enum.sum { |element| element * 2 }.should == 2
+      @enum.sum { |element| element * 2 }.should == 10/3r
     end
 
     it 'does not destructure array elements' do

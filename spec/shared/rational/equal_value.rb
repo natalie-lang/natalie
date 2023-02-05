@@ -21,8 +21,7 @@ describe :rational_equal_value_int, shared: true do
 end
 
 describe :rational_equal_value_float, shared: true do
-  # NATFIXME: converts self to a Float and compares it with the passed argument
-  xit "converts self to a Float and compares it with the passed argument" do
+  it "converts self to a Float and compares it with the passed argument" do
     (Rational(3, 4) == 0.75).should be_true
     (Rational(4, 2) == 2.0).should be_true
     (Rational(-4, 2) == -2.0).should be_true
@@ -31,8 +30,7 @@ describe :rational_equal_value_float, shared: true do
 end
 
 describe :rational_equal_value, shared: true do
-  # NATFIXME: returns the result of calling #== with self on the passed argument
-  xit "returns the result of calling #== with self on the passed argument" do
+  it "returns the result of calling #== with self on the passed argument" do
     obj = mock("Object")
     obj.should_receive(:==).and_return(:result)
 

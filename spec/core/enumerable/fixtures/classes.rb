@@ -148,12 +148,6 @@ module EnumerableSpecs
       @delegate.to_enum(sym)
     end
 
-    # TODO: Natalie does not support respond_to_missing? yet
-    # see https://github.com/natalie-lang/natalie/issues/78
-    def each(*args, &block)
-      @delegate.each(*args, &block)
-    end
-
     def respond_to_missing?(*args)
       @delegate.respond_to?(*args)
     end

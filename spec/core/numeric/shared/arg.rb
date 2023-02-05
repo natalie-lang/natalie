@@ -4,8 +4,7 @@ describe :numeric_arg, shared: true do
   before :each do
     @numbers = [
       20,
-      # NATFIXME: Implement Rational
-      # Rational(3, 4),
+      Rational(3, 4),
       bignum_value,
       infinity_value
     ]

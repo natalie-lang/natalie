@@ -164,8 +164,12 @@ class Complex
   end
 
   def <=>(other)
-    if other.is_a?(Complex) && other.imaginary == 0 && self.imaginary == 0
-      return self.real <=> other.real
+    if other.is_a?(Complex)
+      if other.imaginary == 0 && self.imaginary == 0
+        return self.real <=> other.real
+      else
+        return nil
+      end
     end
 
     if other.is_a?(Numeric)

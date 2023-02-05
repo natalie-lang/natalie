@@ -1,4 +1,4 @@
-SKIP_CLASS_MEMBERS = { 
+SKIP_CLASS_MEMBERS = {
   # NOTE: our smart pointer type gets visited by everything else
   'Natalie::Value' => '*',
 
@@ -28,6 +28,7 @@ KNOWN_UNCOLLECTABLE_TYPES = [
   'Natalie::Allocator',
   'Natalie::ArrayPacker::Token',
   'Natalie::Backtrace::Item',
+  'Natalie::Block::BlockType',
   'Natalie::Encoding',
   'Natalie::Enumerator::ArithmeticSequenceObject::Origin',
   'Natalie::FiberObject::Status',
@@ -41,7 +42,6 @@ KNOWN_UNCOLLECTABLE_TYPES = [
   'Natalie::NativeProfilerEvent',
   'Natalie::NativeProfilerEvent::Type',
   'Natalie::ObjectType',
-  'Natalie::ProcObject::ProcType',
   'Natalie::TimeObject::Mode',
   'TM::Hashmap',
   'TM::Optional',
@@ -95,7 +95,7 @@ def get_class_details_for_path(path)
 
   cursor.visit_children do |cursor, parent|
     if cursor.location&.file == path
-      #p([cursor.kind, cursor.location&.line, cursor&.display_name])  
+      #p([cursor.kind, cursor.location&.line, cursor&.display_name])
       if %i[cursor_class_decl cursor_class_template cursor_struct cursor_union].include?(cursor.kind) && cursor.definition?
         line = code_lines[cursor.location.line - 1]
         if line =~ /:/

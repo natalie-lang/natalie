@@ -19,6 +19,26 @@ Value RandomObject::initialize(Env *env, Value seed) {
     return this;
 }
 
+Value RandomObject::bytes(Env *env, Value size) {
+    assert(m_generator);
+
+    nat_int_t isize;
+    const auto to_int = "to_int"_s;
+    if (!size->is_integer() && size->respond_to(env, to_int))
+        size = size->send(env, to_int);
+    size->assert_type(env, Object::Type::Integer, "Integer");
+    isize = size->as_integer()->to_nat_int_t();
+    if (isize < 0)
+        env->raise("ArgumentError", "negative string size (or size too big)");
+
+    TM::String output(static_cast<size_t>(isize), '\0');
+    std::uniform_int_distribution<char> random_number {};
+    for (nat_int_t i = 0; i < isize; i++)
+        output[i] = random_number(*m_generator);
+
+    return new StringObject { std::move(output), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
 Value RandomObject::rand(Env *env, Value arg) {
     if (arg) {
         if (arg->is_float()) {

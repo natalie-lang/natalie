@@ -29,7 +29,7 @@ public:
         onig_region_free(m_region, true);
     }
 
-    const StringObject *string() { return m_string; }
+    StringObject *string() const { return m_string; }
 
     size_t size() { return m_region->num_regs; }
 
@@ -41,6 +41,9 @@ public:
     Value offset(Env *, Value);
 
     Value captures(Env *);
+    Value inspect(Env *);
+    Value match(Env *, Value);
+    Value match_length(Env *, Value);
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);

@@ -19,3 +19,12 @@ describe 'BasicObject#__send__' do
     Foo.__send__(:new).__send__(:foo).should == 'foo'
   end
 end
+
+describe 'calling send from C++ code to an undefined method' do
+  # https://github.com/natalie-lang/natalie/pull/897
+  it 'raises a NoMethodError' do
+    obj = Object.new
+    obj.singleton_class.undef_method(:==)
+    -> { 1 == obj }.should raise_error(NoMethodError)
+  end
+end

@@ -1,6 +1,7 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
 #include <cctype>
+#include <climits>
 
 namespace Natalie {
 
@@ -653,14 +654,11 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
+    if (m_type == Object::Type::Integer || m_type == Object::Type::Float || !m_ivars) {
         return new ArrayObject;
     }
 
     ArrayObject *ary = new ArrayObject { m_ivars->size() };
-
-    if (!m_ivars)
-        return ary;
 
     for (auto pair : *m_ivars)
         ary->push(pair.first);
@@ -707,6 +705,23 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     } else {
         singleton_class(env)->make_alias(env, new_name, old_name);
     }
+}
+
+nat_int_t Object::object_id() const {
+    if (is_integer()) {
+        const auto val = as_integer()->to_nat_int_t();
+        /* Recreate the logic from Ruby: Use a long as tagged pointer, where
+         * the rightmost bit is 1, and the remaning bits are the number shifted
+         * one right.
+         * The regular object ids are the actual memory addresses, these are at
+         * least 8 bit aligned, so the rightmost bit will never be set. This
+         * means we don't risk duplicate object ids for different objects.
+         */
+        if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
+            return (val << 1) | 1;
+    }
+
+    return reinterpret_cast<nat_int_t>(this);
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
@@ -806,13 +821,21 @@ Value Object::send(Env *env, Args args, Block *block) {
 
 Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, name, visibility_at_least);
+    // Remove empty keyword arguments
+    // This can be created with `send(m, *args, **kwargs)` where kwargs is empty
+    if (args.has_keyword_hash()) {
+        auto hash = args.keyword_hash();
+        if (hash && hash->is_empty())
+            args.pop_keyword_hash();
+    }
     if (method) {
         return method->call(env, this, args, block);
     } else if (respond_to(env, "method_missing"_s)) {
-        ArrayObject new_args { args.size() + 1 };
+        Vector<Value> new_args(args.size() + 1);
         new_args.push(name);
-        new_args.push(env, args);
-        return send(env, "method_missing"_s, Args(&new_args), block);
+        for (size_t i = 0; i < args.size(); i++)
+            new_args.push(args[i]);
+        return send(env, "method_missing"_s, Args(new_args, args.has_keyword_hash()), block);
     } else {
         env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
     }
@@ -830,7 +853,7 @@ Value Object::method_missing(Env *env, Args args, Block *block) {
     }
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) const {
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
@@ -890,6 +913,8 @@ Value Object::dup(Env *env) const {
         return TrueObject::the();
     case Object::Type::UnboundMethod:
         return new UnboundMethodObject { *as_unbound_method() };
+    case Object::Type::MatchData:
+        return new MatchDataObject { *as_match_data() };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str().c_str(), static_cast<int>(m_type));
         abort();
@@ -943,7 +968,7 @@ bool Object::respond_to(Env *env, Value name_val, bool include_all) {
     return respond_to_method(env, name_val, include_all);
 }
 
-bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const {
+bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
 
     ClassObject *klass = singleton_class();
@@ -951,19 +976,35 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const
         klass = m_klass;
 
     auto method_info = klass->find_method(env, name_symbol);
-    if (!method_info.is_defined())
+    if (!method_info.is_defined()) {
+        if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+            auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
+            return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+        }
         return false;
+    }
 
     if (include_all)
         return true;
 
     MethodVisibility visibility = method_info.visibility();
-    return visibility == MethodVisibility::Public;
+    if (visibility == MethodVisibility::Public) {
+        return true;
+    } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
+        auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+    } else {
+        return false;
+    }
 }
 
-bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) const {
+bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) {
     bool include_all = include_all_val ? include_all_val->is_truthy() : false;
     return respond_to_method(env, name_val, include_all);
+}
+
+bool Object::respond_to_missing(Env *, Value, Value) {
+    return false;
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
@@ -1080,7 +1121,7 @@ Value Object::enum_for(Env *env, const char *method, Args args) {
     for (size_t i = 0; i < args.size(); i++) {
         args2[i + 1] = args[i];
     }
-    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2));
+    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2, args.has_keyword_hash()));
 }
 
 void Object::visit_children(Visitor &visitor) {

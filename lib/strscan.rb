@@ -48,7 +48,12 @@ class StringScanner
   alias empty? eos?
 
   def check(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+    if pattern.is_a?(Regexp)
+      anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
+    else
+      raise TypeError, "no implicit conversion of #{pattern.class.name} into String" unless pattern.respond_to?(:to_str)
+      anchored_pattern = Regexp.new('^' + pattern.to_str)
+    end
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
     else
@@ -57,6 +62,7 @@ class StringScanner
   end
 
   def check_until(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     until (matched = check(pattern))
       @pos += 1
@@ -80,6 +86,7 @@ class StringScanner
   end
 
   def scan_until(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     until (matched = scan(pattern))
       return nil if @pos > @string.size
@@ -98,6 +105,7 @@ class StringScanner
   end
 
   def skip_until(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     until scan(pattern)
       return nil if @pos > @string.size
@@ -135,6 +143,7 @@ class StringScanner
   alias peep peek
 
   def scan_full(pattern, advance_pointer_p, return_string_p)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     start = @pos
     scan(pattern)
     distance = @pos - start
@@ -168,6 +177,7 @@ class StringScanner
   end
 
   def exist?(pattern)
+    raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
     return 0 if pattern == //
     start = @pos
     loop do
@@ -236,6 +246,10 @@ class StringScanner
     @pos = 0
     @match = nil
     @matched = nil
+  end
+
+  def size
+    @match.size if @match
   end
 
   def terminate

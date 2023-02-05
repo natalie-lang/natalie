@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Value Method::call(Env *env, Value self, Args args, Block *block) {
+Value Method::call(Env *env, Value self, Args args, Block *block) const {
     assert(m_fn);
 
     Env *closure_env;
@@ -17,6 +17,10 @@ Value Method::call(Env *env, Value self, Args args, Block *block) {
     e.set_file(env->file());
     e.set_line(env->line());
     e.set_block(block);
+
+    if (m_self) {
+        self = m_self;
+    }
 
     auto call_fn = [&](Args args) {
         if (block && !block->calling_env()) {

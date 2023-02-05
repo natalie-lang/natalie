@@ -15,6 +15,24 @@ class Set
     new(items)
   end
 
+  def ==(other)
+    if eql?(other)
+      return true
+    end
+    if other.is_a?(Set) && self.size == other.size
+      return other.all? { |element| @data.include?(element) }
+    end
+    false
+  end
+
+  def ^(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    (self | other) - (self & other)
+  end
+
   def length
     @data.length
   end
@@ -35,6 +53,17 @@ class Set
     end
   end
 
+  def classify
+    return enum_for(:classify) unless block_given?
+    hash = Hash.new
+    each do |element|
+      block_result = yield element
+      hash[block_result] = Set.new unless hash.key?(block_result)
+      hash[block_result] << element
+    end
+    hash
+  end
+
   def delete(obj)
     if include?(obj)
       @data.delete(obj)
@@ -51,14 +80,37 @@ class Set
     end
   end
 
+  def difference(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a - other.to_a)
+  end
+  alias - difference
+
+  def eql?(other)
+    self.class == other.class && @data == other.instance_variable_get(:@data)
+  end
+
   def include?(obj)
     @data.key?(obj)
   end
+  alias === include?
 
   def inspect
     "#<Set: {#{to_a}}>"
   end
   alias to_s inspect
+
+  def intersection(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(other.select { |obj| include?(obj) })
+  end
+  alias & intersection
 
   def clear
     @data.clear
@@ -79,6 +131,26 @@ class Set
       self
     else
       @data.keys.each(&block)
+    end
+  end
+
+  def union(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+
+    self.class.new(to_a + other.to_a)
+  end
+  alias + union
+  alias | union
+end
+
+module Enumerable
+  def to_set(&block)
+    if block
+      Set.new(map(&block))
+    else
+      Set.new(self)
     end
   end
 end

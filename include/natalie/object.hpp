@@ -262,7 +262,7 @@ public:
     void alias(Env *env, Value new_name, Value old_name);
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
-    nat_int_t object_id() const { return reinterpret_cast<nat_int_t>(this); }
+    nat_int_t object_id() const;
 
     Value itself() { return this; }
 
@@ -285,15 +285,16 @@ public:
     Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
     Value method_missing(Env *, Args, Block *);
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility);
+    Method *find_method(Env *, SymbolObject *, MethodVisibility) const;
 
     Value dup(Env *) const;
     Value clone(Env *env) const;
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);
-    bool respond_to_method(Env *, Value, Value) const;
-    bool respond_to_method(Env *, Value, bool) const;
+    bool respond_to_method(Env *, Value, Value);
+    bool respond_to_method(Env *, Value, bool);
+    bool respond_to_missing(Env *, Value, Value);
 
     const char *defined(Env *, SymbolObject *, bool);
     Value defined_obj(Env *, SymbolObject *, bool = false);

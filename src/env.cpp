@@ -23,7 +23,7 @@ Value Env::global_set(SymbolObject *name, Value val) {
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
-Method *Env::current_method() {
+const Method *Env::current_method() {
     Env *env = this;
     while (!env->method() && env->outer()) {
         env = env->outer();

@@ -21,6 +21,8 @@ Value FloatObject::is_infinite(Env *env) const {
 }
 
 bool FloatObject::eq(Env *env, Value other) {
+    if (is_nan())
+        return false;
     if (other->is_integer()) {
         auto integer = other->as_integer();
         return integer->integer() == m_double;
@@ -29,11 +31,7 @@ bool FloatObject::eq(Env *env, Value other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    auto equal_symbol = "=="_s;
-    if (other->respond_to(env, equal_symbol)) {
-        return other.send(env, equal_symbol, { this })->is_truthy();
-    }
-    return false;
+    return other.send(env, "=="_s, { this })->is_truthy();
 }
 
 bool FloatObject::eql(Value other) const {

@@ -92,7 +92,7 @@ module Natalie
       def macro_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
         node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
+        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
         name = node[1]
         return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
@@ -110,7 +110,7 @@ module Natalie
       def macro_require_relative(expr:, current_path:)
         args = expr[3..]
         node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
+        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
         name = node[1]
         base = File.dirname(current_path)
         ['.rb', '.cpp', ''].each do |extension|
@@ -124,7 +124,7 @@ module Natalie
       def macro_load(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
         node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
+        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
         path = node.last
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false) if full_path
