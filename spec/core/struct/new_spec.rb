@@ -135,8 +135,7 @@ describe "Struct.new" do
       StructClasses::Ruby.new.should have_method(:platform=)
     end
 
-    # NATFIXME: fails with too many arguments
-    xit "fails with too many arguments" do
+    it "fails with too many arguments" do
       -> { StructClasses::Ruby.new('2.0', 'i686', true) }.should raise_error(ArgumentError)
     end
 

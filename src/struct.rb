@@ -45,6 +45,9 @@ class Struct
           end
         else
           define_method :initialize do |*vals|
+            if vals.size > attrs.size
+              raise ArgumentError, 'struct size differs'
+            end
             attrs.each_with_index { |attr, index| send("#{attr}=", vals[index]) }
           end
         end
