@@ -2,14 +2,13 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 describe "Struct.new" do
-  # NATFIXME: support name as first argument
-  xit "creates a constant in Struct namespace with string as first argument" do
+  it "creates a constant in Struct namespace with string as first argument" do
     struct = Struct.new('Animal', :name, :legs, :eyeballs)
     struct.should == Struct::Animal
     struct.name.should == "Struct::Animal"
   end
 
-  # NATFIXME: support name as first argument
+  # NATFIXME: overwrites previously defined constants with string as first argument
   xit "overwrites previously defined constants with string as first argument" do
     first = Struct.new('Person', :height, :weight)
     first.should == Struct::Person
@@ -23,8 +22,7 @@ describe "Struct.new" do
     first.members.should_not == second.members
   end
 
-  # NATFIXME: support name as first argument
-  xit "calls to_str on its first argument (constant name)" do
+  it "calls to_str on its first argument (constant name)" do
     obj = mock('Foo')
     def obj.to_str() "Foo" end
     struct = Struct.new(obj)
@@ -32,8 +30,7 @@ describe "Struct.new" do
     struct.name.should == "Struct::Foo"
   end
 
-  # NATFIXME: support name as first argument
-  xit "creates a new anonymous class with nil first argument" do
+  it "creates a new anonymous class with nil first argument" do
     struct = Struct.new(nil, :foo)
     struct.new("bar").foo.should == "bar"
     struct.should be_kind_of(Class)
@@ -52,8 +49,7 @@ describe "Struct.new" do
   end
 
 
-  # NATFIXME: fails with invalid constant name as first argument
-  xit "fails with invalid constant name as first argument" do
+  it "fails with invalid constant name as first argument" do
     -> { Struct.new('animal', :name, :legs, :eyeballs) }.should raise_error(NameError)
   end
 
@@ -121,8 +117,7 @@ describe "Struct.new" do
   end
 
   context "on subclasses" do
-    # NATFIXME: creates a constant in subclass' namespace
-    xit "creates a constant in subclass' namespace" do
+    it "creates a constant in subclass' namespace" do
       struct = StructClasses::Apple.new('Computer', :size)
       struct.should == StructClasses::Apple::Computer
     end

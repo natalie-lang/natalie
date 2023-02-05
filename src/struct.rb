@@ -14,12 +14,18 @@ class Struct
     if respond_to?(:members)
       BasicObject.method(:new).unbind.bind(self).(*attrs)
     else
+      if !attrs.first.is_a?(Symbol) && attrs.first.respond_to?(:to_str)
+        klass = attrs.shift
+      elsif attrs.first.nil?
+        attrs.shift
+      end
+
       if attrs.last.is_a?(Hash)
         options = attrs.pop
       else
         options = {}
       end
-      Class.new(Struct) do
+      result = Class.new(Struct) do
         include Enumerable
 
         define_singleton_method :members do
@@ -120,6 +126,12 @@ class Struct
           instance_eval(&block)
         end
       end
+
+      if klass
+        Struct.const_set(klass, result)
+      end
+
+      result
     end
   end
 end
