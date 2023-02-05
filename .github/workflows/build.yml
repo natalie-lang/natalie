@@ -43,5 +43,7 @@ jobs:
         run: git submodule update --init --recursive
       - name: install ruby
         run: brew install ruby autoconf automake libtool
+      - name: install openssl
+        run: brew install openssl && brew link --force openssl
       - name: test with clang on macOS
         run: rake test
