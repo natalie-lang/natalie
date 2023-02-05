@@ -97,4 +97,11 @@ describe 'Struct' do
     i.a.should == 1
     i.b.should == 2
   end
+
+  it 'does a sanity check on the argument of #[]' do
+    s = Struct.new(:a, :b)
+    i = s.new(1)
+    -> { i[:object_id] }.should raise_error(NameError, /no member 'object_id' in struct/)
+    -> { i[2] }.should raise_error(IndexError)
+  end
 end
