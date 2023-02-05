@@ -2,12 +2,13 @@ class Struct
   include Enumerable
 
   class << self
-    alias_method :_original_new, :new
-    alias_method :[], :new
+    alias [] new
   end
 
   def self.new(*attrs)
-    if self == Struct
+    if respond_to?(:members)
+      BasicObject.method(:new).unbind.bind(self).(*attrs)
+    else
       if attrs.last.is_a?(Hash)
         options = attrs.pop
       else
@@ -15,6 +16,10 @@ class Struct
       end
       Class.new(Struct) do
         include Enumerable
+
+        define_singleton_method :members do
+          attrs
+        end
 
         define_method :length do
           attrs.length
@@ -38,18 +43,26 @@ class Struct
         end
 
         define_method :each do
-          attrs.each { |attr| yield send(attr) }
+          if block_given?
+            attrs.each { |attr| yield send(attr) }
+          else
+            enum_for(:each)
+          end
+        end
+
+        define_method :each_pair do
+          if block_given?
+            attrs.each { |attr| yield attr, send(attr) }
+          else
+            enum_for(:each_pair)
+          end
         end
 
         alias_method :values :to_a
 
         define_method :inspect do
-          str = '#<struct '
-          attrs.each_with_index do |attr, index|
-            str << "#{attr}=#{send(attr).inspect}"
-            str << ', ' unless index == attrs.size - 1
-          end
-          str << '>'
+          inspected_attrs = attrs.map { |attr| "#{attr}=#{send(attr).inspect}" }
+          "#<struct #{inspected_attrs.join(', ')}>"
         end
         alias_method :to_s, :inspect
 
@@ -77,8 +90,6 @@ class Struct
           end
         end
       end
-    else
-      _original_new(*attrs)
     end
   end
 end

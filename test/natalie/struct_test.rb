@@ -1,5 +1,8 @@
 require_relative '../spec_helper'
 
+class Foo < Struct; end
+class Bar < Foo; end
+
 describe 'Struct' do
   it 'can be created' do
     s = Struct.new(:a, :b)
@@ -34,12 +37,40 @@ describe 'Struct' do
     i.a.should == 100
   end
 
-  it 'can be iterated' do
-    s = Struct.new(:a, :b, :c)
-    i = s.new(1, 2, 3)
-    collected = []
-    i.each { |val| collected << val }
-    collected.should == [1, 2, 3]
+  describe '#each' do
+    it 'iterates the struct when a block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      collected = []
+      i.each { |val| collected << val }
+      collected.should == [1, 2, 3]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      iter = i.each
+      iter.should be_an_instance_of(Enumerator)
+      iter.to_a.should == [1, 2, 3]
+    end
+  end
+
+  describe '#each_pair' do
+    it 'iterates the attribute/value pairs' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      collected = []
+      i.each_pair { |key, val| collected << [key, val] }
+      collected.should == [[:a, 1], [:b, 2], [:c, 3]]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      s = Struct.new(:a, :b, :c)
+      i = s.new(1, 2, 3)
+      iter = i.each_pair
+      iter.should be_an_instance_of(Enumerator)
+      iter.to_a.should == [[:a, 1], [:b, 2], [:c, 3]]
+    end
   end
 
   it 'is an Enumerable' do
@@ -52,5 +83,18 @@ describe 'Struct' do
     s = Struct.new(:a, :b, :c, :d)
     i = s.new(1, 2.3, 'foo', nil)
     i.inspect.should == "#<struct a=1, b=2.3, c=\"foo\", d=nil>"
+  end
+
+  it 'can subclass Struct' do
+    c = Class.new(Struct)
+    s = c.new(:a, :b)
+    i = s.new(1, 2)
+    i.a.should == 1
+    i.b.should == 2
+
+    s = Bar.new(:a, :b)
+    i = s.new(1, 2)
+    i.a.should == 1
+    i.b.should == 2
   end
 end
