@@ -206,15 +206,13 @@ describe "Struct.new" do
         }.should raise_error(ArgumentError, /unknown keywords: foo/)
       end
 
-      # NATFIXME: raises ArgumentError when passed a list of arguments
-      xit "raises ArgumentError when passed a list of arguments" do
+      it "raises ArgumentError when passed a list of arguments" do
         -> {
           @struct_with_kwa.new("elefant", 4)
         }.should raise_error(ArgumentError, /wrong number of arguments/)
       end
 
-      # NATFIXME: raises ArgumentError when passed a single non-hash argument
-      xit "raises ArgumentError when passed a single non-hash argument" do
+      it "raises ArgumentError when passed a single non-hash argument" do
         -> {
           @struct_with_kwa.new("elefant")
         }.should raise_error(ArgumentError, /wrong number of arguments/)

@@ -41,6 +41,9 @@ class Struct
 
         if options[:keyword_init]
           define_method :initialize do |args = {}|
+            unless args.is_a?(Hash)
+              raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+            end
             invalid_keywords = args.each_key.reject { |arg| attrs.include?(arg) }
             unless invalid_keywords.empty?
               raise ArgumentError, "unknown keywords: #{invalid_keywords.join(', ')}"
