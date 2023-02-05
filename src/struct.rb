@@ -80,6 +80,25 @@ class Struct
           end
         end
 
+        define_method :dig do |*args|
+          if args.empty?
+            raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
+          end
+          arg = args.shift
+          res = begin
+                  self[arg]
+                rescue NoMethodError
+                  nil
+                end
+          if args.empty? || res.nil?
+            res
+          elsif !res.respond_to?(:dig)
+            raise TypeError, "#{res.class} does not have #dig method"
+          else
+            res.dig(*args)
+          end
+        end
+
         define_method :to_h do |&block|
           attrs.to_h do |attr|
             result = [attr.to_sym, send(attr)]
