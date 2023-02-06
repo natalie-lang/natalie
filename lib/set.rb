@@ -85,6 +85,13 @@ class Set
     end
   end
 
+  def delete_if
+    return enum_for(:delete_if) unless block_given?
+    each do |element|
+      @data.delete(element) if yield element
+    end
+  end
+
   def difference(other)
     unless other.is_a?(Enumerable)
       raise ArgumentError, 'value must be enumerable'
