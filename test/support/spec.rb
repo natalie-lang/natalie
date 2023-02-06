@@ -1448,37 +1448,38 @@ at_exit { run_specs }
 #   some_spec.should be "bad"
 # end
 #
-# 2) Hide any error matching a klass
-# NATFIXME "some description", klass: NoMethodError do
+# 2) Hide any error matching a exception
+# NATFIXME "some description", exception: NoMethodError do
 #   some_spec.foo.should be "also bad"
 # end
 #
-# 3) Hide any error matching a klass and with error-message match
-# NATFIXME "some description", klass: NoMethodError, match: /method foo undefined/ do
+# 3) Hide any error matching a exception with message
+# NATFIXME "some description", exception: NoMethodError, message: /method foo undefined/ do
 #   some_spec.foo.should be "also bad"
 # end
 #
-# If the code inside the block does not cause the error or the error it caues does not match the klass (or klass/match) then
-# NatalieFixMeException will be raised.
+# If the code inside the block does not cause the error or the error it causes does
+# not match the exception (or exception/message) then NatalieFixMeException will be raised.
 #
-def NATFIXME(description, klass: nil, match: nil)
+def NATFIXME(description, exception: nil, message: nil)
   raise SpecFailedException, "NATFIXME requires a block" unless block_given?
-  klass ||= StandardError
-  match = case match
-          when String then Regexp.new(match)
-          when Regexp then match
-          when nil then %r/.*/
-          else raise ArgumentError, "match must be nil, Regexp or String"
-          end
-  
+  exception ||= StandardError
+
+  matcher = case message
+  when String then ->(exmsg) { exmsg.include?(message) }
+  when Regexp then ->(exmsg) { message.match?(exmsg) }
+  when nil then ->(_) { true }
+  else raise ArgumentError, "match must be nil, Regexp or String"
+  end
+
   status, ex = begin
     yield
     [:unexpected_pass, nil]
-  rescue klass => ex
-    if match && ex.message !~ match
-      [:correct_error_class_wrong_message, ex]
-    else
+  rescue exception => ex
+    if matcher.call(ex.message)
       [:valid_fixme, ex]
+    else
+      [:correct_error_class_wrong_message, ex]
     end
   rescue Exception => ex
     [:wrong_error_class, ex] # another error was thrown
@@ -1488,8 +1489,8 @@ def NATFIXME(description, klass: nil, match: nil)
   when :unexpected_pass
     raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
   when :correct_error_class_wrong_message
-    raise NatalieFixMeException, "Issue hidden by NATFIXME marker match-message is incorrect"
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect"
   when :wrong_error_class
-    raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{klass}, was #{ex.class}"
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{exception}, was #{ex.class}"
   end
 end

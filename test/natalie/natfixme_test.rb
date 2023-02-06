@@ -15,15 +15,15 @@ describe "NATFIXME" do
     end
   end
 
-  it "hides a failing block with klass" do
-    NATFIXME "cant load a missing thing", klass: LoadError do
+  it "hides a failing block with exception" do
+    NATFIXME "cant load a missing thing", exception: LoadError do
       load "/tmp/xyzzy.eW91dmVfYmVlbl9lYXRlbl9ieV9hX2dydWUK"
     end
   end
 
-  it "hides a failing block with klass and match" do
+  it "hides a failing block with exception and message" do
     s = "567879"
-    NATFIXME "Pending String#foo", klass: NoMethodError, match: /method.*foo/ do
+    NATFIXME "Pending String#foo", exception: NoMethodError, message: /method.*foo/ do
       s.foo.should == "foo567879"
     end
   end
@@ -37,9 +37,9 @@ describe "NATFIXME" do
     }.should raise_error(NatalieFixMeException)
   end
 
-  it "raises when the block raises but with the wrong klass" do
+  it "raises when the block raises but with the wrong exception" do
     -> {
-      NATFIXME "cant load a missing thing", klass: ZeroDivisionError do
+      NATFIXME "cant load a missing thing", exception: ZeroDivisionError do
         load "/tmp/xyzzy.eW91dmVfYmVlbl9lYXRlbl9ieV9hX2dydWUK"
       end
     }.should raise_error(NatalieFixMeException)
@@ -47,7 +47,7 @@ describe "NATFIXME" do
 
   it "raises when the block raises but with the wrong message" do
     -> {
-      NATFIXME "cant load a missing thing", klass: ZeroDivisionError, match: "divided by ZERO" do
+      NATFIXME "cant load a missing thing", exception: ZeroDivisionError, message: "divided by ZERO" do
         1 / 0
       end
     }.should raise_error(NatalieFixMeException)
