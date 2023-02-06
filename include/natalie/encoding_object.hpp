@@ -25,6 +25,7 @@ public:
 
     EncodingObject(Encoding, std::initializer_list<const String>);
 
+    // Try to get rid of this
     Encoding num() const { return m_num; }
 
     const StringObject *name() const;
@@ -34,42 +35,9 @@ public:
 
     Value inspect(Env *) const;
 
-    bool in_encoding_codepoint_range(nat_int_t codepoint) {
-        switch (m_num) {
-        case Encoding::ASCII_8BIT:
-            return codepoint >= 0 && codepoint < 256;
-        case Encoding::US_ASCII:
-            return codepoint >= 0 && codepoint < 128;
-        case Encoding::UTF_8:
-            return codepoint >= 0 && codepoint < 1114112;
-        case Encoding::UTF_32LE:
-            // it's positive and takes 1-4 bytes
-            return codepoint >= 0 && codepoint < 0x10000000000;
-        case Encoding::UTF_32BE:
-            // it's positive and takes 1-4 bytes
-            return codepoint >= 0 && codepoint < 0x10000000000;
-        case Encoding::UTF_16LE:
-            // it's positive and takes 1-4 bytes
-            return codepoint >= 0 && codepoint < 0x10000000000;
-        case Encoding::UTF_16BE:
-            // it's positive and takes 1-4 bytes
-            return codepoint >= 0 && codepoint < 0x10000000000;
-        }
-        NAT_UNREACHABLE();
-    }
-
-    bool is_ascii_compatible() const {
-        switch (m_num) {
-        case Encoding::ASCII_8BIT:
-        case Encoding::US_ASCII:
-        case Encoding::UTF_8:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    bool is_dummy() { return m_dummy; }
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) { NAT_UNREACHABLE(); }
+    virtual bool is_ascii_compatible() const { return false; } // default
+    virtual bool is_dummy() { return false; }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
@@ -105,7 +73,6 @@ public:
 private:
     Vector<String> m_names {};
     Encoding m_num;
-    bool m_dummy { false };
 
     static inline TM::Hashmap<Encoding, EncodingObject *> s_encoding_list {};
     static inline EncodingObject *s_default_internal = nullptr;

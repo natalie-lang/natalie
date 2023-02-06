@@ -21,12 +21,12 @@ describe "String#valid_encoding?" do
     #str.force_encoding('Big5').valid_encoding?.should be_false
     #str.force_encoding('CP949').valid_encoding?.should be_false
     #str.force_encoding('Emacs-Mule').valid_encoding?.should be_false
-    #str.force_encoding('EUC-JP').valid_encoding?.should be_false
+    str.force_encoding('EUC-JP').valid_encoding?.should be_false
     #str.force_encoding('EUC-KR').valid_encoding?.should be_false
     #str.force_encoding('EUC-TW').valid_encoding?.should be_false
     #str.force_encoding('GB18030').valid_encoding?.should be_false
     #str.force_encoding('GBK').valid_encoding?.should be_false
-    #str.force_encoding('ISO-8859-1').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-1').valid_encoding?.should be_true
     #str.force_encoding('ISO-8859-2').valid_encoding?.should be_true
     #str.force_encoding('ISO-8859-3').valid_encoding?.should be_true
     #str.force_encoding('ISO-8859-4').valid_encoding?.should be_true
@@ -43,13 +43,13 @@ describe "String#valid_encoding?" do
     #str.force_encoding('ISO-8859-16').valid_encoding?.should be_true
     #str.force_encoding('KOI8-R').valid_encoding?.should be_true
     #str.force_encoding('KOI8-U').valid_encoding?.should be_true
-    #str.force_encoding('Shift_JIS').valid_encoding?.should be_false
+    str.force_encoding('Shift_JIS').valid_encoding?.should be_false
     #"\xD8\x00".force_encoding('UTF-16BE').valid_encoding?.should be_false
     "\x00\xD8".force_encoding('UTF-16LE').valid_encoding?.should be_false
     "\x04\x03\x02\x01".force_encoding('UTF-32BE').valid_encoding?.should be_false
     "\x01\x02\x03\x04".force_encoding('UTF-32LE').valid_encoding?.should be_false
     #str.force_encoding('Windows-1251').valid_encoding?.should be_true
-    #str.force_encoding('IBM437').valid_encoding?.should be_true
+    str.force_encoding('IBM437').valid_encoding?.should be_true
     #str.force_encoding('IBM737').valid_encoding?.should be_true
     #str.force_encoding('IBM775').valid_encoding?.should be_true
     #str.force_encoding('CP850').valid_encoding?.should be_true
@@ -64,7 +64,7 @@ describe "String#valid_encoding?" do
     #str.force_encoding('IBM863').valid_encoding?.should be_true
     #str.force_encoding('IBM864').valid_encoding?.should be_true
     #str.force_encoding('IBM865').valid_encoding?.should be_true
-    #str.force_encoding('IBM866').valid_encoding?.should be_true
+    str.force_encoding('IBM866').valid_encoding?.should be_true
     #str.force_encoding('IBM869').valid_encoding?.should be_true
     #str.force_encoding('Windows-1258').valid_encoding?.should be_true
     #str.force_encoding('GB1988').valid_encoding?.should be_true

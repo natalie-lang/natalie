@@ -104,8 +104,7 @@ describe "String#ljust with length, padding" do
     end
   end
 
-  # NATFIXME: Add back once we have encodings.
-  xdescribe "with width" do
+  describe "with width" do
     it "returns a String in the same encoding as the original" do
       str = "abc".force_encoding Encoding::IBM437
       result = str.ljust 5

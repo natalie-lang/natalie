@@ -121,8 +121,7 @@ describe "String#center with length, padding" do
     end
   end
 
-  # NATFIXME: Add back after adding encodings.
-  xdescribe "with width" do
+  describe "with width" do
     it "returns a String in the same encoding as the original" do
       str = "abc".force_encoding Encoding::IBM437
       result = str.center 6

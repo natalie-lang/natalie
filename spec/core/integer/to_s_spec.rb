@@ -43,9 +43,7 @@ describe "Integer#to_s" do
     end
 
     it "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
-      # NATFIXME: implement Encoding::IBM437
-      #Encoding.default_internal = Encoding::IBM437
-      Encoding.default_internal = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::IBM437
       1.to_s.encoding.should equal(Encoding::US_ASCII)
     end
   end
@@ -90,9 +88,7 @@ describe "Integer#to_s" do
     end
 
     it "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
-      # NATFIXME: implement Encoding::IBM437
-      #Encoding.default_internal = Encoding::IBM437
-      Encoding.default_internal = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::IBM437
       bignum_value.to_s.encoding.should equal(Encoding::US_ASCII)
     end
   end
