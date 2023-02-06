@@ -151,6 +151,14 @@ class Set
     end
   end
 
+  def merge(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, "value must be enumerable"
+    end
+    other.each { |element| add(element) }
+    self
+  end
+
   def replace(other, &block)
     clear
     other.each do |element|
