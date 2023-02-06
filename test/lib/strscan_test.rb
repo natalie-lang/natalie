@@ -21,4 +21,11 @@ describe 'StringScanner' do
     s.scan(/\s+/).should == nil
     s.scan(/\w+/).should == nil
   end
+
+  describe '#scan_until' do
+    it 'works with zero length matches' do
+      s = StringScanner.new('foo bar')
+      s.scan_until(/(?=\s)/).should == 'foo'
+    end
+  end
 end

@@ -92,7 +92,8 @@ class StringScanner
       return nil if @pos > @string.size
       @pos += 1
     end
-    @string[start...@pos + matched.size - 1]
+    index = matched.empty? ? @pos : @pos + matched.size - 1
+    @string[start...index]
   end
 
   def skip(pattern)
