@@ -31,13 +31,13 @@ public:
     const StringObject *name() const;
     Value name(Env *);
 
-    ArrayObject *names(Env *);
+    ArrayObject *names(Env *) const;
 
     Value inspect(Env *) const;
 
     virtual bool in_encoding_codepoint_range(nat_int_t codepoint) { NAT_UNREACHABLE(); }
     virtual bool is_ascii_compatible() const { return false; } // default
-    virtual bool is_dummy() { return false; }
+    virtual bool is_dummy() const { return false; }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
