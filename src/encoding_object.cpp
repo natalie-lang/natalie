@@ -167,7 +167,7 @@ const StringObject *EncodingObject::name() const {
     return new StringObject { m_names[0] };
 }
 
-ArrayObject *EncodingObject::names(Env *env) {
+ArrayObject *EncodingObject::names(Env *env) const {
     auto array = new ArrayObject { m_names.size() };
     for (const auto &name : m_names)
         array->push(new StringObject { name });
