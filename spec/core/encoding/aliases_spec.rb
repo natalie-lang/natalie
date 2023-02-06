@@ -27,18 +27,15 @@ describe "Encoding.aliases" do
     Encoding.aliases['ASCII'].should == 'US-ASCII'
   end
 
-  # NATFIXME: add back once we have a concept of external default encoding
-  xit "has an 'external' key with the external default encoding as its value" do
+  it "has an 'external' key with the external default encoding as its value" do
     Encoding.aliases['external'].should == Encoding.default_external.name
   end
 
-  # NATFIXME: add back once we have a concept of locale charmap
-  xit "has a 'locale' key and its value equals the name of the encoding found by the locale charmap" do
+  it "has a 'locale' key and its value equals the name of the encoding found by the locale charmap" do
     Encoding.aliases['locale'].should == Encoding.find(Encoding.locale_charmap).name
   end
 
-  # NATFIXME: add back once we have a find method
-  xit "only contains valid aliased encodings" do
+  it "only contains valid aliased encodings" do
     Encoding.aliases.each do |aliased, original|
       Encoding.find(aliased).should == Encoding.find(original)
     end
