@@ -68,9 +68,8 @@ describe "Integer#chr without argument" do
           Encoding.default_internal = Encoding::UTF_8
           c.chr.encoding.should == Encoding::US_ASCII
 
-          # NATFIXME: Implement Encoding::SHIFT_JIS
-          #Encoding.default_internal = Encoding::SHIFT_JIS
-          #c.chr.encoding.should == Encoding::US_ASCII
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          c.chr.encoding.should == Encoding::US_ASCII
         end
       end
 
@@ -79,9 +78,8 @@ describe "Integer#chr without argument" do
           Encoding.default_internal = Encoding::UTF_8
           c.chr.bytes.to_a.should == [c]
 
-          # NATFIXME: Implement Encoding::SHIFT_JIS
-          #Encoding.default_internal = Encoding::SHIFT_JIS
-          #c.chr.bytes.to_a.should == [c]
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          c.chr.bytes.to_a.should == [c]
         end
       end
     end
@@ -92,9 +90,8 @@ describe "Integer#chr without argument" do
           Encoding.default_internal = Encoding::UTF_8
           c.chr.encoding.should == Encoding::BINARY
 
-          # NATFIXME: Implement Encoding::SHIFT_JIS
-          # Encoding.default_internal = Encoding::SHIFT_JIS
-          # c.chr.encoding.should == Encoding::BINARY
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          c.chr.encoding.should == Encoding::BINARY
         end
       end
 
@@ -103,9 +100,8 @@ describe "Integer#chr without argument" do
           Encoding.default_internal = Encoding::UTF_8
           c.chr.bytes.to_a.should == [c]
 
-          # NATFIXME: Implement Encoding::SHIFT_JIS
-          # Encoding.default_internal = Encoding::SHIFT_JIS
-          # c.chr.bytes.to_a.should == [c]
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          c.chr.bytes.to_a.should == [c]
         end
       end
     end
@@ -116,7 +112,7 @@ describe "Integer#chr without argument" do
         0x0100.chr.encoding.should == Encoding::UTF_8
         0x3000.chr.encoding.should == Encoding::UTF_8
 
-        # NATFIXME: Implement Encoding::SHIFT_JIS
+        # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
         # Encoding.default_internal = Encoding::SHIFT_JIS
         # 0x8140.chr.encoding.should == Encoding::SHIFT_JIS
         # 0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
@@ -182,7 +178,7 @@ describe "Integer#chr with an encoding argument" do
     -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
   end
 
-  # NATFIXME: Add Encoding::SHIFT_JIS
+  # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
   it "returns a String with the specified encoding" do
     0x0000.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
     0x007F.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
@@ -207,7 +203,7 @@ describe "Integer#chr with an encoding argument" do
     # 0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
   end
 
-  # NATFIXME: Add Encoding::SHIFT_JIS
+  # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
   it "returns a String encoding self interpreted as a codepoint in the specified encoding" do
     0x0000.chr(Encoding::US_ASCII).bytes.to_a.should == [0x00]
     0x007F.chr(Encoding::US_ASCII).bytes.to_a.should == [0x7F]
@@ -241,8 +237,8 @@ describe "Integer#chr with an encoding argument" do
       # [0x0100, "EUC-JP"],
       # [0xA1A0, "EUC-JP"],
       # [0xA1,   "EUC-JP"],
-      # [0x80,   "SHIFT_JIS"],
-      # [0xE0,   "SHIFT_JIS"],
+      [0x80,   "SHIFT_JIS"],
+      [0xE0,   "SHIFT_JIS"],
       # [0x0100, "ISO-8859-9"],
       # [620,    "TIS-620"],
       [0xD800, "UTF-8"],
