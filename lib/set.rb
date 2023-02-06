@@ -64,6 +64,11 @@ class Set
     hash
   end
 
+  def collect!(&block)
+    replace(each, &block)
+  end
+  alias map! collect!
+
   def delete(obj)
     if include?(obj)
       @data.delete(obj)
@@ -133,6 +138,18 @@ class Set
     else
       @data.keys.each(&block)
     end
+  end
+
+  def replace(other, &block)
+    clear
+    other.each do |element|
+      if block
+        add(block.call(element))
+      else
+        add(element)
+      end
+    end
+    self
   end
 
   def union(other)
