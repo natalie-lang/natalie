@@ -101,6 +101,12 @@ Value MatchDataObject::post_match(Env *env) {
     return m_string->ref_fast_range(env, m_region->end[0], m_string->length());
 }
 
+Value MatchDataObject::pre_match(Env *env) {
+    if (m_region->beg[0] == -1)
+        return NilObject::the();
+    return m_string->ref_fast_range(env, 0, m_region->beg[0]);
+}
+
 Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
