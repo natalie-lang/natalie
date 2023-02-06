@@ -245,10 +245,10 @@ describe "Integer#chr with an encoding argument" do
       [0xDBFF, "UTF-8"],
       [0xDC00, "UTF-8"],
       [0xDFFF, "UTF-8"],
-      # [0xD800, "UTF-16"],
-      # [0xDBFF, "UTF-16"],
-      # [0xDC00, "UTF-16"],
-      # [0xDFFF, "UTF-16"],
+      [0xD800, "UTF-16"],
+      [0xDBFF, "UTF-16"],
+      [0xDC00, "UTF-16"],
+      [0xDFFF, "UTF-16"],
     ].each do |integer, encoding_name|
       -> { integer.chr(encoding_name) }.should raise_error(RangeError)
     end
