@@ -134,8 +134,8 @@ describe "Integer#chr without argument" do
       it "raises RangeError if self is invalid as a codepoint in the default internal encoding" do
         [ [0x0100, "US-ASCII"],
           [0x0100, "BINARY"],
-          #[0x0100, "EUC-JP"],
-          #[0xA1A0, "EUC-JP"],
+          [0x0100, "EUC-JP"],
+          [0xA1A0, "EUC-JP"],
           #[0x0100, "ISO-8859-9"],
           #[620,    "TIS-620"]
         ].each do |integer, encoding_name|
@@ -156,7 +156,7 @@ describe "Integer#chr with an encoding argument" do
     8287.chr(Encoding::UTF_8).should_not equal(8287.chr(Encoding::UTF_8))
   end
 
-  # NATFIXME: Implement Encoding::EUC_JP
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "accepts a String as an argument" do
     -> { 0xA4A2.chr('euc-jp') }.should_not raise_error
   end
@@ -170,8 +170,7 @@ describe "Integer#chr with an encoding argument" do
   # http://redmine.ruby-lang.org/issues/4869
   it "raises a RangeError is self is less than 0" do
     -> { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError)
-    # NATFIXME: Implement Encoding::EUC_JP
-    # -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError)
+    -> { (-bignum_value).chr(Encoding::EUC_JP) }.should raise_error(RangeError)
   end
 
   it "raises a RangeError if self is too large" do
@@ -234,9 +233,9 @@ describe "Integer#chr with an encoding argument" do
   xit "raises RangeError if self is invalid as a codepoint in the specified encoding" do
     [ [0x80,   "US-ASCII"],
       [0x0100, "BINARY"],
-      # [0x0100, "EUC-JP"],
-      # [0xA1A0, "EUC-JP"],
-      # [0xA1,   "EUC-JP"],
+      [0x0100, "EUC-JP"],
+      [0xA1A0, "EUC-JP"],
+      [0xA1,   "EUC-JP"],
       [0x80,   "SHIFT_JIS"],
       [0xE0,   "SHIFT_JIS"],
       # [0x0100, "ISO-8859-9"],

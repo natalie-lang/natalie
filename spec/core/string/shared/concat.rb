@@ -74,10 +74,9 @@ describe :string_concat, shared: true do
       a.should == 255.chr
     end
 
-    # NATFIXME: Implement EUC_JP encoding
     it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
       -> { "".encode(Encoding::US_ASCII).send(@method, 256) }.should raise_error(RangeError)
-      # -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
+      -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
     end
 
     it "raises RangeError if the argument is negative" do

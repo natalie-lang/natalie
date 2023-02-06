@@ -1,8 +1,7 @@
 require 'stringio'
 require_relative '../../spec_helper'
 
-# NATFIXME: Support Encoding::EUC_JP
-xdescribe "StringIO#external_encoding" do
+describe "StringIO#external_encoding" do
   it "gets the encoding of the underlying String" do
     io = StringIO.new
     io.set_encoding Encoding::EUC_JP

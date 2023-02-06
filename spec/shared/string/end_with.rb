@@ -46,7 +46,7 @@ describe :end_with, shared: true do
     "céréale".send(@method).should.end_with?("réale")
   end
 
-  # NATFIXME: no support yet for EUC_JP encoding
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
     -> do

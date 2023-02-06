@@ -63,7 +63,7 @@ describe "String#insert with index, other" do
     str.encoding.should == Encoding::UTF_8
   end
 
-  # NATFIXME: Implement Encoding::EUC_JP
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
     -> do

@@ -206,8 +206,7 @@ xdescribe "StringIO#initialize sets" do
     io.string.encoding.should == Encoding::ISO_8859_2
   end
 
-  # NATFIXME: Implement Encoding::EUC_JP
-  xit "the encoding to the encoding of the String when passed a String" do
+  it "the encoding to the encoding of the String when passed a String" do
     s = ''.force_encoding(Encoding::EUC_JP)
     io = StringIO.new(s)
     io.string.encoding.should == Encoding::EUC_JP
@@ -217,8 +216,7 @@ xdescribe "StringIO#initialize sets" do
     stringio_version = StringIO.const_defined?(:VERSION) ? StringIO::VERSION : "0.0.2"
     version_is(stringio_version, "0.0.3"..."0.1.1")
   } do
-    # NATFIXME: Implement Encoding::EUC_JP
-    xit "the #external_encoding to the encoding of the String when passed a String" do
+    it "the #external_encoding to the encoding of the String when passed a String" do
       s = ''.force_encoding(Encoding::EUC_JP)
       io = StringIO.new(s)
       io.external_encoding.should == Encoding::EUC_JP
