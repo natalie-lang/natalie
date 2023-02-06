@@ -86,9 +86,8 @@ describe :float_to_s, shared: true do
     value = 0.21611564636388508
     string = "0.21611564636388508"
 
-    # NATFIXME: Support String#to_f
-    # value.send(@method).should == string
-    # string.to_f.should == value
+    value.send(@method).should == string
+    string.to_f.should == value
   end
 
   it "outputs the minimal, unique form to represent the value" do
