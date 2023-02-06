@@ -131,7 +131,7 @@ class Set
       @data.keys.each(&block)
       self
     else
-      @data.keys.each(&block)
+      @data.keys.each
     end
   end
 
