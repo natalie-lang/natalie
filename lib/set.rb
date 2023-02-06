@@ -135,6 +135,18 @@ class Set
     end
   end
 
+  def replace(other, &block)
+    clear
+    other.each do |element|
+      if block
+        add(block.call(element))
+      else
+        add(element)
+      end
+    end
+    self
+  end
+
   def union(other)
     unless other.is_a?(Enumerable)
       raise ArgumentError, 'value must be enumerable'
