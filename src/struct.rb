@@ -108,6 +108,18 @@ class Struct
           send(arg)
         end
 
+        define_method :[]= do |key, value|
+          case key
+          when String, Symbol
+            unless attrs.include?(key.to_sym)
+              raise NameError, "no member '#{key}' in struct"
+            end
+          else
+            key = attrs.fetch(key)
+          end
+          send("#{key}=", value)
+        end
+
         define_method :dig do |*args|
           if args.empty?
             raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
