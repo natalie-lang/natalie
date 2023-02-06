@@ -149,8 +149,7 @@ describe :string_concat_encoding, shared: true do
       "abc".encode("UTF-8").send(@method, "123".encode("SHIFT_JIS")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement ISO-8859-1
-    xit "uses self's encoding if the argument is ASCII-only" do
+    it "uses self's encoding if the argument is ASCII-only" do
       "\u00E9".encode("UTF-8").send(@method, "123".encode("ISO-8859-1")).encoding.should == Encoding::UTF_8
     end
 
