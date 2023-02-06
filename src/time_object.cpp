@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <string.h>
 
 namespace Natalie {
 
@@ -8,7 +9,17 @@ TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit) {
         auto scale = convert_unit(env, unit ? unit : "microsecond"_s);
         rational = rational->add(env, convert_rational(env, subsec)->div(env, scale))->as_rational();
     }
-    return TimeObject::create(env, rational, Mode::Localtime);
+    return create(env, rational, Mode::Localtime);
+}
+
+TimeObject *TimeObject::at(Env *env, Value time, Value subsec, Value unit, Value in) {
+    auto result = at(env, time, subsec, unit);
+    if (in) {
+        result->m_time.tm_gmtoff = normalize_timezone(env, in);
+        result->m_zone = strdup("UTC");
+        result->m_time.tm_zone = result->m_zone;
+    }
+    return result;
 }
 
 TimeObject *TimeObject::local(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value usec) {
@@ -27,24 +38,35 @@ TimeObject *TimeObject::create(Env *env) {
     return now(env, nullptr);
 }
 
-TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value zone) {
+// Time.new
+TimeObject *TimeObject::initialize(Env *env, Value year, Value month, Value mday, Value hour, Value min, Value sec, Value tmzone, Value in) {
     if (!year) {
         return now(env, nullptr);
     } else if (year->is_nil()) {
         env->raise("TypeError", "Year cannot be nil");
     } else {
-
         auto result = now(env, nullptr);
         result->build_time(env, year, month, mday, hour, min, sec);
         int seconds = mktime(&result->m_time);
-        result->m_mode = Mode::Localtime;
         result->m_integer = Value::integer(seconds);
         result->m_subsec = nullptr;
+        if (tmzone && in) {
+            env->raise("ArgumentError", "cannot specify zone and in:");
+        } else if (tmzone) {
+            result->m_time.tm_gmtoff = normalize_timezone(env, tmzone);
+            result->m_mode = Mode::UTC;
+        } else if (in) {
+            result->m_time.tm_gmtoff = normalize_timezone(env, in);
+            result->m_mode = Mode::UTC;
+        } else {
+            result->m_mode = Mode::Localtime;
+        }
+
         return result;
     }
 }
 
-TimeObject *TimeObject::now(Env *env, Value _in) {
+TimeObject *TimeObject::now(Env *env, Value in) {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     struct tm time = *localtime(&ts.tv_sec);
@@ -53,6 +75,9 @@ TimeObject *TimeObject::now(Env *env, Value _in) {
     result->m_mode = Mode::Localtime;
     result->m_integer = Value::integer(ts.tv_sec);
     result->set_subsec(env, ts.tv_nsec);
+    if (in) {
+        result->m_time.tm_gmtoff = normalize_timezone(env, in);
+    }
     return result;
 }
 
@@ -87,7 +112,11 @@ Value TimeObject::add(Env *env, Value other) {
     }
     RationalObject *rational = to_r(env)->as_rational();
     rational = rational->add(env, other->send(env, "to_r"_s)->as_rational())->as_rational();
-    return TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, rational, m_mode);
+    if (is_utc(env)) { // preserve utc-offset for result if a utc-time
+        result->m_time.tm_gmtoff = utc_offset(env)->as_integer()->to_nat_int_t();
+    }
+    return result;
 }
 
 Value TimeObject::asctime(Env *env) {
@@ -182,7 +211,11 @@ Value TimeObject::minus(Env *env, Value other) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
-    return TimeObject::create(env, rational, m_mode);
+    auto result = TimeObject::create(env, rational, m_mode);
+    if (is_utc(env)) { // preserve utc-offset for result if a utc-time
+        result->m_time.tm_gmtoff = utc_offset(env)->as_integer()->to_nat_int_t();
+    }
+    return result;
 }
 
 Value TimeObject::month(Env *) const {
@@ -266,6 +299,64 @@ Value TimeObject::year(Env *) const {
     return Value::integer(m_time.tm_year + 1900);
 }
 
+// utc-offset and military timezone decoding
+nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
+    nat_int_t minsec = 60; // seconds in an minute
+    nat_int_t hoursec = 3600; // seconds in an hour
+
+    if (val->is_string()) {
+        auto str = val->as_string()->string();
+        auto ssize = str.size();
+        if (str == "UTC") {
+            return 0;
+        } else if (ssize == 1) {
+            char mil_tz = str.at(0);
+            // https://en.wikipedia.org/wiki/List_of_military_time_zones
+            if (mil_tz >= 'A' && mil_tz <= 'I') {
+                return (mil_tz - 'A' + 1) * hoursec;
+            } else if (mil_tz >= 'K' && mil_tz <= 'M') {
+                return (mil_tz - 'K' + 10) * hoursec;
+            } else if (mil_tz >= 'N' && mil_tz <= 'Y') {
+                return (mil_tz - 'N' + 1) * -1 * hoursec;
+            } else if (mil_tz == 'Z') {
+                return 0;
+            }
+            // other single characters are illegal
+        } else if (ssize == 6 || ssize == 9) {
+            char sign = str.at(0);
+            if ((sign == '+' || sign == '-') && isdigit(str[1]) && isdigit(str[2]) && str[3] == ':' && isdigit(str[4]) && isdigit(str[5]) && (ssize == 6 || (str[6] == ':' && isdigit(str[7]) && isdigit(str[8])))) {
+
+                nat_int_t isign = (sign == '+') ? 1 : -1;
+                auto hour = atoi(str.substring(1, 2).c_str());
+                auto min = atoi(str.substring(4, 2).c_str());
+                nat_int_t sec = 0;
+                if (ssize == 9) {
+                    sec = atoi(str.substring(7, 2).c_str());
+                }
+                if (hour < 24 && min < 60 && sec < 60) {
+                    return isign * ((hour * hoursec) + (min * minsec) + sec);
+                } else {
+                    env->raise("ArgumentError", "utc_offset out of range");
+                }
+            }
+        }
+        // any fall-through of the above ugly logic
+        env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
+    }
+    if (!val->is_integer() && val->respond_to(env, "to_int"_s)) {
+        val = val->send(env, "to_int"_s);
+    }
+    if (val->is_integer()) {
+        auto seconds = val->as_integer()->to_nat_int_t();
+        if (seconds > hoursec * -24 && seconds < hoursec * 24) {
+            return seconds;
+        }
+        env->raise("ArgumentError", "utc_offset out of range");
+    }
+    // NATFIXME: Should allow timezone argument
+    env->raise("NotImplementedError", "Not implemented for non String/Integer arg");
+}
+
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {
     if (!val->is_integer()) {
         if (val->respond_to(env, "to_i"_s)) {
@@ -345,6 +436,8 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
         return value->as_rational();
     } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
+    } else if (value->respond_to(env, "to_int"_s)) {
+        return RationalObject::create(env, value->send(env, "to_int"_s)->as_integer(), new IntegerObject { 1 });
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
     }
@@ -409,6 +502,10 @@ void TimeObject::build_time(Env *env, Value year, Value month, Value mday, Value
         m_time.tm_min = TimeObject::normalize_field(env, min, 0, 59);
     }
     if (sec && !sec->is_nil()) {
+        if (sec->is_string()) {
+            // ensure base10 conversion for case of "01" input
+            sec = KernelModule::Integer(env, sec, 10, true)->as_integer();
+        }
         if (sec->is_integer()) {
             auto sec_i = sec->as_integer()->to_nat_int_t();
             if (sec_i < 0 || sec_i > 59) {
@@ -469,14 +566,15 @@ Value TimeObject::strip_zeroes(StringObject *string) {
     }
 }
 
-// NATFIXME: support writing actual zone string/object
-// based on m_zone
+// NATFIXME: unclear conditions to return nil, logic may be off here.
 Value TimeObject::zone(Env *env) const {
+    if (m_time.tm_gmtoff != 0) {
+        return NilObject::the();
+    }
     if (is_utc(env)) {
         return new StringObject { "UTC", Encoding::US_ASCII };
     }
-    return NilObject::the();
-    // return new StringObject { "", Encoding::US_ASCII };
+    return new StringObject { m_zone, Encoding::US_ASCII };
 }
 
 }
