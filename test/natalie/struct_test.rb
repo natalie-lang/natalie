@@ -14,6 +14,14 @@ describe 'Struct' do
     s.new(1, 2)
   end
 
+  it 'cannot be initialized without arguments' do
+    -> { Struct.new }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1+)')
+
+    # But this is accepted in MRI, which feels like a bug
+    named_struct = Struct.new('NamedStruct')
+    named_struct.should == Struct::NamedStruct
+  end
+
   context 'keyword_init' do
     it 'can be created' do
       s = Struct.new(:a, :b, keyword_init: true)

@@ -5,16 +5,30 @@ class Struct
     alias [] new
   end
 
-  def self.new(*attrs)
+  def self.new(*attrs, &block)
+    duplicates = attrs.tally.find { |_, size| size > 1 }
+    unless duplicates.nil?
+      raise ArgumentError, "duplicate member: #{duplicates.first}"
+    end
+
     if respond_to?(:members)
       BasicObject.method(:new).unbind.bind(self).(*attrs)
     else
+      if attrs.empty?
+        raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
+      end
+      if !attrs.first.is_a?(Symbol) && attrs.first.respond_to?(:to_str)
+        klass = attrs.shift.to_str.to_sym
+      elsif attrs.first.nil?
+        attrs.shift
+      end
+
       if attrs.last.is_a?(Hash)
         options = attrs.pop
       else
         options = {}
       end
-      Class.new(Struct) do
+      result = Class.new(Struct) do
         include Enumerable
 
         define_singleton_method :members do
@@ -29,11 +43,23 @@ class Struct
         attrs.each { |attr| attr_accessor attr }
 
         if options[:keyword_init]
-          define_method :initialize do |args|
-            args.each { |attr, value| send("#{attr}=", value) }
+          define_method :initialize do |args = {}|
+            unless args.is_a?(Hash)
+              raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+            end
+            invalid_keywords = args.each_key.reject { |arg| attrs.include?(arg) }
+            unless invalid_keywords.empty?
+              raise ArgumentError, "unknown keywords: #{invalid_keywords.join(', ')}"
+            end
+            args.each do |attr, value|
+              send("#{attr}=", value)
+            end
           end
         else
           define_method :initialize do |*vals|
+            if vals.size > attrs.size
+              raise ArgumentError, 'struct size differs'
+            end
             attrs.each_with_index { |attr, index| send("#{attr}=", vals[index]) }
           end
         end
@@ -110,7 +136,20 @@ class Struct
             result
           end
         end
+
+        if block
+          instance_eval(&block)
+        end
       end
+
+      if klass
+        if Struct.constants.include?(klass)
+          warn("warning: redefining constant Struct::#{klass}")
+        end
+        Struct.const_set(klass, result)
+      end
+
+      result
     end
   end
 end
