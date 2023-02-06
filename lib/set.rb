@@ -64,6 +64,11 @@ class Set
     hash
   end
 
+  def collect!(&block)
+    replace(each, &block)
+  end
+  alias map! collect!
+
   def delete(obj)
     if include?(obj)
       @data.delete(obj)
