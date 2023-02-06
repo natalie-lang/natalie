@@ -11,6 +11,8 @@ require 'tempfile'
 
 class SpecFailedException < StandardError
 end
+class NatalieFixMeException < SpecFailedException
+end
 class UnknownFormatterException < StandardError
 end
 
@@ -1434,3 +1436,60 @@ def run_specs
 end
 
 at_exit { run_specs }
+
+
+# NATFIXME method to wrap spec-matchers that are known to fail and mark them
+# as "fix this later".
+#
+# Can be used in the following ways:
+#
+# 1) hide any StandardError inside of the block
+# NATFIXME "some description" do
+#   some_spec.should be "bad"
+# end
+#
+# 2) Hide any error matching a klass
+# NATFIXME "some description", klass: NoMethodError do
+#   some_spec.foo.should be "also bad"
+# end
+#
+# 3) Hide any error matching a klass and with error-message match
+# NATFIXME "some description", klass: NoMethodError, match: /method foo undefined/ do
+#   some_spec.foo.should be "also bad"
+# end
+#
+# If the code inside the block does not cause the error or the error it caues does not match the klass (or klass/match) then
+# NatalieFixMeException will be raised.
+#
+def NATFIXME(description, klass: nil, match: nil)
+  raise SpecFailedException, "NATFIXME requires a block" unless block_given?
+  klass ||= StandardError
+  match = case match
+          when String then Regexp.new(match)
+          when Regexp then match
+          when nil then %r/.*/
+          else raise ArgumentError, "match must be nil, Regexp or String"
+          end
+  
+  status, ex = begin
+    yield
+    [:unexpected_pass, nil]
+  rescue klass => ex
+    if match && ex.message !~ match
+      [:correct_error_class_wrong_message, ex]
+    else
+      [:valid_fixme, ex]
+    end
+  rescue Exception => ex
+    [:wrong_error_class, ex] # another error was thrown
+  end
+
+  case status
+  when :unexpected_pass
+    raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
+  when :correct_error_class_wrong_message
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker match-message is incorrect"
+  when :wrong_error_class
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{klass}, was #{ex.class}"
+  end
+end
