@@ -23,9 +23,7 @@ describe :regexp_quote, shared: true do
   end
 
   it "sets the encoding of the result to US-ASCII if there are only US-ASCII characters present in the input String" do
-    # NATFIXME: Implement euc-jp encoding
-    # str = "abc".force_encoding("euc-jp")
-    str = "abc".force_encoding("utf-8")
+    str = "abc".force_encoding("euc-jp")
     Regexp.send(@method, str).encoding.should == Encoding::US_ASCII
   end
 

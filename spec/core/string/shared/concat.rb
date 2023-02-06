@@ -74,10 +74,9 @@ describe :string_concat, shared: true do
       a.should == 255.chr
     end
 
-    # NATFIXME: Implement EUC_JP encoding
     it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
       -> { "".encode(Encoding::US_ASCII).send(@method, 256) }.should raise_error(RangeError)
-      # -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
+      -> { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
     end
 
     it "raises RangeError if the argument is negative" do
@@ -149,8 +148,7 @@ describe :string_concat_encoding, shared: true do
       "abc".encode("UTF-8").send(@method, "123".encode("SHIFT_JIS")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement ISO-8859-1
-    xit "uses self's encoding if the argument is ASCII-only" do
+    it "uses self's encoding if the argument is ASCII-only" do
       "\u00E9".encode("UTF-8").send(@method, "123".encode("ISO-8859-1")).encoding.should == Encoding::UTF_8
     end
 

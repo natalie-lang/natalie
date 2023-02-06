@@ -15,18 +15,16 @@ describe "String#include? with String" do
 
   it "returns true if both strings are empty" do
     "".should.include?("")
-    # NATFIXME: Implement EUC-JP encoding
-    # "".force_encoding("EUC-JP").should.include?("")
-    # "".should.include?("".force_encoding("EUC-JP"))
-    # "".force_encoding("EUC-JP").should.include?("".force_encoding("EUC-JP"))
+    "".force_encoding("EUC-JP").should.include?("")
+    "".should.include?("".force_encoding("EUC-JP"))
+    "".force_encoding("EUC-JP").should.include?("".force_encoding("EUC-JP"))
   end
 
   it "returns true if the RHS is empty" do
     "a".should.include?("")
-    # NATFIXME: Implement EUC-JP encoding
-    # "a".force_encoding("EUC-JP").should.include?("")
-    # "a".should.include?("".force_encoding("EUC-JP"))
-    # "a".force_encoding("EUC-JP").should.include?("".force_encoding("EUC-JP"))
+    "a".force_encoding("EUC-JP").should.include?("")
+    "a".should.include?("".force_encoding("EUC-JP"))
+    "a".force_encoding("EUC-JP").should.include?("".force_encoding("EUC-JP"))
   end
 
   it "tries to convert other to string using to_str" do
@@ -42,7 +40,7 @@ describe "String#include? with String" do
     -> { "hello".include?(mock('x')) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement EUC-JP encoding
+  # NATFIXME: Implement multibyte characters and EUC-JP encoding
   xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
     -> do

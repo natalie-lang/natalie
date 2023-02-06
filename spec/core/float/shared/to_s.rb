@@ -86,9 +86,8 @@ describe :float_to_s, shared: true do
     value = 0.21611564636388508
     string = "0.21611564636388508"
 
-    # NATFIXME: Support String#to_f
-    # value.send(@method).should == string
-    # string.to_f.should == value
+    value.send(@method).should == string
+    string.to_f.should == value
   end
 
   it "outputs the minimal, unique form to represent the value" do
@@ -287,7 +286,6 @@ describe :float_to_s, shared: true do
     end
   end
 
-  # NATFIXME: Support different encodings
   describe 'encoding' do
     before :each do
       @internal = Encoding.default_internal
@@ -303,9 +301,7 @@ describe :float_to_s, shared: true do
     end
 
     it "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
-      # NATFIXME: implement Encoding::IBM437
-      #Encoding.default_internal = Encoding::IBM437
-      Encoding.default_internal = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::IBM437
       5.47.send(@method).encoding.should equal(Encoding::US_ASCII)
     end
   end
