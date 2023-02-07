@@ -45,6 +45,7 @@ public:
     Value match(Env *, Value);
     Value match_length(Env *, Value);
     Value post_match(Env *);
+    Value pre_match(Env *);
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);
