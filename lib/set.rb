@@ -101,6 +101,10 @@ class Set
   end
   alias - difference
 
+  def disjoint?(other)
+    !intersect?(other)
+  end
+
   def empty?
     @data.empty?
   end
