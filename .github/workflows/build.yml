@@ -44,6 +44,8 @@ jobs:
       - name: install ruby
         run: brew install ruby autoconf automake libtool
       - name: install openssl
-        run: brew install openssl && brew link --force openssl
+        run: brew install openssl
       - name: test with clang on macOS
+        env:
+          PKG_CONFIG_PATH: /opt/homebrew/opt/openssl@3/lib/pkgconfig
         run: rake test

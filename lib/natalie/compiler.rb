@@ -28,18 +28,12 @@ module Natalie
       File.join(BUILD_DIR, 'onigmo/lib'),
       File.join(BUILD_DIR, 'zlib'),
     ]
-    if RUBY_PLATFORM =~ /darwin/
-      # OpenSSL needs to be installed via brew
-      openssl_info = `brew info openssl`
-      # export CPPFLAGS="-I/usr/local/opt/openssl@3/include"
-      openssl_cppflags = openssl_info.lines.find { |line| line.include?('export CPPFLAGS') }
-      if openssl_cppflags
-        INC_PATHS << openssl_cppflags.split('"')[1][2..]
+    if system('pkg-config --exists openssl')
+      unless (openssl_inc_path = `pkg-config --cflags openssl`.strip).empty?
+        INC_PATHS << openssl_inc_path.sub(/^\-I/, '')
       end
-      # export LDFLAGS="-L/usr/local/opt/openssl@3/lib"
-      openssl_ldflags = openssl_info.lines.find { |line| line.include?('export LDFLAGS') }
-      if openssl_ldflags
-        LIB_PATHS << openssl_ldflags.split('"')[1][2..]
+      unless (openssl_lib_path = `pkg-config --libs-only-L openssl`.strip).empty?
+        LIB_PATHS << openssl_lib_path.sub(/^\-L/, '')
       end
     end
     SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
