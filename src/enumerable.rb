@@ -241,7 +241,7 @@ module Enumerable
       end
     end
     yield slice if slice.any?
-    nil
+    self
   end
 
   def each_with_index(*args)
