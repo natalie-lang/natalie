@@ -11,7 +11,7 @@ namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(const char *name, ModuleObject *owner, MethodFnPtr fn, int arity)
+    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity)
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
@@ -19,7 +19,7 @@ public:
         assert(fn);
     }
 
-    Method(const char *name, ModuleObject *owner, Block *block)
+    Method(const TM::String &name, ModuleObject *owner, Block *block)
         : m_name { name }
         , m_owner { owner }
         , m_arity { block->arity() }
