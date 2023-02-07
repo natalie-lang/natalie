@@ -155,11 +155,11 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
             break;
         case Object::Type::Symbol: {
             SymbolObject *whence_sym = whence_value->as_symbol();
-            if (strcmp(whence_sym->c_str(), "SET") == 0) {
+            if (whence_sym->string() == "SET") {
                 whence = 0;
-            } else if (strcmp(whence_sym->c_str(), "CUR") == 0) {
+            } else if (whence_sym->string() == "CUR") {
                 whence = 1;
-            } else if (strcmp(whence_sym->c_str(), "END") == 0) {
+            } else if (whence_sym->string() == "END") {
                 whence = 2;
             } else {
                 env->raise("TypeError", "no implicit conversion of Symbol into Integer");
