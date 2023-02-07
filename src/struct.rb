@@ -149,6 +149,10 @@ class Struct
           end
         end
 
+        define_method :members do
+          attrs
+        end
+
         attrs.each { |attr| attr_accessor attr }
 
         if block
