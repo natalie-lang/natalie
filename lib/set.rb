@@ -101,6 +101,10 @@ class Set
   end
   alias - difference
 
+  def empty?
+    @data.empty?
+  end
+
   def eql?(other)
     self.class == other.class && @data == other.instance_variable_get(:@data)
   end
