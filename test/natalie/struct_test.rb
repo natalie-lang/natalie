@@ -112,4 +112,13 @@ describe 'Struct' do
     -> { i[:object_id] }.should raise_error(NameError, /no member 'object_id' in struct/)
     -> { i[2] }.should raise_error(IndexError)
   end
+
+  it 'does not allow mutations of the result of members' do
+    s = Struct.new(:a, :b)
+    s.members.clear
+    s.members.should == [:a, :b]
+    i = s.new(1)
+    i.members.clear
+    i.members.should == [:a, :b]
+  end
 end

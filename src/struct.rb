@@ -32,7 +32,7 @@ class Struct
         include Enumerable
 
         define_singleton_method :members do
-          attrs
+          attrs.dup
         end
 
         define_method :length do
@@ -150,7 +150,7 @@ class Struct
         end
 
         define_method :members do
-          attrs
+          attrs.dup
         end
 
         attrs.each { |attr| attr_accessor attr }
