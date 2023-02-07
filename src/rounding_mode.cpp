@@ -18,7 +18,7 @@ RoundingMode rounding_mode_from_value(Env *env, Value value, RoundingMode defaul
     else if (symbol == "even"_s)
         return RoundingMode::Even;
     else {
-        env->raise("ArgumentError", "invalid rounding mode: {}", symbol->c_str());
+        env->raise("ArgumentError", "invalid rounding mode: {}", symbol->string());
     }
 }
 
