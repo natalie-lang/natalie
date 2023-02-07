@@ -213,7 +213,7 @@ module Enumerable
       end
     end
 
-    nil
+    self
   end
 
   def each_entry(*args)
