@@ -47,6 +47,10 @@ class StringScanner
 
   alias empty? eos?
 
+  def captures
+    @match.captures if @matched
+  end
+
   def check(pattern)
     if pattern.is_a?(Regexp)
       anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
