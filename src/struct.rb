@@ -40,8 +40,6 @@ class Struct
         end
         alias_method :size, :length
 
-        attrs.each { |attr| attr_accessor attr }
-
         if options[:keyword_init]
           define_method :initialize do |args = {}|
             unless args.is_a?(Hash)
@@ -71,8 +69,9 @@ class Struct
         define_method :each do
           if block_given?
             attrs.each { |attr| yield send(attr) }
+            self
           else
-            enum_for(:each)
+            enum_for(:each) { length }
           end
         end
 
@@ -148,6 +147,8 @@ class Struct
             result
           end
         end
+
+        attrs.each { |attr| attr_accessor attr }
 
         if block
           instance_eval(&block)
