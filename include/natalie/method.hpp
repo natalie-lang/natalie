@@ -11,16 +11,16 @@ namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity)
-        : m_name { name }
+    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity)
+        : m_name { std::move(name) }
         , m_owner { owner }
         , m_fn { fn }
         , m_arity { arity } {
         assert(fn);
     }
 
-    Method(const TM::String &name, ModuleObject *owner, Block *block)
-        : m_name { name }
+    Method(TM::String &&name, ModuleObject *owner, Block *block)
+        : m_name { std::move(name) }
         , m_owner { owner }
         , m_arity { block->arity() }
         , m_env { new Env(*block->env()) } {
@@ -30,6 +30,11 @@ public:
         if (block->is_from_method())
             m_self = block->self();
     }
+
+    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity)
+        : Method(TM::String(name), owner, fn, arity) { }
+    Method(const TM::String &name, ModuleObject *owner, Block *block)
+        : Method(TM::String(name), owner, block) { }
 
     MethodFnPtr fn() { return m_fn; }
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
