@@ -11,6 +11,8 @@ require 'tempfile'
 
 class SpecFailedException < StandardError
 end
+class NatalieFixMeException < SpecFailedException
+end
 class UnknownFormatterException < StandardError
 end
 
@@ -1434,3 +1436,61 @@ def run_specs
 end
 
 at_exit { run_specs }
+
+
+# NATFIXME method to wrap spec-matchers that are known to fail and mark them
+# as "fix this later".
+#
+# Can be used in the following ways:
+#
+# 1) hide any StandardError inside of the block
+# NATFIXME "some description" do
+#   some_spec.should be "bad"
+# end
+#
+# 2) Hide any error matching a exception
+# NATFIXME "some description", exception: NoMethodError do
+#   some_spec.foo.should be "also bad"
+# end
+#
+# 3) Hide any error matching a exception with message
+# NATFIXME "some description", exception: NoMethodError, message: /method foo undefined/ do
+#   some_spec.foo.should be "also bad"
+# end
+#
+# If the code inside the block does not cause the error or the error it causes does
+# not match the exception (or exception/message) then NatalieFixMeException will be raised.
+#
+def NATFIXME(description, exception: nil, message: nil)
+  raise SpecFailedException, "NATFIXME requires a block" unless block_given?
+  exception ||= StandardError
+
+  matcher = case message
+  when String then ->(exmsg) { exmsg.include?(message) }
+  when Regexp then ->(exmsg) { message.match?(exmsg) }
+  when nil then ->(_) { true }
+  else raise ArgumentError, "match must be nil, Regexp or String"
+  end
+
+  status, ex = begin
+    yield
+    [:unexpected_pass, nil]
+  rescue exception => ex
+    if matcher.call(ex.message)
+      [:valid_fixme, ex]
+    else
+      [:correct_error_class_wrong_message, ex]
+    end
+  rescue Exception => ex
+    [:wrong_error_class, ex] # another error was thrown
+  end
+
+  case status
+  when :unexpected_pass
+    raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
+  when :correct_error_class_wrong_message
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect"
+  when :wrong_error_class
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{exception}, was #{ex.class}"
+  end
+end
