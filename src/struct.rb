@@ -77,9 +77,10 @@ class Struct
 
         define_method :each_pair do
           if block_given?
-            attrs.each { |attr| yield attr, send(attr) }
+            attrs.each { |attr| yield [attr, send(attr)] }
+            self
           else
-            enum_for(:each_pair)
+            enum_for(:each_pair) { length }
           end
         end
 
