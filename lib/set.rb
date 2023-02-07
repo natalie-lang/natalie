@@ -120,6 +120,13 @@ class Set
   end
   alias to_s inspect
 
+  def intersect?(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+    other.any? { |obj| include?(obj) }
+  end
+
   def intersection(other)
     unless other.is_a?(Enumerable)
       raise ArgumentError, 'value must be enumerable'
