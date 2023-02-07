@@ -244,7 +244,7 @@ Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
 
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg->is_integer() || arg->is_float();
+        return arg->is_integer() || (arg->is_float() && !arg->as_float()->is_nan());
     };
 
     // Check if we might want to coerce the value
@@ -288,8 +288,11 @@ bool IntegerObject::eq(Env *env, Value other) {
 }
 
 bool IntegerObject::lt(Env *env, Value other) {
-    if (other->is_float())
+    if (other->is_float()) {
+        if (other->as_float()->is_nan())
+            return false;
         return m_integer < other->as_float()->to_double();
+    }
 
     if (!other->is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, this);
@@ -310,8 +313,11 @@ bool IntegerObject::lt(Env *env, Value other) {
 }
 
 bool IntegerObject::lte(Env *env, Value other) {
-    if (other->is_float())
+    if (other->is_float()) {
+        if (other->as_float()->is_nan())
+            return false;
         return m_integer <= other->as_float()->to_double();
+    }
 
     if (!other->is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, this);
@@ -332,8 +338,11 @@ bool IntegerObject::lte(Env *env, Value other) {
 }
 
 bool IntegerObject::gt(Env *env, Value other) {
-    if (other->is_float())
+    if (other->is_float()) {
+        if (other->as_float()->is_nan())
+            return false;
         return m_integer > other->as_float()->to_double();
+    }
 
     if (!other->is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
@@ -354,8 +363,11 @@ bool IntegerObject::gt(Env *env, Value other) {
 }
 
 bool IntegerObject::gte(Env *env, Value other) {
-    if (other->is_float())
+    if (other->is_float()) {
+        if (other->as_float()->is_nan())
+            return false;
         return m_integer >= other->as_float()->to_double();
+    }
 
     if (!other->is_integer()) {
         auto [lhs, rhs] = Natalie::coerce(env, other, this, Natalie::CoerceInvalidReturnValueMode::Raise);
