@@ -112,10 +112,11 @@ describe "Integer#chr without argument" do
         0x0100.chr.encoding.should == Encoding::UTF_8
         0x3000.chr.encoding.should == Encoding::UTF_8
 
-        # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
-        # Encoding.default_internal = Encoding::SHIFT_JIS
-        # 0x8140.chr.encoding.should == Encoding::SHIFT_JIS
-        # 0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
+        NATFIXME 'Implement multibyte characters and Encoding::SHIFT_JIS', exception: RangeError, message: 'out of char range' do
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          0x8140.chr.encoding.should == Encoding::SHIFT_JIS
+          0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
+        end
       end
 
       it "returns a String encoding self interpreted as a codepoint in the default internal encoding" do
@@ -123,13 +124,13 @@ describe "Integer#chr without argument" do
         0x0100.chr.bytes.to_a.should == [0xC4, 0x80]
         0x3000.chr.bytes.to_a.should == [0xE3, 0x80, 0x80]
 
-        # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
-        # Encoding.default_internal = Encoding::SHIFT_JIS
-        # 0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
-        # 0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
+        NATFIXME 'Implement multibyte characters and Encoding::SHIFT_JIS', exception: RangeError, message: 'out of char range' do
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+          0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
+        end
       end
 
-      # NATFIXME: Implement various encodings
       # #5864
       it "raises RangeError if self is invalid as a codepoint in the default internal encoding" do
         [ [0x0100, "US-ASCII"],
@@ -141,6 +142,12 @@ describe "Integer#chr without argument" do
         ].each do |integer, encoding_name|
           Encoding.default_internal = Encoding.find(encoding_name)
           -> { integer.chr }.should raise_error(RangeError)
+        end
+        NATFIXME 'Implement ISO-8859-9 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
+          Encoding.default_internal = Encoding.find('ISO-8859-9')
+        end
+        NATFIXME 'Implement TIS-620 and restore it above', exception: ArgumentError do
+          Encoding.default_internal = Encoding.find('TIS-620')
         end
       end
     end
@@ -177,7 +184,6 @@ describe "Integer#chr with an encoding argument" do
     -> { 2206368128.chr(Encoding::UTF_8) }.should raise_error(RangeError)
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
   it "returns a String with the specified encoding" do
     0x0000.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
     0x007F.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
@@ -194,6 +200,7 @@ describe "Integer#chr with an encoding argument" do
     0x0100.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
     0x3000.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
 
+    # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
     # 0x0000.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     # 0x007F.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
     # 0x00A1.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
@@ -202,7 +209,6 @@ describe "Integer#chr with an encoding argument" do
     # 0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
   it "returns a String encoding self interpreted as a codepoint in the specified encoding" do
     0x0000.chr(Encoding::US_ASCII).bytes.to_a.should == [0x00]
     0x007F.chr(Encoding::US_ASCII).bytes.to_a.should == [0x7F]
@@ -219,6 +225,7 @@ describe "Integer#chr with an encoding argument" do
     0x0100.chr(Encoding::UTF_8).bytes.to_a.should == [0xC4, 0x80]
     0x3000.chr(Encoding::UTF_8).bytes.to_a.should == [0xE3, 0x80, 0x80]
 
+    # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
     # 0x0000.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x00]
     # 0x007F.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x7F]
     # 0x00A1.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xA1]
@@ -227,8 +234,6 @@ describe "Integer#chr with an encoding argument" do
     # 0xFC4B.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
   end
 
-  # NATFIXME: Add all missing Encodings
-  # NATFIXME: Implement invalid codepoint detection
   # #5864
   xit "raises RangeError if self is invalid as a codepoint in the specified encoding" do
     [ [0x80,   "US-ASCII"],
@@ -251,17 +256,24 @@ describe "Integer#chr with an encoding argument" do
     ].each do |integer, encoding_name|
       -> { integer.chr(encoding_name) }.should raise_error(RangeError)
     end
+    NATFIXME 'Implement ISO-8859-9 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
+      1.chr('ISO-8859-9')
+    end
+    NATFIXME 'Implement TIS-620 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
+      1.chr('TIS-620')
+    end
   end
 
-  # NATFIXME: Implement Encoding::CESU_8
-  xit 'returns a String encoding self interpreted as a codepoint in the CESU-8 encoding' do
-    # see more details here https://en.wikipedia.org/wiki/CESU-8
-    # code points from U+0000 to U+FFFF is encoded in the same way as in UTF-8
-    0x0045.chr(Encoding::CESU_8).bytes.should == 0x0045.chr(Encoding::UTF_8).bytes
+  it 'returns a String encoding self interpreted as a codepoint in the CESU-8 encoding' do
+    NATFIXME 'Implement Encoding::CESU_8', exception: NameError, message: 'uninitialized constant Encoding::CESU_8' do
+      # see more details here https://en.wikipedia.org/wiki/CESU-8
+      # code points from U+0000 to U+FFFF is encoded in the same way as in UTF-8
+      0x0045.chr(Encoding::CESU_8).bytes.should == 0x0045.chr(Encoding::UTF_8).bytes
 
-    # code points in range from U+10000 to U+10FFFF is CESU-8 data containing a 6-byte surrogate pair,
-    # which decodes to a 4-byte UTF-8 string
-    0x10400.chr(Encoding::CESU_8).bytes.should != 0x10400.chr(Encoding::UTF_8).bytes
-    0x10400.chr(Encoding::CESU_8).bytes.to_a.should == [0xED, 0xA0, 0x81, 0xED, 0xB0, 0x80]
+      # code points in range from U+10000 to U+10FFFF is CESU-8 data containing a 6-byte surrogate pair,
+      # which decodes to a 4-byte UTF-8 string
+      0x10400.chr(Encoding::CESU_8).bytes.should != 0x10400.chr(Encoding::UTF_8).bytes
+      0x10400.chr(Encoding::CESU_8).bytes.to_a.should == [0xED, 0xA0, 0x81, 0xED, 0xB0, 0x80]
+    end
   end
 end
