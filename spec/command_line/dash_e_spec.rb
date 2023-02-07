@@ -17,27 +17,31 @@ describe "The -e command line option" do
     ruby_exe("puts __FILE__", escape: false).chomp.should == "-e"
   end
 
-  # NATFIXME: Implement Kernel.system
-  xit "uses '-e' in $0" do
-    system(*ruby_exe, '-e', 'exit $0 == "-e"').should == true
+  it "uses '-e' in $0" do
+    NATFIXME 'Implement Kernel.system', exception: NoMethodError, message: /undefined method `system'/ do
+      system(*ruby_exe, '-e', 'exit $0 == "-e"').should == true
+    end
   end
 
   #needs to test return => LocalJumpError
 
-  # NATFIXME: Support -n
-  xdescribe "with -n and an Integer range" do
+  describe "with -n and an Integer range" do
     before :each do
       @script = "-ne 'print if %s' #{fixture(__FILE__, "conditional_range.txt")}"
     end
 
     it "mimics an awk conditional by comparing an inclusive-end range with $." do
-      ruby_exe(nil, args: (@script % "2..3")).should == "2\n3\n"
-      ruby_exe(nil, args: (@script % "2..2")).should == "2\n"
+      NATFIXME 'Support -n', exception: NoMethodError, message: /undefined method `%'/ do
+        ruby_exe(nil, args: (@script % "2..3")).should == "2\n3\n"
+        ruby_exe(nil, args: (@script % "2..2")).should == "2\n"
+      end
     end
 
     it "mimics a sed conditional by comparing an exclusive-end range with $." do
-      ruby_exe(nil, args: (@script % "2...3")).should == "2\n3\n"
-      ruby_exe(nil, args: (@script % "2...2")).should == "2\n3\n4\n5\n"
+      NATFIXME 'Support -n', exception: NoMethodError, message: /undefined method `%'/ do
+        ruby_exe(nil, args: (@script % "2...3")).should == "2\n3\n"
+        ruby_exe(nil, args: (@script % "2...2")).should == "2\n3\n4\n5\n"
+      end
     end
   end
 end
