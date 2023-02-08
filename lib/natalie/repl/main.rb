@@ -4,15 +4,15 @@ require 'tempfile'
 require_relative 'repl'
 
 module Natalie
-  class ExperimentalReplV2
+  class REPL
     def go(options)
       GC.disable
       env = nil
       vars = {}
       repl_num = 0
-      Natalie::GenericRepl
+      driver
         .new(vars)
-        .get_command do |cmd|
+        .prompt do |cmd|
           begin
             if repl_num.zero? && options[:require].any?
               requires = options[:require].map { |req| "require '#{req}'\n" }
@@ -25,7 +25,6 @@ module Natalie
           end
 
           next :continue if ast == s(:block)
-          puts "\n\n"
           last_node = ast.pop
           ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
           temp = Tempfile.create('natalie.so')
@@ -46,6 +45,16 @@ module Natalie
           FileUtils.rm_rf(clang_dir) if File.directory?(clang_dir)
           next :next
         end
+    end
+
+    private
+
+    def driver
+      if $stdin.tty?
+        Natalie::GenericRepl
+      else
+        Natalie::NonTTYRepl
+      end
     end
   end
 end

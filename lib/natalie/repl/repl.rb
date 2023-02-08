@@ -28,18 +28,6 @@ module Natalie
       reset
     end
 
-    def hello_natalie
-      puts "\u001b[32m
-       ⡎⠉⣉⣉⣉⣉⣉⣉⣉⣉⠉⢱
-       ⡇⢸ ⡢⡢⡀ ⠠⡢ ⡇⢸
-       ⡇⢸ ⡪⡊⠪⡢⡨⡪ ⡇⢸
-       ⡇⢸ ⠊⠂ ⠈⠊⠊ ⡇⢸
-       ⣇⣀⣉⣉⣉⣉⣉⣉⣉⣉⣀⣸
-     ⡔⣒⠒⠒⠒⠒⠚⠒⠒⠓⠒⠒⠒⠒⠒⢢
-     ⢇⣉⣀⣀⣀⣀⣀⣀⣀⣀⣁⣉⣉⣉⣁⡸#{RESET_STYLE_ASCII_CODE}
-    "
-    end
-
     def reset
       @index = 0
       @in = ''
@@ -89,7 +77,7 @@ module Natalie
         .join
     end
 
-    def get_line
+    def get_char
       row, col = @model.cursor
       reset_cursor
       echo "\u001b[0J" # Clear
@@ -102,11 +90,10 @@ module Natalie
       getch
     end
 
-    def get_command
-      hello_natalie
+    def prompt
       save_cursor
       loop do
-        c = get_line
+        c = get_char
         case c.ord
         when 32..126
           @model.append(c)
@@ -114,6 +101,7 @@ module Natalie
           # backspace
           @model.backspace
         when 10..13
+          puts
           outcome = yield @model.input
           case outcome
           when :continue
@@ -121,7 +109,6 @@ module Natalie
           when :next
             @model.save_last_in_history
             @model.reset
-            puts "\n"
             save_cursor
           when :abort
             return nil
@@ -142,6 +129,12 @@ module Natalie
               @model.go_left
             end
           end
+        when 14
+          # ctrl-n
+          @model.go_down
+        when 16
+          # ctrl-p
+          @model.go_up
         when 9
           # tab
           @model.append(tab)
@@ -156,6 +149,26 @@ module Natalie
           return nil
         else
           puts c.ord
+        end
+      end
+    end
+  end
+
+  class NonTTYRepl
+    def initialize(_vars); end
+
+    def ps1
+      'nat> '
+    end
+
+    def prompt
+      loop do
+        print ps1
+        line = gets
+        if line
+          yield line
+        else
+          return
         end
       end
     end

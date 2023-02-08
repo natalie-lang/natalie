@@ -112,10 +112,6 @@ OptionParser.new do |opts|
   opts.on('--print-objects', 'Disabled GC and prints all allocated objects on program termination') do
     options[:print_objects] = true
   end
-
-  opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
-    options[:experimental_repl_v2] = true
-  end
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
@@ -135,7 +131,7 @@ class Runner
   def run
     load_code
     if @repl
-      repl = options[:experimental_repl_v2] ? Natalie::ExperimentalReplV2.new : Natalie::Repl.new
+      repl = Natalie::REPL.new
       repl.go(options)
     elsif options[:ast]
       if RUBY_ENGINE == 'natalie'
