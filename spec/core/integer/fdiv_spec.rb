@@ -9,58 +9,61 @@ describe "Integer#fdiv" do
     8.fdiv(bignum_value).should be_close(8.673617379884035e-19, TOLERANCE)
   end
 
-  # NATFIXME: performs floating-point division between self bignum and a bignum
-  xit "performs floating-point division between self bignum and a bignum" do
+  it "performs floating-point division between self bignum and a bignum" do
     num = 1000000000000000000000000000000000048148248609680896326399448564623182963452541226153892315137780403285956264146010000000000000000000000000000000000048148248609680896326399448564623182963452541226153892315137780403285956264146010000000000000000000000000000000000048148248609680896326399448564623182963452541226153892315137780403285956264146009
     den = 2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    num.fdiv(den).should == 500.0
+    NATFIXME 'performs floating-point division between self bignum and a bignum' do
+      num.fdiv(den).should == 500.0
+    end
   end
 
-  # NATFIXME: rounds to the correct value for bignums
-  xit "rounds to the correct value for bignums" do
-    den = 9 * 10**342
+  it "rounds to the correct value for bignums" do
+    NATFIXME 'rounds to the correct value for bignums' do
+      den = 9 * 10**342
 
-    num = 1 * 10**344
-    num.fdiv(den).should == 11.11111111111111
+      num = 1 * 10**344
+      num.fdiv(den).should == 11.11111111111111
 
-    num = 1 * 10**343
-    num.fdiv(den).should == 1.1111111111111112
+      num = 1 * 10**343
+      num.fdiv(den).should == 1.1111111111111112
 
-    num = 1 * 10**342
-    num.fdiv(den).should == 0.1111111111111111
+      num = 1 * 10**342
+      num.fdiv(den).should == 0.1111111111111111
 
-    num = 2 * 10**342
-    num.fdiv(den).should == 0.2222222222222222
+      num = 2 * 10**342
+      num.fdiv(den).should == 0.2222222222222222
 
-    num = 3 * 10**342
-    num.fdiv(den).should == 0.3333333333333333
+      num = 3 * 10**342
+      num.fdiv(den).should == 0.3333333333333333
 
-    num = 4 * 10**342
-    num.fdiv(den).should == 0.4444444444444444
+      num = 4 * 10**342
+      num.fdiv(den).should == 0.4444444444444444
 
-    num = 5 * 10**342
-    num.fdiv(den).should == 0.5555555555555556
+      num = 5 * 10**342
+      num.fdiv(den).should == 0.5555555555555556
 
-    num = 6 * 10**342
-    num.fdiv(den).should == 0.6666666666666666
+      num = 6 * 10**342
+      num.fdiv(den).should == 0.6666666666666666
 
-    num = 7 * 10**342
-    num.fdiv(den).should == 0.7777777777777778
+      num = 7 * 10**342
+      num.fdiv(den).should == 0.7777777777777778
 
-    num = 8 * 10**342
-    num.fdiv(den).should == 0.8888888888888888
+      num = 8 * 10**342
+      num.fdiv(den).should == 0.8888888888888888
 
-    num = 9 * 10**342
-    num.fdiv(den).should == 1.0
+      num = 9 * 10**342
+      num.fdiv(den).should == 1.0
 
-    num = -5 * 10**342
-    num.fdiv(den).should == -0.5555555555555556
+      num = -5 * 10**342
+      num.fdiv(den).should == -0.5555555555555556
+    end
   end
 
-  # NATFIXME: rounds to the correct float for bignum denominators
-  xit "rounds to the correct float for bignum denominators" do
-    1.fdiv(10**324).should == 0.0
-    1.fdiv(10**323).should == 1.0e-323
+  it "rounds to the correct float for bignum denominators" do
+    NATFIXME 'rounds to the correct float for bignum denominators' do
+      1.fdiv(10**324).should == 0.0
+      1.fdiv(10**323).should == 1.0e-323
+    end
   end
 
   it "performs floating-point division between self and a Float" do
