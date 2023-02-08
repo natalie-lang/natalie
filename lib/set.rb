@@ -116,6 +116,7 @@ class Set
   def include?(obj)
     @data.key?(obj)
   end
+  alias member? include?
   alias === include?
 
   def inspect
