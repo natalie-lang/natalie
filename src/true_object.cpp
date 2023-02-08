@@ -2,19 +2,19 @@
 
 namespace Natalie {
 
-bool TrueObject::and_method(Env *env, Value other) {
+bool TrueObject::and_method(const Env *env, Value other) const {
     return other->is_truthy();
 }
 
-bool TrueObject::or_method(Env *env, Value other) {
+bool TrueObject::or_method(const Env *env, const Value other) const {
     return true;
 }
 
-bool TrueObject::xor_method(Env *env, Value other) {
+bool TrueObject::xor_method(const Env *env, Value other) const {
     return other->is_falsey();
 }
 
-Value TrueObject::to_s(Env *env) {
+Value TrueObject::to_s(const Env *env) const {
     if (!s_string)
         s_string = new StringObject { "true" };
     return s_string;
