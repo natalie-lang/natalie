@@ -29,13 +29,14 @@ describe :array_pack_unicode, shared: true do
     str.valid_encoding?.should be_true
   end
 
-  # NATFIXME: add this back once we get support for the C directive
-  xit "encodes values larger than UTF-8 max codepoints" do
-    [
-      [[0x00110000], [244, 144, 128, 128].pack('C*').force_encoding('utf-8')],
-      [[0x04000000], [252, 132, 128, 128, 128, 128].pack('C*').force_encoding('utf-8')],
-      [[0x7FFFFFFF], [253, 191, 191, 191, 191, 191].pack('C*').force_encoding('utf-8')]
-    ].should be_computed_by(:pack, "U")
+  it "encodes values larger than UTF-8 max codepoints" do
+    NATFIXME 'encodes values larger than UTF-8 max codepoints', exception: SpecFailedException do
+      [
+        [[0x00110000], [244, 144, 128, 128].pack('C*').force_encoding('utf-8')],
+        [[0x04000000], [252, 132, 128, 128, 128, 128].pack('C*').force_encoding('utf-8')],
+        [[0x7FFFFFFF], [253, 191, 191, 191, 191, 191].pack('C*').force_encoding('utf-8')]
+      ].should be_computed_by(:pack, "U")
+    end
   end
 
   it "encodes UTF-8 max codepoints" do

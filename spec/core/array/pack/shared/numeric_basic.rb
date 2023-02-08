@@ -37,10 +37,11 @@ describe :array_pack_float, shared: true do
     -> { ["a"].pack(pack_format) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: raises a TypeError when the object is not Numeric
-  xit "raises a TypeError when the object is not Numeric" do
-    obj = Object.new
-    -> { [obj].pack(pack_format) }.should raise_error(TypeError, /can't convert Object into Float/)
+  it "raises a TypeError when the object is not Numeric" do
+    NATFIXME 'Use the correct error message', exception: SpecFailedException do
+      obj = Object.new
+      -> { [obj].pack(pack_format) }.should raise_error(TypeError, /can't convert Object into Float/)
+    end
   end
 
   it "raises a TypeError when the Numeric object does not respond to #to_f" do

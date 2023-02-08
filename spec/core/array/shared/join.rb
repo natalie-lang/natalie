@@ -58,17 +58,18 @@ describe :array_join_with_default_separator, shared: true do
     -> { ArraySpecs.empty_recursive_array.send(@method) }.should raise_error(ArgumentError)
   end
 
-  # NATFIXME : Revisit when Encoding.compatiblity? is implemented
-  xit "uses the first encoding when other strings are compatible" do
+  it "uses the first encoding when other strings are compatible" do
     ary1 = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
     ary2 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
     ary3 = ArraySpecs.array_with_utf8_and_7bit_binary_strings
     ary4 = ArraySpecs.array_with_usascii_and_7bit_binary_strings
 
-    ary1.send(@method).encoding.should == Encoding::UTF_8
-    ary2.send(@method).encoding.should == Encoding::US_ASCII
-    ary3.send(@method).encoding.should == Encoding::UTF_8
-    ary4.send(@method).encoding.should == Encoding::US_ASCII
+    NATFIXME 'Revisit when Encoding.compatiblity? is implemented', exception: SpecFailedException do
+      ary1.send(@method).encoding.should == Encoding::UTF_8
+      ary2.send(@method).encoding.should == Encoding::US_ASCII
+      ary3.send(@method).encoding.should == Encoding::UTF_8
+      ary4.send(@method).encoding.should == Encoding::US_ASCII
+    end
   end
   
   it "uses the widest common encoding when other strings are incompatible" do
@@ -79,15 +80,15 @@ describe :array_join_with_default_separator, shared: true do
     ary2.send(@method).encoding.should == Encoding::UTF_8
   end
 
-  # NATFIXME : Revisit when Encoding.compatiblity? is implemented
-  xit "fails for arrays with incompatibly-encoded strings" do
+  it "fails for arrays with incompatibly-encoded strings" do
     ary_utf8_bad_binary = ArraySpecs.array_with_utf8_and_binary_strings
 
-    -> { ary_utf8_bad_binary.send(@method) }.should raise_error(EncodingError)
+    NATFIXME 'Revisit when Encoding.compatiblity? is implemented', exception: SpecFailedException do
+      -> { ary_utf8_bad_binary.send(@method) }.should raise_error(EncodingError)
+    end
   end
 
-  # NATFIXME : Pending proper handling of deprecation warnings
-  xcontext "when $, is not nil" do
+  context "when $, is not nil" do
     before do
       suppress_warning do
         $, = '*'
@@ -95,8 +96,10 @@ describe :array_join_with_default_separator, shared: true do
     end
 
     it "warns" do
-      -> { [].join }.should complain(/warning: \$, is set to non-nil value/)
-      -> { [].join(nil) }.should complain(/warning: \$, is set to non-nil value/)
+      NATFIXME 'Pending proper handling of deprecation warnings', exception: SpecFailedException do
+        -> { [].join }.should complain(/warning: \$, is set to non-nil value/)
+        -> { [].join(nil) }.should complain(/warning: \$, is set to non-nil value/)
+      end
     end
   end
 end

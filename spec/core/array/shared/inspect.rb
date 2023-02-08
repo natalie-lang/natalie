@@ -92,20 +92,18 @@ describe :array_inspect, shared: true do
 
   describe "with encoding" do
     before :each do
-      # NATFIXME: implement Encoding.default_external
-      #@default_external_encoding = Encoding.default_external
+      @default_external_encoding = Encoding.default_external
     end
 
     after :each do
-      # NATFIXME: implement Encoding.default_external
-      #Encoding.default_external = @default_external_encoding
+      Encoding.default_external = @default_external_encoding
     end
 
     it "returns a US-ASCII string for an empty Array" do
       [].send(@method).encoding.should == Encoding::US_ASCII
     end
 
-    # NATFIXME: implement Encoding.default_external
+    # NATFIXME: implement EUC-JP
     xit "use the default external encoding if it is ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-8')
 
@@ -116,23 +114,25 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "UTF-8"
     end
 
-    # NATFIXME: implement Encoding.default_external
-    xit "use US-ASCII encoding if the default external encoding is not ascii compatible" do
-      Encoding.default_external = Encoding.find('UTF-32')
+    it "use US-ASCII encoding if the default external encoding is not ascii compatible" do
+      NATFIXME 'Add UTF-32 encoding alias', exception: ArgumentError, message: /unknown encoding name - "UTF-32"/ do
+        Encoding.default_external = Encoding.find('UTF-32')
 
-      utf8 = "utf8".encode("UTF-8")
-      jp   = "jp".encode("EUC-JP")
-      array = [jp, utf8]
+        utf8 = "utf8".encode("UTF-8")
+        jp   = "jp".encode("EUC-JP")
+        array = [jp, utf8]
 
-      array.send(@method).encoding.name.should == "US-ASCII"
+        array.send(@method).encoding.name.should == "US-ASCII"
+      end
     end
 
-    # NATFIXME: Implement String#encode!
-    xit "does not raise if inspected result is not default external encoding" do
-      utf_16be = mock("utf_16be")
-      utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
+    it "does not raise if inspected result is not default external encoding" do
+      NATFIXME 'Implement String#encode!', exception: NoMethodError, message: /undefined method `encode!'/ do
+        utf_16be = mock("utf_16be")
+        utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
 
-      [utf_16be].send(@method).should == '["utf_16be \u3042"]'
+        [utf_16be].send(@method).should == '["utf_16be \u3042"]'
+      end
     end
   end
 end
