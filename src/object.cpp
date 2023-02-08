@@ -518,7 +518,7 @@ SymbolObject *Object::to_instance_variable_name(Env *env) {
     SymbolObject *symbol = to_symbol(env, Conversion::Strict);
 
     if (!symbol->is_ivar_name()) {
-        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->c_str());
+        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
     }
 
     return symbol;
@@ -598,7 +598,7 @@ Value Object::const_set(SymbolObject *name, Value val) {
 
 bool Object::ivar_defined(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
-        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
         return false;
@@ -612,7 +612,7 @@ bool Object::ivar_defined(Env *env, SymbolObject *name) {
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
-        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
         return NilObject::the();
@@ -626,16 +626,16 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
 
 Value Object::ivar_remove(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
-        env->raise("NameError", "instance variable {} not defined", name->c_str());
+        env->raise("NameError", "instance variable {} not defined", name->string());
 
     auto val = m_ivars->remove(name, env);
     if (val)
         return val;
     else
-        env->raise("NameError", "instance variable {} not defined", name->c_str());
+        env->raise("NameError", "instance variable {} not defined", name->string());
 }
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
@@ -644,7 +644,7 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     assert_not_frozen(env);
 
     if (!name->is_ivar_name())
-        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
     if (!m_ivars)
         m_ivars = new TM::Hashmap<SymbolObject *, Value> {};
@@ -676,7 +676,7 @@ Value Object::cvar_get(Env *env, SymbolObject *name) {
         } else {
             module = m_klass;
         }
-        env->raise_name_error(name, "uninitialized class variable {} in {}", name->c_str(), module->inspect_str());
+        env->raise_name_error(name, "uninitialized class variable {} in {}", name->string(), module->inspect_str());
     }
 }
 

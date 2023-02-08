@@ -113,13 +113,13 @@ void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMiss
     String message;
     switch (reason) {
     case MethodMissingReason::Private:
-        message = String::format("private method `{}' called for {}", name->c_str(), inspect_string);
+        message = String::format("private method `{}' called for {}", name->string(), inspect_string);
         break;
     case MethodMissingReason::Protected:
-        message = String::format("protected method `{}' called for {}", name->c_str(), inspect_string);
+        message = String::format("protected method `{}' called for {}", name->string(), inspect_string);
         break;
     case MethodMissingReason::Undefined:
-        message = String::format("undefined method `{}' for {}", name->c_str(), inspect_string);
+        message = String::format("undefined method `{}' for {}", name->string(), inspect_string);
         break;
     default:
         NAT_UNREACHABLE();
