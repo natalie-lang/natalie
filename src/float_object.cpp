@@ -362,6 +362,9 @@ Value FloatObject::pow(Env *env, Value rhs) {
     double base = to_double();
     double exponent = rhs->as_float()->to_double();
 
+    if (base < 0 && ::floor(exponent) != exponent)
+        env->raise("ArgumentError", "Not yet implemented: negative raised to a fractional power");
+
     return Value::floatingpoint(::pow(base, exponent));
 }
 
