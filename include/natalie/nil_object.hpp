@@ -22,18 +22,18 @@ public:
         return s_instance;
     }
 
-    bool and_method(Env *, Value);
-    bool or_method(Env *, Value);
-    Value eqtilde(Env *, Value);
-    Value rationalize(Env *, Value);
-    Value to_s(Env *);
-    Value to_a(Env *);
-    Value to_c(Env *);
-    Value to_h(Env *);
-    Value to_f(Env *);
-    Value to_i(Env *);
-    Value to_r(Env *);
-    Value inspect(Env *);
+    bool and_method(const Env *, const Value) const;
+    bool or_method(const Env *, Value) const;
+    Value eqtilde(const Env *, const Value) const;
+    Value rationalize(const Env *, const Value) const;
+    Value to_s(const Env *) const;
+    Value to_a(const Env *) const;
+    Value to_c(const Env *) const;
+    Value to_h(const Env *) const;
+    Value to_f(const Env *) const;
+    Value to_i(const Env *) const;
+    Value to_r(const Env *) const;
+    Value inspect(const Env *) const;
 
     virtual void visit_children(Visitor &visitor) override final;
 
