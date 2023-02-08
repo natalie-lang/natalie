@@ -402,7 +402,7 @@ Value FloatObject::arg(Env *env) {
         }                                                                                                   \
                                                                                                             \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                       \
-            return NilObject::the();                                                                        \
+            return false;                                                                                   \
         }                                                                                                   \
                                                                                                             \
         double lhs_d = lhs->as_float()->to_double();                                                        \
