@@ -101,6 +101,10 @@ class Set
   end
   alias - difference
 
+  def disjoint?(other)
+    !intersect?(other)
+  end
+
   def empty?
     @data.empty?
   end
@@ -119,6 +123,13 @@ class Set
     "#<Set: {#{items.join(', ')}}>"
   end
   alias to_s inspect
+
+  def intersect?(other)
+    unless other.is_a?(Enumerable)
+      raise ArgumentError, 'value must be enumerable'
+    end
+    other.any? { |obj| include?(obj) }
+  end
 
   def intersection(other)
     unless other.is_a?(Enumerable)
