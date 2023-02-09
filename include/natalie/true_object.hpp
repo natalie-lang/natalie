@@ -22,10 +22,10 @@ public:
         return s_instance;
     }
 
-    bool and_method(Env *, Value);
-    bool or_method(Env *, Value);
-    bool xor_method(Env *, Value);
-    Value to_s(Env *);
+    bool and_method(const Env *, Value) const;
+    bool or_method(const Env *, const Value) const;
+    bool xor_method(const Env *, const Value) const;
+    Value to_s(const Env *) const;
 
     virtual void visit_children(Visitor &visitor) override final;
 
