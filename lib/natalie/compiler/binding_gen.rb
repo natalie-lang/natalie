@@ -461,6 +461,7 @@ gen.binding('Encoding', 'dummy?', 'EncodingObject', 'is_dummy', argc: 0, pass_en
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'name', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'names', 'EncodingObject', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Encoding', 'to_s', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('EnumeratorArithmeticSequence', 'new')
 gen.binding('Enumerator::ArithmeticSequence', '==', 'Enumerator::ArithmeticSequenceObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

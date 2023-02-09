@@ -7,8 +7,7 @@ describe :encoding_name, shared: true do
     end
   end
 
-  # NATFIXME: add back once we have a find method
-  xit "uniquely identifies an encoding" do
+  it "uniquely identifies an encoding" do
     Encoding.list.each do |e|
       e.should == Encoding.find(e.send(@method))
     end
