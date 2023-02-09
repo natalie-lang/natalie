@@ -7,28 +7,32 @@ describe "BasicObject" do
     ruby_exe(script).chomp.should == "NoMethodError"
   end
 
-  # NATFIXME: raises NameError when referencing built-in constants
-  xit "raises NameError when referencing built-in constants" do
-    -> { class BasicObjectSpecs::BOSubclass; Kernel; end }.should raise_error(NameError)
+  it "raises NameError when referencing built-in constants" do
+    NATFIXME 'raises NameError when referencing built-in constants', exception: SpecFailedException do
+      -> { class BasicObjectSpecs::BOSubclass; Kernel; end }.should raise_error(NameError)
+    end
   end
 
-  # NATFIXME: does not define built-in constants (according to const_defined?)
-  xit "does not define built-in constants (according to const_defined?)" do
-    BasicObject.const_defined?(:Kernel).should be_false
+  it "does not define built-in constants (according to const_defined?)" do
+    NATFIXME 'does not define built-in constants (according to const_defined?)', exception: SpecFailedException do
+      BasicObject.const_defined?(:Kernel).should be_false
+    end
   end
 
-  # NATFIXME: does not define built-in constants (according to defined?)
-  xit "does not define built-in constants (according to defined?)" do
-    BasicObjectSpecs::BOSubclass.kernel_defined?.should be_nil
+  it "does not define built-in constants (according to defined?)" do
+    NATFIXME 'does not define built-in constants (according to defined?)', exception: SpecFailedException do
+      BasicObjectSpecs::BOSubclass.kernel_defined?.should be_nil
+    end
   end
 
   it "is included in Object's list of constants" do
     Object.constants(false).should include(:BasicObject)
   end
 
-  # NATFIXME: includes itself in its list of constants
-  xit "includes itself in its list of constants" do
-    BasicObject.constants(false).should include(:BasicObject)
+  it "includes itself in its list of constants" do
+    NATFIXME 'includes itself in its list of constants', exception: SpecFailedException do
+      BasicObject.constants(false).should include(:BasicObject)
+    end
   end
 end
 
@@ -88,9 +92,10 @@ describe "BasicObject subclass" do
   end
 
   describe "BasicObject references" do
-    # NATFIXME: uninitialized constant BasicObject::BasicObject (NameError)
-    xit "can refer to BasicObject from within itself" do
-      -> { BasicObject::BasicObject }.should_not raise_error
+    it "can refer to BasicObject from within itself" do
+      NATFIXME 'uninitialized constant BasicObject::BasicObject (NameError)', exception: SpecFailedException do
+        -> { BasicObject::BasicObject }.should_not raise_error
+      end
     end
   end
 end
