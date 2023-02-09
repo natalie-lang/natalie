@@ -11,8 +11,9 @@ describe "Math.log2" do
     Math.log2(3.14).should be_close(1.6507645591169, TOLERANCE)
     Math.log2((2**101+45677544234809571)).should be_close(101.00000000000003, TOLERANCE)
 
-    # NATFIXME: Return 10001 instead of Infinity
-    # Math.log2((2**10001+45677544234809571)).should == 10001.0
+    NATFIXME 'Return 10001 instead of Infinity', exception: SpecFailedException do
+      Math.log2((2**10001+45677544234809571)).should == 10001.0
+    end
     Math.log2((2**301+45677544234809571)).should == 301.0
   end
 
