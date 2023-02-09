@@ -23,20 +23,17 @@ Value Args::at(size_t index, Value default_value) const {
 Args::Args(ArrayObject *array, bool has_keyword_hash)
     : m_size { array->size() }
     , m_data { array->data() }
-    , m_has_keyword_hash { has_keyword_hash }
-    , m_array { array } { }
+    , m_has_keyword_hash { has_keyword_hash } { }
 
 Args::Args(const Args &other)
     : m_size { other.m_size }
     , m_data { other.m_data }
-    , m_has_keyword_hash { other.m_has_keyword_hash }
-    , m_array { other.m_array } { }
+    , m_has_keyword_hash { other.m_has_keyword_hash } { }
 
 Args &Args::operator=(const Args &other) {
     m_size = other.m_size;
     m_data = other.m_data;
     m_has_keyword_hash = other.m_has_keyword_hash;
-    m_array = other.m_array;
     return *this;
 }
 
