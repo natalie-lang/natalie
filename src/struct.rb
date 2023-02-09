@@ -96,6 +96,25 @@ class Struct
           attrs.map { |attr| send(attr) }
         end
 
+        define_method :deconstruct_keys do |arg|
+          if arg.nil?
+            arg = attrs
+          elsif !arg.is_a?(Array)
+            raise TypeError, "wrong argument type #{arg.class} (expected Array or nil)"
+          end
+
+          if arg.size > attrs.size
+            {}
+          else
+            arg = arg.take_while do |key|
+              key.is_a?(Integer) ? key < attrs.size : attrs.include?(key.to_sym)
+            end
+            arg.each_with_object({}) do |key, memo|
+              memo[key] = self[key]
+            end
+          end
+        end
+
         define_method :[] do |arg|
           case arg
           when Integer
