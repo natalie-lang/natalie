@@ -15,9 +15,8 @@ Value IoObject::initialize(Env *env, Value file_number) {
 }
 
 Value IoObject::read_file(Env *env, Value filename) {
-    Value args[] = { filename };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, Args(1, args), nullptr)->as_file();
+    FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
     return data;
@@ -25,11 +24,9 @@ Value IoObject::read_file(Env *env, Value filename) {
 
 Value IoObject::write_file(Env *env, Value filename, Value string) {
     Value flags = new StringObject { "w" };
-    Value new_args[] = { filename, flags };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, Args(2, new_args), nullptr)->as_file();
-    Value write_args[] = { string };
-    auto bytes_written = file->write(env, Args(1, write_args));
+    FileObject *file = _new(env, File, { filename, flags }, nullptr)->as_file();
+    auto bytes_written = file->write(env, { string });
     file->close(env);
     return bytes_written;
 }

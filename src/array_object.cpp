@@ -379,8 +379,7 @@ bool ArrayObject::eq(Env *env, Value other) {
                     continue;
             }
 
-            Value args[] = { item };
-            Value result = this_item.send(env, equality, Args(1, args), nullptr);
+            Value result = this_item.send(env, equality, { item }, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -413,8 +412,7 @@ bool ArrayObject::eql(Env *env, Value other) {
             return TrueObject::the();
 
         for (size_t i = 0; i < size(); ++i) {
-            Value args[] = { (*other_array)[i] };
-            Value result = (*this)[i].send(env, "eql?"_s, Args(1, args), nullptr);
+            Value result = (*this)[i].send(env, "eql?"_s, { (*other_array)[i] }, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -1561,8 +1559,7 @@ Value ArrayObject::insert(Env *env, Args args) {
 }
 
 Value ArrayObject::intersection(Env *env, Value arg) {
-    Value args[] = { arg };
-    return intersection(env, Args(1, args));
+    return intersection(env, Args { arg });
 }
 
 bool ArrayObject::include_eql(Env *env, Value arg) {

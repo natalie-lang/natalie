@@ -54,8 +54,7 @@ Value HashObject::get_default(Env *env, Value key) {
     if (m_default_proc) {
         if (!key)
             return NilObject::the();
-        Value args[] = { this, key };
-        return m_default_proc->call(env, Args(2, args), nullptr);
+        return m_default_proc->call(env, { this, key }, nullptr);
     } else {
         return m_default_value;
     }

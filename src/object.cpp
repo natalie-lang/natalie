@@ -766,18 +766,15 @@ Value Object::main_obj_define_method(Env *env, Value name, Value proc_or_unbound
 }
 
 void Object::private_method(Env *env, SymbolObject *name) {
-    Value args[] = { name };
-    private_method(env, Args(1, args));
+    private_method(env, Args { name });
 }
 
 void Object::protected_method(Env *env, SymbolObject *name) {
-    Value args[] = { name };
-    protected_method(env, Args(1, args));
+    protected_method(env, Args { name });
 }
 
 void Object::module_function(Env *env, SymbolObject *name) {
-    Value args[] = { name };
-    module_function(env, Args(1, args));
+    module_function(env, Args { name });
 }
 
 Value Object::private_method(Env *env, Args args) {

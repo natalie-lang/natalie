@@ -422,8 +422,7 @@ Value KernelModule::p(Env *env, Args args) {
         return NilObject::the();
     } else if (args.size() == 1) {
         Value arg = args[0].send(env, "inspect"_s);
-        Value puts_args[] = { arg };
-        puts(env, Args(1, puts_args));
+        puts(env, { arg });
         return args[0];
     } else {
         ArrayObject *result = new ArrayObject { args.size() };
