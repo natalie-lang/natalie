@@ -1382,9 +1382,8 @@ Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch("Enumerable"_s)->as_module();
     auto method_info = Enumerable->find_method(env, "cycle"_s);
-    Value args[] = { count };
-    size_t argc = count ? 1 : 0;
-    return method_info.method()->call(env, this, Args(argc, args), block);
+    auto args = count ? Vector<Value> { count } : Vector<Value> {};
+    return method_info.method()->call(env, this, { std::move(args) }, block);
 }
 
 Value ArrayObject::uniq(Env *env, Block *block) {

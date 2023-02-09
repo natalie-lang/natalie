@@ -23,8 +23,12 @@ public:
 
     Args(size_t size, const Value *data, bool has_keyword_hash = false);
 
-    Args(TM::Vector<Value> &vec, bool has_keyword_hash = false)
+    Args(const TM::Vector<Value> &vec, bool has_keyword_hash = false)
         : m_data { vec }
+        , m_has_keyword_hash { has_keyword_hash } { }
+
+    Args(TM::Vector<Value> &&vec, bool has_keyword_hash = false)
+        : m_data { std::move(vec) }
         , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(ArrayObject *array, bool has_keyword_hash = false);

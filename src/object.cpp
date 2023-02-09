@@ -1120,12 +1120,12 @@ String Object::inspect_str(Env *env) {
 }
 
 Value Object::enum_for(Env *env, const char *method, Args args) {
-    Value args2[args.size() + 1];
-    args2[0] = SymbolObject::intern(method);
+    Vector<Value> args2(args.size() + 1);
+    args2.push(SymbolObject::intern(method));
     for (size_t i = 0; i < args.size(); i++) {
-        args2[i + 1] = args[i];
+        args2.push(args[i]);
     }
-    return this->public_send(env, "enum_for"_s, Args(args.size() + 1, args2, args.has_keyword_hash()));
+    return this->public_send(env, "enum_for"_s, Args(std::move(args2), args.has_keyword_hash()));
 }
 
 void Object::visit_children(Visitor &visitor) {

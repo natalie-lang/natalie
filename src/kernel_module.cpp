@@ -426,12 +426,12 @@ Value KernelModule::p(Env *env, Args args) {
         return args[0];
     } else {
         ArrayObject *result = new ArrayObject { args.size() };
-        Value puts_args[args.size()];
+        Vector<Value> puts_args(args.size());
         for (size_t i = 0; i < args.size(); i++) {
             result->push(args[i]);
-            puts_args[i] = args[i].send(env, "inspect"_s);
+            puts_args.push(args[i].send(env, "inspect"_s));
         }
-        puts(env, Args(args.size(), puts_args));
+        puts(env, std::move(puts_args));
         return result;
     }
 }
