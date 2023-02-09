@@ -27,9 +27,10 @@ describe :rational_exponent, shared: true do
         (Rational(3, 4) ** Rational(4, -3)).should be_close(1.46752322173095, TOLERANCE)
       end
 
-      # NATFIXME: Implement Complex#**
-      xit "returns a complex number when self is negative and the passed argument is not 0" do
-        (Rational(-3, 4) ** Rational(-4, 3)).should be_close(Complex(-0.7337616108654732, 1.2709123906625817), TOLERANCE)
+      it "returns a complex number when self is negative and the passed argument is not 0" do
+        NATFIXME 'Implement Complex#**', exception: ArgumentError do
+          (Rational(-3, 4) ** Rational(-4, 3)).should be_close(Complex(-0.7337616108654732, 1.2709123906625817), TOLERANCE)
+        end
       end
     end
   end
@@ -135,15 +136,15 @@ describe :rational_exponent, shared: true do
       (Rational(3, 1) ** -1.5).should be_close(0.192450089729875, TOLERANCE)
     end
 
-    # NATFIXME: Implement Complex#**
-    xit "returns a complex number if self is negative and the passed argument is not 0" do
-      (Rational(-3, 2) ** 1.5).should be_close(Complex(0.0, -1.8371173070873836), TOLERANCE)
-      (Rational(3, -2) ** 1.5).should be_close(Complex(0.0, -1.8371173070873836), TOLERANCE)
-      (Rational(3, -2) ** -1.5).should be_close(Complex(0.0, 0.5443310539518174), TOLERANCE)
+    it "returns a complex number if self is negative and the passed argument is not 0" do
+      NATFIXME 'Implement Complex#**', exception: ArgumentError do
+        (Rational(-3, 2) ** 1.5).should be_close(Complex(0.0, -1.8371173070873836), TOLERANCE)
+        (Rational(3, -2) ** 1.5).should be_close(Complex(0.0, -1.8371173070873836), TOLERANCE)
+        (Rational(3, -2) ** -1.5).should be_close(Complex(0.0, 0.5443310539518174), TOLERANCE)
+      end
     end
 
-    # NATFIXME: Implement Complex#**
-    xit "returns Complex(1.0) when the passed argument is 0.0" do
+    it "returns Complex(1.0) when the passed argument is 0.0" do
       (Rational(3, 4) ** 0.0).should == Complex(1.0)
       (Rational(-3, 4) ** 0.0).should == Complex(1.0)
       (Rational(-3, 4) ** 0.0).should == Complex(1.0)

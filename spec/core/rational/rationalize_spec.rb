@@ -6,29 +6,30 @@ describe "Rational#rationalize" do
     Rational(-45,7).rationalize.should == Rational(-45,7)
   end
 
-  # NATFIXME: Implement rationalize with argument
   # FIXME: These specs need reviewing by somebody familiar with the
   # algorithm used by #rationalize
-  xit "simplifies self to the degree specified by a Rational argument" do
-    r = Rational(5404319552844595,18014398509481984)
-    r.rationalize(Rational(1,10)).should == Rational(1,3)
-    r.rationalize(Rational(-1,10)).should == Rational(1,3)
+  it "simplifies self to the degree specified by a Rational argument" do
+    NATFIXME 'Implement rationalize with argument', exception: ArgumentError, message: 'wrong number of arguments' do
+      r = Rational(5404319552844595,18014398509481984)
+      r.rationalize(Rational(1,10)).should == Rational(1,3)
+      r.rationalize(Rational(-1,10)).should == Rational(1,3)
 
-    r = Rational(-5404319552844595,18014398509481984)
-    r.rationalize(Rational(1,10)).should == Rational(-1,3)
-    r.rationalize(Rational(-1,10)).should == Rational(-1,3)
-
+      r = Rational(-5404319552844595,18014398509481984)
+      r.rationalize(Rational(1,10)).should == Rational(-1,3)
+      r.rationalize(Rational(-1,10)).should == Rational(-1,3)
+    end
   end
 
-  # NATFIXME: Implement rationalize with argument
-  xit "simplifies self to the degree specified by a Float argument" do
-    r = Rational(5404319552844595,18014398509481984)
-    r.rationalize(0.05).should == Rational(1,3)
-    r.rationalize(0.001).should == Rational(3, 10)
+  it "simplifies self to the degree specified by a Float argument" do
+    NATFIXME 'Implement rationalize with argument', exception: ArgumentError, message: 'wrong number of arguments' do
+      r = Rational(5404319552844595,18014398509481984)
+      r.rationalize(0.05).should == Rational(1,3)
+      r.rationalize(0.001).should == Rational(3, 10)
 
-    r = Rational(-5404319552844595,18014398509481984)
-    r.rationalize(0.05).should == Rational(-1,3)
-    r.rationalize(0.001).should == Rational(-3,10)
+      r = Rational(-5404319552844595,18014398509481984)
+      r.rationalize(0.05).should == Rational(-1,3)
+      r.rationalize(0.001).should == Rational(-3,10)
+    end
   end
 
   it "raises ArgumentError when passed more than one argument" do

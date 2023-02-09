@@ -18,32 +18,36 @@ describe :rational_ceil, shared: true do
   end
 
   describe "with a precision < 0" do
-    # NATFIXME: wrong number of arguments (given 1, expected 0) (ArgumentError)
-    xit "returns an Integer" do
-      @rational.ceil(-2).should be_kind_of(Integer)
-      @rational.ceil(-1).should be_kind_of(Integer)
+    it "returns an Integer" do
+      NATFIXME 'Implement precision argument', exception: ArgumentError, message: 'wrong number of arguments' do
+        @rational.ceil(-2).should be_kind_of(Integer)
+        @rational.ceil(-1).should be_kind_of(Integer)
+      end
     end
 
-    # NATFIXME: wrong number of arguments (given 1, expected 0) (ArgumentError)
-    xit "moves the truncation point n decimal places left" do
-      @rational.ceil(-3).should == 1000
-      @rational.ceil(-2).should == 400
-      @rational.ceil(-1).should == 320
+    it "moves the truncation point n decimal places left" do
+      NATFIXME 'Implement precision argument', exception: ArgumentError, message: 'wrong number of arguments' do
+        @rational.ceil(-3).should == 1000
+        @rational.ceil(-2).should == 400
+        @rational.ceil(-1).should == 320
+      end
     end
   end
 
   describe "with precision > 0" do
-    # NATFIXME: wrong number of arguments (given 1, expected 0) (ArgumentError)
-    xit "returns a Rational" do
-      @rational.ceil(1).should be_kind_of(Rational)
-      @rational.ceil(2).should be_kind_of(Rational)
+    it "returns a Rational" do
+      NATFIXME 'Implement precision argument', exception: ArgumentError, message: 'wrong number of arguments' do
+        @rational.ceil(1).should be_kind_of(Rational)
+        @rational.ceil(2).should be_kind_of(Rational)
+      end
     end
 
-    # NATFIXME: wrong number of arguments (given 1, expected 0) (ArgumentError)
-    xit "moves the truncation point n decimal places right" do
-      @rational.ceil(1).should == Rational(3143, 10)
-      @rational.ceil(2).should == Rational(31429, 100)
-      @rational.ceil(3).should == Rational(157143, 500)
+    it "moves the truncation point n decimal places right" do
+      NATFIXME 'Implement precision argument', exception: ArgumentError, message: 'wrong number of arguments' do
+        @rational.ceil(1).should == Rational(3143, 10)
+        @rational.ceil(2).should == Rational(31429, 100)
+        @rational.ceil(3).should == Rational(157143, 500)
+      end
     end
   end
 end
