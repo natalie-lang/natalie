@@ -15,12 +15,13 @@ describe :rational_divmod_rat, shared: true do
 end
 
 describe :rational_divmod_int, shared: true do
-  # NATFIXME: Support bignum
-  xit "returns the quotient as Integer and the remainder as Rational" do
+  it "returns the quotient as Integer and the remainder as Rational" do
     Rational(7, 4).divmod(2).should eql([0, Rational(7, 4)])
     Rational(7, 4).divmod(-2).should eql([-1, Rational(-1, 4)])
 
-    Rational(bignum_value, 4).divmod(3).should eql([1537228672809129301, Rational(1, 1)])
+    NATFIXME 'Support bignum', exception: SpecFailedException do
+      Rational(bignum_value, 4).divmod(3).should eql([1537228672809129301, Rational(1, 1)])
+    end
   end
 
   it "raises a ZeroDivisionError when passed 0" do
