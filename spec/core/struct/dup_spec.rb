@@ -17,9 +17,7 @@ describe "Struct-based class#dup" do
 
     klass.extend(mod)
     klass_dup = klass.dup
-    NATFIXME 'Responsibility of Kernel#dup, not Struct. Can be reproduced by using any class', exception: NoMethodError, message: "undefined method `hello'" do
-      klass_dup.hello.should == "hello"
-    end
+    klass_dup.hello.should == "hello"
   end
 
 end
