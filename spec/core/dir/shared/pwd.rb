@@ -3,8 +3,7 @@ describe :dir_pwd, shared: true do
     @fs_encoding = Encoding.find('filesystem')
   end
 
-  # NATFIXME: re-enable when File.stat is implemented
-  xit "returns the current working directory" do
+  it "returns the current working directory" do
     pwd = Dir.send(@method)
 
     File.directory?(pwd).should == true
