@@ -158,28 +158,29 @@ describe "Array#flatten" do
     end
   end
 
-  # NATFIXME: Array#flatten should perform respond_to? and method_missing-aware checks when coercing elements to array
-  xit "performs respond_to? and method_missing-aware checks when coercing elements to array" do
-    bo = BasicObject.new
-    [bo].flatten.should == [bo]
+  it "performs respond_to? and method_missing-aware checks when coercing elements to array" do
+    NATFIXME 'Array#flatten should perform respond_to? and method_missing-aware checks when coercing elements to array', exception: SpecFailedException do
+      bo = BasicObject.new
+      [bo].flatten.should == [bo]
 
-    def bo.method_missing(name, *)
-      [1,2]
+      def bo.method_missing(name, *)
+        [1,2]
+      end
+
+      [bo].flatten.should == [1,2]
+
+      def bo.respond_to?(name, *)
+        false
+      end
+
+      [bo].flatten.should == [bo]
+
+      def bo.respond_to?(name, *)
+        true
+      end
+
+      [bo].flatten.should == [1,2]
     end
-
-    [bo].flatten.should == [1,2]
-
-    def bo.respond_to?(name, *)
-      false
-    end
-
-    [bo].flatten.should == [bo]
-
-    def bo.respond_to?(name, *)
-      true
-    end
-
-    [bo].flatten.should == [1,2]
   end
 end
 
