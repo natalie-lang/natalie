@@ -84,7 +84,7 @@ class Struct
           end
         end
 
-        alias_method :values :to_a
+        alias_method :values, :to_a
 
         define_method :inspect do
           inspected_attrs = attrs.map { |attr| "#{attr}=#{send(attr).inspect}" }
