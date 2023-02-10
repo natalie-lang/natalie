@@ -21,15 +21,16 @@ describe "Process.euid=" do
       -> { Process.euid = Object.new }.should raise_error(TypeError)
     end
 
-    # NATFIXME: Etc module not yet available
-    xit "sets the effective user id to its own uid if given the username corresponding to its own uid" do
+    it "sets the effective user id to its own uid if given the username corresponding to its own uid" do
       raise unless Process.uid == Process.euid
 
-      require "etc"
-      user = Etc.getpwuid(Process.uid).name
+      NATFIXME 'Etc module not yet available', exception: LoadError, message: 'cannot load such file etc' do
+        require "etc"
+        user = Etc.getpwuid(Process.uid).name
 
-      Process.euid = user
-      Process.euid.should == Process.uid
+        Process.euid = user
+        Process.euid.should == Process.uid
+      end
     end
 
     as_user do
