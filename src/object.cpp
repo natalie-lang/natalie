@@ -877,8 +877,13 @@ Value Object::dup(Env *env) const {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
-    case Object::Type::Class:
-        return new ClassObject { *as_class() };
+    case Object::Type::Class: {
+        auto out = new ClassObject { *as_class() };
+        auto s_class = singleton_class();
+        if (s_class)
+            out->set_singleton_class(s_class->clone(env)->as_class());
+        return out;
+    }
     case Object::Type::Complex:
         return new ComplexObject { *as_complex() };
     case Object::Type::Exception:
@@ -923,9 +928,11 @@ Value Object::dup(Env *env) const {
 
 Value Object::clone(Env *env) const {
     auto duplicate = this->dup(env);
-    auto s_class = singleton_class();
-    if (s_class) {
-        duplicate->set_singleton_class(s_class->clone(env)->as_class());
+    if (!duplicate->singleton_class()) {
+        auto s_class = singleton_class();
+        if (s_class) {
+            duplicate->set_singleton_class(s_class->clone(env)->as_class());
+        }
     }
 
     if (is_frozen())
