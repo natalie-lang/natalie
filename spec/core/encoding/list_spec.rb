@@ -32,18 +32,20 @@ describe "Encoding.list" do
     end
   end
 
-  # NATFIXME: Pending Implementation of any dummy encoding
-  xit "includes dummy encodings" do
-    Encoding.list.select { |e| e.dummy? }.should_not == []
+  it "includes dummy encodings" do
+    NATFIXME 'Pending Implementation of any dummy encoding', exception: SpecFailedException do
+      Encoding.list.select { |e| e.dummy? }.should_not == []
+    end
   end
 
   it 'includes UTF-8 encoding' do
     Encoding.list.should.include?(Encoding::UTF_8)
   end
 
-  # NATFIXME: Pending Implementation of Encoding::CESU_8
-  xit 'includes CESU-8 encoding' do
-    Encoding.list.should.include?(Encoding::CESU_8)
+  it 'includes CESU-8 encoding' do
+    NATFIXME 'Pending Implementation of Encoding::CESU_8', exception: NameError, message: 'uninitialized constant' do
+      Encoding.list.should.include?(Encoding::CESU_8)
+    end
   end
 
   # TODO: Find example that illustrates this
