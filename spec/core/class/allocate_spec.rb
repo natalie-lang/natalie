@@ -8,8 +8,7 @@ describe "Class#allocate" do
 
   it "returns a fully-formed instance of Module" do
     klass = Class.allocate
-    # NATFIXME: Implement Class#constants
-    # klass.constants.should_not == nil
+    klass.constants.should_not == nil
     klass.methods.should_not == nil
   end
 
