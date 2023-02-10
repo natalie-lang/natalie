@@ -21,15 +21,16 @@ describe "Process.egid=" do
       -> { Process.egid = Object.new }.should raise_error(TypeError)
     end
 
-    # NATFIXME: Etc module not yet available
-    xit "sets the effective group id to its own gid if given the username corresponding to its own gid" do
+    it "sets the effective group id to its own gid if given the username corresponding to its own gid" do
       raise unless Process.gid == Process.egid
 
-      require "etc"
-      group = Etc.getgrgid(Process.gid).name
+      NATFIXME 'Etc module not yet available', exception: LoadError, message: 'cannot load such file etc' do
+        require "etc"
+        group = Etc.getgrgid(Process.gid).name
 
-      Process.egid = group
-      Process.egid.should == Process.gid
+        Process.egid = group
+        Process.egid.should == Process.gid
+      end
     end
 
     as_user do
