@@ -26,8 +26,7 @@ describe "Dir.pwd" do
   end
 
   platform_is_not :windows do
-    # NATFIXME: broken due to spec tmp() realpath issue
-    xit "correctly handles dirs with unicode characters in them" do
+    it "correctly handles dirs with unicode characters in them" do
       Dir.mkdir @name
       Dir.chdir @name do
         if @fs_encoding == Encoding::UTF_8
