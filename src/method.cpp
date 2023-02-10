@@ -43,13 +43,11 @@ Value Method::call(Env *env, Value self, Args args, Block *block) const {
         if (args.size() == 1 && args[0].is_fast_integer()) {
             auto synthesized_arg = IntegerObject { args[0].get_fast_integer() };
             synthesized_arg.add_synthesized_flag();
-            Value new_args[] = { &synthesized_arg };
-            return call_fn(Args(1, new_args));
+            return call_fn({ &synthesized_arg });
         } else if (args.size() == 1 && args[0].holds_raw_double()) {
             auto synthesized_arg = FloatObject { args[0].as_double() };
             synthesized_arg.add_synthesized_flag();
-            Value new_args[] = { &synthesized_arg };
-            return call_fn(Args(1, new_args));
+            return call_fn({ &synthesized_arg });
         }
     } else if (self->is_synthesized()) {
         // Turn this object into a heap-allocated one.

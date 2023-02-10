@@ -560,8 +560,7 @@ Value StringObject::initialize_copy(Env *env, Value arg) {
 }
 
 Value StringObject::ltlt(Env *env, Value arg) {
-    Value args[] = { arg };
-    concat(env, Args(1, args));
+    concat(env, { arg });
     return this;
 }
 
@@ -2652,9 +2651,8 @@ Value StringObject::delete_prefix(Env *env, Value val) {
         val = val->to_str(env);
 
     auto arg_len = val->as_string()->length();
-    Value args[] = { val };
 
-    if (start_with(env, Args(1, args))) {
+    if (start_with(env, { val })) {
         auto after_delete = new StringObject { c_str() + arg_len, length() - arg_len, m_encoding };
         return after_delete;
     }

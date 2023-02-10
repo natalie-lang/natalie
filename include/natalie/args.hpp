@@ -21,34 +21,28 @@ class Args {
 public:
     Args() { }
 
-    Args(size_t size, const Value *data, bool has_keyword_hash = false)
-        : m_size { size }
-        , m_data { data }
+    Args(size_t size, const Value *data, bool has_keyword_hash = false);
+
+    Args(const TM::Vector<Value> &vec, bool has_keyword_hash = false)
+        : m_data { vec }
         , m_has_keyword_hash { has_keyword_hash } { }
 
-    Args(TM::Vector<Value> &vec, bool has_keyword_hash = false)
-        : m_size { vec.size() }
-        , m_data { vec.data() }
+    Args(TM::Vector<Value> &&vec, bool has_keyword_hash = false)
+        : m_data { std::move(vec) }
         , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(ArrayObject *array, bool has_keyword_hash = false);
 
     Args(std::initializer_list<Value> args, bool has_keyword_hash = false)
-        : m_size { args.size() }
-        , m_data { std::data(args) }
+        : m_data { args }
         , m_has_keyword_hash { has_keyword_hash } { }
 
     Args(const Args &other);
 
     Args(Args &&other)
-        : m_size { other.m_size }
-        , m_data { other.m_data }
-        , m_has_keyword_hash { other.m_has_keyword_hash }
-        , m_array { other.m_array } {
-        other.m_size = 0;
-        other.m_data = nullptr;
+        : m_data { std::move(other.m_data) }
+        , m_has_keyword_hash { other.m_has_keyword_hash } {
         other.m_has_keyword_hash = false;
-        other.m_array = nullptr;
     }
 
     Args &operator=(const Args &other);
@@ -67,8 +61,8 @@ public:
     void ensure_argc_between(Env *env, size_t expected_low, size_t expected_high, std::initializer_list<const String> keywords = {}) const;
     void ensure_argc_at_least(Env *env, size_t expected, std::initializer_list<const String> keywords = {}) const;
 
-    size_t size() const { return m_size; }
-    const Value *data() const { return m_data; }
+    size_t size() const { return m_data.size(); }
+    const Value *data() const { return m_data.data(); }
 
     bool has_keyword_hash() const { return m_has_keyword_hash; }
     HashObject *keyword_hash() const;
@@ -81,9 +75,7 @@ private:
 
     String argc_error_suffix(std::initializer_list<const String> keywords) const;
 
-    size_t m_size { 0 };
-    const Value *m_data { nullptr };
+    Vector<Value> m_data {};
     bool m_has_keyword_hash { false };
-    const ArrayObject *m_array { nullptr };
 };
 };

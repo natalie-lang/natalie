@@ -131,7 +131,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberObject::Status::Active);
     assert(fiber->block());
-    Natalie::Value return_args[1];
+    Natalie::Value return_arg = nullptr;
     bool reraise = false;
 
     try {
@@ -142,7 +142,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
         // But that seems to be what Ruby does too.
         Natalie::Env e {};
 
-        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), Natalie::Args(fiber->args()), nullptr);
+        return_arg = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), Natalie::Args(fiber->args()), nullptr);
     } catch (Natalie::ExceptionObject *exception) {
         fiber->set_error(exception);
         reraise = true;
@@ -154,7 +154,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     if (reraise)
         fiber->yield_back(env, {});
     else
-        fiber->yield_back(env, Natalie::Args(1, return_args));
+        fiber->yield_back(env, { return_arg });
 }
 
 #if defined(__x86_64)
