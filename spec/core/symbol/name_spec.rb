@@ -4,8 +4,7 @@ ruby_version_is "3.0" do
   describe "Symbol#name" do
     it "returns string" do
       :ruby.name.should == "ruby"
-      # NATFIXME Support different encodings
-      # :ルビー.name.should == "ルビー"
+      :ルビー.name.should == "ルビー"
     end
 
     it "returns same string instance" do
