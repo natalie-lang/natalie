@@ -36,6 +36,10 @@ describe 'shell out' do
       pid = spawn('sh -c ""')
       pid.should be_an_instance_of(Integer)
     end
+
+    it 'throws the correct error message when the first argument is not a string' do
+      -> { spawn(1) }.should raise_error(TypeError, 'no implicit conversion of Integer into String')
+    end
   end
 
   describe 'Process.wait' do
