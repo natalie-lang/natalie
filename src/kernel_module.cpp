@@ -587,18 +587,15 @@ Value KernelModule::sleep(Env *env, Value length) {
 Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
     args.ensure_argc_at_least(env, 1);
-    char *cmd[args.size() + 1];
+    const char *cmd[args.size() + 1];
     for (size_t i = 0; i < args.size(); i++) {
         auto arg = args[i];
         arg->assert_type(env, Object::Type::String, "String");
-        cmd[i] = strdup(arg->as_string()->c_str());
+        cmd[i] = arg->as_string()->c_str();
     }
     cmd[args.size()] = nullptr;
     auto program = args[0]->as_string();
-    int result = posix_spawnp(&pid, program->c_str(), NULL, NULL, cmd, environ);
-    for (size_t i = 0; i < args.size(); i++) {
-        free(cmd[i]);
-    }
+    int result = posix_spawnp(&pid, program->c_str(), NULL, NULL, const_cast<char *const *>(cmd), environ);
     if (result != 0)
         env->raise_errno();
     return Value::integer(pid);
