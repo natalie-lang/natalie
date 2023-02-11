@@ -616,13 +616,20 @@ Value FileObject::utime(Env *env, Args args) {
 }
 
 Value FileObject::atime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->atime(env);
 }
 Value FileObject::ctime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->ctime(env);
 }
 Value FileObject::mtime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->mtime(env);
+}
+Value FileObject::size(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
+    return as_io()->stat(env)->as_file_stat()->size();
 }
 
 }
