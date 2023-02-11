@@ -6,6 +6,18 @@
 using namespace Natalie;
 
 Value init(Env *env, Value self) {
+    ModuleObject *OpenSSL = new ModuleObject { "OpenSSL" };
+    GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
+
+    // OpenSSL < 3.0 does not have a OPENSSL_VERSION_STR
+    const auto openssl_version_major = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 28) & 0xFF);
+    const auto openssl_version_minor = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 20) & 0xFF);
+    const auto openssl_version_patchlevel = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 12) & 0xFF);
+    StringObject *VERSION = new StringObject {
+        TM::String::format("{}.{}.{}", openssl_version_major, openssl_version_minor, openssl_version_patchlevel)
+    };
+    OpenSSL->const_set("VERSION"_s, VERSION);
+
     return NilObject::the();
 }
 
