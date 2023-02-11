@@ -63,8 +63,8 @@ namespace fileutil {
     }
 }
 
-Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *block) {
-    filename->assert_type(env, Object::Type::String, "String");
+// NATFIXME : block form is not used, option-hash arg not implemented.
+Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
     int flags = O_RDONLY;
     if (flags_obj) {
         switch (flags_obj->type()) {
@@ -108,12 +108,30 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *b
             env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
         }
     }
-    int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-    int fileno = ::open(filename->as_string()->c_str(), flags, mode);
-    if (fileno == -1) {
-        env->raise_errno();
-    } else {
+
+    mode_t modenum;
+    if (perm)
+        modenum = IntegerObject::convert_to_int(env, perm);
+    else
+        modenum = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
+
+    if (filename->is_integer()) { // passing in a number uses fd number
+        int fileno = IntegerObject::convert_to_int(env, filename);
+        String flags_str = String('r');
+        if (flags_obj) {
+            flags_obj->assert_type(env, Object::Type::String, "String");
+            flags_str = flags_obj->as_string()->string();
+        }
+        FILE *fptr = ::fdopen(fileno, flags_str.c_str());
+        if (fptr == nullptr) env->raise_errno();
         set_fileno(fileno);
+        return this;
+    } else {
+        filename = fileutil::convert_using_to_path(env, filename);
+        int fileno = ::open(filename->as_string()->c_str(), flags, modenum);
+        if (fileno == -1) env->raise_errno();
+        set_fileno(fileno);
+        set_path(filename->as_string()->string());
         return this;
     }
 }
@@ -598,13 +616,20 @@ Value FileObject::utime(Env *env, Args args) {
 }
 
 Value FileObject::atime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->atime(env);
 }
 Value FileObject::ctime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->ctime(env);
 }
 Value FileObject::mtime(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
     return as_io()->stat(env)->as_file_stat()->mtime(env);
+}
+Value FileObject::size(Env *env) { // inst method
+    if (is_closed()) env->raise("IOError", "closed stream");
+    return as_io()->stat(env)->as_file_stat()->size();
 }
 
 }

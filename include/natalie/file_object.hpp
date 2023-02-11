@@ -24,7 +24,7 @@ public:
     FileObject()
         : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
 
-    Value initialize(Env *, Value, Value, Block *);
+    Value initialize(Env *, Value, Value, Value, Block *);
 
     static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
         Vector<Value> args { filename };
@@ -85,6 +85,7 @@ public:
     static Value umask(Env *env, Value mask);
     static Value ftype(Env *env, Value path);
     static Value size(Env *env, Value path);
+    Value size(Env *env);
     static Value realpath(Env *, Value, Value);
     static Value world_readable(Env *env, Value path);
     static Value world_writable(Env *env, Value path);

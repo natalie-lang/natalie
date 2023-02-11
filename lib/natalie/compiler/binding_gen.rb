@@ -568,10 +568,11 @@ gen.static_binding('File', 'utime', 'FileObject', 'utime', argc: 2.., pass_env: 
 gen.binding('File', 'atime', 'FileObject', 'atime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'ctime', 'FileObject', 'ctime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: 1..3, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('File', 'lstat', 'FileObject', 'lstat', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'mtime', 'FileObject', 'mtime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'path', 'FileObject', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
+gen.binding('File', 'size', 'FileObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
