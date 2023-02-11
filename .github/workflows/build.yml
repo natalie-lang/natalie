@@ -46,6 +46,7 @@ jobs:
       - name: install openssl
         run: brew install openssl
       - name: test with clang on macOS
-        env:
-          PKG_CONFIG_PATH: /opt/homebrew/opt/openssl@3/lib/pkgconfig
-        run: rake test
+        run: |
+          pkg_env=$(brew info openssl | grep PKG_CONFIG_PATH | sed 's/"//g')
+          $pkg_env
+          rake test
