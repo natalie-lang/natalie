@@ -548,7 +548,7 @@ gen.static_binding('File', 'identical?', 'FileObject', 'is_identical', argc: 2, 
 gen.static_binding('File', 'link', 'FileObject', 'link', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'symlink', 'FileObject', 'symlink', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'mkfifo', 'FileObject', 'mkfifo', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('File', 'chmod', 'FileObject', 'chmod', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('File', 'chmod', 'FileObject', 'chmod', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'world_readable?', 'FileObject', 'world_readable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'world_writable?', 'FileObject', 'world_writable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'expand_path', 'FileObject', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)

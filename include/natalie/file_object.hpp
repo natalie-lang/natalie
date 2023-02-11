@@ -93,7 +93,7 @@ public:
     static Value link(Env *env, Value from, Value to);
     static Value symlink(Env *env, Value from, Value to);
     static Value mkfifo(Env *env, Value path, Value mode);
-    static Value chmod(Env *env, Value mode, Value path);
+    static Value chmod(Env *env, Args args);
     Value chmod(Env *env, Value mode);
 
     static Value lstat(Env *env, Value path);
