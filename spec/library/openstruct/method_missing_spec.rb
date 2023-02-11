@@ -7,9 +7,7 @@ describe "OpenStruct#method_missing when called with a method name ending in '='
   end
 
   it "raises an ArgumentError when not passed any additional arguments" do
-    NATFIXME 'Implement OpenStruct#method_missing', exception: SpecFailedException do
-      -> { @os.send(:test=) }.should raise_error(ArgumentError)
-    end
+    -> { @os.send(:test=) }.should raise_error(ArgumentError)
   end
 end
 
@@ -21,7 +19,7 @@ describe "OpenStruct#method_missing when passed additional arguments" do
 
   it "raises an ArgumentError when the key exists" do
     os = OpenStruct.new(test: 20)
-    NATFIXME 'Implement OpenStruct#method_missing', exception: SpecFailedException do
+    NATFIXME 'Responsibility of define_singleton_method', exception: SpecFailedException do
       -> { os.test(1, 2, 3) }.should raise_error(ArgumentError)
     end
   end

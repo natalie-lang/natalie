@@ -5,9 +5,7 @@ describe "OpenStruct#to_h" do
   before :each do
     @h = {name: "John Smith", age: 70, pension: 300}
     @os = OpenStruct.new(@h)
-    NATFIXME 'Implement OpenStruct#to_h', exception: NoMethodError, message: "undefined method `to_h'" do
-      @to_h = @os.to_h
-    end
+    @to_h = @os.to_h
   end
 
   it "returns a Hash with members as keys" do
@@ -18,8 +16,8 @@ describe "OpenStruct#to_h" do
 
   it "returns a Hash with keys as symbols" do
     os = OpenStruct.new("name" => "John Smith", "age" => 70)
-    NATFIXME 'Implement OpenStruct setters', exception: NoMethodError, message: "undefined method `pension='" do
-      os.pension = 300
+    os.pension = 300
+    NATFIXME 'Implement OpenStruct#to_h', exception: SpecFailedException do
       os.to_h.should == @h
     end
   end
@@ -37,8 +35,8 @@ describe "OpenStruct#to_h" do
 
   context "with block" do
     it "converts [key, value] pairs returned by the block to a hash" do
-      NATFIXME 'Implement OpenStruct#to_h', exception: NoMethodError, message: "undefined method `to_h'" do
-        h = @os.to_h { |k, v| [k.to_s, v*2] }
+      h = @os.to_h { |k, v| [k.to_s, v*2] }
+      NATFIXME 'Implement OpenStruct#to_h', exception: SpecFailedException do
         h.should == { "name" => "John SmithJohn Smith", "age" => 140, "pension" => 600 }
       end
     end
@@ -67,7 +65,7 @@ describe "OpenStruct#to_h" do
       x = mock('x')
       x.stub!(:to_ary).and_return([:b, 'b'])
 
-      NATFIXME 'Implement OpenStruct#to_h', exception: NoMethodError, message: "undefined method `to_h'" do
+      NATFIXME 'Implement OpenStruct#to_h', exception: SpecFailedException do
         @os.to_h { |k| x }.should == { :b => 'b' }
       end
     end

@@ -9,10 +9,8 @@ describe :ostruct_inspect, shared: true do
 
   it "correctly handles self-referential OpenStructs" do
     os = OpenStruct.new
-    NATFIXME 'Implement OpenStruct setters', exception: NoMethodError, message: "undefined method `self='" do
-      os.self = os
-      os.send(@method).should == "#<OpenStruct self=#<OpenStruct ...>>"
-    end
+    os.self = os
+    os.send(@method).should == "#<OpenStruct self=#<OpenStruct ...>>"
   end
 
   it "correctly handles OpenStruct subclasses" do

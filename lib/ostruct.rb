@@ -35,4 +35,20 @@ class OpenStruct
     "#<#{fields.join(' ')}>"
   end
   alias to_s inspect
+
+  def method_missing(method, *args)
+    if method.to_s[-1] == '='
+      if args.size != 1
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
+      end
+
+      m = define_singleton_method(method) { |value| @table[method.to_s.chop.to_sym] = value }
+      return send(method, *args)
+    elsif args.empty?
+      define_singleton_method(method) { @table[method.to_sym] }
+      return send(method)
+    end
+
+    super
+  end
 end

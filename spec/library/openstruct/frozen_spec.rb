@@ -19,9 +19,7 @@ describe "OpenStruct.new when frozen" do
   end
 
   it "cannot create new fields" do
-    NATFIXME 'Implement Openstruct setters', exception: SpecFailedException do
-      ->{ @os.state = :new }.should raise_error( RuntimeError )
-    end
+    ->{ @os.state = :new }.should raise_error( RuntimeError )
   end
 
   it "creates a frozen clone" do
@@ -29,15 +27,13 @@ describe "OpenStruct.new when frozen" do
     f.frozen?.should == true
     f.age.should == 70
     ->{ f.age = 0 }.should raise_error( RuntimeError )
-    NATFIXME 'Implement Openstruct setters', exception: SpecFailedException do
-      ->{ f.state = :newer }.should raise_error( RuntimeError )
-    end
+    ->{ f.state = :newer }.should raise_error( RuntimeError )
   end
 
   it "creates an unfrozen dup" do
     d = @os.dup
     d.frozen?.should == false
-    NATFIXME 'Implement Openstruct getters', exception: NoMethodError, message: "undefined method `age'" do
+    NATFIXME 'creates an unfrozen dup', exception: FrozenError do
       d.age.should == 70
       d.age = 42
       d.age.should == 42

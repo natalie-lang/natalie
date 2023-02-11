@@ -7,9 +7,7 @@ describe "OpenStruct#[]" do
   end
 
   it "returns the associated value" do
-    NATFIXME 'Implement OpenStruct settrs', exception: NoMethodError, message: "undefined method `foo='" do
-      @os.foo = 42
-      @os[:foo].should == 42
-    end
+    @os.foo = 42
+    @os[:foo].should == 42
   end
 end
