@@ -51,4 +51,12 @@ class OpenStruct
 
     super
   end
+
+  def to_h(&block)
+    if block
+      @table.to_h(&block)
+    else
+      @table.dup
+    end
+  end
 end
