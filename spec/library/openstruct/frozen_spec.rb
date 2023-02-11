@@ -33,10 +33,8 @@ describe "OpenStruct.new when frozen" do
   it "creates an unfrozen dup" do
     d = @os.dup
     d.frozen?.should == false
-    NATFIXME 'creates an unfrozen dup', exception: FrozenError do
-      d.age.should == 70
-      d.age = 42
-      d.age.should == 42
-    end
+    d.age.should == 70
+    d.age = 42
+    d.age.should == 42
   end
 end

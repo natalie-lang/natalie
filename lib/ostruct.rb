@@ -33,6 +33,10 @@ class OpenStruct
     singleton_class.undef_method("#{key}=")
   end
 
+  def dup
+    self.class.new(to_h)
+  end
+
   def freeze
     @table.freeze
     super
