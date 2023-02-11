@@ -50,6 +50,11 @@ class OpenStruct
   end
   alias to_s inspect
 
+  def marshal_load(args = {})
+    args.each_pair { |key, value| self[key] = value }
+  end
+  private :marshal_load
+
   def method_missing(method, *args)
     if method.to_s[-1] == '='
       if args.size != 1
@@ -73,4 +78,5 @@ class OpenStruct
       @table.dup
     end
   end
+  alias marshal_dump to_h
 end
