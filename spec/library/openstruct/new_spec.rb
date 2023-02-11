@@ -15,8 +15,6 @@ end
 
 describe "OpenStruct.new when passed no arguments" do
   it "returns a new OpenStruct Object without any attributes" do
-    NATFIXME 'Implement OpenStruct#to_s', exception: SpecFailedException do
-      OpenStruct.new.to_s.should == "#<OpenStruct>"
-    end
+    OpenStruct.new.to_s.should == "#<OpenStruct>"
   end
 end
