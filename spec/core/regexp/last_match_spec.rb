@@ -50,12 +50,12 @@ describe "Regexp.last_match" do
       Regexp.last_match(obj).should == "TEST123"
     end
 
-    # NATFIXME this error gets thrown, but when in a proc it doesn't get
-    # bubbled up properly
-    xit "raises a TypeError when unable to coerce" do
+    it "raises a TypeError when unable to coerce" do
       obj = Object.new
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
-      -> { Regexp.last_match(obj) }.should raise_error(TypeError)
+      NATFIXME "this error gets thrown, but when in a proc it doesn't get bubbled up properly", exception: SpecFailedException do
+        -> { Regexp.last_match(obj) }.should raise_error(TypeError)
+      end
     end
   end
 end
