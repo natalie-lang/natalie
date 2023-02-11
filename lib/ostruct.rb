@@ -23,6 +23,12 @@ class OpenStruct
     end
   end
 
+  def delete_field(key)
+    @table.delete(key.to_sym)
+    singleton_class.undef_method(key)
+    singleton_class.undef_method("#{key}=")
+  end
+
   def freeze
     @table.freeze
     super
