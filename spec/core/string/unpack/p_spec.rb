@@ -11,12 +11,13 @@ describe "String#unpack with format 'P'" do
     ["hello"].pack("P").unpack("P5").should == ["hello"]
   end
 
-  # NATFIXME: cannot unpack a string except from the same object that created it, or a duplicate of it
-  xit "cannot unpack a string except from the same object that created it, or a duplicate of it" do
+  it "cannot unpack a string except from the same object that created it, or a duplicate of it" do
     packed = ["hello"].pack("P")
     packed.unpack("P5").should == ["hello"]
     packed.dup.unpack("P5").should == ["hello"]
-    -> { packed.to_sym.to_s.unpack("P5") }.should raise_error(ArgumentError, /no associated pointer/)
+    NATFIXME 'cannot unpack a string except from the same object that created it, or a duplicate of it', exception: SpecFailedException do
+      -> { packed.to_sym.to_s.unpack("P5") }.should raise_error(ArgumentError, /no associated pointer/)
+    end
   end
 
   it "reads as many characters as specified" do
@@ -36,11 +37,12 @@ describe "String#unpack with format 'p'" do
     ["hello"].pack("p").unpack("p").should == ["hello"]
   end
 
-  # NATFIXME: cannot unpack a string except from the same object that created it, or a duplicate of it
-  xit "cannot unpack a string except from the same object that created it, or a duplicate of it" do
+  it "cannot unpack a string except from the same object that created it, or a duplicate of it" do
     packed = ["hello"].pack("p")
     packed.unpack("p").should == ["hello"]
     packed.dup.unpack("p").should == ["hello"]
-    -> { packed.to_sym.to_s.unpack("p") }.should raise_error(ArgumentError, /no associated pointer/)
+    NATFIXME "cannot unpack a string except from the same object that created it, or a duplicate of it", exception: SpecFailedException do
+      -> { packed.to_sym.to_s.unpack("p") }.should raise_error(ArgumentError, /no associated pointer/)
+    end
   end
 end

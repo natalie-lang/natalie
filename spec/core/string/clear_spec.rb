@@ -16,12 +16,13 @@ describe "String#clear" do
     cleared.should equal @s
   end
 
-  # NATFIXME: Add back once we have encoding.
-  xit "preserves its encoding" do
-    @s.encode!(Encoding::SHIFT_JIS)
-    @s.encoding.should == Encoding::SHIFT_JIS
-    @s.clear.encoding.should == Encoding::SHIFT_JIS
-    @s.encoding.should == Encoding::SHIFT_JIS
+  it "preserves its encoding" do
+    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!'" do
+      @s.encode!(Encoding::SHIFT_JIS)
+      @s.encoding.should == Encoding::SHIFT_JIS
+      @s.clear.encoding.should == Encoding::SHIFT_JIS
+      @s.encoding.should == Encoding::SHIFT_JIS
+    end
   end
 
   it "works with multibyte Strings" do

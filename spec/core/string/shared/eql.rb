@@ -16,14 +16,16 @@ describe :string_eql_value, shared: true do
     "hello".force_encoding("utf-8").send(@method, "hello".force_encoding("iso-8859-1")).should be_true
   end
 
-  # NATFIXME: add back once we support iso-8859-1 encoding
-  xit "considers encoding difference of incompatible string" do
-    "\xff".force_encoding("utf-8").send(@method, "\xff".force_encoding("iso-8859-1")).should be_false
+  it "considers encoding difference of incompatible string" do
+    NATFIXME 'considers encoding difference of incompatible string', exception: SpecFailedException do
+      "\xff".force_encoding("utf-8").send(@method, "\xff".force_encoding("iso-8859-1")).should be_false
+    end
   end
 
-  # NATFIXME: add back once we support utf-32le encoding
-  xit "considers encoding compatibility" do
-    "hello".force_encoding("utf-8").send(@method, "hello".force_encoding("utf-32le")).should be_false
+  it "considers encoding compatibility" do
+    NATFIXME 'considers encoding compatibility', exception: SpecFailedException do
+      "hello".force_encoding("utf-8").send(@method, "hello".force_encoding("utf-32le")).should be_false
+    end
   end
 
   it "ignores subclass differences" do

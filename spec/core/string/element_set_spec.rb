@@ -134,22 +134,24 @@ describe "String#[]= with Integer index" do
     str.should == "ありがとう"
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "encodes the String in an encoding compatible with the replacement" do
+  it "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0] = rep
-    str.encoding.should equal(Encoding::BINARY)
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should equal(Encoding::BINARY)
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "updates the string to a compatible encoding" do
+  it "updates the string to a compatible encoding" do
     str = "  "
     str[1] = [0xB9].pack("C*")
-    str.encoding.should == Encoding::ASCII_8BIT
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should == Encoding::ASCII_8BIT
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
@@ -199,15 +201,16 @@ describe "String#[]= with String index" do
     str.should == "ありかとう"
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "encodes the String in an encoding compatible with the replacement" do
+  it "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[" "] = rep
-    str.encoding.should equal(Encoding::BINARY)
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should equal(Encoding::BINARY)
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
@@ -314,15 +317,16 @@ describe "String#[]= with a Regexp index" do
     str.should == "ありかとう"
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "encodes the String in an encoding compatible with the replacement" do
+  it "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[/ /] = rep
-    str.encoding.should equal(Encoding::BINARY)
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should equal(Encoding::BINARY)
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
@@ -437,15 +441,16 @@ describe "String#[]= with a Range index" do
     str.should == "ありがとう"
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "encodes the String in an encoding compatible with the replacement" do
+  it "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0..1] = rep
-    str.encoding.should equal(Encoding::BINARY)
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should equal(Encoding::BINARY)
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
@@ -606,15 +611,16 @@ describe "String#[]= with Integer index, count" do
     -> { "あれ"[3, 0] = "り" }.should raise_error(IndexError)
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
-  xit "encodes the String in an encoding compatible with the replacement" do
+  it "encodes the String in an encoding compatible with the replacement" do
     str = " ".force_encoding Encoding::US_ASCII
     rep = [160].pack('C').force_encoding Encoding::BINARY
     str[0, 1] = rep
-    str.encoding.should equal(Encoding::BINARY)
+    NATFIXME 'Implement encoding compatibility (Encoding::compatible?)', exception: SpecFailedException do
+      str.encoding.should equal(Encoding::BINARY)
+    end
   end
 
-  # NATFIXME: Implement encoding compatibility (Encoding::compatible?)
+  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
   xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP

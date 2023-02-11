@@ -95,16 +95,18 @@ describe "String#rjust with length, padding" do
     end
   end
 
-  # NATFIXME: Add back once we have encodings.
-  xdescribe "with width, pattern" do
+  describe "with width, pattern" do
     it "returns a String in the compatible encoding" do
       str = "abc".force_encoding Encoding::IBM437
       result = str.rjust 5, "あ"
-      result.should == "ああabc"
-      result.encoding.should equal(Encoding::UTF_8)
+      NATFIXME 'Encoding', exception: SpecFailedException do
+        result.should == "ああabc"
+        result.encoding.should equal(Encoding::UTF_8)
+      end
     end
 
-    it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+    # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
+    xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       pat = "ア".encode Encoding::EUC_JP
       -> do
         "あれ".rjust 5, pat

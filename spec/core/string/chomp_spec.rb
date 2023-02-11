@@ -359,16 +359,18 @@ describe "String#chomp!" do
     "あれ\r\n".chomp!.should == "あれ"
   end
 
-  # NATFIXME: handle multibyte characters
-  xit "removes the final carriage return, newline from a non-ASCII String" do
+  it "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
-    str.chomp!.should == "abc".encode("utf-32be")
+    NATFIXME 'handle multibyte characters', exception: SpecFailedException do
+      str.chomp!.should == "abc".encode("utf-32be")
+    end
   end
 
-  # NATFIXME: handle multibyte characters
-  xit "removes the final carriage return, newline from a non-ASCII String when the record separator is changed" do
+  it "removes the final carriage return, newline from a non-ASCII String when the record separator is changed" do
     $/ = "\n".encode("utf-8")
     str = "abc\r\n".encode "utf-32be"
-    str.chomp!.should == "abc".encode("utf-32be")
+    NATFIXME 'handle multibyte characters', exception: SpecFailedException do
+      str.chomp!.should == "abc".encode("utf-32be")
+    end
   end
 end

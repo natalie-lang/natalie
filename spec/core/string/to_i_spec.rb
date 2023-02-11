@@ -6,9 +6,10 @@ describe "String#to_i" do
     "_123".to_i.should == 0
   end
 
-  # NATFIXME
-  xit "ignores underscores in between the digits" do
-    "1_2_3asdf".to_i.should == 123
+  it "ignores underscores in between the digits" do
+    NATFIXME "ignores underscores in between the digits", exception: SpecFailedException do
+      "1_2_3asdf".to_i.should == 123
+    end
   end
 
   it "ignores leading whitespaces" do
@@ -30,13 +31,13 @@ describe "String#to_i" do
     end
   end
 
-  # NATFIXME
-  xit "accepts '+' at the beginning of a String" do
-    "+0d56".to_i.should == 56
+  it "accepts '+' at the beginning of a String" do
+    NATFIXME "accepts '+' at the beginning of a String", exception: SpecFailedException do
+      "+0d56".to_i.should == 56
+    end
   end
 
-  # NATFIXME: This should be fixed with "ignores underscores in between the digits"
-  xit "interprets leading characters as a number in the given base" do
+  it "interprets leading characters as a number in the given base" do
     "100110010010".to_i(2).should == 0b100110010010
     "100110201001".to_i(3).should == 186409
     "103110201001".to_i(4).should == 5064769
@@ -47,8 +48,10 @@ describe "String#to_i" do
     "853160241701".to_i(9).should == 269716550518
     "853160241791".to_i(10).should == 853160241791
 
-    "F00D_BE_1337".to_i(16).should == 0xF00D_BE_1337
-    "-hello_world".to_i(32).should == -18306744
+    NATFIXME 'This should be fixed with "ignores underscores in between the digits"', exception: SpecFailedException do
+      "F00D_BE_1337".to_i(16).should == 0xF00D_BE_1337
+      "-hello_world".to_i(32).should == -18306744
+    end
     "abcXYZ".to_i(36).should == 623741435
 
     ("z" * 24).to_i(36).should == 22452257707354557240087211123792674815
@@ -61,22 +64,25 @@ describe "String#to_i" do
     "-01778".to_i(0).should == -0177
   end
 
-  # NATFIXME
-  xit "auto-detects base 2 via 0b when base = 0" do
-    "0b112".to_i(0).should == 0b11
-    "-0b112".to_i(0).should == -0b11
+  it "auto-detects base 2 via 0b when base = 0" do
+    NATFIXME "auto-detects base 2 via 0b when base = 0", exception: SpecFailedException do
+      "0b112".to_i(0).should == 0b11
+      "-0b112".to_i(0).should == -0b11
+    end
   end
 
-  # NATFIXME
-  xit "auto-detects base 10 via 0d when base = 0" do
-    "0d19A".to_i(0).should == 19
-    "-0d19A".to_i(0).should == -19
+  it "auto-detects base 10 via 0d when base = 0" do
+    NATFIXME "auto-detects base 10 via 0d when base = 0", exception: SpecFailedException do
+      "0d19A".to_i(0).should == 19
+      "-0d19A".to_i(0).should == -19
+    end
   end
 
-  # NATFIXME
-  xit "auto-detects base 8 via 0o when base = 0" do
-    "0o178".to_i(0).should == 0o17
-    "-0o178".to_i(0).should == -0o17
+  it "auto-detects base 8 via 0o when base = 0" do
+    NATFIXME "auto-detects base 8 via 0o when base = 0", exception: SpecFailedException do
+      "0o178".to_i(0).should == 0o17
+      "-0o178".to_i(0).should == -0o17
+    end
   end
 
   it "auto-detects base 16 via 0x when base = 0" do
@@ -89,28 +95,29 @@ describe "String#to_i" do
     "-1234567890ABC".to_i(0).should == -1234567890
   end
 
-  # NATFIXME
-  xit "doesn't handle foreign base specifiers when base is > 0" do
-    [2, 3, 4, 8, 10].each do |base|
-      "0111".to_i(base).should == "111".to_i(base)
+  it "doesn't handle foreign base specifiers when base is > 0" do
+    NATFIXME "doesn't handle foreign base specifiers when base is > 0", exception: SpecFailedException do
+      [2, 3, 4, 8, 10].each do |base|
+        "0111".to_i(base).should == "111".to_i(base)
 
-      "0b11".to_i(base).should == (base ==  2 ? 0b11 : 0)
-      "0d11".to_i(base).should == (base == 10 ? 0d11 : 0)
-      "0o11".to_i(base).should == (base ==  8 ? 0o11 : 0)
-      "0xFA".to_i(base).should == 0
+        "0b11".to_i(base).should == (base ==  2 ? 0b11 : 0)
+        "0d11".to_i(base).should == (base == 10 ? 0d11 : 0)
+        "0o11".to_i(base).should == (base ==  8 ? 0o11 : 0)
+        "0xFA".to_i(base).should == 0
+      end
+
+      "0xD00D".to_i(16).should == 0xD00D
+
+      "0b11".to_i(16).should == 0xb11
+      "0d11".to_i(16).should == 0xd11
+      "0o11".to_i(25).should == 15026
+      "0x11".to_i(34).should == 38183
+
+      "0B11".to_i(16).should == 0xb11
+      "0D11".to_i(16).should == 0xd11
+      "0O11".to_i(25).should == 15026
+      "0X11".to_i(34).should == 38183
     end
-
-    "0xD00D".to_i(16).should == 0xD00D
-
-    "0b11".to_i(16).should == 0xb11
-    "0d11".to_i(16).should == 0xd11
-    "0o11".to_i(25).should == 15026
-    "0x11".to_i(34).should == 38183
-
-    "0B11".to_i(16).should == 0xb11
-    "0D11".to_i(16).should == 0xd11
-    "0O11".to_i(25).should == 15026
-    "0X11".to_i(34).should == 38183
   end
 
   it "tries to convert the base to an integer using to_int" do

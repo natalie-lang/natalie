@@ -40,26 +40,29 @@ describe :string_each_line, shared: true do
     b.should == ["foo\n", "🤡🤡🤡🤡🤡🤡🤡\n", "bar\n", "baz\n"]
   end
 
-  # NATFIXME: Support nil as separator
-  xit "passes self as a whole to the block if the separator is nil" do
+  it "passes self as a whole to the block if the separator is nil" do
     a = []
-    "one\ntwo\r\nthree".send(@method, nil) { |s| a << s }
-    a.should == ["one\ntwo\r\nthree"]
+    NATFIXME 'Support nil as separator', exception: TypeError, message: 'no implicit conversion from nil to string' do
+      "one\ntwo\r\nthree".send(@method, nil) { |s| a << s }
+      a.should == ["one\ntwo\r\nthree"]
+    end
   end
 
-  # NATFIXME: yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones
-  xit "yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones" do
+  it "yields paragraphs (broken by 2 or more successive newlines) when passed '' and replaces multiple newlines with only two ones" do
     a = []
     "hello\nworld\n\n\nand\nuniverse\n\n\n\n\n".send(@method, '') { |s| a << s }
-    a.should == ["hello\nworld\n\n", "and\nuniverse\n\n"]
+    NATFIXME 'Support emtpy string as separator', exception: SpecFailedException do
+      a.should == ["hello\nworld\n\n", "and\nuniverse\n\n"]
+    end
 
-    a = []
-    "hello\nworld\n\n\nand\nuniverse\n\n\n\n\ndog".send(@method, '') { |s| a << s }
-    a.should == ["hello\nworld\n\n", "and\nuniverse\n\n", "dog"]
+      a = []
+      "hello\nworld\n\n\nand\nuniverse\n\n\n\n\ndog".send(@method, '') { |s| a << s }
+    NATFIXME 'Support emtpy string as separator', exception: SpecFailedException do
+      a.should == ["hello\nworld\n\n", "and\nuniverse\n\n", "dog"]
+    end
   end
 
-  # NATFIXME: uses $/
-  xdescribe "uses $/" do
+  describe "uses $/" do
     before :each do
       @before_separator = $/
     end
@@ -69,20 +72,22 @@ describe :string_each_line, shared: true do
     end
 
     it "as the separator when none is given" do
-      [
-        "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
-        "hello hullo bello"
-      ].each do |str|
-        ["", "llo", "\n", "\r", nil].each do |sep|
-          expected = []
-          str.send(@method, sep) { |x| expected << x }
+      NATFIXME 'Support nil as separator', exception: TypeError, message: 'no implicit conversion from nil to string' do
+        [
+          "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
+          "hello hullo bello"
+        ].each do |str|
+          ["", "llo", "\n", "\r", nil].each do |sep|
+            expected = []
+            str.send(@method, sep) { |x| expected << x }
 
-          suppress_warning {$/ = sep}
+            suppress_warning {$/ = sep}
 
-          actual = []
-          suppress_warning {str.send(@method) { |x| actual << x }}
+            actual = []
+            suppress_warning {str.send(@method) { |x| actual << x }}
 
-          actual.should == expected
+            actual.should == expected
+          end
         end
       end
     end
@@ -109,14 +114,15 @@ describe :string_each_line, shared: true do
     (s.send(@method) {}).should equal(s)
   end
 
-  # NATFIXME: tries to convert the separator to a string using to_str
-  xit "tries to convert the separator to a string using to_str" do
+  it "tries to convert the separator to a string using to_str" do
     separator = mock('l')
-    separator.should_receive(:to_str).and_return("l")
+    # separator.should_receive(:to_str).and_return("l")
 
     a = []
-    "hello\nworld".send(@method, separator) { |s| a << s }
-    a.should == [ "hel", "l", "o\nworl", "d" ]
+    NATFIXME 'tries to convert the separator to a string using to_str', exception: TypeError, message: 'no implicit conversion' do
+      "hello\nworld".send(@method, separator) { |s| a << s }
+      a.should == [ "hel", "l", "o\nworl", "d" ]
+    end
   end
 
   it "does not care if the string is modified while substituting" do

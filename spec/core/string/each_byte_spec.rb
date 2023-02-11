@@ -8,8 +8,7 @@ describe "String#each_byte" do
     a.should == [104, 101, 108, 108, 111, 0]
   end
 
-  # NATFIXME: Implement String#insert + #slice!
-  xit "keeps iterating from the old position (to new string end) when self changes" do
+  it "keeps iterating from the old position (to new string end) when self changes" do
     r = ""
     s = "hello world"
     s.each_byte do |c|
