@@ -9,11 +9,9 @@ describe "OpenStruct.new when frozen" do
   # method_missing case handled in method_missing_spec.rb
   #
   it "is still readable" do
-    NATFIXME 'Implement Openstruct getters', exception: NoMethodError, message: "undefined method `age'" do
-      @os.age.should eql(70)
-      @os.pension.should eql(300)
-      @os.name.should == "John Smith"
-    end
+    @os.age.should eql(70)
+    @os.pension.should eql(300)
+    @os.name.should == "John Smith"
   end
 
   it "is not writable" do
@@ -31,8 +29,8 @@ describe "OpenStruct.new when frozen" do
   it "creates a frozen clone" do
     f = @os.clone
     f.frozen?.should == true
-    NATFIXME 'Implement Openstruct getters', exception: NoMethodError, message: "undefined method `age'" do
-      f.age.should == 70
+    f.age.should == 70
+    NATFIXME 'Implement Openstruct setters', exception: SpecFailedException do
       ->{ f.age = 0 }.should raise_error( RuntimeError )
       ->{ f.state = :newer }.should raise_error( RuntimeError )
     end
