@@ -92,37 +92,46 @@ describe "Random#rand with Fixnum" do
   end
 end
 
-# NATFIXME: Implement Bignums
-xdescribe "Random#rand with Bignum" do
+describe "Random#rand with Bignum" do
   it "typically returns a Bignum" do
     rnd = Random.new(1)
-    10.times.map{ rnd.rand(bignum_value*2) }.max.should be_an_instance_of(Integer)
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+      10.times.map{ rnd.rand(bignum_value*2) }.max.should be_an_instance_of(Integer)
+    end
   end
 
   it "returns a Bignum greater than or equal to 0" do
     prng = Random.new
-    bigs = 20.times.map { prng.rand(bignum_value) }
-    bigs.min.should >= 0
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+      bigs = 20.times.map { prng.rand(bignum_value) }
+      bigs.min.should >= 0
+    end
   end
 
   it "returns a Bignum less than the argument" do
     prng = Random.new
-    bigs = 20.times.map { prng.rand(bignum_value) }
-    bigs.max.should < bignum_value
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+      bigs = 20.times.map { prng.rand(bignum_value) }
+      bigs.max.should < bignum_value
+    end
   end
 
   it "returns the same sequence for a given seed" do
     prng = Random.new 33
-    a = 20.times.map { prng.rand(bignum_value) }
-    prng = Random.new 33
-    b = 20.times.map { prng.rand(bignum_value) }
-    a.should == b
+    NATFIXME 'Implement Bignums', exception: RangeError, message: "bignum too big to convert into `long'" do
+      a = 20.times.map { prng.rand(bignum_value) }
+      prng = Random.new 33
+      b = 20.times.map { prng.rand(bignum_value) }
+      a.should == b
+    end
   end
 
   it "raises an ArgumentError when the argument is negative" do
-    -> do
-      Random.new.rand(-bignum_value)
-    end.should raise_error(ArgumentError)
+    NATFIXME 'Implement Bignums', exception: SpecFailedException do
+      -> do
+        Random.new.rand(-bignum_value)
+      end.should raise_error(ArgumentError)
+    end
   end
 end
 
@@ -163,11 +172,12 @@ describe "Random#rand with Range" do
     Random.new.rand(20..43).should be_an_instance_of(Integer)
   end
 
-  # NATFIXME: Someone wants to implement that?
-  xit "supports custom object types" do
-    rand(RandomSpecs::CustomRangeInteger.new(1)..RandomSpecs::CustomRangeInteger.new(42)).should be_an_instance_of(RandomSpecs::CustomRangeInteger)
-    rand(RandomSpecs::CustomRangeFloat.new(1.0)..RandomSpecs::CustomRangeFloat.new(42.0)).should be_an_instance_of(RandomSpecs::CustomRangeFloat)
-    rand(Time.now..Time.now).should be_an_instance_of(Time)
+  it "supports custom object types" do
+    NATFIXME 'Support custom types', exception: ArgumentError, message: 'bad value for range' do
+      rand(RandomSpecs::CustomRangeInteger.new(1)..RandomSpecs::CustomRangeInteger.new(42)).should be_an_instance_of(RandomSpecs::CustomRangeInteger)
+      rand(RandomSpecs::CustomRangeFloat.new(1.0)..RandomSpecs::CustomRangeFloat.new(42.0)).should be_an_instance_of(RandomSpecs::CustomRangeFloat)
+      rand(Time.now..Time.now).should be_an_instance_of(Time)
+    end
   end
 
   it "returns an object that is a member of the Range" do
@@ -207,10 +217,11 @@ describe "Random#rand with Range" do
     Random.new(42).rand(0..1.0).should be_kind_of(Float)
   end
 
-  # NATFIXME: Support float
-  xit "returns a float within a given float range" do
-    Random.new(42).rand(0.0...100.0).should == 37.454011884736246
-    Random.new(42).rand(-100.0...0.0).should == -62.545988115263754
+  it "returns a float within a given float range" do
+    NATFIXME 'Test of the implementation, Natalie produces stable results', exception: SpecFailedException do
+      Random.new(42).rand(0.0...100.0).should == 37.454011884736246
+      Random.new(42).rand(-100.0...0.0).should == -62.545988115263754
+    end
   end
 
   it "raises an ArgumentError when the startpoint lacks #+ and #- methods" do
