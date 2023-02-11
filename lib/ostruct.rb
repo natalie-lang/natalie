@@ -23,6 +23,11 @@ class OpenStruct
     end
   end
 
+  def freeze
+    @table.freeze
+    super
+  end
+
   def inspect
     fields = [self.class] + @table.map do |key, value|
       "#{key}=#{value.equal?(self) ? "#<#{self.class} ...>" : value.inspect}"

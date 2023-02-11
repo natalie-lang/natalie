@@ -15,9 +15,7 @@ describe "OpenStruct.new when frozen" do
   end
 
   it "is not writable" do
-    NATFIXME 'Implement Openstruct getters', exception: SpecFailedException do
-      ->{ @os.age = 42 }.should raise_error( RuntimeError )
-    end
+    ->{ @os.age = 42 }.should raise_error( RuntimeError )
   end
 
   it "cannot create new fields" do
@@ -30,8 +28,8 @@ describe "OpenStruct.new when frozen" do
     f = @os.clone
     f.frozen?.should == true
     f.age.should == 70
+    ->{ f.age = 0 }.should raise_error( RuntimeError )
     NATFIXME 'Implement Openstruct setters', exception: SpecFailedException do
-      ->{ f.age = 0 }.should raise_error( RuntimeError )
       ->{ f.state = :newer }.should raise_error( RuntimeError )
     end
   end
