@@ -111,7 +111,7 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
 
     mode_t modenum;
     if (perm)
-        IntegerObject::convert_to_int(env, perm);
+        modenum = IntegerObject::convert_to_int(env, perm);
     else
         modenum = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
 

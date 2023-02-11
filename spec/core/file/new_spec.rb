@@ -31,10 +31,8 @@ describe "File.new" do
     File.umask(0011)
     @fh = File.new(@file, @flags, 0755)
     @fh.should be_kind_of(File)
-    NATFIXME("Umask not observed on open", exception: SpecFailedException) do
     platform_is_not :windows do
       File.stat(@file).mode.to_s(8).should == "100744"
-    end
     end
     File.should.exist?(@file)
   end
