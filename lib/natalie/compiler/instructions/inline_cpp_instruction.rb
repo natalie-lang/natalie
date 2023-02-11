@@ -36,6 +36,16 @@ module Natalie
         )
       end
 
+      def generate_bind_static_method(transform, ruby_name, cpp_name = ruby_name)
+        ruby_name = comptime_symbol(ruby_name)
+        cpp_name = comptime_symbol(cpp_name)
+        arity = -1 # FIXME: not sure how to calculate this without more info
+        transform.exec_and_push(
+          :method,
+          "self->klass()->define_method(env, #{ruby_name.to_s.inspect}_s, #{cpp_name}, #{arity})",
+        )
+      end
+
       def generate_cxx_flags(transform, flags)
         flags = comptime_string(flags)
         transform.add_cxx_flags(flags)

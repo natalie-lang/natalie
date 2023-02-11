@@ -28,6 +28,14 @@ module Natalie
       File.join(BUILD_DIR, 'onigmo/lib'),
       File.join(BUILD_DIR, 'zlib'),
     ]
+    if system('pkg-config --exists openssl')
+      unless (openssl_inc_path = `pkg-config --cflags openssl`.strip).empty?
+        INC_PATHS << openssl_inc_path.sub(/^\-I/, '')
+      end
+      unless (openssl_lib_path = `pkg-config --libs-only-L openssl`.strip).empty?
+        LIB_PATHS << openssl_lib_path.sub(/^\-L/, '')
+      end
+    end
     SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
 
     # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
