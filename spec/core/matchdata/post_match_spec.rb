@@ -2,10 +2,11 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 describe "MatchData#post_match" do
-  # NATFIXME: Implement $' special global variable
-  xit "returns the string after the match equiv. special var $'" do
+  it "returns the string after the match equiv. special var $'" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").post_match.should == ': The Movie'
-    $'.should == ': The Movie'
+    NATFIXME "Implement $' special global variable", exception: SpecFailedException do
+      $'.should == ': The Movie'
+    end
   end
 
   it "sets the encoding to the encoding of the source String" do

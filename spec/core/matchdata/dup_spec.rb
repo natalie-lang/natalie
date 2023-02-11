@@ -7,8 +7,9 @@ describe "MatchData#dup" do
     duplicate = original.dup
 
     duplicate.instance_variable_get(:@custom_ivar).should == 42
-    # NATFIXME: Implement MatchData#regexp
-    # original.regexp.should == duplicate.regexp
+    NATFIXME 'Implement MatchData#regexp', exception: NoMethodError, message: "undefined method `regexp'" do
+      original.regexp.should == duplicate.regexp
+    end
     original.string.should == duplicate.string
     original.offset(0).should == duplicate.offset(0)
   end

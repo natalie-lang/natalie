@@ -7,10 +7,11 @@ describe "MatchData#to_a" do
   end
 
   ruby_version_is "3.0" do
-    # NATFIXME: Implement MatchData#[] with range argument
-    xit "returns instances of String when given a String subclass" do
+    it "returns instances of String when given a String subclass" do
       str = MatchDataSpecs::MyString.new("THX1138.")
-      /(.)(.)(\d+)(\d)/.match(str)[0..-1].to_a.each { |m| m.should be_an_instance_of(String) }
+      NATFIXME 'Implement MatchData#[] with range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+        /(.)(.)(\d+)(\d)/.match(str)[0..-1].to_a.each { |m| m.should be_an_instance_of(String) }
+      end
     end
   end
 end
