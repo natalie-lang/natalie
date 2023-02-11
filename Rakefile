@@ -118,6 +118,7 @@ desc 'Format C++ code with clang-format'
 task :format do
   sh "find include -type f -name '*.hpp' -exec clang-format -i --style=file {} +"
   sh "find src -type f -name '*.cpp' -exec clang-format -i --style=file {} +"
+  sh "find lib -type f -name '*.cpp' -exec clang-format -i --style=file {} +"
 end
 
 desc 'Show TODO and FIXME comments in the project'
