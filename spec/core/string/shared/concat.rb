@@ -56,22 +56,24 @@ describe :string_concat, shared: true do
       b = "".send(@method, 33)
       b.should == "!"
 
-      # NATFIXME: Add support for `encode!` method.
-      # b.encode!(Encoding::UTF_8)
-      # b.send(@method, 0x203D)
-      # b.should == "!\u203D"
+      NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!'" do
+        b.encode!(Encoding::UTF_8)
+        b.send(@method, 0x203D)
+        b.should == "!\u203D"
+      end
     end
 
     # #5855
-    # NATFIXME: returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)
-    xit "returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)" do
-      a = ("".encode(Encoding::US_ASCII).send(@method, 128))
-      a.encoding.should == Encoding::BINARY
-      a.should == 128.chr
+    it "returns a BINARY string if self is US-ASCII and the argument is between 128-255 (inclusive)" do
+      NATFIXME 'out of range', exception: RangeError, message: '128 out of char range' do
+        a = ("".encode(Encoding::US_ASCII).send(@method, 128))
+        a.encoding.should == Encoding::BINARY
+        a.should == 128.chr
 
-      a = ("".encode(Encoding::US_ASCII).send(@method, 255))
-      a.encoding.should == Encoding::BINARY
-      a.should == 255.chr
+        a = ("".encode(Encoding::US_ASCII).send(@method, 255))
+        a.encoding.should == Encoding::BINARY
+        a.should == 255.chr
+      end
     end
 
     it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
@@ -111,14 +113,16 @@ describe :string_concat_encoding, shared: true do
       "x".encode("UTF-16LE").send(@method, "").encoding.should == Encoding::UTF_16LE
     end
 
-    # NATFIXME
-    xit "uses the argument's encoding if self is empty" do
-      "".encode("UTF-16LE").send(@method, "x".encode("UTF-8")).encoding.should == Encoding::UTF_8
+    it "uses the argument's encoding if self is empty" do
+      NATFIXME "uses the argument's encoding if self is empty", exception: SpecFailedException do
+        "".encode("UTF-16LE").send(@method, "x".encode("UTF-8")).encoding.should == Encoding::UTF_8
+      end
     end
 
-    # NATFIXME
-    xit "raises Encoding::CompatibilityError if neither are empty" do
-      -> { "x".encode("UTF-16LE").send(@method, "y".encode("UTF-8")) }.should raise_error(Encoding::CompatibilityError)
+    it "raises Encoding::CompatibilityError if neither are empty" do
+      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+        -> { "x".encode("UTF-16LE").send(@method, "y".encode("UTF-8")) }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 
@@ -131,14 +135,16 @@ describe :string_concat_encoding, shared: true do
       "x".encode("UTF-8").send(@method, "".encode("UTF-16LE")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME
-    xit "uses the argument's encoding if self is empty" do
-      "".encode("UTF-8").send(@method, "x".encode("UTF-16LE")).encoding.should == Encoding::UTF_16LE
+    it "uses the argument's encoding if self is empty" do
+      NATFIXME "uses the argument's encoding if self is empty", exception: SpecFailedException do
+        "".encode("UTF-8").send(@method, "x".encode("UTF-16LE")).encoding.should == Encoding::UTF_16LE
+      end
     end
 
-    # NATFIXME
-    xit "raises Encoding::CompatibilityError if neither are empty" do
-      -> { "x".encode("UTF-8").send(@method, "y".encode("UTF-16LE")) }.should raise_error(Encoding::CompatibilityError)
+    it "raises Encoding::CompatibilityError if neither are empty" do
+      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+        -> { "x".encode("UTF-8").send(@method, "y".encode("UTF-16LE")) }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 
@@ -152,14 +158,15 @@ describe :string_concat_encoding, shared: true do
       "\u00E9".encode("UTF-8").send(@method, "123".encode("ISO-8859-1")).encoding.should == Encoding::UTF_8
     end
 
-    # NATFIXME: Implement ISO-8859-1
+    # NATFIXME: Implement high chars in ISO-8859-1
     xit "uses the argument's encoding if self is ASCII-only" do
       "abc".encode("UTF-8").send(@method, "\u00E9".encode("ISO-8859-1")).encoding.should == Encoding::ISO_8859_1
     end
 
-    # NATFIXME: Implement ISO-8859-1
-    xit "raises Encoding::CompatibilityError if neither are ASCII-only" do
-      -> { "\u00E9".encode("UTF-8").send(@method, "\u00E9".encode("ISO-8859-1")) }.should raise_error(Encoding::CompatibilityError)
+    it "raises Encoding::CompatibilityError if neither are ASCII-only" do
+      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+        -> { "\u00E9".encode("UTF-8").send(@method, "\u00E9".encode("ISO-8859-1")) }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 

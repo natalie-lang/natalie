@@ -27,8 +27,7 @@ describe "String#bytes" do
     @utf8_ascii.bytes { |b| b.should be_an_instance_of(Integer) }
   end
 
-  # NATFIXME: Implement String#unpack
-  xit "agrees with #unpack('C*')" do
+  it "agrees with #unpack('C*')" do
     @utf8_ascii.bytes.to_a.should == @utf8_ascii.unpack("C*")
   end
 

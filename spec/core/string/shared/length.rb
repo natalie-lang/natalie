@@ -10,12 +10,12 @@ describe :string_length, shared: true do
     "four".send(@method).should == 4
   end
 
-  # NATFIXME
-  xit "returns the length of a string in different encodings" do
+  it "returns the length of a string in different encodings" do
     utf8_str = 'こにちわ' * 100
     utf8_str.size.should == 400
     utf8_str.encode(Encoding::UTF_32BE).size.should == 400
-    utf8_str.encode(Encoding::SHIFT_JIS).size.should == 400
+    # NATFIXME: Implement multibyte characters and Encoding::SHIFT_JIS
+    # utf8_str.encode(Encoding::SHIFT_JIS).size.should == 400
   end
 
   it "returns the length of the new self after encoding is changed" do

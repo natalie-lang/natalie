@@ -35,10 +35,11 @@ describe "String#chop" do
     "あれ\r\n".chop.should == "あれ"
   end
 
-  # NATFIXME: Respect character encodings when searching for CR/LF
-  xit "removes the final carriage return, newline from a non-ASCII String" do
+  it "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
-    str.chop.should == "abc".encode("utf-32be")
+    NATFIXME 'Respect character encodings when searching for CR/LF', exception: SpecFailedException do
+      str.chop.should == "abc".encode("utf-32be")
+    end
   end
 
   it "returns an empty string when applied to an empty string" do
@@ -100,10 +101,11 @@ describe "String#chop!" do
     "あれ\r\n".chop!.should == "あれ"
   end
 
-  # NATFIXME: Respect character encodings when searching for CR/LF
-  xit "removes the final carriage return, newline from a non-ASCII String" do
+  it "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
-    str.chop!.should == "abc".encode("utf-32be")
+    NATFIXME 'Respect character encodings when searching for CR/LF', exception: SpecFailedException do
+      str.chop!.should == "abc".encode("utf-32be")
+    end
   end
 
   it "returns self if modifications were made" do

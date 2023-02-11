@@ -12,19 +12,22 @@ describe "String#upcase" do
     "hello".encode("US-ASCII").upcase.encoding.should == Encoding::US_ASCII
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "full Unicode case mapping" do
+  describe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
-      "äöü".upcase.should == "ÄÖÜ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        "äöü".upcase.should == "ÄÖÜ"
+      end
     end
 
     it "updates string metadata" do
       upcased = "aßet".upcase
 
-      upcased.should == "ASSET"
-      upcased.size.should == 5
-      upcased.bytesize.should == 5
-      upcased.ascii_only?.should be_true
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        upcased.should == "ASSET"
+        upcased.size.should == 5
+        upcased.bytesize.should == 5
+        upcased.ascii_only?.should be_true
+      end
     end
   end
 
@@ -38,14 +41,17 @@ describe "String#upcase" do
     end
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "full Unicode case mapping adapted for Turkic languages" do
+  describe "full Unicode case mapping adapted for Turkic languages" do
     it "upcases ASCII characters according to Turkic semantics" do
-      "i".upcase(:turkic).should == "İ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        "i".upcase(:turkic).should == "İ"
+      end
     end
 
     it "allows Lithuanian as an extra option" do
-      "i".upcase(:turkic, :lithuanian).should == "İ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        "i".upcase(:turkic, :lithuanian).should == "İ"
+      end
     end
 
     it "does not allow any other additional option" do
@@ -53,14 +59,17 @@ describe "String#upcase" do
     end
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "full Unicode case mapping adapted for Lithuanian" do
+  describe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
-      "iß".upcase(:lithuanian).should == "ISS"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        "iß".upcase(:lithuanian).should == "ISS"
+      end
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      "iß".upcase(:lithuanian, :turkic).should == "İSS"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        "iß".upcase(:lithuanian, :turkic).should == "İSS"
+      end
     end
 
     it "does not allow any other additional option" do
@@ -102,28 +111,33 @@ describe "String#upcase!" do
     a.should == "HELLO".encode("utf-16le")
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "full Unicode case mapping" do
+  describe "full Unicode case mapping" do
     it "modifies self in place for all of Unicode with no option" do
       a = "äöü"
       a.upcase!
-      a.should == "ÄÖÜ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "ÄÖÜ"
+      end
     end
 
     it "works for non-ascii-compatible encodings" do
       a = "äöü".encode("utf-16le")
       a.upcase!
-      a.should == "ÄÖÜ".encode("utf-16le")
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "ÄÖÜ".encode("utf-16le")
+      end
     end
 
     it "updates string metadata for self" do
       upcased = "aßet"
       upcased.upcase!
 
-      upcased.should == "ASSET"
-      upcased.size.should == 5
-      upcased.bytesize.should == 5
-      upcased.ascii_only?.should be_true
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        upcased.should == "ASSET"
+        upcased.size.should == 5
+        upcased.bytesize.should == 5
+        upcased.ascii_only?.should be_true
+      end
     end
   end
 
@@ -141,18 +155,21 @@ describe "String#upcase!" do
     end
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
+  describe "modifies self in place for full Unicode case mapping adapted for Turkic languages" do
     it "upcases ASCII characters according to Turkic semantics" do
       a = "i"
       a.upcase!(:turkic)
-      a.should == "İ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "İ"
+      end
     end
 
     it "allows Lithuanian as an extra option" do
       a = "i"
       a.upcase!(:turkic, :lithuanian)
-      a.should == "İ"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "İ"
+      end
     end
 
     it "does not allow any other additional option" do
@@ -160,18 +177,21 @@ describe "String#upcase!" do
     end
   end
 
-  # NATFIXME: Pending unicode casemap support
-  xdescribe "modifies self in place for full Unicode case mapping adapted for Lithuanian" do
+  describe "modifies self in place for full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
       a = "iß"
       a.upcase!(:lithuanian)
-      a.should == "ISS"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "ISS"
+      end
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
       a = "iß"
       a.upcase!(:lithuanian, :turkic)
-      a.should == "İSS"
+      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
+        a.should == "İSS"
+      end
     end
 
     it "does not allow any other additional option" do

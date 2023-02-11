@@ -332,9 +332,10 @@ describe :string_slice_regexp, shared: true do
     "hello there".send(@method, /xyz/).should == nil
   end
 
-  # NATFIXME: returns a String in the same encoding as self
-  xit "returns a String in the same encoding as self" do
-    "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/).encoding.should == Encoding::US_ASCII
+  it "returns a String in the same encoding as self" do
+    NATFIXME 'returns a String in the same encoding as self', exception: SpecFailedException do
+      "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/).encoding.should == Encoding::US_ASCII
+    end
   end
 
   ruby_version_is ''...'3.0' do
@@ -397,9 +398,10 @@ describe :string_slice_regexp_index, shared: true do
     $~[1].should == nil
   end
 
-  # NATFIXME: returns a String in the same encoding as self
-  xit "returns a String in the same encoding as self" do
-    "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/, 0).encoding.should == Encoding::US_ASCII
+  it "returns a String in the same encoding as self" do
+    NATFIXME 'returns a String in the same encoding as self', exception: SpecFailedException do
+      "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/, 0).encoding.should == Encoding::US_ASCII
+    end
   end
 
   it "calls to_int on the given index" do
