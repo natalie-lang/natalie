@@ -15,10 +15,11 @@ describe "MatchData#inspect" do
     @match_data.inspect.should == '#<MatchData "HX1138" 1:"H" 2:"X" 3:"113" 4:"8">'
   end
 
-  # NATFIXME: Implement named captures
-  xit "returns a human readable representation of named captures" do
+  it "returns a human readable representation of named captures" do
     match_data = "abc def ghi".match(/(?<first>\w+)\s+(?<last>\w+)\s+(\w+)/)
 
-    match_data.inspect.should == '#<MatchData "abc def ghi" first:"abc" last:"def">'
+     NATFIXME 'Implement named captures', exception: SpecFailedException do
+      match_data.inspect.should == '#<MatchData "abc def ghi" first:"abc" last:"def">'
+    end
   end
 end

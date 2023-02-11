@@ -17,10 +17,11 @@ describe "MatchData#string" do
     md.string.should equal(md.string)
   end
 
-  # NATFIXME: Implement String#gsub
-  xit "returns a frozen copy of the matched string for gsub(String)" do
-    'he[[o'.gsub!('[', ']')
-    $~.string.should == 'he[[o'
-    $~.string.should.frozen?
+  it "returns a frozen copy of the matched string for gsub(String)" do
+    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+      'he[[o'.gsub!('[', ']')
+      $~.string.should == 'he[[o'
+      $~.string.should.frozen?
+    end
   end
 end
