@@ -24,7 +24,7 @@ public:
     FileObject()
         : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
 
-    Value initialize(Env *, Value, Value, Block *);
+    Value initialize(Env *, Value, Value, Value, Block *);
 
     static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
         Value args[] = { filename, flags_obj };
