@@ -23,6 +23,10 @@ class OpenStruct
     end
   end
 
+  def ==(other)
+    other.is_a?(OpenStruct) && @table == other.to_h
+  end
+
   def delete_field(key)
     @table.delete(key.to_sym)
     singleton_class.undef_method(key)
