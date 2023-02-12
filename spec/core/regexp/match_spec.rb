@@ -48,12 +48,14 @@ describe "Regexp#match" do
         /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
       end
 
-      # NATFIXME encoding isn't quite handled properly just yet
+      # NATFIXME: "Invalid byte sequence" when running the full test suite
+      #           Spec failure when running the single test
       xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
       end
 
-      # NATFIXME encoding isn't quite handled properly just yet
+      # NATFIXME: "Invalid byte sequence" when running the full test suite
+      #           Spec failure when running the single test
       xit "raises an ArgumentError for an invalid encoding" do
         x96 = ([150].pack('C')).force_encoding('utf-8')
         -> { /(.).(.)/.match("Hello, #{x96} world!", 1) }.should raise_error(ArgumentError)
@@ -65,12 +67,14 @@ describe "Regexp#match" do
         /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
       end
 
-      # NATFIXME encoding isn't quite handled properly just yet
+      # NATFIXME: "Invalid byte sequence" when running the full test suite
+      #           Spec failure when running the single test
       xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
       end
 
-      # NATFIXME encoding isn't quite handled properly just yet
+      # NATFIXME: "Invalid byte sequence" when running the full test suite
+      #           Spec failure when running the single test
       xit "raises an ArgumentError for an invalid encoding" do
         x96 = ([150].pack('C')).force_encoding('utf-8')
         -> { /(.).(.)/.match("Hello, #{x96} world!", -1) }.should raise_error(ArgumentError)
