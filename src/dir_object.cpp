@@ -51,8 +51,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 Value DirObject::mkdir(Env *env, Value path, Value mode) {
     mode_t octmode = 0777;
     if (mode) {
-        mode->assert_type(env, Object::Type::Integer, "Integer");
-        octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
+        octmode = IntegerObject::convert_to_int(env, mode);
     }
     path = fileutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path->as_string()->c_str(), octmode);

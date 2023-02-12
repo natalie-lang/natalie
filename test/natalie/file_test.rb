@@ -271,4 +271,10 @@ describe 'File' do
       File.dirname('../../').should == '..'
     end
   end
+
+  describe ".chmod" do
+    it "allows a single mode argument and no files" do
+      File.chmod(0777).should == 0
+    end
+  end
 end

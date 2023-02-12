@@ -450,13 +450,18 @@ Value FileObject::mkfifo(Env *env, Value path, Value mode) {
     return Value::integer(0);
 }
 
-// TODO: chmod can take multiple paths, implement that later.
-Value FileObject::chmod(Env *env, Value mode, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+Value FileObject::chmod(Env *env, Args args) {
+    // requires mode argument, file arguments are optional
+    args.ensure_argc_at_least(env, 1);
+    auto mode = args[0];
     mode_t modenum = IntegerObject::convert_to_int(env, mode);
-    int result = ::chmod(path->as_string()->c_str(), modenum);
-    if (result < 0) env->raise_errno();
-    return Value::integer(1); // return # of files
+    for (size_t i = 1; i < args.size(); ++i) {
+        auto path = fileutil::convert_using_to_path(env, args[i]);
+        int result = ::chmod(path->as_string()->c_str(), modenum);
+        if (result < 0) env->raise_errno();
+    }
+    // return number of files
+    return Value::integer(args.size() - 1);
 }
 
 // Instance method (single arg)
