@@ -9,28 +9,34 @@ describe "Enumerable#grep_v" do
     end
   end
 
-  # NATFIXME: reset back ref inside block somehow (not sure how)
-  xit "sets $~ in the block" do
+  it "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep_v(/e/) { |e|
       e.should == "abc"
-      $~.should == nil
+      NATFIXME 'reset back ref inside block somehow (not sure how)', exception: SpecFailedException do
+        $~.should == nil
+      end
     }
 
     # Set by the match of "def"
-    $&.should == "e"
+    NATFIXME 'reset back ref inside block somehow (not sure how)', exception: SpecFailedException do
+      $&.should == "e"
+    end
   end
 
-  # NATFIXME: reset back ref inside block somehow (not sure how)
-  xit "sets $~ to the last match when given no block" do
+  it "sets $~ to the last match when given no block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep_v(/e/).should == ["abc"]
 
     # Set by the match of "def"
-    $&.should == "e"
+    NATFIXME 'reset back ref inside block somehow (not sure how)', exception: SpecFailedException do
+      $&.should == "e"
+    end
 
     ["abc", "def"].grep_v(/b/)
-    $&.should == nil
+    NATFIXME 'reset back ref inside block somehow (not sure how)', exception: SpecFailedException do
+      $&.should == nil
+    end
   end
 
   describe "without block" do

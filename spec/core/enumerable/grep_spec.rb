@@ -24,34 +24,41 @@ describe "Enumerable#grep" do
     @a.grep(3..7) {|a| a+1}.should == [5,7]
   end
 
-  # NATFIXME: nth ref inside block
-  xit "can use $~ in the block when used with a Regexp" do
+  it "can use $~ in the block when used with a Regexp" do
     ary = ["aba", "aba"]
-    ary.grep(/a(b)a/) { $1 }.should == ["b", "b"]
+    NATFIXME 'nth ref inside block', exception: SpecFailedException do
+      ary.grep(/a(b)a/) { $1 }.should == ["b", "b"]
+    end
   end
 
-  # NATFIXME: back ref inside block
-  xit "sets $~ in the block" do
+  it "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep(/b/) { |e|
       e.should == "abc"
-      $&.should == "b"
+      NATFIXME 'nth ref inside block', exception: SpecFailedException do
+        $&.should == "b"
+      end
     }
 
     # Set by the failed match of "def"
-    $~.should == nil
+    NATFIXME 'nth ref inside block', exception: SpecFailedException do
+      $~.should == nil
+    end
   end
 
-  # NATFIXME: back ref outside block
-  xit "sets $~ to the last match when given no block" do
+  it "sets $~ to the last match when given no block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep(/b/).should == ["abc"]
 
     # Set by the failed match of "def"
-    $~.should == nil
+    NATFIXME 'nth ref inside block', exception: SpecFailedException do
+      $~.should == nil
+    end
 
     ["abc", "def"].grep(/e/)
-    $&.should == "e"
+    NATFIXME 'nth ref inside block', exception: SpecFailedException do
+      $&.should == "e"
+    end
   end
 
   describe "with a block" do
