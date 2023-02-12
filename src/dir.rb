@@ -44,13 +44,5 @@ class Dir
       closedir(dir);
       return array;
     END
-
-    __define_method__ :rmdir, [:dirname], <<-END
-      dirname->assert_type(env, Object::Type::String, "String");
-      auto result = rmdir(dirname->as_string()->c_str());
-      if (result == -1)
-          env->raise_errno();
-      return Value::integer(result);
-    END
   end
 end
