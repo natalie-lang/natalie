@@ -21,8 +21,16 @@ class DirObject : public Object {
 public:
     DirObject()
         : Object { Object::Type::Dir, GlobalEnv::the()->Object()->const_fetch("Dir"_s)->as_class() } { }
+
     DirObject(ClassObject *klass)
         : Object { Object::Type::Dir, klass } { }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Object::visit_children(visitor);
+        // FIXME: unsure how to visit this, since it is a DIR*
+        //visitor.visit(m_dir);
+        visitor.visit(m_path);
+    }
 
     Value close(Env *env);
     Value read(Env *env);
