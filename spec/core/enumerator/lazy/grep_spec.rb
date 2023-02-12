@@ -33,40 +33,49 @@ describe "Enumerator::Lazy#grep" do
     Enumerator::Lazy.new(Object.new, 100) {}.grep(Object).size.should == nil
   end
 
-  # NATFIXME: back ref inside block
-  xit "sets $~ in the block" do
+  it "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/) { |e|
       e.should == "abc"
-      $&.should == "b"
+      NATFIXME 'back ref inside block', exception: SpecFailedException do
+        $&.should == "b"
+      end
     }.force
 
     # Set by the failed match of "def"
-    $~.should == nil
+    NATFIXME 'back ref inside block', exception: SpecFailedException do
+      $~.should == nil
+    end
   end
 
-  # NATFIXME: back ref inside block
-  xit "sets $~ in the next block with each" do
+  it "sets $~ in the next block with each" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/).each { |e|
       e.should == "abc"
-      $&.should == "b"
+      NATFIXME 'back ref inside block', exception: SpecFailedException do
+        $&.should == "b"
+      end
     }
 
     # Set by the failed match of "def"
-    $~.should == nil
+    NATFIXME 'back ref inside block', exception: SpecFailedException do
+      $~.should == nil
+    end
   end
 
-  # NATFIXME: back ref inside block
-  xit "sets $~ in the next block with map" do
+  it "sets $~ in the next block with map" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep(/b/).map { |e|
       e.should == "abc"
-      $&.should == "b"
+      NATFIXME 'back ref inside block', exception: SpecFailedException do
+        $&.should == "b"
+      end
     }.force
 
     # Set by the failed match of "def"
-    $~.should == nil
+    NATFIXME 'back ref inside block', exception: SpecFailedException do
+      $~.should == nil
+    end
   end
 
   describe "when the returned lazy enumerator is evaluated by Enumerable#first" do
