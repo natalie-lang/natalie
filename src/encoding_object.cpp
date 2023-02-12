@@ -150,6 +150,13 @@ ArrayObject *EncodingObject::list(Env *) {
     return ary;
 }
 
+ArrayObject *EncodingObject::name_list(Env *env) {
+    auto ary = new ArrayObject {};
+    for (auto pair : s_encoding_list)
+        ary->concat(*pair.second->names(env));
+    return ary;
+}
+
 EncodingObject::EncodingObject(Encoding num, std::initializer_list<const String> names)
     : EncodingObject {} {
     assert(s_encoding_list.get(num) == nullptr);

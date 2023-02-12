@@ -456,6 +456,7 @@ gen.static_binding('Encoding', 'locale_charmap', 'EncodingObject', 'locale_charm
 
 gen.static_binding('Encoding', 'find', 'EncodingObject', 'find', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Encoding', 'name_list', 'EncodingObject', 'name_list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'ascii_compatible?', 'EncodingObject', 'is_ascii_compatible', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Encoding', 'dummy?', 'EncodingObject', 'is_dummy', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
