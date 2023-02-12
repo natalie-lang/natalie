@@ -29,17 +29,18 @@ describe 'RbConfig::CONFIG' do
       $LOAD_PATH.map{|path| File.realpath(path) rescue path }.should.include? sitelibdir
     end
   end
-  # NATFIXME: Pending support for frozen-string-literal
-  xit "contains no frozen strings even with --enable-frozen-string-literal" do
-    ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
-      require 'rbconfig'
-      RbConfig::CONFIG.each do |k, v|
-        if v.frozen?
-          puts "\#{k} Failure"
+  it "contains no frozen strings even with --enable-frozen-string-literal" do
+    NATFIXME 'Pending support for frozen-string-literal' do
+      ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
+        require 'rbconfig'
+        RbConfig::CONFIG.each do |k, v|
+          if v.frozen?
+            puts "\#{k} Failure"
+          end
         end
-      end
-      puts 'Done'
-    RUBY
+        puts 'Done'
+      RUBY
+    end
   end
 
   platform_is_not :windows do
@@ -76,16 +77,17 @@ describe 'RbConfig::CONFIG' do
       out.should_not be_empty
     end
 
-    # NATFIXME: cp helper not yet implemented
-    xit "['STRIP'] exists and can be executed" do
+    it "['STRIP'] exists and can be executed" do
       strip = RbConfig::CONFIG.fetch('STRIP')
       copy = tmp("sh")
-      cp '/bin/sh', copy
-      begin
-        out = `#{strip} #{copy}`
-        $?.should.success?
-      ensure
-        rm_r copy
+      NATFIXME 'cp helper not yet implemented', exception: NoMethodError, message: "undefined method `copy_stream'" do
+        cp '/bin/sh', copy
+        begin
+          out = `#{strip} #{copy}`
+          $?.should.success?
+        ensure
+          rm_r copy
+        end
       end
     end
   end
