@@ -55,6 +55,7 @@ public:
     static HashObject *aliases(Env *);
     static Value find(Env *, Value);
     static ArrayObject *list(Env *env);
+    static ArrayObject *name_list(Env *env);
     static const TM::Hashmap<Encoding, EncodingObject *> &encodings() { return EncodingObject::s_encoding_list; }
     static EncodingObject *default_external() { return s_default_external; }
     static EncodingObject *default_internal() { return s_default_internal; }
