@@ -10,9 +10,10 @@ describe "Enumerable#chunk" do
     chunk = EnumerableSpecs::Numerous.new(1, 2, 3, 1, 2).chunk
     chunk.should be_an_instance_of(Enumerator)
 
-    # NATFIXME: implement Enumerator#with_index
-    #result = chunk.with_index {|elt, i| elt - i }.to_a
-    #result.should == [[1, [1, 2, 3]], [-2, [1, 2]]]
+    result = chunk.with_index {|elt, i| elt - i }.to_a
+    NATFIXME 'implement Enumerator#with_index', exception: SpecFailedException do
+      result.should == [[1, [1, 2, 3]], [-2, [1, 2]]]
+    end
   end
 
   it "returns an Enumerator if given a block" do

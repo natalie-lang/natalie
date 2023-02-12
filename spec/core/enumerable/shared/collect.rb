@@ -34,8 +34,7 @@ describe :enumerable_collect, shared: true do
     enum.each { |i| -i }.should == [-2, -5, -3, -6, -1, -4]
   end
 
-  # NATFIXME
-  xit "reports the same arity as the given block" do
+  it "reports the same arity as the given block" do
     entries = [0, 1, 3, 4, 5, 6]
     numerous = EnumerableSpecs::Numerous.new(*entries)
 
@@ -45,15 +44,18 @@ describe :enumerable_collect, shared: true do
     end
 
     numerous.send(@method) { |a, b| a % 2 }.should == [0, 1, 1, 0, 1, 0]
-    ScratchPad.recorded.should == [2]
+    NATFIXME 'Block arity', exception: SpecFailedException do
+      ScratchPad.recorded.should == [2]
+    end
     ScratchPad.clear
     ScratchPad.record []
     numerous.send(@method) { |i| i }.should == entries
-    ScratchPad.recorded.should == [1]
+    NATFIXME 'Block arity', exception: SpecFailedException do
+      ScratchPad.recorded.should == [1]
+    end
   end
 
-  # NATFIXME
-  xit "yields 2 arguments for a Hash" do
+  it "yields 2 arguments for a Hash" do
     c = Class.new do
       def register(a, b)
         ScratchPad << [a, b]
@@ -62,8 +64,10 @@ describe :enumerable_collect, shared: true do
     m = c.new.method(:register)
 
     ScratchPad.record []
-    { 1 => 'a', 2 => 'b' }.map(&m)
-    ScratchPad.recorded.should == [[1, 'a'], [2, 'b']]
+    NATFIXME 'yields 2 arguments for a Hash', exception: ArgumentError, message: 'wrong number of arguments' do
+      { 1 => 'a', 2 => 'b' }.map(&m)
+      ScratchPad.recorded.should == [[1, 'a'], [2, 'b']]
+    end
   end
 
   it_should_behave_like :enumerable_enumeratorized_with_origin_size
