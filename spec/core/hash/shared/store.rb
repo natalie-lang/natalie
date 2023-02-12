@@ -96,8 +96,7 @@ describe :hash_store, shared: true do
       hash.should == {1 => :foo, 3 => 4, 5 => 6}
   end
 
-  # NATFIXME: TrueClass#hash should not be called (RuntimeError)
-  xit "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
+  it "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
     code = <<-EOC
       load '#{fixture __FILE__, "name.rb"}'
       hash = {}
@@ -110,7 +109,9 @@ describe :hash_store, shared: true do
       puts "OK"
       puts hash.size
     EOC
-    result = ruby_exe(code, args: "2>&1")
-    result.should == "OK\n6\n"
+    NATFIXME 'TrueClass#hash should not be called', exception: SpecFailedException do
+      result = ruby_exe(code, args: "2>&1")
+      result.should == "OK\n6\n"
+    end
   end
 end

@@ -118,8 +118,7 @@ describe "Hash#[]" do
     { key => 42 }[key].should == 42
   end
 
-  # NATFIXME: This crashes with "panic: unreachable in src/gc.cpp#20"
-  xit "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
+  it "does not dispatch to hash for Boolean, Integer, Float, String, or Symbol" do
     code = <<-EOC
       load '#{fixture __FILE__, "name.rb"}'
       hash = { true => 42, false => 42, 1 => 42, 2.0 => 42, "hello" => 42, :ok => 42 }
@@ -128,8 +127,10 @@ describe "Hash#[]" do
       end
       puts "Ok."
     EOC
-    result = ruby_exe(code, args: "2>&1")
-    result.should == "Ok.\n"
+    NATFIXME 'TrueClass#hash should not be called', exception: SpecFailedException do
+      result = ruby_exe(code, args: "2>&1")
+      result.should == "Ok.\n"
+    end
   end
 
 end
