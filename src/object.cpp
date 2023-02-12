@@ -19,6 +19,7 @@ Value Object::create(Env *env, ClassObject *klass) {
         env->raise("TypeError", "can't create instance of singleton class");
 
     Value obj;
+
     switch (klass->object_type()) {
     case Object::Type::EnumeratorArithmeticSequence:
         obj = new Enumerator::ArithmeticSequenceObject { klass };
@@ -35,6 +36,10 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::Complex:
         obj = new ComplexObject { klass };
+        break;
+
+    case Object::Type::Dir:
+        obj = new DirObject { klass };
         break;
 
     case Object::Type::Enumerator:
@@ -220,6 +225,16 @@ ComplexObject *Object::as_complex() {
 const ComplexObject *Object::as_complex() const {
     assert(is_complex());
     return static_cast<const ComplexObject *>(this);
+}
+
+DirObject *Object::as_dir() {
+    assert(is_dir());
+    return static_cast<DirObject *>(this);
+}
+
+const DirObject *Object::as_dir() const {
+    assert(is_dir());
+    return static_cast<const DirObject *>(this);
 }
 
 EncodingObject *Object::as_encoding() {

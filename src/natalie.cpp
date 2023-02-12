@@ -169,8 +169,9 @@ Env *build_top_env() {
     File->const_set("Stat"_s, FileStat);
     FileStat->include_once(env, Comparable);
 
-    ClassObject *Dir = IO->subclass(env, "Dir");
+    ClassObject *Dir = Object->subclass(env, "Dir", Object::Type::Dir);
     Object->const_set("Dir"_s, Dir);
+    Dir->include_once(env, Enumerable);
 
     ClassObject *Exception = Object->subclass(env, "Exception", Object::Type::Exception);
     Object->const_set("Exception"_s, Exception);
