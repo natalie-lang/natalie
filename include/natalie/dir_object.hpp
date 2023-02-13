@@ -27,8 +27,6 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
-        // FIXME: unsure how to visit this, since it is a DIR*
-        //visitor.visit(m_dir);
         visitor.visit(m_path);
     }
 
