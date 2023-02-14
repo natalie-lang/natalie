@@ -70,7 +70,7 @@ describe "File.new" do
     end
   end
 
-  #NATFIXME: Partial implementation of File.new
+  #NATFIXME: Partial implementation of File.new, different behaviour on Linux and MacOS
   xit "returns a new File with modus fd" do
     @fh = File.new(@file)
     fh_copy = File.new(@fh.fileno)
@@ -151,10 +151,10 @@ describe "File.new" do
     it "can't alter mode or permissions when opening a file" do
       @fh = File.new(@file)
       NATFIXME "Autoclose and fd+flags not implemented" do
-      -> {
-        f = File.new(@fh.fileno, @flags)
-        f.autoclose = false
-      }.should raise_error(Errno::EINVAL)
+        -> {
+          f = File.new(@fh.fileno, @flags)
+          f.autoclose = false
+        }.should raise_error(Errno::EINVAL)
       end
     end
   end
