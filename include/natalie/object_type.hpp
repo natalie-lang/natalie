@@ -8,6 +8,7 @@ enum class ObjectType {
     Binding,
     Class,
     Complex,
+    Dir,
     Encoding,
     Enumerator,
     EnumeratorArithmeticSequence,

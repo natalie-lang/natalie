@@ -118,6 +118,7 @@ public:
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
     bool is_class() const { return m_type == Type::Class; }
     bool is_complex() const { return m_type == Type::Complex; }
+    bool is_dir() const { return m_type == Type::Dir; }
     bool is_encoding() const { return m_type == Type::Encoding; }
     bool is_exception() const { return m_type == Type::Exception; }
     bool is_float() const { return m_type == Type::Float; }
@@ -149,6 +150,8 @@ public:
     const ClassObject *as_class() const;
     ComplexObject *as_complex();
     const ComplexObject *as_complex() const;
+    DirObject *as_dir();
+    const DirObject *as_dir() const;
     EncodingObject *as_encoding();
     const EncodingObject *as_encoding() const;
     ExceptionObject *as_exception();

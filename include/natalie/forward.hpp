@@ -12,6 +12,7 @@ class Backtrace;
 class Block;
 class ClassObject;
 class ComplexObject;
+class DirObject;
 class EncodingObject;
 class Env;
 class EnvObject;
