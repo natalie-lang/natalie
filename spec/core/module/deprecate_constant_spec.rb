@@ -4,10 +4,9 @@ describe "Module#deprecate_constant" do
   before :each do
     @module = Module.new
     @value = :value
-    # NATFIXME: Constant definition with this syntax does not work yet
-    # @module::PUBLIC1 = @value
-    # @module::PUBLIC2 = @value
-    # @module::PRIVATE = @value
+    @module::PUBLIC1 = @value
+    @module::PUBLIC2 = @value
+    @module::PRIVATE = @value
     @module.const_set(:PUBLIC1, @value)
     @module.const_set(:PUBLIC2, @value)
     @module.const_set(:PRIVATE, @value)
@@ -33,21 +32,23 @@ describe "Module#deprecate_constant" do
       @module.deprecate_constant :PUBLIC1
 
       -> { @module::PUBLIC1 }.should complain(/warning: constant .+::PUBLIC1 is deprecated/)
-      # NATFIXME: Implement Module#const_get
-      # -> { @module.const_get :PRIVATE }.should complain(/warning: constant .+::PRIVATE is deprecated/)
+      NATFIXME 'Implement depracations in Module#const_get', exception: SpecFailedException do
+        -> { @module.const_get :PRIVATE }.should complain(/warning: constant .+::PRIVATE is deprecated/)
+      end
     end
 
     ruby_version_is '2.7' do
-      # NATFIXME: Support Warning
-      xit "does not warn if Warning[:deprecated] is false" do
+      it "does not warn if Warning[:deprecated] is false" do
         @module.deprecate_constant :PUBLIC1
 
-        deprecated = Warning[:deprecated]
-        begin
-          Warning[:deprecated] = false
-          -> { @module::PUBLIC1 }.should_not complain
-        ensure
-          Warning[:deprecated] = deprecated
+        NATFIXME 'Support Warning', exception: NameError, message: 'uninitialized constant Warning' do
+          deprecated = Warning[:deprecated]
+          begin
+            Warning[:deprecated] = false
+            -> { @module::PUBLIC1 }.should_not complain
+          ensure
+            Warning[:deprecated] = deprecated
+          end
         end
       end
     end

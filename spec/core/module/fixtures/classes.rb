@@ -266,44 +266,43 @@ module ModuleSpecs
     module_function :foo2
   end
 
-# NATFIXME: Implement Module.nesting
-=begin
-  module Nesting
-    @tests = {}
-    def self.[](name); @tests[name]; end
-    def self.[]=(name, val); @tests[name] = val; end
-    def self.meta; class << self; self; end; end
+  NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: "undefined method `nesting'" do
+    module Nesting
+      @tests = {}
+      def self.[](name); @tests[name]; end
+      def self.[]=(name, val); @tests[name] = val; end
+      def self.meta; class << self; self; end; end
 
-    Nesting[:basic] = Module.nesting
+      Nesting[:basic] = Module.nesting
 
-    module ::ModuleSpecs
-      Nesting[:open_first_level] = Module.nesting
-    end
+      module ::ModuleSpecs
+        Nesting[:open_first_level] = Module.nesting
+      end
 
-    class << self
-      Nesting[:open_meta] = Module.nesting
-    end
+      class << self
+        Nesting[:open_meta] = Module.nesting
+      end
 
-    def self.called_from_module_method
-      Module.nesting
-    end
-
-    class NestedClass
-      Nesting[:nest_class] = Module.nesting
-
-      def self.called_from_class_method
+      def self.called_from_module_method
         Module.nesting
       end
 
-      def called_from_inst_method
-        Module.nesting
+      class NestedClass
+        Nesting[:nest_class] = Module.nesting
+
+        def self.called_from_class_method
+          Module.nesting
+        end
+
+        def called_from_inst_method
+          Module.nesting
+        end
       end
+
     end
 
+    Nesting[:first_level] = Module.nesting
   end
-
-  Nesting[:first_level] = Module.nesting
-=end
 
   module InstanceMethMod
     def bar(); :bar; end
@@ -398,24 +397,23 @@ module ModuleSpecs
     class Child < Parent
     end
 
-# NATFIXME: undefined method `autoload'
-=begin
-    module FromThread
-      module A
-        autoload :B, fixture(__FILE__, "autoload_empty.rb")
+    NATFIXME 'Implement autoload', exception: NoMethodError, message: "undefined method `autoload'" do
+      module FromThread
+        module A
+          autoload :B, fixture(__FILE__, "autoload_empty.rb")
 
-        class B
-          autoload :C, fixture(__FILE__, "autoload_abc.rb")
+          class B
+            autoload :C, fixture(__FILE__, "autoload_abc.rb")
 
-          def self.foo
-            C.foo
+            def self.foo
+              C.foo
+            end
           end
         end
-      end
 
-      class D < A::B; end
+        class D < A::B; end
+      end
     end
-=end
   end
 
   # This class isn't inherited from or included in anywhere.
@@ -591,8 +589,6 @@ module ModuleSpecs
   EmptyFooMethod = m.instance_method(:foo)
 end
 
-# NATFIXME: Allow Kernel to change access modifier of Object instance method
-=begin
 class Object
   def module_specs_public_method_on_object; end
 
@@ -609,16 +605,18 @@ class Object
   def module_specs_public_method_on_object_for_kernel_private; end
 end
 
-module Kernel
-  def module_specs_public_method_on_kernel; end
+NATFIXME 'Allow Kernel to change access modifier of Object instance method', exception: NameError, message: "undefined method `module_specs_public_method_on_object' for module `Kernel'" do
+  module Kernel
+    def module_specs_public_method_on_kernel; end
 
-  alias_method :module_specs_alias_on_kernel, :module_specs_public_method_on_object
+    alias_method :module_specs_alias_on_kernel, :module_specs_public_method_on_object
 
-  public :module_specs_private_method_on_object_for_kernel_public
-  protected :module_specs_public_method_on_object_for_kernel_protected
-  private :module_specs_public_method_on_object_for_kernel_private
+    public :module_specs_private_method_on_object_for_kernel_public
+    protected :module_specs_public_method_on_object_for_kernel_protected
+    private :module_specs_public_method_on_object_for_kernel_private
+  end
 end
-=end
 
-# NATFIXME: Implement Module.nesting
-# ModuleSpecs::Nesting[:root_level] = Module.nesting
+NATFIXME 'Implement Module.nesting', exception: NoMethodError, message: "undefined method `nesting'" do
+  ModuleSpecs::Nesting[:root_level] = Module.nesting
+end
