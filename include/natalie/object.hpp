@@ -275,20 +275,21 @@ public:
         return buf;
     }
 
-    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
     Value public_send(Env *, Args, Block *);
 
-    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
     Value send(Env *, Args, Block *);
 
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
+        // NOTE: sent_from is unused, but accepting it makes the SendInstruction codegen simpler. :-)
         return send(env, name, Args(args), block);
     }
 
-    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility);
+    Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility, Value = nullptr);
     Value method_missing(Env *, Args, Block *);
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility) const;
+    Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;
 
     Value dup(Env *) const;
     Value clone(Env *env) const;

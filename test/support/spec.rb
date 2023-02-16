@@ -21,12 +21,12 @@ TIME_TOLERANCE = 20.0
 
 FORMATTERS = %w[default yaml spec]
 
-@formatter = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
+@formatter_name = ARGV[ARGV.index('-f') + 1] if ARGV.include?('-f')
 
-@formatter ||= 'default'
+@formatter_name ||= 'default'
 
-unless FORMATTERS.include?(@formatter)
-  raise UnknownFormatterException, "#{@formatter} is not supported! Use #{FORMATTERS.join(', ')}"
+unless FORMATTERS.include?(@formatter_name)
+  raise UnknownFormatterException, "#{@formatter_name} is not supported! Use #{FORMATTERS.join(', ')}"
 end
 
 $context = []
@@ -1361,8 +1361,8 @@ def run_specs
   after_all_done = []
   any_focused = @specs.any? { |_, _, _, focus| focus }
 
-  formatter =
-    case @formatter
+  @formatter =
+    case @formatter_name
     when 'y', 'yaml'
       YamlFormatter.new
     when 's', 'spec', 'specdoc'
@@ -1376,7 +1376,7 @@ def run_specs
 
     next if any_focused && !focus
     
-    formatter.print_context(context) if (last_context != context)
+    @formatter.print_context(context) if (last_context != context)
     last_context = context
     
     if fn
@@ -1394,19 +1394,21 @@ def run_specs
         $expectations = []
         context.each { |con| con.before_each.each { |b| b.call } }
 
+        @context = context
+        @test = test
         fn.call
 
         $expectations.each { |expectation| expectation.validate! }
 
       rescue SpecFailedException => e
         @failures << [context, test, e]
-        formatter.print_failure(*@failures.last)
+        @formatter.print_failure(*@failures.last)
       rescue Exception => e
         raise if e.is_a?(SystemExit)
         @errors << [context, test, e]
-        formatter.print_error(*@errors.last)
+        @formatter.print_error(*@errors.last)
       else
-        formatter.print_success(context, test)
+        @formatter.print_success(context, test)
       ensure
         # ensure that the after-each is executed
         context.each { |con| con.after_each.each { |a| a.call } }
@@ -1415,7 +1417,7 @@ def run_specs
 
     else
       @skipped << [context, test]
-      formatter.print_skipped(*@skipped.last)
+      @formatter.print_skipped(*@skipped.last)
     end
   end
 
@@ -1432,7 +1434,7 @@ def run_specs
     end
   end
 
-  formatter.print_finish(@test_count, @failures, @errors, @skipped)
+  @formatter.print_finish(@test_count, @failures, @errors, @skipped)
 end
 
 at_exit { run_specs }
@@ -1464,6 +1466,9 @@ at_exit { run_specs }
 def NATFIXME(description, exception: nil, message: nil)
   raise SpecFailedException, "NATFIXME requires a block" unless block_given?
   exception ||= StandardError
+
+  @skipped << [@context, @test]
+  @formatter.print_skipped(*@skipped.last)
 
   matcher = case message
   when String then ->(exmsg) { exmsg.include?(message) }

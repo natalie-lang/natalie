@@ -56,19 +56,19 @@ Value Value::on_object_value(Callback &&callback) {
     return callback(synthesized_receiver);
 }
 
-Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
+Value Value::public_send(Env *env, SymbolObject *name, Args args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND);
 
     return on_object_value([&](Object &object) {
-        return object.public_send(env, name, args, block);
+        return object.public_send(env, name, args, block, sent_from);
     });
 }
 
-Value Value::send(Env *env, SymbolObject *name, Args args, Block *block) {
+Value Value::send(Env *env, SymbolObject *name, Args args, Block *block, Value sent_from) {
     PROFILED_SEND(NativeProfilerEvent::Type::SEND);
 
     return on_object_value([&](Object &object) {
-        return object.send(env, name, args, block);
+        return object.send(env, name, args, block, sent_from);
     });
 }
 

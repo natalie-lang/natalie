@@ -83,16 +83,16 @@ public:
 
     operator bool() const { return !is_null(); }
 
-    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value public_send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
 
-    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return public_send(env, name, Args(args), block);
+    Value public_send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
+        return public_send(env, name, Args(args), block, sent_from);
     }
 
-    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr);
+    Value send(Env *, SymbolObject *, Args = {}, Block * = nullptr, Value sent_from = nullptr);
 
-    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
-        return send(env, name, Args(args), block);
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr, Value sent_from = nullptr) {
+        return send(env, name, Args(args), block, sent_from);
     }
 
     bool is_fast_integer() const {

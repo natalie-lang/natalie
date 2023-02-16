@@ -72,7 +72,7 @@ module Natalie
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
           "send_#{@message}",
-          "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list}, #{block})"
+          "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list}, #{block}, self)"
         )
       end
 
