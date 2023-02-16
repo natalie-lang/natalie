@@ -67,6 +67,9 @@ public:
     static Value locale_charmap();
     static void initialize_defaults(Env *);
 
+    static EncodingObject *find_encoding_by_name(Env *env, String name);
+    static EncodingObject *find_encoding(Env *env, Value encoding);
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);
     }
