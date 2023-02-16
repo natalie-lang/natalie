@@ -281,11 +281,12 @@ describe "Range#bsearch" do
         (-inf..).bsearch { |x| true }.should == -inf
         (-inf...).bsearch { |x| true }.should == -inf
 
-        # NATFIXME: Support eval with keeping current binding
-        # eval("(inf..)").bsearch { |x| true }.should == inf
-        # eval("(inf...)").bsearch { |x| true }.should == nil
-        # eval("(-inf..)").bsearch { |x| true }.should == -inf
-        # eval("(-inf...)").bsearch { |x| true }.should == -inf
+        NATFIXME 'Support eval with using the current binding', exception: NoMethodError, message: "undefined method `inf' for main" do
+          eval("(inf..)").bsearch { |x| true }.should == inf
+          eval("(inf...)").bsearch { |x| true }.should == nil
+          eval("(-inf..)").bsearch { |x| true }.should == -inf
+          eval("(-inf...)").bsearch { |x| true }.should == -inf
+        end
       end
     end
 
@@ -332,16 +333,17 @@ describe "Range#bsearch" do
         (-inf...).bsearch { |x| 3 - x }.should == 3
         (0.0...).bsearch { 0 }.should != inf
 
-        # NATFIXME: Support eval with using the current binding
-        # eval("(inf..)").bsearch { |x| 1 }.should == nil
-        # eval("(inf...)").bsearch { |x| 1 }.should == nil
-        # eval("(inf..)").bsearch { |x| x == inf ? 0 : 1 }.should == inf
-        # eval("(inf...)").bsearch { |x| x == inf ? 0 : 1 }.should == nil
-        # eval("(-inf..)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-        # eval("(-inf...)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-        # eval("(-inf..)").bsearch { |x| 3 - x }.should == 3
-        # eval("(-inf...)").bsearch { |x| 3 - x }.should == 3
-        # eval("(0.0...)").bsearch { 0 }.should != inf
+        NATFIXME 'Support eval with using the current binding', exception: NoMethodError, message: "undefined method `inf' for main" do
+          eval("(inf..)").bsearch { |x| 1 }.should == nil
+          eval("(inf...)").bsearch { |x| 1 }.should == nil
+          eval("(inf..)").bsearch { |x| x == inf ? 0 : 1 }.should == inf
+          eval("(inf...)").bsearch { |x| x == inf ? 0 : 1 }.should == nil
+          eval("(-inf..)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
+          eval("(-inf...)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
+          eval("(-inf..)").bsearch { |x| 3 - x }.should == 3
+          eval("(-inf...)").bsearch { |x| 3 - x }.should == 3
+          eval("(0.0...)").bsearch { 0 }.should != inf
+        end
       end
     end
   end
