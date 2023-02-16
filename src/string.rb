@@ -15,13 +15,13 @@ class String
         c2 = format[index]
         case c2
         when 'd'
-          result << args.pop.to_s
+          result << args.shift.to_s
         when 'b'
-          result << args.pop.to_s(2)
+          result << args.shift.to_s(2)
         when 'x'
-          result << args.pop.to_s(16)
+          result << args.shift.to_s(16)
         when 's'
-          result << args.pop.to_s
+          result << args.shift.to_s
         else
           raise "I don't yet know how to handle format '#{c2}'"
         end
