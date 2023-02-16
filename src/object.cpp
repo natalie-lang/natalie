@@ -798,8 +798,8 @@ Value Object::module_function(Env *env, Args args) {
     abort();
 }
 
-Value Object::public_send(Env *env, SymbolObject *name, Args args, Block *block) {
-    return send(env, name, args, block, MethodVisibility::Public);
+Value Object::public_send(Env *env, SymbolObject *name, Args args, Block *block, Value sent_from) {
+    return send(env, name, args, block, MethodVisibility::Public, sent_from);
 }
 
 Value Object::public_send(Env *env, Args args, Block *block) {
@@ -807,8 +807,8 @@ Value Object::public_send(Env *env, Args args, Block *block) {
     return public_send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block) {
-    return send(env, name, args, block, MethodVisibility::Private);
+Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, Value sent_from) {
+    return send(env, name, args, block, MethodVisibility::Private, sent_from);
 }
 
 Value Object::send(Env *env, Args args, Block *block) {
@@ -816,8 +816,8 @@ Value Object::send(Env *env, Args args, Block *block) {
     return send(env->caller(), name, Args::shift(args), block);
 }
 
-Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least) {
-    Method *method = find_method(env, name, visibility_at_least);
+Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+    Method *method = find_method(env, name, visibility_at_least, sent_from);
     // Remove empty keyword arguments
     // This can be created with `send(m, *args, **kwargs)` where kwargs is empty
     if (args.has_keyword_hash()) {
@@ -850,23 +850,36 @@ Value Object::method_missing(Env *env, Args args, Block *block) {
     }
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) const {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, Value sent_from) const {
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
     auto method_info = klass->find_method(env, method_name);
-    if (method_info.is_defined()) {
-        MethodVisibility visibility = method_info.visibility();
-        if (visibility >= visibility_at_least) {
-            return method_info.method();
-        } else if (visibility == MethodVisibility::Protected) {
-            GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Protected);
-        } else {
-            GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Private);
-        }
-    } else {
+
+    if (!method_info.is_defined()) {
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
+        return nullptr;
     }
+
+    MethodVisibility visibility = method_info.visibility();
+
+    if (visibility >= visibility_at_least)
+        return method_info.method();
+
+    if (visibility == MethodVisibility::Protected && sent_from && sent_from->is_a(env, klass))
+        return method_info.method();
+
+    switch (visibility) {
+    case MethodVisibility::Protected:
+        GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Protected);
+        break;
+    case MethodVisibility::Private:
+        GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Private);
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
+
     return nullptr;
 }
 

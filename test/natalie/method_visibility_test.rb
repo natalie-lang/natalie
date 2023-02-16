@@ -48,8 +48,16 @@ class Bar < Foo
     protected_foo
   end
 
+  def public_bar_calling_private_foo
+    private_foo
+  end
+
   def public_bar_calling_protected_foo_on_another_object
     Foo.new.protected_foo
+  end
+
+  def public_bar_calling_private_foo_on_another_object
+    Foo.new.private_foo
   end
 end
 
@@ -82,6 +90,14 @@ describe 'method visibility' do
     it 'is visible inside the class' do
       Foo.new.public_foo_calling_private_foo.should == 'private'
     end
+
+    it 'is visible inside a subclass' do
+      Bar.new.public_bar_calling_private_foo.should == 'private'
+    end
+
+    it 'is not visible from inside a subclass calling the method on another object (not self)' do
+      -> { Bar.new.public_bar_calling_private_foo_on_another_object }.should raise_error(NoMethodError)
+    end
   end
 
   describe 'explicit protected' do
@@ -101,9 +117,7 @@ describe 'method visibility' do
     end
 
     it 'is visible from inside a subclass calling the method on another object (not self)' do
-      NATFIXME 'Need to rethink how method visiblity is determined', exception: NoMethodError do
-        Bar.new.public_bar_calling_protected_foo_on_another_object.should == 'protected'
-      end
+      Bar.new.public_bar_calling_protected_foo_on_another_object.should == 'protected'
     end
   end
 end
