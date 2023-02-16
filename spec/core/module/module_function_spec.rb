@@ -48,12 +48,13 @@ describe "Module#module_function with specific method names" do
   end
 
   ruby_version_is "3.1" do
-    # NATFIXME: Support Ruby 3.1.0
-    xit "returns argument or arguments if given" do
+    it "returns argument or arguments if given" do
       Module.new do
         def foo; end
-        module_function(:foo).should equal(:foo)
-        module_function(:foo, :foo).should == [:foo, :foo]
+        NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
+          module_function(:foo).should equal(:foo)
+          module_function(:foo, :foo).should == [:foo, :foo]
+        end
       end
     end
   end
@@ -132,12 +133,13 @@ describe "Module#module_function with specific method names" do
     -> { Module.new { module_function(o) } }.should raise_error(TypeError)
   end
 
-  # NATFIXME: module_function + require
-  xit "can make accessible private methods" do # JRUBY-4214
-    m = Module.new do
-      module_function :require
+  it "can make accessible private methods" do # JRUBY-4214
+    NATFIXME 'module_function + require', exception: NameError, message: "undefined method `require'" do
+      m = Module.new do
+        module_function :require
+      end
+      m.respond_to?(:require).should be_true
     end
-    m.respond_to?(:require).should be_true
   end
 
   it "creates Module methods that super up the singleton class of the module" do
@@ -180,10 +182,11 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
   end
 
   ruby_version_is "3.1" do
-    # NATFIXME: Support Ruby 3.1.0
-    xit "returns nil" do
-      Module.new do
-        module_function.should equal(nil)
+    it "returns nil" do
+      NATFIXME 'Support Ruby 3.1.0', exception: SpecFailedException do
+        Module.new do
+          module_function.should equal(nil)
+        end
       end
     end
   end
@@ -219,16 +222,19 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m.respond_to?(:test3).should == true
   end
 
-  # NATFIXME: Make Module#module_eval spec-compliant
-  xit "does not affect module_evaled method definitions also if outside the eval itself" do
+  it "does not affect module_evaled method definitions also if outside the eval itself" do
     m = Module.new {
       module_function
       module_eval { def test1() end }
-      module_eval " def test2() end "
+      NATFIXME 'String eval', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        module_eval " def test2() end "
+      end
     }
 
-    m.respond_to?(:test1).should == false
-    m.respond_to?(:test2).should == false
+    NATFIXME 'Make Module#module_eval spec-compliant', exception: SpecFailedException do
+      m.respond_to?(:test1).should == false
+      m.respond_to?(:test2).should == false
+    end
   end
 
   it "has no effect if inside a module_eval if the definitions are outside of it" do
@@ -264,14 +270,15 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m.respond_to?(:test1).should == true
   end
 
-  # NATFIXME: module_function shouldn't affect definitions when inside an eval
-  xit "doesn't affect definitions when inside an eval even if the definitions are outside of it" do
+  it "doesn't affect definitions when inside an eval even if the definitions are outside of it" do
     m = Module.new {
       eval "module_function"
       def test1() end
     }
 
-    m.respond_to?(:test1).should == false
+    NATFIXME "module_function shouldn't affect definitions when inside an eval", exception: SpecFailedException do
+      m.respond_to?(:test1).should == false
+    end
   end
 
   it "functions normally if both toggle and definitions inside a eval" do
