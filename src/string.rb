@@ -3,6 +3,7 @@ class String
   alias slice []
 
   def %(args)
+    args = Array(args)
     index = 0
     format = chars
     result = []
