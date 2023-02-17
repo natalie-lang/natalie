@@ -1467,8 +1467,11 @@ def NATFIXME(description, exception: nil, message: nil)
   raise SpecFailedException, "NATFIXME requires a block" unless block_given?
   exception ||= StandardError
 
-  @skipped << [@context, @test]
-  @formatter.print_skipped(*@skipped.last)
+  # if running in the context of a test, show a skipped test
+  if instance_variables.include?(:@skipped)
+    @skipped << [@context, @test]
+    @formatter.print_skipped(*@skipped.last)
+  end
 
   matcher = case message
   when String then ->(exmsg) { exmsg.include?(message) }
