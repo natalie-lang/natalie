@@ -74,3 +74,17 @@ describe 'splat operators' do
     argument_proxy(1, 2, **{ foo: 'a' }).should == [[1, 2], { foo: 'a' }]
   end
 end
+
+describe 'forward args' do
+  def bar(a, b:, c: nil)
+    [a, b, c]
+  end
+
+  def foo(...)
+    bar(...)
+  end
+
+  it 'passes all arguments as-is' do
+    foo(1, b: 2, c: 3).should == [1, 2, 3]
+  end
+end

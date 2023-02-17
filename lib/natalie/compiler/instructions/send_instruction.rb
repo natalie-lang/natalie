@@ -9,7 +9,7 @@ module Natalie
     # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false)
+      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false, forward_args: false)
         # the message to send
         @message = message.to_sym
 
@@ -25,6 +25,9 @@ module Natalie
 
         # a bare hash (probably a keyword hash) is last in the args
         @has_keyword_hash = has_keyword_hash
+
+        # true when special ... syntax was used
+        @forward_args = forward_args
 
         # source location info
         @file = file
@@ -56,8 +59,12 @@ module Natalie
         raise "bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}" unless receiver.is_a?(String) || receiver.is_a?(String)
 
         if @args_array_on_stack
-          args = "#{transform.pop}->as_array()"
-          args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
+          if @forward_args
+            args_list = transform.pop
+          else
+            args = "#{transform.pop}->as_array()"
+            args_list = "Args(#{args}, #{@has_keyword_hash ? 'true' : 'false'})"
+          end
         else
           arg_count = transform.pop
           raise "bad argc #{arg_count.inspect} for SendInstruction #{@message.inspect}" unless arg_count.is_a?(Integer)
