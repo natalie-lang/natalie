@@ -643,6 +643,8 @@ gen.static_binding('Dir', 'empty?', 'DirObject', 'is_empty', argc: 1, pass_env: 
 gen.static_binding('Dir', 'exist?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('Dir', 'home', 'DirObject', 'home', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'chdir', 'DirObject', 'chdir', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
+gen.static_binding('Dir', 'children', 'DirObject', 'children', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('Dir', 'entries', 'DirObject', 'entries', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'chroot', 'DirObject', 'chroot', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'getwd', 'DirObject', 'pwd', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Dir', 'mkdir', 'DirObject', 'mkdir', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
@@ -652,6 +654,8 @@ gen.static_binding('Dir', 'unlink', 'DirObject', 'rmdir', argc: 1, pass_env: tru
 
 gen.static_binding('Dir', 'open', 'DirObject', 'open', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: true, return_type: :Object)
 
+gen.binding('Dir', 'each', 'DirObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Dir', 'each_child', 'DirObject', 'each_child', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Dir', 'initialize', 'DirObject', 'initialize', argc: 1, kwargs: [:encoding], pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Dir', 'fileno', 'DirObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Dir', 'close', 'DirObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

@@ -8,6 +8,7 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/integer_object.hpp"
+#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/regexp_object.hpp"
 #include "natalie/string_object.hpp"
@@ -28,18 +29,26 @@ public:
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
         visitor.visit(m_path);
+        visitor.visit(m_encoding);
     }
 
-    Value close(Env *env);
-    Value read(Env *env);
-    Value tell(Env *env);
-    Value rewind(Env *env);
-    Value seek(Env *env, Value position);
+    static Value size_fn(Env *env, Value self, Args, Block *) {
+        return Value(NilObject::the());
+    }
 
+    Value children(Env *env); // for internal use
+    Value close(Env *env);
+    Value each(Env *env, Block *block);
+    Value each_child(Env *env, Block *block);
+    Value entries(Env *env); // for internal use
     Value fileno(Env *env);
     Value initialize(Env *env, Value path, Value encoding);
-    StringObject *path(Env *env) { return m_path; }
+    Value read(Env *env);
+    Value rewind(Env *env);
+    Value seek(Env *env, Value position);
+    Value tell(Env *env);
 
+    StringObject *path(Env *env) { return m_path; }
     StringObject *inspect(Env *env);
 
     static bool is_empty(Env *, Value);
@@ -51,9 +60,13 @@ public:
     static Value pwd(Env *env);
     static Value rmdir(Env *env, Value path); // same as .delete, .unlink
 
+    static Value children(Env *env, Value path, Value encoding);
+    static Value entries(Env *env, Value path, Value encoding);
+
 private:
     DIR *m_dir { nullptr };
     StringObject *m_path { nullptr };
+    EncodingObject *m_encoding { nullptr };
 };
 
 }
