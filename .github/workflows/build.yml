@@ -42,11 +42,10 @@ jobs:
       - name: checkout submodules
         run: git submodule update --init --recursive
       - name: install ruby
-        run: brew install ruby autoconf automake libtool
+        run: brew install ruby autoconf automake libtool pkg-config
       - name: install openssl
         run: brew install openssl
       - name: test with clang on macOS
-        run: |
-          pkg_env=$(brew info openssl | grep PKG_CONFIG_PATH | sed 's/"//g')
-          $pkg_env
-          rake test
+        env:
+          PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig
+        run: rake test
