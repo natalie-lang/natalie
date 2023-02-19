@@ -799,51 +799,15 @@ Value StringObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, char_count(env));
 }
 
-static EncodingObject *find_encoding_by_name(Env *env, String name) {
-    auto lcase_name = name.lowercase();
-    ArrayObject *list = EncodingObject::list(env);
-    for (size_t i = 0; i < list->size(); i++) {
-        EncodingObject *encoding = (*list)[i]->as_encoding();
-        ArrayObject *names = encoding->names(env);
-        for (size_t n = 0; n < names->size(); n++) {
-            StringObject *name_obj = (*names)[n]->as_string();
-            auto name = name_obj->string().lowercase();
-            if (name == lcase_name) {
-                return encoding;
-            }
-        }
-    }
-    env->raise("ArgumentError", "unknown encoding name - {}", name);
-}
-
 Value StringObject::encode(Env *env, Value encoding) {
     auto orig_encoding = m_encoding;
     StringObject *copy = dup(env)->as_string();
-    EncodingObject *encoding_obj;
-    switch (encoding->type()) {
-    case Object::Type::Encoding:
-        encoding_obj = encoding->as_encoding();
-        break;
-    case Object::Type::String:
-        encoding_obj = find_encoding_by_name(env, encoding->as_string()->string());
-        break;
-    default:
-        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
-    }
+    EncodingObject *encoding_obj = EncodingObject::find_encoding(env, encoding);
     return encoding_obj->encode(env, orig_encoding, copy);
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
-    switch (encoding->type()) {
-    case Object::Type::Encoding:
-        set_encoding(encoding->as_encoding());
-        break;
-    case Object::Type::String:
-        set_encoding(find_encoding_by_name(env, encoding->as_string()->string()));
-        break;
-    default:
-        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
-    }
+    set_encoding(EncodingObject::find_encoding(env, encoding));
     return this;
 }
 

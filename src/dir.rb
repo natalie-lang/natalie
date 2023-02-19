@@ -11,38 +11,16 @@ class Dir
       '/tmp'
     end
 
-    __define_method__ :pwd, [], <<-END
-      char buf[MAXPATHLEN + 1];
-      if(!getcwd(buf, MAXPATHLEN + 1))
-          env->raise_errno();
-      return new StringObject { buf };
-    END
-
-    def each_child(dirname)
+    def each_child(dirname, encoding: nil)
       return enum_for(:each_child, dirname) unless block_given?
-      children(dirname).each { |name| yield name }
+      children(dirname, encoding: encoding).each { |name| yield name }
+    end
+    
+    def foreach(dirname, encoding: nil)
+      return enum_for(:foreach, dirname) unless block_given?
+      entries(dirname, encoding: encoding).each { |name| yield name }
     end
 
-    __define_method__ :children, [:dirname], <<-END
-      dirname->assert_type(env, Object::Type::String, "String");
-      auto dir = opendir(dirname->as_string()->c_str());
-      if (!dir)
-          env->raise_errno();
-      dirent *entry;
-      errno = 0;
-      auto array = new ArrayObject {};
-      for (;;) {
-          entry = readdir(dir);
-          if (!entry) break;
-          if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-          array->push(new StringObject { entry->d_name });
-      }
-      if (errno) {
-          closedir(dir);
-          env->raise_errno();
-      }
-      closedir(dir);
-      return array;
-    END
   end
+  
 end

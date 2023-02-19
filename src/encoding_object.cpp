@@ -142,6 +142,36 @@ Value EncodingObject::find(Env *env, Value name) {
     env->raise("ArgumentError", "unknown encoding name - {}", name->inspect_str(env));
 }
 
+// Lookup an EncodingObject by its string-name, or raise if unsuccessful.
+EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
+    auto lcase_name = name.lowercase();
+    ArrayObject *list = EncodingObject::list(env);
+    for (size_t i = 0; i < list->size(); i++) {
+        EncodingObject *encoding = (*list)[i]->as_encoding();
+        ArrayObject *names = encoding->names(env);
+        for (size_t n = 0; n < names->size(); n++) {
+            StringObject *name_obj = (*names)[n]->as_string();
+            auto name = name_obj->string().lowercase();
+            if (name == lcase_name) {
+                return encoding;
+            }
+        }
+    }
+    env->raise("ArgumentError", "unknown encoding name - {}", name);
+}
+
+// If an EncodingObject then return it, if a StringObject, return the encoding matching the string
+EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
+    switch (encoding->type()) {
+    case Object::Type::Encoding:
+        return encoding->as_encoding();
+    case Object::Type::String:
+        return find_encoding_by_name(env, encoding->as_string()->string());
+    default:
+        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
+    }
+}
+
 ArrayObject *EncodingObject::list(Env *) {
     auto ary = new ArrayObject {};
     for (auto pair : s_encoding_list)

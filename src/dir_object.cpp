@@ -7,7 +7,6 @@
 
 namespace Natalie {
 
-// TODO: handle encoding
 Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
@@ -21,16 +20,21 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
             throw;
         }
         dir->close(env);
+        assert(result);
         return result;
     }
     return dir;
 }
 
-// TODO: handle encoding
 Value DirObject::initialize(Env *env, Value path, Value encoding) {
     path = fileutil::convert_using_to_path(env, path);
     m_dir = ::opendir(path->as_string()->c_str());
     if (!m_dir) env->raise_errno();
+    if (encoding && !encoding->is_nil()) {
+        m_encoding = EncodingObject::find_encoding(env, encoding);
+    } else {
+        m_encoding = EncodingObject::filesystem();
+    }
     m_path = path->as_string()->dup(env)->as_string();
     assert(m_path);
     return this;
@@ -54,7 +58,7 @@ Value DirObject::read(Env *env) {
     struct dirent *dirp;
     dirp = ::readdir(m_dir);
     if (!dirp) return NilObject::the();
-    return new StringObject { dirp->d_name };
+    return new StringObject { dirp->d_name, m_encoding };
 }
 
 Value DirObject::tell(Env *env) {
@@ -128,6 +132,77 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
     change_current_path(env, old_path);
     return result;
+}
+
+Value DirObject::children(Env *env) {
+    if (!m_dir) env->raise("IOError", "closed directory");
+    struct dirent *dirp;
+    ArrayObject *ary = new ArrayObject {};
+    while ((dirp = ::readdir(m_dir))) {
+        auto name = String(dirp->d_name);
+        if (name != "." && name != "..") {
+            ary->push(new StringObject { dirp->d_name, m_encoding });
+        }
+    }
+    if (ary->is_empty()) return NilObject::the();
+    return ary;
+}
+
+// instance method
+Value DirObject::entries(Env *env) {
+    if (!m_dir) env->raise("IOError", "closed directory");
+    struct dirent *dirp;
+    ArrayObject *ary = new ArrayObject {};
+    while ((dirp = ::readdir(m_dir))) {
+        ary->push(new StringObject { dirp->d_name, m_encoding });
+    }
+    if (ary->is_empty()) return NilObject::the();
+    return ary;
+}
+
+Value DirObject::each(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, DirObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
+    }
+    if (!m_dir) env->raise("IOError", "closed directory");
+    struct dirent *dirp;
+    while ((dirp = ::readdir(m_dir))) {
+        Value args[] = { new StringObject { dirp->d_name, m_encoding } };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+    }
+    return this;
+}
+
+Value DirObject::each_child(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, DirObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
+    }
+    if (!m_dir) env->raise("IOError", "closed directory");
+    struct dirent *dirp;
+    while ((dirp = ::readdir(m_dir))) {
+        auto name = String(dirp->d_name);
+        if (name != "." && name != "..") {
+            Value args[] = { new StringObject { name, m_encoding } };
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+        }
+    }
+    return this;
+}
+
+// class method
+Value DirObject::children(Env *env, Value path, Value encoding) {
+    auto dir = new DirObject {};
+    dir->initialize(env, path, encoding);
+    return dir->children(env);
+}
+
+// class method
+Value DirObject::entries(Env *env, Value path, Value encoding) {
+    auto dir = new DirObject {};
+    dir->initialize(env, path, encoding);
+    return dir->entries(env);
 }
 
 Value DirObject::chroot(Env *env, Value path) {
