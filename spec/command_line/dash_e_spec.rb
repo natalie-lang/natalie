@@ -31,14 +31,14 @@ describe "The -e command line option" do
     end
 
     it "mimics an awk conditional by comparing an inclusive-end range with $." do
-      NATFIXME 'Support -n', exception: NoMethodError, message: /undefined method `%'/ do
+      NATFIXME 'Support -n', exception: SpecFailedException do
         ruby_exe(nil, args: (@script % "2..3")).should == "2\n3\n"
         ruby_exe(nil, args: (@script % "2..2")).should == "2\n"
       end
     end
 
     it "mimics a sed conditional by comparing an exclusive-end range with $." do
-      NATFIXME 'Support -n', exception: NoMethodError, message: /undefined method `%'/ do
+      NATFIXME 'Support -n', exception: SpecFailedException do
         ruby_exe(nil, args: (@script % "2...3")).should == "2\n3\n"
         ruby_exe(nil, args: (@script % "2...2")).should == "2\n3\n4\n5\n"
       end
