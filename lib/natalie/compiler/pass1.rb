@@ -251,6 +251,7 @@ module Natalie
           receiver_is_self: receiver.nil?,
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          forward_args: call_args[:forward_args],
           file: exp.file,
           line: exp.line,
         )
@@ -273,6 +274,24 @@ module Natalie
             with_block_pass: !!block,
             args_array_on_stack: true,
             has_keyword_hash: args.last&.sexp_type == :bare_hash
+          }
+        end
+
+        # special ... syntax
+        if args.size == 1 && args.first.sexp_type == :forward_args
+          instructions << PushArgsInstruction.new(
+            for_block: false,
+            min_count: nil,
+            max_count: nil,
+            spread: false,
+            to_array: false,
+          )
+          return {
+            instructions: instructions,
+            with_block_pass: false,
+            args_array_on_stack: true,
+            has_keyword_hash: false,
+            forward_args: true,
           }
         end
 
@@ -505,6 +524,13 @@ module Natalie
 
         instructions = []
 
+        # special ... syntax
+        if args.size == 1 && args.first.is_a?(Sexp) && args.first.sexp_type == :forward_args
+          # nothing to do
+          return []
+        end
+
+        # &block pass
         if args.last.is_a?(Symbol) && args.last.start_with?('&')
           name = args.pop[1..]
           instructions << PushBlockInstruction.new
@@ -543,6 +569,7 @@ module Natalie
             file: exp.file,
             line: exp.line
           ).transform(exp.new(:args, *args))
+
           return instructions
         end
 
