@@ -1411,7 +1411,7 @@ def run_specs
         @formatter.print_success(context, test)
       ensure
         # ensure that the after-each is executed
-        context.each { |con| con.after_each.each { |a| a.call } }
+        context.reverse_each { |con| con.after_each.reverse_each { |a| a.call } }
       end
 
 
@@ -1422,10 +1422,10 @@ def run_specs
   end
 
   # after-all
-  @specs.each do |test|
+  @specs.reverse_each do |test|
     context = test[0]
-    context.each do |con|
-      con.after_all.each do |b|
+    context.reverse_each do |con|
+      con.after_all.reverse_each do |b|
         unless after_all_done.include?(b)
           b.call
           after_all_done << b
