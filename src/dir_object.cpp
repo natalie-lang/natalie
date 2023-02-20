@@ -41,10 +41,10 @@ Value DirObject::initialize(Env *env, Value path, Value encoding) {
 }
 
 // instance methods
-Value DirObject::fileno(Env *env) {
+int DirObject::fileno(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
-    int fdnum = ::dirfd(m_dir);
-    return new IntegerObject { fdnum };
+    return ::dirfd(m_dir);
+    //return new IntegerObject { fdnum };
 }
 
 Value DirObject::close(Env *env) {
@@ -73,10 +73,15 @@ Value DirObject::rewind(Env *env) {
 }
 
 Value DirObject::seek(Env *env, Value position) {
-    if (!m_dir) env->raise("IOError", "closed directory");
-    long pos = position->as_integer()->to_nat_int_t();
-    ::seekdir(m_dir, pos);
+    set_pos(env, position);
     return this;
+}
+
+nat_int_t DirObject::set_pos(Env *env, Value position) {
+    if (!m_dir) env->raise("IOError", "closed directory");
+    nat_int_t pos = position->as_integer()->to_nat_int_t();
+    ::seekdir(m_dir, pos);
+    return pos;
 }
 
 StringObject *DirObject::inspect(Env *env) {
@@ -176,7 +181,7 @@ Value DirObject::each(Env *env, Block *block) {
 Value DirObject::each_child(Env *env, Block *block) {
     if (!block) {
         Block *size_block = new Block { env, this, DirObject::size_fn, 0 };
-        return send(env, "enum_for"_s, { "each"_s }, size_block);
+        return send(env, "enum_for"_s, { "each_child"_s }, size_block);
     }
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
@@ -190,18 +195,40 @@ Value DirObject::each_child(Env *env, Block *block) {
     return this;
 }
 
-// class method
+// class method of `children`
 Value DirObject::children(Env *env, Value path, Value encoding) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
     return dir->children(env);
 }
 
-// class method
+// class method of `each_child`
+Value DirObject::each_child(Env *env, Value path, Value encoding, Block *block) {
+    auto dir = new DirObject {};
+    dir->initialize(env, path, encoding);
+    auto result = dir->each_child(env, block);
+    if (!block) {
+        return result;
+    }
+    return NilObject::the();
+}
+
+// class method of `entries`
 Value DirObject::entries(Env *env, Value path, Value encoding) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
     return dir->entries(env);
+}
+
+// class method of `each`
+Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
+    auto dir = new DirObject {};
+    dir->initialize(env, path, encoding);
+    auto result = dir->each(env, block);
+    if (!block) {
+        return result;
+    }
+    return NilObject::the();
 }
 
 Value DirObject::chroot(Env *env, Value path) {

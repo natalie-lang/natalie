@@ -41,11 +41,12 @@ public:
     Value each(Env *env, Block *block);
     Value each_child(Env *env, Block *block);
     Value entries(Env *env); // for internal use
-    Value fileno(Env *env);
+    int fileno(Env *env);
     Value initialize(Env *env, Value path, Value encoding);
     Value read(Env *env);
     Value rewind(Env *env);
     Value seek(Env *env, Value position);
+    nat_int_t set_pos(Env *env, Value position);
     Value tell(Env *env);
 
     StringObject *path(Env *env) { return m_path; }
@@ -62,6 +63,8 @@ public:
 
     static Value children(Env *env, Value path, Value encoding);
     static Value entries(Env *env, Value path, Value encoding);
+    static Value each_child(Env *env, Value path, Value encoding, Block *block);
+    static Value foreach (Env *env, Value path, Value encoding, Block * block);
 
 private:
     DIR *m_dir { nullptr };
