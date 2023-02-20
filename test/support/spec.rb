@@ -132,6 +132,8 @@ def xit(test, &block)
   @specs << [$context.dup, test, nil]
 end
 
+alias skip xit
+
 def it_behaves_like(behavior, method, obj = nil)
   before :all do
     @method = method if method
@@ -775,32 +777,6 @@ class RaiseErrorExpectation
         raise SpecFailedException, "#{subject.inspect} should not have raised any errors"
       end
     end
-  end
-end
-
-class IOStub
-  def initialize
-    @out = []
-  end
-
-  def <<(str)
-    @out << str.to_s
-  end
-  alias write <<
-  alias print <<
-
-  def puts(*args)
-    args.each do |arg|
-      self.<<(arg.to_s + "\n")
-    end
-  end
-
-  def to_s
-    @out.join
-  end
-
-  def =~(r)
-    r =~ to_s
   end
 end
 
