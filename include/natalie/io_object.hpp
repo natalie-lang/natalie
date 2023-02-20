@@ -36,6 +36,16 @@ public:
         }
     }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Object::visit_children(visitor);
+        visitor.visit(m_external_encoding);
+        visitor.visit(m_internal_encoding);
+    }
+
+    static Value size_fn(Env *env, Value self, Args, Block *) {
+        return Value(NilObject::the());
+    }
+
     static Value read_file(Env *, Value);
     static Value write_file(Env *, Value, Value);
 
@@ -53,7 +63,16 @@ public:
     Value stat(Env *) const;
     bool is_closed() const { return m_closed; }
 
+    void set_external_encoding(Env *env, EncodingObject *enc) {
+        m_external_encoding = enc;
+    }
+    void set_internal_encoding(Env *env, EncodingObject *enc) {
+        m_internal_encoding = enc;
+    }
+
 private:
+    EncodingObject *m_external_encoding { nullptr };
+    EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     bool m_closed { false };
 };

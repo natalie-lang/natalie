@@ -61,6 +61,7 @@ namespace fileutil {
         file = convert_using_to_path(env, file);
         return ::stat(file->as_string()->c_str(), sb);
     }
+
 }
 
 // NATFIXME : block form is not used, option-hash arg not implemented.
@@ -72,7 +73,16 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
             flags = flags_obj->as_integer()->to_nat_int_t();
             break;
         case Object::Type::String: {
-            auto flags_str = flags_obj->as_string()->string();
+            auto colon = new StringObject { ":" };
+            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
+            auto flags_str = flagsplit->first()->as_string()->string();
+            auto extenc = flagsplit->ref(env, new IntegerObject { 1 }, nullptr);
+            auto intenc = flagsplit->ref(env, new IntegerObject { 2 }, nullptr);
+            EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
+            EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
+            set_external_encoding(env, ext_e);
+            set_internal_encoding(env, int_e);
+
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 

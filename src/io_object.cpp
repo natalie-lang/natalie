@@ -90,6 +90,8 @@ Value IoObject::write(Env *env, Args args) const {
 
 // NATFIXME: Make this spec compliant and maybe more performant?
 Value IoObject::gets(Env *env) const {
+    if (is_closed())
+        env->raise("IOError", "cannot read closed stream");
     char buffer[NAT_READ_BYTES + 1];
     size_t index;
     for (index = 0; index < NAT_READ_BYTES; ++index) {
