@@ -1,3 +1,7 @@
+# To compare with mspec:
+#
+#     diff -y <(../mspec/bin/mspec --format spec test/natalie/test_order_example.rb | grep -o "\[\[.*\]\]") <(bin/natalie -r./test/support/spec.rb test/natalie/test_order_example.rb | grep -o "\[\[.*\]\]"
+
 describe 'before/after' do
   before :all do
     puts '[[before all]]'
