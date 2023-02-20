@@ -66,6 +66,24 @@ class Context
   def to_s
     @description
   end
+
+  def run_before_all(done = [])
+    before_all.each do |b|
+      unless done.include?(b)
+        b.call
+        done << b
+      end
+    end
+  end
+
+  def run_after_all(done = [])
+    after_all.reverse_each do |b|
+      unless done.include?(b)
+        b.call
+        done << b
+      end
+    end
+  end
 end
 
 class ScratchPad
@@ -1375,24 +1393,20 @@ def run_specs
     context, test, fn, focus = test
 
     next if any_focused && !focus
-    
-    @formatter.print_context(context) if (last_context != context)
-    last_context = context
+
+    if last_context != context
+      @formatter.print_context(context)
+      last_context.reverse_each(&:run_after_all) if last_context
+      context.each(&:run_before_all)
+      last_context = context
+    end
     
     if fn
       @test_count += 1
       begin
-        context.each do |con|
-          con.before_all.each do |b|
-            unless before_all_done.include?(b)
-              b.call
-              before_all_done << b
-            end
-          end
-        end
         $stub_registry.reset
         $expectations = []
-        context.each { |con| con.before_each.each { |b| b.call } }
+        context.each { |c| c.before_each.each { |b| b.call } }
 
         @context = context
         @test = test
@@ -1411,10 +1425,8 @@ def run_specs
         @formatter.print_success(context, test)
       ensure
         # ensure that the after-each is executed
-        context.each { |con| con.after_each.each { |a| a.call } }
+        context.reverse_each { |con| con.after_each.reverse_each { |a| a.call } }
       end
-
-
     else
       @skipped << [context, test]
       @formatter.print_skipped(*@skipped.last)
@@ -1422,16 +1434,9 @@ def run_specs
   end
 
   # after-all
-  @specs.each do |test|
+  @specs.reverse_each do |test|
     context = test[0]
-    context.each do |con|
-      con.after_all.each do |b|
-        unless after_all_done.include?(b)
-          b.call
-          after_all_done << b
-        end
-      end
-    end
+    context.reverse_each { |c| c.run_after_all(after_all_done) }
   end
 
   @formatter.print_finish(@test_count, @failures, @errors, @skipped)
