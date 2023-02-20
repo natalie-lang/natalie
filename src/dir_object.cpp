@@ -52,7 +52,6 @@ Value DirObject::close(Env *env) {
     return NilObject::the();
 }
 
-// TODO: support encoding
 Value DirObject::read(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     struct dirent *dirp;
