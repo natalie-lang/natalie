@@ -196,15 +196,19 @@ describe 'ensure' do
 
   it 'always runs, even if there is an uncaught exception' do
     x = 1
+    re_raised_error = nil
     begin
       begin
-        raise 'error'
+        raise MyException, 'stuff'
       ensure
         x = 2
       end
-    rescue StandardError
+    rescue => e
+      re_raised_error = e
     end
     x.should == 2
+    e.should be_an_instance_of(MyException)
+    e.message.should == 'stuff'
   end
 
   it 'can see variables defined in the begin section' do

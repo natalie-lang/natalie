@@ -666,6 +666,7 @@ module Natalie
           transform_expression(body, used: true),
           CatchInstruction.new,
           transform_expression(ensure_body, used: true),
+          transform_expression(exp.new(:call, nil, :raise), used: true),
           EndInstruction.new(:try),
           DupInstruction.new,
           PushRescuedInstruction.new,
