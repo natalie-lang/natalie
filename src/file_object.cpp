@@ -39,13 +39,13 @@ namespace fileutil {
     // execute #to_str.  Make sure the path or to_path result is a String
     // before continuing.
     // This is common to many functions in FileObject and DirObject
-    Value convert_using_to_path(Env *env, Value path) {
+    StringObject *convert_using_to_path(Env *env, Value path) {
         if (!path->is_string() && path->respond_to(env, "to_path"_s))
             path = path->send(env, "to_path"_s);
         if (!path->is_string() && path->respond_to(env, "to_str"_s))
             path = path->send(env, "to_str"_s);
         path->assert_type(env, Object::Type::String, "String");
-        return path;
+        return path->as_string();
     }
     // accepts io or io-like object for fstat
     // accepts path or string like object for stat
@@ -432,23 +432,31 @@ Value FileObject::size(Env *env, Value path) {
     return IntegerObject::create((nat_int_t)(sb.st_size));
 }
 
-Value FileObject::symlink(Env *env, Value from, Value to) {
+nat_int_t FileObject::symlink(Env *env, Value from, Value to) {
     from = fileutil::convert_using_to_path(env, from);
     to = fileutil::convert_using_to_path(env, to);
     int result = ::symlink(from->as_string()->c_str(), to->as_string()->c_str());
     if (result < 0) env->raise_errno();
-    return Value::integer(0);
+    return 0;
 }
 
-Value FileObject::link(Env *env, Value from, Value to) {
+nat_int_t FileObject::rename(Env *env, Value from, Value to) {
+    from = fileutil::convert_using_to_path(env, from);
+    to = fileutil::convert_using_to_path(env, to);
+    int result = ::rename(from->as_string()->c_str(), to->as_string()->c_str());
+    if (result < 0) env->raise_errno();
+    return 0;
+}
+
+nat_int_t FileObject::link(Env *env, Value from, Value to) {
     from = fileutil::convert_using_to_path(env, from);
     to = fileutil::convert_using_to_path(env, to);
     int result = ::link(from->as_string()->c_str(), to->as_string()->c_str());
     if (result < 0) env->raise_errno();
-    return Value::integer(0);
+    return 0;
 }
 
-Value FileObject::mkfifo(Env *env, Value path, Value mode) {
+nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
     mode_t octmode = 0666;
     if (mode) {
         mode->assert_type(env, Object::Type::Integer, "Integer");
@@ -457,7 +465,7 @@ Value FileObject::mkfifo(Env *env, Value path, Value mode) {
     path = fileutil::convert_using_to_path(env, path);
     int result = ::mkfifo(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
-    return Value::integer(0);
+    return 0;
 }
 
 Value FileObject::chmod(Env *env, Args args) {
@@ -521,6 +529,10 @@ Value FileObject::umask(Env *env, Value mask) {
         old_mask = ::umask(0);
     }
     return Value::integer(old_mask);
+}
+
+StringObject *FileObject::path(Env *env, Value pathname) {
+    return fileutil::convert_using_to_path(env, pathname);
 }
 
 Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
