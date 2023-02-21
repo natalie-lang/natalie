@@ -557,6 +557,7 @@ gen.static_binding('File', 'stat', 'FileObject', 'stat', argc: 1, pass_env: true
 gen.static_binding('File', 'sticky?', 'FileObject', 'is_sticky', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'symlink', 'FileObject', 'symlink', argc: 2, pass_env: true, pass_block: false, return_type: :int)
 gen.static_binding('File', 'symlink?', 'FileObject', 'is_symlink', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('File', 'truncate', 'FileObject', 'truncate', argc: 2, pass_env: true, pass_block: false, return_type: :int)
 gen.static_binding('File', 'umask', 'FileObject', 'umask', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'unlink', 'FileObject', 'unlink', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'utime', 'FileObject', 'utime', argc: 2.., pass_env: true, pass_block: false, return_type: :Object)
@@ -574,6 +575,7 @@ gen.binding('File', 'lstat', 'FileObject', 'lstat', argc: 0, pass_env: true, pas
 gen.binding('File', 'mtime', 'FileObject', 'mtime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'path', 'FileObject', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
 gen.binding('File', 'size', 'FileObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('File', 'truncate', 'FileObject', 'truncate', argc: 1, pass_env: true, pass_block: false, return_type: :int)
 
 gen.static_binding('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

@@ -103,6 +103,9 @@ public:
 
     Value lstat(Env *env) const; // instance method
 
+    static int truncate(Env *env, Value path, Value size);
+    int truncate(Env *env, Value size) const; // instance method
+
     static StringObject *path(Env *env, Value path); // path class method
 
     String path() const { return m_path; }

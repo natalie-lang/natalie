@@ -563,6 +563,22 @@ Value FileObject::lstat(Env *env) const {
     return new FileStatObject { sb };
 }
 
+int FileObject::truncate(Env *env, Value path, Value size) {
+    path = fileutil::convert_using_to_path(env, path);
+    off_t len = IntegerObject::convert_to_int(env, size);
+    if (::truncate(path->as_string()->c_str(), len) == -1) {
+        env->raise_errno();
+    }
+    return 0;
+}
+int FileObject::truncate(Env *env, Value size) const { // instance method
+    off_t len = IntegerObject::convert_to_int(env, size);
+    if (::ftruncate(fileno(), len) == -1) {
+        env->raise_errno();
+    }
+    return 0;
+}
+
 // class method
 Value FileObject::stat(Env *env, Value path) {
     struct stat sb;
