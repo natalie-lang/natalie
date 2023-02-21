@@ -223,4 +223,34 @@ describe 'ensure' do
       x.should == 2
     end
   end
+
+  it 'does not return the value from the ensure section' do
+    result = begin
+               1
+             rescue
+               2
+             ensure
+               3
+             end
+    result.should == 1
+    result = begin
+               1
+               raise 'foo'
+             rescue
+               2
+             ensure
+               3
+             end
+    result.should == 2
+    result = begin
+               1
+             rescue
+               2
+             else
+               3
+             ensure
+               4
+             end
+    result.should == 3
+  end
 end

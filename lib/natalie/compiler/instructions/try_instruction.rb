@@ -3,8 +3,14 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class TryInstruction < BaseInstruction
+      def initialize(discard_catch_result: false)
+        @discard_catch_result = discard_catch_result
+      end
+
       def to_s
-        'try'
+        s = 'try'
+        s << ' (discard_catch_result)' if @discard_catch_result
+        s
       end
 
       def has_body?
@@ -48,7 +54,7 @@ module Natalie
           code << 'env->set_exception(exception)'
 
           transform.with_same_scope(catch_body) do |t|
-            code << t.transform("#{result} =")
+            code << t.transform(@discard_catch_result ? nil : "#{result} =")
           end
 
           code << 'if (exception_was) env->set_exception(exception_was)'
