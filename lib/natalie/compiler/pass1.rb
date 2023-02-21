@@ -661,23 +661,21 @@ module Natalie
 
       def transform_ensure(exp, used:)
         _, body, ensure_body = exp
-        transform_rescue(
-          exp.new(
-            :rescue,
-            body,
-            exp.new(
-              :resbody,
-              exp.new(:array),
-              exp.new(
-                :block,
-                ensure_body,
-                exp.new(:call, nil, :raise),
-              ),
-            ),
-            ensure_body,
-          ),
-          used: used,
-        )
+        instructions = [
+          TryInstruction.new(discard_catch_result: true),
+          transform_expression(body, used: true),
+          CatchInstruction.new,
+          transform_expression(ensure_body, used: true),
+          EndInstruction.new(:try),
+          DupInstruction.new,
+          PushRescuedInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new(:if),
+          transform_expression(ensure_body, used: false),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_false(_, used:)
