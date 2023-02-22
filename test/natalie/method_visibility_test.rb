@@ -27,6 +27,9 @@ class Foo
 
   public
 
+  def initialize
+  end
+
   def public_foo2
     'public'
   end
@@ -118,6 +121,15 @@ describe 'method visibility' do
 
     it 'is visible from inside a subclass calling the method on another object (not self)' do
       Bar.new.public_bar_calling_protected_foo_on_another_object.should == 'protected'
+    end
+  end
+
+  describe '#initialize' do
+    it 'is always private unless changed by name' do
+      Foo.private_instance_methods.should include_all(:initialize)
+      Foo.send(:public, :initialize)
+      Foo.private_instance_methods.should_not include_all(:initialize)
+      Foo.public_instance_methods.should include_all(:initialize)
     end
   end
 end

@@ -286,7 +286,10 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFn
     Method *method = new Method { name->string(), this, fn, arity };
     if (optimized)
         method->set_optimized(true);
-    define_method(env, name, method, m_method_visibility);
+    auto visibility = m_method_visibility;
+    if (name == "initialize"_s)
+        visibility = MethodVisibility::Private;
+    define_method(env, name, method, visibility);
     if (m_module_function)
         define_singleton_method(env, name, fn, arity);
     return name;
