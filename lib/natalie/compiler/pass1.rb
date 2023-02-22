@@ -230,7 +230,7 @@ module Natalie
 
         if receiver.nil? && message == :block_given? && !with_block
           return [
-            PushBlockInstruction.new,
+            PushBlockInstruction.new(from_nearest_env: true),
             transform_call(exp, used: used, with_block: true),
           ]
         end

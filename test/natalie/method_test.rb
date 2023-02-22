@@ -32,8 +32,18 @@ def block_arg_is_nil(&block)
   block
 end
 
-def block_given_test
-  block_given?
+def block_given_test_bar
+  yield 'bar'
+end
+
+def block_given_test_foo
+  block_given_test_bar do
+    yield 'foo' if block_given?
+  end
+end
+
+def block_given_test_baz
+  block_given_test_foo
 end
 
 def default(x = 1)
@@ -136,11 +146,11 @@ describe 'method' do
     r.should == nil
   end
 
-  it 'knows if it received a block' do
-    without = block_given_test
-    without.should == false
-    with = block_given_test { p 'hi' }
-    with.should == true
+  it 'returns true if a block was passed to the method' do
+    block_given_test_foo.should == nil
+    block_given_test_foo { 1 }.should == 1
+    block_given_test_baz.should == nil
+    block_given_test_baz { 1 }.should == nil
   end
 
   it 'raises an error when trying to yield without a block' do

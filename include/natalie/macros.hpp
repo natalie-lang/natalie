@@ -33,15 +33,8 @@
     NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, env->raise_local_jump_error(_result, Natalie::LocalJumpErrorType::Break)); \
 })
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, args) ({                                  \
-    Env *env_with_block = env;                                                \
-    while (!env_with_block->block() && env_with_block->outer()) {             \
-        env_with_block = env_with_block->outer();                             \
-    }                                                                         \
-    if (!env_with_block->block()) {                                           \
-        env->raise("LocalJumpError", "no block given");                       \
-    }                                                                         \
-    NAT_RUN_BLOCK_WITHOUT_BREAK(env, env_with_block->block(), args, nullptr); \
+#define NAT_RUN_BLOCK_FROM_ENV(env, args) ({                                   \
+    NAT_RUN_BLOCK_WITHOUT_BREAK(env, env->nearest_block(), args, nullptr); \
 })
 
 #define NAT_QUOTE(val) #val
