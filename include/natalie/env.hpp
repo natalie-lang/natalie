@@ -101,6 +101,19 @@ public:
 
     Env *non_block_env();
 
+    Block *nearest_block(bool allow_null = false) {
+        Env *env_with_block = this;
+        while (!env_with_block->block() && env_with_block->outer())
+            env_with_block = env_with_block->outer();
+        if (!env_with_block->block()) {
+            if (allow_null)
+                return nullptr;
+            else
+                raise("LocalJumpError", "no block given");
+        }
+        return env_with_block->block();
+    }
+
     Block *block() { return m_block; }
     void set_block(Block *block) { m_block = block; }
 
