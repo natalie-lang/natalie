@@ -242,7 +242,16 @@ module Natalie
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
-          instructions << transform_expression(receiver, used: true)
+          receiver_instructions = transform_expression(receiver, used: true)
+          case receiver.sexp_type
+          when :lasgn, :iasgn, :gasgn
+            # If the receiver contains an assignment, we need it to run first
+            # e.g. (a = 1) + a
+            instructions.unshift(receiver_instructions)
+            instructions << MoveRelInstruction.new(args.size + 1)
+          else
+            instructions << receiver_instructions
+          end
         end
 
         instructions << SendInstruction.new(
