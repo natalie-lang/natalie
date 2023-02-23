@@ -5,20 +5,14 @@ require_relative 'fixtures/classes'
 describe "String#split with String" do
   it "throws an ArgumentError if the string  is not a valid" do
     s = "\xDF".force_encoding(Encoding::UTF_8)
-
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      -> { s.split }.should raise_error(ArgumentError)
-      -> { s.split(':') }.should raise_error(ArgumentError)
-    end
+    -> { s.split }.should raise_error(ArgumentError)
+    -> { s.split(':') }.should raise_error(ArgumentError)
   end
 
   it "throws an ArgumentError if the pattern is not a valid string" do
     str = 'проверка'
     broken_str = "\xDF".force_encoding(Encoding::UTF_8)
-
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      -> { str.split(broken_str) }.should raise_error(ArgumentError)
-    end
+    -> { str.split(broken_str) }.should raise_error(ArgumentError)
   end
 
   it "splits on multibyte characters" do
@@ -102,9 +96,7 @@ describe "String#split with String" do
   end
 
   it "raises a RangeError when the limit is larger than int" do
-    NATFIXME 'raises a RangeError when the limit is larger than int', exception: SpecFailedException do
-      -> { "a,b".split(" ", 2147483649) }.should raise_error(RangeError)
-    end
+    -> { "a,b".split(" ", 2147483649) }.should raise_error(RangeError)
   end
 
   it "defaults to $; when string isn't given or nil" do
@@ -113,18 +105,15 @@ describe "String#split with String" do
       begin
         [",", ":", "", "XY", nil].each do |fs|
           $; = fs
+          ["x,y,z,,,", "1:2:", "aXYbXYcXY", ""].each do |str|
+            expected = str.split(fs || " ")
 
-          NATFIXME 'Support nil separator', exception: TypeError, message: 'wrong argument type NilClass' do
-            ["x,y,z,,,", "1:2:", "aXYbXYcXY", ""].each do |str|
-              expected = str.split(fs || " ")
+            str.split(nil).should == expected
+            str.split.should == expected
 
-              str.split(nil).should == expected
-              str.split.should == expected
-
-              str.split(nil, -1).should == str.split(fs || " ", -1)
-              str.split(nil, 0).should == str.split(fs || " ", 0)
-              str.split(nil, 2).should == str.split(fs || " ", 2)
-            end
+            str.split(nil, -1).should == str.split(fs || " ", -1)
+            str.split(nil, 0).should == str.split(fs || " ", 0)
+            str.split(nil, 2).should == str.split(fs || " ", 2)
           end
         end
       ensure
@@ -144,9 +133,7 @@ describe "String#split with String" do
       end
 
       it "warns" do
-        NATFIXME 'Support nil separator', exception: SpecFailedException do
-          -> { "".split }.should complain(/warning: \$; is set to non-nil value/)
-        end
+        -> { "".split }.should complain(/warning: \$; is set to non-nil value/)
       end
     end
   end
@@ -284,10 +271,7 @@ end
 describe "String#split with Regexp" do
   it "throws an ArgumentError if the string  is not a valid" do
     s = "\xDF".force_encoding(Encoding::UTF_8)
-
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      -> { s.split(/./) }.should raise_error(ArgumentError)
-    end
+    -> { s.split(/./) }.should raise_error(ArgumentError)
   end
 
   it "divides self on regexp matches" do
@@ -510,9 +494,7 @@ describe "String#split with Regexp" do
     broken_str.force_encoding('binary')
     broken_str.chop!
     broken_str.force_encoding('utf-8')
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      ->{ broken_str.split(/\r\n|\r|\n/) }.should raise_error(ArgumentError)
-    end
+    ->{ broken_str.split(/\r\n|\r|\n/) }.should raise_error(ArgumentError)
   end
 
   # See https://bugs.ruby-lang.org/issues/12689 and https://github.com/jruby/jruby/issues/4868
