@@ -59,6 +59,7 @@ end
 def rm_r(*paths)
   paths.each do |path|
     path = File.expand_path path
+
     prefix = SPEC_TEMP_DIR
     unless path[0, prefix.size] == prefix
       raise ArgumentError, "#{path} is not prefixed by #{prefix}"
@@ -69,10 +70,8 @@ def rm_r(*paths)
     if File.symlink? path
       File.unlink path
     elsif File.directory? path
-      # NATFIXME: Revert when Dir.entries and Dir.rmdir are available
-      #Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
-      #Dir.rmdir path
-      `rm -rf #{path}`
+      Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
+      Dir.rmdir path
     elsif File.exist? path
       File.delete path
     end
@@ -83,8 +82,8 @@ end
 # if it does not exist.
 def touch(name, mode = "w")
   mkdir_p File.dirname(name)
-  has_block = block_given? # NATFIXME: workaround for issue #742
+
   File.open(name, mode) do |f|
-    yield f if has_block
+    yield f if block_given?
   end
 end
