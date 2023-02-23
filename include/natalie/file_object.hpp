@@ -16,7 +16,7 @@ namespace Natalie {
 
 namespace fileutil {
     // Utility Function Common to File and Dir
-    Value convert_using_to_path(Env *env, Value path);
+    StringObject *convert_using_to_path(Env *env, Value path);
 }
 
 class FileObject : public IoObject {
@@ -90,9 +90,11 @@ public:
     static Value world_readable(Env *env, Value path);
     static Value world_writable(Env *env, Value path);
 
-    static Value link(Env *env, Value from, Value to);
-    static Value symlink(Env *env, Value from, Value to);
-    static Value mkfifo(Env *env, Value path, Value mode);
+    static nat_int_t link(Env *env, Value from, Value to);
+    static nat_int_t rename(Env *env, Value from, Value to);
+    static nat_int_t symlink(Env *env, Value from, Value to);
+    static nat_int_t mkfifo(Env *env, Value path, Value mode);
+
     static Value chmod(Env *env, Args args);
     Value chmod(Env *env, Value mode);
 
@@ -100,6 +102,11 @@ public:
     static Value stat(Env *env, Value path);
 
     Value lstat(Env *env) const; // instance method
+
+    static int truncate(Env *env, Value path, Value size);
+    int truncate(Env *env, Value size) const; // instance method
+
+    static StringObject *path(Env *env, Value path); // path class method
 
     String path() const { return m_path; }
     void set_path(String path) { m_path = path; };
