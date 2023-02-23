@@ -11,16 +11,10 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
     if (block) {
-        // FIXME: break/exception not calling close()
-        Value result;
-        try {
-            result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ dir }), nullptr);
-        } catch (ExceptionObject *exception) {
-            dir->close(env);
-            throw;
-        }
-        dir->close(env);
-        assert(result);
+        Defer close_dir([&]() {
+            dir->as_dir()->close(env);
+        });
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ dir }), nullptr);
         return result;
     }
     return dir;
