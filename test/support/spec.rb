@@ -1497,7 +1497,7 @@ def NATFIXME(description, exception: nil, message: nil)
   when :unexpected_pass
     raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
   when :correct_error_class_wrong_message
-    raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect"
+    raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect (should be #{message.inspect} but was #{ex.message.inspect})"
   when :wrong_error_class
     raise NatalieFixMeException, "Issue hidden by NATFIXME marker class is incorrect.  Expected #{exception}, was #{ex.class}"
   end
