@@ -235,24 +235,15 @@ module Natalie
           ]
         end
 
-        call_args = transform_call_args(args)
-        instructions = call_args.fetch(:instructions)
-        with_block ||= call_args.fetch(:with_block_pass)
-
+        instructions = []
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
-          receiver_instructions = transform_expression(receiver, used: true)
-          case receiver.sexp_type
-          when :lasgn, :iasgn, :gasgn
-            # If the receiver contains an assignment, we need it to run first
-            # e.g. (a = 1) + a
-            instructions.unshift(receiver_instructions)
-            instructions << MoveRelInstruction.new(args.size + 1)
-          else
-            instructions << receiver_instructions
-          end
+          instructions << transform_expression(receiver, used: true)
         end
+
+        call_args = transform_call_args(args, instructions: instructions)
+        with_block ||= call_args.fetch(:with_block_pass)
 
         instructions << SendInstruction.new(
           message,
@@ -263,23 +254,21 @@ module Natalie
           forward_args: call_args[:forward_args],
           file: exp.file,
           line: exp.line,
+          receiver_pushed_first: true,
         )
         instructions << PopInstruction.new unless used
         instructions
       end
 
-      def transform_call_args(args)
-        instructions = []
-
+      def transform_call_args(args, instructions: [])
         if args.last&.sexp_type == :block_pass
           _, block = args.pop
-          instructions << transform_expression(block, used: true)
+          instructions.unshift(transform_expression(block, used: true))
         end
 
         if args.any? { |a| a.sexp_type == :splat }
           instructions << transform_array_with_splat(args)
           return {
-            instructions: instructions,
             with_block_pass: !!block,
             args_array_on_stack: true,
             has_keyword_hash: args.last&.sexp_type == :bare_hash
@@ -1159,15 +1148,18 @@ module Natalie
       def transform_safe_call(exp, used:)
         _, receiver, message, *args = exp
 
-        call_args = transform_call_args(args)
-        instructions = call_args.fetch(:instructions)
-
+        instructions = []
         instructions << transform_expression(receiver, used: true)
-        instructions << DupInstruction.new
+
+        instructions << DupInstruction.new # duplicate receiver for IsNil below
         instructions << IsNilInstruction.new
         instructions << IfInstruction.new
+        instructions << PopInstruction.new # pop duplicated receiver since it is unused
         instructions << PushNilInstruction.new
         instructions << ElseInstruction.new(:if)
+
+        call_args = transform_call_args(args, instructions: instructions)
+
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
@@ -1175,6 +1167,7 @@ module Natalie
           with_block: call_args.fetch(:with_block_pass),
           file: exp.file,
           line: exp.line,
+          receiver_pushed_first: true,
         )
         instructions << EndInstruction.new(:if)
         instructions << PopInstruction.new unless used
@@ -1212,9 +1205,9 @@ module Natalie
 
       def transform_super(exp, used:, with_block: false)
         _, *args = exp
-        call_args = transform_call_args(args)
-        instructions = call_args.fetch(:instructions)
+        instructions = []
         instructions << PushSelfInstruction.new
+        call_args = transform_call_args(args, instructions: instructions)
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block || call_args.fetch(:with_block_pass),
@@ -1301,8 +1294,8 @@ module Natalie
 
       def transform_yield(exp, used:)
         _, *args = exp
-        call_args = transform_call_args(args)
-        instructions = call_args.fetch(:instructions)
+        instructions = []
+        call_args = transform_call_args(args, instructions: instructions)
         instructions << YieldInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
         )
@@ -1312,8 +1305,8 @@ module Natalie
 
       def transform_zsuper(_, used:, with_block: false)
         instructions = []
-        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << PushSelfInstruction.new
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << SuperInstruction.new(
           args_array_on_stack: true,
           with_block: with_block,

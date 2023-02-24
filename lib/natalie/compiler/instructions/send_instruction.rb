@@ -9,7 +9,7 @@ module Natalie
     # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
-      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false, forward_args: false)
+      def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false, forward_args: false, receiver_pushed_first: false)
         # the message to send
         @message = message.to_sym
 
@@ -32,6 +32,9 @@ module Natalie
         # source location info
         @file = file
         @line = line
+
+        # TODO: remove this once every call site is in the proper order
+        @receiver_pushed_first = receiver_pushed_first
       end
 
       attr_reader :message,
@@ -55,8 +58,10 @@ module Natalie
       end
 
       def generate(transform)
-        receiver = transform.pop
-        raise "bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}" unless receiver.is_a?(String) || receiver.is_a?(String)
+        unless @receiver_pushed_first
+          receiver = transform.pop
+          raise "bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}" unless receiver.is_a?(String)
+        end
 
         if @args_array_on_stack
           if @forward_args
@@ -76,6 +81,16 @@ module Natalie
         transform.set_file(@file)
         transform.set_line(@line)
 
+        if @receiver_pushed_first
+          receiver = transform.pop
+          unless receiver.is_a?(String)
+            puts "Something went wrong: bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}"
+            puts "Got arg_count = #{arg_count.inspect}"
+            puts "Got args = #{args.inspect}"
+            exit 1
+          end
+        end
+
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
           "send_#{@message}",
@@ -84,7 +99,9 @@ module Natalie
       end
 
       def execute(vm)
-        receiver = vm.pop
+        unless @receiver_pushed_first
+          receiver = vm.pop
+        end
 
         if @args_array_on_stack
           args = vm.pop
@@ -92,6 +109,10 @@ module Natalie
           arg_count = vm.pop
           args = []
           arg_count.times { args.unshift vm.pop }
+        end
+
+        if @receiver_pushed_first
+          receiver = vm.pop
         end
 
         if args.empty? && %i[public private protected].include?(@message)
@@ -114,6 +135,7 @@ module Natalie
           with_block: @with_block,
           args_array_on_stack: @args_array_on_stack,
           has_keyword_hash: @has_keyword_hash,
+          receiver_pushed_first: @receiver_pushed_first,
         )
       end
 
