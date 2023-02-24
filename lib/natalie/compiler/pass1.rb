@@ -161,8 +161,14 @@ module Natalie
           IfInstruction.new,
           PushIntInstruction.new(num),
           PushArgcInstruction.new(1),
-          DupRelInstruction.new(2),
-          SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: exp.file,
+            line: exp.line,
+            receiver_pushed_first: true,
+          ),
           ElseInstruction.new(:if),
           PopInstruction.new,
           PushNilInstruction.new,
@@ -639,9 +645,16 @@ module Natalie
 
       def transform_dsym(exp, used:)
         instructions = [
-          PushArgcInstruction.new(0),
           transform_dstr(exp, used: true),
-          SendInstruction.new(:to_sym, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :to_sym,
+            receiver_is_self: false,
+            with_block: false,
+            file: exp.file,
+            line: exp.line,
+            receiver_pushed_first: true,
+          ),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -1008,18 +1021,35 @@ module Natalie
         _, obj, (_, *key_args), op, value = exp
         if op == :'||'
           instructions = [
+            # stack: [obj]
+            transform_expression(obj, used: true),
+
+            # stack: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
 
-            # key(s) are reused when the value is set
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) },
+            # stack: [obj, *keys, obj]
+            DupRelInstruction.new(key_args.size),
 
-            # old_value = obj[key]
+            # stack: [obj, *keys, obj, *keys]
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+            # old_value = obj[*keys]
+            # stack: [obj, *keys, old_value]
             PushArgcInstruction.new(key_args.size),
-            transform_expression(obj, used: true),
-            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              :[],
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
+
+            # stack: [obj, *keys, old_value, old_value]
             DupInstruction.new,
 
             # if old_value
+            # stack: [obj, *keys, old_value]
             IfInstruction.new,
 
             # didn't need the extra key(s) after all :-)
@@ -1032,38 +1062,76 @@ module Natalie
 
             ElseInstruction.new(:if),
 
-            # obj[key] = new_value
+            # stack: [obj, *keys]
             PopInstruction.new,
+
+            # obj[*keys] = new_value
+            # stack: [obj, *keys, new_value]
             transform_expression(value, used: true),
             PushArgcInstruction.new(key_args.size + 1),
-            transform_expression(obj, used: true),
-            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              :[]=,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
 
             EndInstruction.new(:if),
           ]
         else
           instructions = [
             # old_value = obj[key]
+            # stack: [obj]
             transform_expression(obj, used: true),
+
+            # stack: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
 
-            # key(s) are reused when the value is set
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index) },
+            # stack: [obj, *keys, obj]
+            DupRelInstruction.new(key_args.size),
 
+            # stack: [obj, *keys, obj, *keys]
+            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+            # old_value = obj[*keys]
+            # stack: [obj, *keys, old_value]
             PushArgcInstruction.new(key_args.size),
-            DupRelInstruction.new(key_args.size * 2 + 1),
-            SendInstruction.new(:[], receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              :[],
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
+
+            # stack: [obj, *keys, old_value, value]
+            transform_expression(value, used: true),
 
             # new_value = old_value + value
-            transform_expression(value, used: true),
+            # stack: [obj, *keys, new_value]
             PushArgcInstruction.new(1),
-            MoveRelInstruction.new(2),
-            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              op,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
 
-            # obj[key] = new_value
+            # obj[*keys] = new_value
             PushArgcInstruction.new(key_args.size + 1),
-            MoveRelInstruction.new(key_args.size + 2),
-            SendInstruction.new(:[]=, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              :[]=,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
           ]
         end
         instructions << PopInstruction.new unless used
@@ -1077,28 +1145,54 @@ module Natalie
         if op == :'||'
           raise 'todo'
         else
-          # given: obj.foo += 2
+          # given: obj.foo += value
           instructions = [
-            # obj
+            # stack: [obj]
             transform_expression(obj, used: true),
 
-            # 2
+            # stack: [obj, *values]
             val_args.map { |arg| transform_expression(arg, used: true) },
 
+            # stack: [obj, *values, obj]
+            DupRelInstruction.new(val_args.size),
+
             # temp = obj.foo
+            # stack: [obj, *values, temp]
             PushArgcInstruction.new(0),
-            DupRelInstruction.new(2),
-            SendInstruction.new(reader, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              reader,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
 
-            # result = temp + 2
+            # stack: [obj, temp, *values]
+            val_args.map { |arg| MoveRelInstruction.new(val_args.size) },
+
+            # result = temp + value
+            # stack: [obj, new_value]
             PushArgcInstruction.new(val_args.size),
-            SwapInstruction.new,
-            SendInstruction.new(op, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              op,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
 
-            # obj.foo = result
+            # obj.foo = new_value
             PushArgcInstruction.new(1),
-            DupRelInstruction.new(2),
-            SendInstruction.new(writer, receiver_is_self: false, with_block: false, file: exp.file, line: exp.line),
+            SendInstruction.new(
+              writer,
+              receiver_is_self: false,
+              with_block: false,
+              file: exp.file,
+              line: exp.line,
+              receiver_pushed_first: true,
+            ),
           ]
           instructions << PopInstruction.new unless used
           instructions
