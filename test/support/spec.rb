@@ -894,6 +894,17 @@ class StubRegistry
 
     @stubs.clear
   end
+
+  def snapshot
+    stubs_before = @stubs.dup
+    yield
+  ensure
+    stub_keys_added = @stubs.keys - stubs_before.keys
+    stub_keys_added.each do |key|
+      @stubs[key].each(&:disable)
+    end
+    @stubs = stubs_before
+  end
 end
 
 class Stub
@@ -1009,12 +1020,13 @@ class Stub
     self
   end
 
+  alias disable any_number_of_times
+
   def validate!
     unless @count_restriction == nil || @count_restriction === @count
-      message = "#{@subject.inspect} should have received ##{@message}"
-      if @count_restriction != nil
-        message << " #{@count_restriction} time(s) but received #{@count} time(s)"
-      end
+      actual_count = @count
+      message = "#{@subject.inspect} should have received ##{@message} " \
+                "#{@count_restriction} time(s) but received #{actual_count} time(s)"
 
       raise SpecFailedException, message
     end
@@ -1463,7 +1475,13 @@ def NATFIXME(description, exception: nil, message: nil)
   end
 
   status, ex = begin
-    yield
+    if $stub_registry
+      $stub_registry.snapshot do
+        yield
+      end
+    else
+      yield
+    end
     [:unexpected_pass, nil]
   rescue exception => ex
     if matcher.call(ex.message)
