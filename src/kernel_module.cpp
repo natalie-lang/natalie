@@ -67,20 +67,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
 
     if (imaginary == nullptr) {
-        //imaginary = 0;
-        //dbg("real {} ric {}", real, real->is_complex());
-        if (real->is_complex()) {
-            auto cplx = real->as_complex();
-            return new ComplexObject { cplx->real(env), cplx->imaginary(env) };
-        } else if (real->is_numeric()) {
-            return new ComplexObject { real };
-        }
-        /* TODO: this appears to cause a recursion issue!
-          else if (real->respond_to(env, "to_c"_s)) {
-          auto cplx = real->send(env, "to_c"_s)->as_complex();
-          return new ComplexObject { cplx->real(env), cplx->imaginary(env) };
-          }
-        */
+        return new ComplexObject { real };
     } else if (real->is_string()) {
         // NATFIXME: Add support for strings too.
     } else {
@@ -90,7 +77,7 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exceptio
     if (exception)
         env->raise("TypeError", "can't convert {} into Complex", real->klass()->inspect_str());
     else
-        return nullptr; // NilObject::the(); // nullptr;
+        return nullptr;
 }
 
 Value KernelModule::cur_dir(Env *env) {
