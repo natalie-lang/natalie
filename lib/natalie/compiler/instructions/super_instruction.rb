@@ -16,7 +16,6 @@ module Natalie
       end
 
       def generate(transform)
-        receiver = transform.pop
         if @args_array_on_stack
           args = transform.pop
           arg_count = "#{args}->as_array()->size()"
@@ -29,6 +28,8 @@ module Natalie
           transform.exec "Value #{args_array_on_stack}[] = { #{args.join(', ')} };"
         end
 
+        receiver = transform.pop
+
         # NOTE: There is a similar line in SendInstruction#generate, but
         # this one differs in that we fall back to sending the `block`
         # from the current method, if it is set.
@@ -39,7 +40,6 @@ module Natalie
       end
 
       def execute(vm)
-        receiver = vm.pop
         args = if @args_array_on_stack
                  vm.pop
                else
@@ -48,6 +48,7 @@ module Natalie
                  arg_count.times { args.unshift vm.pop }
                  args
                end
+        receiver = vm.pop
         block = @with_block ? vm.pop : vm.block
         vm.with_self(receiver) do
           result = receiver.method(vm.method_name).super_method.call(*args, &block)

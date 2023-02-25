@@ -21,14 +21,14 @@ module Natalie
       end
 
       def generate(transform)
-        receiver = transform.pop
-
         if @args_array_on_stack
           transform.pop
         else
           arg_count = transform.pop
           arg_count.times { transform.pop }
         end
+
+        receiver = transform.pop
 
         transform.exec(
           "if (!#{receiver}->respond_to(env, #{transform.intern(@message)})) throw new ExceptionObject"

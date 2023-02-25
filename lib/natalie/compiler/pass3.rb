@@ -80,8 +80,8 @@ module Natalie
           CatchInstruction.new,
           MatchBreakPointInstruction.new(break_point),
           IfInstruction.new,
-          PushArgcInstruction.new(0),
           GlobalVariableGetInstruction.new(:$!),
+          PushArgcInstruction.new(0),
           SendInstruction.new(
             :exit_value,
             receiver_is_self: false,
@@ -90,8 +90,8 @@ module Natalie
             line: instruction.line,
           ),
           ElseInstruction.new(:if),
-          PushArgcInstruction.new(0),
           PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
           SendInstruction.new(
             :raise,
             receiver_is_self: true,

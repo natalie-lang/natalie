@@ -55,9 +55,6 @@ module Natalie
       end
 
       def generate(transform)
-        receiver = transform.pop
-        raise "bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}" unless receiver.is_a?(String) || receiver.is_a?(String)
-
         if @args_array_on_stack
           if @forward_args
             args_list = transform.pop
@@ -76,6 +73,14 @@ module Natalie
         transform.set_file(@file)
         transform.set_line(@line)
 
+        receiver = transform.pop
+        unless receiver.is_a?(String)
+          puts "Something went wrong: bad receiver #{receiver.inspect} for SendInstruction #{@message.inspect}"
+          puts "Got arg_count = #{arg_count.inspect}"
+          puts "Got args = #{args.inspect}"
+          exit 1
+        end
+
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
         transform.exec_and_push(
           "send_#{@message}",
@@ -84,8 +89,6 @@ module Natalie
       end
 
       def execute(vm)
-        receiver = vm.pop
-
         if @args_array_on_stack
           args = vm.pop
         else
@@ -93,6 +96,8 @@ module Natalie
           args = []
           arg_count.times { args.unshift vm.pop }
         end
+
+        receiver = vm.pop
 
         if args.empty? && %i[public private protected].include?(@message)
           vm.method_visibility = @message
