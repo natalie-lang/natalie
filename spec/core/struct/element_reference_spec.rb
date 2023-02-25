@@ -34,9 +34,7 @@ describe "Struct#[]" do
 
   it "fails if passed too many arguments" do
     car = StructClasses::Car.new('Ford', 'Ranger')
-    NATFIXME 'define_method does not check argument count', exception: SpecFailedException do
-      -> { car[:make, :model] }.should raise_error(ArgumentError)
-    end
+    -> { car[:make, :model] }.should raise_error(ArgumentError)
   end
 
   it "fails if not passed a string, symbol, or integer" do

@@ -2051,6 +2051,9 @@ Value ArrayObject::values_at(Env *env, Args args) {
                 begin = 0;
             } else {
                 begin = IntegerObject::convert_to_nat_int_t(env, begin_value);
+                if (begin < -1 * (nat_int_t)(this->size())) {
+                    env->raise("RangeError", "{} out of range", arg->as_range()->inspect_str(env));
+                }
                 if (begin < 0)
                     break;
             }
