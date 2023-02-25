@@ -1328,14 +1328,16 @@ module Natalie
 
       def transform_to_ary(exp, used:)
         _, value = exp
-        instructions = [PushArgcInstruction.new(0)]
+        instructions = []
         instructions << transform_expression(value, used: true)
+        instructions << PushArgcInstruction.new(0)
         instructions << SendInstruction.new(
           :to_ary,
           receiver_is_self: false,
           with_block: false,
           file: exp.file,
           line: exp.line,
+          receiver_pushed_first: true,
         )
         instructions << PopInstruction.new unless used
         instructions

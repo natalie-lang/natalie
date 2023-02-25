@@ -54,13 +54,20 @@ module Natalie
 
       def transform_attr_assign_arg(receiver, message, args)
         shift_or_pop_next_arg
+        @instructions << @pass.transform_expression(receiver, used: true)
         if args.any?
           args.each { |arg| @instructions << @pass.transform_expression(arg, used: true) }
-          @instructions << MoveRelInstruction.new(args.size) # move value after args
         end
+        @instructions << MoveRelInstruction.new(args.size + 1) # move value after args
         @instructions << PushArgcInstruction.new(args.size + 1)
-        @instructions << @pass.transform_expression(receiver, used: true)
-        @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
+        @instructions << SendInstruction.new(
+          message,
+          receiver_is_self: false,
+          with_block: false,
+          file: @file,
+          line: @line,
+          receiver_pushed_first: true,
+        )
         @instructions << PopInstruction.new
       end
 
@@ -91,9 +98,17 @@ module Natalie
           @instructions << VariableGetInstruction.new(name)
         when :attrasgn
           _, receiver, message = arg
-          @instructions << PushArgcInstruction.new(1)
           @instructions << @pass.transform_expression(receiver, used: true)
-          @instructions << SendInstruction.new(message, receiver_is_self: false, with_block: false, file: @file, line: @line)
+          @instructions << SwapInstruction.new
+          @instructions << PushArgcInstruction.new(1)
+          @instructions << SendInstruction.new(
+            message,
+            receiver_is_self: false,
+            with_block: false,
+            file: @file,
+            line: @line,
+            receiver_pushed_first: true,
+          )
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
         end

@@ -18,7 +18,9 @@ module Natalie
       end
 
       def execute(vm)
-        raise 'todo'
+        raise 'ran out of stack' unless vm.stack.length > @index
+        value = vm.stack.slice!(vm.stack.length - 1 - @index)
+        vm.push(value)
       end
     end
   end
