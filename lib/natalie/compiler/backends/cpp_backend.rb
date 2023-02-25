@@ -80,11 +80,7 @@ module Natalie
 
       def obj_files
         rb_files = Dir.children(File.expand_path('../../../../src', __dir__)).grep(/\.rb$/)
-        list = rb_files.sort.map { |name|
-          ns = name.split('.')
-          raise "Found broken src/*.rb file #{name.inspect}" if ns.first.empty?
-          ns.first
-        }
+        list = rb_files.sort.map { |name| name.split('.').first }
         ['exception'] + # must come first
           (list - ['exception']) +
           @compiler_context[:required_cpp_files].values
