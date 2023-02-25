@@ -167,7 +167,6 @@ module Natalie
             with_block: false,
             file: exp.file,
             line: exp.line,
-            receiver_pushed_first: true,
           ),
           ElseInstruction.new(:if),
           PopInstruction.new,
@@ -260,7 +259,6 @@ module Natalie
           forward_args: call_args[:forward_args],
           file: exp.file,
           line: exp.line,
-          receiver_pushed_first: true,
         )
         instructions << PopInstruction.new unless used
         instructions
@@ -653,7 +651,6 @@ module Natalie
             with_block: false,
             file: exp.file,
             line: exp.line,
-            receiver_pushed_first: true,
           ),
         ]
         instructions << PopInstruction.new unless used
@@ -1042,7 +1039,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             # stack: [obj, *keys, old_value, old_value]
@@ -1075,7 +1071,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             EndInstruction.new(:if),
@@ -1104,7 +1099,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             # stack: [obj, *keys, old_value, value]
@@ -1119,7 +1113,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             # obj[*keys] = new_value
@@ -1130,7 +1123,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
           ]
         end
@@ -1165,7 +1157,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             # stack: [obj, temp, *values]
@@ -1180,7 +1171,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
 
             # obj.foo = new_value
@@ -1191,7 +1181,6 @@ module Natalie
               with_block: false,
               file: exp.file,
               line: exp.line,
-              receiver_pushed_first: true,
             ),
           ]
           instructions << PopInstruction.new unless used
@@ -1261,7 +1250,6 @@ module Natalie
           with_block: call_args.fetch(:with_block_pass),
           file: exp.file,
           line: exp.line,
-          receiver_pushed_first: true,
         )
         instructions << EndInstruction.new(:if)
         instructions << PopInstruction.new unless used
@@ -1337,7 +1325,6 @@ module Natalie
           with_block: false,
           file: exp.file,
           line: exp.line,
-          receiver_pushed_first: true,
         )
         instructions << PopInstruction.new unless used
         instructions

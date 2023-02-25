@@ -66,7 +66,6 @@ module Natalie
           with_block: false,
           file: @file,
           line: @line,
-          receiver_pushed_first: true,
         )
         @instructions << PopInstruction.new
       end
@@ -107,7 +106,6 @@ module Natalie
             with_block: false,
             file: @file,
             line: @line,
-            receiver_pushed_first: true,
           )
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
