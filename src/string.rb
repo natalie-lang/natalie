@@ -23,13 +23,27 @@ class String
           result << args.shift.to_s(16)
         when 's'
           result << args.shift.to_s
+        when '%'
+          result << '%'
+        when "\n"
+          result << "%\n"
+        when "\0"
+          result << "%\0"
+        when ' '
+          raise ArgumentError, 'invalid format character - %'
+        when nil
+          raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
         else
-          raise "I don't yet know how to handle format '#{c2}'"
+          raise ArgumentError, "malformed format string - %#{c2}"
         end
       else
         result << c
       end
       index += 1
+    end
+
+    if $DEBUG && args.any?
+      raise ArgumentError, 'too many arguments for format string'
     end
 
     result.join

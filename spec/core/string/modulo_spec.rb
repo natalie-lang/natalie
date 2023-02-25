@@ -25,11 +25,11 @@ describe "String#%" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
   end
 
-  xit "formats expressions mid string" do
+  it "formats expressions mid string" do
     ("hello %s!" % "world").should == "hello world!"
   end
 
-  xit "formats %% into %" do
+  it "formats %% into %" do
     ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
   end
 
@@ -50,24 +50,24 @@ describe "String#%" do
     end
   end
 
-  xit "raises an error if single % appears at the end" do
+  it "raises an error if single % appears at the end" do
     -> { ("%" % []) }.should raise_error(ArgumentError)
     -> { ("foo%" % [])}.should raise_error(ArgumentError)
   end
 
-  xit "formats single % character before a newline as literal %" do
+  it "formats single % character before a newline as literal %" do
     ("%\n" % []).should == "%\n"
     ("foo%\n" % []).should == "foo%\n"
     ("%\n.3f" % 1.2).should == "%\n.3f"
   end
 
-  xit "formats single % character before a NUL as literal %" do
+  it "formats single % character before a NUL as literal %" do
     ("%\0" % []).should == "%\0"
     ("foo%\0" % []).should == "foo%\0"
     ("%\0.3f" % 1.2).should == "%\0.3f"
   end
 
-  xit "raises an error if single % appears anywhere else" do
+  it "raises an error if single % appears anywhere else" do
     -> { (" % " % []) }.should raise_error(ArgumentError)
     -> { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
@@ -85,7 +85,7 @@ describe "String#%" do
     end
   end
 
-  xit "ignores unused arguments when $DEBUG is false" do
+  it "ignores unused arguments when $DEBUG is false" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
@@ -97,7 +97,7 @@ describe "String#%" do
     end
   end
 
-  xit "raises an ArgumentError for unused arguments when $DEBUG is true" do
+  it "raises an ArgumentError for unused arguments when $DEBUG is true" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
