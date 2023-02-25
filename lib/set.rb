@@ -207,6 +207,7 @@ class Set
 
     modified ? self : nil
   end
+  alias filter! select!
 end
 
 module Enumerable
