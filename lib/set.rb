@@ -3,7 +3,7 @@ class Set
 
   def initialize(items = nil)
     @data = Hash.new
-    
+
     return if items.nil?
 
     items.each do |item|
@@ -192,6 +192,22 @@ class Set
   end
   alias + union
   alias | union
+
+  def select!
+    return enum_for(:select!) { size } unless block_given?
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    modified = false
+    each do |key, value|
+      unless yield(key, value)
+        delete(key)
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
+  alias filter! select!
 end
 
 module Enumerable
