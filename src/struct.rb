@@ -115,7 +115,8 @@ class Struct
           end
         end
 
-        define_method :[] do |arg|
+        define_method :[] do |arg, *rest|
+          raise ArgumentError, "too many arguments given" if rest.any?
           case arg
           when Integer
             arg = attrs.fetch(arg)
@@ -170,6 +171,24 @@ class Struct
 
         define_method :members do
           attrs.dup
+        end
+
+        define_method :values_at do |*idxargs|
+          result = []
+          idxargs.each do |idx|
+            case idx
+            when Integer
+              realidx = (idx < 0) ? idx+size : idx
+              raise IndexError, "offset #{idx} too small for struct(size:#{size})" if realidx < 0
+              raise IndexError, "offset #{idx} too large for struct(size:#{size})" if realidx >= size
+              result << send(attrs.fetch(idx))
+            when Range
+              result.concat attrs.values_at(idx).map{ |k| k.nil? ? nil : self[k]}
+            else
+              raise TypeError, "no implicit conversion of #{idx.class} into Integer"
+            end
+          end
+          result
         end
 
         attrs.each { |attr| attr_accessor attr }

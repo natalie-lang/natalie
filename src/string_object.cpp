@@ -1854,70 +1854,112 @@ Value StringObject::unpack1(Env *env, Value format, Value offset_value) const {
     return array->as_array()->first();
 }
 
-Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
+Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     ArrayObject *ary = new ArrayObject {};
+    size_t last_index = 0;
+    size_t index, len;
+    OnigRegion *region = onig_region_new();
+    int result = splitter->as_regexp()->search(c_str(), region, ONIG_OPTION_NONE);
+    if (result == ONIG_MISMATCH) {
+        ary->push(dup(env));
+    } else {
+        do {
+            index = region->beg[0];
+            len = region->end[0] - region->beg[0];
+            ary->push(new StringObject { &c_str()[last_index], index - last_index, m_encoding });
+            last_index = index + len;
+            if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
+                ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                onig_region_free(region, true);
+                return ary;
+            }
+            result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
+        } while (result != ONIG_MISMATCH);
+        ary->push(new StringObject { &c_str()[last_index], m_encoding });
+    }
+    onig_region_free(region, true);
+    return ary;
+}
+
+Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
+    ArrayObject *ary = new ArrayObject {};
+    size_t last_index = 0;
+    size_t splitlen = splitstr->length();
+    assert(splitlen > 0);
+    nat_int_t index = index_int(env, splitstr, 0);
+    if (index == -1) {
+        ary->push(dup(env));
+    } else {
+        do {
+            size_t u_index = static_cast<size_t>(index);
+            ary->push(new StringObject { &c_str()[last_index], u_index - last_index, m_encoding });
+            last_index = u_index + splitlen;
+            if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
+                ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                return ary;
+            }
+            index = index_int(env, splitstr, last_index);
+        } while (index != -1);
+        ary->push(new StringObject { &c_str()[last_index], m_encoding });
+    }
+    return ary;
+}
+
+// NATFIXME: Does not support:
+// + blocks
+// + special case single-space splitter
+// + trimming empty str's off the end
+// + proper handling of negative max-count-values
+
+Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
+
+    if (!this->valid_encoding())
+        env->raise("ArgumentError", "invalid byte sequence in {}", m_encoding->name()->as_string()->string());
+
+    ArrayObject *ary = new ArrayObject {};
+    if (!splitter || splitter->is_nil()) {
+        auto field_sep = env->global_get("$;"_s);
+        if (!field_sep->is_nil()) {
+            env->warn("$; is set to non-nil value, but the output was {}", field_sep->klass()->inspect_str());
+            splitter = field_sep;
+        }
+    }
     if (!splitter) {
         splitter = new RegexpObject { env, "\\s+" };
     }
-    nat_int_t max_count = 0;
+    int max_count = 0;
     if (max_count_value) {
-        max_count_value->assert_type(env, Object::Type::Integer, "Integer");
-        max_count = max_count_value->as_integer()->to_nat_int_t();
+        if (!max_count_value->is_integer() && max_count_value->respond_to(env, "to_int"_s))
+            max_count_value = max_count_value->send(env, "to_int"_s);
+        max_count = IntegerObject::convert_to_int(env, max_count_value);
     }
     if (length() == 0) {
         return ary;
-    } else if (max_count == 1) {
+    } else if (max_count == 1 || splitter->is_nil()) {
         ary->push(dup(env));
         return ary;
     } else if (splitter->is_regexp()) {
-        size_t last_index = 0;
-        size_t index, len;
-        OnigRegion *region = onig_region_new();
-        int result = splitter->as_regexp()->search(c_str(), region, ONIG_OPTION_NONE);
-        if (result == ONIG_MISMATCH) {
-            ary->push(dup(env));
-        } else {
-            do {
-                index = region->beg[0];
-                len = region->end[0] - region->beg[0];
-                ary->push(new StringObject { &c_str()[last_index], index - last_index, m_encoding });
-                last_index = index + len;
-                if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
-                    onig_region_free(region, true);
-                    return ary;
-                }
-                result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
-            } while (result != ONIG_MISMATCH);
-            ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
-        }
-        onig_region_free(region, true);
-        return ary;
-    } else if (splitter->is_string()) {
-        // special empty-split-string case, just return characters
-        if (splitter->as_string()->is_empty())
+        // special empty-split-regexp case, just return characters
+        if (splitter->as_regexp()->pattern() == "")
             return this->chars(env);
-
-        size_t last_index = 0;
-        nat_int_t index = index_int(env, splitter->as_string(), 0);
-        if (index == -1) {
-            ary->push(dup(env));
-        } else {
-            do {
-                size_t u_index = static_cast<size_t>(index);
-                ary->push(new StringObject { &c_str()[last_index], u_index - last_index, m_encoding });
-                last_index = u_index + splitter->as_string()->length();
-                if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
-                    return ary;
-                }
-                index = index_int(env, splitter->as_string(), last_index);
-            } while (index != -1);
-            ary->push(new StringObject { &c_str()[last_index], length() - last_index, m_encoding });
-        }
-        return ary;
+        // split using regexp
+        return split(env, splitter->as_regexp(), max_count);
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
+        // string case or object-coercible to string case
+        if (!splitter->is_string() && splitter->respond_to(env, "to_str"_s))
+            splitter = splitter->send(env, "to_str"_s);
+        if (!splitter->is_string())
+            env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
+
+        StringObject *splitstr = splitter->as_string();
+        if (!splitstr->valid_encoding())
+            env->raise("ArgumentError", "invalid byte sequence in {}", splitstr->m_encoding->name()->as_string()->string());
+
+        // special empty-split-string case, just return characters
+        if (splitstr->is_empty())
+            return this->chars(env);
+        // split using substring
+        return split(env, splitstr, max_count);
     }
 }
 
