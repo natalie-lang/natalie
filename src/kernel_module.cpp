@@ -387,18 +387,21 @@ Value KernelModule::loop(Env *env, Block *block) {
 Value KernelModule::method(Env *env, Value name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
     auto singleton = singleton_class();
-    if (singleton) {
-        auto method_info = singleton_class()->find_method(env, name_symbol);
-        if (method_info) {
-            if (!method_info.is_defined())
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
-            return new MethodObject { this, method_info.method() };
+    auto module = singleton ? singleton : m_klass;
+    auto method_info = module->find_method(env, name_symbol);
+    if (!method_info.is_defined()) {
+        auto respond_to_missing = module->find_method(env, "respond_to_missing?"_s);
+        if (respond_to_missing.is_defined()) {
+            if (respond_to_missing.method()->call(env, this, { name_symbol, TrueObject::the() }, nullptr)->is_truthy()) {
+                auto method_missing = module->find_method(env, "method_missing"_s);
+                if (method_missing.is_defined()) {
+                    return new MethodObject { this, method_missing.method(), name_symbol };
+                }
+            }
         }
+        env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
     }
-    auto method_info = m_klass->find_method(env, name_symbol);
-    if (method_info.is_defined())
-        return new MethodObject { this, method_info.method() };
-    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
+    return new MethodObject { this, method_info.method() };
 }
 
 Value KernelModule::methods(Env *env, Value regular_val) {
