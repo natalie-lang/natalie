@@ -139,7 +139,7 @@ Value EncodingObject::find(Env *env, Value name) {
                 return encoding;
         }
     }
-    env->raise("ArgumentError", "unknown encoding name - {}", name->inspect_str(env));
+    env->raise("ArgumentError", "unknown encoding name - {}", name->as_string()->string());
 }
 
 // Lookup an EncodingObject by its string-name, or raise if unsuccessful.
@@ -160,16 +160,13 @@ EncodingObject *EncodingObject::find_encoding_by_name(Env *env, String name) {
     env->raise("ArgumentError", "unknown encoding name - {}", name);
 }
 
-// If an EncodingObject then return it, if a StringObject, return the encoding matching the string
+// If an EncodingObject then return it, if a StringObject,
+// return the encoding matching the string.  Sets a default if the lookup fails.
 EncodingObject *EncodingObject::find_encoding(Env *env, Value encoding) {
-    switch (encoding->type()) {
-    case Object::Type::Encoding:
-        return encoding->as_encoding();
-    case Object::Type::String:
-        return find_encoding_by_name(env, encoding->as_string()->string());
-    default:
-        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
-    }
+    Value enc_or_nil = EncodingObject::find(env, encoding);
+    if (enc_or_nil->is_encoding())
+        return enc_or_nil->as_encoding();
+    return EncodingObject::find_encoding_by_name(env, String("BINARY"));
 }
 
 ArrayObject *EncodingObject::list(Env *) {

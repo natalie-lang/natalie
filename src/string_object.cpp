@@ -809,6 +809,7 @@ Value StringObject::encode(Env *env, Value encoding) {
 }
 
 Value StringObject::force_encoding(Env *env, Value encoding) {
+    assert_not_frozen(env);
     set_encoding(EncodingObject::find_encoding(env, encoding));
     return this;
 }
