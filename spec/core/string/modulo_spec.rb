@@ -25,11 +25,11 @@ describe "String#%" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
   end
 
-  xit "formats expressions mid string" do
+  it "formats expressions mid string" do
     ("hello %s!" % "world").should == "hello world!"
   end
 
-  xit "formats %% into %" do
+  it "formats %% into %" do
     ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
   end
 
@@ -50,24 +50,24 @@ describe "String#%" do
     end
   end
 
-  xit "raises an error if single % appears at the end" do
+  it "raises an error if single % appears at the end" do
     -> { ("%" % []) }.should raise_error(ArgumentError)
     -> { ("foo%" % [])}.should raise_error(ArgumentError)
   end
 
-  xit "formats single % character before a newline as literal %" do
+  it "formats single % character before a newline as literal %" do
     ("%\n" % []).should == "%\n"
     ("foo%\n" % []).should == "foo%\n"
     ("%\n.3f" % 1.2).should == "%\n.3f"
   end
 
-  xit "formats single % character before a NUL as literal %" do
+  it "formats single % character before a NUL as literal %" do
     ("%\0" % []).should == "%\0"
     ("foo%\0" % []).should == "foo%\0"
     ("%\0.3f" % 1.2).should == "%\0.3f"
   end
 
-  xit "raises an error if single % appears anywhere else" do
+  it "raises an error if single % appears anywhere else" do
     -> { (" % " % []) }.should raise_error(ArgumentError)
     -> { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
@@ -85,7 +85,7 @@ describe "String#%" do
     end
   end
 
-  xit "ignores unused arguments when $DEBUG is false" do
+  it "ignores unused arguments when $DEBUG is false" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
@@ -97,7 +97,7 @@ describe "String#%" do
     end
   end
 
-  xit "raises an ArgumentError for unused arguments when $DEBUG is true" do
+  it "raises an ArgumentError for unused arguments when $DEBUG is true" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
@@ -112,7 +112,7 @@ describe "String#%" do
     end
   end
 
-  xit "always allows unused arguments when positional argument style is used" do
+  it "always allows unused arguments when positional argument style is used" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
@@ -125,7 +125,7 @@ describe "String#%" do
     end
   end
 
-  xit "replaces trailing absolute argument specifier without type with percent sign" do
+  it "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
 
@@ -143,7 +143,7 @@ describe "String#%" do
     -> { "%*1$.*0$1$s" % [1, 2, 3] }.should raise_error(ArgumentError)
   end
 
-  xit "raises an ArgumentError when multiple positional argument tokens are given for one format specifier" do
+  it "raises an ArgumentError when multiple positional argument tokens are given for one format specifier" do
     -> { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
@@ -155,7 +155,7 @@ describe "String#%" do
     ("%2$.2f" % [0, 1]).should == "1.00"
   end
 
-  xit "allows more than one digit of position" do
+  it "allows more than one digit of position" do
     ("%50$d" % (0..100).to_a).should == "49"
   end
 
@@ -192,7 +192,7 @@ describe "String#%" do
     -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
   end
 
-  xit "allows reuse of the one argument multiple via absolute argument numbers" do
+  it "allows reuse of the one argument multiple via absolute argument numbers" do
     ("%1$s %1$s" % "foo").should == "foo foo"
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
