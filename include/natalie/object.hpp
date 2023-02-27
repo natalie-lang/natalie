@@ -287,6 +287,7 @@ public:
     }
 
     Value send(Env *, SymbolObject *, Args, Block *, MethodVisibility, Value = nullptr);
+    Value method_missing_send(Env *, SymbolObject *, Args, Block *);
     Value method_missing(Env *, Args, Block *);
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, Value) const;

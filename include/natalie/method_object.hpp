@@ -10,15 +10,21 @@ public:
         : AbstractMethodObject { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch("Method"_s)->as_class(), method }
         , m_object { object } { }
 
+    MethodObject(Value object, Method *method, SymbolObject *method_missing_name)
+        : MethodObject { object, method } {
+        m_method_missing_name = method_missing_name;
+    }
+
     Value unbind(Env *);
     bool eq(Env *, Value);
 
     Value inspect(Env *env) {
         auto the_owner = owner();
+        auto name = m_method_missing_name ? m_method_missing_name->string() : m_method->name();
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
-            return StringObject::format("#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
+            return StringObject::format("#<Method: {}.{}(*)>", m_object->inspect_str(env), name);
         else
-            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), m_method->name());
+            return StringObject::format("#<Method: {}#{}(*)>", owner()->inspect_str(), name);
     }
 
     virtual ProcObject *to_proc(Env *env) override {
@@ -27,6 +33,8 @@ public:
     }
 
     Value call(Env *env, Args args, Block *block) {
+        if (m_method_missing_name)
+            return m_object->method_missing_send(env, m_method_missing_name, args, block);
         return m_method->call(env, m_object, args, block);
     }
 
@@ -34,6 +42,7 @@ public:
         AbstractMethodObject::visit_children(visitor);
         visitor.visit(m_object);
         visitor.visit(m_method);
+        visitor.visit(m_method_missing_name);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -42,5 +51,6 @@ public:
 
 private:
     Value m_object { nullptr };
+    SymbolObject *m_method_missing_name { nullptr };
 };
 }
