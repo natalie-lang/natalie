@@ -2271,7 +2271,72 @@ CaseFoldType StringObject::check_case_options(Env *env, Value arg1, Value arg2, 
     return flags;
 }
 
-Value StringObject::downcase(Env *env, Value arg1, Value arg2) {
+// TODO: It is probably more efficient to do the cmp inline so that the
+// entire StringObject does not need to be downcased.
+Value StringObject::casecmp(Env *env, Value other) {
+    other = StringObject::try_convert(env, other);
+    if (other->is_nil())
+        return NilObject::the();
+    //    if (!other->is_string() && other->respond_to(env, "to_str"_s))
+    //    other = other->send(env, "to_str"_s);
+    //if (!other->is_string())
+    //    env->raise("TypeError", "can't convert {} to String", other->klass()->inspect_str());
+    auto str1 = this->downcase(env, nullptr, nullptr);
+    auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
+    return str1->cmp(env, Value(str2));
+}
+
+Value StringObject::is_casecmp(Env *env, Value other) {
+    other = StringObject::try_convert(env, other);
+    if (other->is_nil())
+        return NilObject::the();
+    //if (!other->is_string() && other->respond_to(env, "to_str"_s))
+    //    other = other->send(env, "to_str"_s);
+    //if (!other->is_string())
+    //    env->raise("TypeError", "can't convert {} to String", other->klass()->inspect_str());
+    auto str1 = this->downcase(env, nullptr, nullptr);
+    auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
+    if (str1->string() == str2->string())
+        return TrueObject::the();
+    return FalseObject::the();
+}
+
+StringObject *StringObject::capitalize(Env *env, Value arg1, Value arg2) {
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Fold);
+    auto str = new StringObject { "", m_encoding };
+    bool first_char = true;
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (first_char && codept >= 'a' && codept <= 'z') {
+            // upcase first-char
+            codept -= 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
+        } else if (!first_char && codept >= 'A' && codept <= 'Z') {
+            // downcase remaining
+            codept += 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
+        } else {
+            str->append(c);
+        }
+        first_char = false;
+    }
+    return str;
+}
+
+Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *capitalize(env, arg1, arg2)->as_string();
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
+}
+
+StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
     // currently not doing anything with the returned flags
     check_case_options(env, arg1, arg2, Downcase);
     auto str = new StringObject { "", m_encoding };
@@ -2299,7 +2364,7 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     return this;
 }
 
-Value StringObject::upcase(Env *env, Value arg1, Value arg2) {
+StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
     // currently not doing anything with the returned flags
     check_case_options(env, arg1, arg2, Upcase);
     auto str = new StringObject { "", m_encoding };
