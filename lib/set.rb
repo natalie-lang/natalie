@@ -208,6 +208,21 @@ class Set
     modified ? self : nil
   end
   alias filter! select!
+
+  def reject!
+    return enum_for(:reject!) { size } unless block_given?
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    modified = false
+    each do |value|
+      if yield(value)
+        delete(value)
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
 end
 
 module Enumerable
