@@ -539,8 +539,10 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
 
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
     if (arg) {
+        if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
+            arg = arg->send(env, "to_str"_s);
         arg->assert_type(env, Object::Type::String, "String");
-        set_str(arg->as_string()->c_str());
+        initialize_copy(env, arg);
     }
     if (encoding) {
         force_encoding(env, encoding);
