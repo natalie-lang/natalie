@@ -223,6 +223,14 @@ class Set
 
     modified ? self : nil
   end
+
+  def subset?(other)
+    unless other.is_a?(self.class)
+      raise ArgumentError, 'value must be a set'
+    end
+    all? { |element| other.include?(element) }
+  end
+  alias <= subset?
 end
 
 module Enumerable
