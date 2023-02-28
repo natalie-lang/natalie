@@ -3,8 +3,8 @@ class String
   alias slice []
 
   def %(args)
-    positional_args = Array(args)
-    args = Array(args).dup
+    positional_args = args.is_a?(Array) ? args : [args]
+    args = positional_args.dup
     index = 0
     format = chars
     result = []
@@ -12,14 +12,16 @@ class String
 
     append = ->(format, arg: nil) {
       case format
-      when 'd'
-        result << (arg || args.shift).to_s
       when 'b'
         result << (arg || args.shift).to_s(2)
-      when 'x'
-        result << (arg || args.shift).to_s(16)
+      when 'd'
+        result << (arg || args.shift).to_s
+      when 'p'
+        result << (arg || args.shift).inspect
       when 's'
         result << (arg || args.shift).to_s
+      when 'x'
+        result << (arg || args.shift).to_s(16)
       when '%'
         result << '%'
       when "\n"

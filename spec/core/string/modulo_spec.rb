@@ -542,16 +542,18 @@ describe "String#%" do
     end
   end
 
-  xit "supports inspect formats using %p" do
+  it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
-    ("%-22p" % 10).should == "10                    "
-    ("%*p" % [10, 10]).should == "        10"
+    NATFIXME "support hyphen and asterisk", exception: ArgumentError do
+      ("%-22p" % 10).should == "10                    "
+      ("%*p" % [10, 10]).should == "        10"
+    end
     ("%p" % {capture: 1}).should == "{:capture=>1}"
     ("%p" % "str").should == "\"str\""
   end
 
-  xit "calls inspect on arguments for %p format" do
+  it "calls inspect on arguments for %p format" do
     obj = mock('obj')
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
