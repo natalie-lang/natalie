@@ -173,3 +173,21 @@ Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
     inflateEnd(strm);
     return self;
 }
+
+Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 2);
+    unsigned long crc;
+    if (args.size() < 2) {
+        crc = crc32(0L, Z_NULL, 0);
+    } else {
+        auto initcrcval = args.at(1);
+        initcrcval->assert_type(env, Object::Type::Integer, "Integer");
+        crc = IntegerObject::convert_to_int(env, initcrcval);
+    }
+    if (args.size() > 0) {
+        Value string = args.at(0);
+        string->assert_type(env, Object::Type::String, "String");
+        crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
+    }
+    return new IntegerObject { (nat_int_t)crc };
+}

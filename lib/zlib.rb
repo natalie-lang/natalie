@@ -41,6 +41,10 @@ module Zlib
     end
   end
 
+  #class << self
+  __bind_static_method__ :crc32, :Zlib_crc32
+  #end
+  
   class Deflate
     __bind_method__ :initialize, :Zlib_deflate_initialize
     __bind_method__ :<<, :Zlib_deflate_append
