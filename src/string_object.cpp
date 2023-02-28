@@ -2399,7 +2399,6 @@ StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
     // currently not doing anything with the returned flags
     check_case_options(env, arg1, arg2, Fold);
     auto str = new StringObject { "", m_encoding };
-    bool first_char = true;
     for (StringView c : *this) {
         nat_int_t codept = m_encoding->decode_codepoint(c);
         if (codept >= 'a' && codept <= 'z') {
@@ -2415,7 +2414,6 @@ StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
         } else {
             str->append(c);
         }
-        first_char = false;
     }
     return str;
 }
