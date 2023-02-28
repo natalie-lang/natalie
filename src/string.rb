@@ -3,21 +3,31 @@ class String
   alias slice []
 
   def %(args)
-    positional_args = args.is_a?(Array) ? args : [args]
+    positional_args = if args.respond_to?(:to_ary)
+                        if (ary = args.to_ary).nil?
+                          [args]
+                        elsif ary.is_a?(Array)
+                          ary
+                        else
+                          raise TypeError, "can't convert #{args.class.name} to Array (#{args.class.name}#to_ary gives #{ary.class.name})"
+                        end
+                      else
+                        [args]
+                      end
     args = positional_args.dup
     index = 0
     format = chars
     result = []
     positional_args_used = false
 
-    append = ->(format, index: nil) {
+    append = ->(format, arg_index: nil) {
       get_arg = -> {
-        if index
-          positional_args[index]
+        if arg_index
+          positional_args_used = true
+          positional_args[arg_index]
         else
-          args.shift.tap do |arg|
-            raise ArgumentError, "too few arguments" unless arg
-          end
+          raise ArgumentError, "too few arguments" if args.empty?
+          args.shift
         end
       }
 
@@ -65,9 +75,8 @@ class String
           case d
           when '$' # position
             index += 1
-            positional_args_used = true
             if (f = format[index])
-              append.(f, index: position - 1)
+              append.(f, arg_index: position - 1)
             else
               result << '%'
             end
