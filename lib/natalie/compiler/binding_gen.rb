@@ -1186,6 +1186,8 @@ gen.binding('String', 'strip!', 'StringObject', 'strip_in_place', argc: 0, pass_
 gen.binding('String', 'sub', 'StringObject', 'sub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'succ', 'StringObject', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'succ!', 'StringObject', 'successive_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'swapcase', 'StringObject', 'swapcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'swapcase!', 'StringObject', 'swapcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_f', 'StringObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_i', 'StringObject', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_s', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

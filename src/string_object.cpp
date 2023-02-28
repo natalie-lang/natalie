@@ -2395,6 +2395,41 @@ Value StringObject::upcase_in_place(Env *env, Value arg1, Value arg2) {
     return this;
 }
 
+StringObject *StringObject::swapcase(Env *env, Value arg1, Value arg2) {
+    // currently not doing anything with the returned flags
+    check_case_options(env, arg1, arg2, Fold);
+    auto str = new StringObject { "", m_encoding };
+    bool first_char = true;
+    for (StringView c : *this) {
+        nat_int_t codept = m_encoding->decode_codepoint(c);
+        if (codept >= 'a' && codept <= 'z') {
+            // upcase if codepoint was lowercase
+            codept -= 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
+        } else if (codept >= 'A' && codept <= 'Z') {
+            // downcase if codepoint was uppercase
+            codept += 32;
+            String s = m_encoding->encode_codepoint(codept);
+            str->append(s);
+        } else {
+            str->append(c);
+        }
+        first_char = false;
+    }
+    return str;
+}
+
+Value StringObject::swapcase_in_place(Env *env, Value arg1, Value arg2) {
+    assert_not_frozen(env);
+    StringObject *copy = dup(env)->as_string();
+    *this = *swapcase(env, arg1, arg2)->as_string();
+    if (*this == *copy) {
+        return Value(NilObject::the());
+    }
+    return this;
+}
+
 Value StringObject::uplus(Env *env) {
     if (this->is_frozen()) {
         return this->dup(env);
