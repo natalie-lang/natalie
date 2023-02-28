@@ -10,18 +10,28 @@ class String
     result = []
     positional_args_used = false
 
-    append = ->(format, arg: nil) {
+    append = ->(format, index: nil) {
+      get_arg = -> {
+        if index
+          positional_args[index]
+        else
+          args.shift.tap do |arg|
+            raise ArgumentError, "too few arguments" unless arg
+          end
+        end
+      }
+
       case format
       when 'b'
-        result << (arg || args.shift).to_s(2)
+        result << get_arg.().to_s(2)
       when 'd'
-        result << (arg || args.shift).to_s
+        result << get_arg.().to_s
       when 'p'
-        result << (arg || args.shift).inspect
+        result << get_arg.().inspect
       when 's'
-        result << (arg || args.shift).to_s
+        result << get_arg.().to_s
       when 'x'
-        result << (arg || args.shift).to_s(16)
+        result << get_arg.().to_s(16)
       when '%'
         result << '%'
       when "\n"
@@ -57,7 +67,7 @@ class String
             index += 1
             positional_args_used = true
             if (f = format[index])
-              append.(f, arg: positional_args[position - 1])
+              append.(f, index: position - 1)
             else
               result << '%'
             end

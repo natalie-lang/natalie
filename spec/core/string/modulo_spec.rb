@@ -197,13 +197,13 @@ describe "String#%" do
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
 
-  xit "always interprets an array argument as a list of argument parameters" do
+  it "always interprets an array argument as a list of argument parameters" do
     -> { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
     ("%p %p" % [1, 2]).should == "1 2"
   end
 
-  xit "always interprets an array subclass argument as a list of argument parameters" do
+  it "always interprets an array subclass argument as a list of argument parameters" do
     -> { "%p" % StringSpecs::MyArray[] }.should raise_error(ArgumentError)
     ("%p" % StringSpecs::MyArray[1]).should == "1"
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
