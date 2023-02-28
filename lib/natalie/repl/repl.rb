@@ -55,11 +55,15 @@ module Natalie
     end
 
     def save_cursor
-      echo "\u001B[s"
+      echo "\e7"
     end
 
     def reset_cursor
-      echo "\u001B[u"
+      echo "\e8"
+    end
+
+    def clear
+      echo "\e[J"
     end
 
     def display
@@ -80,7 +84,7 @@ module Natalie
     def get_char
       row, col = @model.cursor
       reset_cursor
-      echo "\u001b[0J" # Clear
+      clear
       echo display
       reset_cursor
       echo "\u001b[#{row}B" if row > 0
