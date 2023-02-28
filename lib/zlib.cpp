@@ -182,7 +182,13 @@ Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
     } else {
         auto initcrcval = args.at(1);
         initcrcval->assert_type(env, Object::Type::Integer, "Integer");
-        crc = IntegerObject::convert_to_int(env, initcrcval);
+        auto crc_temp = IntegerObject::convert_to_nat_int_t(env, initcrcval);
+        if (crc_temp < std::numeric_limits<long>::min())
+            env->raise("RangeError", "integer {} too small to convert to `long'", crc_temp);
+        else if (crc_temp > std::numeric_limits<long>::max())
+            env->raise("RangeError", "integer {} too big to convert to `long'", crc_temp);
+        crc = (unsigned long)(crc_temp);
+        //crc = IntegerObject::convert_to_ulong(env, initcrcval);
     }
     if (args.size() > 0) {
         Value string = args.at(0);
