@@ -66,6 +66,17 @@ Value IoObject::read(Env *env, Value count_value) const {
     return str;
 }
 
+Value IoObject::append(Env *env, Value obj) {
+    if (is_closed())
+        env->raise("IOError", "cannot read closed stream");
+    if (!obj->is_string() && obj->respond_to(env, "to_str"_s))
+        obj = obj.send(env, "to_s"_s);
+    obj->assert_type(env, Object::Type::String, "String");
+    ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
+    if (errno) env->raise_errno();
+    return this;
+}
+
 Value IoObject::write(Env *env, Args args) const {
     args.ensure_argc_at_least(env, 1);
     int bytes_written = 0;

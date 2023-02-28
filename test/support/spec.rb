@@ -701,40 +701,49 @@ end
 
 
 class OutputExpectation
-  def initialize(expected)
-    @expected = expected
+  def initialize(expected_out, expected_err)
+    @expected_out = expected_out
+    @expected_err = expected_err
   end
 
   def match(subject)
-    actual = capture_output do
+    actual_out, actual_err = capture_output do
       subject.call
     end
-    if actual != @expected
-      raise SpecFailedException, "expected $stdout to get #{@expected.inspect} but it got #{actual.inspect} instead"
+    if @expected_out && (actual_out != @expected_out)
+      raise SpecFailedException, "expected $stdout to get #{@expected_out.inspect} but it got #{actual_out.inspect} instead"
+    elsif @expected_err && (actual_err != @expected_err)
+      raise SpecFailedException, "expected $stderr to get #{@expected_err.inspect} but it got #{actual_err.inspect} instead"
     end
   end
 
   def inverted_match(subject)
-    actual = capture_output do
+    actual_out, actual_err = capture_output do
       subject.call
     end
-    if actual == @expected
-      raise SpecFailedException, "expected $stdout not to get #{@expected.inspect} but it did"
+    if @expected_out && (actual_out == @expected_out)
+      raise SpecFailedException, "expected $stdout not to get #{@expected_out.inspect} but it did"
+    elsif @expected_err && (actual_err == @expected_err)
+      raise SpecFailedException, "expected $stderr not to get #{@expected_err.inspect} but it did"
     end
   end
 
   private
 
   def capture_output
-    stub = IOStub.new
+    stub_out = IOStub.new
+    stub_err = IOStub.new
     old_stdout = $stdout
+    old_stderr = $stderr
     begin
-      $stdout = stub
+      $stdout = stub_out
+      $stderr = stub_err
       yield
     ensure
       $stdout = old_stdout
+      $stderr = old_stderr
     end
-    stub.to_s
+    [stub_out.to_s, stub_err.to_s]
   end
 end
 
@@ -1261,12 +1270,14 @@ class Object
     EqualExpectation.new(other)
   end
 
-  def output(expected)
-    OutputExpectation.new(expected)
+  def output(expected_stdout=nil, expected_stderr=nil)
+    OutputExpectation.new(expected_stdout, expected_stderr)
   end
 
-  def output_to_fd(expected)
-    OutputExpectation.new(expected)
+  def output_to_fd(expected, fd=STDOUT)
+    return OutputExpectation.new(expected, nil) if fd == $stdout
+    return OutputExpectation.new(nil, expected) if fd == $stderr
+    raise NotImplementedError, "Invalid fd #{fd.inspect}"
   end
 
   def raise_error(klass = StandardError, message = nil, &block)
