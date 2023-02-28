@@ -52,6 +52,7 @@ public:
     int fileno() const { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
 
+    Value append(Env *, Value);
     Value initialize(Env *, Value);
     Value read(Env *, Value) const;
     Value write(Env *, Args) const;
