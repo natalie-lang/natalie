@@ -3,23 +3,45 @@ class String
   alias slice []
 
   def %(args)
-    positional_args = Array(args)
-    args = Array(args).dup
+    positional_args = if args.respond_to?(:to_ary)
+                        if (ary = args.to_ary).nil?
+                          [args]
+                        elsif ary.is_a?(Array)
+                          ary
+                        else
+                          raise TypeError, "can't convert #{args.class.name} to Array (#{args.class.name}#to_ary gives #{ary.class.name})"
+                        end
+                      else
+                        [args]
+                      end
+    args = positional_args.dup
     index = 0
     format = chars
     result = []
     positional_args_used = false
 
-    append = ->(format, arg: nil) {
+    append = ->(format, arg_index: nil) {
+      get_arg = -> {
+        if arg_index
+          positional_args_used = true
+          positional_args[arg_index]
+        else
+          raise ArgumentError, "too few arguments" if args.empty?
+          args.shift
+        end
+      }
+
       case format
-      when 'd'
-        result << (arg || args.shift).to_s
       when 'b'
-        result << (arg || args.shift).to_s(2)
-      when 'x'
-        result << (arg || args.shift).to_s(16)
+        result << get_arg.().to_s(2)
+      when 'd'
+        result << get_arg.().to_s
+      when 'p'
+        result << get_arg.().inspect
       when 's'
-        result << (arg || args.shift).to_s
+        result << get_arg.().to_s
+      when 'x'
+        result << get_arg.().to_s(16)
       when '%'
         result << '%'
       when "\n"
@@ -53,9 +75,8 @@ class String
           case d
           when '$' # position
             index += 1
-            positional_args_used = true
             if (f = format[index])
-              append.(f, arg: positional_args[position - 1])
+              append.(f, arg_index: position - 1)
             else
               result << '%'
             end

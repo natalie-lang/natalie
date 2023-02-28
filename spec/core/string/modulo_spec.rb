@@ -197,13 +197,13 @@ describe "String#%" do
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
 
-  xit "always interprets an array argument as a list of argument parameters" do
+  it "always interprets an array argument as a list of argument parameters" do
     -> { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
     ("%p %p" % [1, 2]).should == "1 2"
   end
 
-  xit "always interprets an array subclass argument as a list of argument parameters" do
+  it "always interprets an array subclass argument as a list of argument parameters" do
     -> { "%p" % StringSpecs::MyArray[] }.should raise_error(ArgumentError)
     ("%p" % StringSpecs::MyArray[1]).should == "1"
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
@@ -247,7 +247,7 @@ describe "String#%" do
     ("%*.*d" % [w, p, 1]).should == "     00001"
   end
 
-  xit "does not call #to_a to convert the argument" do
+  it "does not call #to_a to convert the argument" do
     x = mock("string modulo to_a")
     x.should_not_receive(:to_a)
     x.should_receive(:to_s).and_return("x")
@@ -255,7 +255,7 @@ describe "String#%" do
     ("%s" % x).should == "x"
   end
 
-  xit "calls #to_ary to convert the argument" do
+  it "calls #to_ary to convert the argument" do
     x = mock("string modulo to_ary")
     x.should_not_receive(:to_s)
     x.should_receive(:to_ary).and_return(["x"])
@@ -263,7 +263,7 @@ describe "String#%" do
     ("%s" % x).should == "x"
   end
 
-  xit "wraps the object in an Array if #to_ary returns nil" do
+  it "wraps the object in an Array if #to_ary returns nil" do
     x = mock("string modulo to_ary")
     x.should_receive(:to_ary).and_return(nil)
     x.should_receive(:to_s).and_return("x")
@@ -271,14 +271,14 @@ describe "String#%" do
     ("%s" % x).should == "x"
   end
 
-  xit "raises a TypeError if #to_ary does not return an Array" do
+  it "raises a TypeError if #to_ary does not return an Array" do
     x = mock("string modulo to_ary")
     x.should_receive(:to_ary).and_return("x")
 
     -> { "%s" % x }.should raise_error(TypeError)
   end
 
-  xit "tries to convert the argument to Array by calling #to_ary" do
+  it "tries to convert the argument to Array by calling #to_ary" do
     obj = mock('[1,2]')
     def obj.to_ary() [1, 2] end
     def obj.to_s() "obj" end
@@ -542,16 +542,18 @@ describe "String#%" do
     end
   end
 
-  xit "supports inspect formats using %p" do
+  it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
-    ("%-22p" % 10).should == "10                    "
-    ("%*p" % [10, 10]).should == "        10"
+    NATFIXME "support hyphen and asterisk", exception: ArgumentError do
+      ("%-22p" % 10).should == "10                    "
+      ("%*p" % [10, 10]).should == "        10"
+    end
     ("%p" % {capture: 1}).should == "{:capture=>1}"
     ("%p" % "str").should == "\"str\""
   end
 
-  xit "calls inspect on arguments for %p format" do
+  it "calls inspect on arguments for %p format" do
     obj = mock('obj')
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
