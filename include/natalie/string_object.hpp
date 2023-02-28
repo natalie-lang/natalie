@@ -289,6 +289,10 @@ public:
     Value b(Env *) const;
     Value bytes(Env *, Block *);
     Value byteslice(Env *, Value, Value);
+    StringObject *capitalize(Env *, Value, Value);
+    Value capitalize_in_place(Env *, Value, Value);
+    Value casecmp(Env *, Value);
+    Value is_casecmp(Env *, Value);
     Value center(Env *, Value, Value);
     Value chr(Env *);
     Value chomp(Env *, Value) const;
@@ -303,7 +307,7 @@ public:
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
     Value delete_suffix_in_place(Env *, Value);
-    Value downcase(Env *, Value, Value);
+    StringObject *downcase(Env *, Value, Value);
     Value downcase_in_place(Env *, Value, Value);
     Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
@@ -343,6 +347,8 @@ public:
     Value strip(Env *) const;
     Value strip_in_place(Env *);
     Value sum(Env *, Value = nullptr);
+    StringObject *swapcase(Env *, Value, Value);
+    Value swapcase_in_place(Env *, Value, Value);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
     Value tr(Env *, Value, Value) const;
@@ -351,7 +357,7 @@ public:
     Value uminus(Env *);
     Value unpack(Env *, Value, Value = nullptr) const;
     Value unpack1(Env *, Value, Value = nullptr) const;
-    Value upcase(Env *, Value, Value);
+    StringObject *upcase(Env *, Value, Value);
     Value upcase_in_place(Env *, Value, Value);
     Value uplus(Env *);
     Value upto(Env *, Value, Value = nullptr, Block * = nullptr);
