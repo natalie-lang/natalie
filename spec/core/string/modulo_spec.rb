@@ -303,18 +303,20 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %b for positive numbers" do
+  it "supports binary formats using %b for positive numbers" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
     ("%#b" % 10).should == "0b1010"
     ("%+b" % 10).should == "+1010"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
     ("%-9b" % 10).should == "1010     "
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
     ("%.4b" % 2).should == "0010"
     ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
+    end
   end
 
   xit "supports binary formats using %b for negative numbers" do
@@ -331,21 +333,24 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
+  it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
     ("%B" % 10).should == ("%b" % 10)
     ("% B" % 10).should == ("% b" % 10)
     ("%1$B" % [10, 20]).should == ("%1$b" % [10, 20])
     ("%+B" % 10).should == ("%+b" % 10)
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
     ("%-9B" % 10).should == ("%-9b" % 10)
     ("%05B" % 10).should == ("%05b" % 10)
     ("%*B" % [10, 6]).should == ("%*b" % [10, 6])
     ("%*B" % [-10, 6]).should == ("%*b" % [-10, 6])
-
+    end
     ("%B" % -5).should == ("%b" % -5)
     ("%0B" % -5).should == ("%0b" % -5)
-    ("%.1B" % -5).should == ("%.1b" % -5)
-    ("%.7B" % -5).should == ("%.7b" % -5)
-    ("%.10B" % -5).should == ("%.10b" % -5)
+    NATFIXME "dot-number format unsupported", exception: ArgumentError do
+      ("%.1B" % -5).should == ("%.1b" % -5)
+      ("%.7B" % -5).should == ("%.7b" % -5)
+      ("%.10B" % -5).should == ("%.10b" % -5)
+    end
     ("% B" % -5).should == ("% b" % -5)
     ("%+B" % -5).should == ("%+b" % -5)
     not_supported_on :opal do
@@ -355,11 +360,13 @@ describe "String#%" do
     ("%#B" % 10).should == "0B1010"
   end
 
-  xit "supports character formats using %c" do
+  it "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
-    ("%-4c" % 10).should == "\n   "
-    ("%*c" % [10, 3]).should == "         \003"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+      ("%-4c" % 10).should == "\n   "
+      ("%*c" % [10, 3]).should == "         \003"
+    end
     ("%c" % 42).should == "*"
 
     -> { "%c" % Object }.should raise_error(TypeError)
@@ -388,7 +395,7 @@ describe "String#%" do
     ("%c" % obj).should == "A"
   end
 
-  xit "calls #to_ary on argument for %c formats" do
+  it "calls #to_ary on argument for %c formats" do
     obj = mock('65')
     obj.should_receive(:to_ary).and_return([65])
     ("%c" % obj).should == ("%c" % [65])
@@ -404,15 +411,17 @@ describe "String#%" do
   %w(d i).each do |f|
     format = "%" + f
 
-    xit "supports integer formats using #{format}" do
+    it "supports integer formats using #{format}" do
       ("%#{f}" % 10).should == "10"
       ("% #{f}" % 10).should == " 10"
       ("%1$#{f}" % [10, 20]).should == "10"
       ("%+#{f}" % 10).should == "+10"
-      ("%-7#{f}" % 10).should == "10     "
-      ("%04#{f}" % 10).should == "0010"
-      ("%*#{f}" % [10, 4]).should == "         4"
-      ("%6.4#{f}" % 123).should == "  0123"
+      NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+        ("%-7#{f}" % 10).should == "10     "
+        ("%04#{f}" % 10).should == "0010"
+        ("%*#{f}" % [10, 4]).should == "         4"
+        ("%6.4#{f}" % 123).should == "  0123"
+      end
     end
 
     xit "supports negative integers using #{format}" do
@@ -516,15 +525,17 @@ describe "String#%" do
     ("%*G" % [10, 9]).should == "         9"
   end
 
-  xit "supports octal formats using %o for positive numbers" do
+  it "supports octal formats using %o for positive numbers" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
     ("%#o" % 10).should == "012"
     ("%+o" % 10).should == "+12"
-    ("%-9o" % 10).should == "12       "
-    ("%05o" % 10).should == "00012"
-    ("%*o" % [10, 6]).should == "         6"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+      ("%-9o" % 10).should == "12       "
+      ("%05o" % 10).should == "00012"
+      ("%*o" % [10, 6]).should == "         6"
+    end
   end
 
   xit "supports octal formats using %o for negative numbers" do
@@ -546,8 +557,10 @@ describe "String#%" do
   it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
-    NATFIXME "support hyphen and asterisk", exception: ArgumentError do
+    NATFIXME "support pad-number", exception: NotImplementedError, message: /todo/ do
       ("%-22p" % 10).should == "10                    "
+    end
+    NATFIXME "support asterisk", exception: ArgumentError do
       ("%*p" % [10, 10]).should == "        10"
     end
     ("%p" % {capture: 1}).should == "{:capture=>1}"
@@ -566,13 +579,15 @@ describe "String#%" do
     # ("%p" % obj).should == "obj"
   end
 
-  xit "supports string formats using %s" do
+  it "supports string formats using %s" do
     ("%s" % "hello").should == "hello"
     ("%s" % "").should == ""
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
-    ("%-5s" % 10).should == "10   "
-    ("%*s" % [10, 9]).should == "         9"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+      ("%-5s" % 10).should == "10   "
+      ("%*s" % [10, 9]).should == "         9"
+    end
   end
 
   xit "respects a space padding request not as part of the width" do
@@ -580,7 +595,7 @@ describe "String#%" do
     x.should == "foo  "
   end
 
-  xit "calls to_s on non-String arguments for %s format" do
+  it "calls to_s on non-String arguments for %s format" do
     obj = mock('obj')
     def obj.to_s() "obj" end
 
@@ -612,26 +627,28 @@ describe "String#%" do
     ("%*u" % [10, 4]).should == "         4"
   end
 
-  xit "formats negative values with a leading sign using %u" do
+  it "formats negative values with a leading sign using %u" do
     ("% u" % -26).should == "-26"
     ("%+u" % -26).should == "-26"
   end
 
-  xit "supports negative bignums with %u or %d" do
+  it "supports negative bignums with %u or %d" do
     ("%u" % -(2 ** 64 + 5)).should == "-18446744073709551621"
     ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
   end
 
-  xit "supports hex formats using %x for positive numbers" do
+  it "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
     ("%#x" % 10).should == "0xa"
     ("%+x" % 10).should == "+a"
-    ("%-9x" % 10).should == "a        "
-    ("%05x" % 10).should == "0000a"
-    ("%*x" % [10, 6]).should == "         6"
-    ("%.4x" % 20).should == "0014"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+      ("%-9x" % 10).should == "a        "
+      ("%05x" % 10).should == "0000a"
+      ("%*x" % [10, 6]).should == "         6"
+      ("%.4x" % 20).should == "0014"
+    end
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
   end
 
@@ -648,16 +665,19 @@ describe "String#%" do
     end
   end
 
-  xit "supports hex formats using %X for positive numbers" do
+  it "supports hex formats using %X for positive numbers" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
     ("%1$X" % [10, 20]).should == "A"
     ("%#X" % 10).should == "0XA"
     ("%+X" % 10).should == "+A"
-    ("%-9X" % 10).should == "A        "
-    ("%05X" % 10).should == "0000A"
-    ("%*X" % [10, 6]).should == "         6"
+    NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
+      ("%-9X" % 10).should == "A        "
+      ("%05X" % 10).should == "0000A"
+      ("%*X" % [10, 6]).should == "         6"
+    end
     ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
+    
   end
 
   xit "supports hex formats using %X for negative numbers" do
@@ -673,11 +693,11 @@ describe "String#%" do
     end
   end
 
-  xit "formats zero without prefix using %#x" do
+  it "formats zero without prefix using %#x" do
     ("%#x" % 0).should == "0"
   end
 
-  xit "formats zero without prefix using %#X" do
+  it "formats zero without prefix using %#X" do
     ("%#X" % 0).should == "0"
   end
 

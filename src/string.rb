@@ -20,7 +20,25 @@ class String
     result = []
     positional_args_used = false
 
-    append = ->(format, arg_index: nil) {
+    # Get non-exclusive flags that occur after a leading '%'
+    # but before the width field
+    get_flags = ->(format_chars, index) {
+      flags = []
+      while [' ', '#', '-', '+', '0'].include?(format_chars[index])
+        case format_chars[index]
+        when ' ' then flags << :space
+        when '#' then flags << :alter
+        when "0" then flags << :zero
+        when "+" then flags << :plus
+        when "-" then flags << :left
+        else raise NotImplementedError, "invalid branch"
+        end
+        index += 1
+      end
+      [flags, index]
+    }
+    
+    append = ->(format_char, flags: [], arg_index: nil) {
       get_arg = -> {
         if arg_index
           positional_args_used = true
@@ -31,29 +49,55 @@ class String
         end
       }
 
-      case format
-      when 'b'
-        result << get_arg.().to_s(2)
-      when 'd'
-        result << get_arg.().to_s
+      case format_char
+      # Integer Type Specifiers
+      when 'b', 'B', 'd', 'i', 'u', 'o', 'x', 'X'
+        arg = get_arg.()
+        if arg > 0
+          if flags.include?(:plus)
+            result << "+"
+          elsif flags.include?(:space)
+            result << " "
+          end
+        end
+        case format_char
+        when 'b', 'B'
+          result << ("0" + format_char) if flags.include?(:alter)
+          result << arg.to_s(2)
+        when 'd', 'i', 'u'
+          result << arg.to_s
+        when 'o'
+          result << '0' if flags.include?(:alter)
+          result << arg.to_s(8)
+        when 'x'
+          result << ("0" + format_char) if arg != 0 && flags.include?(:alter)
+          result << arg.to_s(16)
+        when 'X'
+          result << ("0" + format_char) if arg != 0 && flags.include?(:alter)
+          result << arg.to_s(16).upcase
+        else raise NotImplementedError, "invalid branch"
+        end
+      
       # Other Type Specifiers
       when 'c' # Character
         arg = get_arg.()
-        if arg.is_a? String
-          raise ArgumentError, "invalid character #{arg}" if arg.size > 1
-          result << arg.to_s
-        elsif arg.is_a? Integer
+        if arg.is_a? Integer
           if arg < 0 && arg > 256
-            raise NotImplementedError, "Cannot convert to codepoint"
+            raise NotImplementedError, "Cannot convert value #{arg} to codepoint"
           end
           result << arg.chr
+        else
+          if !arg.is_a?(String) && arg.respond_to?(:to_str)
+            arg = arg.to_str
+          end
+          raise TypeError, "expected a string, got #{arg.inspect}" unless arg.is_a?(String)
+          raise ArgumentError, "invalid character #{arg}" if arg.size > 1
+          result << arg.to_s
         end
       when 'p'
         result << get_arg.().inspect
       when 's'
         result << get_arg.().to_s
-      when 'x'
-        result << get_arg.().to_s(16)
       when '%'
         result << '%'
       when "\n"
@@ -65,7 +109,7 @@ class String
       when nil
         raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
       else
-        raise ArgumentError, "malformed format string - %#{format}"
+        raise ArgumentError, "malformed format string - %#{format_char}"
       end
     }
 
@@ -74,6 +118,7 @@ class String
       case c
       when '%'
         index += 1
+        flaglist, index = get_flags.(format, index)
         f = format[index]
         case f
         when '0'..'9'
@@ -88,15 +133,15 @@ class String
           when '$' # position
             index += 1
             if (f = format[index])
-              append.(f, arg_index: position - 1)
+              append.(f, flags: flaglist, arg_index: position - 1)
             else
               result << '%'
             end
           else
-            raise 'todo'
+            raise NotImplementedError, "todo, last received format-char was #{d.inspect} at index #{index}"
           end
         else
-          append.(f)
+          append.(f, flags: flaglist)
         end
       else
         result << c
