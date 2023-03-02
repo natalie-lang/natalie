@@ -36,6 +36,18 @@ class String
         result << get_arg.().to_s(2)
       when 'd'
         result << get_arg.().to_s
+      # Other Type Specifiers
+      when 'c' # Character
+        arg = get_arg.()
+        if arg.is_a? String
+          raise ArgumentError, "invalid character #{arg}" if arg.size > 1
+          result << arg.to_s
+        elsif arg.is_a? Integer
+          if arg < 0 && arg > 256
+            raise NotImplementedError, "Cannot convert to codepoint"
+          end
+          result << arg.chr
+        end
       when 'p'
         result << get_arg.().inspect
       when 's'

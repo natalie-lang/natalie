@@ -1,3 +1,4 @@
+# coding: utf-8
 require_relative '../../spec_helper'
 require_relative '../kernel/shared/sprintf'
 require_relative '../kernel/shared/sprintf_encoding'
@@ -364,12 +365,12 @@ describe "String#%" do
     -> { "%c" % Object }.should raise_error(TypeError)
   end
 
-  xit "supports single character strings as argument for %c" do
+  it "supports single character strings as argument for %c" do
     ("%c" % 'A').should == "A"
   end
 
   ruby_version_is ""..."3.2" do
-    xit "raises an exception for multiple character strings as argument for %c" do
+    it "raises an exception for multiple character strings as argument for %c" do
       -> { "%c" % 'AA' }.should raise_error(ArgumentError)
     end
   end
