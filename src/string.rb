@@ -37,7 +37,48 @@ class String
       end
       [flags, index]
     }
+
+    # Lambda to capture 'n$' Flag.
+    # If a numeric value is found that does not end with '$'
+    # the index will move backward so a later proc may capture it
+    get_position_flag = -> (format_chars, index) {
+      original_index = index
+      position = nil
+      while ('0'..'9').cover?(format_chars[index])
+        index += 1
+      end
+      if format_chars[index] == "$"
+        position = format_chars[original_index ... index].join.to_i - 1
+        index += 1
+      else
+        index = original_index
+      end
+      [position, index]
+    }
+
+    # Lambda to capture width integer, else returns nil
+    get_width = -> (format_chars, index) {
+      original_index = index
+      number = nil
+      while ('0'..'9').cover?(format_chars[index])
+        index += 1
+      end
+      if original_index != index
+        number = format_chars[original_index ... index].join.to_i
+      end
+      [number, index]
+    }
     
+    # Lambda to capture precision integer, else returns nil
+    get_precision = -> (format_chars, index) {
+      precision = nil
+      if format_chars[index] == '.'
+        index += 1
+        precision, index = get_width(format_chars, index)
+      end
+      [precision, index]
+    }
+        
     append = ->(format_char, flags: [], arg_index: nil) {
       get_arg = -> {
         if arg_index
@@ -107,7 +148,11 @@ class String
       when ' '
         raise ArgumentError, 'invalid format character - %'
       when nil
-        raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
+        if arg_index
+          result << '%'
+        else
+          raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
+        end
       else
         raise ArgumentError, "malformed format string - %#{format_char}"
       end
@@ -119,30 +164,40 @@ class String
       when '%'
         index += 1
         flaglist, index = get_flags.(format, index)
+        position, index = get_position_flag.(format, index)
+        width, index = get_width.(format, index)
+        precision, index = get_precision.(format, index)
+
         f = format[index]
-        case f
-        when '0'..'9'
-          d = f
-          position = 0
-          begin
-            position = position * 10 + d.to_i
-            index += 1
-            d = format[index]
-          end while ('0'..'9').cover?(d)
-          case d
-          when '$' # position
-            index += 1
-            if (f = format[index])
-              append.(f, flags: flaglist, arg_index: position - 1)
-            else
-              result << '%'
-            end
-          else
-            raise NotImplementedError, "todo, last received format-char was #{d.inspect} at index #{index}"
-          end
-        else
-          append.(f, flags: flaglist)
-        end
+        # debug
+        p fmtstr: self
+        p flags: flaglist, pos: position, wid: width, prec: precision, f: f
+        
+        append.(f, flags: flaglist, arg_index: position)
+#        
+#        case f
+#        when '0'..'9'
+#          d = f
+#          position = 0
+#          begin
+#            position = position * 10 + d.to_i
+#            index += 1
+#            d = format[index]
+#          end while ('0'..'9').cover?(d)
+#          case d
+#          when '$' # position
+#            index += 1
+#            if (f = format[index])
+#              append.(f, flags: flaglist, arg_index: position - 1)
+#            else
+#              result << '%'
+#            end
+#          else
+#            raise NotImplementedError, "todo, last received format-char was #{d.inspect} at index #{index}"
+#          end
+#        else
+#          append.(f, flags: flaglist)
+#        end
       else
         result << c
       end
