@@ -24,23 +24,27 @@ class String
     # but before the width field
     get_flags = ->(format_chars, index) {
       flags = []
-      while [' ', '#', '-', '+', '0'].include?(format_chars[index])
+      while [' ', '#', '-', '+', '0' ,'*'].include?(format_chars[index])
         case format_chars[index]
         when ' ' then flags << :space
         when '#' then flags << :alter
         when "0" then flags << :zero
         when "+" then flags << :plus
         when "-" then flags << :left
-        else raise NotImplementedError, "invalid branch"
+        when "*" then
+          raise ArgumentError, "cannot specify '*' multiple times" if flags.include?(:star)
+          flags << :star
+        else
+          raise NotImplementedError, "invalid branch"
         end
         index += 1
       end
       [flags, index]
     }
 
-    # Lambda to capture 'n$' Flag.
-    # If a numeric value is found that does not end with '$'
-    # the index will move backward so a later proc may capture it
+    # Lambda to capture 'n$' position flag.
+    # If a numeric value is found that does not end with '$' the index
+    # will move backward so a later proc may capture it as a width
     get_position_flag = -> (format_chars, index) {
       original_index = index
       position = nil
@@ -68,18 +72,20 @@ class String
       end
       [number, index]
     }
-    
+
     # Lambda to capture precision integer, else returns nil
     get_precision = -> (format_chars, index) {
       precision = nil
       if format_chars[index] == '.'
         index += 1
-        precision, index = get_width(format_chars, index)
+        precision, index = get_width.(format_chars, index)
+        # nil case gets zero to disambiguate case of not seeing the '.'
+        precision ||= 0
       end
       [precision, index]
     }
-        
-    append = ->(format_char, flags: [], arg_index: nil) {
+
+    append = ->(format_char, flags: [], arg_index: nil, width: nil, precision: nil) {
       get_arg = -> {
         if arg_index
           positional_args_used = true
@@ -89,62 +95,96 @@ class String
           args.shift
         end
       }
+      if flags.include?(:star) && width.nil?
+        star_width = get_arg.()
+        width = star_width.abs if star_width != 0
+        flags << :left if star_width < 0
+      end
 
       case format_char
       # Integer Type Specifiers
       when 'b', 'B', 'd', 'i', 'u', 'o', 'x', 'X'
         arg = get_arg.()
+        localresult = ""
         if arg > 0
           if flags.include?(:plus)
-            result << "+"
+            localresult << "+"
           elsif flags.include?(:space)
-            result << " "
+            localresult << " "
           end
         end
         case format_char
         when 'b', 'B'
-          result << ("0" + format_char) if flags.include?(:alter)
-          result << arg.to_s(2)
+          localresult << ("0" + format_char) if flags.include?(:alter)
+          localresult << arg.to_s(2)
         when 'd', 'i', 'u'
-          result << arg.to_s
+          localresult << arg.to_s
         when 'o'
-          result << '0' if flags.include?(:alter)
-          result << arg.to_s(8)
+          localresult << '0' if flags.include?(:alter)
+          localresult << arg.to_s(8)
         when 'x'
-          result << ("0" + format_char) if arg != 0 && flags.include?(:alter)
-          result << arg.to_s(16)
+          localresult << ("0" + format_char) if arg != 0 && flags.include?(:alter)
+          localresult << arg.to_s(16)
         when 'X'
-          result << ("0" + format_char) if arg != 0 && flags.include?(:alter)
-          result << arg.to_s(16).upcase
-        else raise NotImplementedError, "invalid branch"
-        end
-      
-      # Other Type Specifiers
-      when 'c' # Character
-        arg = get_arg.()
-        if arg.is_a? Integer
-          if arg < 0 && arg > 256
-            raise NotImplementedError, "Cannot convert value #{arg} to codepoint"
-          end
-          result << arg.chr
+          localresult << ("0" + format_char) if arg != 0 && flags.include?(:alter)
+          localresult << arg.to_s(16).upcase
         else
-          if !arg.is_a?(String) && arg.respond_to?(:to_str)
-            arg = arg.to_str
-          end
-          raise TypeError, "expected a string, got #{arg.inspect}" unless arg.is_a?(String)
-          raise ArgumentError, "invalid character #{arg}" if arg.size > 1
-          result << arg.to_s
+          raise NotImplementedError, "invalid branch"
         end
-      when 'p'
-        result << get_arg.().inspect
-      when 's'
-        result << get_arg.().to_s
-      when '%'
-        result << '%'
-      when "\n"
-        result << "%\n"
-      when "\0"
-        result << "%\0"
+        # Perform padding
+        if width && localresult.size < width
+          pad_amount = (width - localresult.size)
+          localresult = if flags.include?(:left)
+                          localresult + (' ' * pad_amount)
+                        elsif flags.include?(:zero)
+                          ('0' * pad_amount) + localresult
+                        else
+                          (' ' * pad_amount) + localresult
+                        end
+        end
+        result << localresult
+      # Other Type Specifiers
+      when 'c', 'p', 's'
+        localresult = ""
+        case format_char
+        when 'c' # Character
+          arg = get_arg.()
+          if arg.is_a? Integer
+            if arg < 0 && arg > 256
+              raise NotImplementedError, "Cannot convert value #{arg} to codepoint"
+            end
+            localresult << arg.chr
+          else
+            if !arg.is_a?(String) && arg.respond_to?(:to_str)
+              arg = arg.to_str
+            end
+            raise TypeError, "expected a string, got #{arg.inspect}" unless arg.is_a?(String)
+            raise ArgumentError, "invalid character #{arg}" if arg.size > 1
+            localresult << arg.to_s
+          end
+        when 'p'
+          localresult << get_arg.().inspect
+        when 's'
+          localresult << get_arg.().to_s
+        else
+          raise NotImplementedError, "invalid branch"
+        end
+        # Perform padding
+        if width && localresult.size < width
+          pad_amount = (width - localresult.size)
+          localresult = if flags.include?(:left)
+                          localresult + (' ' * pad_amount)
+                        else
+                          (' ' * pad_amount) + localresult
+                        end
+        end
+        result << localresult
+      when '%', "\n", "\0"
+        if flags.any? || width || precision || arg_index
+          raise ArgumentError, "invalid #{format_char.inspect} after '%' with flags"
+        end
+        result << '%' if format_char != '%'
+        result << format_char
       when ' '
         raise ArgumentError, 'invalid format character - %'
       when nil
@@ -167,37 +207,8 @@ class String
         position, index = get_position_flag.(format, index)
         width, index = get_width.(format, index)
         precision, index = get_precision.(format, index)
-
         f = format[index]
-        # debug
-        p fmtstr: self
-        p flags: flaglist, pos: position, wid: width, prec: precision, f: f
-        
-        append.(f, flags: flaglist, arg_index: position)
-#        
-#        case f
-#        when '0'..'9'
-#          d = f
-#          position = 0
-#          begin
-#            position = position * 10 + d.to_i
-#            index += 1
-#            d = format[index]
-#          end while ('0'..'9').cover?(d)
-#          case d
-#          when '$' # position
-#            index += 1
-#            if (f = format[index])
-#              append.(f, flags: flaglist, arg_index: position - 1)
-#            else
-#              result << '%'
-#            end
-#          else
-#            raise NotImplementedError, "todo, last received format-char was #{d.inspect} at index #{index}"
-#          end
-#        else
-#          append.(f, flags: flaglist)
-#        end
+        append.(f, flags: flaglist, arg_index: position, width: width, precision: precision)
       else
         result << c
       end
