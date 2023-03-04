@@ -1,3 +1,4 @@
+# coding: utf-8
 require_relative '../../spec_helper'
 require_relative '../kernel/shared/sprintf'
 require_relative '../kernel/shared/sprintf_encoding'
@@ -72,7 +73,7 @@ describe "String#%" do
     -> { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
 
-  xit "raises an error if NULL or \\n appear anywhere else in the format string" do
+  it "raises an error if NULL or \\n appear anywhere else in the format string" do
     begin
       old_debug, $DEBUG = $DEBUG, false
 
@@ -159,15 +160,15 @@ describe "String#%" do
     ("%50$d" % (0..100).to_a).should == "49"
   end
 
-  xit "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
+  it "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
     -> { "%**s" % [5, 5, 5] }.should raise_error(ArgumentError)
   end
 
-  xit "raises an ArgumentError when a width star token is seen after a width token" do
+  it "raises an ArgumentError when a width star token is seen after a width token" do
     -> { "%5*s" % [5, 5] }.should raise_error(ArgumentError)
   end
 
-  xit "raises an ArgumentError when multiple precision tokens are given" do
+  it "raises an ArgumentError when multiple precision tokens are given" do
     -> { "%.5.5s" % 5      }.should raise_error(ArgumentError)
     -> { "%.5.*s" % [5, 5] }.should raise_error(ArgumentError)
     -> { "%.*.5s" % [5, 5] }.should raise_error(ArgumentError)
@@ -302,7 +303,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %b for positive numbers" do
+  it "supports binary formats using %b for positive numbers" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
@@ -312,8 +313,10 @@ describe "String#%" do
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
-    ("%.4b" % 2).should == "0010"
-    ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
+    NATFIXME "precision unsupported", exception: SpecFailedException do
+      ("%.4b" % 2).should == "0010"
+      ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
+    end
   end
 
   xit "supports binary formats using %b for negative numbers" do
@@ -330,7 +333,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
+  it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
     ("%B" % 10).should == ("%b" % 10)
     ("% B" % 10).should == ("% b" % 10)
     ("%1$B" % [10, 20]).should == ("%1$b" % [10, 20])
@@ -339,7 +342,6 @@ describe "String#%" do
     ("%05B" % 10).should == ("%05b" % 10)
     ("%*B" % [10, 6]).should == ("%*b" % [10, 6])
     ("%*B" % [-10, 6]).should == ("%*b" % [-10, 6])
-
     ("%B" % -5).should == ("%b" % -5)
     ("%0B" % -5).should == ("%0b" % -5)
     ("%.1B" % -5).should == ("%.1b" % -5)
@@ -354,22 +356,21 @@ describe "String#%" do
     ("%#B" % 10).should == "0B1010"
   end
 
-  xit "supports character formats using %c" do
+  it "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
     ("%-4c" % 10).should == "\n   "
     ("%*c" % [10, 3]).should == "         \003"
     ("%c" % 42).should == "*"
-
     -> { "%c" % Object }.should raise_error(TypeError)
   end
 
-  xit "supports single character strings as argument for %c" do
+  it "supports single character strings as argument for %c" do
     ("%c" % 'A').should == "A"
   end
 
   ruby_version_is ""..."3.2" do
-    xit "raises an exception for multiple character strings as argument for %c" do
+    it "raises an exception for multiple character strings as argument for %c" do
       -> { "%c" % 'AA' }.should raise_error(ArgumentError)
     end
   end
@@ -387,7 +388,7 @@ describe "String#%" do
     ("%c" % obj).should == "A"
   end
 
-  xit "calls #to_ary on argument for %c formats" do
+  it "calls #to_ary on argument for %c formats" do
     obj = mock('65')
     obj.should_receive(:to_ary).and_return([65])
     ("%c" % obj).should == ("%c" % [65])
@@ -403,7 +404,7 @@ describe "String#%" do
   %w(d i).each do |f|
     format = "%" + f
 
-    xit "supports integer formats using #{format}" do
+    it "supports integer formats using #{format}" do
       ("%#{f}" % 10).should == "10"
       ("% #{f}" % 10).should == " 10"
       ("%1$#{f}" % [10, 20]).should == "10"
@@ -411,7 +412,9 @@ describe "String#%" do
       ("%-7#{f}" % 10).should == "10     "
       ("%04#{f}" % 10).should == "0010"
       ("%*#{f}" % [10, 4]).should == "         4"
-      ("%6.4#{f}" % 123).should == "  0123"
+      NATFIXME "precision unsupported", exception: SpecFailedException do
+        ("%6.4#{f}" % 123).should == "  0123"
+      end
     end
 
     xit "supports negative integers using #{format}" do
@@ -515,7 +518,7 @@ describe "String#%" do
     ("%*G" % [10, 9]).should == "         9"
   end
 
-  xit "supports octal formats using %o for positive numbers" do
+  it "supports octal formats using %o for positive numbers" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
@@ -545,10 +548,8 @@ describe "String#%" do
   it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
-    NATFIXME "support hyphen and asterisk", exception: ArgumentError do
-      ("%-22p" % 10).should == "10                    "
-      ("%*p" % [10, 10]).should == "        10"
-    end
+    ("%-22p" % 10).should == "10                    "
+    ("%*p" % [10, 10]).should == "        10"
     ("%p" % {capture: 1}).should == "{:capture=>1}"
     ("%p" % "str").should == "\"str\""
   end
@@ -565,21 +566,23 @@ describe "String#%" do
     # ("%p" % obj).should == "obj"
   end
 
-  xit "supports string formats using %s" do
+  it "supports string formats using %s" do
     ("%s" % "hello").should == "hello"
     ("%s" % "").should == ""
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
+    #NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
+    #end
   end
 
-  xit "respects a space padding request not as part of the width" do
+  it "respects a space padding request not as part of the width" do
     x = "% -5s" % ["foo"]
     x.should == "foo  "
   end
 
-  xit "calls to_s on non-String arguments for %s format" do
+  it "calls to_s on non-String arguments for %s format" do
     obj = mock('obj')
     def obj.to_s() "obj" end
 
@@ -601,7 +604,7 @@ describe "String#%" do
   end
 
   # Note: %u has been changed to an alias for %d in 1.9.
-  xit "supports unsigned formats using %u" do
+  it "supports unsigned formats using %u" do
     ("%u" % 10).should == "10"
     ("% u" % 10).should == " 10"
     ("%1$u" % [10, 20]).should == "10"
@@ -611,17 +614,17 @@ describe "String#%" do
     ("%*u" % [10, 4]).should == "         4"
   end
 
-  xit "formats negative values with a leading sign using %u" do
+  it "formats negative values with a leading sign using %u" do
     ("% u" % -26).should == "-26"
     ("%+u" % -26).should == "-26"
   end
 
-  xit "supports negative bignums with %u or %d" do
+  it "supports negative bignums with %u or %d" do
     ("%u" % -(2 ** 64 + 5)).should == "-18446744073709551621"
     ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
   end
 
-  xit "supports hex formats using %x for positive numbers" do
+  it "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
@@ -630,7 +633,9 @@ describe "String#%" do
     ("%-9x" % 10).should == "a        "
     ("%05x" % 10).should == "0000a"
     ("%*x" % [10, 6]).should == "         6"
-    ("%.4x" % 20).should == "0014"
+    NATFIXME "precision unsupported", exception: SpecFailedException do
+      ("%.4x" % 20).should == "0014"
+    end
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
   end
 
@@ -647,7 +652,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports hex formats using %X for positive numbers" do
+  it "supports hex formats using %X for positive numbers" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
     ("%1$X" % [10, 20]).should == "A"
@@ -672,11 +677,11 @@ describe "String#%" do
     end
   end
 
-  xit "formats zero without prefix using %#x" do
+  it "formats zero without prefix using %#x" do
     ("%#x" % 0).should == "0"
   end
 
-  xit "formats zero without prefix using %#X" do
+  it "formats zero without prefix using %#X" do
     ("%#X" % 0).should == "0"
   end
 
