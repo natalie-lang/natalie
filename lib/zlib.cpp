@@ -173,3 +173,27 @@ Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
     inflateEnd(strm);
     return self;
 }
+
+Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 2);
+    unsigned long crc;
+    if (args.size() < 2) {
+        crc = crc32(0L, Z_NULL, 0);
+    } else {
+        auto initcrcval = args.at(1);
+        initcrcval->assert_type(env, Object::Type::Integer, "Integer");
+        auto crc_temp = IntegerObject::convert_to_nat_int_t(env, initcrcval);
+        if (crc_temp < std::numeric_limits<long>::min())
+            env->raise("RangeError", "integer {} too small to convert to `long'", crc_temp);
+        else if (crc_temp > std::numeric_limits<long>::max())
+            env->raise("RangeError", "integer {} too big to convert to `long'", crc_temp);
+        crc = (unsigned long)(crc_temp);
+        //crc = IntegerObject::convert_to_ulong(env, initcrcval);
+    }
+    if (args.size() > 0) {
+        Value string = args.at(0);
+        string->assert_type(env, Object::Type::String, "String");
+        crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
+    }
+    return new IntegerObject { (nat_int_t)crc };
+}
