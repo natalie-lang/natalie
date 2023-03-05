@@ -2280,10 +2280,6 @@ Value StringObject::casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
-    //    if (!other->is_string() && other->respond_to(env, "to_str"_s))
-    //    other = other->send(env, "to_str"_s);
-    //if (!other->is_string())
-    //    env->raise("TypeError", "can't convert {} to String", other->klass()->inspect_str());
     auto str1 = this->downcase(env, nullptr, nullptr);
     auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
     return str1->cmp(env, Value(str2));
@@ -2293,10 +2289,6 @@ Value StringObject::is_casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
-    //if (!other->is_string() && other->respond_to(env, "to_str"_s))
-    //    other = other->send(env, "to_str"_s);
-    //if (!other->is_string())
-    //    env->raise("TypeError", "can't convert {} to String", other->klass()->inspect_str());
     auto str1 = this->downcase(env, nullptr, nullptr);
     auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
     if (str1->string() == str2->string())

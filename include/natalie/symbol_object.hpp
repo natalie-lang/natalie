@@ -24,6 +24,11 @@ public:
     StringObject *inspect(Env *);
     SymbolObject *succ(Env *);
     SymbolObject *upcase(Env *);
+    SymbolObject *downcase(Env *);
+    SymbolObject *swapcase(Env *);
+    SymbolObject *capitalize(Env *);
+    Value casecmp(Env *, Value);
+    Value is_casecmp(Env *, Value);
 
     virtual ProcObject *to_proc(Env *) override;
 
@@ -51,12 +56,13 @@ public:
         return m_name.is_empty();
     }
 
-    bool start_with(Env *, Value);
+    bool end_with(Env *, Args);
+    bool start_with(Env *, Args);
 
     Value eqtilde(Env *, Value);
     Value length(Env *);
     Value name(Env *) const;
-    Value ref(Env *, Value);
+    Value ref(Env *, Value, Value);
 
     const String &string() const { return m_name; }
 
