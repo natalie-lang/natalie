@@ -26,23 +26,7 @@ public:
 
     Value initialize(Env *, Value, Value, Value, Block *);
 
-    static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
-        Vector<Value> args { filename };
-        if (flags_obj)
-            args.push(flags_obj);
-        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), std::move(args), nullptr);
-        if (block) {
-            Defer close_file([&]() {
-                obj->as_file()->close(env);
-            });
-            Value block_args[] = { obj };
-            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
-            return result;
-        } else {
-            return obj;
-        }
-    }
-
+    static Value open(Env *env, Value filename, Value flags_obj, Value perm, Block *block);
     static Value expand_path(Env *env, Value path, Value root);
     static void unlink(Env *env, Value path);
     static Value unlink(Env *env, Args args);

@@ -146,6 +146,25 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
     }
 }
 
+Value FileObject::open(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
+    Vector<Value> args { filename };
+    if (flags_obj)
+        args.push(flags_obj);
+    if (perm)
+        args.push(perm);
+    auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), std::move(args), nullptr);
+    if (block) {
+        Defer close_file([&]() {
+            obj->as_file()->close(env);
+        });
+        Value block_args[] = { obj };
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, block_args), nullptr);
+        return result;
+    } else {
+        return obj;
+    }
+}
+
 Value FileObject::expand_path(Env *env, Value path, Value root) {
     path->assert_type(env, Object::Type::String, "String");
     StringObject *merged;
