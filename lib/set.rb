@@ -171,6 +171,14 @@ class Set
     self
   end
 
+  def proper_subset?(other)
+    unless other.is_a?(self.class)
+      raise ArgumentError, 'value must be a set'
+    end
+    size < other.size && all? { |obj| other.include?(obj) }
+  end
+  alias < proper_subset?
+
   def replace(other, &block)
     clear
     other.each do |element|
