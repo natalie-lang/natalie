@@ -2,7 +2,8 @@ require 'natalie/inline'
 require 'etc.cpp'
 
 module Etc
-  #VERSION = "1.3.0"
+  Passwd = Struct.new(:name, :passwd, :uid, :gid, :gecos, :dir, :shell)
+  
   #__bind_static_method__ :confstr, :Etc_confstr
   #__bind_static_method__ :endgrent, :Etc_endgrent
   #__bind_static_method__ :endpwent, :Etc_endpwent
@@ -10,9 +11,9 @@ module Etc
   #__bind_static_method__ :getgrgid, :Etc_getgrgid
   #__bind_static_method__ :getgrnam, :Etc_getgrnam
   __bind_static_method__ :getlogin, :Etc_getlogin
-  #__bind_static_method__ :getpwent, :Etc_getpwent
-  #__bind_static_method__ :getpwnam, :Etc_getpwnam
-  #__bind_static_method__ :getpwuid, :Etc_getpwuid
+  __bind_static_method__ :getpwent, :Etc_getpwent
+  __bind_static_method__ :getpwnam, :Etc_getpwnam
+  __bind_static_method__ :getpwuid, :Etc_getpwuid
   #__bind_static_method__ :group, :Etc_group
   #__bind_static_method__ :nprocessors, :Etc_nprocessors
   #__bind_static_method__ :passwd, :Etc_passwd
