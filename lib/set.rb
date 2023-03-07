@@ -113,6 +113,10 @@ class Set
     self.class == other.class && @data == other.instance_variable_get(:@data)
   end
 
+  def hash
+    @data.hash
+  end
+
   def include?(obj)
     @data.key?(obj)
   end
