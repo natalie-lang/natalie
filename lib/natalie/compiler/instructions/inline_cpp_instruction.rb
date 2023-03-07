@@ -15,8 +15,12 @@ module Natalie
       end
 
       def generate(transform)
-        _, _, name, *rest = exp
-        generator = "generate_#{name.to_s.gsub(/__/, '')}"
+        type, _, name, *rest = exp
+        generator = if type == :require_cpp_file
+                      "generate_require_cpp_file"
+                    else
+                      "generate_#{name.to_s.gsub(/__/, '')}"
+                    end
         send(generator, transform, *rest)
       end
 
@@ -176,6 +180,12 @@ module Natalie
       def generate_ld_flags(transform, flags)
         flags = comptime_string(flags)
         transform.add_ld_flags(flags)
+        transform.push_nil
+      end
+
+      def generate_require_cpp_file(transform, body)
+        body = comptime_string(body)
+        transform.top body
         transform.push_nil
       end
 
