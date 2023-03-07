@@ -24,13 +24,11 @@ describe "Process.euid=" do
     it "sets the effective user id to its own uid if given the username corresponding to its own uid" do
       raise unless Process.uid == Process.euid
 
-      NATFIXME 'Etc module not yet available', exception: LoadError, message: 'cannot load such file etc' do
-        require "etc"
-        user = Etc.getpwuid(Process.uid).name
+      require "etc"
+      user = Etc.getpwuid(Process.uid).name
 
-        Process.euid = user
-        Process.euid.should == Process.uid
-      end
+      Process.euid = user
+      Process.euid.should == Process.uid
     end
 
     as_user do

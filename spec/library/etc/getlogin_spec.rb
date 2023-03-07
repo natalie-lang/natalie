@@ -18,7 +18,10 @@ describe "Etc.getlogin" do
         else
           # Etc.getlogin returns the same result of logname(2)
           # if it returns non NULL
-          if system("which logname", out: File::NULL, err: File::NULL)
+          #NATFIXME: Fix when system() is implemented
+          #if system("which logname", out: File::NULL, err: File::NULL)
+          `which logname > /dev/null`
+          if $?.success?
             Etc.getlogin.should == `logname`.chomp
           else
             # fallback to `id` command since `logname` is not available

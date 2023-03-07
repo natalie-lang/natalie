@@ -24,13 +24,11 @@ describe "Process.egid=" do
     it "sets the effective group id to its own gid if given the username corresponding to its own gid" do
       raise unless Process.gid == Process.egid
 
-      NATFIXME 'Etc module not yet available', exception: LoadError, message: 'cannot load such file etc' do
-        require "etc"
-        group = Etc.getgrgid(Process.gid).name
+      require "etc"
+      group = Etc.getgrgid(Process.gid).name
 
-        Process.egid = group
-        Process.egid.should == Process.gid
-      end
+      Process.egid = group
+      Process.egid.should == Process.gid
     end
 
     as_user do
