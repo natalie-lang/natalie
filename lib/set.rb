@@ -154,6 +154,14 @@ class Set
     to_a.join(sep)
   end
 
+  def keep_if
+    return enum_for(:keep_if) { size } unless block_given?
+    each do |element|
+      @data.delete(element) unless yield element
+    end
+    self
+  end
+
   def to_a
     @data.keys
   end
