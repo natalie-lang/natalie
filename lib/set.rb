@@ -260,6 +260,11 @@ class Set
   end
   alias <= subset?
 
+  def subtract(enum)
+    enum.each { |obj| delete(obj) }
+    self
+  end
+
   def superset?(other)
     unless other.is_a?(self.class)
       raise ArgumentError, 'value must be a set'
