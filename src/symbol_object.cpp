@@ -34,6 +34,8 @@ StringObject *SymbolObject::inspect(Env *env) {
         if (c < 33 || c > 126) // FIXME: probably can be a smaller range
             quote = true;
     }
+    if (m_name.length() > 1 && m_name[0] == '$')
+        quote = false;
     if (quote) {
         StringObject *quoted = StringObject { m_name }.inspect(env);
         string->append(quoted);
@@ -64,6 +66,44 @@ SymbolObject *SymbolObject::upcase(Env *env) {
     return string->to_symbol(env);
 }
 
+SymbolObject *SymbolObject::downcase(Env *env) {
+    auto string = to_s(env);
+    string = string->send(env, "downcase"_s)->as_string();
+    return string->to_symbol(env);
+}
+
+SymbolObject *SymbolObject::swapcase(Env *env) {
+    auto string = to_s(env);
+    string = string->send(env, "swapcase"_s)->as_string();
+    return string->to_symbol(env);
+}
+
+SymbolObject *SymbolObject::capitalize(Env *env) {
+    auto string = to_s(env);
+    string = string->send(env, "capitalize"_s)->as_string();
+    return string->to_symbol(env);
+}
+Value SymbolObject::casecmp(Env *env, Value other) {
+    if (!other->is_symbol()) return NilObject::the();
+    auto str1 = to_s(env);
+    auto str2 = other->to_s(env);
+    str1 = str1->send(env, "downcase"_s)->as_string();
+    str2 = str2->send(env, "downcase"_s)->as_string();
+    return str1->cmp(env, Value(str2));
+}
+
+Value SymbolObject::is_casecmp(Env *env, Value other) {
+    if (!other->is_symbol()) return NilObject::the();
+    //other->assert_type(env, Object::Type::Symbol, "Symbol");
+    auto str1 = to_s(env);
+    auto str2 = other->to_s(env);
+    str1 = str1->send(env, "downcase"_s)->as_string();
+    str2 = str2->send(env, "downcase"_s)->as_string();
+    if (str1->string() == str2->string())
+        return TrueObject::the();
+    return FalseObject::the();
+}
+
 ProcObject *SymbolObject::to_proc(Env *env) {
     auto block_env = new Env {};
     block_env->var_set("name", 0, true, this);
@@ -85,8 +125,12 @@ Value SymbolObject::cmp(Env *env, Value other_value) {
     return Value::integer(m_name.cmp(other->m_name));
 }
 
-bool SymbolObject::start_with(Env *env, Value needle) {
-    return to_s(env)->internal_start_with(env, needle);
+bool SymbolObject::start_with(Env *env, Args args) {
+    return to_s(env)->start_with(env, args);
+}
+
+bool SymbolObject::end_with(Env *env, Args args) {
+    return to_s(env)->end_with(env, args);
 }
 
 Value SymbolObject::length(Env *env) {
@@ -101,9 +145,10 @@ Value SymbolObject::name(Env *env) const {
     }
     return symbol->m_string;
 }
-
-Value SymbolObject::ref(Env *env, Value index_obj) {
-    return to_s(env)->send(env, intern("[]"), { index_obj });
+Value SymbolObject::ref(Env *env, Value index_obj, Value length_obj) {
+    // The next line worked in nearly every case, except it did not set `$~`
+    //return to_s(env)->send(env, intern("[]"), { index_obj, length_obj });
+    return to_s(env)->ref(env, index_obj, length_obj);
 }
 
 }
