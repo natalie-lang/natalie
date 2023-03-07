@@ -47,4 +47,9 @@ describe 'require' do
     `#{ruby} -e "p require 'tempfile'"`.should =~ /true/
     `#{ruby} -e "require 'tempfile'; p require 'tempfile'"`.should =~ /false/
   end
+
+  it 'works in the middle of a method' do
+    require 'socket'
+    Socket.should be_an_instance_of(Class)
+  end
 end
