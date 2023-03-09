@@ -1,5 +1,6 @@
 #pragma once
 
+#include <grp.h>
 #include <pwd.h>
 #include <sys/resource.h>
 #include <sys/types.h>
@@ -85,11 +86,10 @@ private:
     static gid_t value_to_gid(Env *env, Value idval) {
         gid_t gid;
         if (idval->is_string()) {
-            struct passwd *pass;
-            pass = getpwnam(idval->as_string()->c_str());
-            if (pass == NULL)
-                env->raise("ArgumentError", "can't find user {}", idval->as_string()->c_str());
-            gid = pass->pw_gid;
+            auto grp = getgrnam(idval->as_string()->c_str());
+            if (grp == NULL)
+                env->raise("ArgumentError", "can't find group {}", idval->as_string()->c_str());
+            gid = grp->gr_gid;
         } else {
             idval->assert_type(env, Object::Type::Integer, "Integer");
             gid = idval->as_integer()->to_nat_int_t();
