@@ -286,7 +286,9 @@ module Natalie
     end
 
     def obj_name
-      write_obj_path.sub(/\.rb\.cpp/, '').split('/').last
+      # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
+      # Maybe we need another arg to specify the init name...
+      write_obj_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/generated/}, '').tr('/', '_')
     end
 
     def template

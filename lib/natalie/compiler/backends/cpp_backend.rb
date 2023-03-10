@@ -79,7 +79,7 @@ module Natalie
       end
 
       def obj_files
-        rb_files = Dir.children(File.expand_path('../../../../src', __dir__)).grep(/^[a-z0-9_]+\.rb$/)
+        rb_files = Dir[File.expand_path('../../../../src/**/*.rb', __dir__)].map { |path| path.sub(%r{^.*/src/}, '') }.grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
         list = rb_files.sort.map { |name| name.split('.').first }
         ['exception'] + # must come first
           (list - ['exception']) +
@@ -87,11 +87,11 @@ module Natalie
       end
 
       def obj_declarations
-        obj_files.map { |name| "Value init_#{name}(Env *env, Value self);" }.join("\n")
+        obj_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
       end
 
       def obj_init_lines
-        obj_files.map { |name| "init_#{name}(env, self);" }
+        obj_files.map { |name| "init_#{name.tr('/', '_')}(env, self);" }
       end
 
       def reindent(code)
