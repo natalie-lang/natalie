@@ -771,4 +771,26 @@ int IntegerObject::convert_to_int(Env *env, Value arg) {
     return (int)result;
 }
 
+gid_t IntegerObject::convert_to_gid(Env *env, Value arg) {
+    if (arg->is_nil())
+        return (gid_t)(-1);
+    auto result = convert_to_nat_int_t(env, arg);
+    if (result < std::numeric_limits<gid_t>::min())
+        env->raise("RangeError", "integer {} too small to convert to `gid_t'", result);
+    else if (result > std::numeric_limits<gid_t>::max())
+        env->raise("RangeError", "integer {} too big to convert to `gid_t'", result);
+    return (gid_t)result;
+}
+
+uid_t IntegerObject::convert_to_uid(Env *env, Value arg) {
+    if (arg->is_nil())
+        return (uid_t)(-1);
+    auto result = convert_to_nat_int_t(env, arg);
+    if (result < std::numeric_limits<uid_t>::min())
+        env->raise("RangeError", "integer {} too small to convert to `uid_t'", result);
+    else if (result > std::numeric_limits<uid_t>::max())
+        env->raise("RangeError", "integer {} too big to convert to `uid_t'", result);
+    return (uid_t)result;
+}
+
 }

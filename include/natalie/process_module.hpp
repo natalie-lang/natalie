@@ -67,6 +67,54 @@ public:
         return idval;
     }
 
+    static int getpgid(Env *env, Value idval) {
+        pid_t idnum = IntegerObject::convert_to_nat_int_t(env, idval);
+        pid_t pgrp = ::getpgid(idnum);
+        if (pgrp < 0) env->raise_errno();
+        return pgrp;
+    }
+
+    static int getpgrp(Env *env) {
+        pid_t pgrp = ::getpgrp();
+        return pgrp;
+    }
+
+    static int setpgrp(Env *env) {
+        if (::setpgid(0, 0) < 0) env->raise_errno();
+        return 0;
+    }
+
+    static int getpriority(Env *env, Value which, Value who) {
+        int whichnum = IntegerObject::convert_to_nat_int_t(env, which);
+        id_t whonum = IntegerObject::convert_to_nat_int_t(env, who);
+        errno = 0;
+        int pri = ::getpriority(whichnum, whonum);
+        if (errno) env->raise_errno();
+        return pri;
+    }
+
+    static Value getrlimit(Env *env, Value resource) {
+        struct rlimit rlim;
+        int resrc = value_to_resource(env, resource);
+        auto result = ::getrlimit(resrc, &rlim);
+        if (result < 0) env->raise_errno();
+        auto curlim = new IntegerObject { (nat_int_t)(rlim.rlim_cur) };
+        auto maxlim = new IntegerObject { (nat_int_t)(rlim.rlim_max) };
+        return new ArrayObject { curlim, maxlim };
+    }
+
+    static int getsid(Env *env, Value pid) {
+        pid_t pidnum;
+        if (!pid || pid->is_nil()) {
+            pidnum = 0;
+        } else {
+            pidnum = IntegerObject::convert_to_nat_int_t(env, pid);
+        }
+        pid_t sid = ::getsid(pidnum);
+        if (sid < 0) env->raise_errno();
+        return sid;
+    }
+
 private:
     static uid_t value_to_uid(Env *env, Value idval) {
         uid_t uid;
@@ -96,6 +144,66 @@ private:
         }
         return gid;
     }
+
+    static int value_to_resource(Env *env, Value val) {
+        int resource;
+        auto to_str = "to_str"_s;
+        auto to_int = "to_int"_s;
+        SymbolObject *rlimit_symbol = nullptr;
+        if (val->is_symbol() || val->is_string() || val->respond_to(env, to_str)) {
+            if (val->is_symbol()) {
+                rlimit_symbol = val->as_symbol();
+            } else if (val->is_string()) {
+                rlimit_symbol = val->as_string()->to_symbol(env);
+            } else {
+                auto tsval = val->send(env, to_str);
+                if (tsval->is_string()) {
+                    rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
+                }
+            }
+        }
+        if (rlimit_symbol) {
+            rlimit_symbol->assert_type(env, Object::Type::Symbol, "Symbol");
+            StringObject *rlimit_str = new StringObject { "RLIMIT_" };
+            rlimit_str->append(rlimit_symbol->string());
+            rlimit_symbol = rlimit_str->as_string()->to_symbol(env);
+            auto ProcessMod = GlobalEnv::the()->Object()->const_fetch("Process"_s)->as_module();
+            Value rlimval = ProcessMod->const_get(rlimit_symbol);
+            if (!rlimval || !rlimval->is_integer()) {
+                env->raise("ArgumentError", "invalid resource {}", rlimit_symbol->string());
+            }
+            val = rlimval->as_integer();
+        }
+
+        if (!val->is_integer() && val->respond_to(env, to_int)) {
+            val = val->send(env, to_int);
+        }
+
+        val->assert_type(env, Object::Type::Integer, "Integer");
+        resource = IntegerObject::convert_to_nat_int_t(env, val);
+        return resource;
+    }
+
+    /*
+        if (resstr == "AS") { return RLIMIT_AS; }
+        if (resstr == "CORE") { return RLIMIT_CORE; }
+        if (resstr == "CPU") { return RLIMIT_CPU; }
+        if (resstr == "DATA") { return RLIMIT_DATA; }
+        if (resstr == "FSIZE") { return RLIMIT_FSIZE; }
+        if (resstr == "MEMLOCK") { return RLIMIT_MEMLOCK; }
+        if (resstr == "MSGQUEUE") { return RLIMIT_MSGQUEUE; }
+        if (resstr == "NPROC") { return RLIMIT_NPROC; }
+        if (resstr == "RLIMIT_NICE") { return RLIMIT_NICE ; }
+        if (resstr == "RLIMIT_NOFILE") { return RLIMIT_NOFILE ; }
+        //if (resstr == "NPTS") { return RLIMIT_NPTS; }
+        if (resstr == "RSS") { return RLIMIT_RSS; }
+        if (resstr == "RLIMIT_RTPRIO") { return RLIMIT_RTPRIO ; }
+        //if (resstr == "RLIMIT_RTTIME") { return RLIMIT_RTTIME ; }
+        //if (resstr == "RLIMIT_SBSIZE") { return RLIMIT_SBSIZE ; }
+        if (resstr == "RLIMIT_SIGPENDING") { return RLIMIT_SIGPENDING ; }
+        if (resstr == "STACK") { return RLIMIT_STACK; }
+        env->raise("ArgumentError", "invalid resource {}", resstr);
+        */
 };
 
 }
