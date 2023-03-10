@@ -217,7 +217,7 @@ SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generate
 SOURCES = PRIMARY_SOURCES + RUBY_SOURCES + SPECIAL_SOURCES
 
 PRIMARY_OBJECT_FILES = PRIMARY_SOURCES.sub('src/', 'build/').pathmap('%p.o')
-RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%f.o')
+RUBY_OBJECT_FILES = RUBY_SOURCES.pathmap('build/generated/%{^src/,}p.o')
 SPECIAL_OBJECT_FILES = SPECIAL_SOURCES.pathmap('%p.o')
 OBJECT_FILES = PRIMARY_OBJECT_FILES + RUBY_OBJECT_FILES + SPECIAL_OBJECT_FILES
 
@@ -250,10 +250,6 @@ task libnatalie: [
 ]
 
 task :build_dir do
-  SRC_DIRECTORIES.each do |subdir|
-    path = File.join('build', subdir)
-    mkdir_p path unless File.exist?(path)
-  end
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
@@ -371,21 +367,19 @@ rule %r{natalie_parser/.*\.cpp\.o$} => ['src/natalie_parser/%n'] + HEADERS do |t
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.cpp.o' => ['src/%n'] + HEADERS do |t|
+rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
+  subdir = File.split(t.name).first
+  mkdir_p subdir unless File.exist?(subdir)
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
-SRC_DIRECTORIES.each do |subdir|
-  rule %r{#{subdir}/.*\.cpp\.o$} => ["src/#{subdir}/%n"] + HEADERS do |t|
-    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-  end
 end
 
 rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.cpp' => ['src/%n', "build/natalie_parser.#{SO_EXT}"] do |t|
+rule '.rb.cpp' => ['src/%{build\/generated/,}X', "build/natalie_parser.#{SO_EXT}"] do |t|
+  subdir = File.split(t.name).first
+  mkdir_p subdir unless File.exist?(subdir)
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
