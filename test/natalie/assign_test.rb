@@ -55,7 +55,7 @@ describe 'assignment' do
     [1].each { |b| b.should == 1 }
   end
 
-  it 'does multiple assignment from an array' do
+  it 'does multiple assignment from an array for local variables' do
     a, b = [1, 2]
     a.should == 1
     b.should == 2
@@ -78,6 +78,27 @@ describe 'assignment' do
       b.should == 4
       c.should == nil
     end
+  end
+
+  it 'does multiple assignment from an array for constants' do
+    A, B, C = [1, 2, 3]
+    A.should == 1
+    B.should == 2
+    C.should == 3
+  end
+
+  it 'does multiple assignment from an array for instance variables' do
+    @a, @b, @c = [1, 2, 3]
+    @a.should == 1
+    @b.should == 2
+    @c.should == 3
+  end
+
+  it 'does multiple assignment from an array for global variables' do
+    $a, $b, $c = [1, 2, 3]
+    $a.should == 1
+    $b.should == 2
+    $c.should == 3
   end
 
   it 'does multiple assignment from an array-like object' do
