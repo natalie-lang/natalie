@@ -10,8 +10,7 @@ using namespace Natalie;
 
 extern "C" Env *build_top_env() {
     auto env = Natalie::build_top_env();
-    Value self = GlobalEnv::the()->main_obj();
-    (void)self; // don't warn about unused var
+    [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
     /*NAT_OBJ_INIT*/
     return env;
 }
@@ -19,8 +18,7 @@ extern "C" Env *build_top_env() {
 extern "C" Object *EVAL(Env *env) {
     /*NAT_EVAL_INIT*/
 
-    Value self = GlobalEnv::the()->main_obj();
-    (void)self; // don't warn about unused var
+    [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
     volatile bool run_exit_handlers = true;
 
     // kinda hacky, but needed for top-level begin/rescue
