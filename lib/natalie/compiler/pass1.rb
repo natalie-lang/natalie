@@ -387,7 +387,10 @@ module Natalie
         name, prep_instruction = constant_name(name)
         instructions << prep_instruction
         instructions << ConstSetInstruction.new(name)
-        instructions << PopInstruction.new unless used
+        if used
+          instructions << prep_instruction
+          instructions << ConstFindInstruction.new(name, strict: true)
+        end
         instructions
       end
 
