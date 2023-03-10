@@ -772,24 +772,24 @@ int IntegerObject::convert_to_int(Env *env, Value arg) {
 }
 
 gid_t IntegerObject::convert_to_gid(Env *env, Value arg) {
-    if (arg->is_nil())
-        return (gid_t)(-1);
+    if (arg->is_nil()) return (gid_t)(-1); // special case for nil
     auto result = convert_to_nat_int_t(env, arg);
-    if (result < std::numeric_limits<gid_t>::min())
-        env->raise("RangeError", "integer {} too small to convert to `gid_t'", result);
-    else if (result > std::numeric_limits<gid_t>::max())
-        env->raise("RangeError", "integer {} too big to convert to `gid_t'", result);
+    // this lower limit may look incorrect but experimentally matches MRI behavior
+    if (result < std::numeric_limits<int>::min())
+        env->raise("RangeError", "integer {} too small to convert to `unsigned int'", result);
+    else if (result > std::numeric_limits<unsigned int>::max())
+        env->raise("RangeError", "integer {} too big to convert to `unsigned int'", result);
     return (gid_t)result;
 }
 
 uid_t IntegerObject::convert_to_uid(Env *env, Value arg) {
-    if (arg->is_nil())
-        return (uid_t)(-1);
+    if (arg->is_nil()) return (uid_t)(-1); // special case for nil
     auto result = convert_to_nat_int_t(env, arg);
-    if (result < std::numeric_limits<uid_t>::min())
-        env->raise("RangeError", "integer {} too small to convert to `uid_t'", result);
-    else if (result > std::numeric_limits<uid_t>::max())
-        env->raise("RangeError", "integer {} too big to convert to `uid_t'", result);
+    // this lower limit may look incorrect but experimentally matches MRI behavior
+    if (result < std::numeric_limits<int>::min())
+        env->raise("RangeError", "integer {} too small to convert to `unsigned int'", result);
+    else if (result > std::numeric_limits<unsigned int>::max())
+        env->raise("RangeError", "integer {} too big to convert to `unsigned int'", result);
     return (uid_t)result;
 }
 
