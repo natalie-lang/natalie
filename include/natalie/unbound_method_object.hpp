@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/abstract_method_object.hpp"
+#include "natalie/method_object.hpp"
 
 namespace Natalie {
 
