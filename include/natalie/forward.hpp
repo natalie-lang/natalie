@@ -42,7 +42,6 @@ class RandomObject;
 class RangeObject;
 class RationalObject;
 class RegexpObject;
-class SexpObject;
 class StringObject;
 class SymbolObject;
 class TimeObject;
