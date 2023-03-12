@@ -30,7 +30,7 @@ public:
         : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { std::move(integer) } { }
 
-    static Value create(const nat_int_t);
+    static Value create(nat_int_t);
     static Value create(const Integer &);
     static Value create(Integer &&);
     static Value create(const char *);

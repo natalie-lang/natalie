@@ -23,8 +23,8 @@ public:
     }
 
     bool and_method(const Env *, Value) const;
-    bool or_method(const Env *, const Value) const;
-    bool xor_method(const Env *, const Value) const;
+    bool or_method(const Env *, Value) const;
+    bool xor_method(const Env *, Value) const;
     Value to_s(const Env *) const;
 
     virtual void visit_children(Visitor &visitor) override final;

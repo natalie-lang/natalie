@@ -1,7 +1,9 @@
 #pragma once
 
+#include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/object.hpp"
+#include "natalie/symbol_object.hpp"
 #include <sys/stat.h>
 
 // major/minor macro location
