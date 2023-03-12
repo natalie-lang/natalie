@@ -659,8 +659,10 @@ Value super(Env *env, Value self, Args args, Block *block) {
 }
 
 void clean_up_and_exit(int status) {
-    if (Heap::the().collect_all_at_exit())
+    if (Heap::the().collect_all_at_exit()) {
         delete &Heap::the();
+        delete NativeProfiler::the();
+    }
     exit(status);
 }
 
