@@ -22,10 +22,10 @@ public:
         return s_instance;
     }
 
-    bool and_method(const Env *, const Value) const;
+    bool and_method(const Env *, Value) const;
     bool or_method(const Env *, Value) const;
-    Value eqtilde(const Env *, const Value) const;
-    Value rationalize(const Env *, const Value) const;
+    Value eqtilde(const Env *, Value) const;
+    Value rationalize(const Env *, Value) const;
     Value to_s(const Env *) const;
     Value to_a(const Env *) const;
     Value to_c(const Env *) const;
