@@ -469,10 +469,6 @@ ParserObject *Object::as_parser_object_for_method_binding() {
     return static_cast<ParserObject *>(this);
 }
 
-SexpObject *Object::as_sexp_object_for_method_binding() {
-    return static_cast<SexpObject *>(this);
-}
-
 ArrayObject *Object::as_array_or_raise(Env *env) {
     if (!is_array())
         env->raise("TypeError", "{} can't be coerced into Array", m_klass->inspect_str());

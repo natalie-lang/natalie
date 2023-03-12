@@ -255,7 +255,7 @@ Value #{name}(Env *env, Value klass, Args args, Block *block) {
       'klass->as_class()' if pass_klass
     end
 
-    SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES = %w[EnvObject KernelModule ParserObject SexpObject]
+    SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES = %w[EnvObject KernelModule ParserObject]
 
     def as_type(value)
       if cpp_class == 'Object'
@@ -1098,15 +1098,6 @@ gen.binding('Regexp', 'match?', 'RegexpObject', 'has_match', argc: 1..2, pass_en
 gen.binding('Regexp', 'options', 'RegexpObject', 'options', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('Regexp', 'source', 'RegexpObject', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'to_s', 'RegexpObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-
-gen.static_binding('Sexp', 'from_array', 'SexpObject', 'from_array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'new', 'SexpObject', 'new_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'inspect', 'SexpObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'sexp_type', 'SexpObject', 'first', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'file', 'SexpObject', 'file', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'file=', 'SexpObject', 'set_file', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'line', 'SexpObject', 'line', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Sexp', 'line=', 'SexpObject', 'set_line', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.binding('String', '*', 'StringObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '+', 'StringObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

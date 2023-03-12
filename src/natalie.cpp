@@ -289,9 +289,6 @@ Env *build_top_env() {
     ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "NatalieParser");
     Object->const_set("NatalieParser"_s, Parser);
 
-    ClassObject *Sexp = Array->subclass(env, "Sexp", Object::Type::Array);
-    Object->const_set("Sexp"_s, Sexp);
-
     Value RUBY_VERSION = new StringObject { "3.1.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
