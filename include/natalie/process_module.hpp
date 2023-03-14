@@ -183,27 +183,6 @@ private:
         resource = IntegerObject::convert_to_nat_int_t(env, val);
         return resource;
     }
-
-    /*
-        if (resstr == "AS") { return RLIMIT_AS; }
-        if (resstr == "CORE") { return RLIMIT_CORE; }
-        if (resstr == "CPU") { return RLIMIT_CPU; }
-        if (resstr == "DATA") { return RLIMIT_DATA; }
-        if (resstr == "FSIZE") { return RLIMIT_FSIZE; }
-        if (resstr == "MEMLOCK") { return RLIMIT_MEMLOCK; }
-        if (resstr == "MSGQUEUE") { return RLIMIT_MSGQUEUE; }
-        if (resstr == "NPROC") { return RLIMIT_NPROC; }
-        if (resstr == "RLIMIT_NICE") { return RLIMIT_NICE ; }
-        if (resstr == "RLIMIT_NOFILE") { return RLIMIT_NOFILE ; }
-        //if (resstr == "NPTS") { return RLIMIT_NPTS; }
-        if (resstr == "RSS") { return RLIMIT_RSS; }
-        if (resstr == "RLIMIT_RTPRIO") { return RLIMIT_RTPRIO ; }
-        //if (resstr == "RLIMIT_RTTIME") { return RLIMIT_RTTIME ; }
-        //if (resstr == "RLIMIT_SBSIZE") { return RLIMIT_SBSIZE ; }
-        if (resstr == "RLIMIT_SIGPENDING") { return RLIMIT_SIGPENDING ; }
-        if (resstr == "STACK") { return RLIMIT_STACK; }
-        env->raise("ArgumentError", "invalid resource {}", resstr);
-        */
 };
 
 }
