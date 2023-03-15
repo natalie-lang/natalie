@@ -112,6 +112,11 @@ OptionParser.new do |opts|
   opts.on('--print-objects', 'Disabled GC and prints all allocated objects on program termination') do
     options[:print_objects] = true
   end
+
+  opts.on_path do |path|
+    ARGV.unshift(path)
+    opts.stop_parsing!
+  end
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
