@@ -501,11 +501,37 @@ Value FileObject::chmod(Env *env, Args args) {
     return Value::integer(args.size() - 1);
 }
 
+Value FileObject::chown(Env *env, Args args) {
+    // requires uid/gid arguments, file arguments are optional
+    args.ensure_argc_at_least(env, 2);
+    auto uid = args.at(0);
+    auto gid = args.at(1);
+    uid_t uidnum = IntegerObject::convert_to_uid(env, uid);
+    gid_t gidnum = IntegerObject::convert_to_gid(env, gid);
+    for (size_t i = 2; i < args.size(); ++i) {
+        auto path = fileutil::convert_using_to_path(env, args[i]);
+        int result = ::chown(path->as_string()->c_str(), uidnum, gidnum);
+        if (result < 0) env->raise_errno();
+    }
+    // return number of files
+    return Value::integer(args.size() - 2);
+}
+
 // Instance method (single arg)
 Value FileObject::chmod(Env *env, Value mode) {
     mode_t modenum = IntegerObject::convert_to_int(env, mode);
     auto file_desc = fileno(); // current file descriptor
     int result = ::fchmod(file_desc, modenum);
+    if (result < 0) env->raise_errno();
+    return Value::integer(0); // always return 0
+}
+
+// Instance method (two args)
+Value FileObject::chown(Env *env, Value uid, Value gid) {
+    uid_t uidnum = IntegerObject::convert_to_uid(env, uid);
+    gid_t gidnum = IntegerObject::convert_to_gid(env, gid);
+    auto file_desc = fileno(); // current file descriptor
+    int result = ::fchown(file_desc, uidnum, gidnum);
     if (result < 0) env->raise_errno();
     return Value::integer(0); // always return 0
 }

@@ -80,7 +80,9 @@ public:
     static nat_int_t mkfifo(Env *env, Value path, Value mode);
 
     static Value chmod(Env *env, Args args);
+    static Value chown(Env *env, Args args);
     Value chmod(Env *env, Value mode);
+    Value chown(Env *env, Value uid, Value gid);
 
     static Value lstat(Env *env, Value path);
     static Value stat(Env *env, Value path);

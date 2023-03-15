@@ -69,6 +69,8 @@ public:
 
     static nat_int_t convert_to_nat_int_t(Env *, Value);
     static int convert_to_int(Env *, Value);
+    static uid_t convert_to_uid(Env *, Value);
+    static gid_t convert_to_gid(Env *, Value);
 
     static Value sqrt(Env *, Value);
 
