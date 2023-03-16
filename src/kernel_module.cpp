@@ -441,7 +441,21 @@ Value KernelModule::p(Env *env, Args args) {
 
 Value KernelModule::print(Env *env, Args args) {
     auto _stdout = env->global_get("$stdout"_s);
-    return _stdout->send(env, "print"_s, args);
+    assert(_stdout);
+    // NATFIXME: This prevents crashes when $stdout is set to an object that
+    // doesn't have a write method.  Technically this should be done when
+    // setting the global, but we dont have a hook for that yet, so this will
+    // do for now.
+    if (!_stdout->respond_to(env, "write"_s)) {
+        env->raise("TypeError", "$stdout must have write method, {} given", _stdout->klass()->inspect_str());
+    }
+    if (!_stdout->respond_to(env, "print"_s)) {
+        env->raise("TypeError", "$stdout must have print method, {} given", _stdout->klass()->inspect_str());
+    }
+    // NATFIXME: Kernel.print should actually call IO.print and not
+    // IO.write, but for now using IO.print causes crashes.
+    //return _stdout->send(env, "print"_s, args);
+    return _stdout->send(env, "write"_s, args);
 }
 
 Value KernelModule::proc(Env *env, Block *block) {
