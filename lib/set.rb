@@ -15,6 +15,18 @@ class Set
     new(items)
   end
 
+  def <=>(other)
+    return unless other.is_a?(self.class)
+
+    if self == other
+      return 0
+    elsif proper_subset?(other)
+      return -1
+    elsif proper_superset?(other)
+      return 1
+    end
+  end
+
   def ==(other)
     if eql?(other)
       return true
