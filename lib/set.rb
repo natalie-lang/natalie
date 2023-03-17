@@ -113,6 +113,23 @@ class Set
     self.class == other.class && @data == other.instance_variable_get(:@data)
   end
 
+  def flatten_merge(other, ids = Set.new)
+    other.each do |obj|
+      if obj.is_a?(self.class)
+        if ids.include?(obj.object_id)
+          raise ArgumentError, 'tried to flatten recursive Set'
+        end
+        ids.add(obj.object_id)
+        flatten_merge(obj, ids)
+        ids.delete(obj.object_id)
+      else
+        add(obj)
+      end
+    end
+    self
+  end
+  protected :flatten_merge
+
   def hash
     @data.hash
   end
