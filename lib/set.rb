@@ -130,6 +130,19 @@ class Set
   end
   protected :flatten_merge
 
+  def flatten
+    self.class.new.flatten_merge(self)
+  end
+
+  def flatten!
+    if any? { |obj| obj.is_a?(self.class) }
+      flattened = flatten
+      clear
+      flattened.each { |obj| add(obj) }
+      self
+    end
+  end
+
   def hash
     @data.hash
   end
