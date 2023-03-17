@@ -62,6 +62,33 @@ class OptionParser
     end
   end
 
+  class PathChecker
+    def initialize(block: nil)
+      @block = block
+    end
+
+    attr_reader :value
+
+    def match?(arg)
+      return false if arg.start_with?('-')
+
+      File.exist?(arg)
+    end
+
+    def consume!(args)
+      @value = args.shift
+      @block.call(@value) if @block
+    end
+
+    def long_name
+      'path'
+    end
+    alias short_name long_name
+
+    def help
+    end
+  end
+
   def initialize
     parser = self
     @base_switches = [
@@ -83,6 +110,7 @@ class OptionParser
       ),
     ]
     @switches = []
+    @parsing_enabled = true
     yield self if block_given?
   end
 
@@ -104,6 +132,10 @@ class OptionParser
       )
   end
 
+  def on_path(&block)
+    @switches << PathChecker.new(block: block)
+  end
+
   def parse(argv = ARGV, into: {})
     parse!(argv.dup, into: into)
   end
@@ -112,7 +144,7 @@ class OptionParser
     left_over = []
     matched = []
     position_argv = []
-    while argv.any?
+    while argv.any? && @parsing_enabled
       if argv.first == '--'
         argv.shift
         position_argv << argv.shift while argv.any?
@@ -128,9 +160,16 @@ class OptionParser
     argv
   end
 
+  def stop_parsing!
+    @parsing_enabled = false
+  end
+
   def help
     out = [banner]
-    @switches.each { |switch| out << switch.help }
+    @switches.each do |switch|
+      text = switch.help
+      out << text if text
+    end
     out.join("\n") + "\n"
   end
 

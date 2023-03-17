@@ -30,17 +30,15 @@ describe 'RbConfig::CONFIG' do
     end
   end
   it "contains no frozen strings even with --enable-frozen-string-literal" do
-    NATFIXME 'Pending support for frozen-string-literal' do
-      ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
-        require 'rbconfig'
-        RbConfig::CONFIG.each do |k, v|
-          if v.frozen?
-            puts "\#{k} Failure"
-          end
+    ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
+      require 'rbconfig'
+      RbConfig::CONFIG.each do |k, v|
+        if v.frozen?
+          puts "\#{k} Failure"
         end
-        puts 'Done'
-      RUBY
-    end
+      end
+      puts 'Done'
+    RUBY
   end
 
   platform_is_not :windows do
