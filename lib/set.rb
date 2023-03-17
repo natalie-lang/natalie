@@ -6,8 +6,20 @@ class Set
 
     return if items.nil?
 
-    items.each do |item|
-      add(item)
+    if items.respond_to?(:each_entry)
+      if block_given?
+        items.each_entry { |item| add(yield item) }
+      else
+        items.each_entry { |item| add(item) }
+      end
+    elsif items.respond_to?(:each)
+      if block_given?
+        items.each { |item| add(yield item) }
+      else
+        items.each { |item| add(item) }
+      end
+    else
+      raise ArgumentError, 'value must be enumerable'
     end
   end
 
