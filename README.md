@@ -92,7 +92,7 @@ bin/natalie examples/hello.rb
 **Compile a file to an executable:**
 
 ```sh
-bin/natalie examples/hello.rb -c hello
+bin/natalie -c hello examples/hello.rb
 ./hello
 ```
 
