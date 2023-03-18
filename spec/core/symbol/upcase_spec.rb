@@ -11,10 +11,8 @@ describe "Symbol#upcase" do
   end
 
   it "capitalizes all Unicode characters" do
-    NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
     "äöü".to_sym.upcase.should == :"ÄÖÜ"
     "aou".to_sym.upcase.should == :"AOU"
-    end
   end
 
   it "leaves non-alphabetic ASCII characters as they were" do

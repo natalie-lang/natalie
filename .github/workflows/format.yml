@@ -15,12 +15,10 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: DoozyX/clang-format-lint-action@v0.12
-        with:
-          source: "."
-          extensions: "hpp,cpp"
-          clangFormatVersion: 12
-          inplace: True
+      - name: install dependencies
+        run: sudo apt-get install -y -q ruby clang-format
+      - name: format
+        run: rake format
       - uses: EndBug/add-and-commit@v9
         with:
           author_name: Tim Morgan

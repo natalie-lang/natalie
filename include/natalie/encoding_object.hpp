@@ -14,6 +14,13 @@
 
 namespace Natalie {
 
+extern nat_int_t lcase_map[];
+extern nat_int_t ucase_map[];
+extern nat_int_t tcase_map[];
+extern nat_int_t lcase_index[];
+extern nat_int_t ucase_index[];
+extern nat_int_t tcase_index[];
+
 using namespace TM;
 
 class EncodingObject : public Object {
@@ -69,6 +76,10 @@ public:
 
     static EncodingObject *find_encoding_by_name(Env *env, String name);
     static EncodingObject *find_encoding(Env *env, Value encoding);
+
+    static nat_int_t codepoint_to_lowercase(nat_int_t codepoint);
+    static nat_int_t codepoint_to_uppercase(nat_int_t codepoint);
+    static nat_int_t codepoint_to_titlecase(nat_int_t codepoint);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);

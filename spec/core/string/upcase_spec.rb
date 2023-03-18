@@ -14,9 +14,7 @@ describe "String#upcase" do
 
   describe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "äöü".upcase.should == "ÄÖÜ"
-      end
+      "äöü".upcase.should == "ÄÖÜ"
     end
 
     it "updates string metadata" do
@@ -115,17 +113,13 @@ describe "String#upcase!" do
     it "modifies self in place for all of Unicode with no option" do
       a = "äöü"
       a.upcase!
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "ÄÖÜ"
-      end
+      a.should == "ÄÖÜ"
     end
 
     it "works for non-ascii-compatible encodings" do
       a = "äöü".encode("utf-16le")
       a.upcase!
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "ÄÖÜ".encode("utf-16le")
-      end
+      a.should == "ÄÖÜ".encode("utf-16le")
     end
 
     it "updates string metadata for self" do

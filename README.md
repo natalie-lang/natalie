@@ -148,15 +148,16 @@ Natalie is copyright 2021, Tim Morgan and contributors. Natalie is licensed
 under the MIT License; see the `LICENSE` file in this directory for the full text.
 
 Some parts of this program are copied from other sources, and the copyright
-belongs to the respective owner:
+belongs to the respective owner. Such copyright notices are either at the top of
+the respective file, in the same directory with a name like `LICENSE`, or both.
 
-| file(s)                       | copyright                         | license           |
-| ----------------------------- | --------------------------------- | ----------------- |
-| `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
-| `dtoa.c`                      | David M. Gay, Lucent Technologies | custom permissive |
-| `fiber_object.*`              | Evan Jones                        | MIT               |
-| `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
-| `version.rb`                  | Engine Yard, Inc.                 | MIT               |
-| `zlib` (see `zlib/LICENSE`)   | Jean-loup Gailly and Mark Adler   | zlib license      |
+| file(s)            | copyright                         | license           |
+| -------------------| --------------------------------- | ----------------- |
+| `big_int.*`        | Syed Faheel Ahmad                 | MIT               |
+| `dtoa.c`           | David M. Gay, Lucent Technologies | custom permissive |
+| `fiber_object.*`   | Evan Jones                        | MIT               |
+| `spec/*`           | Engine Yard, Inc.                 | MIT               |
+| `version.rb`       | Engine Yard, Inc.                 | MIT               |
+| `zlib`             | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
