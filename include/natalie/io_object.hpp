@@ -71,6 +71,9 @@ public:
         m_internal_encoding = enc;
     }
 
+protected:
+    int write(Env *, Value) const;
+
 private:
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
