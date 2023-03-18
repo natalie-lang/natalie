@@ -121,14 +121,43 @@ Value IoObject::gets(Env *env) const {
     return line;
 }
 
-Value IoObject::puts(Env *env, Args args) const {
+void IoObject::putstr(Env *env, StringObject *str) {
+    String sstr = str->string();
+    this->send(env, "write"_s, Args({ str }));
+    if (sstr.size() == 0 || (sstr.size() > 0 && !sstr.ends_with("\n"))) {
+        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+    }
+}
+
+void IoObject::putary(Env *env, ArrayObject *ary) {
+    for (auto &item : *ary) {
+        this->puts(env, item);
+    }
+}
+
+void IoObject::puts(Env *env, Value val) {
+    if (val->is_string()) {
+        this->putstr(env, val->as_string());
+    } else if (val->respond_to(env, "to_ary"_s)) {
+        auto ary = val->send(env, "to_ary"_s);
+        ary->assert_type(env, Object::Type::Array, "Array");
+        this->putary(env, ary->as_array());
+    } else {
+        Value str = val->send(env, "to_s"_s);
+        if (str->is_string()) {
+            this->putstr(env, str->as_string());
+        } else { // to_s did not return a string to inspect val instead.
+            this->putstr(env, new StringObject { val->inspect_str(env) });
+        }
+    }
+}
+
+Value IoObject::puts(Env *env, Args args) {
     if (args.size() == 0) {
-        dprintf(m_fileno, "\n");
+        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
     } else {
         for (size_t i = 0; i < args.size(); i++) {
-            Value str = args[i].send(env, "to_s"_s);
-            str->assert_type(env, Object::Type::String, "String");
-            dprintf(m_fileno, "%s\n", str->as_string()->c_str());
+            this->puts(env, args[i]);
         }
     }
     return NilObject::the();

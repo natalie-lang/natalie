@@ -57,7 +57,12 @@ public:
     Value read(Env *, Value) const;
     Value write(Env *, Args) const;
     Value gets(Env *) const;
-    Value puts(Env *, Args) const;
+
+    Value puts(Env *, Args);
+    void puts(Env *, Value);
+    void putstr(Env *, StringObject *);
+    void putary(Env *, ArrayObject *);
+
     Value print(Env *, Args) const;
     Value close(Env *);
     Value seek(Env *, Value, Value) const;
