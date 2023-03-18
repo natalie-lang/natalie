@@ -148,6 +148,11 @@ public:
         snprintf(buf, len, "<Env %p>", this);
     }
 
+    Value output_file_separator();
+    Value output_record_separator();
+    Value last_line();
+    Value set_last_line(Value);
+
 private:
     ManagedVector<Value> *m_vars { nullptr };
     Env *m_outer { nullptr };

@@ -26,9 +26,9 @@ Value IoObject::write_file(Env *env, Value filename, Value string) {
     Value flags = new StringObject { "w" };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename, flags }, nullptr)->as_file();
-    auto bytes_written = file->write(env, { string });
+    int bytes_written = file->write(env, string);
     file->close(env);
-    return bytes_written;
+    return Value::integer(bytes_written);
 }
 
 #define NAT_READ_BYTES 1024
@@ -77,24 +77,28 @@ Value IoObject::append(Env *env, Value obj) {
     return this;
 }
 
+int IoObject::write(Env *env, Value obj) const {
+    if (is_closed())
+        env->raise("IOError", "cannot write closed stream");
+    if (obj->type() != Object::Type::String) {
+        obj = obj.send(env, "to_s"_s);
+    }
+    obj->assert_type(env, Object::Type::String, "String");
+    int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
+    if (result == -1) {
+        Value error_number = Value::integer(errno);
+        auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+        ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
+        env->raise_exception(error);
+    }
+    return result;
+}
+
 Value IoObject::write(Env *env, Args args) const {
     args.ensure_argc_at_least(env, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < args.size(); i++) {
-        Value obj = args[i];
-        if (obj->type() != Object::Type::String) {
-            obj = obj.send(env, "to_s"_s);
-        }
-        obj->assert_type(env, Object::Type::String, "String");
-        int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
-        if (result == -1) {
-            Value error_number = Value::integer(errno);
-            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
-            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
-            env->raise_exception(error);
-        } else {
-            bytes_written += result;
-        }
+        bytes_written += write(env, args[i]);
     }
     return Value::integer(bytes_written);
 }
@@ -112,17 +116,48 @@ Value IoObject::gets(Env *env) const {
         if (buffer[index] == '\n')
             break;
     }
-    return new StringObject { buffer, index + 1 };
+    auto line = new StringObject { buffer, index + 1 };
+    env->set_last_line(line);
+    return line;
 }
 
-Value IoObject::puts(Env *env, Args args) const {
+void IoObject::putstr(Env *env, StringObject *str) {
+    String sstr = str->string();
+    this->send(env, "write"_s, Args({ str }));
+    if (sstr.size() == 0 || (sstr.size() > 0 && !sstr.ends_with("\n"))) {
+        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
+    }
+}
+
+void IoObject::putary(Env *env, ArrayObject *ary) {
+    for (auto &item : *ary) {
+        this->puts(env, item);
+    }
+}
+
+void IoObject::puts(Env *env, Value val) {
+    if (val->is_string()) {
+        this->putstr(env, val->as_string());
+    } else if (val->respond_to(env, "to_ary"_s)) {
+        auto ary = val->send(env, "to_ary"_s);
+        ary->assert_type(env, Object::Type::Array, "Array");
+        this->putary(env, ary->as_array());
+    } else {
+        Value str = val->send(env, "to_s"_s);
+        if (str->is_string()) {
+            this->putstr(env, str->as_string());
+        } else { // to_s did not return a string to inspect val instead.
+            this->putstr(env, new StringObject { val->inspect_str(env) });
+        }
+    }
+}
+
+Value IoObject::puts(Env *env, Args args) {
     if (args.size() == 0) {
-        dprintf(m_fileno, "\n");
+        this->send(env, "write"_s, Args({ new StringObject { "\n" } }));
     } else {
         for (size_t i = 0; i < args.size(); i++) {
-            Value str = args[i].send(env, "to_s"_s);
-            str->assert_type(env, Object::Type::String, "String");
-            dprintf(m_fileno, "%s\n", str->as_string()->c_str());
+            this->puts(env, args[i]);
         }
     }
     return NilObject::the();
@@ -130,12 +165,19 @@ Value IoObject::puts(Env *env, Args args) const {
 
 Value IoObject::print(Env *env, Args args) const {
     if (args.size() > 0) {
+        auto fsep = env->output_file_separator();
+        auto valid_fsep = !fsep->is_nil();
         for (size_t i = 0; i < args.size(); i++) {
-            Value str = args[i].send(env, "to_s"_s);
-            str->assert_type(env, Object::Type::String, "String");
-            dprintf(m_fileno, "%s", str->as_string()->c_str());
+            if (i > 0 && valid_fsep)
+                write(env, fsep);
+            write(env, args[i]);
         }
+    } else {
+        Value lastline = env->last_line();
+        write(env, lastline);
     }
+    auto rsep = env->output_record_separator();
+    if (!rsep->is_nil()) write(env, rsep);
     return NilObject::the();
 }
 

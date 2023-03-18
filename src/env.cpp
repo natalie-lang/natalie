@@ -23,6 +23,31 @@ Value Env::global_set(SymbolObject *name, Value val) {
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
+// Return the file separator `$,` or nil
+Value Env::output_file_separator() {
+    Value fsep = global_get("$,"_s);
+    if (fsep) return fsep;
+    return NilObject::the();
+}
+
+// Return the record separator `$\` or nil
+Value Env::output_record_separator() {
+    Value rsep = global_get("$\\"_s);
+    if (rsep) return rsep;
+    return NilObject::the();
+}
+
+// Return the last line `$_` or nil
+Value Env::last_line() {
+    Value fsep = global_get("$_"_s);
+    if (fsep) return fsep;
+    return NilObject::the();
+}
+
+Value Env::set_last_line(Value val) {
+    return global_set("$_"_s, val);
+}
+
 const Method *Env::current_method() {
     Env *env = this;
     while (!env->method() && env->outer()) {
