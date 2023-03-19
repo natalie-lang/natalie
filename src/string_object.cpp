@@ -2333,17 +2333,19 @@ Value StringObject::capitalize_in_place(Env *env, Value arg1, Value arg2) {
 
 StringObject *StringObject::downcase(Env *env, Value arg1, Value arg2) {
     // currently not doing anything with the returned flags
-    check_case_options(env, arg1, arg2, Downcase);
+    auto flags = check_case_options(env, arg1, arg2, Downcase);
     auto str = new StringObject { "", m_encoding };
     for (StringView c : *this) {
-        nat_int_t codept = m_encoding->decode_codepoint(c);
-        if (codept >= 'A' && codept <= 'Z') {
-            codept += 32;
-            String s = m_encoding->encode_codepoint(codept);
-            str->append(s);
+        auto codepoint = m_encoding->decode_codepoint(c);
+        if (flags & Ascii) {
+            if (codepoint >= 'A' && codepoint <= 'Z')
+                codepoint += 32;
         } else {
-            str->append(c);
+            auto new_codepoint = EncodingObject::codepoint_to_lowercase(codepoint);
+            if (new_codepoint != 0)
+                codepoint = new_codepoint;
         }
+        str->append(m_encoding->encode_codepoint(codepoint));
     }
     return str;
 }
