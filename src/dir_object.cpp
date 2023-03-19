@@ -38,7 +38,7 @@ Value DirObject::initialize(Env *env, Value path, Value encoding) {
 int DirObject::fileno(Env *env) {
     if (!m_dir) env->raise("IOError", "closed directory");
     return ::dirfd(m_dir);
-    //return new IntegerObject { fdnum };
+    // return new IntegerObject { fdnum };
 }
 
 Value DirObject::close(Env *env) {
