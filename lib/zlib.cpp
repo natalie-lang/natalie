@@ -188,7 +188,7 @@ Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
         else if (crc_temp > std::numeric_limits<long>::max())
             env->raise("RangeError", "integer {} too big to convert to `long'", crc_temp);
         crc = (unsigned long)(crc_temp);
-        //crc = IntegerObject::convert_to_ulong(env, initcrcval);
+        // crc = IntegerObject::convert_to_ulong(env, initcrcval);
     }
     if (args.size() > 0) {
         Value string = args.at(0);

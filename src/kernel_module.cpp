@@ -454,7 +454,7 @@ Value KernelModule::print(Env *env, Args args) {
     }
     // NATFIXME: Kernel.print should actually call IO.print and not
     // IO.write, but for now using IO.print causes crashes.
-    //return _stdout->send(env, "print"_s, args);
+    // return _stdout->send(env, "print"_s, args);
     return _stdout->send(env, "write"_s, args);
 }
 
