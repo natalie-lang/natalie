@@ -147,9 +147,7 @@ describe 'String#casecmp? independent of case' do
 
   describe 'for UNICODE characters' do
     it 'returns true when downcase(:fold) on unicode' do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        'äöü'.casecmp?('ÄÖÜ').should == true
-      end
+      'äöü'.casecmp?('ÄÖÜ').should == true
     end
   end
 
@@ -177,9 +175,7 @@ describe 'String#casecmp? independent of case' do
       end
 
       it "returns true when they are the same with normalized case" do
-        NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-          @upper_a_tilde.casecmp?(@lower_a_tilde).should == true
-        end
+        @upper_a_tilde.casecmp?(@lower_a_tilde).should == true
       end
 
       it "returns false when they are unrelated" do

@@ -2280,8 +2280,8 @@ Value StringObject::casecmp(Env *env, Value other) {
     other = StringObject::try_convert(env, other);
     if (other->is_nil())
         return NilObject::the();
-    auto str1 = this->downcase(env, nullptr, nullptr);
-    auto str2 = other->as_string()->downcase(env, nullptr, nullptr);
+    auto str1 = this->downcase(env, "ascii"_s, nullptr);
+    auto str2 = other->as_string()->downcase(env, "ascii"_s, nullptr);
     return str1->cmp(env, Value(str2));
 }
 

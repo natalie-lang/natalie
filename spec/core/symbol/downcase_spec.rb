@@ -15,10 +15,8 @@ describe "Symbol#downcase" do
   end
 
   it "uncapitalizes all Unicode characters" do
-    NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
     "ÄÖÜ".to_sym.downcase.should == :"äöü"
     "AOU".to_sym.downcase.should == :"aou"
-    end
   end
 
   it "leaves non-alphabetic ASCII characters as they were" do

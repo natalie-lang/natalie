@@ -87,8 +87,8 @@ Value SymbolObject::casecmp(Env *env, Value other) {
     if (!other->is_symbol()) return NilObject::the();
     auto str1 = to_s(env);
     auto str2 = other->to_s(env);
-    str1 = str1->send(env, "downcase"_s)->as_string();
-    str2 = str2->send(env, "downcase"_s)->as_string();
+    str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
+    str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
     return str1->cmp(env, Value(str2));
 }
 
@@ -97,8 +97,8 @@ Value SymbolObject::is_casecmp(Env *env, Value other) {
     // other->assert_type(env, Object::Type::Symbol, "Symbol");
     auto str1 = to_s(env);
     auto str2 = other->to_s(env);
-    str1 = str1->send(env, "downcase"_s)->as_string();
-    str2 = str2->send(env, "downcase"_s)->as_string();
+    str1 = str1->send(env, "downcase"_s, { "ascii"_s })->as_string();
+    str2 = str2->send(env, "downcase"_s, { "ascii"_s })->as_string();
     if (str1->string() == str2->string())
         return TrueObject::the();
     return FalseObject::the();
