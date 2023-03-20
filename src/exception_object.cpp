@@ -3,20 +3,36 @@
 namespace Natalie {
 
 Value ExceptionObject::initialize(Env *env, Value message) {
-    if (!message) {
-        auto name = m_klass->inspect_str();
-        set_message(new StringObject { name });
-    } else {
-        if (!message->is_string()) {
-            message = message.send(env, "inspect"_s);
-        }
-        set_message(message->as_string());
-    }
+    if (message != nullptr)
+        set_message(message);
     return this;
 }
 
 Value ExceptionObject::inspect(Env *env) {
-    return StringObject::format("#<{}: {}>", m_klass->inspect_str(), m_message);
+    auto klassname = m_klass->inspect_str();
+    auto msgstr = this->send(env, "to_s"_s);
+    assert(msgstr);
+    msgstr->assert_type(env, Object::Type::String, "String");
+    if (msgstr->as_string()->is_empty())
+        return new StringObject { klassname };
+    if (msgstr->as_string()->include(env, new StringObject { "\n" }))
+        return StringObject::format("#<{}: {}>", klassname, klassname);
+    return StringObject::format("#<{}: {}>", klassname, msgstr);
+}
+
+StringObject *ExceptionObject::to_s(Env *env) {
+    if (m_message == nullptr || m_message->is_nil()) {
+        return new StringObject { m_klass->inspect_str() };
+    } else if (m_message->is_string()) {
+        return m_message->as_string();
+    }
+    auto msgstr = m_message->send(env, "to_s"_s);
+    msgstr->assert_type(env, Object::Type::String, "String");
+    return msgstr->as_string();
+}
+
+Value ExceptionObject::message(Env *env) {
+    return this->send(env, "to_s"_s);
 }
 
 Value ExceptionObject::backtrace(Env *env) {

@@ -506,6 +506,7 @@ gen.binding('Exception', 'backtrace', 'ExceptionObject', 'backtrace', argc: 0, p
 gen.binding('Exception', 'initialize', 'ExceptionObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'inspect', 'ExceptionObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'message', 'ExceptionObject', 'message', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Exception', 'to_s', 'ExceptionObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('FalseClass', 'new')
 gen.binding('FalseClass', '&', 'FalseObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

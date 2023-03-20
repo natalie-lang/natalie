@@ -376,7 +376,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
         StringObject *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->inspect_str().c_str());
+    dprintf(fd, "%s (%s)\n", exception->to_s(env)->c_str(), exception->klass()->inspect_str().c_str());
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
