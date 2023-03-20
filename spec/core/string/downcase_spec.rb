@@ -14,20 +14,16 @@ describe "String#downcase" do
 
   describe "full Unicode case mapping" do
     it "works for all of Unicode with no option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "ÄÖÜ".downcase.should == "äöü"
-      end
+      "ÄÖÜ".downcase.should == "äöü"
     end
 
     it "updates string metadata" do
       downcased = "\u{212A}ING".downcase
 
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        downcased.should == "king"
-        downcased.size.should == 4
-        downcased.bytesize.should == 4
-        downcased.ascii_only?.should be_true
-      end
+      downcased.should == "king"
+      downcased.size.should == 4
+      downcased.bytesize.should == 4
+      downcased.ascii_only?.should be_true
     end
   end
 
@@ -43,15 +39,11 @@ describe "String#downcase" do
 
   describe "full Unicode case mapping adapted for Turkic languages" do
     it "downcases characters according to Turkic semantics" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "İ".downcase(:turkic).should == "i"
-      end
+      "İ".downcase(:turkic).should == "i"
     end
 
     it "allows Lithuanian as an extra option" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "İ".downcase(:turkic, :lithuanian).should == "i"
-      end
+      "İ".downcase(:turkic, :lithuanian).should == "i"
     end
 
     it "does not allow any other additional option" do
@@ -67,9 +59,7 @@ describe "String#downcase" do
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "İS".downcase(:lithuanian, :turkic).should == "is"
-      end
+      "İS".downcase(:lithuanian, :turkic).should == "is"
     end
 
     it "does not allow any other additional option" do
@@ -120,21 +110,17 @@ describe "String#downcase!" do
     it "modifies self in place for all of Unicode with no option" do
       a = "ÄÖÜ"
       a.downcase!
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "äöü"
-      end
+      a.should == "äöü"
     end
 
     it "updates string metadata" do
       downcased = "\u{212A}ING"
       downcased.downcase!
 
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        downcased.should == "king"
-        downcased.size.should == 4
-        downcased.bytesize.should == 4
-        downcased.ascii_only?.should be_true
-      end
+      downcased.should == "king"
+      downcased.size.should == 4
+      downcased.bytesize.should == 4
+      downcased.ascii_only?.should be_true
     end
   end
 
@@ -156,17 +142,13 @@ describe "String#downcase!" do
     it "downcases characters according to Turkic semantics" do
       a = "İ"
       a.downcase!(:turkic)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "i"
-      end
+      a.should == "i"
     end
 
     it "allows Lithuanian as an extra option" do
       a = "İ"
       a.downcase!(:turkic, :lithuanian)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "i"
-      end
+      a.should == "i"
     end
 
     it "does not allow any other additional option" do
@@ -186,9 +168,7 @@ describe "String#downcase!" do
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
       a = "İS"
       a.downcase!(:lithuanian, :turkic)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "is"
-      end
+      a.should == "is"
     end
 
     it "does not allow any other additional option" do
