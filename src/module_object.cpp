@@ -283,6 +283,7 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+    assert_not_frozen(env, this);
     Method *method = new Method { name->string(), this, fn, arity };
     if (optimized)
         method->set_optimized(true);
@@ -296,6 +297,7 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFn
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {
+    assert_not_frozen(env, this);
     Method *method = new Method { name->string(), this, block };
     define_method(env, name, method, m_method_visibility);
     if (m_module_function)

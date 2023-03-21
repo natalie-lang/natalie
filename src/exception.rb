@@ -25,7 +25,13 @@ end
     class FloatDomainError < RangeError; end
   class RegexpError < StandardError; end
   class RuntimeError < StandardError; end
-    class FrozenError < RuntimeError; end
+class FrozenError < RuntimeError
+  attr_reader :receiver
+  def initialize(message=nil, receiver: nil)
+    super(message)
+    @receiver = receiver
+  end
+end
   class TypeError < StandardError; end
   class ZeroDivisionError < StandardError; end
   class LoadError < StandardError; end

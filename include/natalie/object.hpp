@@ -333,6 +333,7 @@ public:
 
     void assert_type(Env *, Object::Type, const char *) const;
     void assert_not_frozen(Env *);
+    void assert_not_frozen(Env *, Value);
 
     String inspect_str(Env *);
 

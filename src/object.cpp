@@ -563,6 +563,7 @@ ClassObject *Object::singleton_class(Env *env) {
         singleton_superclass = m_klass;
     }
     auto new_singleton_class = new ClassObject { singleton_superclass };
+    if (is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     set_singleton_class(new_singleton_class);
     if (is_frozen()) m_singleton_class->freeze();
@@ -1135,6 +1136,17 @@ void Object::assert_type(Env *env, Object::Type expected_type, const char *expec
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
         env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
+    }
+}
+
+void Object::assert_not_frozen(Env *env, Value receiver) {
+    if (is_frozen()) {
+        auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
+        String message = String::format("can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
+        auto kwargs = new HashObject(env, { "receiver"_s, receiver });
+        auto args = Args({ new StringObject { message }, kwargs }, true);
+        ExceptionObject *error = FrozenError.send(env, "new"_s, args)->as_exception();
+        env->raise_exception(error);
     }
 }
 
