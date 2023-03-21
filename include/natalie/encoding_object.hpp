@@ -81,6 +81,10 @@ public:
     static nat_int_t codepoint_to_uppercase(nat_int_t codepoint);
     static nat_int_t codepoint_to_titlecase(nat_int_t codepoint);
 
+    static Value casefold_common(nat_int_t codepoint);
+    static Value casefold_full(nat_int_t codepoint);
+    static Value casefold_simple(nat_int_t codepoint);
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);
     }
