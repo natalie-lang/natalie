@@ -951,7 +951,20 @@ Value Object::dup(Env *env) const {
     }
 }
 
-Value Object::clone(Env *env) const {
+Value Object::clone(Env *env) {
+    return this->clone(env, nullptr);
+}
+
+Value Object::clone(Env *env, Value freeze) {
+    bool freeze_bool = true;
+    if (freeze) {
+        if (freeze->is_false()) {
+            freeze_bool = false;
+        } else if (!freeze->is_true() && !freeze->is_nil()) {
+            env->raise("ArgumentError", "unexpected value for freeze: {}", freeze->klass()->inspect_str());
+        }
+    }
+
     auto duplicate = this->dup(env);
     if (!duplicate->singleton_class()) {
         auto s_class = singleton_class();
@@ -960,7 +973,16 @@ Value Object::clone(Env *env) const {
         }
     }
 
-    if (is_frozen())
+    if (freeze) {
+        auto keyword_hash = new HashObject {};
+        keyword_hash->put(env, "freeze"_s, freeze);
+        auto args = Args({ this, keyword_hash }, true);
+        duplicate->send(env, "initialize_clone"_s, args);
+    } else {
+        duplicate->send(env, "initialize_clone"_s, { this });
+    }
+
+    if (freeze_bool && is_frozen())
         duplicate->freeze();
 
     return duplicate;
