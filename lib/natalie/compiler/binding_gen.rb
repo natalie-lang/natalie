@@ -502,6 +502,8 @@ gen.singleton_binding('ENV', 'to_s', 'EnvObject', 'to_s', argc: 0, pass_env: fal
 gen.singleton_binding('ENV', 'update', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'merge!', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 
+gen.static_binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_klass: true, pass_block: false, return_type: :Object)
+gen.binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'backtrace', 'ExceptionObject', 'backtrace', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'initialize', 'ExceptionObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Exception', 'inspect', 'ExceptionObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

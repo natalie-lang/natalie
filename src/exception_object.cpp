@@ -8,6 +8,20 @@ Value ExceptionObject::initialize(Env *env, Value message) {
     return this;
 }
 
+// static exception
+Value ExceptionObject::exception(Env *env, Value message, ClassObject *klass) {
+    auto exc = new ExceptionObject { klass };
+    return exc->initialize(env, message);
+}
+
+Value ExceptionObject::exception(Env *env, Value val) {
+    if (!val) return this;
+    if (val == this) return this;
+    auto exc = clone(env)->as_exception();
+    exc->set_message(val);
+    return exc;
+}
+
 Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
     auto msgstr = this->send(env, "to_s"_s);

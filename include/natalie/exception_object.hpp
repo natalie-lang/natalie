@@ -33,6 +33,8 @@ public:
 
     void set_message(Value message) { m_message = message; }
 
+    static Value exception(Env *, Value, ClassObject *klass);
+    Value exception(Env *, Value);
     Value initialize(Env *, Value);
     Value inspect(Env *);
 
