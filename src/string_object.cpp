@@ -718,24 +718,6 @@ Value StringObject::b(Env *env) const {
     return new StringObject { m_string, Encoding::ASCII_8BIT };
 }
 
-Value StringObject::clone(Env *env) {
-    auto duplicate = this->dup(env);
-    auto s_class = singleton_class();
-    if (s_class) {
-        duplicate->set_singleton_class(s_class->clone(env)->as_class());
-    }
-
-    if (duplicate->respond_to(env, "initialize_copy"_s)) {
-        duplicate->send(env, "initialize_copy"_s, { duplicate });
-    }
-
-    if (this->is_frozen()) {
-        duplicate->freeze();
-    }
-
-    return duplicate;
-}
-
 Value StringObject::bytes(Env *env, Block *block) {
     if (block) {
         return each_byte(env, block);
