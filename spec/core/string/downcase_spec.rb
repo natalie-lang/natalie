@@ -53,9 +53,7 @@ describe "String#downcase" do
 
   describe "full Unicode case mapping adapted for Lithuanian" do
     it "currently works the same as full Unicode case mapping" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "İS".downcase(:lithuanian).should == "i\u{307}s"
-      end
+      "İS".downcase(:lithuanian).should == "i\u{307}s"
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
@@ -69,10 +67,8 @@ describe "String#downcase" do
 
   describe "case folding" do
     it "case folds special characters" do
-      NATFIXME 'Pending unicode casefold support', exception: SpecFailedException do
-        "ß".downcase.should == "ß"
-        "ß".downcase(:fold).should == "ss"
-      end
+      "ß".downcase.should == "ß"
+      "ß".downcase(:fold).should == "ss"
     end
   end
 
@@ -160,9 +156,7 @@ describe "String#downcase!" do
     it "currently works the same as full Unicode case mapping" do
       a = "İS"
       a.downcase!(:lithuanian)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "i\u{307}s"
-      end
+      a.should == "i\u{307}s"
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do
@@ -183,9 +177,7 @@ describe "String#downcase!" do
       a.should == "ß"
 
       a.downcase!(:fold)
-      NATFIXME 'Pending unicode casefold support', exception: SpecFailedException do
-        a.should == "ss"
-      end
+      a.should == "ss"
     end
   end
 

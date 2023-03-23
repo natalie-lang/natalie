@@ -119,6 +119,7 @@ task :format do
   sh "find include src lib " \
      "-type f -name '*.?pp' " \
      "! -path src/encoding/casemap.cpp " \
+     "! -path src/encoding/casefold.cpp " \
      "-exec clang-format -i --style=file {} +"
 end
 
