@@ -526,10 +526,14 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
 }
 
 SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = to_symbol(env, Conversion::Strict);
+    SymbolObject *symbol = to_symbol(env, Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
-        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
+        if (is_string()) {
+            env->raise_name_error(as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
+        } else {
+            env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
+        }
     }
 
     return symbol;

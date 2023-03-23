@@ -163,6 +163,13 @@ void Env::raise_name_error(SymbolObject *name, const String message) {
     this->raise_exception(exception);
 }
 
+void Env::raise_name_error(StringObject *name, const String message) {
+    auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
+    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { message } };
+    exception->ivar_set(this, "@name"_s, name);
+    this->raise_exception(exception);
+}
+
 void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     String lhs_class = lhs->klass()->inspect_str();
     String rhs_inspect;
