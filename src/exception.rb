@@ -8,7 +8,17 @@ class StandardError < Exception; end
   class FiberError < StandardError; end
   class IndexError < StandardError; end
     class StopIteration < IndexError; end
-  class NameError < StandardError; attr_reader :name; end
+class NameError < StandardError
+  attr_reader :name, :receiver
+  def initialize(message=nil, name=nil, receiver: nil)
+    super(message)
+    @name = name
+    @receiver = receiver
+  end
+  def local_variables
+    [] # documented as "for internal use only"
+  end
+end
     class NoMethodError < NameError; attr_reader :receiver; end
   class IOError < StandardError; end
   class RangeError < StandardError; end
@@ -64,7 +74,8 @@ end
 
 class KeyError < IndexError
   attr_reader :receiver, :key
-  def initialize(message, receiver = nil, key = nil)
+  def initialize(message=nil, receiver: nil, key: nil)
+    super(message)
     @receiver = receiver
     @key = key
   end
