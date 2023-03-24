@@ -48,6 +48,9 @@ class Set
     if eql?(other)
       return true
     end
+    if other.class == self.class
+      return @data == other.instance_variable_get(:@data)
+    end
     if other.is_a?(Set) && self.size == other.size
       return other.all? { |element| @data.include?(element) }
     end
@@ -97,6 +100,20 @@ class Set
     replace(each, &block)
   end
   alias map! collect!
+
+  def compare_by_identity
+    @data.compare_by_identity
+    self
+  end
+
+  def compare_by_identity?
+    @data.compare_by_identity?
+  end
+
+  def freeze
+    @data.freeze
+    super
+  end
 
   def delete(obj)
     if include?(obj)
