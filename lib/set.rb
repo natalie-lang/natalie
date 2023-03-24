@@ -23,6 +23,11 @@ class Set
     end
   end
 
+  def initialize_clone(other, freeze: nil)
+    super
+    @data = other.instance_variable_get(:@data).clone(freeze: freeze)
+  end
+
   def self.[](*items)
     new(items)
   end
