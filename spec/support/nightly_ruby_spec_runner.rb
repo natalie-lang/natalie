@@ -10,6 +10,8 @@ require 'io/wait'
 require 'uri'
 require 'net/http'
 
+WAIT_TIMEOUT = 180
+
 pool = Concurrent::ThreadPoolExecutor.new(
   max_threads: 4,
   max_queue: 0 # unbounded work queue
@@ -56,7 +58,7 @@ Dir[specs].each do |path|
       error_messages: []
     )
 
-    unless system("bin/natalie #{path} -c #{binary_name} 2> /dev/null")
+    unless system("bin/natalie -c #{binary_name} #{path} 2> /dev/null")
       compile_errors += 1
       puts "Spec #{path} could not be compiled"
       return
@@ -65,7 +67,7 @@ Dir[specs].each do |path|
     current[:compiled] = true
 
     IO.popen(["./#{binary_name}", "-f", "yaml"], err: '/dev/null') { |f|
-      if f.wait_readable(180)
+      if f.wait_readable(WAIT_TIMEOUT)
         yaml = YAML.safe_load(f.read) || {}
         # If one of those is not given there is something wrong... (probably crashed)
         if yaml["examples"] && yaml["errors"] && yaml["failures"]
@@ -83,7 +85,7 @@ Dir[specs].each do |path|
           puts "Ran spec #{path}"
         end
       else
-        puts "Spec #{path} timed out (after 3 seconds)"
+        puts "Spec #{path} timed out (after #{WAIT_TIMEOUT} seconds)"
         current[:timeouted] = true
         timed_out_count += 1
         Process.kill('TERM', f.pid)
