@@ -144,7 +144,7 @@ void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMiss
         message = String::format("protected method `{}' called for {}", name->string(), inspect_string);
         break;
     case MethodMissingReason::Undefined:
-        message = String::format("undefined local variable or method `{}' for {}", name->string(), inspect_string);
+        message = String::format("undefined method `{}' for {}", name->string(), inspect_string);
         break;
     default:
         NAT_UNREACHABLE();
