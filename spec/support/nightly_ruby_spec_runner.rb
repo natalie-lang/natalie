@@ -56,7 +56,7 @@ Dir[specs].each do |path|
       error_messages: []
     )
 
-    unless system("bin/natalie #{path} -c #{binary_name} 2> /dev/null")
+    unless system("bin/natalie -c #{binary_name} #{path} 2> /dev/null")
       compile_errors += 1
       puts "Spec #{path} could not be compiled"
       return
