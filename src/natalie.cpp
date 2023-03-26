@@ -214,13 +214,56 @@ Env *build_top_env() {
     Encoding->const_set("UTF_32BE"_s, EncodingUTF32BE);
     Encoding->const_set("UCS_4BE"_s, EncodingUTF32BE);
 
+    Value EncodingIBM037 = new Ibm037EncodingObject {};
+    Encoding->const_set("IBM037"_s, EncodingIBM037);
     Value EncodingIBM437 = new Ibm437EncodingObject {};
     Encoding->const_set("IBM437"_s, EncodingIBM437);
     Encoding->const_set("CP437"_s, EncodingIBM437);
-
+    Value EncodingIBM720 = new Ibm720EncodingObject {};
+    Encoding->const_set("IBM720"_s, EncodingIBM720);
+    Encoding->const_set("CP720"_s, EncodingIBM720);
+    Value EncodingIBM737 = new Ibm737EncodingObject {};
+    Encoding->const_set("IBM737"_s, EncodingIBM737);
+    Encoding->const_set("CP737"_s, EncodingIBM737);
+    Value EncodingIBM775 = new Ibm775EncodingObject {};
+    Encoding->const_set("IBM775"_s, EncodingIBM775);
+    Encoding->const_set("CP775"_s, EncodingIBM775);
+    Value EncodingIBM850 = new Ibm850EncodingObject {};
+    Encoding->const_set("IBM850"_s, EncodingIBM850);
+    Encoding->const_set("CP850"_s, EncodingIBM850);
+    Value EncodingIBM852 = new Ibm852EncodingObject {};
+    Encoding->const_set("IBM852"_s, EncodingIBM852);
+    Encoding->const_set("CP852"_s, EncodingIBM852);
+    Value EncodingIBM855 = new Ibm855EncodingObject {};
+    Encoding->const_set("IBM855"_s, EncodingIBM855);
+    Encoding->const_set("CP855"_s, EncodingIBM855);
+    Value EncodingIBM857 = new Ibm857EncodingObject {};
+    Encoding->const_set("IBM857"_s, EncodingIBM857);
+    Encoding->const_set("CP857"_s, EncodingIBM857);
+    Value EncodingIBM860 = new Ibm860EncodingObject {};
+    Encoding->const_set("IBM860"_s, EncodingIBM860);
+    Encoding->const_set("CP860"_s, EncodingIBM860);
+    Value EncodingIBM861 = new Ibm861EncodingObject {};
+    Encoding->const_set("IBM861"_s, EncodingIBM861);
+    Encoding->const_set("CP861"_s, EncodingIBM861);
+    Value EncodingIBM862 = new Ibm862EncodingObject {};
+    Encoding->const_set("IBM862"_s, EncodingIBM862);
+    Encoding->const_set("CP862"_s, EncodingIBM862);
+    Value EncodingIBM863 = new Ibm863EncodingObject {};
+    Encoding->const_set("IBM863"_s, EncodingIBM863);
+    Encoding->const_set("CP863"_s, EncodingIBM863);
+    Value EncodingIBM864 = new Ibm864EncodingObject {};
+    Encoding->const_set("IBM864"_s, EncodingIBM864);
+    Encoding->const_set("CP864"_s, EncodingIBM864);
+    Value EncodingIBM865 = new Ibm865EncodingObject {};
+    Encoding->const_set("IBM865"_s, EncodingIBM865);
+    Encoding->const_set("CP865"_s, EncodingIBM865);
     Value EncodingIBM866 = new Ibm866EncodingObject {};
     Encoding->const_set("IBM866"_s, EncodingIBM866);
     Encoding->const_set("CP866"_s, EncodingIBM866);
+    Value EncodingIBM869 = new Ibm869EncodingObject {};
+    Encoding->const_set("IBM869"_s, EncodingIBM869);
+    Encoding->const_set("CP869"_s, EncodingIBM869);
 
     Value EncodingShiftJis = new ShiftJisEncodingObject {};
     Encoding->const_set("Shift_JIS"_s, EncodingShiftJis);
@@ -233,6 +276,76 @@ Env *build_top_env() {
     Value EncodingIso88591 = new Iso88591EncodingObject {};
     Encoding->const_set("ISO_8859_1"_s, EncodingIso88591);
     Encoding->const_set("ISO8859_1"_s, EncodingIso88591);
+
+    Value EncodingIso88592 = new Iso88592EncodingObject {};
+    Encoding->const_set("ISO_8859_2"_s, EncodingIso88592);
+    Encoding->const_set("ISO8859_2"_s, EncodingIso88592);
+
+    Value EncodingIso88593 = new Iso88593EncodingObject {};
+    Encoding->const_set("ISO_8859_3"_s, EncodingIso88593);
+    Encoding->const_set("ISO8859_3"_s, EncodingIso88593);
+
+    Value EncodingIso88594 = new Iso88594EncodingObject {};
+    Encoding->const_set("ISO_8859_4"_s, EncodingIso88594);
+    Encoding->const_set("ISO8859_4"_s, EncodingIso88594);
+
+    Value EncodingIso88595 = new Iso88595EncodingObject {};
+    Encoding->const_set("ISO_8859_5"_s, EncodingIso88595);
+    Encoding->const_set("ISO8859_5"_s, EncodingIso88595);
+
+    Value EncodingIso88596 = new Iso88596EncodingObject {};
+    Encoding->const_set("ISO_8859_6"_s, EncodingIso88596);
+    Encoding->const_set("ISO8859_6"_s, EncodingIso88596);
+
+    Value EncodingIso88597 = new Iso88597EncodingObject {};
+    Encoding->const_set("ISO_8859_7"_s, EncodingIso88597);
+    Encoding->const_set("ISO8859_7"_s, EncodingIso88597);
+
+    Value EncodingIso88598 = new Iso88598EncodingObject {};
+    Encoding->const_set("ISO_8859_8"_s, EncodingIso88598);
+    Encoding->const_set("ISO8859_8"_s, EncodingIso88598);
+
+    Value EncodingIso88599 = new Iso88599EncodingObject {};
+    Encoding->const_set("ISO_8859_9"_s, EncodingIso88599);
+    Encoding->const_set("ISO8859_9"_s, EncodingIso88599);
+
+    Value EncodingIso885910 = new Iso885910EncodingObject {};
+    Encoding->const_set("ISO_8859_10"_s, EncodingIso885910);
+    Encoding->const_set("ISO8859_10"_s, EncodingIso885910);
+
+    Value EncodingIso885911 = new Iso885911EncodingObject {};
+    Encoding->const_set("ISO_8859_11"_s, EncodingIso885911);
+    Encoding->const_set("ISO8859_11"_s, EncodingIso885911);
+
+    Value EncodingIso885912 = new Iso885912EncodingObject {};
+    Encoding->const_set("ISO_8859_12"_s, EncodingIso885912);
+    Encoding->const_set("ISO8859_12"_s, EncodingIso885912);
+
+    Value EncodingIso885913 = new Iso885913EncodingObject {};
+    Encoding->const_set("ISO_8859_13"_s, EncodingIso885913);
+    Encoding->const_set("ISO8859_13"_s, EncodingIso885913);
+
+    Value EncodingIso885914 = new Iso885914EncodingObject {};
+    Encoding->const_set("ISO_8859_14"_s, EncodingIso885914);
+    Encoding->const_set("ISO8859_14"_s, EncodingIso885914);
+
+    Value EncodingIso885915 = new Iso885915EncodingObject {};
+    Encoding->const_set("ISO_8859_15"_s, EncodingIso885915);
+    Encoding->const_set("ISO8859_15"_s, EncodingIso885915);
+
+    Value EncodingIso885916 = new Iso885916EncodingObject {};
+    Encoding->const_set("ISO_8859_16"_s, EncodingIso885916);
+    Encoding->const_set("ISO8859_16"_s, EncodingIso885916);
+
+    Value EncodingWindows1250 = new Windows1250EncodingObject {};
+    Encoding->const_set("Windows_1250"_s, EncodingWindows1250);
+    Encoding->const_set("CP1250"_s, EncodingWindows1250);
+    Value EncodingWindows1251 = new Windows1251EncodingObject {};
+    Encoding->const_set("Windows_1251"_s, EncodingWindows1251);
+    Encoding->const_set("CP1251"_s, EncodingWindows1251);
+    Value EncodingWindows1252 = new Windows1252EncodingObject {};
+    Encoding->const_set("Windows_1252"_s, EncodingWindows1252);
+    Encoding->const_set("CP1252"_s, EncodingWindows1252);
 
     // Must set defaults after the encodings are defined above.
     EncodingObject::initialize_defaults(env);

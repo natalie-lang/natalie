@@ -33,9 +33,7 @@ describe "Encoding.list" do
   end
 
   it "includes dummy encodings" do
-    NATFIXME 'Pending Implementation of any dummy encoding', exception: SpecFailedException do
-      Encoding.list.select { |e| e.dummy? }.should_not == []
-    end
+    Encoding.list.select { |e| e.dummy? }.should_not == []
   end
 
   it 'includes UTF-8 encoding' do

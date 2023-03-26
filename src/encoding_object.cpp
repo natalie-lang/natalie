@@ -173,6 +173,7 @@ ArrayObject *EncodingObject::list(Env *) {
     auto ary = new ArrayObject {};
     for (auto pair : s_encoding_list)
         ary->push(pair.second);
+    //dbg("size {} enccnt {}", ary->size(), EncodingCount);
     assert(ary->size() == EncodingCount);
     return ary;
 }
@@ -215,6 +216,8 @@ void EncodingObject::raise_encoding_invalid_byte_sequence_error(Env *env, const 
 }
 
 Value EncodingObject::inspect(Env *env) const {
+    if (is_dummy())
+        return StringObject::format("#<Encoding:{} (dummy)>", name());
     return StringObject::format("#<Encoding:{}>", name());
 }
 
