@@ -1,28 +1,27 @@
 class SystemCallError < StandardError
   
-  def initialize(desc=nil, errno=nil)
-    @desc = desc
+  def initialize(msg=nil, errno=nil, location=nil)
+    intmsg = location ? "#{msg} @ #{location}" : msg
+    super(intmsg)
     @errno = errno
-    super()
   end
   
   def self.exception(*args)
-    if args.size == 2
-      detail = args.first
-      num = args.last
-    elsif args.size == 1
-      detail = nil
-      num = args.first
-    else
-      # TODO: Ruby accepts 3 args??
-      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1..2)"
-    end
+    ordered_args = case args.size
+                   when 3 then args
+                   when 2 then [*args, nil]
+                   when 1 then [nil, args.first, nil]
+                   else
+                     raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1..3)"
+                   end
+    detail, num, location = ordered_args
 
-    klass_name, message = ERRORS.detect { |_, (n, _)| n == num }
+    klass_name, num_message_pair = ERRORS.detect { |_, (n, _)| n == num }
 
     if klass_name
+      message = num_message_pair.fetch(1)
       message = "#{message} - #{detail}" if detail
-      Errno.const_get(klass_name).new(message)
+      Errno.const_get(klass_name).new(message, num, location)
     else
       new("Unknown error #{num}")
     end
