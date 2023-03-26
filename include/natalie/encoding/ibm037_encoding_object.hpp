@@ -22,7 +22,7 @@ public:
         return (codepoint >= 0 && codepoint <= 0xFF);
     }
     virtual bool is_ascii_compatible() const override { return true; };
-    virtual bool is_dummy() const { return true; }
+    virtual bool is_dummy() const override { return true; }
 
     virtual std::pair<bool, StringView> prev_char(const String &string, size_t *index) const override;
     virtual std::pair<bool, StringView> next_char(const String &string, size_t *index) const override;
