@@ -19,13 +19,33 @@ class NameError < StandardError
     [] # documented as "for internal use only"
   end
 end
-    class NoMethodError < NameError; attr_reader :receiver; end
+
+class NoMethodError < NameError
+  attr_reader :args, :private_call?
+  def initialize(message=nil, name=nil, args=nil, priv=false, receiver: nil)
+    # TODO: Why is the next line broken with an ArgumentError? Feels like it should work.
+    #super(message, name, receiver: receiver)
+    super(message)
+    @name = name
+    @receiver = receiver
+    # Set instance variables on NoMethodError but not NameError
+    @args = args
+    instance_variable_set("@private_call?", !!priv)
+  end
+end
+
   class IOError < StandardError; end
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end
   class RegexpError < StandardError; end
   class RuntimeError < StandardError; end
-    class FrozenError < RuntimeError; end
+class FrozenError < RuntimeError
+  attr_reader :receiver
+  def initialize(message=nil, receiver: nil)
+    super(message)
+    @receiver = receiver
+  end
+end
   class TypeError < StandardError; end
   class ZeroDivisionError < StandardError; end
   class LoadError < StandardError; end

@@ -526,10 +526,14 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
 }
 
 SymbolObject *Object::to_instance_variable_name(Env *env) {
-    SymbolObject *symbol = to_symbol(env, Conversion::Strict);
+    SymbolObject *symbol = to_symbol(env, Conversion::Strict); // TypeError if not Symbol/String
 
     if (!symbol->is_ivar_name()) {
-        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
+        if (is_string()) {
+            env->raise_name_error(as_string(), "`{}' is not allowed as an instance variable name", symbol->string());
+        } else {
+            env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->string());
+        }
     }
 
     return symbol;
@@ -563,6 +567,7 @@ ClassObject *Object::singleton_class(Env *env) {
         singleton_superclass = m_klass;
     }
     auto new_singleton_class = new ClassObject { singleton_superclass };
+    if (is_frozen()) new_singleton_class->freeze();
     singleton_superclass->initialize_subclass_without_checks(new_singleton_class, env, name);
     set_singleton_class(new_singleton_class);
     if (is_frozen()) m_singleton_class->freeze();
@@ -1135,6 +1140,17 @@ void Object::assert_type(Env *env, Object::Type expected_type, const char *expec
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
         env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
+    }
+}
+
+void Object::assert_not_frozen(Env *env, Value receiver) {
+    if (is_frozen()) {
+        auto FrozenError = GlobalEnv::the()->Object()->const_fetch("FrozenError"_s);
+        String message = String::format("can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
+        auto kwargs = new HashObject(env, { "receiver"_s, receiver });
+        auto args = Args({ new StringObject { message }, kwargs }, true);
+        ExceptionObject *error = FrozenError.send(env, "new"_s, args)->as_exception();
+        env->raise_exception(error);
     }
 }
 

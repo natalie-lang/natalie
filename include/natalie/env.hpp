@@ -55,10 +55,17 @@ public:
     [[noreturn]] void raise_errno(StringObject *);
     [[noreturn]] void raise_no_method_error(Object *, SymbolObject *, MethodMissingReason);
     [[noreturn]] void raise_name_error(SymbolObject *name, String);
+    [[noreturn]] void raise_name_error(StringObject *name, String);
     [[noreturn]] void raise_not_comparable_error(Value lhs, Value rhs);
 
     template <typename... Args>
     [[noreturn]] void raise_name_error(SymbolObject *name, const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        raise_name_error(name, message);
+    }
+
+    template <typename... Args>
+    [[noreturn]] void raise_name_error(StringObject *name, const char *format, Args... args) {
         auto message = String::format(format, args...);
         raise_name_error(name, message);
     }
