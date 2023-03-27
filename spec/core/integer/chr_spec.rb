@@ -137,14 +137,11 @@ describe "Integer#chr without argument" do
           [0x0100, "BINARY"],
           [0x0100, "EUC-JP"],
           [0xA1A0, "EUC-JP"],
-          #[0x0100, "ISO-8859-9"],
+          [0x0100, "ISO-8859-9"],
           #[620,    "TIS-620"]
         ].each do |integer, encoding_name|
           Encoding.default_internal = Encoding.find(encoding_name)
           -> { integer.chr }.should raise_error(RangeError)
-        end
-        NATFIXME 'Implement ISO-8859-9 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
-          Encoding.default_internal = Encoding.find('ISO-8859-9')
         end
         NATFIXME 'Implement TIS-620 and restore it above', exception: ArgumentError do
           Encoding.default_internal = Encoding.find('TIS-620')
