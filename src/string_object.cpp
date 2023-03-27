@@ -189,12 +189,14 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
         auto last_codept = m_encoding->decode_codepoint(removed_char);
         if (last_codept == 0x0D) { // CR
             end_idx = char_pos;
-        } else if (last_codept == 0x0A && char_pos > 0) { // LF
+        } else if (last_codept == 0x0A) { // LF
             end_idx = char_pos;
-            removed_char = prev_char(&char_pos);
-            last_codept = m_encoding->decode_codepoint(removed_char);
-            if (last_codept == 0x0D) // CR
-                end_idx = char_pos;
+            if (char_pos > 0) {
+                removed_char = prev_char(&char_pos);
+                last_codept = m_encoding->decode_codepoint(removed_char);
+                if (last_codept == 0x0D) // CR
+                    end_idx = char_pos;
+            }
         }
 
         if (end_idx == m_string.length()) {

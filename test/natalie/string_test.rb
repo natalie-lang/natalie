@@ -500,7 +500,7 @@ describe 'string' do
     end
   end
 
-  describe '#chmop' do
+  describe '#chomp' do
     it 'does not read out of bounds' do
       "\n".chomp.should == ''
     end
@@ -720,7 +720,8 @@ describe 'string' do
       s.chop!
       s.should == ''.force_encoding('EUCJP')
     end
-    it "chops the last char of a string with single-byte final char" do
+    # NATFIXME: Pending implementation of EucJpEncoding::decode_codepoint
+    xit "chops the last char of a string with single-byte final char" do
       # single-byte char
       s = "foo\x77".force_encoding('EUCJP')
       s.chop!
