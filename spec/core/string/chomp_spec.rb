@@ -39,7 +39,11 @@ describe "String#chomp" do
     it "returns an empty String when self is empty" do
       "".chomp.should == ""
     end
-    
+
+    it "returns a String in the same encoding as self" do
+      "abc\n\n".encode("US-ASCII").chomp.encoding.should == Encoding::US_ASCII
+    end
+
     ruby_version_is ''...'3.0' do
       it "returns subclass instances when called on a subclass" do
         str = StringSpecs::MyString.new("hello\n").chomp
@@ -326,8 +330,6 @@ describe "String#chomp" do
     "あれ\r\n".chomp.should == "あれ"
   end
 
-  # String#encode throws errors when invoked with
-  # "utf-32be" as of Jun 22, 2022
   it "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
     str.chomp.should == "abc".encode("utf-32be")
@@ -361,16 +363,12 @@ describe "String#chomp!" do
 
   it "removes the final carriage return, newline from a non-ASCII String" do
     str = "abc\r\n".encode "utf-32be"
-    #NATFIXME 'handle multibyte characters', exception: SpecFailedException do
-      str.chomp!.should == "abc".encode("utf-32be")
-    #end
+    str.chomp!.should == "abc".encode("utf-32be")
   end
 
   it "removes the final carriage return, newline from a non-ASCII String when the record separator is changed" do
     $/ = "\n".encode("utf-8")
     str = "abc\r\n".encode "utf-32be"
-    #NATFIXME 'handle multibyte characters', exception: SpecFailedException do
-      str.chomp!.should == "abc".encode("utf-32be")
-    #end
+    str.chomp!.should == "abc".encode("utf-32be")
   end
 end
