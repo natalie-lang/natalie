@@ -173,7 +173,7 @@ ArrayObject *EncodingObject::list(Env *) {
     auto ary = new ArrayObject {};
     for (auto pair : s_encoding_list)
         ary->push(pair.second);
-    //dbg("size {} enccnt {}", ary->size(), EncodingCount);
+    // dbg("size {} enccnt {}", ary->size(), EncodingCount);
     assert(ary->size() == EncodingCount);
     return ary;
 }

@@ -65,7 +65,7 @@ nat_int_t ShiftJisEncodingObject::from_unicode_codepoint(nat_int_t codepoint) co
 String ShiftJisEncodingObject::encode_codepoint(nat_int_t codepoint) const {
     String buf;
     if (codepoint > 0xff) {
-        buf.append_char((codepoint & 0xff00) >> 8 );
+        buf.append_char((codepoint & 0xff00) >> 8);
         buf.append_char(codepoint & 0xff);
     } else {
         buf.append_char(codepoint);
