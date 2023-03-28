@@ -15,8 +15,8 @@ namespace Natalie {
 
 class SymbolObject : public Object {
 public:
-    static SymbolObject *intern(const char *, const size_t length);
-    static SymbolObject *intern(const String &);
+    static SymbolObject *intern(const char *, const size_t length, EncodingObject *encoding = nullptr);
+    static SymbolObject *intern(const String &, EncodingObject *encoding = nullptr);
 
     static ArrayObject *all_symbols(Env *);
     StringObject *to_s(Env *env) { return new StringObject { m_name }; }
@@ -65,13 +65,14 @@ public:
     Value ref(Env *, Value, Value);
 
     const String &string() const { return m_name; }
-    EncodingObject *encoding(Env *env) const { return name(env)->as_string()->encoding(); }
+    EncodingObject *encoding(Env *env) const { return m_encoding; }
 
     virtual String dbg_inspect() const override;
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
         visitor.visit(m_string);
+        visitor.visit(m_encoding);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -87,13 +88,18 @@ public:
 private:
     inline static TM::Hashmap<const TM::String, SymbolObject *> s_symbols { TM::HashType::TMString, 1000 };
 
-    SymbolObject(const String &name)
+    SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_name { name } { }
+        , m_name { name }
+        , m_encoding { encoding } {
+        if (m_encoding == nullptr) m_encoding = EncodingObject::default_internal();
+        if (m_encoding == nullptr) m_encoding = EncodingObject::default_external();
+    }
 
     const TM::String m_name {};
 
     StringObject *m_string = nullptr;
+    EncodingObject *m_encoding = nullptr;
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {

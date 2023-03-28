@@ -2,16 +2,16 @@
 
 namespace Natalie {
 
-SymbolObject *SymbolObject::intern(const char *name, const size_t length) {
+SymbolObject *SymbolObject::intern(const char *name, const size_t length, EncodingObject *encoding) {
     assert(name);
-    return intern(String(name, length));
+    return intern(String(name, length), encoding);
 }
 
-SymbolObject *SymbolObject::intern(const String &name) {
+SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding) {
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)
         return symbol;
-    symbol = new SymbolObject { name };
+    symbol = new SymbolObject { name, encoding };
     s_symbols.put(name, symbol);
     return symbol;
 }
