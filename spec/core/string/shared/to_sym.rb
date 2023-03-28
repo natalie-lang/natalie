@@ -42,18 +42,14 @@ describe :string_to_sym, shared: true do
   it "returns a UTF-16LE Symbol for a UTF-16LE String containing non US-ASCII characters" do
     utf16_str = "UtéF16".encode(Encoding::UTF_16LE)
     sym = utf16_str.send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      sym.encoding.should == Encoding::UTF_16LE
-    end
+    sym.encoding.should == Encoding::UTF_16LE
     sym.to_s.should == utf16_str
   end
 
   it "returns a binary Symbol for a binary String containing non US-ASCII characters" do
     binary_string = "binarí".b
     sym = binary_string.send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      sym.encoding.should == Encoding::BINARY
-    end
+    sym.encoding.should == Encoding::BINARY
     sym.to_s.should == binary_string
   end
 
@@ -61,9 +57,7 @@ describe :string_to_sym, shared: true do
     source = "fée"
 
     iso_symbol = source.force_encoding(Encoding::ISO_8859_1).send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      iso_symbol.encoding.should == Encoding::ISO_8859_1
-    end
+    iso_symbol.encoding.should == Encoding::ISO_8859_1
     binary_symbol = source.force_encoding(Encoding::BINARY).send(@method)
     NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
       binary_symbol.encoding.should == Encoding::BINARY
