@@ -65,6 +65,7 @@ public:
     Value ref(Env *, Value, Value);
 
     const String &string() const { return m_name; }
+    EncodingObject *encoding(Env *env) const { return name(env)->as_string()->encoding(); }
 
     virtual String dbg_inspect() const override;
 

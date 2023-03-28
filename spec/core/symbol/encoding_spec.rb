@@ -4,7 +4,7 @@ require_relative '../../spec_helper'
 
 describe "Symbol#encoding for ASCII symbols" do
   it "is US-ASCII" do
-    NATFIXME 'Implement Symbol#encoding', exception: NoMethodError, message: "undefined method `encoding'" do
+    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
       :foo.encoding.name.should == "US-ASCII"
     end
   end
@@ -18,9 +18,7 @@ end
 
 describe "Symbol#encoding for UTF-8 symbols" do
   it "is UTF-8" do
-    NATFIXME 'Implement Symbol#encoding', exception: NoMethodError, message: "undefined method `encoding'" do
-      :åäö.encoding.name.should == "UTF-8"
-    end
+    :åäö.encoding.name.should == "UTF-8"
   end
 
   it "is UTF-8 after converting to string" do
