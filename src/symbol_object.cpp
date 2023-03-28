@@ -24,6 +24,14 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
     return array;
 }
 
+StringObject *SymbolObject::to_s(Env *env) {
+    if (m_encoding == nullptr) {
+        return new StringObject { m_name };
+    } else {
+        return new StringObject { m_name, m_encoding };
+    }
+}
+
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = new StringObject { ":" };
     // FIXME: surely we can do this without a regex

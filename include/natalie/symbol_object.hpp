@@ -19,7 +19,7 @@ public:
     static SymbolObject *intern(const String &, EncodingObject *encoding = nullptr);
 
     static ArrayObject *all_symbols(Env *);
-    StringObject *to_s(Env *env) { return new StringObject { m_name }; }
+    StringObject *to_s(Env *);
     SymbolObject *to_sym(Env *env) { return this; }
     StringObject *inspect(Env *);
     SymbolObject *succ(Env *);

@@ -8,9 +8,7 @@ describe "Symbol#encoding for ASCII symbols" do
   end
 
   it "is US-ASCII after converting to string" do
-    NATFIXME 'Automatically encode input as US-ASCII if input is ascii compatible', exception: SpecFailedException do
-      :foo.to_s.encoding.name.should == "US-ASCII"
-    end
+    :foo.to_s.encoding.name.should == "US-ASCII"
   end
 end
 
