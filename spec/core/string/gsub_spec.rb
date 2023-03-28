@@ -553,7 +553,7 @@ describe "String#gsub with pattern and block" do
   it "replaces the incompatible part properly even if the encodings are not compatible" do
     s = "hllëllo"
 
-    NATFIXME 'Implement iso-8859-5 encoding', exception: ArgumentError, message: 'unknown encoding name' do
+    NATFIXME 'Not preserving encoding properly', exception: SpecFailedException do
       s.gsub(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
     end
   end

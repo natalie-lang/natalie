@@ -158,12 +158,12 @@ describe "File.basename" do
     File.basename('/path/Офис.m4a').should == "Офис.m4a"
   end
 
-  it "returns the basename with the same encoding as the original" do
-    NATFIXME 'Pending support for Encoding::Windows_1250', exception: NameError, message: 'uninitialized constant Encoding::Windows_1250' do
-      basename = File.basename('C:/Users/Scuby Pagrubý'.encode(Encoding::Windows_1250))
-      basename.should == 'Scuby Pagrubý'.encode(Encoding::Windows_1250)
-      basename.encoding.should == Encoding::Windows_1250
-    end
+  # NATFIXME: Encoding::Windows_1250 not currently handling outside of ascii range
+  # and encooding will trigger an assert()
+  xit "returns the basename with the same encoding as the original" do
+    basename = File.basename('C:/Users/Scuby Pagrubý'.encode(Encoding::Windows_1250))
+    basename.should == 'Scuby Pagrubý'.encode(Encoding::Windows_1250)
+    basename.encoding.should == Encoding::Windows_1250
   end
 
   it "returns a new unfrozen String" do

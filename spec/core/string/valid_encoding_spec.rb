@@ -40,48 +40,20 @@ describe "String#valid_encoding?" do
       str.force_encoding('GBK').valid_encoding?.should be_false
     end
     str.force_encoding('ISO-8859-1').valid_encoding?.should be_true
-    NATFIXME 'Implement ISO-8859-2 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-2').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-3 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-3').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-4 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-4').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-5 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-5').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-6 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-6').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-7 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-7').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-8 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-8').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-9 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-9').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-10 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-10').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-11 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-11').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-13 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-13').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-14 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-14').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-15 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-15').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement ISO-8859-16 encoding', exception: ArgumentError do
-      str.force_encoding('ISO-8859-16').valid_encoding?.should be_true
-    end
+    str.force_encoding('ISO-8859-2').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-3').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-4').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-5').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-6').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-7').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-8').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-9').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-10').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-11').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-13').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-14').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-15').valid_encoding?.should be_true
+    str.force_encoding('ISO-8859-16').valid_encoding?.should be_true
     NATFIXME 'Implement KOI8-R encoding', exception: ArgumentError do
       str.force_encoding('KOI8-R').valid_encoding?.should be_true
     end
@@ -95,56 +67,24 @@ describe "String#valid_encoding?" do
     "\x00\xD8".force_encoding('UTF-16LE').valid_encoding?.should be_false
     "\x04\x03\x02\x01".force_encoding('UTF-32BE').valid_encoding?.should be_false
     "\x01\x02\x03\x04".force_encoding('UTF-32LE').valid_encoding?.should be_false
-    NATFIXME 'Implement Windows-1251 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1251').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1251').valid_encoding?.should be_true
     str.force_encoding('IBM437').valid_encoding?.should be_true
-    NATFIXME 'Implement IMB737 encoding', exception: ArgumentError do
-      str.force_encoding('IBM737').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IMB775 encoding', exception: ArgumentError do
-      str.force_encoding('IBM775').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement CP850 encoding', exception: ArgumentError do
-      str.force_encoding('CP850').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM852 encoding', exception: ArgumentError do
-      str.force_encoding('IBM852').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement CP852 encoding', exception: ArgumentError do
-      str.force_encoding('CP852').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM855 encoding', exception: ArgumentError do
-      str.force_encoding('IBM855').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement CP855 encoding', exception: ArgumentError do
-      str.force_encoding('CP855').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM857 encoding', exception: ArgumentError do
-      str.force_encoding('IBM857').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM860 encoding', exception: ArgumentError do
-      str.force_encoding('IBM860').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM861 encoding', exception: ArgumentError do
-      str.force_encoding('IBM861').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM862 encoding', exception: ArgumentError do
-      str.force_encoding('IBM862').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM863 encoding', exception: ArgumentError do
-      str.force_encoding('IBM863').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM864 encoding', exception: ArgumentError do
-      str.force_encoding('IBM864').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement IBM865 encoding', exception: ArgumentError do
-      str.force_encoding('IBM865').valid_encoding?.should be_true
-    end
+    str.force_encoding('IBM737').valid_encoding?.should be_true
+    str.force_encoding('IBM775').valid_encoding?.should be_true
+    str.force_encoding('CP850').valid_encoding?.should be_true
+    str.force_encoding('IBM852').valid_encoding?.should be_true
+    str.force_encoding('CP852').valid_encoding?.should be_true
+    str.force_encoding('IBM855').valid_encoding?.should be_true
+    str.force_encoding('CP855').valid_encoding?.should be_true
+    str.force_encoding('IBM857').valid_encoding?.should be_true
+    str.force_encoding('IBM860').valid_encoding?.should be_true
+    str.force_encoding('IBM861').valid_encoding?.should be_true
+    str.force_encoding('IBM862').valid_encoding?.should be_true
+    str.force_encoding('IBM863').valid_encoding?.should be_true
+    str.force_encoding('IBM864').valid_encoding?.should be_true
+    str.force_encoding('IBM865').valid_encoding?.should be_true
     str.force_encoding('IBM866').valid_encoding?.should be_true
-    NATFIXME 'Implement IBM869 encoding', exception: ArgumentError do
-      str.force_encoding('IBM869').valid_encoding?.should be_true
-    end
+    str.force_encoding('IBM869').valid_encoding?.should be_true
     NATFIXME 'Implement Windows-1258 encoding', exception: ArgumentError do
       str.force_encoding('Windows-1258').valid_encoding?.should be_true
     end
@@ -205,12 +145,8 @@ describe "String#valid_encoding?" do
     NATFIXME 'Implement CP50221 encoding', exception: ArgumentError do
       str.force_encoding('CP50221').valid_encoding?.should be_true
     end
-    NATFIXME 'Implement Windows-1252 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1252').valid_encoding?.should be_true
-    end
-    NATFIXME 'Implement Windows-1250 encoding', exception: ArgumentError do
-      str.force_encoding('Windows-1250').valid_encoding?.should be_true
-    end
+    str.force_encoding('Windows-1252').valid_encoding?.should be_true
+    str.force_encoding('Windows-1250').valid_encoding?.should be_true
     NATFIXME 'Implement Windows-1256 encoding', exception: ArgumentError do
       str.force_encoding('Windows-1256').valid_encoding?.should be_true
     end
@@ -249,10 +185,8 @@ describe "String#valid_encoding?" do
   ruby_version_is '3.0' do
     it "returns true for IBM720 encoding self is valid in" do
       str = "\xE6\x9D\x94"
-      NATFIXME 'Implement IBM720 encoding', exception: ArgumentError, message: 'unknown encoding name - "IBM720"' do
-        str.force_encoding('IBM720').valid_encoding?.should be_true
-        str.force_encoding('CP720').valid_encoding?.should be_true
-      end
+      str.force_encoding('IBM720').valid_encoding?.should be_true
+      str.force_encoding('CP720').valid_encoding?.should be_true
     end
   end
 
