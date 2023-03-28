@@ -59,7 +59,7 @@ describe :string_to_sym, shared: true do
     iso_symbol = source.force_encoding(Encoding::ISO_8859_1).send(@method)
     iso_symbol.encoding.should == Encoding::ISO_8859_1
     binary_symbol = source.force_encoding(Encoding::BINARY).send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
+    NATFIXME 'Symbol lookup (s_symbols) does not check encoding', exception: SpecFailedException do
       binary_symbol.encoding.should == Encoding::BINARY
     end
   end
