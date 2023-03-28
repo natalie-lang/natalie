@@ -22,6 +22,9 @@ module Natalie
             ast = Natalie::Parser.new(cmd, '(repl)').ast
           rescue Parser::IncompleteExpression
             next :continue
+          rescue SyntaxError => e
+            STDERR.puts e
+            next :next
           end
 
           next :continue if ast == s(:block)
