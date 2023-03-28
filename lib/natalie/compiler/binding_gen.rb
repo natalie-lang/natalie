@@ -133,28 +133,37 @@ class BindingGen
 
     def write_function
       type = cpp_class == 'Object' ? 'Value ' : "#{cpp_class} *"
-      puts <<-FUNC
-Value #{name}(Env *env, Value self_value, Args args, Block *block) {
-    #{pop_kwargs}
-    #{argc_assertion}
-    #{kwargs_assertion}
-    #{type}self = #{as_type 'self_value'};
-    auto return_value = self->#{cpp_method}(#{args_to_pass});
-    #{return_code}
-}\n
+      body = <<-FUNC
+#{pop_kwargs}
+#{argc_assertion}
+#{kwargs_assertion}
+#{type}self = #{as_type 'self_value'};
+auto return_value = self->#{cpp_method}(#{args_to_pass});
+#{return_code}
       FUNC
+      format_function_body(body)
+      puts "Value #{name}(Env *env, Value self_value, Args args, Block *block) {\n#{body}\n}\n\n"
     end
 
     def write_static_function
-      puts <<-FUNC
-Value #{name}(Env *env, Value klass, Args args, Block *block) {
-    #{pop_kwargs}
-    #{argc_assertion}
-    #{kwargs_assertion}
-    auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
-    #{return_code}
-}\n
+      body = <<-FUNC
+#{pop_kwargs}
+#{argc_assertion}
+#{kwargs_assertion}
+auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
+#{return_code}
       FUNC
+      format_function_body(body)
+      puts "Value #{name}(Env *env, Value klass, Args args, Block *block) {\n#{body}\n}\n\n"
+    end
+
+    def format_function_body(body)
+      # Delete empty lines
+      body.chomp!
+      body.gsub! /^\n/, ''
+
+      # Add indentation
+      body.gsub! /^/, ' ' * 4
     end
 
     def args_to_pass
