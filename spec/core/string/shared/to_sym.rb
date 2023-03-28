@@ -23,17 +23,13 @@ describe :string_to_sym, shared: true do
 
   it "returns a US-ASCII Symbol for a UTF-8 String containing only US-ASCII characters" do
     sym = "foobar".send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      sym.encoding.should == Encoding::US_ASCII
-    end
+    sym.encoding.should == Encoding::US_ASCII
     sym.should equal :"foobar"
   end
 
   it "returns a US-ASCII Symbol for a binary String containing only US-ASCII characters" do
     sym = "foobar".b.send(@method)
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      sym.encoding.should == Encoding::US_ASCII
-    end
+    sym.encoding.should == Encoding::US_ASCII
     sym.should equal :"foobar"
   end
 

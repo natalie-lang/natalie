@@ -94,6 +94,14 @@ private:
         , m_encoding { encoding } {
         if (m_encoding == nullptr) m_encoding = EncodingObject::default_internal();
         if (m_encoding == nullptr) m_encoding = EncodingObject::default_external();
+
+        if (m_encoding != nullptr && m_encoding->is_ascii_compatible()) {
+            bool all_ascii = true;
+            for (size_t i = 0; all_ascii && i < name.length(); i++) {
+                if (name[i] < 0) all_ascii = false;
+            }
+            if (all_ascii) m_encoding = EncodingObject::get(Encoding::US_ASCII);
+        }
     }
 
     const TM::String m_name {};

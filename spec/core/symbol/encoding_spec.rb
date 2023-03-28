@@ -4,9 +4,7 @@ require_relative '../../spec_helper'
 
 describe "Symbol#encoding for ASCII symbols" do
   it "is US-ASCII" do
-    NATFIXME 'Implement Symbol#encoding', exception: SpecFailedException do
-      :foo.encoding.name.should == "US-ASCII"
-    end
+    :foo.encoding.name.should == "US-ASCII"
   end
 
   it "is US-ASCII after converting to string" do
