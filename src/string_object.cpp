@@ -184,13 +184,19 @@ Value StringObject::chomp_in_place(Env *env, Value record_separator) {
     String global_record_separator = env->global_get("$/"_s)->as_string()->string();
     // When using default record separator, also remove trailing \r
     if (record_separator.is_null() && global_record_separator == "\n") {
-        if (m_string.at(end_idx - 1) == '\r') {
-            --end_idx;
-        } else if (m_string.at(end_idx - 1) == '\n') {
-            if (end_idx > 1 && m_string.at(end_idx - 2) == '\r') {
-                --end_idx;
+        size_t char_pos = end_idx;
+        auto removed_char = prev_char(&char_pos);
+        auto last_codept = m_encoding->decode_codepoint(removed_char);
+        if (last_codept == 0x0D) { // CR
+            end_idx = char_pos;
+        } else if (last_codept == 0x0A) { // LF
+            end_idx = char_pos;
+            if (char_pos > 0) {
+                removed_char = prev_char(&char_pos);
+                last_codept = m_encoding->decode_codepoint(removed_char);
+                if (last_codept == 0x0D) // CR
+                    end_idx = char_pos;
             }
-            --end_idx;
         }
 
         if (end_idx == m_string.length()) {
@@ -2825,13 +2831,15 @@ Value StringObject::chop_in_place(Env *env) {
 
     size_t byte_index = length();
     auto removed_char = prev_char(&byte_index);
-
-    if (removed_char == "\n" && byte_index > 0 && m_string[byte_index - 1] == '\r') {
-        prev_char(&byte_index);
+    auto last_codept = m_encoding->decode_codepoint(removed_char);
+    if (last_codept == 0x0A && byte_index > 0) { // LINE_FEED codepoint 0x0A - "\n"
+        auto slashr_byte_index = byte_index;
+        removed_char = prev_char(&slashr_byte_index);
+        last_codept = m_encoding->decode_codepoint(removed_char);
+        if (last_codept == 0x0D) // CARRIAGE_RETURN codepoint 0x0D - "\r"
+            byte_index = slashr_byte_index;
     }
-
     m_string.truncate(byte_index);
-
     return this;
 }
 
