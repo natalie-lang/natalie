@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-SymbolObject *SymbolObject::intern(const char *name, size_t length) {
+SymbolObject *SymbolObject::intern(const char *name, const size_t length) {
     assert(name);
     return intern(String(name, length));
 }
