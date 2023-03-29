@@ -66,6 +66,7 @@ module Kernel
     format = fmt.chars
     result = []
     positional_args_used = false
+    default_precision = 6
 
     # Get non-exclusive flags that occur after a leading '%'
     # but before the width field
@@ -150,7 +151,7 @@ module Kernel
 
       case format_char
       # Integer Type Specifiers
-      when 'b', 'B', 'd', 'i', 'u', 'o', 'x', 'X'
+      when 'b', 'B', 'd', 'f', 'i', 'u', 'o', 'x', 'X'
         arg = get_arg.()
         localresult = ""
         if arg > 0
@@ -166,6 +167,24 @@ module Kernel
           localresult << arg.to_s(2)
         when 'd', 'i', 'u'
           localresult << arg.to_s
+        when 'f'
+          s = arg.to_s
+          precision ||= default_precision
+          if (decimal = s.index('.'))
+            decimal_digits = s.size - decimal - 1
+          else
+            s << '.0'
+            decimal_digits = 1
+          end
+          while decimal_digits < precision
+            s << '0'
+            decimal_digits += 1
+          end
+          while decimal_digits > precision
+            s.chop!
+            decimal_digits -= 1
+          end
+          localresult << s
         when 'o'
           localresult << '0' if flags.include?(:alter)
           localresult << arg.to_s(8)
