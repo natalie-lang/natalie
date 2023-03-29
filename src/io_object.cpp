@@ -27,6 +27,11 @@ int IoObject::fileno(Env *env) const {
     return m_fileno;
 }
 
+bool IoObject::isatty(Env *env) const {
+    raise_if_closed(env);
+    return ::isatty(m_fileno) == 1;
+}
+
 Value IoObject::read_file(Env *env, Value filename) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();

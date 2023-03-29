@@ -853,6 +853,7 @@ gen.binding('IO', 'close', 'IoObject', 'close', argc: 0, pass_env: true, pass_bl
 gen.binding('IO', 'closed?', 'IoObject', 'is_closed', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('IO', 'initialize', 'IoObject', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'isatty', 'IoObject', 'isatty', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'print', 'IoObject', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'gets', 'IoObject', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'puts', 'IoObject', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
@@ -860,6 +861,7 @@ gen.binding('IO', 'read', 'IoObject', 'read', argc: 0..1, pass_env: true, pass_b
 gen.binding('IO', 'seek', 'IoObject', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'stat', 'IoObject', 'stat', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'to_i', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :int)
+gen.binding('IO', 'tty?', 'IoObject', 'isatty', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'write', 'IoObject', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 
 gen.module_function_binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

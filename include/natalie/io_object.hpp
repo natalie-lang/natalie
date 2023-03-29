@@ -54,6 +54,7 @@ public:
 
     Value append(Env *, Value);
     Value initialize(Env *, Value);
+    bool isatty(Env *) const;
     Value read(Env *, Value) const;
     Value write(Env *, Args) const;
     Value gets(Env *) const;
