@@ -14,6 +14,19 @@ Value IoObject::initialize(Env *env, Value file_number) {
     return this;
 }
 
+void IoObject::raise_if_closed(Env *env) const {
+    if (m_closed) env->raise("IOError", "closed stream");
+}
+
+int IoObject::fileno() const {
+    return m_fileno;
+}
+
+int IoObject::fileno(Env *env) const {
+    raise_if_closed(env);
+    return m_fileno;
+}
+
 Value IoObject::read_file(Env *env, Value filename) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
@@ -234,7 +247,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
 
 Value IoObject::stat(Env *env) const {
     struct stat sb;
-    auto file_desc = fileno(); // current file descriptor
+    auto file_desc = fileno(env); // current file descriptor
     int result = ::fstat(file_desc, &sb);
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };

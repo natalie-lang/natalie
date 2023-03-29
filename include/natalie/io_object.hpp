@@ -48,8 +48,8 @@ public:
 
     static Value read_file(Env *, Value);
     static Value write_file(Env *, Value, Value);
-
-    int fileno() const { return m_fileno; }
+    int fileno() const;
+    int fileno(Env *) const;
     void set_fileno(int fileno) { m_fileno = fileno; }
 
     Value append(Env *, Value);
@@ -78,6 +78,7 @@ public:
 
 protected:
     int write(Env *, Value) const;
+    void raise_if_closed(Env *) const;
 
 private:
     EncodingObject *m_external_encoding { nullptr };
