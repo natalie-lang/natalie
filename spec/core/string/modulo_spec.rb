@@ -148,7 +148,7 @@ describe "String#%" do
     -> { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
-  xit "respects positional arguments and precision tokens given for one format specifier" do
+  it "respects positional arguments and precision tokens given for one format specifier" do
     ("%2$1d" % [1, 0]).should == "0"
     ("%2$1d" % [0, 1]).should == "1"
 
@@ -479,7 +479,7 @@ describe "String#%" do
     ("%010E" % Float::NAN).should == "       NaN"
   end
 
-  xit "supports float formats using %f" do
+  it "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
     ("%1$f" % 10).should == "10.000000"
