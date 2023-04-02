@@ -14,6 +14,24 @@ Value IoObject::initialize(Env *env, Value file_number) {
     return this;
 }
 
+void IoObject::raise_if_closed(Env *env) const {
+    if (m_closed) env->raise("IOError", "closed stream");
+}
+
+int IoObject::fileno() const {
+    return m_fileno;
+}
+
+int IoObject::fileno(Env *env) const {
+    raise_if_closed(env);
+    return m_fileno;
+}
+
+bool IoObject::isatty(Env *env) const {
+    raise_if_closed(env);
+    return ::isatty(m_fileno) == 1;
+}
+
 Value IoObject::read_file(Env *env, Value filename) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
@@ -34,8 +52,7 @@ Value IoObject::write_file(Env *env, Value filename, Value string) {
 #define NAT_READ_BYTES 1024
 
 Value IoObject::read(Env *env, Value count_value) const {
-    if (m_closed)
-        env->raise("IOError", "closed stream");
+    raise_if_closed(env);
     size_t bytes_read;
     if (count_value) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
@@ -67,8 +84,7 @@ Value IoObject::read(Env *env, Value count_value) const {
 }
 
 Value IoObject::append(Env *env, Value obj) {
-    if (is_closed())
-        env->raise("IOError", "cannot read closed stream");
+    raise_if_closed(env);
     if (!obj->is_string() && obj->respond_to(env, "to_str"_s))
         obj = obj.send(env, "to_s"_s);
     obj->assert_type(env, Object::Type::String, "String");
@@ -78,8 +94,7 @@ Value IoObject::append(Env *env, Value obj) {
 }
 
 int IoObject::write(Env *env, Value obj) const {
-    if (is_closed())
-        env->raise("IOError", "cannot write closed stream");
+    raise_if_closed(env);
     if (obj->type() != Object::Type::String) {
         obj = obj.send(env, "to_s"_s);
     }
@@ -105,8 +120,7 @@ Value IoObject::write(Env *env, Args args) const {
 
 // NATFIXME: Make this spec compliant and maybe more performant?
 Value IoObject::gets(Env *env) const {
-    if (is_closed())
-        env->raise("IOError", "cannot read closed stream");
+    raise_if_closed(env);
     char buffer[NAT_READ_BYTES + 1];
     size_t index;
     for (index = 0; index < NAT_READ_BYTES; ++index) {
@@ -234,7 +248,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
 
 Value IoObject::stat(Env *env) const {
     struct stat sb;
-    auto file_desc = fileno(); // current file descriptor
+    auto file_desc = fileno(env); // current file descriptor
     int result = ::fstat(file_desc, &sb);
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };
