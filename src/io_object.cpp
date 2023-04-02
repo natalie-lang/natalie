@@ -253,5 +253,19 @@ Value IoObject::stat(Env *env) const {
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };
 }
+IoObject *IoObject::to_io(Env *env) {
+    return this->as_io();
+}
+
+Value IoObject::try_convert(Env *env, Value val) {
+    if (val->is_io()) {
+        return val;
+    } else if (val->respond_to(env, "to_io"_s)) {
+        val = val->send(env, "to_io"_s);
+        val->assert_type(env, Object::Type::Io, "IO");
+        return val;
+    }
+    return NilObject::the();
+}
 
 }

@@ -70,6 +70,8 @@ public:
     Value stat(Env *) const;
     bool is_closed() const { return m_closed; }
 
+    IoObject *to_io(Env *);
+    static Value try_convert(Env *, Value);
     void set_external_encoding(Env *env, EncodingObject *enc) {
         m_external_encoding = enc;
     }

@@ -847,6 +847,7 @@ gen.binding('Integer', '|', 'IntegerObject', 'bitwise_or', argc: 1, pass_env: tr
 gen.binding('Integer', 'zero?', 'IntegerObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 
 gen.static_binding('IO', 'read', 'IoObject', 'read_file', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'write', 'IoObject', 'write_file', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', '<<', 'IoObject', 'append', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'close', 'IoObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -861,6 +862,7 @@ gen.binding('IO', 'read', 'IoObject', 'read', argc: 0..1, pass_env: true, pass_b
 gen.binding('IO', 'seek', 'IoObject', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'stat', 'IoObject', 'stat', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'to_i', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :int)
+gen.binding('IO', 'to_io', 'IoObject', 'to_io', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'tty?', 'IoObject', 'isatty', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'write', 'IoObject', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 
