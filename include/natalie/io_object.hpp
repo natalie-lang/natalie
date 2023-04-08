@@ -79,6 +79,10 @@ public:
         m_internal_encoding = enc;
     }
 
+    int rewind(Env *);
+    int set_pos(Env *, Value);
+    int pos(Env *);
+
 protected:
     int write(Env *, Value) const;
     void raise_if_closed(Env *) const;
