@@ -211,8 +211,8 @@ Value IoObject::close(Env *env) {
 }
 
 Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
-    amount_value->assert_type(env, Object::Type::Integer, "Integer");
-    int amount = amount_value->as_integer()->to_nat_int_t();
+    raise_if_closed(env);
+    nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
     int whence = 0;
     if (whence_value) {
         switch (whence_value->type()) {
@@ -237,13 +237,9 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
         }
     }
     int result = lseek(m_fileno, amount, whence);
-    if (result == -1) {
-        Value error_number = Value::integer(errno);
-        ExceptionObject *error = find_top_level_const(env, "SystemCallError"_s).send(env, "exception"_s, { error_number })->as_exception();
-        env->raise_exception(error);
-    } else {
-        return Value::integer(0);
-    }
+    if (result == -1)
+        env->raise_errno();
+    return Value::integer(0);
 }
 
 Value IoObject::stat(Env *env) const {
@@ -252,6 +248,46 @@ Value IoObject::stat(Env *env) const {
     int result = ::fstat(file_desc, &sb);
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };
+}
+
+IoObject *IoObject::to_io(Env *env) {
+    return this->as_io();
+}
+
+Value IoObject::try_convert(Env *env, Value val) {
+    if (val->is_io()) {
+        return val;
+    } else if (val->respond_to(env, "to_io"_s)) {
+        val = val->send(env, "to_io"_s);
+        val->assert_type(env, Object::Type::Io, "IO");
+        return val;
+    }
+    return NilObject::the();
+}
+
+int IoObject::rewind(Env *env) {
+    raise_if_closed(env);
+    errno = 0;
+    auto result = ::lseek(m_fileno, 0, SEEK_SET);
+    if (result < 0 && errno) env->raise_errno();
+    return 0;
+}
+
+int IoObject::set_pos(Env *env, Value position) {
+    raise_if_closed(env);
+    nat_int_t offset = IntegerObject::convert_to_nat_int_t(env, position);
+    errno = 0;
+    auto result = ::lseek(m_fileno, offset, SEEK_SET);
+    if (result < 0 && errno) env->raise_errno();
+    return result;
+}
+
+int IoObject::pos(Env *env) {
+    raise_if_closed(env);
+    errno = 0;
+    auto result = ::lseek(m_fileno, 0, SEEK_CUR);
+    if (result < 0 && errno) env->raise_errno();
+    return result;
 }
 
 }

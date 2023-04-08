@@ -72,7 +72,7 @@ module Kernel
     # but before the width field
     get_flags = ->(format_chars, index) {
       flags = []
-      while [' ', '#', '-', '+', '0' ,'*'].include?(format_chars[index])
+      while [' ', '#', '-', '+', '0', '*'].include?(format_chars[index])
         case format_chars[index]
         when ' ' then flags << :space
         when '#' then flags << :alter
@@ -288,6 +288,11 @@ module Kernel
     result.join
   end
 
+  # NATFIXME: the ... syntax doesnt appear to pass the block
+  def open(*a, **kw, &blk)
+    File.open(*a, **kw, &blk)
+  end
+
   alias format sprintf
 
   def printf(*args)
@@ -297,5 +302,4 @@ module Kernel
       args[0].write(sprintf(*args[1..]))
     end
   end
-
 end
