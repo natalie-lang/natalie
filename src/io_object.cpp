@@ -27,6 +27,22 @@ int IoObject::fileno(Env *env) const {
     return m_fileno;
 }
 
+// TODO: check if this IO is writable
+int IoObject::fsync(Env *env) {
+    raise_if_closed(env);
+    if (::fsync(m_fileno) < 0) env->raise_errno();
+    return 0;
+}
+
+Value IoObject::getbyte(Env *env) {
+    raise_if_closed(env);
+    unsigned char buffer;
+    int result = ::read(m_fileno, &buffer, 1);
+    if (result < 0) env->raise_errno();
+    if (result == 0) return NilObject::the(); // eof case
+    return Value::integer(buffer);
+}
+
 bool IoObject::isatty(Env *env) const {
     raise_if_closed(env);
     return ::isatty(m_fileno) == 1;
@@ -287,6 +303,16 @@ int IoObject::pos(Env *env) {
     errno = 0;
     auto result = ::lseek(m_fileno, 0, SEEK_CUR);
     if (result < 0 && errno) env->raise_errno();
+    return result;
+}
+
+// This is a variant of gets that raises EOFError
+// NATFIXME: Add arguments and chomp kwarg when those features are
+//  added to IOObject::gets()
+Value IoObject::readline(Env *env) const {
+    auto result = gets(env);
+    if (result->is_nil())
+        env->raise("EOFError", "end of file reached");
     return result;
 }
 
