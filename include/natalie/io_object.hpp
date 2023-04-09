@@ -46,6 +46,7 @@ public:
         return Value(NilObject::the());
     }
 
+    Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
     Value close(Env *);
     int fileno() const;

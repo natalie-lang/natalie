@@ -18,6 +18,32 @@ void IoObject::raise_if_closed(Env *env) const {
     if (m_closed) env->raise("IOError", "closed stream");
 }
 
+Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
+    raise_if_closed(env);
+    advice->assert_type(env, Object::Type::Symbol, "Symbol");
+    int advice_i = 0;
+    if (advice == "normal"_s) {
+        advice_i = POSIX_FADV_NORMAL;
+    } else if (advice == "sequential"_s) {
+        advice_i = POSIX_FADV_SEQUENTIAL;
+    } else if (advice == "random"_s) {
+        advice_i = POSIX_FADV_RANDOM;
+    } else if (advice == "noreuse"_s) {
+        advice_i = POSIX_FADV_NOREUSE;
+    } else if (advice == "willneed"_s) {
+        advice_i = POSIX_FADV_WILLNEED;
+    } else if (advice == "dontneed"_s) {
+        advice_i = POSIX_FADV_DONTNEED;
+    } else {
+        env->raise("NotImplementedError", "unsupported advice type {}", advice);
+    }
+    nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, offset);
+    nat_int_t len_i = (len == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, len);
+    if (::posix_fadvise(m_fileno, offset_i, len_i, advice_i) != 0)
+        env->raise_errno();
+    return NilObject::the();
+}
+
 int IoObject::fileno() const {
     return m_fileno;
 }
@@ -111,17 +137,11 @@ Value IoObject::append(Env *env, Value obj) {
 
 int IoObject::write(Env *env, Value obj) const {
     raise_if_closed(env);
-    if (obj->type() != Object::Type::String) {
-        obj = obj.send(env, "to_s"_s);
-    }
+    obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
     int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
-    if (result == -1) {
-        Value error_number = Value::integer(errno);
-        auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
-        ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
-        env->raise_exception(error);
-    }
+    if (result == -1)
+        env->raise_errno();
     return result;
 }
 

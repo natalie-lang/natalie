@@ -850,6 +850,7 @@ gen.static_binding('IO', 'read', 'IoObject', 'read_file', argc: 1, pass_env: tru
 gen.static_binding('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'write', 'IoObject', 'write_file', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', '<<', 'IoObject', 'append', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'advise', 'IoObject', 'advise', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'close', 'IoObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'closed?', 'IoObject', 'is_closed', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :int)
