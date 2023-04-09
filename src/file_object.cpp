@@ -141,7 +141,7 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
         int fileno = ::open(filename->as_string()->c_str(), flags, modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
-        set_path(filename->as_string()->string());
+        set_path(filename->as_string());
         return this;
     }
 }
@@ -576,6 +576,7 @@ Value FileObject::umask(Env *env, Value mask) {
     return Value::integer(old_mask);
 }
 
+// class method
 StringObject *FileObject::path(Env *env, Value pathname) {
     return fileutil::convert_using_to_path(env, pathname);
 }
@@ -603,7 +604,7 @@ Value FileObject::lstat(Env *env, Value path) {
 // instance method
 Value FileObject::lstat(Env *env) const {
     struct stat sb;
-    int result = ::stat(path().c_str(), &sb);
+    int result = ::stat(get_path()->as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno();
     return new FileStatObject { sb };
 }

@@ -49,6 +49,7 @@ public:
     Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
     Value close(Env *);
+    int fdatasync(Env *);
     int fileno() const;
     int fileno(Env *) const;
     int fsync(Env *);
@@ -83,6 +84,10 @@ public:
     Value write(Env *, Args) const;
     static Value write_file(Env *, Value, Value);
 
+    Value get_path() const;
+    void set_path(StringObject *path) { m_path = path; }
+    void set_path(String path) { m_path = new StringObject { path }; }
+
 protected:
     void raise_if_closed(Env *) const;
     int write(Env *, Value) const;
@@ -92,6 +97,7 @@ private:
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     bool m_closed { false };
+    Value m_path { nullptr };
 };
 
 }

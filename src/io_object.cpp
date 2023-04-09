@@ -53,6 +53,12 @@ int IoObject::fileno(Env *env) const {
     return m_fileno;
 }
 
+int IoObject::fdatasync(Env *env) {
+    raise_if_closed(env);
+    if (::fdatasync(m_fileno) < 0) env->raise_errno();
+    return 0;
+}
+
 // TODO: check if this IO is writable
 int IoObject::fsync(Env *env) {
     raise_if_closed(env);
@@ -169,6 +175,12 @@ Value IoObject::gets(Env *env) const {
     auto line = new StringObject { buffer, index + 1 };
     env->set_last_line(line);
     return line;
+}
+
+Value IoObject::get_path() const {
+    if (m_path == nullptr)
+        return NilObject::the();
+    return m_path;
 }
 
 void IoObject::putstr(Env *env, StringObject *str) {
