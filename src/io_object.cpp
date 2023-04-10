@@ -21,7 +21,10 @@ void IoObject::raise_if_closed(Env *env) const {
 Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     raise_if_closed(env);
     advice->assert_type(env, Object::Type::Symbol, "Symbol");
+    nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, offset);
+    nat_int_t len_i = (len == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, len);
     int advice_i = 0;
+#ifdef __linux__
     if (advice == "normal"_s) {
         advice_i = POSIX_FADV_NORMAL;
     } else if (advice == "sequential"_s) {
@@ -35,12 +38,20 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     } else if (advice == "dontneed"_s) {
         advice_i = POSIX_FADV_DONTNEED;
     } else {
-        env->raise("NotImplementedError", "unsupported advice type {}", advice);
+        env->raise("NotImplementedError", "Unsupported advice: {}", advice);
     }
-    nat_int_t offset_i = (offset == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, offset);
-    nat_int_t len_i = (len == nullptr) ? 0 : IntegerObject::convert_to_nat_int_t(env, len);
     if (::posix_fadvise(m_fileno, offset_i, len_i, advice_i) != 0)
         env->raise_errno();
+#else
+    if (advice != "normal"_s &&
+        advice != "sequential"_s &&
+        advice != "random"_s &&
+        advice != "noreuse"_s &&
+        advice != "willneed"_s &&
+        advice != "dontneed"_s) {
+        env->raise("NotImplementedError", "Unsupported advice: {}", advice->as_symbol()->string());
+    }
+#endif    
     return NilObject::the();
 }
 
