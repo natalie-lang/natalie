@@ -248,10 +248,7 @@ Value IoObject::close(Env *env) {
         return NilObject::the();
     int result = ::close(m_fileno);
     if (result == -1) {
-        Value error_number = Value::integer(errno);
-        auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
-        ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
-        env->raise_exception(error);
+        env->raise_errno();
     } else {
         m_closed = true;
         return NilObject::the();
