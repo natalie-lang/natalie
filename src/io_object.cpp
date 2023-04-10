@@ -43,15 +43,10 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     if (::posix_fadvise(m_fileno, offset_i, len_i, advice_i) != 0)
         env->raise_errno();
 #else
-    if (advice != "normal"_s &&
-        advice != "sequential"_s &&
-        advice != "random"_s &&
-        advice != "noreuse"_s &&
-        advice != "willneed"_s &&
-        advice != "dontneed"_s) {
+    if (advice != "normal"_s && advice != "sequential"_s && advice != "random"_s && advice != "noreuse"_s && advice != "willneed"_s && advice != "dontneed"_s) {
         env->raise("NotImplementedError", "Unsupported advice: {}", advice->as_symbol()->string());
     }
-#endif    
+#endif
     return NilObject::the();
 }
 
@@ -66,7 +61,9 @@ int IoObject::fileno(Env *env) const {
 
 int IoObject::fdatasync(Env *env) {
     raise_if_closed(env);
+#ifdef __linux__
     if (::fdatasync(m_fileno) < 0) env->raise_errno();
+#endif
     return 0;
 }
 
