@@ -175,9 +175,7 @@ describe "String#upcase!" do
     it "currently works the same as full Unicode case mapping" do
       a = "iß"
       a.upcase!(:lithuanian)
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        a.should == "ISS"
-      end
+      a.should == "ISS"
     end
 
     it "allows Turkic as an extra option (and applies Turkic semantics)" do

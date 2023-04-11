@@ -5,8 +5,6 @@
 
 require 'open-uri'
 
-EMPTY_BLOCK = [0] * 256
-
 def generate_function(name, statuses, data)
   puts "Value EncodingObject::#{name}(nat_int_t codepoint) {"
   puts '    switch (codepoint) {'

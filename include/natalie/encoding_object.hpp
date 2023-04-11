@@ -85,6 +85,16 @@ public:
     static Value casefold_full(nat_int_t codepoint);
     static Value casefold_simple(nat_int_t codepoint);
 
+    enum class SpecialCasingFlag {
+        Az = 0b10000000000000000,
+        Lt = 0b100000000000000000,
+        Tr = 0b1000000000000000000,
+    };
+
+    static Value specialcasing_lowercase(nat_int_t codepoint);
+    static Value specialcasing_uppercase(nat_int_t codepoint);
+    static Value specialcasing_titlecase(nat_int_t codepoint);
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingObject %p>", this);
     }
