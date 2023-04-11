@@ -10,368 +10,718 @@ namespace Natalie {
 
 Value EncodingObject::specialcasing_lowercase(nat_int_t codepoint) {
     switch (codepoint) {
-        case 0x00DF: return Value::integer(0x00DF);
-        case 0x0130: return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307) });
-        case 0xFB00: return Value::integer(0xFB00);
-        case 0xFB01: return Value::integer(0xFB01);
-        case 0xFB02: return Value::integer(0xFB02);
-        case 0xFB03: return Value::integer(0xFB03);
-        case 0xFB04: return Value::integer(0xFB04);
-        case 0xFB05: return Value::integer(0xFB05);
-        case 0xFB06: return Value::integer(0xFB06);
-        case 0x0587: return Value::integer(0x0587);
-        case 0xFB13: return Value::integer(0xFB13);
-        case 0xFB14: return Value::integer(0xFB14);
-        case 0xFB15: return Value::integer(0xFB15);
-        case 0xFB16: return Value::integer(0xFB16);
-        case 0xFB17: return Value::integer(0xFB17);
-        case 0x0149: return Value::integer(0x0149);
-        case 0x0390: return Value::integer(0x0390);
-        case 0x03B0: return Value::integer(0x03B0);
-        case 0x01F0: return Value::integer(0x01F0);
-        case 0x1E96: return Value::integer(0x1E96);
-        case 0x1E97: return Value::integer(0x1E97);
-        case 0x1E98: return Value::integer(0x1E98);
-        case 0x1E99: return Value::integer(0x1E99);
-        case 0x1E9A: return Value::integer(0x1E9A);
-        case 0x1F50: return Value::integer(0x1F50);
-        case 0x1F52: return Value::integer(0x1F52);
-        case 0x1F54: return Value::integer(0x1F54);
-        case 0x1F56: return Value::integer(0x1F56);
-        case 0x1FB6: return Value::integer(0x1FB6);
-        case 0x1FC6: return Value::integer(0x1FC6);
-        case 0x1FD2: return Value::integer(0x1FD2);
-        case 0x1FD3: return Value::integer(0x1FD3);
-        case 0x1FD6: return Value::integer(0x1FD6);
-        case 0x1FD7: return Value::integer(0x1FD7);
-        case 0x1FE2: return Value::integer(0x1FE2);
-        case 0x1FE3: return Value::integer(0x1FE3);
-        case 0x1FE4: return Value::integer(0x1FE4);
-        case 0x1FE6: return Value::integer(0x1FE6);
-        case 0x1FE7: return Value::integer(0x1FE7);
-        case 0x1FF6: return Value::integer(0x1FF6);
-        case 0x1F80: return Value::integer(0x1F80);
-        case 0x1F81: return Value::integer(0x1F81);
-        case 0x1F82: return Value::integer(0x1F82);
-        case 0x1F83: return Value::integer(0x1F83);
-        case 0x1F84: return Value::integer(0x1F84);
-        case 0x1F85: return Value::integer(0x1F85);
-        case 0x1F86: return Value::integer(0x1F86);
-        case 0x1F87: return Value::integer(0x1F87);
-        case 0x1F88: return Value::integer(0x1F80);
-        case 0x1F89: return Value::integer(0x1F81);
-        case 0x1F8A: return Value::integer(0x1F82);
-        case 0x1F8B: return Value::integer(0x1F83);
-        case 0x1F8C: return Value::integer(0x1F84);
-        case 0x1F8D: return Value::integer(0x1F85);
-        case 0x1F8E: return Value::integer(0x1F86);
-        case 0x1F8F: return Value::integer(0x1F87);
-        case 0x1F90: return Value::integer(0x1F90);
-        case 0x1F91: return Value::integer(0x1F91);
-        case 0x1F92: return Value::integer(0x1F92);
-        case 0x1F93: return Value::integer(0x1F93);
-        case 0x1F94: return Value::integer(0x1F94);
-        case 0x1F95: return Value::integer(0x1F95);
-        case 0x1F96: return Value::integer(0x1F96);
-        case 0x1F97: return Value::integer(0x1F97);
-        case 0x1F98: return Value::integer(0x1F90);
-        case 0x1F99: return Value::integer(0x1F91);
-        case 0x1F9A: return Value::integer(0x1F92);
-        case 0x1F9B: return Value::integer(0x1F93);
-        case 0x1F9C: return Value::integer(0x1F94);
-        case 0x1F9D: return Value::integer(0x1F95);
-        case 0x1F9E: return Value::integer(0x1F96);
-        case 0x1F9F: return Value::integer(0x1F97);
-        case 0x1FA0: return Value::integer(0x1FA0);
-        case 0x1FA1: return Value::integer(0x1FA1);
-        case 0x1FA2: return Value::integer(0x1FA2);
-        case 0x1FA3: return Value::integer(0x1FA3);
-        case 0x1FA4: return Value::integer(0x1FA4);
-        case 0x1FA5: return Value::integer(0x1FA5);
-        case 0x1FA6: return Value::integer(0x1FA6);
-        case 0x1FA7: return Value::integer(0x1FA7);
-        case 0x1FA8: return Value::integer(0x1FA0);
-        case 0x1FA9: return Value::integer(0x1FA1);
-        case 0x1FAA: return Value::integer(0x1FA2);
-        case 0x1FAB: return Value::integer(0x1FA3);
-        case 0x1FAC: return Value::integer(0x1FA4);
-        case 0x1FAD: return Value::integer(0x1FA5);
-        case 0x1FAE: return Value::integer(0x1FA6);
-        case 0x1FAF: return Value::integer(0x1FA7);
-        case 0x1FB3: return Value::integer(0x1FB3);
-        case 0x1FBC: return Value::integer(0x1FB3);
-        case 0x1FC3: return Value::integer(0x1FC3);
-        case 0x1FCC: return Value::integer(0x1FC3);
-        case 0x1FF3: return Value::integer(0x1FF3);
-        case 0x1FFC: return Value::integer(0x1FF3);
-        case 0x1FB2: return Value::integer(0x1FB2);
-        case 0x1FB4: return Value::integer(0x1FB4);
-        case 0x1FC2: return Value::integer(0x1FC2);
-        case 0x1FC4: return Value::integer(0x1FC4);
-        case 0x1FF2: return Value::integer(0x1FF2);
-        case 0x1FF4: return Value::integer(0x1FF4);
-        case 0x1FB7: return Value::integer(0x1FB7);
-        case 0x1FC7: return Value::integer(0x1FC7);
-        case 0x1FF7: return Value::integer(0x1FF7);
-        case 0x20307: return Value::integer(0x0307);
-        case 0x20049: return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307) });
-        case 0x2004a: return new ArrayObject({ Value::integer(0x006A), Value::integer(0x0307) });
-        case 0x2012e: return new ArrayObject({ Value::integer(0x012F), Value::integer(0x0307) });
-        case 0x200cc: return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0300) });
-        case 0x200cd: return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0301) });
-        case 0x20128: return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0303) });
-        case 0x40130: return Value::integer(0x0069);
-        case 0x10130: return Value::integer(0x0069);
-        case 0x40049: return Value::integer(0x0131);
-        case 0x10049: return Value::integer(0x0131);
-        case 0x40069: return Value::integer(0x0069);
-        case 0x10069: return Value::integer(0x0069);
+    case 0x00DF:
+        return Value::integer(0x00DF);
+    case 0x0130:
+        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307) });
+    case 0xFB00:
+        return Value::integer(0xFB00);
+    case 0xFB01:
+        return Value::integer(0xFB01);
+    case 0xFB02:
+        return Value::integer(0xFB02);
+    case 0xFB03:
+        return Value::integer(0xFB03);
+    case 0xFB04:
+        return Value::integer(0xFB04);
+    case 0xFB05:
+        return Value::integer(0xFB05);
+    case 0xFB06:
+        return Value::integer(0xFB06);
+    case 0x0587:
+        return Value::integer(0x0587);
+    case 0xFB13:
+        return Value::integer(0xFB13);
+    case 0xFB14:
+        return Value::integer(0xFB14);
+    case 0xFB15:
+        return Value::integer(0xFB15);
+    case 0xFB16:
+        return Value::integer(0xFB16);
+    case 0xFB17:
+        return Value::integer(0xFB17);
+    case 0x0149:
+        return Value::integer(0x0149);
+    case 0x0390:
+        return Value::integer(0x0390);
+    case 0x03B0:
+        return Value::integer(0x03B0);
+    case 0x01F0:
+        return Value::integer(0x01F0);
+    case 0x1E96:
+        return Value::integer(0x1E96);
+    case 0x1E97:
+        return Value::integer(0x1E97);
+    case 0x1E98:
+        return Value::integer(0x1E98);
+    case 0x1E99:
+        return Value::integer(0x1E99);
+    case 0x1E9A:
+        return Value::integer(0x1E9A);
+    case 0x1F50:
+        return Value::integer(0x1F50);
+    case 0x1F52:
+        return Value::integer(0x1F52);
+    case 0x1F54:
+        return Value::integer(0x1F54);
+    case 0x1F56:
+        return Value::integer(0x1F56);
+    case 0x1FB6:
+        return Value::integer(0x1FB6);
+    case 0x1FC6:
+        return Value::integer(0x1FC6);
+    case 0x1FD2:
+        return Value::integer(0x1FD2);
+    case 0x1FD3:
+        return Value::integer(0x1FD3);
+    case 0x1FD6:
+        return Value::integer(0x1FD6);
+    case 0x1FD7:
+        return Value::integer(0x1FD7);
+    case 0x1FE2:
+        return Value::integer(0x1FE2);
+    case 0x1FE3:
+        return Value::integer(0x1FE3);
+    case 0x1FE4:
+        return Value::integer(0x1FE4);
+    case 0x1FE6:
+        return Value::integer(0x1FE6);
+    case 0x1FE7:
+        return Value::integer(0x1FE7);
+    case 0x1FF6:
+        return Value::integer(0x1FF6);
+    case 0x1F80:
+        return Value::integer(0x1F80);
+    case 0x1F81:
+        return Value::integer(0x1F81);
+    case 0x1F82:
+        return Value::integer(0x1F82);
+    case 0x1F83:
+        return Value::integer(0x1F83);
+    case 0x1F84:
+        return Value::integer(0x1F84);
+    case 0x1F85:
+        return Value::integer(0x1F85);
+    case 0x1F86:
+        return Value::integer(0x1F86);
+    case 0x1F87:
+        return Value::integer(0x1F87);
+    case 0x1F88:
+        return Value::integer(0x1F80);
+    case 0x1F89:
+        return Value::integer(0x1F81);
+    case 0x1F8A:
+        return Value::integer(0x1F82);
+    case 0x1F8B:
+        return Value::integer(0x1F83);
+    case 0x1F8C:
+        return Value::integer(0x1F84);
+    case 0x1F8D:
+        return Value::integer(0x1F85);
+    case 0x1F8E:
+        return Value::integer(0x1F86);
+    case 0x1F8F:
+        return Value::integer(0x1F87);
+    case 0x1F90:
+        return Value::integer(0x1F90);
+    case 0x1F91:
+        return Value::integer(0x1F91);
+    case 0x1F92:
+        return Value::integer(0x1F92);
+    case 0x1F93:
+        return Value::integer(0x1F93);
+    case 0x1F94:
+        return Value::integer(0x1F94);
+    case 0x1F95:
+        return Value::integer(0x1F95);
+    case 0x1F96:
+        return Value::integer(0x1F96);
+    case 0x1F97:
+        return Value::integer(0x1F97);
+    case 0x1F98:
+        return Value::integer(0x1F90);
+    case 0x1F99:
+        return Value::integer(0x1F91);
+    case 0x1F9A:
+        return Value::integer(0x1F92);
+    case 0x1F9B:
+        return Value::integer(0x1F93);
+    case 0x1F9C:
+        return Value::integer(0x1F94);
+    case 0x1F9D:
+        return Value::integer(0x1F95);
+    case 0x1F9E:
+        return Value::integer(0x1F96);
+    case 0x1F9F:
+        return Value::integer(0x1F97);
+    case 0x1FA0:
+        return Value::integer(0x1FA0);
+    case 0x1FA1:
+        return Value::integer(0x1FA1);
+    case 0x1FA2:
+        return Value::integer(0x1FA2);
+    case 0x1FA3:
+        return Value::integer(0x1FA3);
+    case 0x1FA4:
+        return Value::integer(0x1FA4);
+    case 0x1FA5:
+        return Value::integer(0x1FA5);
+    case 0x1FA6:
+        return Value::integer(0x1FA6);
+    case 0x1FA7:
+        return Value::integer(0x1FA7);
+    case 0x1FA8:
+        return Value::integer(0x1FA0);
+    case 0x1FA9:
+        return Value::integer(0x1FA1);
+    case 0x1FAA:
+        return Value::integer(0x1FA2);
+    case 0x1FAB:
+        return Value::integer(0x1FA3);
+    case 0x1FAC:
+        return Value::integer(0x1FA4);
+    case 0x1FAD:
+        return Value::integer(0x1FA5);
+    case 0x1FAE:
+        return Value::integer(0x1FA6);
+    case 0x1FAF:
+        return Value::integer(0x1FA7);
+    case 0x1FB3:
+        return Value::integer(0x1FB3);
+    case 0x1FBC:
+        return Value::integer(0x1FB3);
+    case 0x1FC3:
+        return Value::integer(0x1FC3);
+    case 0x1FCC:
+        return Value::integer(0x1FC3);
+    case 0x1FF3:
+        return Value::integer(0x1FF3);
+    case 0x1FFC:
+        return Value::integer(0x1FF3);
+    case 0x1FB2:
+        return Value::integer(0x1FB2);
+    case 0x1FB4:
+        return Value::integer(0x1FB4);
+    case 0x1FC2:
+        return Value::integer(0x1FC2);
+    case 0x1FC4:
+        return Value::integer(0x1FC4);
+    case 0x1FF2:
+        return Value::integer(0x1FF2);
+    case 0x1FF4:
+        return Value::integer(0x1FF4);
+    case 0x1FB7:
+        return Value::integer(0x1FB7);
+    case 0x1FC7:
+        return Value::integer(0x1FC7);
+    case 0x1FF7:
+        return Value::integer(0x1FF7);
+    case 0x20307:
+        return Value::integer(0x0307);
+    case 0x20049:
+        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307) });
+    case 0x2004a:
+        return new ArrayObject({ Value::integer(0x006A), Value::integer(0x0307) });
+    case 0x2012e:
+        return new ArrayObject({ Value::integer(0x012F), Value::integer(0x0307) });
+    case 0x200cc:
+        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0300) });
+    case 0x200cd:
+        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0301) });
+    case 0x20128:
+        return new ArrayObject({ Value::integer(0x0069), Value::integer(0x0307), Value::integer(0x0303) });
+    case 0x40130:
+        return Value::integer(0x0069);
+    case 0x10130:
+        return Value::integer(0x0069);
+    case 0x40049:
+        return Value::integer(0x0131);
+    case 0x10049:
+        return Value::integer(0x0131);
+    case 0x40069:
+        return Value::integer(0x0069);
+    case 0x10069:
+        return Value::integer(0x0069);
     }
     return NilObject::the();
 }
 
 Value EncodingObject::specialcasing_uppercase(nat_int_t codepoint) {
     switch (codepoint) {
-        case 0x00DF: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0053) });
-        case 0x0130: return Value::integer(0x0130);
-        case 0xFB00: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046) });
-        case 0xFB01: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0049) });
-        case 0xFB02: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x004C) });
-        case 0xFB03: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046), Value::integer(0x0049) });
-        case 0xFB04: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046), Value::integer(0x004C) });
-        case 0xFB05: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0054) });
-        case 0xFB06: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0054) });
-        case 0x0587: return new ArrayObject({ Value::integer(0x0535), Value::integer(0x0552) });
-        case 0xFB13: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0546) });
-        case 0xFB14: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0535) });
-        case 0xFB15: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x053B) });
-        case 0xFB16: return new ArrayObject({ Value::integer(0x054E), Value::integer(0x0546) });
-        case 0xFB17: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x053D) });
-        case 0x0149: return new ArrayObject({ Value::integer(0x02BC), Value::integer(0x004E) });
-        case 0x0390: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x03B0: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x01F0: return new ArrayObject({ Value::integer(0x004A), Value::integer(0x030C) });
-        case 0x1E96: return new ArrayObject({ Value::integer(0x0048), Value::integer(0x0331) });
-        case 0x1E97: return new ArrayObject({ Value::integer(0x0054), Value::integer(0x0308) });
-        case 0x1E98: return new ArrayObject({ Value::integer(0x0057), Value::integer(0x030A) });
-        case 0x1E99: return new ArrayObject({ Value::integer(0x0059), Value::integer(0x030A) });
-        case 0x1E9A: return new ArrayObject({ Value::integer(0x0041), Value::integer(0x02BE) });
-        case 0x1F50: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313) });
-        case 0x1F52: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0300) });
-        case 0x1F54: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0301) });
-        case 0x1F56: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0342) });
-        case 0x1FB6: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342) });
-        case 0x1FC6: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342) });
-        case 0x1FD2: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0300) });
-        case 0x1FD3: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x1FD6: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0342) });
-        case 0x1FD7: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0342) });
-        case 0x1FE2: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0300) });
-        case 0x1FE3: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x1FE4: return new ArrayObject({ Value::integer(0x03A1), Value::integer(0x0313) });
-        case 0x1FE6: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0342) });
-        case 0x1FE7: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0342) });
-        case 0x1FF6: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342) });
-        case 0x1F80: return new ArrayObject({ Value::integer(0x1F08), Value::integer(0x0399) });
-        case 0x1F81: return new ArrayObject({ Value::integer(0x1F09), Value::integer(0x0399) });
-        case 0x1F82: return new ArrayObject({ Value::integer(0x1F0A), Value::integer(0x0399) });
-        case 0x1F83: return new ArrayObject({ Value::integer(0x1F0B), Value::integer(0x0399) });
-        case 0x1F84: return new ArrayObject({ Value::integer(0x1F0C), Value::integer(0x0399) });
-        case 0x1F85: return new ArrayObject({ Value::integer(0x1F0D), Value::integer(0x0399) });
-        case 0x1F86: return new ArrayObject({ Value::integer(0x1F0E), Value::integer(0x0399) });
-        case 0x1F87: return new ArrayObject({ Value::integer(0x1F0F), Value::integer(0x0399) });
-        case 0x1F88: return new ArrayObject({ Value::integer(0x1F08), Value::integer(0x0399) });
-        case 0x1F89: return new ArrayObject({ Value::integer(0x1F09), Value::integer(0x0399) });
-        case 0x1F8A: return new ArrayObject({ Value::integer(0x1F0A), Value::integer(0x0399) });
-        case 0x1F8B: return new ArrayObject({ Value::integer(0x1F0B), Value::integer(0x0399) });
-        case 0x1F8C: return new ArrayObject({ Value::integer(0x1F0C), Value::integer(0x0399) });
-        case 0x1F8D: return new ArrayObject({ Value::integer(0x1F0D), Value::integer(0x0399) });
-        case 0x1F8E: return new ArrayObject({ Value::integer(0x1F0E), Value::integer(0x0399) });
-        case 0x1F8F: return new ArrayObject({ Value::integer(0x1F0F), Value::integer(0x0399) });
-        case 0x1F90: return new ArrayObject({ Value::integer(0x1F28), Value::integer(0x0399) });
-        case 0x1F91: return new ArrayObject({ Value::integer(0x1F29), Value::integer(0x0399) });
-        case 0x1F92: return new ArrayObject({ Value::integer(0x1F2A), Value::integer(0x0399) });
-        case 0x1F93: return new ArrayObject({ Value::integer(0x1F2B), Value::integer(0x0399) });
-        case 0x1F94: return new ArrayObject({ Value::integer(0x1F2C), Value::integer(0x0399) });
-        case 0x1F95: return new ArrayObject({ Value::integer(0x1F2D), Value::integer(0x0399) });
-        case 0x1F96: return new ArrayObject({ Value::integer(0x1F2E), Value::integer(0x0399) });
-        case 0x1F97: return new ArrayObject({ Value::integer(0x1F2F), Value::integer(0x0399) });
-        case 0x1F98: return new ArrayObject({ Value::integer(0x1F28), Value::integer(0x0399) });
-        case 0x1F99: return new ArrayObject({ Value::integer(0x1F29), Value::integer(0x0399) });
-        case 0x1F9A: return new ArrayObject({ Value::integer(0x1F2A), Value::integer(0x0399) });
-        case 0x1F9B: return new ArrayObject({ Value::integer(0x1F2B), Value::integer(0x0399) });
-        case 0x1F9C: return new ArrayObject({ Value::integer(0x1F2C), Value::integer(0x0399) });
-        case 0x1F9D: return new ArrayObject({ Value::integer(0x1F2D), Value::integer(0x0399) });
-        case 0x1F9E: return new ArrayObject({ Value::integer(0x1F2E), Value::integer(0x0399) });
-        case 0x1F9F: return new ArrayObject({ Value::integer(0x1F2F), Value::integer(0x0399) });
-        case 0x1FA0: return new ArrayObject({ Value::integer(0x1F68), Value::integer(0x0399) });
-        case 0x1FA1: return new ArrayObject({ Value::integer(0x1F69), Value::integer(0x0399) });
-        case 0x1FA2: return new ArrayObject({ Value::integer(0x1F6A), Value::integer(0x0399) });
-        case 0x1FA3: return new ArrayObject({ Value::integer(0x1F6B), Value::integer(0x0399) });
-        case 0x1FA4: return new ArrayObject({ Value::integer(0x1F6C), Value::integer(0x0399) });
-        case 0x1FA5: return new ArrayObject({ Value::integer(0x1F6D), Value::integer(0x0399) });
-        case 0x1FA6: return new ArrayObject({ Value::integer(0x1F6E), Value::integer(0x0399) });
-        case 0x1FA7: return new ArrayObject({ Value::integer(0x1F6F), Value::integer(0x0399) });
-        case 0x1FA8: return new ArrayObject({ Value::integer(0x1F68), Value::integer(0x0399) });
-        case 0x1FA9: return new ArrayObject({ Value::integer(0x1F69), Value::integer(0x0399) });
-        case 0x1FAA: return new ArrayObject({ Value::integer(0x1F6A), Value::integer(0x0399) });
-        case 0x1FAB: return new ArrayObject({ Value::integer(0x1F6B), Value::integer(0x0399) });
-        case 0x1FAC: return new ArrayObject({ Value::integer(0x1F6C), Value::integer(0x0399) });
-        case 0x1FAD: return new ArrayObject({ Value::integer(0x1F6D), Value::integer(0x0399) });
-        case 0x1FAE: return new ArrayObject({ Value::integer(0x1F6E), Value::integer(0x0399) });
-        case 0x1FAF: return new ArrayObject({ Value::integer(0x1F6F), Value::integer(0x0399) });
-        case 0x1FB3: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0399) });
-        case 0x1FBC: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0399) });
-        case 0x1FC3: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0399) });
-        case 0x1FCC: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0399) });
-        case 0x1FF3: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0399) });
-        case 0x1FFC: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0399) });
-        case 0x1FB2: return new ArrayObject({ Value::integer(0x1FBA), Value::integer(0x0399) });
-        case 0x1FB4: return new ArrayObject({ Value::integer(0x0386), Value::integer(0x0399) });
-        case 0x1FC2: return new ArrayObject({ Value::integer(0x1FCA), Value::integer(0x0399) });
-        case 0x1FC4: return new ArrayObject({ Value::integer(0x0389), Value::integer(0x0399) });
-        case 0x1FF2: return new ArrayObject({ Value::integer(0x1FFA), Value::integer(0x0399) });
-        case 0x1FF4: return new ArrayObject({ Value::integer(0x038F), Value::integer(0x0399) });
-        case 0x1FB7: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342), Value::integer(0x0399) });
-        case 0x1FC7: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342), Value::integer(0x0399) });
-        case 0x1FF7: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342), Value::integer(0x0399) });
-        case 0x20049: return Value::integer(0x0049);
-        case 0x2004a: return Value::integer(0x004A);
-        case 0x2012e: return Value::integer(0x012E);
-        case 0x200cc: return Value::integer(0x00CC);
-        case 0x200cd: return Value::integer(0x00CD);
-        case 0x20128: return Value::integer(0x0128);
-        case 0x40130: return Value::integer(0x0130);
-        case 0x10130: return Value::integer(0x0130);
-        case 0x40307: return Value::integer(0x0307);
-        case 0x10307: return Value::integer(0x0307);
-        case 0x40049: return Value::integer(0x0049);
-        case 0x10049: return Value::integer(0x0049);
-        case 0x40069: return Value::integer(0x0130);
-        case 0x10069: return Value::integer(0x0130);
+    case 0x00DF:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0053) });
+    case 0x0130:
+        return Value::integer(0x0130);
+    case 0xFB00:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046) });
+    case 0xFB01:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0049) });
+    case 0xFB02:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x004C) });
+    case 0xFB03:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046), Value::integer(0x0049) });
+    case 0xFB04:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0046), Value::integer(0x004C) });
+    case 0xFB05:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0054) });
+    case 0xFB06:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0054) });
+    case 0x0587:
+        return new ArrayObject({ Value::integer(0x0535), Value::integer(0x0552) });
+    case 0xFB13:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0546) });
+    case 0xFB14:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0535) });
+    case 0xFB15:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x053B) });
+    case 0xFB16:
+        return new ArrayObject({ Value::integer(0x054E), Value::integer(0x0546) });
+    case 0xFB17:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x053D) });
+    case 0x0149:
+        return new ArrayObject({ Value::integer(0x02BC), Value::integer(0x004E) });
+    case 0x0390:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x03B0:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x01F0:
+        return new ArrayObject({ Value::integer(0x004A), Value::integer(0x030C) });
+    case 0x1E96:
+        return new ArrayObject({ Value::integer(0x0048), Value::integer(0x0331) });
+    case 0x1E97:
+        return new ArrayObject({ Value::integer(0x0054), Value::integer(0x0308) });
+    case 0x1E98:
+        return new ArrayObject({ Value::integer(0x0057), Value::integer(0x030A) });
+    case 0x1E99:
+        return new ArrayObject({ Value::integer(0x0059), Value::integer(0x030A) });
+    case 0x1E9A:
+        return new ArrayObject({ Value::integer(0x0041), Value::integer(0x02BE) });
+    case 0x1F50:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313) });
+    case 0x1F52:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0300) });
+    case 0x1F54:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0301) });
+    case 0x1F56:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0342) });
+    case 0x1FB6:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342) });
+    case 0x1FC6:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342) });
+    case 0x1FD2:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0300) });
+    case 0x1FD3:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x1FD6:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0342) });
+    case 0x1FD7:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0342) });
+    case 0x1FE2:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0300) });
+    case 0x1FE3:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x1FE4:
+        return new ArrayObject({ Value::integer(0x03A1), Value::integer(0x0313) });
+    case 0x1FE6:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0342) });
+    case 0x1FE7:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0342) });
+    case 0x1FF6:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342) });
+    case 0x1F80:
+        return new ArrayObject({ Value::integer(0x1F08), Value::integer(0x0399) });
+    case 0x1F81:
+        return new ArrayObject({ Value::integer(0x1F09), Value::integer(0x0399) });
+    case 0x1F82:
+        return new ArrayObject({ Value::integer(0x1F0A), Value::integer(0x0399) });
+    case 0x1F83:
+        return new ArrayObject({ Value::integer(0x1F0B), Value::integer(0x0399) });
+    case 0x1F84:
+        return new ArrayObject({ Value::integer(0x1F0C), Value::integer(0x0399) });
+    case 0x1F85:
+        return new ArrayObject({ Value::integer(0x1F0D), Value::integer(0x0399) });
+    case 0x1F86:
+        return new ArrayObject({ Value::integer(0x1F0E), Value::integer(0x0399) });
+    case 0x1F87:
+        return new ArrayObject({ Value::integer(0x1F0F), Value::integer(0x0399) });
+    case 0x1F88:
+        return new ArrayObject({ Value::integer(0x1F08), Value::integer(0x0399) });
+    case 0x1F89:
+        return new ArrayObject({ Value::integer(0x1F09), Value::integer(0x0399) });
+    case 0x1F8A:
+        return new ArrayObject({ Value::integer(0x1F0A), Value::integer(0x0399) });
+    case 0x1F8B:
+        return new ArrayObject({ Value::integer(0x1F0B), Value::integer(0x0399) });
+    case 0x1F8C:
+        return new ArrayObject({ Value::integer(0x1F0C), Value::integer(0x0399) });
+    case 0x1F8D:
+        return new ArrayObject({ Value::integer(0x1F0D), Value::integer(0x0399) });
+    case 0x1F8E:
+        return new ArrayObject({ Value::integer(0x1F0E), Value::integer(0x0399) });
+    case 0x1F8F:
+        return new ArrayObject({ Value::integer(0x1F0F), Value::integer(0x0399) });
+    case 0x1F90:
+        return new ArrayObject({ Value::integer(0x1F28), Value::integer(0x0399) });
+    case 0x1F91:
+        return new ArrayObject({ Value::integer(0x1F29), Value::integer(0x0399) });
+    case 0x1F92:
+        return new ArrayObject({ Value::integer(0x1F2A), Value::integer(0x0399) });
+    case 0x1F93:
+        return new ArrayObject({ Value::integer(0x1F2B), Value::integer(0x0399) });
+    case 0x1F94:
+        return new ArrayObject({ Value::integer(0x1F2C), Value::integer(0x0399) });
+    case 0x1F95:
+        return new ArrayObject({ Value::integer(0x1F2D), Value::integer(0x0399) });
+    case 0x1F96:
+        return new ArrayObject({ Value::integer(0x1F2E), Value::integer(0x0399) });
+    case 0x1F97:
+        return new ArrayObject({ Value::integer(0x1F2F), Value::integer(0x0399) });
+    case 0x1F98:
+        return new ArrayObject({ Value::integer(0x1F28), Value::integer(0x0399) });
+    case 0x1F99:
+        return new ArrayObject({ Value::integer(0x1F29), Value::integer(0x0399) });
+    case 0x1F9A:
+        return new ArrayObject({ Value::integer(0x1F2A), Value::integer(0x0399) });
+    case 0x1F9B:
+        return new ArrayObject({ Value::integer(0x1F2B), Value::integer(0x0399) });
+    case 0x1F9C:
+        return new ArrayObject({ Value::integer(0x1F2C), Value::integer(0x0399) });
+    case 0x1F9D:
+        return new ArrayObject({ Value::integer(0x1F2D), Value::integer(0x0399) });
+    case 0x1F9E:
+        return new ArrayObject({ Value::integer(0x1F2E), Value::integer(0x0399) });
+    case 0x1F9F:
+        return new ArrayObject({ Value::integer(0x1F2F), Value::integer(0x0399) });
+    case 0x1FA0:
+        return new ArrayObject({ Value::integer(0x1F68), Value::integer(0x0399) });
+    case 0x1FA1:
+        return new ArrayObject({ Value::integer(0x1F69), Value::integer(0x0399) });
+    case 0x1FA2:
+        return new ArrayObject({ Value::integer(0x1F6A), Value::integer(0x0399) });
+    case 0x1FA3:
+        return new ArrayObject({ Value::integer(0x1F6B), Value::integer(0x0399) });
+    case 0x1FA4:
+        return new ArrayObject({ Value::integer(0x1F6C), Value::integer(0x0399) });
+    case 0x1FA5:
+        return new ArrayObject({ Value::integer(0x1F6D), Value::integer(0x0399) });
+    case 0x1FA6:
+        return new ArrayObject({ Value::integer(0x1F6E), Value::integer(0x0399) });
+    case 0x1FA7:
+        return new ArrayObject({ Value::integer(0x1F6F), Value::integer(0x0399) });
+    case 0x1FA8:
+        return new ArrayObject({ Value::integer(0x1F68), Value::integer(0x0399) });
+    case 0x1FA9:
+        return new ArrayObject({ Value::integer(0x1F69), Value::integer(0x0399) });
+    case 0x1FAA:
+        return new ArrayObject({ Value::integer(0x1F6A), Value::integer(0x0399) });
+    case 0x1FAB:
+        return new ArrayObject({ Value::integer(0x1F6B), Value::integer(0x0399) });
+    case 0x1FAC:
+        return new ArrayObject({ Value::integer(0x1F6C), Value::integer(0x0399) });
+    case 0x1FAD:
+        return new ArrayObject({ Value::integer(0x1F6D), Value::integer(0x0399) });
+    case 0x1FAE:
+        return new ArrayObject({ Value::integer(0x1F6E), Value::integer(0x0399) });
+    case 0x1FAF:
+        return new ArrayObject({ Value::integer(0x1F6F), Value::integer(0x0399) });
+    case 0x1FB3:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0399) });
+    case 0x1FBC:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0399) });
+    case 0x1FC3:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0399) });
+    case 0x1FCC:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0399) });
+    case 0x1FF3:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0399) });
+    case 0x1FFC:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0399) });
+    case 0x1FB2:
+        return new ArrayObject({ Value::integer(0x1FBA), Value::integer(0x0399) });
+    case 0x1FB4:
+        return new ArrayObject({ Value::integer(0x0386), Value::integer(0x0399) });
+    case 0x1FC2:
+        return new ArrayObject({ Value::integer(0x1FCA), Value::integer(0x0399) });
+    case 0x1FC4:
+        return new ArrayObject({ Value::integer(0x0389), Value::integer(0x0399) });
+    case 0x1FF2:
+        return new ArrayObject({ Value::integer(0x1FFA), Value::integer(0x0399) });
+    case 0x1FF4:
+        return new ArrayObject({ Value::integer(0x038F), Value::integer(0x0399) });
+    case 0x1FB7:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342), Value::integer(0x0399) });
+    case 0x1FC7:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342), Value::integer(0x0399) });
+    case 0x1FF7:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342), Value::integer(0x0399) });
+    case 0x20049:
+        return Value::integer(0x0049);
+    case 0x2004a:
+        return Value::integer(0x004A);
+    case 0x2012e:
+        return Value::integer(0x012E);
+    case 0x200cc:
+        return Value::integer(0x00CC);
+    case 0x200cd:
+        return Value::integer(0x00CD);
+    case 0x20128:
+        return Value::integer(0x0128);
+    case 0x40130:
+        return Value::integer(0x0130);
+    case 0x10130:
+        return Value::integer(0x0130);
+    case 0x40307:
+        return Value::integer(0x0307);
+    case 0x10307:
+        return Value::integer(0x0307);
+    case 0x40049:
+        return Value::integer(0x0049);
+    case 0x10049:
+        return Value::integer(0x0049);
+    case 0x40069:
+        return Value::integer(0x0130);
+    case 0x10069:
+        return Value::integer(0x0130);
     }
     return NilObject::the();
 }
 
 Value EncodingObject::specialcasing_titlecase(nat_int_t codepoint) {
     switch (codepoint) {
-        case 0x00DF: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0073) });
-        case 0x0130: return Value::integer(0x0130);
-        case 0xFB00: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066) });
-        case 0xFB01: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0069) });
-        case 0xFB02: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x006C) });
-        case 0xFB03: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066), Value::integer(0x0069) });
-        case 0xFB04: return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066), Value::integer(0x006C) });
-        case 0xFB05: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0074) });
-        case 0xFB06: return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0074) });
-        case 0x0587: return new ArrayObject({ Value::integer(0x0535), Value::integer(0x0582) });
-        case 0xFB13: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0576) });
-        case 0xFB14: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0565) });
-        case 0xFB15: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x056B) });
-        case 0xFB16: return new ArrayObject({ Value::integer(0x054E), Value::integer(0x0576) });
-        case 0xFB17: return new ArrayObject({ Value::integer(0x0544), Value::integer(0x056D) });
-        case 0x0149: return new ArrayObject({ Value::integer(0x02BC), Value::integer(0x004E) });
-        case 0x0390: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x03B0: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x01F0: return new ArrayObject({ Value::integer(0x004A), Value::integer(0x030C) });
-        case 0x1E96: return new ArrayObject({ Value::integer(0x0048), Value::integer(0x0331) });
-        case 0x1E97: return new ArrayObject({ Value::integer(0x0054), Value::integer(0x0308) });
-        case 0x1E98: return new ArrayObject({ Value::integer(0x0057), Value::integer(0x030A) });
-        case 0x1E99: return new ArrayObject({ Value::integer(0x0059), Value::integer(0x030A) });
-        case 0x1E9A: return new ArrayObject({ Value::integer(0x0041), Value::integer(0x02BE) });
-        case 0x1F50: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313) });
-        case 0x1F52: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0300) });
-        case 0x1F54: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0301) });
-        case 0x1F56: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0342) });
-        case 0x1FB6: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342) });
-        case 0x1FC6: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342) });
-        case 0x1FD2: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0300) });
-        case 0x1FD3: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x1FD6: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0342) });
-        case 0x1FD7: return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0342) });
-        case 0x1FE2: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0300) });
-        case 0x1FE3: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
-        case 0x1FE4: return new ArrayObject({ Value::integer(0x03A1), Value::integer(0x0313) });
-        case 0x1FE6: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0342) });
-        case 0x1FE7: return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0342) });
-        case 0x1FF6: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342) });
-        case 0x1F80: return Value::integer(0x1F88);
-        case 0x1F81: return Value::integer(0x1F89);
-        case 0x1F82: return Value::integer(0x1F8A);
-        case 0x1F83: return Value::integer(0x1F8B);
-        case 0x1F84: return Value::integer(0x1F8C);
-        case 0x1F85: return Value::integer(0x1F8D);
-        case 0x1F86: return Value::integer(0x1F8E);
-        case 0x1F87: return Value::integer(0x1F8F);
-        case 0x1F88: return Value::integer(0x1F88);
-        case 0x1F89: return Value::integer(0x1F89);
-        case 0x1F8A: return Value::integer(0x1F8A);
-        case 0x1F8B: return Value::integer(0x1F8B);
-        case 0x1F8C: return Value::integer(0x1F8C);
-        case 0x1F8D: return Value::integer(0x1F8D);
-        case 0x1F8E: return Value::integer(0x1F8E);
-        case 0x1F8F: return Value::integer(0x1F8F);
-        case 0x1F90: return Value::integer(0x1F98);
-        case 0x1F91: return Value::integer(0x1F99);
-        case 0x1F92: return Value::integer(0x1F9A);
-        case 0x1F93: return Value::integer(0x1F9B);
-        case 0x1F94: return Value::integer(0x1F9C);
-        case 0x1F95: return Value::integer(0x1F9D);
-        case 0x1F96: return Value::integer(0x1F9E);
-        case 0x1F97: return Value::integer(0x1F9F);
-        case 0x1F98: return Value::integer(0x1F98);
-        case 0x1F99: return Value::integer(0x1F99);
-        case 0x1F9A: return Value::integer(0x1F9A);
-        case 0x1F9B: return Value::integer(0x1F9B);
-        case 0x1F9C: return Value::integer(0x1F9C);
-        case 0x1F9D: return Value::integer(0x1F9D);
-        case 0x1F9E: return Value::integer(0x1F9E);
-        case 0x1F9F: return Value::integer(0x1F9F);
-        case 0x1FA0: return Value::integer(0x1FA8);
-        case 0x1FA1: return Value::integer(0x1FA9);
-        case 0x1FA2: return Value::integer(0x1FAA);
-        case 0x1FA3: return Value::integer(0x1FAB);
-        case 0x1FA4: return Value::integer(0x1FAC);
-        case 0x1FA5: return Value::integer(0x1FAD);
-        case 0x1FA6: return Value::integer(0x1FAE);
-        case 0x1FA7: return Value::integer(0x1FAF);
-        case 0x1FA8: return Value::integer(0x1FA8);
-        case 0x1FA9: return Value::integer(0x1FA9);
-        case 0x1FAA: return Value::integer(0x1FAA);
-        case 0x1FAB: return Value::integer(0x1FAB);
-        case 0x1FAC: return Value::integer(0x1FAC);
-        case 0x1FAD: return Value::integer(0x1FAD);
-        case 0x1FAE: return Value::integer(0x1FAE);
-        case 0x1FAF: return Value::integer(0x1FAF);
-        case 0x1FB3: return Value::integer(0x1FBC);
-        case 0x1FBC: return Value::integer(0x1FBC);
-        case 0x1FC3: return Value::integer(0x1FCC);
-        case 0x1FCC: return Value::integer(0x1FCC);
-        case 0x1FF3: return Value::integer(0x1FFC);
-        case 0x1FFC: return Value::integer(0x1FFC);
-        case 0x1FB2: return new ArrayObject({ Value::integer(0x1FBA), Value::integer(0x0345) });
-        case 0x1FB4: return new ArrayObject({ Value::integer(0x0386), Value::integer(0x0345) });
-        case 0x1FC2: return new ArrayObject({ Value::integer(0x1FCA), Value::integer(0x0345) });
-        case 0x1FC4: return new ArrayObject({ Value::integer(0x0389), Value::integer(0x0345) });
-        case 0x1FF2: return new ArrayObject({ Value::integer(0x1FFA), Value::integer(0x0345) });
-        case 0x1FF4: return new ArrayObject({ Value::integer(0x038F), Value::integer(0x0345) });
-        case 0x1FB7: return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342), Value::integer(0x0345) });
-        case 0x1FC7: return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342), Value::integer(0x0345) });
-        case 0x1FF7: return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342), Value::integer(0x0345) });
-        case 0x20049: return Value::integer(0x0049);
-        case 0x2004a: return Value::integer(0x004A);
-        case 0x2012e: return Value::integer(0x012E);
-        case 0x200cc: return Value::integer(0x00CC);
-        case 0x200cd: return Value::integer(0x00CD);
-        case 0x20128: return Value::integer(0x0128);
-        case 0x40130: return Value::integer(0x0130);
-        case 0x10130: return Value::integer(0x0130);
-        case 0x40307: return Value::integer(0x0307);
-        case 0x10307: return Value::integer(0x0307);
-        case 0x40049: return Value::integer(0x0049);
-        case 0x10049: return Value::integer(0x0049);
-        case 0x40069: return Value::integer(0x0130);
-        case 0x10069: return Value::integer(0x0130);
+    case 0x00DF:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0073) });
+    case 0x0130:
+        return Value::integer(0x0130);
+    case 0xFB00:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066) });
+    case 0xFB01:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0069) });
+    case 0xFB02:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x006C) });
+    case 0xFB03:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066), Value::integer(0x0069) });
+    case 0xFB04:
+        return new ArrayObject({ Value::integer(0x0046), Value::integer(0x0066), Value::integer(0x006C) });
+    case 0xFB05:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0074) });
+    case 0xFB06:
+        return new ArrayObject({ Value::integer(0x0053), Value::integer(0x0074) });
+    case 0x0587:
+        return new ArrayObject({ Value::integer(0x0535), Value::integer(0x0582) });
+    case 0xFB13:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0576) });
+    case 0xFB14:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x0565) });
+    case 0xFB15:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x056B) });
+    case 0xFB16:
+        return new ArrayObject({ Value::integer(0x054E), Value::integer(0x0576) });
+    case 0xFB17:
+        return new ArrayObject({ Value::integer(0x0544), Value::integer(0x056D) });
+    case 0x0149:
+        return new ArrayObject({ Value::integer(0x02BC), Value::integer(0x004E) });
+    case 0x0390:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x03B0:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x01F0:
+        return new ArrayObject({ Value::integer(0x004A), Value::integer(0x030C) });
+    case 0x1E96:
+        return new ArrayObject({ Value::integer(0x0048), Value::integer(0x0331) });
+    case 0x1E97:
+        return new ArrayObject({ Value::integer(0x0054), Value::integer(0x0308) });
+    case 0x1E98:
+        return new ArrayObject({ Value::integer(0x0057), Value::integer(0x030A) });
+    case 0x1E99:
+        return new ArrayObject({ Value::integer(0x0059), Value::integer(0x030A) });
+    case 0x1E9A:
+        return new ArrayObject({ Value::integer(0x0041), Value::integer(0x02BE) });
+    case 0x1F50:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313) });
+    case 0x1F52:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0300) });
+    case 0x1F54:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0301) });
+    case 0x1F56:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0313), Value::integer(0x0342) });
+    case 0x1FB6:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342) });
+    case 0x1FC6:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342) });
+    case 0x1FD2:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0300) });
+    case 0x1FD3:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x1FD6:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0342) });
+    case 0x1FD7:
+        return new ArrayObject({ Value::integer(0x0399), Value::integer(0x0308), Value::integer(0x0342) });
+    case 0x1FE2:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0300) });
+    case 0x1FE3:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0301) });
+    case 0x1FE4:
+        return new ArrayObject({ Value::integer(0x03A1), Value::integer(0x0313) });
+    case 0x1FE6:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0342) });
+    case 0x1FE7:
+        return new ArrayObject({ Value::integer(0x03A5), Value::integer(0x0308), Value::integer(0x0342) });
+    case 0x1FF6:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342) });
+    case 0x1F80:
+        return Value::integer(0x1F88);
+    case 0x1F81:
+        return Value::integer(0x1F89);
+    case 0x1F82:
+        return Value::integer(0x1F8A);
+    case 0x1F83:
+        return Value::integer(0x1F8B);
+    case 0x1F84:
+        return Value::integer(0x1F8C);
+    case 0x1F85:
+        return Value::integer(0x1F8D);
+    case 0x1F86:
+        return Value::integer(0x1F8E);
+    case 0x1F87:
+        return Value::integer(0x1F8F);
+    case 0x1F88:
+        return Value::integer(0x1F88);
+    case 0x1F89:
+        return Value::integer(0x1F89);
+    case 0x1F8A:
+        return Value::integer(0x1F8A);
+    case 0x1F8B:
+        return Value::integer(0x1F8B);
+    case 0x1F8C:
+        return Value::integer(0x1F8C);
+    case 0x1F8D:
+        return Value::integer(0x1F8D);
+    case 0x1F8E:
+        return Value::integer(0x1F8E);
+    case 0x1F8F:
+        return Value::integer(0x1F8F);
+    case 0x1F90:
+        return Value::integer(0x1F98);
+    case 0x1F91:
+        return Value::integer(0x1F99);
+    case 0x1F92:
+        return Value::integer(0x1F9A);
+    case 0x1F93:
+        return Value::integer(0x1F9B);
+    case 0x1F94:
+        return Value::integer(0x1F9C);
+    case 0x1F95:
+        return Value::integer(0x1F9D);
+    case 0x1F96:
+        return Value::integer(0x1F9E);
+    case 0x1F97:
+        return Value::integer(0x1F9F);
+    case 0x1F98:
+        return Value::integer(0x1F98);
+    case 0x1F99:
+        return Value::integer(0x1F99);
+    case 0x1F9A:
+        return Value::integer(0x1F9A);
+    case 0x1F9B:
+        return Value::integer(0x1F9B);
+    case 0x1F9C:
+        return Value::integer(0x1F9C);
+    case 0x1F9D:
+        return Value::integer(0x1F9D);
+    case 0x1F9E:
+        return Value::integer(0x1F9E);
+    case 0x1F9F:
+        return Value::integer(0x1F9F);
+    case 0x1FA0:
+        return Value::integer(0x1FA8);
+    case 0x1FA1:
+        return Value::integer(0x1FA9);
+    case 0x1FA2:
+        return Value::integer(0x1FAA);
+    case 0x1FA3:
+        return Value::integer(0x1FAB);
+    case 0x1FA4:
+        return Value::integer(0x1FAC);
+    case 0x1FA5:
+        return Value::integer(0x1FAD);
+    case 0x1FA6:
+        return Value::integer(0x1FAE);
+    case 0x1FA7:
+        return Value::integer(0x1FAF);
+    case 0x1FA8:
+        return Value::integer(0x1FA8);
+    case 0x1FA9:
+        return Value::integer(0x1FA9);
+    case 0x1FAA:
+        return Value::integer(0x1FAA);
+    case 0x1FAB:
+        return Value::integer(0x1FAB);
+    case 0x1FAC:
+        return Value::integer(0x1FAC);
+    case 0x1FAD:
+        return Value::integer(0x1FAD);
+    case 0x1FAE:
+        return Value::integer(0x1FAE);
+    case 0x1FAF:
+        return Value::integer(0x1FAF);
+    case 0x1FB3:
+        return Value::integer(0x1FBC);
+    case 0x1FBC:
+        return Value::integer(0x1FBC);
+    case 0x1FC3:
+        return Value::integer(0x1FCC);
+    case 0x1FCC:
+        return Value::integer(0x1FCC);
+    case 0x1FF3:
+        return Value::integer(0x1FFC);
+    case 0x1FFC:
+        return Value::integer(0x1FFC);
+    case 0x1FB2:
+        return new ArrayObject({ Value::integer(0x1FBA), Value::integer(0x0345) });
+    case 0x1FB4:
+        return new ArrayObject({ Value::integer(0x0386), Value::integer(0x0345) });
+    case 0x1FC2:
+        return new ArrayObject({ Value::integer(0x1FCA), Value::integer(0x0345) });
+    case 0x1FC4:
+        return new ArrayObject({ Value::integer(0x0389), Value::integer(0x0345) });
+    case 0x1FF2:
+        return new ArrayObject({ Value::integer(0x1FFA), Value::integer(0x0345) });
+    case 0x1FF4:
+        return new ArrayObject({ Value::integer(0x038F), Value::integer(0x0345) });
+    case 0x1FB7:
+        return new ArrayObject({ Value::integer(0x0391), Value::integer(0x0342), Value::integer(0x0345) });
+    case 0x1FC7:
+        return new ArrayObject({ Value::integer(0x0397), Value::integer(0x0342), Value::integer(0x0345) });
+    case 0x1FF7:
+        return new ArrayObject({ Value::integer(0x03A9), Value::integer(0x0342), Value::integer(0x0345) });
+    case 0x20049:
+        return Value::integer(0x0049);
+    case 0x2004a:
+        return Value::integer(0x004A);
+    case 0x2012e:
+        return Value::integer(0x012E);
+    case 0x200cc:
+        return Value::integer(0x00CC);
+    case 0x200cd:
+        return Value::integer(0x00CD);
+    case 0x20128:
+        return Value::integer(0x0128);
+    case 0x40130:
+        return Value::integer(0x0130);
+    case 0x10130:
+        return Value::integer(0x0130);
+    case 0x40307:
+        return Value::integer(0x0307);
+    case 0x10307:
+        return Value::integer(0x0307);
+    case 0x40049:
+        return Value::integer(0x0049);
+    case 0x10049:
+        return Value::integer(0x0049);
+    case 0x40069:
+        return Value::integer(0x0130);
+    case 0x10069:
+        return Value::integer(0x0130);
     }
     return NilObject::the();
 }
