@@ -2,6 +2,8 @@ class IO
   SEEK_SET = 0
   SEEK_CUR = 1
   SEEK_END = 2
+  SEEK_DATA = 3
+  SEEK_HOLE = 4
 
   def each
     while (line = gets)

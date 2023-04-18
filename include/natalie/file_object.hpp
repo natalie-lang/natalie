@@ -94,15 +94,9 @@ public:
 
     static StringObject *path(Env *env, Value path); // path class method
 
-    String path() const { return m_path; }
-    void set_path(String path) { m_path = path; };
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileObject %p>", this);
     }
-
-private:
-    String m_path {};
 };
 
 }
