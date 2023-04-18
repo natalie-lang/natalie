@@ -250,6 +250,18 @@ module Natalie
         call_args = transform_call_args(args, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
+        if call_args[:forward_args] && !with_block
+          instructions << PushBlockInstruction.new
+          instructions << PushSelfInstruction.new
+          instructions << PushArgsInstruction.new(
+            for_block: false,
+            min_count: nil,
+            max_count: nil,
+            to_array: false
+          )
+          with_block = true
+        end
+
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),

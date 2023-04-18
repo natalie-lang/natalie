@@ -76,8 +76,8 @@ describe 'splat operators' do
 end
 
 describe 'forward args' do
-  def bar(a, b:, c: nil)
-    [a, b, c]
+  def bar(a, b:, c: nil, &block)
+    [a, b, c, block&.call].compact
   end
 
   def foo(...)
@@ -86,5 +86,9 @@ describe 'forward args' do
 
   it 'passes all arguments as-is' do
     foo(1, b: 2, c: 3).should == [1, 2, 3]
+  end
+
+  it 'passes block arguments' do
+    foo(1, b: 2) { 4 }.should == [1, 2, 4]
   end
 end
