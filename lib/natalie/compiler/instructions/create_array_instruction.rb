@@ -17,7 +17,9 @@ module Natalie
           transform.exec_and_push(:array, "Value(new ArrayObject)")
         else
           @count.times { items.unshift(transform.pop) }
-          transform.exec_and_push(:array, "Value(new ArrayObject({ #{items.join(', ')} }))")
+          items_temp = transform.temp('items')
+          transform.exec("Value #{items_temp}[] = { #{items.join(', ')} };")
+          transform.exec_and_push(:array, "Value(new ArrayObject(#{@count}, #{items_temp}))")
         end
       end
 

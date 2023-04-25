@@ -1,6 +1,10 @@
 require_relative '../spec_helper'
 
 describe 'hash' do
+  it 'does not panic if a literal value raises an exception' do
+    -> { h = { key: Hash::FOO } }.should raise_error(NameError)
+  end
+
   describe '.new' do
     it 'builds an empty hash' do
       Hash.new.should == {}

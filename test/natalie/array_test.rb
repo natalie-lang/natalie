@@ -14,6 +14,10 @@ describe 'array' do
     b.should == [1]
   end
 
+  it 'does not panic if a literal value raises an exception' do
+    -> { a = [Array::FOO] }.should raise_error(NameError)
+  end
+
   describe 'Array()' do
     it 'returns an empty array given nil' do
       Array(nil).should == []

@@ -45,6 +45,16 @@ public:
         }
     }
 
+    HashObject(Env *env, size_t argc, Value *items)
+        : HashObject {} {
+        assert(argc % 2 == 0);
+        for (size_t i = 0; i < argc; i += 2) {
+            auto key = items[i];
+            auto value = items[i + 1];
+            put(env, key, value);
+        }
+    }
+
     HashObject(ClassObject *klass)
         : Object { Object::Type::Hash, klass }
         , m_default_value { NilObject::the() } { }
