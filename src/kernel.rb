@@ -65,7 +65,7 @@ module Kernel
     index = 0
     format = fmt.chars
     result = []
-    positional_args_used = false
+    positional_args_used = nil
     default_precision = 6
 
     # Get non-exclusive flags that occur after a leading '%'
@@ -100,7 +100,9 @@ module Kernel
         index += 1
       end
       if format_chars[index] == "$"
-        position = format_chars[original_index ... index].join.to_i - 1
+        chars = format_chars[original_index ... index].join
+        raise ArgumentError, "malformed format string - %$" if chars == '0' || chars == ''
+        position = chars.to_i - 1
         index += 1
       else
         index = original_index
@@ -136,9 +138,18 @@ module Kernel
     append = ->(format_char, flags: [], arg_index: nil, width: nil, precision: nil) {
       get_arg = -> {
         if arg_index
-          positional_args_used = true
+          if [nil, true].include?(positional_args_used)
+            positional_args_used = true
+          else
+            raise ArgumentError, "unnumbered mixed with numbered"
+          end
           positional_args[arg_index]
         else
+          if [nil, false].include?(positional_args_used)
+            positional_args_used = false
+          else
+            raise ArgumentError, "unnumbered mixed with numbered"
+          end
           raise ArgumentError, "too few arguments" if args.empty?
           args.shift
         end
