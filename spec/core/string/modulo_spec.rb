@@ -130,7 +130,7 @@ describe "String#%" do
     ("hello %1$" % "foo").should == "hello %"
   end
 
-  xit "raises an ArgumentError when given invalid argument specifiers" do
+  it "raises an ArgumentError when given invalid argument specifiers" do
     -> { "%1" % [] }.should raise_error(ArgumentError)
     -> { "%+" % [] }.should raise_error(ArgumentError)
     -> { "%-" % [] }.should raise_error(ArgumentError)
@@ -174,23 +174,25 @@ describe "String#%" do
     -> { "%.*.5s" % [5, 5] }.should raise_error(ArgumentError)
   end
 
-  xit "raises an ArgumentError when there are less arguments than format specifiers" do
+  it "raises an ArgumentError when there are less arguments than format specifiers" do
     ("foo" % []).should == "foo"
     -> { "%s" % []     }.should raise_error(ArgumentError)
     -> { "%s %s" % [1] }.should raise_error(ArgumentError)
   end
 
-  xit "raises an ArgumentError when absolute and relative argument numbers are mixed" do
+  it "raises an ArgumentError when absolute and relative argument numbers are mixed" do
     -> { "%s %1$s" % "foo" }.should raise_error(ArgumentError)
     -> { "%1$s %s" % "foo" }.should raise_error(ArgumentError)
 
     -> { "%s %2$s" % ["foo", "bar"] }.should raise_error(ArgumentError)
     -> { "%2$s %s" % ["foo", "bar"] }.should raise_error(ArgumentError)
 
-    -> { "%*2$s" % [5, 5, 5]     }.should raise_error(ArgumentError)
-    -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
-    -> { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
-    -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
+    NATFIXME "mixed numbered and unnumbered", exception: SpecFailedException do
+      -> { "%*2$s" % [5, 5, 5]     }.should raise_error(ArgumentError)
+      -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
+      -> { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
+      -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
+    end
   end
 
   it "allows reuse of the one argument multiple via absolute argument numbers" do
