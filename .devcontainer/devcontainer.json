@@ -1,0 +1,18 @@
+{
+	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"features": {
+		"ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
+            "packages": ["ctags", "clang-format", "bundler"]
+        }
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools-extension-pack",
+				"ms-vscode.makefile-tools",
+				"rebornix.Ruby"
+			]
+		}
+	},
+	"postCreateCommand": "gem install rubocop"
+}
