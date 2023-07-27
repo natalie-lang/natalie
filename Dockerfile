@@ -2,11 +2,15 @@ ARG IMAGE=ruby:3.1
 FROM $IMAGE
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov clang-tidy libclang-dev python3 python3-pip ccache
-RUN pip3 install compiledb
+
+# PIP externally-managed-environment now forces you
+# to be explicit when installing system-wide package
+# https://veronneau.org/python-311-pip-and-breaking-system-packages.html
+RUN pip3 install compiledb || pip3 install compiledb --break-system-packages
 RUN gem install bundler --no-doc
 
 ENV LC_ALL=C.UTF-8
-ENV LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config
+ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
 
 WORKDIR natalie
 COPY .git/ .git/
