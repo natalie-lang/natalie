@@ -10,7 +10,7 @@ RUN pip3 install compiledb || pip3 install compiledb --break-system-packages
 RUN gem install bundler --no-doc
 
 ENV LC_ALL=C.UTF-8
-ENV LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config
+ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
 
 WORKDIR natalie
 COPY .git/ .git/
