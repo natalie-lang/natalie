@@ -14,13 +14,11 @@ describe :tcpsocket_new, shared: true do
     }
   end
 
-  ruby_version_is "3.0" do
-    it 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
-        NATFIXME "TypeError: Hash can't be coerced into String", exception: SpecFailedException do
-        -> {
-          TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
-        }.should raise_error(Errno::ETIMEDOUT)
-      end
+  it 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
+      NATFIXME "TypeError: Hash can't be coerced into String", exception: SpecFailedException do
+      -> {
+        TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
+      }.should raise_error(Errno::ETIMEDOUT)
     end
   end
 
@@ -87,11 +85,9 @@ describe :tcpsocket_new, shared: true do
       @socket.addr[2].should =~ /^#{@hostname}/
     end
 
-    ruby_version_is "3.0" do
-      it "connects to a server when passed connect_timeout argument" do
-        @socket = TCPSocket.send(@method, @hostname, @server.port, connect_timeout: 1)
-        @socket.should be_an_instance_of(TCPSocket)
-      end
+    it "connects to a server when passed connect_timeout argument" do
+      @socket = TCPSocket.send(@method, @hostname, @server.port, connect_timeout: 1)
+      @socket.should be_an_instance_of(TCPSocket)
     end
   end
 end

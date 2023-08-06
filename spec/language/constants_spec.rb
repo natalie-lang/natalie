@@ -190,37 +190,35 @@ describe "Literal (A::X) constant resolution" do
     -> { ConstantSpecs::ParentA::CS_CONSTX }.should raise_error(NameError)
   end
 
-  ruby_version_is "3.0" do
-    it "uses the module or class #name to craft the error message" do
-      mod = Module.new do
-        def self.name
-          "ModuleName"
-        end
-
-        def self.inspect
-          "<unusable info>"
-        end
+  it "uses the module or class #name to craft the error message" do
+    mod = Module.new do
+      def self.name
+        "ModuleName"
       end
 
-      NATFIXME 'uses the module or class #name to craft the error message', exception: SpecFailedException do
-        -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant ModuleName::DOES_NOT_EXIST/)
+      def self.inspect
+        "<unusable info>"
       end
     end
 
-    it "uses the module or class #inspect to craft the error message if they are anonymous" do
-      mod = Module.new do
-        def self.name
-          nil
-        end
+    NATFIXME 'uses the module or class #name to craft the error message', exception: SpecFailedException do
+      -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant ModuleName::DOES_NOT_EXIST/)
+    end
+  end
 
-        def self.inspect
-          "<unusable info>"
-        end
+  it "uses the module or class #inspect to craft the error message if they are anonymous" do
+    mod = Module.new do
+      def self.name
+        nil
       end
 
-      NATFIXME 'uses the module or class #inspect to craft the error message if they are anonymous', exception: SpecFailedException do
-        -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant <unusable info>::DOES_NOT_EXIST/)
+      def self.inspect
+        "<unusable info>"
       end
+    end
+
+    NATFIXME 'uses the module or class #inspect to craft the error message if they are anonymous', exception: SpecFailedException do
+      -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant <unusable info>::DOES_NOT_EXIST/)
     end
   end
 
