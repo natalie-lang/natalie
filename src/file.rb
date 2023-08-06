@@ -70,6 +70,7 @@ class File
       path = path.to_str
     end
     raise TypeError, "path must be convertable to String" unless path.is_a?(String)
+    depth = depth.to_int if !depth.is_a?(Integer) && depth.respond_to?(:to_int)
     if depth < 0
       raise ArgumentError, "negative level: #{depth}"
     elsif depth == 0
