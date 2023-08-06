@@ -2,9 +2,7 @@ require_relative '../spec_helper'
 
 describe "Addrinfo#protocol" do
   it 'returns 0 by default' do
-    # NATFIXME: Implement Addrinfo::ip
-    # Addrinfo.ip('127.0.0.1').protocol.should == 0
-    Addrinfo.new(Socket.sockaddr_in(80, '127.0.0.1')).protocol.should == 0
+    Addrinfo.ip('127.0.0.1').protocol.should == 0
   end
 
   it 'returns a custom protocol when given' do
