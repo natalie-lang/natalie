@@ -302,6 +302,7 @@ public:
     Value clear(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, Args args);
+    Value crypt(Env *, Value);
     Value delete_prefix(Env *, Value);
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);

@@ -49,6 +49,7 @@ module Natalie
     # we use static linking for compatibility.
     LIBRARIES_FOR_STATIC_LINKING = %w[
       -lnatalie
+      -lcrypt
     ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
