@@ -68,24 +68,12 @@ describe "A block yielded a single" do
       #end
     end
 
-    ruby_version_is ""..."2.7" do
-      xit "calls #to_hash on the argument and uses resulting hash as first argument when optional argument and keyword argument accepted" do
-        #obj = mock("coerce block keyword arguments")
-        #obj.should_receive(:to_hash).and_return({"a" => 1, "b" => 2})
+    xit "calls #to_hash on the argument but ignores result when optional argument and keyword argument accepted" do
+      #obj = mock("coerce block keyword arguments")
+      #obj.should_receive(:to_hash).and_return({"a" => 1, "b" => 2})
 
-        #result = m([obj]) { |a=nil, **b| [a, b] }
-        #result.should == [{"a" => 1, "b" => 2}, {}]
-      end
-    end
-
-    ruby_version_is "2.7" do
-      xit "calls #to_hash on the argument but ignores result when optional argument and keyword argument accepted" do
-        #obj = mock("coerce block keyword arguments")
-        #obj.should_receive(:to_hash).and_return({"a" => 1, "b" => 2})
-
-        #result = m([obj]) { |a=nil, **b| [a, b] }
-        #result.should == [obj, {}]
-      end
+      #result = m([obj]) { |a=nil, **b| [a, b] }
+      #result.should == [obj, {}]
     end
 
     describe "when non-symbol keys are in a keyword arguments Hash" do

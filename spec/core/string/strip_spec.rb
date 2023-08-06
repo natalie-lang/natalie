@@ -11,18 +11,8 @@ describe "String#strip" do
     "\tgoodbye\r\v\n".strip.should == "goodbye"
   end
 
-  ruby_version_is '3.1' do
-    it "returns a copy of self without leading and trailing NULL bytes and whitespace" do
-      " \x00 goodbye \x00 ".strip.should == "goodbye"
-    end
-  end
-
-  ruby_version_is ''...'2.7' do
-    it "taints the result when self is tainted" do
-      "".taint.strip.should.tainted?
-      "ok".taint.strip.should.tainted?
-      "  ok  ".taint.strip.should.tainted?
-    end
+  it "returns a copy of self without leading and trailing NULL bytes and whitespace" do
+    " \x00 goodbye \x00 ".strip.should == "goodbye"
   end
 end
 
@@ -43,12 +33,10 @@ describe "String#strip!" do
     a.should == "hello"
   end
 
-  ruby_version_is '3.1' do
-    it "removes leading and trailing NULL bytes and whitespace" do
-      a = "\000 goodbye \000"
-      a.strip!
-      a.should == "goodbye"
-    end
+  it "removes leading and trailing NULL bytes and whitespace" do
+    a = "\000 goodbye \000"
+    a.strip!
+    a.should == "goodbye"
   end
 
   it "raises a FrozenError on a frozen instance that is modified" do
