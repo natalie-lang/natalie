@@ -71,7 +71,7 @@ class File
     end
     raise TypeError, "path must be convertable to String" unless path.is_a?(String)
     if depth < 0
-      raise ArgumentError, "depth cannot be negative"
+      raise ArgumentError, "negative level: #{depth}"
     elsif depth == 0
       return path
     end
