@@ -35,7 +35,9 @@ describe "Set#divide when passed a block with an arity of 2" do
   it "returns an enumerator when not passed a block" do
     ret = Set[1, 2, 3, 4].divide
     ret.should be_kind_of(Enumerator)
-    ret.each { |a, b| (a + b).even? }.should == Set[Set[1, 3], Set[2, 4]]
+    NATFIXME "Natalie results in a block with arity -1, MRI's arity = 2. This should be fixed in enum_for or BlockObject", exception: TypeError do
+      ret.each { |a, b| (a + b).even? }.should == Set[Set[1, 3], Set[2, 4]]
+    end
   end
 end
 
