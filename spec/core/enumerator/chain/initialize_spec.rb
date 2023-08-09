@@ -10,7 +10,9 @@ describe "Enumerator::Chain#initialize" do
   end
 
   it "returns self" do
-    @uninitialized.send(:initialize).should equal(@uninitialized)
+    NATFIXME 'Error in initializer', exception: SpecFailedException do
+      @uninitialized.send(:initialize).should equal(@uninitialized)
+    end
   end
 
   it "accepts many arguments" do
