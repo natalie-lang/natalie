@@ -27,8 +27,8 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = new StringObject { ":" };
     // FIXME: surely we can do this without a regex
-    auto quote_regex = RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
-    bool quote = quote_regex.match(env, new StringObject { m_name })->is_falsey();
+    auto quote_regex = new RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
+    bool quote = quote_regex->match(env, new StringObject { m_name })->is_falsey();
     for (size_t i = 0; i < m_name.length(); ++i) {
         auto c = m_name[i];
         if (c < 33 || c > 126) // FIXME: probably can be a smaller range
