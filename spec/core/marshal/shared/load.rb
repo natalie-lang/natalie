@@ -846,12 +846,10 @@ describe :marshal_load, shared: true do
       Thread.current[threadlocal_key] = nil
 
       dumped = Marshal.dump(s)
-      NATFIXME 'it does not call initialize on the unmarshaled struct', exception: ArgumentError, message: 'dump format error' do
-        loaded = Marshal.send(@method, dumped)
+      loaded = Marshal.send(@method, dumped)
 
-        Thread.current[threadlocal_key].should == nil
-        loaded.a.should == 'foo'
-      end
+      Thread.current[threadlocal_key].should == nil
+      loaded.a.should == 'foo'
     end
   end
 

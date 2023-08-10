@@ -589,9 +589,7 @@ describe "Marshal.dump" do
     end
 
     it "dumps a Struct" do
-      NATFIXME 'dumps a Struct', exception: SpecFailedException do
-        Marshal.dump(Struct::Useful.new(1, 2)).should == "\004\bS:\023Struct::Useful\a:\006ai\006:\006bi\a"
-      end
+      Marshal.dump(Struct::Useful.new(1, 2)).should == "\004\bS:\023Struct::Useful\a:\006ai\006:\006bi\a"
     end
 
     it "dumps a Struct with instance variables" do
@@ -616,9 +614,7 @@ describe "Marshal.dump" do
 
     it "ignores overridden name method" do
       obj = MarshalSpec::StructWithOverriddenName.new("member")
-      NATFIXME 'ignores overridden name method', exception: SpecFailedException do
-        Marshal.dump(obj).should == "\x04\bS:*MarshalSpec::StructWithOverriddenName\x06:\x06a\"\vmember"
-      end
+      Marshal.dump(obj).should == "\x04\bS:*MarshalSpec::StructWithOverriddenName\x06:\x06a\"\vmember"
     end
 
     it "raises TypeError with an anonymous Struct" do

@@ -117,6 +117,15 @@ class Struct
         end
       end
 
+      define_method :dup do
+        res = if self.class.keyword_init?
+                self.class.new(to_h)
+              else
+                self.class.new(*to_a)
+              end
+        res.__send__(:initialize_dup, self)
+      end
+
       define_method :[] do |arg, *rest|
         raise ArgumentError, "too many arguments given" if rest.any?
         case arg
@@ -197,6 +206,8 @@ class Struct
         result
       end
 
+      # These are generated for Struct.new(...).methods, but will be redefined
+      # The actual values are not stored as ivars (requirement of Ruby specs)
       attrs.each { |attr| attr_accessor attr }
 
       if block
@@ -211,8 +222,25 @@ class Struct
       Struct.const_set(klass, result)
     end
 
-    def result.new(...)
-      Object.method(:new).unbind.bind(self).call(...)
+    def result.new(*args)
+      object = allocate
+      # The `values` variable will store the actual values of the struct. We redefine the
+      # getter and setter methods in a closure to capture this variable and make it
+      # invisible to the user.
+      values = members.map { nil }
+      members.each_with_index do |attr, idx|
+        object.singleton_class.undef_method(attr)
+        object.singleton_class.undef_method(:"#{attr}=")
+
+        object.define_singleton_method(attr) do
+          values[idx]
+        end
+
+        object.define_singleton_method(:"#{attr}=") do |value|
+          values[idx] = value
+        end
+      end
+      object.__send__(:initialize, *args)
     end
 
     result
