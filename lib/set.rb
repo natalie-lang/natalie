@@ -151,6 +151,37 @@ class Set
     !intersect?(other)
   end
 
+  def divide(&block)
+    return enum_for(:divide) unless block_given?
+
+    if block.arity == 2
+      # Tuples that match the block. Matching has to be done both ways.
+      tuples = to_a.product(to_a).select(&block).to_set
+      tuples = tuples.select { |x, y| x < y && tuples.include?([y, x]) }
+
+      # Group the tuples into groups of related values
+      #   e.g [[1, 5], [2, 5], [3, 4]] => [[1, 2, 5], [3, 4]]
+      groups = []
+      until tuples.empty?
+        todo = tuples.shift
+        groups << Set.new
+        until todo.empty?
+          value = todo.shift
+          todo.concat(tuples.select { |x, y| value == x || value == y }.flatten)
+          tuples.delete_if { |x, y| value == x || value == y }
+          groups[-1] << value
+        end
+      end
+
+      # And finally, add all missing items as singular sets
+      groups.concat((self - groups.sum(Set.new)).map { |value| Set[value] })
+
+      groups.to_set
+    else
+      classify(&block).values.to_set
+    end
+  end
+
   def empty?
     @data.empty?
   end
