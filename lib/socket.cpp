@@ -400,6 +400,22 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
     return new StringObject { buf, static_cast<size_t>(bytes) };
 }
 
+Value BasicSocket_send(Env *env, Value self, Args args, Block *) {
+    // send(mesg, flags [, dest_sockaddr]) => numbytes_sent
+    args.ensure_argc_between(env, 2, 3);
+    auto mesg = args.at(0);
+    auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
+    auto dest_sockaddr = args.at(2, NilObject::the());
+
+    if (!mesg->is_string() && mesg->respond_to(env, "to_str"_s))
+        mesg = mesg->send(env, "to_str"_s);
+    mesg->assert_type(env, Object::Type::String, "String");
+
+    const auto bytes = send(self->as_io()->fileno(), mesg->as_string()->c_str(), mesg->as_string()->bytesize(), flags);
+
+    return Value::integer(bytes);
+}
+
 Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 1, 3);
 
