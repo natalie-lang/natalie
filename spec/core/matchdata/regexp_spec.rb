@@ -19,6 +19,8 @@ describe "MatchData#regexp" do
 
   it "returns a Regexp for the result of gsub(String)" do
     'he[[o'.gsub('[', ']')
-    $~.regexp.should == /\[/
+    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `regexp' for nil:NilClass" do
+      $~.regexp.should == /\[/
+    end
   end
 end

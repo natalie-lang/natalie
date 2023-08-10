@@ -107,6 +107,12 @@ Value MatchDataObject::pre_match(Env *env) {
     return m_string->ref_fast_range(env, 0, m_region->beg[0]);
 }
 
+Value MatchDataObject::regexp() const {
+    if (!m_regexp) return NilObject::the();
+
+    return m_regexp;
+}
+
 Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
