@@ -496,10 +496,11 @@ class Matcher
              else
                "be #{method.to_s}"
              end
+    send = Kernel.instance_method(:send)
     if !@inverted
-      raise SpecFailedException, "#{@subject.inspect} should #{target}" if !@subject.send(method, *args)
+      raise SpecFailedException, "#{@subject.inspect} should #{target}" if !send.bind_call(@subject, method, *args)
     else
-      raise SpecFailedException, "#{@subject.inspect} should not #{target}" if @subject.send(method, *args)
+      raise SpecFailedException, "#{@subject.inspect} should not #{target}" if send.bind_call(@subject, method, *args)
     end
   end
 
