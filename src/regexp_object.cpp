@@ -234,6 +234,24 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     }
 }
 
+Value RegexpObject::names() const {
+    if (!m_regex)
+        return new ArrayObject {};
+
+    auto names = new ArrayObject { static_cast<size_t>(onig_number_of_names(m_regex)) };
+    onig_foreach_name(
+        m_regex,
+        [](const UChar *name, const UChar *name_end, int, int *, regex_t *, void *data) -> int {
+            auto names = static_cast<ArrayObject *>(data);
+            const size_t length = name_end - name;
+            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
+            names->push(new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) });
+            return 0;
+        },
+        names);
+    return names;
+}
+
 Value RegexpObject::source(Env *env) const {
     assert_initialized(env);
     return new StringObject { pattern() };

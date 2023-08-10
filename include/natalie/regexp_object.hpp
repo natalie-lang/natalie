@@ -180,6 +180,7 @@ public:
     Value encoding(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
+    Value names() const;
     Value source(Env *env) const;
     Value to_s(Env *env) const;
 
