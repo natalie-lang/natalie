@@ -1129,6 +1129,7 @@ gen.binding('Regexp', 'initialize', 'RegexpObject', 'initialize', argc: 1..2, pa
 gen.binding('Regexp', 'inspect', 'RegexpObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'match', 'RegexpObject', 'match', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Regexp', 'match?', 'RegexpObject', 'has_match', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Regexp', 'named_captures', 'RegexpObject', 'named_captures', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'names', 'RegexpObject', 'names', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'options', 'RegexpObject', 'options', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('Regexp', 'source', 'RegexpObject', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

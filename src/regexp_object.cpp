@@ -2,6 +2,13 @@
 
 namespace Natalie {
 
+namespace {
+    struct named_captures_data {
+        Env *env;
+        HashObject *named_captures;
+    };
+};
+
 static StringObject *regexp_stringify(const TM::String &str, const size_t start, const size_t len, StringObject *out) {
     for (size_t i = start; i < len; i++) {
         char c = str[i];
@@ -232,6 +239,30 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
         onig_error_code_to_str(s, result);
         env->raise("RuntimeError", (char *)s);
     }
+}
+
+Value RegexpObject::named_captures(Env *env) const {
+    if (!m_regex)
+        return new HashObject {};
+
+    auto named_captures = new HashObject {};
+    named_captures_data data { env, named_captures };
+    onig_foreach_name(
+        m_regex,
+        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *, void *data) -> int {
+            auto env = (static_cast<named_captures_data *>(data))->env;
+            auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
+            const size_t length = name_end - name;
+            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
+            auto key = new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) };
+            auto values = new ArrayObject { static_cast<size_t>(groups_size) };
+            for (size_t i = 0; i < static_cast<size_t>(groups_size); i++)
+                values->push(new IntegerObject { groups[i] });
+            named_captures->put(env, key, values);
+            return 0;
+        },
+        &data);
+    return named_captures;
 }
 
 Value RegexpObject::names() const {
