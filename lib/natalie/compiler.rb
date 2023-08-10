@@ -38,18 +38,20 @@ module Natalie
     end
     SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
 
+    CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
+
     # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
     LIBRARIES_FOR_DYNAMIC_LINKING = %w[
       -lnatalie_base
       -lnatalie_parser
       -lonigmo
-    ]
+    ] + CRYPT_LIBRARIES
 
     # When using the REPL or compiling a binary with the `-c` option,
     # we use static linking for compatibility.
     LIBRARIES_FOR_STATIC_LINKING = %w[
       -lnatalie
-    ]
+    ] + CRYPT_LIBRARIES
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 

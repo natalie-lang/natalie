@@ -3,6 +3,8 @@
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
+#include <unistd.h>
+
 namespace Natalie {
 
 constexpr bool is_strippable_whitespace(char c) {
@@ -657,6 +659,25 @@ Value StringObject::concat(Env *env, Args args) {
     }
 
     return this;
+}
+
+Value StringObject::crypt(Env *env, Value salt) {
+    for (const auto c : *this) {
+        if (c == '\0')
+            env->raise("ArgumentError", "string contains null byte");
+    }
+
+    if (!salt->is_string() && salt->respond_to(env, "to_str"_s))
+        salt = salt->send(env, "to_str"_s);
+    salt->assert_type(env, Object::Type::String, "String");
+
+    const auto salt_str = salt->as_string();
+
+    // Use the null terminated length of the string
+    if (strlen(salt_str->c_str()) < 2)
+        env->raise("ArgumentError", "salt too short (need >=2 bytes)");
+
+    return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
 }
 
 bool StringObject::eq(Env *env, Value arg) {
