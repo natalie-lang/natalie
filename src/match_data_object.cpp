@@ -26,7 +26,7 @@ ssize_t MatchDataObject::ending(size_t index) {
  * negative indices as well, provided they are within one overall length of the
  * number of captures.
  */
-Value MatchDataObject::group(int index) {
+Value MatchDataObject::group(int index) const {
     if (index + m_region->num_regs <= 0 || index >= m_region->num_regs)
         return NilObject::the();
 

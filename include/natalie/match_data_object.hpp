@@ -38,7 +38,7 @@ public:
     ssize_t ending(size_t);
 
     Value array(int);
-    Value group(int);
+    Value group(int) const;
     Value offset(Env *, Value);
 
     Value captures(Env *);
