@@ -1,0 +1,7 @@
+FROM bemesko/gh-runner
+
+USER root
+
+RUN apt-get update && apt-get install -y -q git ruby
+
+USER runner

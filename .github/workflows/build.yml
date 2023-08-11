@@ -12,7 +12,7 @@ env:
 
 jobs:
   gcc:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v1
       - name: checkout submodules
@@ -20,7 +20,7 @@ jobs:
       - name: test with gcc
         run: rake docker_test_gcc
   clang:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v1
       - name: checkout submodules
@@ -28,24 +28,24 @@ jobs:
       - name: test with clang
         run: rake docker_test_clang
   ruby27:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v1
       - name: checkout submodules
         run: git submodule update --init --recursive
       - name: test when hosted by Ruby 2.7
         run: rake docker_test_ruby27
-  macos:
-    runs-on: macos-12
-    steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
-      - name: install ruby
-        run: brew install ruby autoconf automake libtool pkg-config
-      - name: install openssl
-        run: brew install openssl
-      - name: test with clang on macOS
-        env:
-          PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig
-        run: rake test
+  #macos:
+    #runs-on: macos-12
+    #steps:
+      #- uses: actions/checkout@v1
+      #- name: checkout submodules
+        #run: git submodule update --init --recursive
+      #- name: install ruby
+        #run: brew install ruby autoconf automake libtool pkg-config
+      #- name: install openssl
+        #run: brew install openssl
+      #- name: test with clang on macOS
+        #env:
+          #PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig
+        #run: rake test
