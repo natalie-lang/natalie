@@ -95,6 +95,12 @@ Value MatchDataObject::match_length(Env *env, Value index) {
     return match->as_string()->size(env);
 }
 
+Value MatchDataObject::names() const {
+    if (!m_regexp)
+        return new ArrayObject {};
+    return m_regexp->names();
+}
+
 Value MatchDataObject::post_match(Env *env) {
     if (m_region->beg[0] == -1)
         return NilObject::the();
