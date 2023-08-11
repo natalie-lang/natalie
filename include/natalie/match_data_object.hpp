@@ -45,6 +45,7 @@ public:
     Value inspect(Env *);
     Value match(Env *, Value);
     Value match_length(Env *, Value);
+    Value named_captures(Env *) const;
     Value names() const;
     Value post_match(Env *);
     Value pre_match(Env *);

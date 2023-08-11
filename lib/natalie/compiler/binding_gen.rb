@@ -946,6 +946,7 @@ gen.binding('MatchData', 'inspect', 'MatchDataObject', 'inspect', argc: 0, pass_
 gen.binding('MatchData', 'length', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'match', 'MatchDataObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'match_length', 'MatchDataObject', 'match_length', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('MatchData', 'named_captures', 'MatchDataObject', 'named_captures', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'names', 'MatchDataObject', 'names', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'offset', 'MatchDataObject', 'offset', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'post_match', 'MatchDataObject', 'post_match', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

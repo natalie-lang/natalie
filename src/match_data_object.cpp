@@ -2,6 +2,14 @@
 
 namespace Natalie {
 
+namespace {
+    struct named_captures_data {
+        const MatchDataObject *match_data_object;
+        Env *env;
+        HashObject *named_captures;
+    };
+};
+
 Value MatchDataObject::array(int start) {
     auto size = (size_t)(m_region->num_regs - start);
     auto array = new ArrayObject { size };
@@ -93,6 +101,36 @@ Value MatchDataObject::match_length(Env *env, Value index) {
         return match;
     }
     return match->as_string()->size(env);
+}
+
+Value MatchDataObject::named_captures(Env *env) const {
+    if (!m_regexp)
+        return new HashObject {};
+
+    auto named_captures = new HashObject {};
+    named_captures_data data { this, env, named_captures };
+    onig_foreach_name(
+        m_regexp->m_regex,
+        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *, void *data) -> int {
+            auto match_data_object = (static_cast<named_captures_data *>(data))->match_data_object;
+            auto env = (static_cast<named_captures_data *>(data))->env;
+            auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
+            const size_t length = name_end - name;
+            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
+            auto key = new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) };
+            Value value = NilObject::the();
+            for (int i = groups_size - 1; i >= 0; i--) {
+                auto v = match_data_object->group(groups[i]);
+                if (!v->is_nil()) {
+                    value = v;
+                    break;
+                }
+            }
+            named_captures->put(env, key, value);
+            return 0;
+        },
+        &data);
+    return named_captures;
 }
 
 Value MatchDataObject::names() const {
