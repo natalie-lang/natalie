@@ -18,8 +18,6 @@ describe "MatchData#inspect" do
   it "returns a human readable representation of named captures" do
     match_data = "abc def ghi".match(/(?<first>\w+)\s+(?<last>\w+)\s+(\w+)/)
 
-     NATFIXME 'Implement named captures', exception: SpecFailedException do
-      match_data.inspect.should == '#<MatchData "abc def ghi" first:"abc" last:"def">'
-    end
+    match_data.inspect.should == '#<MatchData "abc def ghi" first:"abc" last:"def">'
   end
 end

@@ -72,10 +72,29 @@ Value MatchDataObject::captures(Env *env) {
 
 Value MatchDataObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<MatchData" };
+    const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));
+    // NATFIXME: TM::StringView would work too, but we need a constructor from char *
+    auto names = TM::Vector<TM::Optional<TM::String>> { names_size };
+    onig_foreach_name(
+        m_regexp->m_regex,
+        [](const UChar *name, const UChar *name_end, int group_size, int *group, regex_t *, void *data) -> int {
+            auto names = static_cast<TM::Vector<TM::Optional<TM::String>> *>(data);
+            for (int i = 0; i < group_size; i++) {
+                const size_t len = name_end - name;
+                names->insert(group[i] - 1, TM::String(reinterpret_cast<const char *>(name), len));
+            }
+            return 0;
+        },
+        &names);
+
     for (int i = 0; i < m_region->num_regs; i++) {
         out->append_char(' ');
         if (i > 0) {
-            out->append(i);
+            if (static_cast<size_t>(i) <= names_size && names[i - 1]) {
+                out->append(names[i - 1].value());
+            } else {
+                out->append(i);
+            }
             out->append_char(':');
         }
         out->append(this->group(i)->inspect_str(env));
