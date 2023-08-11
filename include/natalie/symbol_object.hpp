@@ -96,9 +96,13 @@ private:
         if (m_encoding == nullptr) m_encoding = EncodingObject::default_external();
 
         if (m_encoding != nullptr && m_encoding->is_ascii_compatible()) {
+            auto us_ascii = EncodingObject::get(Encoding::US_ASCII);
             bool all_ascii = true;
             for (size_t i = 0; all_ascii && i < name.length(); i++) {
-                if (name[i] < 0) all_ascii = false;
+                if (!us_ascii->in_encoding_codepoint_range(name[i])) {
+                    all_ascii = false;
+                    break;
+                }
             }
             if (all_ascii) m_encoding = EncodingObject::get(Encoding::US_ASCII);
         }
