@@ -205,4 +205,8 @@ Value EnvObject::update(Env *env, Args args, Block *block) {
     return this;
 }
 
+Value EnvObject::values(Env *env) {
+    return to_hash(env)->as_hash()->values(env);
+}
+
 }

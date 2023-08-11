@@ -33,6 +33,7 @@ public:
     Value to_s() const;
     Value to_hash(Env *);
     Value update(Env *env, Args args, Block *block);
+    Value values(Env *);
 };
 
 }
