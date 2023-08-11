@@ -182,7 +182,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
-        auto match = new MatchDataObject { region, str_obj };
+        auto match = new MatchDataObject { region, str_obj, this };
         caller_env->set_last_match(match);
 
         if (block) {

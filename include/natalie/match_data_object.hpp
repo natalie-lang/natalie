@@ -20,10 +20,11 @@ public:
     MatchDataObject(ClassObject *klass)
         : Object { Object::Type::MatchData, klass } { }
 
-    MatchDataObject(OnigRegion *region, StringObject *string)
+    MatchDataObject(OnigRegion *region, StringObject *string, RegexpObject *regexp)
         : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() }
         , m_region { region }
-        , m_string { string } { }
+        , m_string { string }
+        , m_regexp { regexp } { }
 
     virtual ~MatchDataObject() override {
         onig_region_free(m_region, true);
@@ -46,6 +47,7 @@ public:
     Value match_length(Env *, Value);
     Value post_match(Env *);
     Value pre_match(Env *);
+    Value regexp() const;
     Value to_a(Env *);
     Value to_s(Env *);
     Value ref(Env *, Value);
@@ -57,6 +59,7 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
         Object::visit_children(visitor);
         visitor.visit(m_string);
+        visitor.visit(m_regexp);
     }
 
     /**
@@ -71,5 +74,6 @@ public:
 private:
     OnigRegion *m_region { nullptr };
     StringObject *m_string { nullptr };
+    RegexpObject *m_regexp { nullptr };
 };
 }

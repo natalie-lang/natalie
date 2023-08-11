@@ -181,16 +181,16 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
         merged = StringObject::format("{}/{}", root, path->as_string());
     }
     // collapse ..
-    RegexpObject dotdot { env, "[^/]*/\\.\\.(/|\\z)" };
+    auto dotdot = new RegexpObject { env, "[^/]*/\\.\\.(/|\\z)" };
     StringObject empty_string { "" };
     do {
-        merged = merged->sub(env, &dotdot, &empty_string)->as_string();
+        merged = merged->sub(env, dotdot, &empty_string)->as_string();
     } while (env->has_last_match());
     // collapse .
-    RegexpObject dot { env, "/\\.(/|\\z)" };
+    auto dot = new RegexpObject { env, "/\\.(/|\\z)" };
     StringObject slash { "/" };
     do {
-        merged = merged->sub(env, &dot, &slash)->as_string();
+        merged = merged->sub(env, dot, &slash)->as_string();
     } while (env->has_last_match());
     // remove trailing slash
     if (merged->length() > 1 && merged->string()[merged->length() - 1] == '/') {
