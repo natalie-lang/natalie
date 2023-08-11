@@ -47,6 +47,7 @@ describe 'symbol' do
       :$?.inspect.should == ':$?'
       :$!.inspect.should == ':$!'
       :$~.inspect.should == ':$~'
+      :"$foo!!!bar".inspect.should == ':"$foo!!!bar"'
       (:&).inspect.should == ':&'
     end
   end

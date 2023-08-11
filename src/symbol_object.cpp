@@ -26,23 +26,32 @@ ArrayObject *SymbolObject::all_symbols(Env *env) {
 
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = new StringObject { ":" };
-    // FIXME: surely we can do this without a regex
-    auto quote_regex = new RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
-    bool quote = quote_regex->match(env, new StringObject { m_name })->is_falsey();
-    for (size_t i = 0; i < m_name.length(); ++i) {
-        auto c = m_name[i];
-        if (c < 33 || c > 126) // FIXME: probably can be a smaller range
-            quote = true;
-    }
-    if (m_name.length() > 1 && m_name[0] == '$')
-        quote = false;
-    if (quote) {
+
+    if (should_be_quoted()) {
         StringObject *quoted = StringObject { m_name }.inspect(env);
         string->append(quoted);
     } else {
         string->append(m_name);
     }
     return string;
+}
+
+bool SymbolObject::should_be_quoted() const {
+    if (!s_inspect_quote_regex) {
+        auto pattern = String(
+            "\\A\\$(\\d|\\?|\\!|~)\\z|" // :$0 :$? :$!
+            "\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|" // :foo :@bar :baz=
+            "\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z" // :% :== :**
+        );
+        UChar *pat = (UChar *)pattern.c_str();
+        assert(onig_new(&s_inspect_quote_regex, pat, pat + pattern.size(), ONIG_OPTION_IGNORECASE, ONIG_ENCODING_UTF_8, ONIG_SYNTAX_DEFAULT, nullptr) == ONIG_NORMAL);
+    }
+
+    auto unsigned_str = (unsigned char *)m_name.c_str();
+    auto char_end = unsigned_str + m_name.size();
+    int result = onig_search(s_inspect_quote_regex, unsigned_str, char_end, unsigned_str, char_end, nullptr, ONIG_OPTION_NONE);
+
+    return result < 0;
 }
 
 String SymbolObject::dbg_inspect() const {
