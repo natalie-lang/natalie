@@ -86,7 +86,17 @@ Value MatchDataObject::inspect(Env *env) {
 
 Value MatchDataObject::match(Env *env, Value index) {
     if (!index->is_integer()) {
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index->klass()->inspect_str());
+        if (index->is_symbol()) {
+            index = index->to_s(env);
+        } else if (!index->is_string() && index->respond_to(env, "to_str"_s)) {
+            index = index->send(env, "to_str"_s);
+        }
+        index->assert_type(env, Object::Type::String, "String");
+
+        auto name = reinterpret_cast<const UChar *>(index->as_string()->c_str());
+        const auto backref_number = onig_name_to_backref_number(m_regexp->m_regex, name, name + index->as_string()->bytesize(), m_region);
+
+        return group(backref_number);
     }
     auto match = this->group(IntegerObject::convert_to_int(env, index));
     if (match->is_nil()) {
