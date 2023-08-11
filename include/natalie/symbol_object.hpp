@@ -67,6 +67,8 @@ public:
     const String &string() const { return m_name; }
     EncodingObject *encoding(Env *env) const { return m_encoding; }
 
+    bool should_be_quoted() const;
+
     virtual String dbg_inspect() const override;
 
     virtual void visit_children(Visitor &visitor) override {
@@ -87,6 +89,7 @@ public:
 
 private:
     inline static TM::Hashmap<const TM::String, SymbolObject *> s_symbols { TM::HashType::TMString, 1000 };
+    inline static regex_t *s_inspect_quote_regex { nullptr };
 
     SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
