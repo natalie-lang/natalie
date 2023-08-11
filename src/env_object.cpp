@@ -132,6 +132,14 @@ bool EnvObject::has_key(Env *env, Value name) {
     return (value != NULL);
 }
 
+Value EnvObject::has_value(Env *env, Value name) {
+    if (!name->is_string() && !name->respond_to(env, "to_str"_s))
+        return NilObject::the();
+    if (to_hash(env)->as_hash()->has_value(env, name))
+        return TrueObject::the();
+    return FalseObject::the();
+}
+
 Value EnvObject::to_s() const {
     return new StringObject { "ENV" };
 }
