@@ -1,9 +1,5 @@
 #pragma once
 
-#include <assert.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include "natalie/forward.hpp"
 #include "natalie/hash_object.hpp"
 #include "natalie/integer_object.hpp"
