@@ -63,8 +63,9 @@ Value EnvObject::each(Env *env, Block *block) {
         }
         return this;
     } else {
-        // NATFIXME: return an enumerator
-        return NilObject::the();
+        auto envhash = to_hash(env);
+        Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 }
 
