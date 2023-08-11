@@ -197,7 +197,13 @@ Value MatchDataObject::to_s(Env *env) {
 
 Value MatchDataObject::ref(Env *env, Value index_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
-        NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
+        const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();
+        const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+
+        if (index < 0)
+            env->raise("IndexError", "undefined group name reference: {}", str);
+
+        return group(index);
     }
     nat_int_t index;
     if (index_value.is_fast_integer()) {
