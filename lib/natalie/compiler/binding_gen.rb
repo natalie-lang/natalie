@@ -1248,6 +1248,7 @@ gen.binding('Symbol', 'casecmp', 'SymbolObject', 'casecmp', argc: 1, pass_env: t
 gen.binding('Symbol', 'casecmp?', 'SymbolObject', 'is_casecmp', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'downcase', 'SymbolObject', 'downcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'empty?', 'SymbolObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Symbol', 'encoding', 'SymbolObject', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'end_with?', 'SymbolObject', 'end_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Symbol', 'id2name', 'SymbolObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'inspect', 'SymbolObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

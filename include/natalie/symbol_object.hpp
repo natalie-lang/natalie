@@ -15,11 +15,11 @@ namespace Natalie {
 
 class SymbolObject : public Object {
 public:
-    static SymbolObject *intern(const char *, size_t length);
-    static SymbolObject *intern(const String &);
+    static SymbolObject *intern(const char *, const size_t length, EncodingObject *encoding = nullptr);
+    static SymbolObject *intern(const String &, EncodingObject *encoding = nullptr);
 
     static ArrayObject *all_symbols(Env *);
-    StringObject *to_s(Env *env) { return new StringObject { m_name }; }
+    StringObject *to_s(Env *);
     SymbolObject *to_sym(Env *env) { return this; }
     StringObject *inspect(Env *);
     SymbolObject *succ(Env *);
@@ -65,12 +65,14 @@ public:
     Value ref(Env *, Value, Value);
 
     const String &string() const { return m_name; }
+    EncodingObject *encoding(Env *env) const { return m_encoding; }
 
     virtual String dbg_inspect() const override;
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
         visitor.visit(m_string);
+        visitor.visit(m_encoding);
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -86,13 +88,30 @@ public:
 private:
     inline static TM::Hashmap<const TM::String, SymbolObject *> s_symbols { TM::HashType::TMString, 1000 };
 
-    SymbolObject(const String &name)
+    SymbolObject(const String &name, EncodingObject *encoding)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_name { name } { }
+        , m_name { name }
+        , m_encoding { encoding } {
+        if (m_encoding == nullptr) m_encoding = EncodingObject::default_internal();
+        if (m_encoding == nullptr) m_encoding = EncodingObject::default_external();
+
+        if (m_encoding != nullptr && m_encoding->is_ascii_compatible()) {
+            auto us_ascii = EncodingObject::get(Encoding::US_ASCII);
+            bool all_ascii = true;
+            for (size_t i = 0; all_ascii && i < name.length(); i++) {
+                if (!us_ascii->in_encoding_codepoint_range(name[i])) {
+                    all_ascii = false;
+                    break;
+                }
+            }
+            if (all_ascii) m_encoding = EncodingObject::get(Encoding::US_ASCII);
+        }
+    }
 
     const TM::String m_name {};
 
     StringObject *m_string = nullptr;
+    EncodingObject *m_encoding = nullptr;
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {
