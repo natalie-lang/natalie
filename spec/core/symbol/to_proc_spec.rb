@@ -14,7 +14,9 @@ describe "Symbol#to_proc" do
 
   it "returns a Proc with #lambda? true" do
     pr = :to_s.to_proc
-    pr.should.lambda?
+    NATFIXME 'Mark as lambda', exception: SpecFailedException do
+      pr.should.lambda?
+    end
   end
 
   it "produces a Proc with arity -2" do
@@ -24,7 +26,9 @@ describe "Symbol#to_proc" do
 
   it "produces a Proc that always returns [[:req], [:rest]] for #parameters" do
     pr = :to_s.to_proc
-    pr.parameters.should == [[:req], [:rest]]
+    NATFIXME 'Implement Proc#parameters', exception: NoMethodError, message: "undefined method `parameters'" do
+      pr.parameters.should == [[:req], [:rest]]
+    end
   end
 
   ruby_version_is "3.2" do
@@ -70,11 +74,15 @@ describe "Symbol#to_proc" do
         :m.to_proc.call(self) { :value }
       end
     end
-    klass.new.to_proc.should == :value
+    NATFIXME 'Pass the block along', exception: LocalJumpError, message: 'no block given' do
+      klass.new.to_proc.should == :value
+    end
   end
 
   it "produces a proc with source location nil" do
     pr = :to_s.to_proc
-    pr.source_location.should == nil
+    NATFIXME 'Implement Proc#source_location', exception: NoMethodError, message: "undefined method `source_location'" do
+      pr.source_location.should == nil
+    end
   end
 end
