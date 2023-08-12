@@ -56,6 +56,7 @@ public:
         return regexp;
     }
 
+    static EncodingObject *onig_encoding_to_ruby_encoding(const OnigEncoding encoding);
     static Value last_match(Env *, Value);
     static Value quote(Env *, Value);
     static Value try_convert(Env *, Value);
