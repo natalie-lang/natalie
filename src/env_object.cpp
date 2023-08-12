@@ -73,6 +73,36 @@ Value EnvObject::each(Env *env, Block *block) {
     }
 }
 
+Value EnvObject::each_key(Env *env, Block *block) {
+    if (block) {
+        auto envhash = to_hash(env);
+        for (HashObject::Key &node : *envhash->as_hash()) {
+            auto name = node.key;
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name }), nullptr);
+        }
+        return this;
+    } else {
+        auto envhash = to_hash(env);
+        Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_key"_s }, size_block);
+    }
+}
+
+Value EnvObject::each_value(Env *env, Block *block) {
+    if (block) {
+        auto envhash = to_hash(env);
+        for (HashObject::Key &node : *envhash->as_hash()) {
+            auto value = node.val;
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ value }), nullptr);
+        }
+        return this;
+    } else {
+        auto envhash = to_hash(env);
+        Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_value"_s }, size_block);
+    }
+}
+
 Value EnvObject::assoc(Env *env, Value name) {
     StringObject *namestr;
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
