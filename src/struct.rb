@@ -144,6 +144,10 @@ class Struct
           send("#{key}=", value)
         end
 
+        define_method :== do |other|
+          self.class == other.class && values == other.values
+        end
+
         define_method :dig do |*args|
           if args.empty?
             raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
