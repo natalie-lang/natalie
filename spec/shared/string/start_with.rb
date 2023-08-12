@@ -43,36 +43,34 @@ describe :start_with, shared: true do
 
   it "supports regexps" do
     regexp = /[h1]/
-    NATFIXME 'Add support for regexps', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "hello".send(@method).should.start_with?(regexp)
-      "1337".send(@method).should.start_with?(regexp)
-      "foxes are 1337".send(@method).should_not.start_with?(regexp)
-      "chunky\n12bacon".send(@method).should_not.start_with?(/12/)
-    end
+    "hello".send(@method).should.start_with?(regexp)
+    "1337".send(@method).should.start_with?(regexp)
+    "foxes are 1337".send(@method).should_not.start_with?(regexp)
+    "chunky\n12bacon".send(@method).should_not.start_with?(/12/)
   end
 
   it "supports regexps with ^ and $ modifiers" do
     regexp1 = /^\d{2}/
     regexp2 = /\d{2}$/
-    NATFIXME 'Add support for regexps', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "12test".send(@method).should.start_with?(regexp1)
-      "test12".send(@method).should_not.start_with?(regexp1)
-      "12test".send(@method).should_not.start_with?(regexp2)
-      "test12".send(@method).should_not.start_with?(regexp2)
-    end
+    "12test".send(@method).should.start_with?(regexp1)
+    "test12".send(@method).should_not.start_with?(regexp1)
+    "12test".send(@method).should_not.start_with?(regexp2)
+    "test12".send(@method).should_not.start_with?(regexp2)
   end
 
   it "sets Regexp.last_match if it returns true" do
     regexp = /test-(\d+)/
-    NATFIXME 'Add support for regexps', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
-      "test-1337".send(@method).start_with?(regexp).should be_true
-      Regexp.last_match.should_not be_nil
-      Regexp.last_match[1].should == "1337"
-      $1.should == "1337"
+    "test-1337".send(@method).start_with?(regexp).should be_true
+    Regexp.last_match.should_not be_nil
+    Regexp.last_match[1].should == "1337"
+    $1.should == "1337"
 
-      "test-asdf".send(@method).start_with?(regexp).should be_false
-      Regexp.last_match.should be_nil
-      $1.should be_nil
-    end
+    "test-asdf".send(@method).start_with?(regexp).should be_false
+    Regexp.last_match.should be_nil
+    $1.should be_nil
+  end
+
+  it "does not check that we are not matching part of a character" do
+    "\xC3\xA9".send(@method).should.start_with?("\xC3")
   end
 end

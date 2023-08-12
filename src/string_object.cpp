@@ -470,12 +470,19 @@ StringObject *StringObject::successive_in_place(Env *env) {
     return this;
 }
 
-bool StringObject::internal_start_with(Env *env, Value needle) const {
+bool StringObject::internal_start_with(Env *env, Value needle) {
+    if (needle->is_regexp()) {
+        needle = needle->as_regexp()->to_s(env);
+        needle->as_string()->prepend(env, { new StringObject { "\\A" } });
+        needle = new RegexpObject { env, needle->as_string()->string() };
+        return needle->as_regexp()->match(env, this, nullptr)->is_truthy();
+    }
+
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;
 }
 
-bool StringObject::start_with(Env *env, Args args) const {
+bool StringObject::start_with(Env *env, Args args) {
     for (size_t i = 0; i < args.size(); ++i) {
         auto arg = args[i];
 

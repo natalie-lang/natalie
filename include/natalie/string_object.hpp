@@ -274,8 +274,8 @@ public:
         return this;
     }
 
-    bool internal_start_with(Env *, Value) const;
-    bool start_with(Env *, Args) const;
+    bool internal_start_with(Env *, Value);
+    bool start_with(Env *, Args);
     bool end_with(Env *, Value) const;
     bool end_with(Env *, Args) const;
     bool is_empty() const { return m_string.is_empty(); }
