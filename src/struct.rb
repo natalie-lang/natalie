@@ -84,6 +84,10 @@ class Struct
           end
         end
 
+        define_method :eql? do |other|
+          self.class == other.class && values.zip(other.values).all? { |x, y| x.eql?(y) }
+        end
+
         alias_method :values, :to_a
 
         define_method :inspect do

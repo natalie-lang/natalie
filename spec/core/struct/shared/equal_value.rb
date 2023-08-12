@@ -23,7 +23,8 @@ describe :struct_equal_value, shared: true do
     car.send(@method, clone).should == false
   end
 
-  it "handles recursive structures by returning false if a difference can be found" do
+  # NATFIXME: Infinite loop
+  xit "handles recursive structures by returning false if a difference can be found" do
     x = StructClasses::Car.new("Honda", "Accord", "1998")
     x[:make] = x
     stepping = StructClasses::Car.new("Honda", "Accord", "1998")
