@@ -58,6 +58,7 @@ public:
 
     static Value last_match(Env *, Value);
     static Value quote(Env *, Value);
+    static Value try_convert(Env *, Value);
 
     static Value literal(Env *env, const char *pattern, int options = 0) {
         auto regex = new RegexpObject(env, pattern, options);
