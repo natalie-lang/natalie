@@ -38,13 +38,14 @@ public:
     ssize_t ending(size_t);
 
     Value array(int);
-    Value group(int);
+    Value group(int) const;
     Value offset(Env *, Value);
 
     Value captures(Env *);
     Value inspect(Env *);
     Value match(Env *, Value);
     Value match_length(Env *, Value);
+    Value named_captures(Env *) const;
     Value names() const;
     Value post_match(Env *);
     Value pre_match(Env *);

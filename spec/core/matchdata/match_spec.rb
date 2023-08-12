@@ -21,18 +21,14 @@ ruby_version_is "3.1" do
 
     it "returns the corresponding named match when given a Symbol" do
       md = 'haystack'.match(/(?<t>t(?<a>ack))/)
-      NATFIXME 'Implement named captures', exception: TypeError, message: 'no implicit conversion of Symbol into Integer' do
-        md.match(:a).should == 'ack'
-        md.match(:t).should == 'tack'
-      end
+      md.match(:a).should == 'ack'
+      md.match(:t).should == 'tack'
     end
 
     it "returns nil on non-matching index matches" do
       md = 'haystack'.match(/(?<t>t)(?<a>all)?/)
-      NATFIXME 'Implement named captures', exception: TypeError, message: 'no implicit conversion of Symbol into Integer' do
-        md.match(:t).should == 't'
-        md.match(:a).should == nil
-      end
+      md.match(:t).should == 't'
+      md.match(:a).should == nil
     end
   end
 end

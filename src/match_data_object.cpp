@@ -2,6 +2,14 @@
 
 namespace Natalie {
 
+namespace {
+    struct named_captures_data {
+        const MatchDataObject *match_data_object;
+        Env *env;
+        HashObject *named_captures;
+    };
+};
+
 Value MatchDataObject::array(int start) {
     auto size = (size_t)(m_region->num_regs - start);
     auto array = new ArrayObject { size };
@@ -26,7 +34,7 @@ ssize_t MatchDataObject::ending(size_t index) {
  * negative indices as well, provided they are within one overall length of the
  * number of captures.
  */
-Value MatchDataObject::group(int index) {
+Value MatchDataObject::group(int index) const {
     if (index + m_region->num_regs <= 0 || index >= m_region->num_regs)
         return NilObject::the();
 
@@ -64,10 +72,29 @@ Value MatchDataObject::captures(Env *env) {
 
 Value MatchDataObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<MatchData" };
+    const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));
+    // NATFIXME: TM::StringView would work too, but we need a constructor from char *
+    auto names = TM::Vector<TM::Optional<TM::String>> { names_size };
+    onig_foreach_name(
+        m_regexp->m_regex,
+        [](const UChar *name, const UChar *name_end, int group_size, int *group, regex_t *, void *data) -> int {
+            auto names = static_cast<TM::Vector<TM::Optional<TM::String>> *>(data);
+            for (int i = 0; i < group_size; i++) {
+                const size_t len = name_end - name;
+                names->insert(group[i] - 1, TM::String(reinterpret_cast<const char *>(name), len));
+            }
+            return 0;
+        },
+        &names);
+
     for (int i = 0; i < m_region->num_regs; i++) {
         out->append_char(' ');
         if (i > 0) {
-            out->append(i);
+            if (static_cast<size_t>(i) <= names_size && names[i - 1]) {
+                out->append(names[i - 1].value());
+            } else {
+                out->append(i);
+            }
             out->append_char(':');
         }
         out->append(this->group(i)->inspect_str(env));
@@ -78,7 +105,17 @@ Value MatchDataObject::inspect(Env *env) {
 
 Value MatchDataObject::match(Env *env, Value index) {
     if (!index->is_integer()) {
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index->klass()->inspect_str());
+        if (index->is_symbol()) {
+            index = index->to_s(env);
+        } else if (!index->is_string() && index->respond_to(env, "to_str"_s)) {
+            index = index->send(env, "to_str"_s);
+        }
+        index->assert_type(env, Object::Type::String, "String");
+
+        auto name = reinterpret_cast<const UChar *>(index->as_string()->c_str());
+        const auto backref_number = onig_name_to_backref_number(m_regexp->m_regex, name, name + index->as_string()->bytesize(), m_region);
+
+        return group(backref_number);
     }
     auto match = this->group(IntegerObject::convert_to_int(env, index));
     if (match->is_nil()) {
@@ -93,6 +130,36 @@ Value MatchDataObject::match_length(Env *env, Value index) {
         return match;
     }
     return match->as_string()->size(env);
+}
+
+Value MatchDataObject::named_captures(Env *env) const {
+    if (!m_regexp)
+        return new HashObject {};
+
+    auto named_captures = new HashObject {};
+    named_captures_data data { this, env, named_captures };
+    onig_foreach_name(
+        m_regexp->m_regex,
+        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *, void *data) -> int {
+            auto match_data_object = (static_cast<named_captures_data *>(data))->match_data_object;
+            auto env = (static_cast<named_captures_data *>(data))->env;
+            auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
+            const size_t length = name_end - name;
+            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
+            auto key = new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) };
+            Value value = NilObject::the();
+            for (int i = groups_size - 1; i >= 0; i--) {
+                auto v = match_data_object->group(groups[i]);
+                if (!v->is_nil()) {
+                    value = v;
+                    break;
+                }
+            }
+            named_captures->put(env, key, value);
+            return 0;
+        },
+        &data);
+    return named_captures;
 }
 
 Value MatchDataObject::names() const {
@@ -130,7 +197,13 @@ Value MatchDataObject::to_s(Env *env) {
 
 Value MatchDataObject::ref(Env *env, Value index_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
-        NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
+        const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();
+        const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+
+        if (index < 0)
+            env->raise("IndexError", "undefined group name reference: {}", str);
+
+        return group(index);
     }
     nat_int_t index;
     if (index_value.is_fast_integer()) {

@@ -21,22 +21,30 @@ describe "Regexp.last_match" do
   end
 
   describe "when given a Symbol" do
-    # NATFIXME named refs aren't implemented yet
-    xit "returns a named capture" do
+    it "returns a named capture" do
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
       Regexp.last_match(:test).should == "TEST123"
     end
 
-    # NATFIXME named refs aren't implemented yet
-    xit "raises an IndexError when given a missing name" do
+    it "raises an IndexError when given a missing name" do
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
-      -> { Regexp.last_match(:missing) }.should raise_error(IndexError)
+      NATFIXME "this error gets thrown, but when in a proc it doesn't get bubbled up properly", exception: SpecFailedException do
+        -> { Regexp.last_match(:missing) }.should raise_error(IndexError)
+      end
+
+      # NATFIXME: Alternate implementation of the test
+      error = begin
+        Regexp.last_match(:missing)
+        nil
+      rescue IndexError => e
+        e
+      end
+      error.should be_kind_of(IndexError)
     end
   end
 
   describe "when given a String" do
-    # NATFIXME named refs aren't implemented yet
-    xit "returns a named capture" do
+    it "returns a named capture" do
       /(?<test>[A-Z]+.*)/ =~ "TEST123"
       Regexp.last_match("test").should == "TEST123"
     end
@@ -56,6 +64,15 @@ describe "Regexp.last_match" do
       NATFIXME "this error gets thrown, but when in a proc it doesn't get bubbled up properly", exception: SpecFailedException do
         -> { Regexp.last_match(obj) }.should raise_error(TypeError)
       end
+
+      # NATFIXME: Alternate implementation of the test
+      error = begin
+        Regexp.last_match(obj)
+        nil
+      rescue TypeError => e
+        e
+      end
+      error.should be_kind_of(TypeError)
     end
   end
 end
