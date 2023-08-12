@@ -63,7 +63,7 @@ class Struct
         end
 
         self.class.define_method :keyword_init? do
-          options[:keyword_init]
+          options[:keyword_init] ? true : options[:keyword_init]
         end
 
         define_method :each do
