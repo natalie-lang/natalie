@@ -568,18 +568,21 @@ describe "String#gsub with pattern and block" do
   end
 end
 
-# NATFIXME: NOT YET IMPLEMENTED: Enumerator reply in String#gsub
-xdescribe "String#gsub with pattern and without replacement and block" do
+describe "String#gsub with pattern and without replacement and block" do
   it "returns an enumerator" do
-    enum = "abca".gsub(/a/)
-    enum.should be_an_instance_of(Enumerator)
-    enum.to_a.should == ["a", "a"]
+    NATFIXME 'Enumerator reply in String#gsub', exception: NotImplementedError do
+      enum = "abca".gsub(/a/)
+      enum.should be_an_instance_of(Enumerator)
+      enum.to_a.should == ["a", "a"]
+    end
   end
 
   describe "returned Enumerator" do
     describe "size" do
       it "should return nil" do
-        "abca".gsub(/a/).size.should == nil
+        NATFIXME 'Enumerator reply in String#gsub', exception: NotImplementedError do
+          "abca".gsub(/a/).size.should == nil
+        end
       end
     end
   end

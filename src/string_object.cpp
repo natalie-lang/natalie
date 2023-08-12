@@ -1775,7 +1775,7 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         if (index + length < m_string.length())
             out->append(m_string.substring(index + length));
     } else {
-        NAT_NOT_YET_IMPLEMENTED("Enumerator reply in String#gsub");
+        env->raise("NotImplementedError", "Enumerator reply in String#gsub");
     }
     return out;
 }
