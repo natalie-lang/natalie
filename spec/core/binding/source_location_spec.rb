@@ -8,7 +8,9 @@ describe "Binding#source_location" do
   end
 
   it "works for eval with a given line" do
-    b = eval('binding', nil, "foo", 100)
-    b.source_location.should == ["foo", 100]
+    NATFIXME 'binding passed to eval() will be ignored.', exception: SpecFailedException do
+      b = eval('binding', nil, "foo", 100)
+      b.source_location.should == ["foo", 100]
+    end
   end
 end
