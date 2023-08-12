@@ -67,8 +67,9 @@ Value EnvObject::each(Env *env, Block *block) {
         }
         return this;
     } else {
-        // NATFIXME: return an enumerator
-        return NilObject::the();
+        auto envhash = to_hash(env);
+        Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
 }
 
@@ -135,6 +136,14 @@ bool EnvObject::has_key(Env *env, Value name) {
     return (value != NULL);
 }
 
+Value EnvObject::has_value(Env *env, Value name) {
+    if (!name->is_string() && !name->respond_to(env, "to_str"_s))
+        return NilObject::the();
+    if (to_hash(env)->as_hash()->has_value(env, name))
+        return TrueObject::the();
+    return FalseObject::the();
+}
+
 Value EnvObject::to_s() const {
     return new StringObject { "ENV" };
 }
@@ -198,6 +207,10 @@ Value EnvObject::update(Env *env, Args args, Block *block) {
         }
     }
     return this;
+}
+
+Value EnvObject::values(Env *env) {
+    return to_hash(env)->as_hash()->values(env);
 }
 
 }

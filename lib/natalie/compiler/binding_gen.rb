@@ -495,6 +495,7 @@ gen.singleton_binding('ENV', 'each', 'EnvObject', 'each', argc: 0, pass_env: tru
 gen.singleton_binding('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'has_key?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.singleton_binding('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'include?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'key?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -509,6 +510,8 @@ gen.singleton_binding('ENV', 'to_h', 'EnvObject', 'to_hash', argc: 0, pass_env: 
 gen.singleton_binding('ENV', 'to_hash', 'EnvObject', 'to_hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'to_s', 'EnvObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'update', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
+gen.singleton_binding('ENV', 'value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'values', 'EnvObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'merge!', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 
 gen.static_binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_klass: true, pass_block: false, return_type: :Object)

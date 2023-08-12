@@ -17,6 +17,7 @@ public:
     Value each(Env *, Block *block);
     Value fetch(Env *, Value name, Value default_value, Block *block);
     bool has_key(Env *, Value name);
+    Value has_value(Env *, Value name);
     Value inspect(Env *);
     bool is_empty() const;
     Value keys(Env *);
@@ -28,6 +29,7 @@ public:
     Value to_s() const;
     Value to_hash(Env *);
     Value update(Env *env, Args args, Block *block);
+    Value values(Env *);
 };
 
 }
