@@ -187,6 +187,16 @@ const ArrayObject *Object::as_array() const {
     return static_cast<const ArrayObject *>(this);
 }
 
+BindingObject *Object::as_binding() {
+    assert(is_binding());
+    return static_cast<BindingObject *>(this);
+}
+
+const BindingObject *Object::as_binding() const {
+    assert(is_binding());
+    return static_cast<const BindingObject *>(this);
+}
+
 MethodObject *Object::as_method() {
     assert(is_method());
     return static_cast<MethodObject *>(this);

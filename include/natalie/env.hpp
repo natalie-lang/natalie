@@ -127,7 +127,7 @@ public:
     Block *this_block() { return m_this_block; }
     void set_this_block(Block *block) { m_this_block = block; }
 
-    const char *file() { return m_file; }
+    const char *file() const { return m_file; }
     void set_file(const char *file) { m_file = file; }
 
     size_t line() const { return m_line; }

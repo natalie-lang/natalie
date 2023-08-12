@@ -18,6 +18,8 @@ public:
         visitor.visit(&m_env);
     }
 
+    Value source_location() const;
+
 private:
     Env m_env;
 };
