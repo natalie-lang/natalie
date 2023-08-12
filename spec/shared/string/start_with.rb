@@ -62,7 +62,7 @@ describe :start_with, shared: true do
     end
   end
 
-  xit "sets Regexp.last_match if it returns true" do
+  it "sets Regexp.last_match if it returns true" do
     regexp = /test-(\d+)/
     NATFIXME 'Add support for regexps', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
       "test-1337".send(@method).start_with?(regexp).should be_true
