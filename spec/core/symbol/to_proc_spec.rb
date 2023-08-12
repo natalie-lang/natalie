@@ -14,9 +14,7 @@ describe "Symbol#to_proc" do
 
   it "returns a Proc with #lambda? true" do
     pr = :to_s.to_proc
-    NATFIXME 'Mark as lambda', exception: SpecFailedException do
-      pr.should.lambda?
-    end
+    pr.should.lambda?
   end
 
   it "produces a Proc with arity -2" do
