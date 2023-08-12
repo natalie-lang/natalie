@@ -4,7 +4,13 @@ class Enumerator
   class Chain < Enumerator
     def initialize(*enumerables)
       @current_feed = []
+      @enumerables = enumerables
       @enum_block = Proc.new { |yielder| enumerables.each { |enumerable| enumerable.each { |item| yielder << item } } }
+    end
+
+    def inspect
+      enumerables = defined?(@enumerables) ? @enumerables.inspect : 'uninitialized'
+      "#<Enumerator::Chain: #{enumerables}>"
     end
   end
 
