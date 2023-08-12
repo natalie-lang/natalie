@@ -114,6 +114,7 @@ public:
     bool is_fiber() const { return m_type == Type::Fiber; }
     bool is_enumerator_arithmetic_sequence() const { return m_type == Type::EnumeratorArithmeticSequence; }
     bool is_array() const { return m_type == Type::Array; }
+    bool is_binding() const { return m_type == Type::Binding; }
     bool is_method() const { return m_type == Type::Method; }
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
     bool is_class() const { return m_type == Type::Class; }
@@ -146,6 +147,8 @@ public:
     Enumerator::ArithmeticSequenceObject *as_enumerator_arithmetic_sequence();
     ArrayObject *as_array();
     const ArrayObject *as_array() const;
+    BindingObject *as_binding();
+    const BindingObject *as_binding() const;
     ClassObject *as_class();
     const ClassObject *as_class() const;
     ComplexObject *as_complex();

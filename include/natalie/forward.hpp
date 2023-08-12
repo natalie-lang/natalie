@@ -9,6 +9,7 @@ namespace Enumerator {
 };
 class ArrayObject;
 class Backtrace;
+class BindingObject;
 class Block;
 class ClassObject;
 class ComplexObject;
