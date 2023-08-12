@@ -2,6 +2,10 @@
 #include "natalie/env.hpp"
 #include "tm/vector.hpp"
 
+#include <assert.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
 extern char **environ;
 
 namespace Natalie {
