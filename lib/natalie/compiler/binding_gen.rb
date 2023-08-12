@@ -1128,6 +1128,7 @@ gen.binding('Rational', 'zero?', 'RationalObject', 'is_zero', argc: 0, pass_env:
 gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
 gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.static_binding('Regexp', 'quote', 'RegexpObject', 'quote', argc: 1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding('Regexp', 'try_convert', 'RegexpObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.binding('Regexp', '==', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'eql?', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

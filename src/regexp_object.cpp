@@ -98,6 +98,19 @@ Value RegexpObject::quote(Env *env, Value string) {
     return new StringObject { std::move(out), encoding };
 }
 
+Value RegexpObject::try_convert(Env *env, Value value) {
+    if (!value->is_regexp() && value->respond_to(env, "to_regexp"_s)) {
+        auto result = value->send(env, "to_regexp"_s);
+        if (!result->is_regexp()) {
+            auto value_class_name = value->klass()->name().value_or("Object");
+            env->raise("TypeError", "can't convert {} to Regexp ({}#to_regexp gives {})", value_class_name, value_class_name, result->klass()->name().value_or("Object"));
+        }
+        return result;
+    } else if (!value->is_regexp())
+        return NilObject::the();
+    return value;
+}
+
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
     if (is_initialized())
