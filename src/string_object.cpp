@@ -3,7 +3,7 @@
 #include "natalie/string_unpacker.hpp"
 #include "string.h"
 
-#include <unistd.h>
+#include <crypt.h>
 
 namespace Natalie {
 
@@ -677,7 +677,9 @@ Value StringObject::crypt(Env *env, Value salt) {
     if (strlen(salt_str->c_str()) < 2)
         env->raise("ArgumentError", "salt too short (need >=2 bytes)");
 
-    return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
+    crypt_data data;
+    data.initialized = 0;
+    return new StringObject { crypt_r(c_str(), salt_str->c_str(), &data) };
 }
 
 bool StringObject::eq(Env *env, Value arg) {
