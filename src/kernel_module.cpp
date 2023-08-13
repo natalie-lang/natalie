@@ -650,7 +650,12 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-Value KernelModule::enum_for_build_the_proc(Env *env, Value yielder, Block *block) {
+Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
+    args.ensure_argc_at_least(env, 2);
+    auto yielder = args[0];
+    auto method = args[1]->as_symbol();
+    auto tmp_args = Args::shift(args);
+    auto method_args = Args::shift(tmp_args);
     Value the_proc = yielder.public_send(env, "to_proc"_s);
     if (the_proc->is_nil()) {
         auto yielder_block = [](Env *env, Value self, Args args, Block *block) -> Value {
@@ -659,16 +664,7 @@ Value KernelModule::enum_for_build_the_proc(Env *env, Value yielder, Block *bloc
         };
         the_proc = new ProcObject(new Block(env, yielder, yielder_block, -1, Block::BlockType::Lambda), 0);
     }
-    return the_proc;
-}
-
-Value KernelModule::enum_for_inner(Env *env, Args args, Block *block) {
-    args.ensure_argc_at_least(env, 2);
-    auto yielder = args[0];
-    auto method = args[1]->as_symbol();
-    auto tmp_args = Args::shift(args);
-    auto method_args = Args::shift(tmp_args);
-    return send(env, method, method_args, block);
+    return send(env, method, method_args, the_proc->as_proc()->block());
 }
 
 Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
