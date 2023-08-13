@@ -17,7 +17,7 @@ module Kernel
   def enum_for(method = :each, *args, **kwargs, &block)
     enum =
       Enumerator.new do |yielder|
-        the_proc = enum_for_inner(yielder)
+        the_proc = enum_for_build_the_proc(yielder)
         send(method, *args, **kwargs, &the_proc)
       end
     enum_for_size_block(enum, &block);

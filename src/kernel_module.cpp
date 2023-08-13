@@ -650,7 +650,7 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-Value KernelModule::enum_for_inner(Env *env, Value yielder, Block *block) {
+Value KernelModule::enum_for_build_the_proc(Env *env, Value yielder, Block *block) {
     Value the_proc = yielder.public_send(env, "to_proc"_s);
     if (the_proc->is_nil()) {
         auto yielder_block = [](Env *env, Value self, Args args, Block *block) -> Value {
