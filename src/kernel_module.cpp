@@ -699,22 +699,14 @@ static Value block8(Env *env, Value self, Args args, Block *block) {
 }
 
 Value KernelModule::enum_for(Env *env, Args args, Block *block) {
-    auto block2 = ProcObject::from_block_maybe(block);
-    Value block_var = block2;
-    auto keyword_args_hash3 = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
-    args.ensure_argc_at_least(env, 0, {});
-    auto args5 = args.to_array();
-    env->var_set("kwargs", 1, true, keyword_args_hash3);
-    auto ary6 = args5;
-    auto first_item_of_array7 = (ary6->as_array()->is_empty() ? Value("each"_s) : ary6->as_array()->shift());
-    env->var_set("method", 2, true, first_item_of_array7);
-    env->var_set("args", 3, true, args5);
-    Value enum_var = NilObject::the();
-    auto send_new14 = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
-    enum_var = send_new14;
-    env->set_line(6);
-    auto send_enum_for_size_block15 = send(env, "enum_for_size_block"_s, Args({ enum_var }, false), to_block(env, block_var), this);
-    return send_enum_for_size_block15;
+    auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+    auto splat_args = args.to_array();
+    env->var_set("kwargs", 1, true, kwargs);
+    Value method = splat_args->is_empty() ? "each"_s : splat_args->shift();
+    env->var_set("method", 2, true, method);
+    env->var_set("args", 3, true, splat_args);
+    auto enum_var = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
+    return send(env, "enum_for_size_block"_s, { enum_var }, block, this);
 }
 
 }
