@@ -650,12 +650,10 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-static Value enum_for_yielder_block(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_at_least(env, 2);
-    auto yielder = args[0];
-    auto method = args[1]->as_symbol();
-    auto tmp_args = Args::shift(args);
-    auto method_args = Args::shift(tmp_args);
+static Value enum_for_yielder_block(Env *env, Value self, Value yielder, Args args, Block *) {
+    args.ensure_argc_at_least(env, 1);
+    auto method = args[0]->as_symbol();
+    auto method_args = Args::shift(args);
     Value the_proc = yielder.public_send(env, "to_proc"_s);
     if (the_proc->is_nil()) {
         auto yielder_block = [](Env *env, Value self, Args args, Block *block) -> Value {
@@ -670,10 +668,10 @@ static Value enum_for_yielder_block(Env *env, Value self, Args args, Block *) {
 static Value enumerator_initialize_block(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_at_least(env, 1);
     Value yielder = args.at(0);
-    auto block_args = new ArrayObject { yielder, env->outer()->var_get("method", 2) };
+    auto block_args = new ArrayObject { env->outer()->var_get("method", 2) };
     block_args->push_splat(env, env->outer()->var_get("args", 3));
     block_args->push(env->outer()->var_get("kwargs", 1));
-    return enum_for_yielder_block(env, self, Args(block_args, true), nullptr);
+    return enum_for_yielder_block(env, self, yielder, Args(block_args, true), nullptr);
 }
 
 Value KernelModule::enum_for(Env *env, Args args, Block *block) {
