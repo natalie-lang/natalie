@@ -667,18 +667,13 @@ static Value enum_for_yielder_block(Env *env, Value self, Args args, Block *) {
     return self->send(env, method, method_args, the_proc->as_proc()->block());
 }
 
-Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
-    auto enumerator_class = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict);
-    return enum_for_yielder_block(env, this, args, nullptr);
-}
-
 static Value enumerator_initialize_block(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_at_least(env, 1);
     Value yielder = args.at(0);
     auto block_args = new ArrayObject { yielder, env->outer()->var_get("method", 2) };
     block_args->push_splat(env, env->outer()->var_get("args", 3));
     block_args->push(env->outer()->var_get("kwargs", 1));
-    return self.send(env, "enum_for_inner"_s, Args(block_args, true), nullptr, self);
+    return enum_for_yielder_block(env, self, Args(block_args, true), nullptr);
 }
 
 Value KernelModule::enum_for(Env *env, Args args, Block *block) {

@@ -69,6 +69,7 @@ public:
     static bool block_given(Env *env, Block *block) { return !!block; }
 
     Value define_singleton_method(Env *env, Value name, Block *block);
+    Value enum_for(Env *, Args, Block *);
     Value hash(Env *env);
     Value initialize_copy(Env *env, Value object);
     Value inspect(Env *env);
@@ -83,9 +84,6 @@ public:
     Value remove_instance_variable(Env *env, Value name_val);
     Value tap(Env *env, Block *block);
     bool is_a(Env *env, Value module);
-
-    Value enum_for(Env *, Args, Block *);
-    Value enum_for_inner(Env *, Args, Block *);
 };
 
 }
