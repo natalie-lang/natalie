@@ -35,6 +35,7 @@ public:
     }
 
     int arity() const { return m_arity; }
+    void set_arity(int arity) { m_arity = arity; }
 
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }

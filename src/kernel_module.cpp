@@ -665,6 +665,8 @@ static Value enumerator_initialize_block(Env *env, Value self, Args args, Block 
             return self->public_send(env, "yield"_s, Args(splat, false), nullptr, self);
         };
         the_proc = new ProcObject(new Block(env, yielder, yielder_block, -1, Block::BlockType::Lambda), 0);
+    } else {
+        the_proc->as_proc()->block()->set_arity(2);
     }
     return self->send(env, method, Args(block_args, true), the_proc->as_proc()->block());
 }
