@@ -650,4 +650,14 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
+Value KernelModule::enum_for_inner(Env *env, Value enumerator, Block *block) {
+    auto enum_for_size = [](Env *env, Value self, Args args, Block *) -> Value {
+        args.ensure_argc_is(env, 0);
+        auto size_block = self->ivar_get(env, "@size_block"_s)->as_proc();
+        return size_block->call(env);
+    };
+    enumerator->singleton_class(env)->define_method(env, "size"_s, enum_for_size, 0);
+    return enumerator;
+}
+
 }

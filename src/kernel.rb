@@ -22,9 +22,7 @@ module Kernel
       end
     if block_given?
       enum.instance_variable_set(:@size_block, block)
-      def enum.size
-        @size_block.call
-      end
+      enum_for_inner(enum, &block);
     end
     enum
   end

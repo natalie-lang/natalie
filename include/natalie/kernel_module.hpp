@@ -83,6 +83,8 @@ public:
     Value remove_instance_variable(Env *env, Value name_val);
     Value tap(Env *env, Block *block);
     bool is_a(Env *env, Value module);
+
+    Value enum_for_inner(Env *, Value, Block *);
 };
 
 }
