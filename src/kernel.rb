@@ -14,15 +14,6 @@ module Kernel
   end
   alias yield_self then
 
-  def enum_for(method = :each, *args, **kwargs, &block)
-    enum =
-      Enumerator.new do |yielder|
-        enum_for_inner(yielder, method, *args, **kwargs)
-      end
-    enum_for_size_block(enum, &block);
-  end
-  alias to_enum enum_for
-
   def initialize_dup(other)
     initialize_copy(other)
     self

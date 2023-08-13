@@ -376,7 +376,7 @@ Value KernelModule::lambda(Env *env, Block *block) {
 
 Value KernelModule::loop(Env *env, Block *block) {
     if (!block)
-        return this->enum_for(env, "loop");
+        return this->enum_for(env, { "loop"_s }, nullptr);
 
     for (;;) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
@@ -683,6 +683,38 @@ Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block
         enumerator->singleton_class(env)->define_method(env, "size"_s, enum_for_size, 0);
     }
     return enumerator;
+}
+
+static Value block8(Env *env, Value self, Args args, Block *block) {
+    Value yielder_var = args.at(0, NilObject::the());
+    Value items9[] = { yielder_var, env->outer()->var_get("method", 2) };
+    auto array10 = Value(new ArrayObject(2, items9));
+    array10->as_array()->push_splat(env, env->outer()->var_get("args", 3));
+    Value items11[] = {};
+    auto hash12 = Value(new HashObject(env, 0, items11));
+    hash12->as_hash()->merge_in_place(env, Args({ env->outer()->var_get("kwargs", 1) }), nullptr);
+    array10->as_array()->push(hash12);
+    auto send_enum_for_inner13 = self.send(env, "enum_for_inner"_s, Args(array10->as_array(), true), nullptr, self);
+    return send_enum_for_inner13;
+}
+
+Value KernelModule::enum_for(Env *env, Args args, Block *block) {
+    auto block2 = ProcObject::from_block_maybe(block);
+    Value block_var = block2;
+    auto keyword_args_hash3 = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+    args.ensure_argc_at_least(env, 0, {});
+    auto args5 = args.to_array();
+    env->var_set("kwargs", 1, true, keyword_args_hash3);
+    auto ary6 = args5;
+    auto first_item_of_array7 = (ary6->as_array()->is_empty() ? Value("each"_s) : ary6->as_array()->shift());
+    env->var_set("method", 2, true, first_item_of_array7);
+    env->var_set("args", 3, true, args5);
+    Value enum_var = NilObject::the();
+    auto send_new14 = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
+    enum_var = send_new14;
+    env->set_line(6);
+    auto send_enum_for_size_block15 = send(env, "enum_for_size_block"_s, Args({ enum_var }, false), to_block(env, block_var), this);
+    return send_enum_for_size_block15;
 }
 
 }
