@@ -650,6 +650,10 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
+Value KernelModule::enum_for_inner(Env *env, Value yielder, Block *block) {
+    return yielder.public_send(env, "to_proc"_s);
+}
+
 Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
     if (block) {
         enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
