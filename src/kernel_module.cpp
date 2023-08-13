@@ -651,7 +651,15 @@ Value KernelModule::this_method(Env *env) {
 }
 
 Value KernelModule::enum_for_inner(Env *env, Value yielder, Block *block) {
-    return yielder.public_send(env, "to_proc"_s);
+    Value the_proc = yielder.public_send(env, "to_proc"_s);
+    if (the_proc->is_nil()) {
+        auto yielder_block = [](Env *env, Value self, Args args, Block *block) -> Value {
+            auto splat = args.to_array_for_block(env, 0, -1, false);
+            return self->public_send(env, "yield"_s, Args(splat, false), nullptr, self);
+        };
+        the_proc = new ProcObject(new Block(env, yielder, yielder_block, -1, Block::BlockType::Lambda), 0);
+    }
+    return the_proc;
 }
 
 Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
