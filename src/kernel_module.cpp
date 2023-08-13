@@ -650,7 +650,7 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-Value KernelModule::enum_for_inner(Env *env, Value enumerator, Block *block) {
+Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
     if (block) {
         enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
         auto enum_for_size = [](Env *env, Value self, Args args, Block *) -> Value {

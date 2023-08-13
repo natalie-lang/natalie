@@ -84,7 +84,7 @@ public:
     Value tap(Env *env, Block *block);
     bool is_a(Env *env, Value module);
 
-    Value enum_for_inner(Env *, Value, Block *);
+    Value enum_for_size_block(Env *, Value, Block *);
 };
 
 }

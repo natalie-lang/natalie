@@ -20,7 +20,7 @@ module Kernel
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
         send(method, *args, **kwargs, &the_proc)
       end
-    enum_for_inner(enum, &block);
+    enum_for_size_block(enum, &block);
   end
   alias to_enum enum_for
 
