@@ -672,17 +672,13 @@ Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
     return enum_for_yielder_block(env, this, args, nullptr);
 }
 
-static Value block8(Env *env, Value self, Args args, Block *block) {
-    Value yielder_var = args.at(0, NilObject::the());
-    Value items9[] = { yielder_var, env->outer()->var_get("method", 2) };
-    auto array10 = Value(new ArrayObject(2, items9));
-    array10->as_array()->push_splat(env, env->outer()->var_get("args", 3));
-    Value items11[] = {};
-    auto hash12 = Value(new HashObject(env, 0, items11));
-    hash12->as_hash()->merge_in_place(env, Args({ env->outer()->var_get("kwargs", 1) }), nullptr);
-    array10->as_array()->push(hash12);
-    auto send_enum_for_inner13 = self.send(env, "enum_for_inner"_s, Args(array10->as_array(), true), nullptr, self);
-    return send_enum_for_inner13;
+static Value enumerator_initialize_block(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_at_least(env, 1);
+    Value yielder = args.at(0);
+    auto block_args = new ArrayObject { yielder, env->outer()->var_get("method", 2) };
+    block_args->push_splat(env, env->outer()->var_get("args", 3));
+    block_args->push(env->outer()->var_get("kwargs", 1));
+    return self.send(env, "enum_for_inner"_s, Args(block_args, true), nullptr, self);
 }
 
 Value KernelModule::enum_for(Env *env, Args args, Block *block) {
@@ -692,7 +688,7 @@ Value KernelModule::enum_for(Env *env, Args args, Block *block) {
     Value method = splat_args->is_empty() ? "each"_s : splat_args->shift();
     env->var_set("method", 2, true, method);
     env->var_set("args", 3, true, splat_args);
-    auto enumerator = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
+    auto enumerator = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, enumerator_initialize_block, 1))), this);
 
     if (block) {
         enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
