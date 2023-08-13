@@ -650,7 +650,7 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
+static Value enum_for_yielder_block(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_at_least(env, 2);
     auto yielder = args[0];
     auto method = args[1]->as_symbol();
@@ -664,7 +664,12 @@ Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
         };
         the_proc = new ProcObject(new Block(env, yielder, yielder_block, -1, Block::BlockType::Lambda), 0);
     }
-    return send(env, method, method_args, the_proc->as_proc()->block());
+    return self->send(env, method, method_args, the_proc->as_proc()->block());
+}
+
+Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
+    auto enumerator_class = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict);
+    return enum_for_yielder_block(env, this, args, nullptr);
 }
 
 Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
