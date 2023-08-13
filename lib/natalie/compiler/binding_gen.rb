@@ -946,7 +946,6 @@ gen.binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', 
 gen.binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'enum_for_inner', 'KernelModule', 'enum_for_inner', argc: 2.., pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Kernel', 'enum_for_size_block', 'KernelModule', 'enum_for_size_block', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'enum_for', 'KernelModule', 'enum_for', argc: 0.., pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'to_enum', 'KernelModule', 'enum_for', argc: 0.., pass_env: true, pass_block: true, return_type: :Object)
 

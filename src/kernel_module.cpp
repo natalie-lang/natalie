@@ -672,19 +672,6 @@ Value KernelModule::enum_for_inner(Env *env, Args args, Block *) {
     return enum_for_yielder_block(env, this, args, nullptr);
 }
 
-Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
-    if (block) {
-        enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
-        auto enum_for_size = [](Env *env, Value self, Args args, Block *) -> Value {
-            args.ensure_argc_is(env, 0);
-            auto size_block = self->ivar_get(env, "@size_block"_s)->as_proc();
-            return size_block->call(env);
-        };
-        enumerator->singleton_class(env)->define_method(env, "size"_s, enum_for_size, 0);
-    }
-    return enumerator;
-}
-
 static Value block8(Env *env, Value self, Args args, Block *block) {
     Value yielder_var = args.at(0, NilObject::the());
     Value items9[] = { yielder_var, env->outer()->var_get("method", 2) };
@@ -705,8 +692,19 @@ Value KernelModule::enum_for(Env *env, Args args, Block *block) {
     Value method = splat_args->is_empty() ? "each"_s : splat_args->shift();
     env->var_set("method", 2, true, method);
     env->var_set("args", 3, true, splat_args);
-    auto enum_var = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
-    return send(env, "enum_for_size_block"_s, { enum_var }, block, this);
+    auto enumerator = const_find(env, "Enumerator"_s, Object::ConstLookupSearchMode::NotStrict).public_send(env, "new"_s, Args({}, false), to_block(env, (new Block(env, this, block8, 1))), this);
+
+    if (block) {
+        enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
+        auto enum_for_size = [](Env *env, Value self, Args args, Block *) -> Value {
+            args.ensure_argc_is(env, 0);
+            auto size_block = self->ivar_get(env, "@size_block"_s)->as_proc();
+            return size_block->call(env);
+        };
+        enumerator->singleton_class(env)->define_method(env, "size"_s, enum_for_size, 0);
+    }
+
+    return enumerator;
 }
 
 }

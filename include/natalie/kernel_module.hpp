@@ -86,7 +86,6 @@ public:
 
     Value enum_for(Env *, Args, Block *);
     Value enum_for_inner(Env *, Args, Block *);
-    Value enum_for_size_block(Env *, Value, Block *);
 };
 
 }
