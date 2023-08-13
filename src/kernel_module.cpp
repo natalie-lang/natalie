@@ -651,6 +651,7 @@ Value KernelModule::this_method(Env *env) {
 }
 
 Value KernelModule::enum_for_inner(Env *env, Value enumerator, Block *block) {
+    enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
     auto enum_for_size = [](Env *env, Value self, Args args, Block *) -> Value {
         args.ensure_argc_is(env, 0);
         auto size_block = self->ivar_get(env, "@size_block"_s)->as_proc();

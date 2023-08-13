@@ -21,7 +21,6 @@ module Kernel
         send(method, *args, **kwargs, &the_proc)
       end
     if block_given?
-      enum.instance_variable_set(:@size_block, block)
       enum_for_inner(enum, &block);
     end
     enum
