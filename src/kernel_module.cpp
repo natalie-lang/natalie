@@ -650,7 +650,14 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
-static Value enum_for_yielder_block(Env *env, Value self, Value yielder, SymbolObject *method, Args args, Block *) {
+static Value enumerator_initialize_block(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_at_least(env, 1);
+    Value yielder = args.at(0);
+    auto method = env->outer()->var_get("method", 2)->as_symbol();
+    auto block_args = new ArrayObject {};
+    block_args->push_splat(env, env->outer()->var_get("args", 3));
+    block_args->push(env->outer()->var_get("kwargs", 1));
+
     Value the_proc = yielder.public_send(env, "to_proc"_s);
     if (the_proc->is_nil()) {
         auto yielder_block = [](Env *env, Value self, Args args, Block *block) -> Value {
@@ -659,17 +666,7 @@ static Value enum_for_yielder_block(Env *env, Value self, Value yielder, SymbolO
         };
         the_proc = new ProcObject(new Block(env, yielder, yielder_block, -1, Block::BlockType::Lambda), 0);
     }
-    return self->send(env, method, args, the_proc->as_proc()->block());
-}
-
-static Value enumerator_initialize_block(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_at_least(env, 1);
-    Value yielder = args.at(0);
-    auto method = env->outer()->var_get("method", 2)->as_symbol();
-    auto block_args = new ArrayObject {};
-    block_args->push_splat(env, env->outer()->var_get("args", 3));
-    block_args->push(env->outer()->var_get("kwargs", 1));
-    return enum_for_yielder_block(env, self, yielder, method, Args(block_args, true), nullptr);
+    return self->send(env, method, Args(block_args, true), the_proc->as_proc()->block());
 }
 
 Value KernelModule::enum_for(Env *env, Args args, Block *block) {
