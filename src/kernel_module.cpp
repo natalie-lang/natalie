@@ -662,6 +662,13 @@ Value KernelModule::enum_for_build_the_proc(Env *env, Value yielder, Block *bloc
     return the_proc;
 }
 
+Value KernelModule::enum_for_send(Env *env, Args args, Block *the_proc) {
+    args.ensure_argc_at_least(env, 1);
+    auto method = args[0];
+    auto method_args = Args::shift(args);
+    return send(env, method->as_symbol(), method_args, the_proc);
+}
+
 Value KernelModule::enum_for_size_block(Env *env, Value enumerator, Block *block) {
     if (block) {
         enumerator.public_send(env, "instance_variable_set"_s, { "@size_block"_s, ProcObject::from_block_maybe(block) });
