@@ -26,7 +26,7 @@ class Enumerator
     alias << yield
 
     def to_proc
-      ->(*args) { @block.call(*args) } if @block
+      @block
     end
   end
 
