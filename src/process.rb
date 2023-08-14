@@ -1,8 +1,34 @@
 require 'natalie/inline'
 
 __inline__ '#include <sys/wait.h>'
+__inline__ '#include <time.h>'
 
 module Process
+  __constant__('CLOCK_BOOTTIME', 'int')
+  __constant__('CLOCK_BOOTTIME_ALARM', 'int')
+  __constant__('CLOCK_MONOTONIC', 'int')
+  __constant__('CLOCK_MONOTONIC_COARSE', 'int')
+  __constant__('CLOCK_MONOTONIC_FAST', 'int')
+  __constant__('CLOCK_MONOTONIC_PRECISE', 'int')
+  __constant__('CLOCK_MONOTONIC_RAW', 'int')
+  __constant__('CLOCK_MONOTONIC_RAW_APPROX', 'int')
+  __constant__('CLOCK_PROCESS_CPUTIME_ID', 'int')
+  __constant__('CLOCK_PROF', 'int')
+  __constant__('CLOCK_REALTIME', 'int')
+  __constant__('CLOCK_REALTIME_ALARM', 'int')
+  __constant__('CLOCK_REALTIME_COARSE', 'int')
+  __constant__('CLOCK_REALTIME_FAST', 'int')
+  __constant__('CLOCK_REALTIME_PRECISE', 'int')
+  __constant__('CLOCK_SECOND', 'int')
+  __constant__('CLOCK_TAI', 'int')
+  __constant__('CLOCK_THREAD_CPUTIME_ID', 'int')
+  __constant__('CLOCK_UPTIME', 'int')
+  __constant__('CLOCK_UPTIME_FAST', 'int')
+  __constant__('CLOCK_UPTIME_PRECISE', 'int')
+  __constant__('CLOCK_UPTIME_RAW', 'int')
+  __constant__('CLOCK_UPTIME_RAW_APPROX', 'int')
+  __constant__('CLOCK_VIRTUAL', 'int')
+  __constant__('CLOCK_VIRTUAL', 'int')
   __constant__('PRIO_PGRP', 'int')
   __constant__('PRIO_PROCESS', 'int')
   __constant__('PRIO_USER', 'int')
