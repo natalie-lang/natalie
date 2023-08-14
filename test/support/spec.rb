@@ -972,8 +972,8 @@ class Stub
     self
   end
 
-  def and_yield(value)
-    @yield_values << value
+  def and_yield(*values)
+    @yield_values << (values.size > 1 ? values : values[0])
     self
   end
 
