@@ -37,18 +37,20 @@ describe "A singleton class" do
     Class.should be_ancestor_of(Object.singleton_class)
   end
 
-  # NATFIXME: is a subclass of Class's singleton class
-  xit "is a subclass of Class's singleton class" do
+  it "is a subclass of Class's singleton class" do
     ec = ClassSpecs::A.singleton_class
-    ec.should be_kind_of(Class.singleton_class)
+    NATFIXME "is a subclass of Class's singleton class", exception: SpecFailedException do
+      ec.should be_kind_of(Class.singleton_class)
+    end
   end
 
-  # NATFIXME: is a subclass of the same level of Class's singleton class
-  xit "is a subclass of the same level of Class's singleton class" do
+  it "is a subclass of the same level of Class's singleton class" do
     ecec = ClassSpecs::A.singleton_class.singleton_class
     class_ec = Class.singleton_class
 
-    ecec.should be_kind_of(class_ec.singleton_class)
+    NATFIXME "is a subclass of the same level of Class's singleton class", exception: SpecFailedException do
+      ecec.should be_kind_of(class_ec.singleton_class)
+    end
     ecec.should be_kind_of(class_ec)
   end
 
@@ -275,9 +277,10 @@ describe "Class methods of a singleton class" do
       @a_c_sc.singleton_class.should have_method(:example_instance_method_of_singleton_class)
     end
 
-    # NATFIXME: include class methods of the singleton class of Class
-    xit "include class methods of the singleton class of Class" do
-      @a_c_sc.singleton_class.should have_method(:example_class_method_of_singleton_class)
+    it "include class methods of the singleton class of Class" do
+      NATFIXME 'include class methods of the singleton class of Class', exception: SpecFailedException do
+        @a_c_sc.singleton_class.should have_method(:example_class_method_of_singleton_class)
+      end
     end
   end
 end
