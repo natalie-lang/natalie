@@ -27,11 +27,12 @@ describe "Kernel#extend" do
     Object.new.method(:extend).arity.should < 0
   end
 
-  # NATFIXME: Implement Module#extend_object
-  xit "calls extend_object on argument" do
+  it "calls extend_object on argument" do
     o = mock('o')
     o.extend KernelSpecs::M
-    ScratchPad.recorded.include?("extend_object").should == true
+    NATFIXME 'Implement Module#extend_object', exception: SpecFailedException do
+      ScratchPad.recorded.include?("extend_object").should == true
+    end
   end
 
   it "does not calls append_features on arguments metaclass" do
@@ -40,11 +41,12 @@ describe "Kernel#extend" do
     ScratchPad.recorded.include?("append_features").should == false
   end
 
-  # NATFIXME: Implement Module#extended
-  xit "calls extended on argument" do
+  it "calls extended on argument" do
     o = mock('o')
     o.extend KernelSpecs::M
-    ScratchPad.recorded.include?("extended").should == true
+    NATFIXME 'Implement Module#extend_object', exception: SpecFailedException do
+      ScratchPad.recorded.include?("extended").should == true
+    end
   end
 
   it "makes the class a kind_of? the argument" do

@@ -60,8 +60,7 @@ describe :kernel_String, shared: true do
     -> { @object.send(@method, obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Kernel.String should call #to_s if #respond_to?(:to_s) returns true
-  xit "calls #to_s if #respond_to?(:to_s) returns true" do
+  it "calls #to_s if #respond_to?(:to_s) returns true" do
     obj = mock('to_s')
     class << obj
       undef_method :to_s
@@ -70,7 +69,9 @@ describe :kernel_String, shared: true do
       end
     end
 
-    @object.send(@method, obj).should == "test"
+    NATFIXME 'Kernel.String should call #to_s if #respond_to?(:to_s) returns true', exception: TypeError, message: "can't convert MockObject into String" do
+      @object.send(@method, obj).should == "test"
+    end
   end
 
   it "raises a TypeError if #to_s does not return a String" do

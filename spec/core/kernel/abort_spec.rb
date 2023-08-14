@@ -3,8 +3,7 @@ require_relative 'fixtures/classes'
 require_relative '../../shared/process/abort'
 
 describe "Kernel#abort" do
-  # NATFIXME: implement Module#instance_methods
-  xit "is a private method" do
+  it "is a private method" do
     Kernel.should have_private_instance_method(:abort)
   end
 
