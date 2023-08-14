@@ -15,15 +15,16 @@ describe :tcpsocket_new, shared: true do
   end
 
   ruby_version_is "3.0" do
-    # NATFIXME: implement non-blocking socket with select()
-    xit 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
-      -> {
-        TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
-      }.should raise_error(Errno::ETIMEDOUT)
+    it 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
+        NATFIXME "TypeError: Hash can't be coerced into String", exception: SpecFailedException do
+        -> {
+          TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
+        }.should raise_error(Errno::ETIMEDOUT)
+      end
     end
   end
 
-  # NAT: no threads
+  # NATFIXME: Threads in SpecTCPServer
   xdescribe "with a running server" do
     before :each do
       @server = SocketSpecs::SpecTCPServer.new

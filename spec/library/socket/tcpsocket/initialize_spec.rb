@@ -39,18 +39,20 @@ describe 'TCPSocket#initialize' do
         -> { TCPSocket.new(ip_address, 'cats') }.should raise_error(SocketError)
       end
 
-      # NATFIXME: IO#binmode?
-      xit 'set the socket to binmode' do
+      it 'set the socket to binmode' do
         @client = TCPSocket.new(ip_address, @port)
-        @client.binmode?.should be_true
+        NATFIXME 'Implement IO#binmode?', exception: NoMethodError, message: "undefined method `binmode?'" do
+          @client.binmode?.should be_true
+        end
       end
 
-      # NATFIXME: BasicSocket#remote_address
-      xit 'connects to the right address' do
+      it 'connects to the right address' do
         @client = TCPSocket.new(ip_address, @port)
 
-        @client.remote_address.ip_address.should == @server.local_address.ip_address
-        @client.remote_address.ip_port.should    == @server.local_address.ip_port
+        NATFIXME 'Implement IO#remote_address', exception: NoMethodError, message: "undefined method `remote_address'" do
+          @client.remote_address.ip_address.should == @server.local_address.ip_address
+          @client.remote_address.ip_port.should    == @server.local_address.ip_port
+        end
       end
 
       describe 'using a local address and service' do
