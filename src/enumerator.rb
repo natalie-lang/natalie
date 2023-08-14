@@ -15,9 +15,8 @@ class Enumerator
   end
 
   class Yielder
-    def initialize(block = nil, appending_args = [])
+    def initialize(&block)
       @block = block
-      @appending_args = appending_args
     end
 
     def yield(*item)
@@ -27,7 +26,7 @@ class Enumerator
     alias << yield
 
     def to_proc
-      ->(*args) { @block.call(*args.concat(@appending_args)) } if @block
+      ->(*args) { @block.call(*args) } if @block
     end
   end
 
@@ -46,7 +45,12 @@ class Enumerator
       end
     end
 
-    @yielder = Yielder.new(block, appending_args)
+    unless appending_args.empty?
+      original_block = block
+      block = ->(*args) { original_block.call(*args, *appending_args) }
+    end
+
+    @yielder = Yielder.new(&block)
     @fiber = Fiber.new { @enum_block.call @yielder }
 
     loop do
