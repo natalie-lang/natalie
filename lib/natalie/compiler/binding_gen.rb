@@ -1045,6 +1045,7 @@ gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pa
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Proc', 'lambda?', 'ProcObject', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Proc', 'to_proc', 'ProcObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Proc', 'yield', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 
 gen.module_function_binding('Process', 'abort', 'KernelModule', 'abort_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'egid', 'ProcessModule', 'egid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
