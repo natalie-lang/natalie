@@ -10,9 +10,7 @@ describe :time_now, shared: true do
 
   it "sets the current time" do
     now = TimeSpecs::MethodHolder.send(@method)
-    NATFIXME 'Implement Process.clock_gettime', exception: NoMethodError, message: "undefined method `clock_gettime' for Process" do
-      now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), TIME_TOLERANCE)
-    end
+    now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), TIME_TOLERANCE)
   end
 
   it "uses the local timezone" do
