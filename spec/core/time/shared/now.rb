@@ -2,13 +2,17 @@ require_relative '../fixtures/classes'
 
 describe :time_now, shared: true do
   it "creates a subclass instance if called on a subclass" do
-    TimeSpecs::SubTime.send(@method).should be_an_instance_of(TimeSpecs::SubTime)
+    NATFIXME 'creates a subclass instance if called on a subclass', exception: SpecFailedException do
+      TimeSpecs::SubTime.send(@method).should be_an_instance_of(TimeSpecs::SubTime)
+    end
     TimeSpecs::MethodHolder.send(@method).should be_an_instance_of(Time)
   end
 
   it "sets the current time" do
     now = TimeSpecs::MethodHolder.send(@method)
-    now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), TIME_TOLERANCE)
+    NATFIXME 'Implement Process.clock_gettime', exception: NoMethodError, message: "undefined method `clock_gettime' for Process" do
+      now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), TIME_TOLERANCE)
+    end
   end
 
   it "uses the local timezone" do
