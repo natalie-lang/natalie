@@ -1048,6 +1048,7 @@ gen.binding('Proc', 'to_proc', 'ProcObject', 'to_proc', argc: 0, pass_env: true,
 gen.binding('Proc', 'yield', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 
 gen.module_function_binding('Process', 'abort', 'KernelModule', 'abort_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Process', 'clock_gettime', 'ProcessModule', 'clock_gettime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'egid', 'ProcessModule', 'egid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'egid=', 'ProcessModule', 'setegid', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Process', 'euid', 'ProcessModule', 'euid', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

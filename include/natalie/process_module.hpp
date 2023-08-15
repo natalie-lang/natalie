@@ -115,6 +115,8 @@ public:
         return sid;
     }
 
+    static Value clock_gettime(Env *, Value);
+
 private:
     static uid_t value_to_uid(Env *env, Value idval) {
         uid_t uid;
