@@ -17,8 +17,7 @@ describe "Kernel#p" do
   end
 
   # TODO: fix
-  # NATFIXME: add tmp() and $$
-  xit "flushes output if receiver is a File" do
+  it "flushes output if receiver is a File" do
     filename = tmp("Kernel_p_flush") + $$.to_s
     begin
       File.open(filename, "w") do |f|
@@ -77,10 +76,8 @@ describe "Kernel#p" do
     -> { p(*[]) }.should output("")
   end
 
-=begin Not sure how to spec this, but wanted to note the behavior here
-  it "does not flush if receiver is not a TTY or a File" do
-  end
-=end
+  # Not sure how to spec this, but wanted to note the behavior here
+  it "does not flush if receiver is not a TTY or a File"
 end
 
 describe "Kernel.p" do
