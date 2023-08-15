@@ -32,5 +32,9 @@ module OpenSSL
     class SHA256 < Digest
       __bind_method__ :digest, :OpenSSL_Digest_SHA256_digest
     end
+
+    class SHA384 < Digest
+      __bind_method__ :digest, :OpenSSL_Digest_SHA384_digest
+    end
   end
 end

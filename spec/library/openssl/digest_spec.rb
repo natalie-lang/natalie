@@ -17,9 +17,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA384 digest" do
-      NATFIXME 'Implement Digest::SHA384', exception: NotImplementedError, message: 'not implemented digest: sha384' do
-        OpenSSL::Digest.digest('sha384', SHA384Constants::Contents).should == SHA384Constants::Digest
-      end
+      OpenSSL::Digest.digest('sha384', SHA384Constants::Contents).should == SHA384Constants::Digest
     end
 
     it "returns a SHA512 digest" do
@@ -39,9 +37,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA384 hexdigest" do
-      NATFIXME 'Implement Digest::SHA384', exception: NotImplementedError, message: 'not implemented digest: sha384' do
-        OpenSSL::Digest.hexdigest('sha384', SHA384Constants::Contents).should == SHA384Constants::Hexdigest
-      end
+      OpenSSL::Digest.hexdigest('sha384', SHA384Constants::Contents).should == SHA384Constants::Hexdigest
     end
 
     it "returns a SHA512 hexdigest" do
@@ -61,9 +57,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA384 base64digest" do
-      NATFIXME 'Implement Digest::SHA384', exception: NotImplementedError, message: 'not implemented digest: sha384' do
-        OpenSSL::Digest.base64digest('sha384', SHA384Constants::Contents).should == SHA384Constants::Base64digest
-      end
+      OpenSSL::Digest.base64digest('sha384', SHA384Constants::Contents).should == SHA384Constants::Base64digest
     end
 
     it "returns a SHA512 base64digest" do
