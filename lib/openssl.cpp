@@ -44,24 +44,22 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
-Value OpenSSL_Digest_SHA1_digest(Env *env, Value self, Args args, Block *) {
+template <size_t LENGTH, class F>
+static Value digest_wrapper(Env *env, Args args, F f) {
     args.ensure_argc_is(env, 1);
     Value data = args[0];
     data->assert_type(env, Object::Type::String, "String");
 
-    unsigned char md[SHA_DIGEST_LENGTH];
-    SHA1(reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size(), md);
+    unsigned char md[LENGTH];
+    f(reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size(), md);
 
-    return new StringObject { reinterpret_cast<const char *>(md), SHA_DIGEST_LENGTH };
+    return new StringObject { reinterpret_cast<const char *>(md), LENGTH };
+}
+
+Value OpenSSL_Digest_SHA1_digest(Env *env, Value self, Args args, Block *) {
+    return digest_wrapper<SHA_DIGEST_LENGTH>(env, args, SHA1);
 }
 
 Value OpenSSL_Digest_SHA256_digest(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
-    Value data = args[0];
-    data->assert_type(env, Object::Type::String, "String");
-
-    unsigned char md[SHA256_DIGEST_LENGTH];
-    SHA256(reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size(), md);
-
-    return new StringObject { reinterpret_cast<const char *>(md), SHA256_DIGEST_LENGTH };
+    return digest_wrapper<SHA256_DIGEST_LENGTH>(env, args, SHA256);
 }
