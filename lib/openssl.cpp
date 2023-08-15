@@ -54,3 +54,14 @@ Value OpenSSL_Digest_SHA1_digest(Env *env, Value self, Args args, Block *) {
 
     return new StringObject { reinterpret_cast<const char *>(md), SHA_DIGEST_LENGTH };
 }
+
+Value OpenSSL_Digest_SHA256_digest(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    Value data = args[0];
+    data->assert_type(env, Object::Type::String, "String");
+
+    unsigned char md[SHA256_DIGEST_LENGTH];
+    SHA256(reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size(), md);
+
+    return new StringObject { reinterpret_cast<const char *>(md), SHA256_DIGEST_LENGTH };
+}

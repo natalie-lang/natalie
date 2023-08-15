@@ -13,9 +13,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA256 digest" do
-      NATFIXME 'Implement Digest::SHA256', exception: NotImplementedError, message: 'not implemented digest: sha256' do
-        OpenSSL::Digest.digest('sha256', SHA256Constants::Contents).should == SHA256Constants::Digest
-      end
+      OpenSSL::Digest.digest('sha256', SHA256Constants::Contents).should == SHA256Constants::Digest
     end
 
     it "returns a SHA384 digest" do
@@ -37,9 +35,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA256 hexdigest" do
-      NATFIXME 'Implement Digest::SHA256', exception: NotImplementedError, message: 'not implemented digest: sha256' do
-        OpenSSL::Digest.hexdigest('sha256', SHA256Constants::Contents).should == SHA256Constants::Hexdigest
-      end
+      OpenSSL::Digest.hexdigest('sha256', SHA256Constants::Contents).should == SHA256Constants::Hexdigest
     end
 
     it "returns a SHA384 hexdigest" do
@@ -61,9 +57,7 @@ describe "OpenSSL::Digest" do
     end
 
     it "returns a SHA256 base64digest" do
-      NATFIXME 'Implement Digest::SHA256', exception: NotImplementedError, message: 'not implemented digest: sha256' do
-        OpenSSL::Digest.base64digest('sha256', SHA256Constants::Contents).should == SHA256Constants::Base64digest
-      end
+      OpenSSL::Digest.base64digest('sha256', SHA256Constants::Contents).should == SHA256Constants::Base64digest
     end
 
     it "returns a SHA384 base64digest" do
