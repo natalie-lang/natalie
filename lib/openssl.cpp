@@ -1,5 +1,6 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/sha.h>
 
 #include "natalie.hpp"
 
@@ -45,5 +46,11 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
 
 Value OpenSSL_Digest_SHA1_digest(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
-    return new StringObject { "" };
+    Value data = args[0];
+    data->assert_type(env, Object::Type::String, "String");
+
+    unsigned char md[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size(), md);
+
+    return new StringObject { reinterpret_cast<const char *>(md), SHA_DIGEST_LENGTH };
 }
