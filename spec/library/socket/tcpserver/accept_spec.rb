@@ -11,75 +11,79 @@ describe "TCPServer#accept" do
     @server.close unless @server.closed?
   end
 
-  # NAT: no threads
-  xit "accepts a connection and returns a TCPSocket" do
+  it "accepts a connection and returns a TCPSocket" do
     data = nil
-    t = Thread.new do
-      client = @server.accept
-      client.should be_kind_of(TCPSocket)
-      data = client.read(5)
-      client << "goodbye"
-      client.close
-    end
-    Thread.pass while t.status and t.status != "sleep"
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new do
+        client = @server.accept
+        client.should be_kind_of(TCPSocket)
+        data = client.read(5)
+        client << "goodbye"
+        client.close
+      end
+      Thread.pass while t.status and t.status != "sleep"
 
-    socket = TCPSocket.new('127.0.0.1', @port)
-    socket.write('hello')
-    socket.shutdown(1) # we are done with sending
-    socket.read.should == 'goodbye'
-    t.join
-    data.should == 'hello'
-    socket.close
+      socket = TCPSocket.new('127.0.0.1', @port)
+      socket.write('hello')
+      socket.shutdown(1) # we are done with sending
+      socket.read.should == 'goodbye'
+      t.join
+      data.should == 'hello'
+      socket.close
+    end
   end
 
-  # NAT: no threads
-  xit "can be interrupted by Thread#kill" do
-    t = Thread.new { @server.accept }
+  it "can be interrupted by Thread#kill" do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new { @server.accept }
 
-    Thread.pass while t.status and t.status != "sleep"
+      Thread.pass while t.status and t.status != "sleep"
 
-    # kill thread, ensure it dies in a reasonable amount of time
-    t.kill
-    a = 0
-    while t.alive? and a < 5000
-      sleep 0.001
-      a += 1
+      # kill thread, ensure it dies in a reasonable amount of time
+      t.kill
+      a = 0
+      while t.alive? and a < 5000
+        sleep 0.001
+        a += 1
+      end
+      a.should < 5000
     end
-    a.should < 5000
   end
 
-  # NAT: no threads
-  xit "can be interrupted by Thread#raise" do
-    t = Thread.new {
-      -> {
-        @server.accept
-      }.should raise_error(Exception, "interrupted")
-    }
+  it "can be interrupted by Thread#raise" do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new {
+        -> {
+          @server.accept
+        }.should raise_error(Exception, "interrupted")
+      }
 
-    Thread.pass while t.status and t.status != "sleep"
-    t.raise Exception, "interrupted"
-    t.join
+      Thread.pass while t.status and t.status != "sleep"
+      t.raise Exception, "interrupted"
+      t.join
+    end
   end
 
-  # NAT: no threads
-  xit "is automatically retried when interrupted by SIGVTALRM" do
-    t = Thread.new do
-      client = @server.accept
-      value = client.read(2)
-      client.close
-      value
+  it "is automatically retried when interrupted by SIGVTALRM" do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new do
+        client = @server.accept
+        value = client.read(2)
+        client.close
+        value
+      end
+
+      Thread.pass while t.status and t.status != "sleep"
+      # Thread#backtrace uses SIGVTALRM on TruffleRuby and potentially other implementations.
+      # Sending a signal to a thread is not possible with Ruby APIs.
+      t.backtrace.join("\n").should.include?("in `accept'")
+
+      socket = TCPSocket.new('127.0.0.1', @port)
+      socket.write("OK")
+      socket.close
+
+      t.value.should == "OK"
     end
-
-    Thread.pass while t.status and t.status != "sleep"
-    # Thread#backtrace uses SIGVTALRM on TruffleRuby and potentially other implementations.
-    # Sending a signal to a thread is not possible with Ruby APIs.
-    t.backtrace.join("\n").should.include?("in `accept'")
-
-    socket = TCPSocket.new('127.0.0.1', @port)
-    socket.write("OK")
-    socket.close
-
-    t.value.should == "OK"
   end
 
   it "raises an IOError if the socket is closed" do
@@ -99,9 +103,10 @@ describe 'TCPServer#accept' do
     end
 
     describe 'without a connected client' do
-      # NAT: no threads
-      xit 'blocks the caller' do
-        -> { @server.accept }.should block_caller
+      it 'blocks the caller' do
+        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
+          -> { @server.accept }.should block_caller
+        end
       end
     end
 

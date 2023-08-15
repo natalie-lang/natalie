@@ -48,7 +48,7 @@ module SocketSpecs
   end
 
   def self.ipv6_available?
-    return false # NATFIXME
+    return false # NATFIXME: Using IPv6 causes a panic
     @ipv6_available ||= begin
       server = TCPServer.new('::1', 0)
     rescue Errno::EAFNOSUPPORT, Errno::EADDRNOTAVAIL, SocketError

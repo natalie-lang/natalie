@@ -48,21 +48,22 @@ describe 'Socket#accept' do
       end
 
       describe 'without a connected client' do
-        # NAT: We don't have threads (maybe not ever)
-        xit 'blocks the caller until a connection is available' do
+        it 'blocks the caller until a connection is available' do
           client = Socket.new(family, :STREAM, 0)
-          thread = Thread.new do
-            @server.accept
-          end
+          NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+            thread = Thread.new do
+              @server.accept
+            end
 
-          client.connect(@server_addr)
+            client.connect(@server_addr)
 
-          value = thread.value
-          begin
-            value.should be_an_instance_of(Array)
-          ensure
-            client.close
-            value[0].close
+            value = thread.value
+            begin
+              value.should be_an_instance_of(Array)
+            ensure
+              client.close
+              value[0].close
+            end
           end
         end
       end

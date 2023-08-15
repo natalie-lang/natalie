@@ -14,77 +14,79 @@ describe "BasicSocket#recv" do
     ScratchPad.clear
   end
 
-  # NAT: no threads
-  xit "receives a specified number of bytes of a message from another socket"  do
-    t = Thread.new do
-      client = @server.accept
-      ScratchPad.record client.recv(10)
-      client.recv(1) # this recv is important
-      client.close
-    end
-    Thread.pass while t.status and t.status != "sleep"
-    t.status.should_not be_nil
-
-    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new
-    socket = Socket.tcp('127.0.0.1', @port)
-    socket.send('hello', 0)
-    socket.close
-
-    t.join
-    ScratchPad.recorded.should == 'hello'
-  end
-
-  platform_is_not :solaris do
-    # NAT: no threads
-    xit "accepts flags to specify unusual receiving behaviour" do
+  it "receives a specified number of bytes of a message from another socket"  do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
       t = Thread.new do
         client = @server.accept
-
-        # in-band data (TCP), doesn't receive the flag.
         ScratchPad.record client.recv(10)
-
-        # this recv is important (TODO: explain)
-        client.recv(10)
+        client.recv(1) # this recv is important
         client.close
       end
       Thread.pass while t.status and t.status != "sleep"
       t.status.should_not be_nil
 
-      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new
+      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
       socket = Socket.tcp('127.0.0.1', @port)
-      socket.send('helloU', Socket::MSG_OOB)
-      socket.shutdown(1)
-      t.join
+      socket.send('hello', 0)
       socket.close
+
+      t.join
       ScratchPad.recorded.should == 'hello'
     end
   end
 
-  # NAT: no threads
-  xit "gets lines delimited with a custom separator"  do
-    t = Thread.new do
-      client = @server.accept
-      ScratchPad.record client.gets("\377")
+  platform_is_not :solaris do
+    it "accepts flags to specify unusual receiving behaviour" do
+      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+        t = Thread.new do
+          client = @server.accept
 
-      # this call is important (TODO: explain)
-      client.gets(nil)
-      client.close
+          # in-band data (TCP), doesn't receive the flag.
+          ScratchPad.record client.recv(10)
+
+          # this recv is important (TODO: explain)
+          client.recv(10)
+          client.close
+        end
+        Thread.pass while t.status and t.status != "sleep"
+        t.status.should_not be_nil
+
+        #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+        socket = Socket.tcp('127.0.0.1', @port)
+        socket.send('helloU', Socket::MSG_OOB)
+        socket.shutdown(1)
+        t.join
+        socket.close
+        ScratchPad.recorded.should == 'hello'
+      end
     end
-    Thread.pass while t.status and t.status != "sleep"
-    t.status.should_not be_nil
-
-    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new
-    socket = Socket.tcp('127.0.0.1', @port)
-    socket.write("firstline\377secondline\377")
-    socket.close
-
-    t.join
-    ScratchPad.recorded.should == "firstline\377"
   end
 
-  # NATFIXME: Socket#accept
-  xit "allows an output buffer as third argument" do
-    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new
+  it "gets lines delimited with a custom separator"  do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new do
+        client = @server.accept
+        ScratchPad.record client.gets("\377")
+
+        # this call is important (TODO: explain)
+        client.gets(nil)
+        client.close
+      end
+      Thread.pass while t.status and t.status != "sleep"
+      t.status.should_not be_nil
+
+      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+      socket = Socket.tcp('127.0.0.1', @port)
+      socket.write("firstline\377secondline\377")
+      socket.close
+
+      t.join
+      ScratchPad.recorded.should == "firstline\377"
+    end
+  end
+
+  it "allows an output buffer as third argument" do
+    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
     socket = Socket.tcp('127.0.0.1', @port)
     socket.write("data")
 
@@ -114,9 +116,10 @@ describe 'BasicSocket#recv' do
     end
 
     describe 'using an unbound socket' do
-      # NAT: no threads
-      xit 'blocks the caller' do
-        -> { @server.recv(4) }.should block_caller
+      it 'blocks the caller' do
+        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
+          -> { @server.recv(4) }.should block_caller
+        end
       end
     end
 
@@ -126,9 +129,10 @@ describe 'BasicSocket#recv' do
       end
 
       describe 'without any data available' do
-        # NAT: no threads
-        xit 'blocks the caller' do
-          -> { @server.recv(4) }.should block_caller
+        it 'blocks the caller' do
+          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
+            -> { @server.recv(4) }.should block_caller
+          end
         end
       end
 
@@ -159,13 +163,14 @@ describe 'BasicSocket#recv' do
           @server.recv(6).should == 'he'
         end
 
-        # NATFIXME: no threads
-        xit 'blocks the caller when called twice without new data being available' do
+        it 'blocks the caller when called twice without new data being available' do
           @client.write('hello')
 
           @server.recv(2).should == 'he'
 
-          -> { @server.recv(4) }.should block_caller
+          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
+            -> { @server.recv(4) }.should block_caller
+          end
         end
 
         it 'takes a peek at the data when using the MSG_PEEK flag' do
