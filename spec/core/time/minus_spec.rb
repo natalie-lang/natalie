@@ -90,22 +90,24 @@ describe "Time#-" do
     (Time.new(2012, 1, 1, 0, 0, 0, 3600) - 10).utc_offset.should == 3600
   end
 
-  # NATFIXME: Implement time zones
-  xit "preserves time zone" do
-    time_with_zone = Time.now.utc
-    time_with_zone.zone.should == (time_with_zone - 1).zone
+  it "preserves time zone" do
+    NATFIXME 'Implement time zones', exception: NoMethodError, message: "undefined method `utc'" do
+      time_with_zone = Time.now.utc
+      time_with_zone.zone.should == (time_with_zone - 1).zone
+    end
 
     time_with_zone = Time.now
     time_with_zone.zone.should == (time_with_zone - 1).zone
   end
 
-  # NATFIXME: Implement time zones
-  xcontext "zone is a timezone object" do
+  context "zone is a timezone object" do
     it "preserves time zone" do
-      zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
-      time = Time.new(2012, 1, 1, 12, 0, 0, zone) - 1
+      NATFIXME 'Implement time zones', exception: NameError, message: 'uninitialized constant TimeSpecs' do
+        zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
+        time = Time.new(2012, 1, 1, 12, 0, 0, zone) - 1
 
-      time.zone.should == zone
+        time.zone.should == zone
+      end
     end
   end
 

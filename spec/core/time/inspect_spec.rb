@@ -14,18 +14,20 @@ describe "Time#inspect" do
     t.inspect.should == "2007-11-01 15:25:00.1 UTC"
   end
 
-  # NATFIXME: Implement Time#localtime
-  xit "uses the correct time zone without microseconds" do
+  it "uses the correct time zone without microseconds" do
     t = Time.utc(2000, 1, 1)
-    t = t.localtime(9*3600)
-    t.inspect.should == "2000-01-01 09:00:00 +0900"
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method `localtime'" do
+      t = t.localtime(9*3600)
+      t.inspect.should == "2000-01-01 09:00:00 +0900"
+    end
   end
 
-  # NATFIXME: Implement Time#localtime
-  xit "uses the correct time zone with microseconds" do
+  it "uses the correct time zone with microseconds" do
     t = Time.utc(2000, 1, 1, 0, 0, 0, 123456)
-    t = t.localtime(9*3600)
-    t.inspect.should == "2000-01-01 09:00:00.123456 +0900"
+    NATFIXME 'Implement Time#localtime', exception: NoMethodError, message: "undefined method `localtime'" do
+      t = t.localtime(9*3600)
+      t.inspect.should == "2000-01-01 09:00:00.123456 +0900"
+    end
   end
 
   it "preserves nanoseconds" do

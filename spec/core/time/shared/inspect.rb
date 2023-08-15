@@ -1,8 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 describe :inspect, shared: true do
-  # NATFIXME: Implement time zones
-  xit "formats the local time following the pattern 'yyyy-MM-dd HH:mm:ss Z'" do
+  it "formats the local time following the pattern 'yyyy-MM-dd HH:mm:ss Z'" do
     with_timezone("PST", +1) do
       Time.local(2000, 1, 1, 20, 15, 1).send(@method).should == "2000-01-01 20:15:01 +0100"
     end
@@ -12,9 +11,10 @@ describe :inspect, shared: true do
     Time.utc(2000, 1, 1, 20, 15, 1).send(@method).should == "2000-01-01 20:15:01 UTC"
   end
 
-  # NATFIXME: Implement time offsets
-  xit "formats the fixed offset time following the pattern 'yyyy-MM-dd HH:mm:ss +/-HHMM'" do
-    Time.new(2000, 1, 1, 20, 15, 01, 3600).send(@method).should == "2000-01-01 20:15:01 +0100"
+  it "formats the fixed offset time following the pattern 'yyyy-MM-dd HH:mm:ss +/-HHMM'" do
+    NATFIXME 'Implement time offsets', exception: SpecFailedException do
+      Time.new(2000, 1, 1, 20, 15, 01, 3600).send(@method).should == "2000-01-01 20:15:01 +0100"
+    end
   end
 
   it "returns a US-ASCII encoded string" do

@@ -5,10 +5,11 @@ describe :time_gmt_offset, shared: true do
     end
   end
 
-  # NATFIXME: Implement Time#utc
-  xit "returns 0 when the date is UTC" do
+  it "returns 0 when the date is UTC" do
     with_timezone("AST", 3) do
-      Time.new.utc.send(@method).should == 0
+      NATFIXME 'Implement Time#utc', exception: NoMethodError, message: "undefined method `utc'" do
+        Time.new.utc.send(@method).should == 0
+      end
     end
   end
 
@@ -41,10 +42,11 @@ describe :time_gmt_offset, shared: true do
     end
   end
 
-  # NATFIXME: Implement more of Time#new
-  xit "returns offset as Rational" do
+  it "returns offset as Rational" do
     Time.new(2010,4,4,1,59,59,7245).send(@method).should == 7245
-    Time.new(2010,4,4,1,59,59,7245.5).send(@method).should == Rational(14491,2)
+    NATFIXME 'Implement more of Time#new', exception: SpecFailedException do
+      Time.new(2010,4,4,1,59,59,7245.5).send(@method).should == Rational(14491,2)
+    end
   end
 
   context 'given positive offset' do
