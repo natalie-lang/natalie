@@ -42,3 +42,8 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
 
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
+
+Value OpenSSL_Digest_SHA1_digest(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    return new StringObject { "" };
+}

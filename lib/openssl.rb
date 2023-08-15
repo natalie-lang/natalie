@@ -9,16 +9,24 @@ module OpenSSL
   end
 
   class Digest
-    def self.digest(cipher, data)
-      '' # TODO
+    def self.digest(digest, data)
+      if digest.to_s.downcase == 'sha1'
+        SHA1.new.digest(data)
+      else
+        raise NotImplementedError, "not implemented digest: #{digest}"
+      end
     end
 
-    def self.base64digest(cipher, data)
-      [digest(cipher, data)].pack('m0')
+    def self.base64digest(digest, data)
+      [digest(digest, data)].pack('m0')
     end
 
-    def self.hexdigest(cipher, data)
-      digest(cipher, data).unpack1('H*')
+    def self.hexdigest(digest, data)
+      digest(digest, data).unpack1('H*')
+    end
+
+    class SHA1
+      __bind_method__ :digest, :OpenSSL_Digest_SHA1_digest
     end
   end
 end
