@@ -14,7 +14,7 @@ module OpenSSL
       raise NameError unless klass.ancestors[1] == self
       klass.new.digest(data)
     rescue NameError
-      raise NotImplementedError, "not implemented digest: #{digest}"
+      raise "Unsupported digest algorithm (#{digest}).: unknown object name"
     end
 
     def self.base64digest(digest, data)
