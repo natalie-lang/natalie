@@ -159,6 +159,10 @@ task docker_bash: :docker_build_clang do
   sh 'docker run -it --rm --entrypoint bash natalie_clang'
 end
 
+task docker_bash_lldb: :docker_build_clang do
+  sh 'docker run -it --rm --entrypoint bash --cap-add=SYS_PTRACE --security-opt seccomp=unconfined natalie_clang'
+end
+
 task :docker_build_ruby27 do
   sh 'docker build -t natalie_ruby27 --build-arg IMAGE="ruby:2.7" .'
 end
