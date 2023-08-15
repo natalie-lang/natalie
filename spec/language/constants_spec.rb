@@ -11,10 +11,11 @@ describe "Literal (A::X) constant resolution" do
     it "searches the immediate class or module scope first" do
       ConstantSpecs::ClassA::CS_CONST10.should == :const10_10
       ConstantSpecs::ModuleA::CS_CONST10.should == :const10_1
-      # NATFIXME: searches the immediate class or module scope first
-      # ConstantSpecs::ParentA::CS_CONST10.should == :const10_5
-      # ConstantSpecs::ContainerA::CS_CONST10.should == :const10_2
-      # ConstantSpecs::ContainerA::ChildA::CS_CONST10.should == :const10_3
+      NATFIXME 'searches the immediate class or module scope first', exception: SpecFailedException do
+        ConstantSpecs::ParentA::CS_CONST10.should == :const10_5
+        ConstantSpecs::ContainerA::CS_CONST10.should == :const10_2
+        ConstantSpecs::ContainerA::ChildA::CS_CONST10.should == :const10_3
+      end
     end
 
     it "searches a module included in the immediate class before the superclass" do
@@ -25,33 +26,38 @@ describe "Literal (A::X) constant resolution" do
       ConstantSpecs::ContainerA::ChildA::CS_CONST11.should == :const11_1
     end
 
-    # NATFIXME: searches a module included in the superclass
-    xit "searches a module included in the superclass" do
-      ConstantSpecs::ContainerA::ChildA::CS_CONST12.should == :const12_1
+    it "searches a module included in the superclass" do
+      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST12' do
+        ConstantSpecs::ContainerA::ChildA::CS_CONST12.should == :const12_1
+      end
     end
 
-    # NATFIXME: searches the superclass chain
-    xit "searches the superclass chain" do
-      ConstantSpecs::ContainerA::ChildA::CS_CONST13.should == :const13
+    it "searches the superclass chain" do
+      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST13' do
+        ConstantSpecs::ContainerA::ChildA::CS_CONST13.should == :const13
+      end
     end
 
-    # NATFIXME: searches Object if no class or module qualifier is given
-    xit "searches Object if no class or module qualifier is given" do
+    it "searches Object if no class or module qualifier is given" do
       CS_CONST1.should == :const1
-      CS_CONST10.should == :const10_1
-    end
-
-    # NATFIXME: searches Object after searching other scopes
-    xit "searches Object after searching other scopes" do
-      module ConstantSpecs::SpecAdded1
+      NATFIXME 'searches Object if no class or module qualifier is given', exception: NameError, message: 'uninitialized constant CS_CONST10' do
         CS_CONST10.should == :const10_1
       end
     end
 
-    # NATFIXME: searches Object if a toplevel qualifier (::X) is given
-    xit "searches Object if a toplevel qualifier (::X) is given" do
+    it "searches Object after searching other scopes" do
+      module ConstantSpecs::SpecAdded1
+        NATFIXME 'searches Object after searching other scopes', exception: NameError, message: 'uninitialized constant CS_CONST10' do
+          CS_CONST10.should == :const10_1
+        end
+      end
+    end
+
+    it "searches Object if a toplevel qualifier (::X) is given" do
       ::CS_CONST1.should == :const1
-      ::CS_CONST10.should == :const10_1
+      NATFIXME 'searches Object if a toplevel qualifier (::X) is given', exception: NameError, message: 'uninitialized constant Object::CS_CONST10' do
+        ::CS_CONST10.should == :const10_1
+      end
     end
 
     it "does not search the singleton class of the class or module" do
@@ -92,17 +98,19 @@ describe "Literal (A::X) constant resolution" do
       ConstantSpecs::ContainerB::ChildB::CS_CONST103.should == :const103_2
     end
 
-    # NATFIXME: searches a module included in the superclass
-    xit "searches a module included in the superclass" do
+    it "searches a module included in the superclass" do
       ConstantSpecs::ModuleA::CS_CONST104 = :const104_1
       ConstantSpecs::ModuleE::CS_CONST104 = :const104_2
-      ConstantSpecs::ContainerB::ChildB::CS_CONST104.should == :const104_2
+      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerB::ChildB::CS_CONST104' do
+        ConstantSpecs::ContainerB::ChildB::CS_CONST104.should == :const104_2
+      end
     end
 
-    # NATFIXME: searches the superclass chain
-    xit "searches the superclass chain" do
+    it "searches the superclass chain" do
       ConstantSpecs::ModuleA::CS_CONST105 = :const105
-      ConstantSpecs::ContainerB::ChildB::CS_CONST105.should == :const105
+      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerB::ChildB::CS_CONST105' do
+        ConstantSpecs::ContainerB::ChildB::CS_CONST105.should == :const105
+      end
     end
 
     it "searches Object if no class or module qualifier is given" do
@@ -137,10 +145,11 @@ describe "Literal (A::X) constant resolution" do
       ConstantSpecs::ClassB::CS_CONST109 = :const109_1
       ConstantSpecs::ClassB::CS_CONST109.should == :const109_1
 
-      # NATFIXME: Complain when updated
-      # -> {
-        ConstantSpecs::ClassB::CS_CONST109 = :const109_2
-      # }.should complain(/already initialized constant/)
+      NATFIXME 'Complain when updated', exception: SpecFailedException do
+        -> {
+          ConstantSpecs::ClassB::CS_CONST109 = :const109_2
+        }.should complain(/already initialized constant/)
+      end
       ConstantSpecs::ClassB::CS_CONST109.should == :const109_2
     end
 
@@ -159,19 +168,20 @@ describe "Literal (A::X) constant resolution" do
     end
 
     ruby_version_is ""..."3.2" do
-      # NATFIXME: evaluates the right hand side before evaluating a constant path
-      xit "evaluates the right hand side before evaluating a constant path" do
+      it "evaluates the right hand side before evaluating a constant path" do
         mod = Module.new
 
-        mod.module_eval <<-EOC
-          ConstantSpecsRHS::B = begin
-            module ConstantSpecsRHS; end
+        NATFIXME 'evaluates the right hand side before evaluating a constant path', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+          mod.module_eval <<-EOC
+            ConstantSpecsRHS::B = begin
+              module ConstantSpecsRHS; end
 
-            "hello"
-          end
-        EOC
+              "hello"
+            end
+          EOC
 
-        mod::ConstantSpecsRHS::B.should == 'hello'
+          mod::ConstantSpecsRHS::B.should == 'hello'
+        end
       end
     end
   end
@@ -181,8 +191,7 @@ describe "Literal (A::X) constant resolution" do
   end
 
   ruby_version_is "3.0" do
-    # NATFIXME: uses the module or class #name to craft the error message
-    xit "uses the module or class #name to craft the error message" do
+    it "uses the module or class #name to craft the error message" do
       mod = Module.new do
         def self.name
           "ModuleName"
@@ -193,11 +202,12 @@ describe "Literal (A::X) constant resolution" do
         end
       end
 
-      -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant ModuleName::DOES_NOT_EXIST/)
+      NATFIXME 'uses the module or class #name to craft the error message', exception: SpecFailedException do
+        -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant ModuleName::DOES_NOT_EXIST/)
+      end
     end
 
-    # NATFIXME: uses the module or class #inspect to craft the error message if they are anonymous
-    xit "uses the module or class #inspect to craft the error message if they are anonymous" do
+    it "uses the module or class #inspect to craft the error message if they are anonymous" do
       mod = Module.new do
         def self.name
           nil
@@ -208,25 +218,29 @@ describe "Literal (A::X) constant resolution" do
         end
       end
 
-      -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant <unusable info>::DOES_NOT_EXIST/)
+      NATFIXME 'uses the module or class #inspect to craft the error message if they are anonymous', exception: SpecFailedException do
+        -> { mod::DOES_NOT_EXIST }.should raise_error(NameError, /uninitialized constant <unusable info>::DOES_NOT_EXIST/)
+      end
     end
   end
 
-  # NATFIXME: sends #const_missing to the original class or module scope
-  xit "sends #const_missing to the original class or module scope" do
-    ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
+  it "sends #const_missing to the original class or module scope" do
+    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant ConstantSpecs::ClassA::CS_CONSTX' do
+      ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
+    end
   end
 
   it "evaluates the qualifier" do
     ConstantSpecs.get_const::CS_CONST2.should == :const2
   end
 
-  # NATFIXME: raises a TypeError if a non-class or non-module qualifier is given
-  xit "raises a TypeError if a non-class or non-module qualifier is given" do
-    -> { CS_CONST1::CS_CONST }.should raise_error(TypeError)
-    -> { 1::CS_CONST         }.should raise_error(TypeError)
-    -> { "mod"::CS_CONST     }.should raise_error(TypeError)
-    -> { false::CS_CONST     }.should raise_error(TypeError)
+  it "raises a TypeError if a non-class or non-module qualifier is given" do
+    NATFIXME 'raises a TypeError if a non-class or non-module qualifier is given', exception: SpecFailedException do
+      -> { CS_CONST1::CS_CONST }.should raise_error(TypeError)
+      -> { 1::CS_CONST         }.should raise_error(TypeError)
+      -> { "mod"::CS_CONST     }.should raise_error(TypeError)
+      -> { false::CS_CONST     }.should raise_error(TypeError)
+    end
   end
 end
 
@@ -253,26 +267,30 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ContainerA::ChildA.new.const11.should == :const11_1
     end
 
-    # NATFIXME: searches a module included in the superclass
-    xit "searches a module included in the superclass" do
-      ConstantSpecs::ContainerA::ChildA.const12.should == :const12_1
-      ConstantSpecs::ContainerA::ChildA.new.const12.should == :const12_1
+    it "searches a module included in the superclass" do
+      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant CS_CONST12' do
+        ConstantSpecs::ContainerA::ChildA.const12.should == :const12_1
+        ConstantSpecs::ContainerA::ChildA.new.const12.should == :const12_1
+      end
     end
 
-    # NATFIXME: searches the superclass chain
-    xit "searches the superclass chain" do
-      ConstantSpecs::ContainerA::ChildA.const13.should == :const13
-      ConstantSpecs::ContainerA::ChildA.new.const13.should == :const13
+    it "searches the superclass chain" do
+      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant CS_CONST13' do
+        ConstantSpecs::ContainerA::ChildA.const13.should == :const13
+        ConstantSpecs::ContainerA::ChildA.new.const13.should == :const13
+      end
     end
 
-    # NATFIXME: searches the lexical scope of the method not the receiver's immediate class
-    xit "searches the lexical scope of the method not the receiver's immediate class" do
-      ConstantSpecs::ContainerA::ChildA.const19.should == :const19_1
+    it "searches the lexical scope of the method not the receiver's immediate class" do
+      NATFIXME "searches the lexical scope of the method not the receiver's immediate class", exception: SpecFailedException do
+        ConstantSpecs::ContainerA::ChildA.const19.should == :const19_1
+      end
     end
 
-    # NATFIXME: searches the lexical scope of a singleton method
-    xit "searches the lexical scope of a singleton method" do
-      ConstantSpecs::CS_CONST18.const17.should == :const17_1
+    it "searches the lexical scope of a singleton method" do
+      NATFIXME 'searches the lexical scope of a singleton method', exception: SpecFailedException do
+        ConstantSpecs::CS_CONST18.const17.should == :const17_1
+      end
     end
 
     it "does not search the lexical scope of the caller" do
@@ -283,17 +301,19 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ClassA.const22.should == :const22_1
     end
 
-    # NATFIXME: searches Object as a lexical scope only if Object is explicitly opened
-    xit "searches Object as a lexical scope only if Object is explicitly opened" do
-      ConstantSpecs::ContainerA::ChildA.const20.should == :const20_1
+    it "searches Object as a lexical scope only if Object is explicitly opened" do
+      NATFIXME 'searches Object as a lexical scope only if Object is explicitly opened', exception: SpecFailedException do
+        ConstantSpecs::ContainerA::ChildA.const20.should == :const20_1
+      end
       ConstantSpecs::ContainerA::ChildA.const21.should == :const21_1
     end
 
-    # NATFIXME: does not search the lexical scope of qualifying modules
-    xit "does not search the lexical scope of qualifying modules" do
-      -> do
-        ConstantSpecs::ContainerA::ChildA.const23
-      end.should raise_error(NameError)
+    it "does not search the lexical scope of qualifying modules" do
+      NATFIXME 'does not search the lexical scope of qualifying modules', exception: SpecFailedException do
+        -> do
+          ConstantSpecs::ContainerA::ChildA.const23
+        end.should raise_error(NameError)
+      end
     end
   end
 
@@ -332,25 +352,26 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ContainerB::ChildB.new.const203.should == :const203_1
     end
 
-    # NATFIXME: searches a module included in the superclass
-    xit "searches a module included in the superclass" do
+    it "searches a module included in the superclass" do
       ConstantSpecs::ModuleA::CS_CONST204 = :const204_2
       ConstantSpecs::ModuleE::CS_CONST204 = :const204_1
 
-      ConstantSpecs::ContainerB::ChildB.const204.should == :const204_1
-      ConstantSpecs::ContainerB::ChildB.new.const204.should == :const204_1
+      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant CS_CONST204' do
+        ConstantSpecs::ContainerB::ChildB.const204.should == :const204_1
+        ConstantSpecs::ContainerB::ChildB.new.const204.should == :const204_1
+      end
     end
 
-    # NATFIXME: searches the superclass chain
-    xit "searches the superclass chain" do
+    it "searches the superclass chain" do
       ConstantSpecs::ModuleA::CS_CONST205 = :const205
 
-      ConstantSpecs::ContainerB::ChildB.const205.should == :const205
-      ConstantSpecs::ContainerB::ChildB.new.const205.should == :const205
+      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant CS_CONST205' do
+        ConstantSpecs::ContainerB::ChildB.const205.should == :const205
+        ConstantSpecs::ContainerB::ChildB.new.const205.should == :const205
+      end
     end
 
-    # NATFIXME: searches the lexical scope of the method not the receiver's immediate class
-    xit "searches the lexical scope of the method not the receiver's immediate class" do
+    it "searches the lexical scope of the method not the receiver's immediate class" do
       ConstantSpecs::ContainerB::ChildB::CS_CONST206 = :const206_2
       class ConstantSpecs::ContainerB::ChildB
         class << self
@@ -358,15 +379,18 @@ describe "Constant resolution within methods" do
         end
       end
 
-      ConstantSpecs::ContainerB::ChildB.const206.should == :const206_1
+      NATFIXME "searches the lexical scope of the method not the receiver's immediate class", exception: SpecFailedException do
+        ConstantSpecs::ContainerB::ChildB.const206.should == :const206_1
+      end
     end
 
-    # NATFIXME: searches the lexical scope of a singleton method
-    xit "searches the lexical scope of a singleton method" do
+    it "searches the lexical scope of a singleton method" do
       ConstantSpecs::CS_CONST207 = :const207_1
       ConstantSpecs::ClassB::CS_CONST207 = :const207_2
 
-      ConstantSpecs::CS_CONST208.const207.should == :const207_1
+      NATFIXME 'searches the lexical scope of a singleton method', exception: SpecFailedException do
+        ConstantSpecs::CS_CONST208.const207.should == :const207_1
+      end
     end
 
     it "does not search the lexical scope of the caller" do
@@ -382,11 +406,12 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ClassB.const210.should == :const210_1
     end
 
-    # NATFIXME: searches Object as a lexical scope only if Object is explicitly opened
-    xit "searches Object as a lexical scope only if Object is explicitly opened" do
+    it "searches Object as a lexical scope only if Object is explicitly opened" do
       Object::CS_CONST211 = :const211_1
       ConstantSpecs::ParentB::CS_CONST211 = :const211_2
-      ConstantSpecs::ContainerB::ChildB.const211.should == :const211_1
+      NATFIXME 'searches Object as a lexical scope only if Object is explicitly opened', exception: SpecFailedException do
+        ConstantSpecs::ContainerB::ChildB.const211.should == :const211_1
+      end
 
       Object::CS_CONST212 = :const212_2
       ConstantSpecs::ParentB::CS_CONST212 = :const212_1
@@ -398,21 +423,23 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ContainerB::ChildB.const213.should == :const213_1
       ConstantSpecs::ContainerB::ChildB.new.const213.should == :const213_1
 
-      # NATFIXME: Complain when updated
-      # -> {
-        ConstantSpecs::ParentB::CS_CONST213 = :const213_2
-      # }.should complain(/already initialized constant/)
+      NATFIXME 'Complain when updated', exception: SpecFailedException do
+        -> {
+          ConstantSpecs::ParentB::CS_CONST213 = :const213_2
+        }.should complain(/already initialized constant/)
+      end
       ConstantSpecs::ContainerB::ChildB.const213.should == :const213_2
       ConstantSpecs::ContainerB::ChildB.new.const213.should == :const213_2
     end
 
-    # NATFIXME: does not search the lexical scope of qualifying modules
-    xit "does not search the lexical scope of qualifying modules" do
+    it "does not search the lexical scope of qualifying modules" do
       ConstantSpecs::ContainerB::CS_CONST214 = :const214
 
-      -> do
-        ConstantSpecs::ContainerB::ChildB.const214
-      end.should raise_error(NameError)
+      NATFIXME 'does not search the lexical scope of qualifying modules', exception: SpecFailedException do
+        -> do
+          ConstantSpecs::ContainerB::ChildB.const214
+        end.should raise_error(NameError)
+      end
     end
   end
 
@@ -420,35 +447,43 @@ describe "Constant resolution within methods" do
     -> { ConstantSpecs::ParentA.constx }.should raise_error(NameError)
   end
 
-  # NATFIXME: sends #const_missing to the original class or module scope
-  xit "sends #const_missing to the original class or module scope" do
-    ConstantSpecs::ClassA.constx.should == :CS_CONSTX
-    ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
+  it "sends #const_missing to the original class or module scope" do
+    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant CS_CONSTX' do
+      ConstantSpecs::ClassA.constx.should == :CS_CONSTX
+      ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
+    end
   end
 end
 
-# NATFIXME: Constant resolution within a singleton class (class << obj)
-xdescribe "Constant resolution within a singleton class (class << obj)" do
+describe "Constant resolution within a singleton class (class << obj)" do
   it "works like normal classes or modules" do
-    ConstantSpecs::CS_SINGLETON1.foo.should == 1
+    NATFIXME 'works like normal classes or modules', exception: NameError, message: 'uninitialized constant CONST' do
+      ConstantSpecs::CS_SINGLETON1.foo.should == 1
+    end
   end
 
   it "uses its own namespace for each object" do
-    a = ConstantSpecs::CS_SINGLETON2[0].foo
-    b = ConstantSpecs::CS_SINGLETON2[1].foo
-    [a, b].should == [1, 2]
+    NATFIXME 'uses its own namespace for each object', exception: NameError, message: 'uninitialized constant CONST' do
+      a = ConstantSpecs::CS_SINGLETON2[0].foo
+      b = ConstantSpecs::CS_SINGLETON2[1].foo
+      [a, b].should == [1, 2]
+    end
   end
 
   it "uses its own namespace for nested modules" do
-    a = ConstantSpecs::CS_SINGLETON3[0].x
-    b = ConstantSpecs::CS_SINGLETON3[1].x
-    a.should_not equal(b)
+    NATFIXME 'uses its own namespace for nested modules', exception: NameError, message: 'uninitialized constant X' do
+      a = ConstantSpecs::CS_SINGLETON3[0].x
+      b = ConstantSpecs::CS_SINGLETON3[1].x
+      a.should_not equal(b)
+    end
   end
 
   it "allows nested modules to have proper resolution" do
-    a = ConstantSpecs::CS_SINGLETON4_CLASSES[0].new
-    b = ConstantSpecs::CS_SINGLETON4_CLASSES[1].new
-    [a.foo, b.foo].should == [1, 2]
+    NATFIXME 'allows nested modules to have proper resolution', exception: NoMethodError, message: "undefined method `new' for nil" do
+      a = ConstantSpecs::CS_SINGLETON4_CLASSES[0].new
+      b = ConstantSpecs::CS_SINGLETON4_CLASSES[1].new
+      [a.foo, b.foo].should == [1, 2]
+    end
   end
 end
 
@@ -466,20 +501,20 @@ end
 
 describe "Module#private_constant marked constants" do
 
-  # NATFIXME: remain private even when updated
-  xit "remain private even when updated" do
+  it "remain private even when updated" do
     mod = Module.new
     mod.const_set :Foo, true
     mod.send :private_constant, :Foo
-    -> {
-      mod.const_set :Foo, false
-    }.should complain(/already initialized constant/)
+    NATFIXME 'remain private even when updated', exception: SpecFailedException do
+      -> {
+        mod.const_set :Foo, false
+      }.should complain(/already initialized constant/)
 
-    -> {mod::Foo}.should raise_error(NameError)
+      -> {mod::Foo}.should raise_error(NameError)
+    end
   end
 
-  # NATFIXME: sends #const_missing to the original class or module
-  xit "sends #const_missing to the original class or module" do
+  it "sends #const_missing to the original class or module" do
     mod = Module.new
     mod.const_set :Foo, true
     mod.send :private_constant, :Foo
@@ -487,7 +522,9 @@ describe "Module#private_constant marked constants" do
       name == :Foo ? name : super
     end
 
-    mod::Foo.should == :Foo
+    NATFIXME 'sends #const_missing to the original class or module', exception: NameError, message: /private constant \S+::Foo referenced/ do
+      mod::Foo.should == :Foo
+    end
   end
 
   describe "in a module" do
@@ -497,18 +534,20 @@ describe "Module#private_constant marked constants" do
       end.should raise_error(NameError)
     end
 
-    # NATFIXME: cannot be reopened as a module from scope where constant would be private
-    xit "cannot be reopened as a module from scope where constant would be private" do
-      -> do
-        module ConstantVisibility::ModuleContainer::PrivateModule; end
-      end.should raise_error(NameError)
+    it "cannot be reopened as a module from scope where constant would be private" do
+      NATFIXME 'cannot be reopened as a module from scope where constant would be private', exception: SpecFailedException do
+        -> do
+          module ConstantVisibility::ModuleContainer::PrivateModule; end
+        end.should raise_error(NameError)
+      end
     end
 
-    # NATFIXME: cannot be reopened as a class from scope where constant would be private
-    xit "cannot be reopened as a class from scope where constant would be private" do
-      -> do
-        class ConstantVisibility::ModuleContainer::PrivateClass; end
-      end.should raise_error(NameError)
+    it "cannot be reopened as a class from scope where constant would be private" do
+      NATFIXME 'cannot be reopened as a class from scope where constant would be private', exception: SpecFailedException do
+        -> do
+          class ConstantVisibility::ModuleContainer::PrivateClass; end
+        end.should raise_error(NameError)
+      end
     end
 
     it "can be reopened as a module where constant is not private" do
@@ -580,18 +619,20 @@ describe "Module#private_constant marked constants" do
       end.should raise_error(NameError)
     end
 
-    # NATFIXME: cannot be reopened as a module
-    xit "cannot be reopened as a module" do
-      -> do
-        module ConstantVisibility::ClassContainer::PrivateModule; end
-      end.should raise_error(NameError)
+    it "cannot be reopened as a module" do
+      NATFIXME 'cannot be reopened as a module', exception: SpecFailedException do
+        -> do
+          module ConstantVisibility::ClassContainer::PrivateModule; end
+        end.should raise_error(NameError)
+      end
     end
 
-    # NATFIXME: cannot be reopened as a class
-    xit "cannot be reopened as a class" do
-      -> do
-        class ConstantVisibility::ClassContainer::PrivateClass; end
-      end.should raise_error(NameError)
+    it "cannot be reopened as a class" do
+      NATFIXME 'cannot be reopened as a class', exception: SpecFailedException do
+        -> do
+          class ConstantVisibility::ClassContainer::PrivateClass; end
+        end.should raise_error(NameError)
+      end
     end
 
     it "can be reopened as a module where constant is not private" do
@@ -663,38 +704,41 @@ describe "Module#private_constant marked constants" do
     end
   end
 
-  #  NATFIXME: undefined method `receiver'
-  xdescribe "NameError by #private_constant" do
+  describe "NameError by #private_constant" do
     it "has :receiver and :name attributes" do
-      -> do
-        ConstantVisibility::PrivConstClass::PRIVATE_CONSTANT_CLASS
-      end.should raise_error(NameError) {|e|
-        e.receiver.should == ConstantVisibility::PrivConstClass
-        e.name.should == :PRIVATE_CONSTANT_CLASS
-      }
+      NATFIXME 'has :receiver and :name attributes', exception: SpecFailedException do
+        -> do
+          ConstantVisibility::PrivConstClass::PRIVATE_CONSTANT_CLASS
+        end.should raise_error(NameError) {|e|
+          e.receiver.should == ConstantVisibility::PrivConstClass
+          e.name.should == :PRIVATE_CONSTANT_CLASS
+        }
 
-      -> do
-        ConstantVisibility::PrivConstModule::PRIVATE_CONSTANT_MODULE
-      end.should raise_error(NameError) {|e|
-        e.receiver.should == ConstantVisibility::PrivConstModule
-        e.name.should == :PRIVATE_CONSTANT_MODULE
-      }
+        -> do
+          ConstantVisibility::PrivConstModule::PRIVATE_CONSTANT_MODULE
+        end.should raise_error(NameError) {|e|
+          e.receiver.should == ConstantVisibility::PrivConstModule
+          e.name.should == :PRIVATE_CONSTANT_MODULE
+        }
+      end
     end
 
     it "has the defined class as the :name attribute" do
-      -> do
-        ConstantVisibility::PrivConstClassChild::PRIVATE_CONSTANT_CLASS
-      end.should raise_error(NameError) {|e|
-        e.receiver.should == ConstantVisibility::PrivConstClass
-        e.name.should == :PRIVATE_CONSTANT_CLASS
-      }
+      NATFIXME 'has the defined class as the :name attribute', exception: SpecFailedException do
+        -> do
+          ConstantVisibility::PrivConstClassChild::PRIVATE_CONSTANT_CLASS
+        end.should raise_error(NameError) {|e|
+          e.receiver.should == ConstantVisibility::PrivConstClass
+          e.name.should == :PRIVATE_CONSTANT_CLASS
+        }
 
-      -> do
-        ConstantVisibility::ClassIncludingPrivConstModule::PRIVATE_CONSTANT_MODULE
-      end.should raise_error(NameError) {|e|
-        e.receiver.should == ConstantVisibility::PrivConstModule
-        e.name.should == :PRIVATE_CONSTANT_MODULE
-      }
+        -> do
+          ConstantVisibility::ClassIncludingPrivConstModule::PRIVATE_CONSTANT_MODULE
+        end.should raise_error(NameError) {|e|
+          e.receiver.should == ConstantVisibility::PrivConstModule
+          e.name.should == :PRIVATE_CONSTANT_MODULE
+        }
+      end
     end
   end
 end
@@ -710,10 +754,11 @@ describe "Module#public_constant marked constants" do
       @module::PRIVATE_CONSTANT_MODULE.should == true
     end
 
-    # NATFIXME: is defined? with A::B form
-    xit "is defined? with A::B form" do
+    it "is defined? with A::B form" do
       @module.send :public_constant, :PRIVATE_CONSTANT_MODULE
-      defined?(@module::PRIVATE_CONSTANT_MODULE).should == "constant"
+      NATFIXME 'is defined? with A::B form', exception: SpecFailedException do
+        defined?(@module::PRIVATE_CONSTANT_MODULE).should == "constant"
+      end
     end
   end
 
@@ -727,10 +772,11 @@ describe "Module#public_constant marked constants" do
       @class::PRIVATE_CONSTANT_CLASS.should == true
     end
 
-    # NATFIXME: is defined? with A::B form
-    xit "is defined? with A::B form" do
+    it "is defined? with A::B form" do
       @class.send :public_constant, :PRIVATE_CONSTANT_CLASS
-      defined?(@class::PRIVATE_CONSTANT_CLASS).should == "constant"
+      NATFIXME 'is defined? with A::B form', exception: SpecFailedException do
+        defined?(@class::PRIVATE_CONSTANT_CLASS).should == "constant"
+      end
     end
   end
 
@@ -752,12 +798,13 @@ describe "Module#public_constant marked constants" do
 end
 
 describe 'Allowed characters' do
-  # NATFIXME: Eval with string
-  xit 'allows not ASCII characters in the middle of a name' do
+  it 'allows not ASCII characters in the middle of a name' do
     mod = Module.new
     mod.const_set("BBἍBB", 1)
 
-    eval("mod::BBἍBB").should == 1
+    NATFIXME 'Eval with string', exception: NoMethodError, message: "undefined method `mod' for main" do
+      eval("mod::BBἍBB").should == 1
+    end
   end
 
   it 'does not allow not ASCII characters that cannot be upcased or lowercased at the beginning' do
@@ -766,26 +813,28 @@ describe 'Allowed characters' do
     end.should raise_error(NameError, /wrong constant name/)
   end
 
-  # NATFIXME: Eval with string
-  xit 'allows not ASCII upcased characters at the beginning' do
+  it 'allows not ASCII upcased characters at the beginning' do
     mod = Module.new
-    mod.const_set("ἍBB", 1)
+    NATFIXME 'Eval with string', exception: NameError, message: "wrong constant name ἍBB" do
+      mod.const_set("ἍBB", 1)
 
-    eval("mod::ἍBB").should == 1
+      eval("mod::ἍBB").should == 1
+    end
   end
 end
 
-# NATFIXME: Eval with string
-xdescribe 'Assignment' do
+describe 'Assignment' do
   context 'dynamic assignment' do
     it 'raises SyntaxError' do
-      -> do
-        eval <<-CODE
-          def test
-            B = 1
-          end
-        CODE
-      end.should raise_error(SyntaxError, /dynamic constant assignment/)
+      NATFIXME 'raises SyntaxError', exception: SpecFailedException do
+        -> do
+          eval <<-CODE
+            def test
+              B = 1
+            end
+          CODE
+        end.should raise_error(SyntaxError, /dynamic constant assignment/)
+      end
     end
   end
 end
