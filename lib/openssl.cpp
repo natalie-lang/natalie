@@ -67,3 +67,7 @@ Value OpenSSL_Digest_SHA256_digest(Env *env, Value self, Args args, Block *) {
 Value OpenSSL_Digest_SHA384_digest(Env *env, Value self, Args args, Block *) {
     return digest_wrapper<SHA384_DIGEST_LENGTH>(env, args, SHA384);
 }
+
+Value OpenSSL_Digest_SHA512_digest(Env *env, Value self, Args args, Block *) {
+    return digest_wrapper<SHA512_DIGEST_LENGTH>(env, args, SHA512);
+}
