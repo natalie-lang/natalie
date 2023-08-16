@@ -85,12 +85,28 @@ static const auto ruby_encoding_lookup = []() {
     return map;
 }();
 
+static const auto onig_encoding_lookup = []() {
+    auto map = Hashmap<Value, OnigEncoding>();
+    for (auto [onig_encoding, ruby_encoding] : ruby_encoding_lookup) {
+        map.put(ruby_encoding, onig_encoding);
+    }
+    return map;
+}();
+
 EncodingObject *RegexpObject::onig_encoding_to_ruby_encoding(const OnigEncoding encoding) {
     auto result = ruby_encoding_lookup.get(encoding);
     if (result) return result->as_encoding();
 
     // Use US_ASCII as the default
     return EncodingObject::get(Encoding::US_ASCII);
+}
+
+OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(const Value encoding) {
+    auto result = onig_encoding_lookup.get(encoding);
+    if (result) return result;
+
+    // Use US_ASCII as the default
+    return ONIG_ENCODING_ASCII;
 }
 
 Value RegexpObject::last_match(Env *env, Value ref) {

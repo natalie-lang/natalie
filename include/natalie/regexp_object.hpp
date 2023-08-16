@@ -57,6 +57,7 @@ public:
     }
 
     static EncodingObject *onig_encoding_to_ruby_encoding(const OnigEncoding encoding);
+    static OnigEncoding ruby_encoding_to_onig_encoding(const Value encoding);
     static Value last_match(Env *, Value);
     static Value quote(Env *, Value);
     static Value try_convert(Env *, Value);
