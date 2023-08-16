@@ -9,20 +9,20 @@ module OpenSSL
   end
 
   class Digest
-    def self.digest(digest, data)
-      klass = const_get(digest.to_s.upcase.to_sym)
+    def self.digest(name, data)
+      klass = const_get(name.to_s.upcase.to_sym)
       raise NameError unless klass.ancestors[1] == self
       klass.new.digest(data)
     rescue NameError
-      raise "Unsupported digest algorithm (#{digest}).: unknown object name"
+      raise "Unsupported digest algorithm (#{name}).: unknown object name"
     end
 
-    def self.base64digest(digest, data)
-      [digest(digest, data)].pack('m0')
+    def self.base64digest(name, data)
+      [digest(name, data)].pack('m0')
     end
 
-    def self.hexdigest(digest, data)
-      digest(digest, data).unpack1('H*')
+    def self.hexdigest(name, data)
+      digest(name, data).unpack1('H*')
     end
 
     class SHA1 < Digest
