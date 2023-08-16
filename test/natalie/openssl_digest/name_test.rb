@@ -3,13 +3,13 @@ require 'openssl'
 
 describe "OpenSSL::Digest#name" do
   it "returns the name of digest when called on an instance" do
-    NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
       OpenSSL::Digest.new('SHA1').name.should == 'SHA1'
     end
   end
 
   it "converts the name to the internal representation of OpenSSL" do
-    NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
       OpenSSL::Digest.new('sha1').name.should == 'SHA1'
     end
   end

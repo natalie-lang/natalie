@@ -25,19 +25,35 @@ module OpenSSL
       digest(name, data).unpack1('H*')
     end
 
+    def initialize(name)
+      klass = self.class.const_get(name.to_s.upcase.to_sym)
+      raise NameError unless klass.ancestors[1] == self.class
+      klass.new
+    rescue NameError
+      raise "Unsupported digest algorithm (#{name}).: unknown object name"
+    end
+
     class SHA1 < Digest
+      def initialize() end
+
       __bind_method__ :digest, :OpenSSL_Digest_SHA1_digest
     end
 
     class SHA256 < Digest
+      def initialize() end
+
       __bind_method__ :digest, :OpenSSL_Digest_SHA256_digest
     end
 
     class SHA384 < Digest
+      def initialize() end
+
       __bind_method__ :digest, :OpenSSL_Digest_SHA384_digest
     end
 
     class SHA512 < Digest
+      def initialize() end
+
       __bind_method__ :digest, :OpenSSL_Digest_SHA512_digest
     end
   end
