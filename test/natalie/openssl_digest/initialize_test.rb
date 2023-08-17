@@ -91,25 +91,25 @@ describe "OpenSSL::Digest initialization" do
 
   describe "ititialization with an empty string" do
     it "returns a SHA1 digest" do
-      NATFIXME 'Enable constructors', exception: NoMethodError, message: "undefined method `digest'" do
+      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         OpenSSL::Digest.new("sha1").digest.should == SHA1Constants::BlankDigest
       end
     end
 
     it "returns a SHA256 digest" do
-      NATFIXME 'Enable constructors', exception: NoMethodError, message: "undefined method `digest'" do
+      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         OpenSSL::Digest.new("sha256").digest.should == SHA256Constants::BlankDigest
       end
     end
 
     it "returns a SHA384 digest" do
-      NATFIXME 'Enable constructors', exception: NoMethodError, message: "undefined method `digest'" do
+      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         OpenSSL::Digest.new("sha384").digest.should == SHA384Constants::BlankDigest
       end
     end
 
     it "returns a SHA512 digest" do
-      NATFIXME 'Enable constructors', exception: NoMethodError, message: "undefined method `digest'" do
+      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
         OpenSSL::Digest.new("sha512").digest.should == SHA512Constants::BlankDigest
       end
     end

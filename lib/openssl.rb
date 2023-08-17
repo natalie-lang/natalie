@@ -28,9 +28,15 @@ module OpenSSL
     def initialize(name)
       klass = self.class.const_get(name.to_s.upcase.to_sym)
       raise NameError unless klass.ancestors[1] == self.class
-      klass.new
+      @name = name.to_s.upcase.to_sym
     rescue NameError
       raise "Unsupported digest algorithm (#{name}).: unknown object name"
+    end
+
+    def digest(data)
+      self.class.const_get(@name).new.digest(data)
+    rescue NameError
+      raise "Unsupported digest algorithm (#{@name}).: unknown object name"
     end
 
     class SHA1 < Digest
