@@ -40,9 +40,11 @@ module OpenSSL
     end
 
     class SHA1 < Digest
-      def initialize() end
+      def initialize()
+        @name = 'SHA1'
+      end
 
-      __bind_method__ :digest, :OpenSSL_Digest_SHA1_digest
+      __bind_method__ :digest, :OpenSSL_Digest_digest
     end
 
     class SHA256 < Digest
