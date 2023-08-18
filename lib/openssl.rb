@@ -14,11 +14,11 @@ module OpenSSL
     end
 
     def self.base64digest(name, data)
-      [digest(name, data)].pack('m0')
+      new(name).base64digest(data)
     end
 
     def self.hexdigest(name, data)
-      digest(name, data).unpack1('H*')
+      new(name).hexdigest(data)
     end
 
     def initialize(name)
@@ -30,6 +30,14 @@ module OpenSSL
     end
 
     __bind_method__ :digest, :OpenSSL_Digest_digest
+
+    def base64digest(data)
+      [digest(data)].pack('m0')
+    end
+
+    def hexdigest(data)
+      digest(data).unpack1('H*')
+    end
 
     class SHA1 < Digest
       def initialize()
