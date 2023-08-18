@@ -74,15 +74,3 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     name->assert_type(env, Object::Type::String, "String");
     return digest_wrapper(env, args, name->as_string()->c_str());
 }
-
-Value OpenSSL_Digest_SHA256_digest(Env *env, Value self, Args args, Block *) {
-    return digest_wrapper(env, args, "SHA256");
-}
-
-Value OpenSSL_Digest_SHA384_digest(Env *env, Value self, Args args, Block *) {
-    return digest_wrapper(env, args, "SHA384");
-}
-
-Value OpenSSL_Digest_SHA512_digest(Env *env, Value self, Args args, Block *) {
-    return digest_wrapper(env, args, "SHA512");
-}

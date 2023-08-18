@@ -48,21 +48,27 @@ module OpenSSL
     end
 
     class SHA256 < Digest
-      def initialize() end
+      def initialize()
+        @name = 'SHA256'
+      end
 
-      __bind_method__ :digest, :OpenSSL_Digest_SHA256_digest
+      __bind_method__ :digest, :OpenSSL_Digest_digest
     end
 
     class SHA384 < Digest
-      def initialize() end
+      def initialize()
+        @name = 'SHA384'
+      end
 
-      __bind_method__ :digest, :OpenSSL_Digest_SHA384_digest
+      __bind_method__ :digest, :OpenSSL_Digest_digest
     end
 
     class SHA512 < Digest
-      def initialize() end
+      def initialize()
+        @name = 'SHA512'
+      end
 
-      __bind_method__ :digest, :OpenSSL_Digest_SHA512_digest
+      __bind_method__ :digest, :OpenSSL_Digest_digest
     end
   end
 end
