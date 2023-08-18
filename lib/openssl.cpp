@@ -46,12 +46,15 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
-static inline Value digest_wrapper(Env *env, Args args, const char *name) {
+Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
+    auto name = self->ivar_get(env, "@name"_s);
+    name->assert_type(env, Object::Type::String, "String");
+
     args.ensure_argc_is(env, 1);
     Value data = args[0];
     data->assert_type(env, Object::Type::String, "String");
 
-    const EVP_MD *md = EVP_get_digestbyname(name);
+    const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
     if (!md)
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name);
 
@@ -67,10 +70,4 @@ static inline Value digest_wrapper(Env *env, Args args, const char *name) {
         env->raise("RuntimeError", "Internal OpenSSL error");
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
-}
-
-Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
-    auto name = self->ivar_get(env, "@name"_s);
-    name->assert_type(env, Object::Type::String, "String");
-    return digest_wrapper(env, args, name->as_string()->c_str());
 }
