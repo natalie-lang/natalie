@@ -14,6 +14,7 @@ public:
     Value assoc(Env *, Value name);
     Value clear(Env *);
     Value delete_key(Env *, Value name, Block *block);
+    Value dup(Env *);
     Value each(Env *, Block *block);
     Value each_key(Env *, Block *);
     Value each_value(Env *, Block *);
