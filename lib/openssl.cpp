@@ -2,6 +2,8 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
+#include "tm/defer.hpp"
+
 #include "natalie.hpp"
 
 using namespace Natalie;
@@ -54,21 +56,15 @@ static inline Value digest_wrapper(Env *env, Args args, const char *name) {
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name);
 
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-    if (!EVP_DigestInit_ex(mdctx, md, nullptr)) {
-        EVP_MD_CTX_free(mdctx);
+    auto mdctx_destructor = TM::Defer([&]() { EVP_MD_CTX_free(mdctx); });
+    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
         env->raise("RuntimeError", "Internal OpenSSL error");
-    }
-    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size())) {
-        EVP_MD_CTX_free(mdctx);
+    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
         env->raise("RuntimeError", "Internal OpenSSL error");
-    }
     unsigned char buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
-    if (!EVP_DigestFinal_ex(mdctx, buf, &md_len)) {
-        EVP_MD_CTX_free(mdctx);
+    if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
         env->raise("RuntimeError", "Internal OpenSSL error");
-    }
-    EVP_MD_CTX_free(mdctx);
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
 }
