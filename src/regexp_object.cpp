@@ -40,6 +40,75 @@ static StringObject *regexp_stringify(const TM::String &str, const size_t start,
     return out;
 }
 
+static const auto ruby_encoding_lookup = []() {
+    // No constructor with std::initializer_list, use a lambda to make a const value
+    auto map = Hashmap<OnigEncoding, Value>();
+
+    map.put(ONIG_ENCODING_ASCII, EncodingObject::get(Encoding::US_ASCII));
+    map.put(ONIG_ENCODING_ISO_8859_1, EncodingObject::get(Encoding::ISO_8859_1));
+    map.put(ONIG_ENCODING_ISO_8859_2, EncodingObject::get(Encoding::ISO_8859_2));
+    map.put(ONIG_ENCODING_ISO_8859_3, EncodingObject::get(Encoding::ISO_8859_3));
+    map.put(ONIG_ENCODING_ISO_8859_4, EncodingObject::get(Encoding::ISO_8859_4));
+    map.put(ONIG_ENCODING_ISO_8859_5, EncodingObject::get(Encoding::ISO_8859_5));
+    map.put(ONIG_ENCODING_ISO_8859_6, EncodingObject::get(Encoding::ISO_8859_6));
+    map.put(ONIG_ENCODING_ISO_8859_7, EncodingObject::get(Encoding::ISO_8859_7));
+    map.put(ONIG_ENCODING_ISO_8859_8, EncodingObject::get(Encoding::ISO_8859_8));
+    map.put(ONIG_ENCODING_ISO_8859_9, EncodingObject::get(Encoding::ISO_8859_9));
+    map.put(ONIG_ENCODING_ISO_8859_10, EncodingObject::get(Encoding::ISO_8859_10));
+    map.put(ONIG_ENCODING_ISO_8859_11, EncodingObject::get(Encoding::ISO_8859_11));
+    map.put(ONIG_ENCODING_ISO_8859_13, EncodingObject::get(Encoding::ISO_8859_13));
+    map.put(ONIG_ENCODING_ISO_8859_14, EncodingObject::get(Encoding::ISO_8859_14));
+    map.put(ONIG_ENCODING_ISO_8859_15, EncodingObject::get(Encoding::ISO_8859_15));
+    map.put(ONIG_ENCODING_ISO_8859_16, EncodingObject::get(Encoding::ISO_8859_16));
+    map.put(ONIG_ENCODING_UTF_8, EncodingObject::get(Encoding::UTF_8));
+    map.put(ONIG_ENCODING_UTF_16BE, EncodingObject::get(Encoding::UTF_16BE));
+    map.put(ONIG_ENCODING_UTF_16LE, EncodingObject::get(Encoding::UTF_16LE));
+    map.put(ONIG_ENCODING_UTF_32BE, EncodingObject::get(Encoding::UTF_32BE));
+    map.put(ONIG_ENCODING_UTF_32LE, EncodingObject::get(Encoding::UTF_32LE));
+    map.put(ONIG_ENCODING_EUC_JP, EncodingObject::get(Encoding::EUC_JP));
+    // ONIG_ENCODING_EUC_TW has no local encoding
+    // ONIG_ENCODING_EUC_KR has no local encoding
+    // ONIG_ENCODING_EUC_CN has no local encoding
+    map.put(ONIG_ENCODING_SHIFT_JIS, EncodingObject::get(Encoding::SHIFT_JIS));
+    // ONIG_ENCODING_WINDOWS_31J has no local encoding
+    // ONIG_ENCODING_KOI8_R has no local encoding
+    // ONIG_ENCODING_KOI8_U has no local encoding
+    map.put(ONIG_ENCODING_WINDOWS_1250, EncodingObject::get(Encoding::Windows_1250));
+    map.put(ONIG_ENCODING_WINDOWS_1251, EncodingObject::get(Encoding::Windows_1251));
+    map.put(ONIG_ENCODING_WINDOWS_1252, EncodingObject::get(Encoding::Windows_1252));
+    // ONIG_ENCODING_WINDOWS_1253 has no local encoding
+    // ONIG_ENCODING_WINDOWS_1254 has no local encoding
+    // ONIG_ENCODING_WINDOWS_1257 has no local encoding
+    // ONIG_ENCODING_BIG5 has no local encoding
+    // ONIG_ENCODING_GB18030 has no local encoding
+
+    return map;
+}();
+
+static const auto onig_encoding_lookup = []() {
+    auto map = Hashmap<Value, OnigEncoding>();
+    for (auto [onig_encoding, ruby_encoding] : ruby_encoding_lookup) {
+        map.put(ruby_encoding, onig_encoding);
+    }
+    return map;
+}();
+
+EncodingObject *RegexpObject::onig_encoding_to_ruby_encoding(const OnigEncoding encoding) {
+    auto result = ruby_encoding_lookup.get(encoding);
+    if (result) return result->as_encoding();
+
+    // Use US_ASCII as the default
+    return EncodingObject::get(Encoding::US_ASCII);
+}
+
+OnigEncoding RegexpObject::ruby_encoding_to_onig_encoding(const Value encoding) {
+    auto result = onig_encoding_lookup.get(encoding);
+    if (result) return result;
+
+    // Use US_ASCII as the default
+    return ONIG_ENCODING_ASCII;
+}
+
 Value RegexpObject::last_match(Env *env, Value ref) {
     auto match = env->caller()->last_match();
     if (ref && match->is_match_data())
@@ -262,12 +331,11 @@ Value RegexpObject::named_captures(Env *env) const {
     named_captures_data data { env, named_captures };
     onig_foreach_name(
         m_regex,
-        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *, void *data) -> int {
+        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
             auto env = (static_cast<named_captures_data *>(data))->env;
             auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
             const size_t length = name_end - name;
-            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
-            auto key = new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) };
+            auto key = new StringObject { reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc) };
             auto values = new ArrayObject { static_cast<size_t>(groups_size) };
             for (size_t i = 0; i < static_cast<size_t>(groups_size); i++)
                 values->push(new IntegerObject { groups[i] });
@@ -285,11 +353,10 @@ Value RegexpObject::names() const {
     auto names = new ArrayObject { static_cast<size_t>(onig_number_of_names(m_regex)) };
     onig_foreach_name(
         m_regex,
-        [](const UChar *name, const UChar *name_end, int, int *, regex_t *, void *data) -> int {
+        [](const UChar *name, const UChar *name_end, int, int *, regex_t *regex, void *data) -> int {
             auto names = static_cast<ArrayObject *>(data);
             const size_t length = name_end - name;
-            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
-            names->push(new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) });
+            names->push(new StringObject { reinterpret_cast<const char *>(name), length, onig_encoding_to_ruby_encoding(regex->enc) });
             return 0;
         },
         names);

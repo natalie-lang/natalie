@@ -140,13 +140,12 @@ Value MatchDataObject::named_captures(Env *env) const {
     named_captures_data data { this, env, named_captures };
     onig_foreach_name(
         m_regexp->m_regex,
-        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *, void *data) -> int {
+        [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
             auto match_data_object = (static_cast<named_captures_data *>(data))->match_data_object;
             auto env = (static_cast<named_captures_data *>(data))->env;
             auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
             const size_t length = name_end - name;
-            // NATFIXME: Fully support character encodings in capture groups (see RegexpObject::initialize)
-            auto key = new StringObject { reinterpret_cast<const char *>(name), length, EncodingObject::get(Encoding::UTF_8) };
+            auto key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
             Value value = NilObject::the();
             for (int i = groups_size - 1; i >= 0; i--) {
                 auto v = match_data_object->group(groups[i]);
