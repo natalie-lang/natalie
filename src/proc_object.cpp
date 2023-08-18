@@ -21,4 +21,11 @@ Value ProcObject::call(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, args, block);
 }
 
+Value ProcObject::source_location() {
+    assert(m_block);
+    auto file = m_block->env()->file();
+    if (file == nullptr) return NilObject::the();
+    return new ArrayObject { new StringObject { file }, Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
+}
+
 }

@@ -49,6 +49,7 @@ public:
     }
 
     Value call(Env *, Args = {}, Block * = nullptr);
+    Value source_location();
 
     Env *env() { return m_block->env(); }
 

@@ -79,8 +79,6 @@ describe "Symbol#to_proc" do
 
   it "produces a proc with source location nil" do
     pr = :to_s.to_proc
-    NATFIXME 'Implement Proc#source_location', exception: NoMethodError, message: "undefined method `source_location'" do
-      pr.source_location.should == nil
-    end
+    pr.source_location.should == nil
   end
 end
