@@ -41,11 +41,9 @@ platform_is_not :windows do
     end
 
     it "uses base directory for interpreting relative pathname" do
-      NATFIXME 'Doesnt support 2nd argument yet and File.basename not impl', exception: Errno::ENOENT do
-        File.realpath(File.basename(@link), @link_dir).should == @file
-      end
+      File.realpath(File.basename(@link), @link_dir).should == @file
     end
-    
+
     it "uses current directory for interpreting relative pathname" do
       Dir.chdir @link_dir do
         File.realpath(File.basename(@link)).should == @file

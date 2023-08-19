@@ -583,6 +583,10 @@ StringObject *FileObject::path(Env *env, Value pathname) {
 
 Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
     pathname = fileutil::convert_using_to_path(env, pathname);
+    if (__dir_string != nullptr) {
+        pathname->as_string()->prepend_char(env, '/');
+        pathname->as_string()->prepend(env, { fileutil::convert_using_to_path(env, __dir_string) });
+    }
     char *resolved_filepath = nullptr;
     resolved_filepath = ::realpath(pathname->as_string()->c_str(), nullptr);
     if (!resolved_filepath)
