@@ -40,9 +40,10 @@ Prerequisites:
 - libtool
 - GNU make
 - gcc or clang
-- Ruby 2.7 or higher with dev headers
+- Ruby 3.0 or higher with dev headers
   - Using [rbenv](https://github.com/rbenv/rbenv) to install Ruby is preferred.
-  - Otherwise, you'll need the `ruby` and `ruby-dev` package from your system.
+  - Installing [rbenv-aliases](https://github.com/tpope/rbenv-aliases) along with rbenv helps with matching Ruby versions like `3.0` to the latest patch release.
+  - If not using rbenv or another version manager, you'll need the `ruby` and `ruby-dev` package from your system.
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
 
@@ -151,13 +152,13 @@ Some parts of this program are copied from other sources, and the copyright
 belongs to the respective owner. Such copyright notices are either at the top of
 the respective file, in the same directory with a name like `LICENSE`, or both.
 
-| file(s)            | copyright                         | license           |
-| -------------------| --------------------------------- | ----------------- |
-| `big_int.*`        | Syed Faheel Ahmad                 | MIT               |
-| `dtoa.c`           | David M. Gay, Lucent Technologies | custom permissive |
-| `fiber_object.*`   | Evan Jones                        | MIT               |
-| `spec/*`           | Engine Yard, Inc.                 | MIT               |
-| `version.rb`       | Engine Yard, Inc.                 | MIT               |
-| `zlib`             | Jean-loup Gailly and Mark Adler   | zlib license      |
+| file(s)          | copyright                         | license           |
+| ---------------- | --------------------------------- | ----------------- |
+| `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
+| `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
+| `fiber_object.*` | Evan Jones                        | MIT               |
+| `spec/*`         | Engine Yard, Inc.                 | MIT               |
+| `version.rb`     | Engine Yard, Inc.                 | MIT               |
+| `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
