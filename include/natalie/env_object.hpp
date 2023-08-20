@@ -23,6 +23,7 @@ public:
     Value has_value(Env *, Value name);
     Value inspect(Env *);
     bool is_empty() const;
+    Value key(Env *, Value);
     Value keys(Env *);
     Value ref(Env *, Value name);
     Value refeq(Env *, Value name, Value value);

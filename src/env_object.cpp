@@ -161,6 +161,27 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
     return value;
 }
 
+Value EnvObject::key(Env *env, Value value) {
+    if (!value->is_string() && value->respond_to(env, "to_str"_s))
+        value = value->send(env, "to_str"_s);
+    value->assert_type(env, Object::Type::String, "String");
+
+    const auto &needle = value->as_string()->string();
+
+    size_t i = 1;
+    char *pair = *environ;
+    for (size_t i = 1; pair != nullptr; i++) {
+        const char *eq = strchr(pair, '=');
+        assert(eq);
+        if (needle == eq + 1)
+            return new StringObject { pair, static_cast<size_t>(eq - pair) };
+
+        pair = *(environ + i);
+    }
+
+    return NilObject::the();
+}
+
 Value EnvObject::keys(Env *env) {
     return to_hash(env)->as_hash()->keys(env);
 }
