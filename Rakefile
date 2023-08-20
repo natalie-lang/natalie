@@ -143,12 +143,18 @@ DOCKER_FLAGS =
     "-e CI=#{ENV['CI']}"
   end
 
-task :docker_build do
-  sh 'docker build -t natalie --build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
+DEFAULT_HOST_RUBY_VERSION = 'ruby3.2'.freeze
+
+task :docker_build_gcc do
+  sh "docker build -t natalie_gcc_#{ruby_version_string} " \
+     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
+     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD .'
 end
 
 task :docker_build_clang do
-  sh 'docker build -t natalie_clang ' \
+  sh "docker build -t natalie_clang_#{ruby_version_string} " \
+     "--build-arg IMAGE='ruby:#{ruby_version_number}' " \
+     '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
      '--build-arg CC=clang ' \
      '--build-arg CXX=clang++ ' \
      '--build-arg NAT_CXX_FLAGS=-DNAT_GC_GUARD ' \
@@ -156,38 +162,43 @@ task :docker_build_clang do
 end
 
 task docker_bash: :docker_build_clang do
-  sh 'docker run -it --rm --entrypoint bash natalie_clang'
+  sh "docker run -it --rm --entrypoint bash natalie_clang_#{ruby_version_string}"
 end
 
 task docker_bash_lldb: :docker_build_clang do
-  sh 'docker run -it --rm --entrypoint bash --cap-add=SYS_PTRACE --security-opt seccomp=unconfined natalie_clang'
+  sh 'docker run -it --rm ' \
+     '--entrypoint bash ' \
+     '--cap-add=SYS_PTRACE ' \
+     '--security-opt seccomp=unconfined ' \
+     "natalie_clang_#{ruby_version_string}"
 end
 
-task :docker_build_ruby27 do
-  sh 'docker build -t natalie_ruby27 --build-arg IMAGE="ruby:2.7" .'
-end
+task docker_test: %i[docker_test_gcc docker_test_clang]
 
-task docker_test: %i[docker_test_gcc docker_test_clang docker_test_ruby27]
-
-task docker_test_gcc: :docker_build do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie test"
+task docker_test_gcc: :docker_build_gcc do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_gcc_#{ruby_version_string} test"
 end
 
 task docker_test_clang: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang test"
-end
-
-# NOTE: this tests that Natalie can be hosted by MRI 2.7 -- not Natalie under Ruby 3 specs
-task docker_test_ruby27: :docker_build_ruby27 do
-  sh "docker run -e RUBYOPT=-W:no-experimental #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test"
 end
 
 task docker_tidy: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang tidy"
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
 end
 
 task docker_gc_lint: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang gc_lint"
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} gc_lint"
+end
+
+def ruby_version_string
+  string = ENV['RUBY'] || DEFAULT_HOST_RUBY_VERSION
+  raise 'must be in the format rubyX.Y' unless string =~ /^ruby\d\.\d$/
+  string
+end
+
+def ruby_version_number
+  ruby_version_string.sub('ruby', '')
 end
 
 # # # # Build Compile Database # # # #

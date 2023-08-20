@@ -11,30 +11,23 @@ env:
   CI: 1
 
 jobs:
-  gcc:
-    runs-on: ubuntu-20.04
+  linux:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ruby_version:
+          - ruby3.0
+          - ruby3.1
+          - ruby3.2
+        compiler:
+          - gcc
+          - clang
     steps:
       - uses: actions/checkout@v1
       - name: checkout submodules
         run: git submodule update --init --recursive
-      - name: test with gcc
-        run: rake docker_test_gcc
-  clang:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
-      - name: test with clang
-        run: rake docker_test_clang
-  ruby27:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
-      - name: test when hosted by Ruby 2.7
-        run: rake docker_test_ruby27
+      - name: run tests
+        run: rake docker_test_${{ matrix.compiler }} RUBY=${{ matrix.ruby_version }}
   macos:
     runs-on: macos-12
     steps:
