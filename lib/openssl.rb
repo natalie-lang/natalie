@@ -9,6 +9,8 @@ module OpenSSL
   end
 
   class Digest
+    attr_reader :name
+
     def self.digest(name, data)
       new(name).digest(data)
     end

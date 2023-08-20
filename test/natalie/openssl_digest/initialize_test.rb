@@ -8,27 +8,19 @@ require 'openssl'
 describe "OpenSSL::Digest initialization" do
   describe "can be called with a digest name" do
     it "returns a SHA1 object" do
-      NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
-        OpenSSL::Digest.new("sha1").name.should == "SHA1"
-      end
+      OpenSSL::Digest.new("sha1").name.should == "SHA1"
     end
 
     it "returns a SHA256 object" do
-      NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
-        OpenSSL::Digest.new("sha256").name.should == "SHA256"
-      end
+      OpenSSL::Digest.new("sha256").name.should == "SHA256"
     end
 
     it "returns a SHA384 object" do
-      NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
-        OpenSSL::Digest.new("sha384").name.should == "SHA384"
-      end
+      OpenSSL::Digest.new("sha384").name.should == "SHA384"
     end
 
     it "returns a SHA512 object" do
-      NATFIXME 'Implement OpenSSL::Digest#name', exception: NoMethodError, message: "undefined method `name'" do
-        OpenSSL::Digest.new("sha512").name.should ==  "SHA512"
-      end
+      OpenSSL::Digest.new("sha512").name.should ==  "SHA512"
     end
 
     it "throws an error when called with an unknown digest" do

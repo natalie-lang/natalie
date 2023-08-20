@@ -47,7 +47,7 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
 }
 
 Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
-    auto name = self->ivar_get(env, "@name"_s);
+    auto name = self->send(env, "name"_s);
     name->assert_type(env, Object::Type::String, "String");
 
     args.ensure_argc_is(env, 1);
