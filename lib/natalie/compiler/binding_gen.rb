@@ -505,6 +505,7 @@ gen.singleton_binding('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pa
 gen.singleton_binding('ENV', 'include?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'inspect', 'EnvObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'key?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.singleton_binding('ENV', 'key', 'EnvObject', 'key', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'keys', 'EnvObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'length', 'EnvObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'member?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
