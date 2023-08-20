@@ -29,6 +29,7 @@ public:
     Value rehash() const;
     Value replace(Env *, Value hash);
     Value size(Env *) const;
+    Value slice(Env *, Args);
     Value to_s() const;
     Value to_hash(Env *);
     Value update(Env *env, Args args, Block *block);

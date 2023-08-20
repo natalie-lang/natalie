@@ -221,6 +221,25 @@ bool EnvObject::is_empty() const {
     return false;
 }
 
+Value EnvObject::slice(Env *env, Args args) {
+    if (args.has_keyword_hash())
+        env->raise("TypeError", "no implicit conversion of Hash into String");
+
+    auto result = new HashObject;
+    for (size_t i = 0; i < args.size(); i++) {
+        auto name = args[i];
+        if (!name->is_string() && name->respond_to(env, "to_str"_s))
+            name = name->send(env, "to_str"_s);
+        name->assert_type(env, Object::Type::String, "String");
+
+        const char *value = getenv(name->as_string()->c_str());
+        if (value != nullptr) {
+            result->put(env, name, new StringObject { value });
+        }
+    }
+    return result;
+}
+
 Value EnvObject::update(Env *env, Args args, Block *block) {
     for (size_t i = 0; i < args.size(); i++) {
         auto h = args[i];
