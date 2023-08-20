@@ -12,19 +12,9 @@ describe "String#lstrip" do
    "hello".lstrip.should == "hello"
   end
 
-  ruby_version_is '3.1' do
-    it "strips leading \\0" do
-     "\x00hello".lstrip.should == "hello"
-     "\000 \000hello\000 \000".lstrip.should == "hello\000 \000"
-    end
-  end
-
-  ruby_version_is ''...'2.7' do
-    it "taints the result when self is tainted" do
-      "".taint.lstrip.should.tainted?
-      "ok".taint.lstrip.should.tainted?
-      "   ok".taint.lstrip.should.tainted?
-    end
+  it "strips leading \\0" do
+   "\x00hello".lstrip.should == "hello"
+   "\000 \000hello\000 \000".lstrip.should == "hello\000 \000"
   end
 end
 
@@ -33,14 +23,6 @@ describe "String#lstrip!" do
     a = "  hello  "
     a.lstrip!.should equal(a)
     a.should == "hello  "
-  end
-
-  ruby_version_is '3.1' do
-    it "strips leading \\0" do
-      a = "\000 \000hello\000 \000"
-      a.lstrip!
-      a.should == "hello\000 \000"
-    end
   end
 
   it "returns nil if no modifications were made" do

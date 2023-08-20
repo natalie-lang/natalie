@@ -6,12 +6,10 @@ describe "MatchData#to_a" do
     /(.)(.)(\d+)(\d)/.match("THX1138.").to_a.should == ["HX1138", "H", "X", "113", "8"]
   end
 
-  ruby_version_is "3.0" do
-    it "returns instances of String when given a String subclass" do
-      str = MatchDataSpecs::MyString.new("THX1138.")
-      NATFIXME 'Implement MatchData#[] with range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-        /(.)(.)(\d+)(\d)/.match(str)[0..-1].to_a.each { |m| m.should be_an_instance_of(String) }
-      end
+  it "returns instances of String when given a String subclass" do
+    str = MatchDataSpecs::MyString.new("THX1138.")
+    NATFIXME 'Implement MatchData#[] with range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match(str)[0..-1].to_a.each { |m| m.should be_an_instance_of(String) }
     end
   end
 end
