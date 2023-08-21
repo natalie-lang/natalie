@@ -21,6 +21,15 @@ describe :env_key, shared: true do
     }
   end
 
+  it "coerces the key element with #to_str" do
+    ENV["foo"] = "bar"
+    k = mock('key')
+    k.should_receive(:to_str).and_return("bar")
+    suppress_warning {
+      ENV.send(@method, k).should == "foo"
+    }
+  end
+
   it "raises TypeError if the argument is not a String and does not respond to #to_str" do
     -> {
       suppress_warning {
