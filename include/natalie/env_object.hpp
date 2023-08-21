@@ -29,7 +29,7 @@ public:
     Value refeq(Env *, Value name, Value value);
     Value rehash() const;
     Value replace(Env *, Value hash);
-    Value size(Env *) const;
+    size_t size() const;
     Value slice(Env *, Args);
     Value to_s() const;
     Value to_hash(Env *);

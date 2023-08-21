@@ -31,15 +31,15 @@ Value EnvObject::to_hash(Env *env) {
     return hash;
 }
 
-Value EnvObject::size(Env *env) const {
+size_t EnvObject::size() const {
     size_t idx = 0;
-    if (!environ) return Value::integer(0);
+    if (!environ) return 0;
     char *pair = *environ;
     while (pair) {
         idx++;
         pair = *(environ + idx);
     }
-    return IntegerObject::from_size_t(env, idx);
+    return idx;
 }
 
 Value EnvObject::delete_key(Env *env, Value name, Block *block) {
@@ -237,7 +237,6 @@ Value EnvObject::replace(Env *env, Value hash) {
 }
 
 bool EnvObject::is_empty() const {
-    size_t idx = 0;
     if (!environ) return true;
     char *pair = *environ;
     if (!pair) return true;
