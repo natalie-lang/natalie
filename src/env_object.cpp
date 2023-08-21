@@ -237,7 +237,6 @@ Value EnvObject::replace(Env *env, Value hash) {
 }
 
 bool EnvObject::is_empty() const {
-    size_t idx = 0;
     if (!environ) return true;
     char *pair = *environ;
     if (!pair) return true;
