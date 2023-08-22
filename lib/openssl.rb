@@ -33,6 +33,7 @@ module OpenSSL
       raise "Unsupported digest algorithm (#{name}).: unknown object name"
     end
 
+    __bind_method__ :block_length, :OpenSSL_Digest_block_length
     __bind_method__ :digest, :OpenSSL_Digest_digest
 
     def base64digest(data)

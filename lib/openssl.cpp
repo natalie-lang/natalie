@@ -71,3 +71,21 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
 }
+
+Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
+    auto name = self->send(env, "name"_s);
+    name->assert_type(env, Object::Type::String, "String");
+
+    args.ensure_argc_is(env, 0);
+    const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
+    if (!md)
+        env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name);
+
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    auto mdctx_destructor = TM::Defer([&]() { EVP_MD_CTX_free(mdctx); });
+    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+
+    const int block_size = EVP_MD_CTX_block_size(mdctx);
+    return IntegerObject::create(block_size);
+}
