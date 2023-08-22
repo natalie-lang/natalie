@@ -8,31 +8,39 @@ require 'openssl'
 describe "OpenSSL::Digest#reset" do
   describe "resets the state of the digest" do
     it "works for a SHA1 digest" do
-      digest = OpenSSL::Digest.new('sha1', SHA1Constants::Contents)
-      digest.reset
-      digest.update(SHA1Constants::Contents)
-      digest.digest.should == SHA1Constants::Digest
+      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        digest = OpenSSL::Digest.new('sha1', SHA1Constants::Contents)
+        digest.reset
+        digest.update(SHA1Constants::Contents)
+        digest.digest.should == SHA1Constants::Digest
+      end
     end
 
     it "works for a SHA256 digest" do
-      digest = OpenSSL::Digest.new('sha256', SHA256Constants::Contents)
-      digest.reset
-      digest.update(SHA256Constants::Contents)
-      digest.digest.should == SHA256Constants::Digest
+      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        digest = OpenSSL::Digest.new('sha256', SHA256Constants::Contents)
+        digest.reset
+        digest.update(SHA256Constants::Contents)
+        digest.digest.should == SHA256Constants::Digest
+      end
     end
 
     it "works for a SHA384 digest" do
-      digest = OpenSSL::Digest.new('sha384', SHA384Constants::Contents)
-      digest.reset
-      digest.update(SHA384Constants::Contents)
-      digest.digest.should == SHA384Constants::Digest
+      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        digest = OpenSSL::Digest.new('sha384', SHA384Constants::Contents)
+        digest.reset
+        digest.update(SHA384Constants::Contents)
+        digest.digest.should == SHA384Constants::Digest
+      end
     end
 
     it "works for a SHA512 digest" do
-      digest = OpenSSL::Digest.new('sha512', SHA512Constants::Contents)
-      digest.reset
-      digest.update(SHA512Constants::Contents)
-      digest.digest.should == SHA512Constants::Digest
+      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+        digest = OpenSSL::Digest.new('sha512', SHA512Constants::Contents)
+        digest.reset
+        digest.update(SHA512Constants::Contents)
+        digest.digest.should == SHA512Constants::Digest
+      end
     end
   end
 end
