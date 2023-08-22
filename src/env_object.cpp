@@ -236,6 +236,10 @@ Value EnvObject::replace(Env *env, Value hash) {
     return this;
 }
 
+Value EnvObject::invert(Env *env) {
+    return to_hash(env)->send(env, "invert"_s);
+}
+
 bool EnvObject::is_empty() const {
     if (!environ) return true;
     char *pair = *environ;
