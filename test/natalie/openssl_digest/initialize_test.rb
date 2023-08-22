@@ -28,17 +28,13 @@ describe "OpenSSL::Digest initialization" do
     end
 
     it "cannot be called with a symbol" do
-      NATFIXME 'Argument type check in constructor', exception: SpecFailedException do
-        -> { OpenSSL::Digest.new(:SHA1) }.should raise_error(TypeError, /wrong argument type Symbol/)
-      end
+      -> { OpenSSL::Digest.new(:SHA1) }.should raise_error(TypeError, /wrong argument type Symbol/)
     end
 
     it "doest not call #to_str on the argument" do
       name = mock("digest name")
       name.should_not_receive(:to_str)
-      NATFIXME 'Argument type check in constructor', exception: SpecFailedException do
-        -> { OpenSSL::Digest.new(name) }.should raise_error(TypeError, /wrong argument type/)
-      end
+      -> { OpenSSL::Digest.new(name) }.should raise_error(TypeError, /wrong argument type/)
     end
   end
 
@@ -60,9 +56,7 @@ describe "OpenSSL::Digest initialization" do
     end
 
     it "cannot be called with a digest class" do
-      NATFIXME 'Argument type check in constructor', exception: SpecFailedException do
-        -> { OpenSSL::Digest.new(OpenSSL::Digest::SHA1) }.should raise_error(TypeError, /wrong argument type Class/)
-      end
+      -> { OpenSSL::Digest.new(OpenSSL::Digest::SHA1) }.should raise_error(TypeError, /wrong argument type Class/)
     end
 
     it "ignores the state of the name object" do

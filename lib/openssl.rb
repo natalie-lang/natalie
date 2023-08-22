@@ -25,9 +25,10 @@ module OpenSSL
 
     def initialize(name)
       name = name.name if name.is_a?(self.class)
-      klass = self.class.const_get(name.to_s.upcase.to_sym)
+      raise TypeError, "wrong argument type #{name.class} (expected OpenSSL/Digest)" unless name.is_a?(String)
+      klass = self.class.const_get(name.upcase.to_sym)
       raise NameError unless klass.ancestors[1] == self.class
-      @name = name.to_s.upcase
+      @name = name.upcase
     rescue NameError
       raise "Unsupported digest algorithm (#{name}).: unknown object name"
     end
