@@ -33,7 +33,7 @@ public:
     size_t size() const;
     Value slice(Env *, Args);
     Value to_s() const;
-    Value to_hash(Env *);
+    Value to_hash(Env *, Block *);
     Value update(Env *env, Args args, Block *block);
     Value values(Env *);
 };
