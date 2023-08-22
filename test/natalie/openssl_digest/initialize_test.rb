@@ -44,27 +44,19 @@ describe "OpenSSL::Digest initialization" do
 
   describe "can be called with a digest object" do
     it "returns a SHA1 object" do
-      NATFIXME 'Allow OpenSSL::Digest instance in constructor', exception: RuntimeError, message: 'Unsupported digest algorithm' do
-        OpenSSL::Digest.new(OpenSSL::Digest::SHA1.new).name.should == "SHA1"
-      end
+      OpenSSL::Digest.new(OpenSSL::Digest::SHA1.new).name.should == "SHA1"
     end
 
     it "returns a SHA256 object" do
-      NATFIXME 'Allow OpenSSL::Digest instance in constructor', exception: RuntimeError, message: 'Unsupported digest algorithm' do
-        OpenSSL::Digest.new(OpenSSL::Digest::SHA256.new).name.should == "SHA256"
-      end
+      OpenSSL::Digest.new(OpenSSL::Digest::SHA256.new).name.should == "SHA256"
     end
 
     it "returns a SHA384 object" do
-      NATFIXME 'Allow OpenSSL::Digest instance in constructor', exception: RuntimeError, message: 'Unsupported digest algorithm' do
-        OpenSSL::Digest.new(OpenSSL::Digest::SHA384.new).name.should == "SHA384"
-      end
+      OpenSSL::Digest.new(OpenSSL::Digest::SHA384.new).name.should == "SHA384"
     end
 
     it "returns a SHA512 object" do
-      NATFIXME 'Allow OpenSSL::Digest instance in constructor', exception: RuntimeError, message: 'Unsupported digest algorithm' do
-        OpenSSL::Digest.new(OpenSSL::Digest::SHA512.new).name.should ==  "SHA512"
-      end
+      OpenSSL::Digest.new(OpenSSL::Digest::SHA512.new).name.should ==  "SHA512"
     end
 
     it "cannot be called with a digest class" do

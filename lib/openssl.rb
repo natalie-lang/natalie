@@ -24,6 +24,7 @@ module OpenSSL
     end
 
     def initialize(name)
+      name = name.name if name.is_a?(self.class)
       klass = self.class.const_get(name.to_s.upcase.to_sym)
       raise NameError unless klass.ancestors[1] == self.class
       @name = name.to_s.upcase
