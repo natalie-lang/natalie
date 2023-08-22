@@ -23,9 +23,21 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        StringObject *name = new StringObject { pair };
-        name->truncate(index);
-        hash->put(env, name, new StringObject { getenv(name->c_str()) });
+        Value name = new StringObject { pair };
+        name->as_string()->truncate(index);
+        Value value = new StringObject { getenv(name->as_string()->c_str()) };
+        if (block) {
+            auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
+            if (!transformed->is_array() && transformed->respond_to(env, "to_ary"_s))
+                transformed = transformed->send(env, "to_ary"_s);
+            if (!transformed->is_array())
+                env->raise("TypeError", "wrong element type {} (expected array)", transformed->klass()->inspect_str());
+            if (transformed->as_array()->size() != 2)
+                env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", transformed->as_array()->size());
+            name = transformed->as_array()->at(0);
+            value = transformed->as_array()->at(1);
+        }
+        hash->put(env, name, value);
         pair = *(environ + i);
     }
     return hash;
