@@ -11,10 +11,10 @@ extern char **environ;
 namespace Natalie {
 
 Value EnvObject::inspect(Env *env) {
-    return this->to_hash(env)->as_hash()->inspect(env);
+    return this->to_hash(env, nullptr)->as_hash()->inspect(env);
 }
 
-Value EnvObject::to_hash(Env *env) {
+Value EnvObject::to_hash(Env *env, Block *block) {
     HashObject *hash = new HashObject {};
     size_t i = 1;
     char *pair = *environ;
@@ -64,7 +64,7 @@ Value EnvObject::dup(Env *env) {
 
 Value EnvObject::each(Env *env, Block *block) {
     if (block) {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto name = node.key;
             auto value = node.val;
@@ -72,7 +72,7 @@ Value EnvObject::each(Env *env, Block *block) {
         }
         return this;
     } else {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each"_s }, size_block);
     }
@@ -80,14 +80,14 @@ Value EnvObject::each(Env *env, Block *block) {
 
 Value EnvObject::each_key(Env *env, Block *block) {
     if (block) {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto name = node.key;
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name }), nullptr);
         }
         return this;
     } else {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each_key"_s }, size_block);
     }
@@ -95,14 +95,14 @@ Value EnvObject::each_key(Env *env, Block *block) {
 
 Value EnvObject::each_value(Env *env, Block *block) {
     if (block) {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         for (HashObject::Key &node : *envhash->as_hash()) {
             auto value = node.val;
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ value }), nullptr);
         }
         return this;
     } else {
-        auto envhash = to_hash(env);
+        auto envhash = to_hash(env, nullptr);
         Block *size_block = new Block { env, envhash->as_hash(), HashObject::size_fn, 0 };
         return send(env, "enum_for"_s, { "each_value"_s }, size_block);
     }
@@ -182,7 +182,7 @@ Value EnvObject::key(Env *env, Value value) {
 }
 
 Value EnvObject::keys(Env *env) {
-    return to_hash(env)->as_hash()->keys(env);
+    return to_hash(env, nullptr)->as_hash()->keys(env);
 }
 
 bool EnvObject::has_key(Env *env, Value name) {
@@ -198,7 +198,7 @@ Value EnvObject::has_value(Env *env, Value name) {
             return NilObject::the();
         name = name->send(env, "to_str"_s);
     }
-    if (to_hash(env)->as_hash()->has_value(env, name))
+    if (to_hash(env, nullptr)->as_hash()->has_value(env, name))
         return TrueObject::the();
     return FalseObject::the();
 }
@@ -214,7 +214,7 @@ Value EnvObject::rehash() const {
 // Sadly, clearenv() is not available on some OS's
 // but is probably more optimal than this solution
 Value EnvObject::clear(Env *env) {
-    auto envhash = to_hash(env);
+    auto envhash = to_hash(env, nullptr);
     for (HashObject::Key &node : *envhash->as_hash()) {
         ::unsetenv(node.key->as_string()->c_str());
     }
@@ -237,7 +237,7 @@ Value EnvObject::replace(Env *env, Value hash) {
 }
 
 Value EnvObject::invert(Env *env) {
-    return to_hash(env)->send(env, "invert"_s);
+    return to_hash(env, nullptr)->send(env, "invert"_s);
 }
 
 bool EnvObject::is_empty() const {
@@ -289,7 +289,7 @@ Value EnvObject::update(Env *env, Args args, Block *block) {
 }
 
 Value EnvObject::values(Env *env) {
-    return to_hash(env)->as_hash()->values(env);
+    return to_hash(env, nullptr)->as_hash()->values(env);
 }
 
 }
