@@ -248,6 +248,22 @@ Value EnvObject::replace(Env *env, Value hash) {
     return this;
 }
 
+Value EnvObject::shift() {
+    if (!environ)
+        return NilObject::the();
+
+    char *pair = *environ;
+    if (!pair)
+        return NilObject::the();
+
+    char *eq = strchr(pair, '=');
+    assert(eq);
+    auto name = new StringObject { pair, static_cast<size_t>(eq - pair) };
+    auto value = new StringObject { getenv(name->c_str()) };
+    unsetenv(name->c_str());
+    return new ArrayObject { name, value };
+}
+
 Value EnvObject::invert(Env *env) {
     return to_hash(env, nullptr)->send(env, "invert"_s);
 }
