@@ -36,6 +36,7 @@ public:
     Value to_hash(Env *, Block *);
     Value update(Env *env, Args args, Block *block);
     Value values(Env *);
+    Value values_at(Env *, Args args);
 };
 
 }

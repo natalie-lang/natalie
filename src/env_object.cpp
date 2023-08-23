@@ -304,4 +304,12 @@ Value EnvObject::values(Env *env) {
     return to_hash(env, nullptr)->as_hash()->values(env);
 }
 
+Value EnvObject::values_at(Env *env, Args args) {
+    auto result = new ArrayObject { args.size() };
+    for (size_t i = 0; i < args.size(); i++) {
+        result->push(ref(env, args[i]));
+    }
+    return result;
+}
+
 }
