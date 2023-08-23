@@ -26,6 +26,7 @@ public:
     bool is_empty() const;
     Value key(Env *, Value);
     Value keys(Env *);
+    Value rassoc(Env *, Value name);
     Value ref(Env *, Value name);
     Value refeq(Env *, Value name, Value value);
     Value rehash() const;

@@ -131,6 +131,18 @@ Value EnvObject::assoc(Env *env, Value name) {
         return NilObject::the();
     }
 }
+
+Value EnvObject::rassoc(Env *env, Value value) {
+    if (!value->is_string() && value->respond_to(env, "to_str"_s))
+        value = value->to_str(env);
+    if (!value->is_string())
+        return NilObject::the();
+    auto name = key(env, value);
+    if (name->is_nil())
+        return NilObject::the();
+    return new ArrayObject { name, value };
+}
+
 Value EnvObject::ref(Env *env, Value name) {
     StringObject *namestr;
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
