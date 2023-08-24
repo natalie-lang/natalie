@@ -14,6 +14,18 @@ static Value env_size(Env *env, Value self, Args, Block *) {
     return self->send(env, "size"_s);
 }
 
+static inline StringObject *string_with_default_encoding(const char *str) {
+    if (EncodingObject::default_internal())
+        return new StringObject { str, EncodingObject::default_internal() };
+    return new StringObject { str };
+}
+
+static inline StringObject *string_with_default_encoding(const char *str, size_t len) {
+    if (EncodingObject::default_internal())
+        return new StringObject { str, len, EncodingObject::default_internal() };
+    return new StringObject { str, len };
+}
+
 Value EnvObject::inspect(Env *env) {
     return this->to_hash(env, nullptr)->as_hash()->inspect(env);
 }
@@ -27,15 +39,8 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        Value name;
-        Value value;
-        if (EncodingObject::default_internal()) {
-            name = new StringObject { pair, index, EncodingObject::default_internal() };
-            value = new StringObject { getenv(name->as_string()->c_str()), EncodingObject::default_internal() };
-        } else {
-            name = new StringObject { pair, index };
-            value = new StringObject { getenv(name->as_string()->c_str()) };
-        }
+        Value name = string_with_default_encoding(pair, index);
+        Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
         if (block) {
             auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
             if (!transformed->is_array() && transformed->respond_to(env, "to_ary"_s))
@@ -168,9 +173,7 @@ Value EnvObject::ref(Env *env, Value name) {
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        if (EncodingObject::default_internal())
-            return new StringObject { value, EncodingObject::default_internal() };
-        return new StringObject { value };
+        return string_with_default_encoding(value);
     } else {
         return NilObject::the();
     }
@@ -368,16 +371,9 @@ Value EnvObject::shift() {
 
     char *eq = strchr(pair, '=');
     assert(eq);
-    Value name;
-    Value value;
-    if (EncodingObject::default_internal()) {
-        name = new StringObject { pair, static_cast<size_t>(eq - pair), EncodingObject::default_internal() };
-        value = new StringObject { getenv(name->as_string()->c_str()), EncodingObject::default_internal() };
-    } else {
-        name = new StringObject { pair, static_cast<size_t>(eq - pair) };
-        value = new StringObject { getenv(name->as_string()->c_str()) };
-    }
-    unsetenv(name->as_string()->c_str());
+    auto name = string_with_default_encoding(pair, static_cast<size_t>(eq - pair));
+    auto value = string_with_default_encoding(getenv(name->c_str()));
+    unsetenv(name->c_str());
     return new ArrayObject { name, value };
 }
 
