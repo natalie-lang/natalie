@@ -757,5 +757,4 @@ describe 'string' do
       "a\nb\nc".each_line(chomp: true).to_a.should == %w[a b c]
     end
   end
-
 end

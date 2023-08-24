@@ -120,4 +120,15 @@ describe 'Kernel' do
       -> { Rational(1, foo: 2, bar: 3) }.should raise_error(ArgumentError, 'unknown keywords: :foo, :bar')
     end
   end
+
+  # NOTE: rewriting to use a tokenizer/parser
+  describe '#sprintf' do
+    it 'handles simple field types' do
+      format('%b %s %d %f', 10, 1.1, 1.2, 1.3).should == '1010 1.1 1 1.300000'
+    end
+
+    it 'handles width and precision' do
+      format('%10d %1.13f', 99, 1.2).should == '        99 1.2000000000000'
+    end
+  end
 end

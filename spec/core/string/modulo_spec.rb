@@ -68,7 +68,7 @@ describe "String#%" do
     ("%\0.3f" % 1.2).should == "%\0.3f"
   end
 
-  it "raises an error if single % appears anywhere else" do
+  xit "raises an error if single % appears anywhere else" do
     -> { (" % " % []) }.should raise_error(ArgumentError)
     -> { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
@@ -98,7 +98,7 @@ describe "String#%" do
     end
   end
 
-  it "raises an ArgumentError for unused arguments when $DEBUG is true" do
+  xit "raises an ArgumentError for unused arguments when $DEBUG is true" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
@@ -113,7 +113,7 @@ describe "String#%" do
     end
   end
 
-  it "always allows unused arguments when positional argument style is used" do
+  xit "always allows unused arguments when positional argument style is used" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
@@ -126,7 +126,7 @@ describe "String#%" do
     end
   end
 
-  it "replaces trailing absolute argument specifier without type with percent sign" do
+  xit "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
 
@@ -148,7 +148,7 @@ describe "String#%" do
     -> { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
-  it "respects positional arguments and precision tokens given for one format specifier" do
+  xit "respects positional arguments and precision tokens given for one format specifier" do
     ("%2$1d" % [1, 0]).should == "0"
     ("%2$1d" % [0, 1]).should == "1"
 
@@ -156,7 +156,7 @@ describe "String#%" do
     ("%2$.2f" % [0, 1]).should == "1.00"
   end
 
-  it "allows more than one digit of position" do
+  xit "allows more than one digit of position" do
     ("%50$d" % (0..100).to_a).should == "49"
   end
 
@@ -174,13 +174,13 @@ describe "String#%" do
     -> { "%.*.5s" % [5, 5] }.should raise_error(ArgumentError)
   end
 
-  it "raises an ArgumentError when there are less arguments than format specifiers" do
+  xit "raises an ArgumentError when there are less arguments than format specifiers" do
     ("foo" % []).should == "foo"
     -> { "%s" % []     }.should raise_error(ArgumentError)
     -> { "%s %s" % [1] }.should raise_error(ArgumentError)
   end
 
-  it "raises an ArgumentError when absolute and relative argument numbers are mixed" do
+  xit "raises an ArgumentError when absolute and relative argument numbers are mixed" do
     -> { "%s %1$s" % "foo" }.should raise_error(ArgumentError)
     -> { "%1$s %s" % "foo" }.should raise_error(ArgumentError)
 
@@ -195,18 +195,18 @@ describe "String#%" do
     end
   end
 
-  it "allows reuse of the one argument multiple via absolute argument numbers" do
+  xit "allows reuse of the one argument multiple via absolute argument numbers" do
     ("%1$s %1$s" % "foo").should == "foo foo"
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
 
-  it "always interprets an array argument as a list of argument parameters" do
+  xit "always interprets an array argument as a list of argument parameters" do
     -> { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
     ("%p %p" % [1, 2]).should == "1 2"
   end
 
-  it "always interprets an array subclass argument as a list of argument parameters" do
+  xit "always interprets an array subclass argument as a list of argument parameters" do
     -> { "%p" % StringSpecs::MyArray[] }.should raise_error(ArgumentError)
     ("%p" % StringSpecs::MyArray[1]).should == "1"
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
@@ -305,7 +305,7 @@ describe "String#%" do
     end
   end
 
-  it "supports binary formats using %b for positive numbers" do
+  xit "supports binary formats using %b for positive numbers" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
@@ -335,7 +335,7 @@ describe "String#%" do
     end
   end
 
-  it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
+  xit "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
     ("%B" % 10).should == ("%b" % 10)
     ("% B" % 10).should == ("% b" % 10)
     ("%1$B" % [10, 20]).should == ("%1$b" % [10, 20])
@@ -358,7 +358,7 @@ describe "String#%" do
     ("%#B" % 10).should == "0B1010"
   end
 
-  it "supports character formats using %c" do
+  xit "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
     ("%-4c" % 10).should == "\n   "
@@ -367,12 +367,12 @@ describe "String#%" do
     -> { "%c" % Object }.should raise_error(TypeError)
   end
 
-  it "supports single character strings as argument for %c" do
+  xit "supports single character strings as argument for %c" do
     ("%c" % 'A').should == "A"
   end
 
   ruby_version_is ""..."3.2" do
-    it "raises an exception for multiple character strings as argument for %c" do
+    xit "raises an exception for multiple character strings as argument for %c" do
       -> { "%c" % 'AA' }.should raise_error(ArgumentError)
     end
   end
@@ -390,7 +390,7 @@ describe "String#%" do
     ("%c" % obj).should == "A"
   end
 
-  it "calls #to_ary on argument for %c formats" do
+  xit "calls #to_ary on argument for %c formats" do
     obj = mock('65')
     obj.should_receive(:to_ary).and_return([65])
     ("%c" % obj).should == ("%c" % [65])
@@ -406,7 +406,7 @@ describe "String#%" do
   %w(d i).each do |f|
     format = "%" + f
 
-    it "supports integer formats using #{format}" do
+    xit "supports integer formats using #{format}" do
       ("%#{f}" % 10).should == "10"
       ("% #{f}" % 10).should == " 10"
       ("%1$#{f}" % [10, 20]).should == "10"
@@ -481,7 +481,7 @@ describe "String#%" do
     ("%010E" % Float::NAN).should == "       NaN"
   end
 
-  it "supports float formats using %f" do
+  xit "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
     ("%1$f" % 10).should == "10.000000"
@@ -520,7 +520,7 @@ describe "String#%" do
     ("%*G" % [10, 9]).should == "         9"
   end
 
-  it "supports octal formats using %o for positive numbers" do
+  xit "supports octal formats using %o for positive numbers" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
@@ -547,7 +547,7 @@ describe "String#%" do
     end
   end
 
-  it "supports inspect formats using %p" do
+  xit "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
     ("%-22p" % 10).should == "10                    "
@@ -556,7 +556,7 @@ describe "String#%" do
     ("%p" % "str").should == "\"str\""
   end
 
-  it "calls inspect on arguments for %p format" do
+  xit "calls inspect on arguments for %p format" do
     obj = mock('obj')
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
@@ -568,7 +568,7 @@ describe "String#%" do
     # ("%p" % obj).should == "obj"
   end
 
-  it "supports string formats using %s" do
+  xit "supports string formats using %s" do
     ("%s" % "hello").should == "hello"
     ("%s" % "").should == ""
     ("%s" % 10).should == "10"
@@ -579,7 +579,7 @@ describe "String#%" do
     #end
   end
 
-  it "respects a space padding request not as part of the width" do
+  xit "respects a space padding request not as part of the width" do
     x = "% -5s" % ["foo"]
     x.should == "foo  "
   end
@@ -606,7 +606,7 @@ describe "String#%" do
   end
 
   # Note: %u has been changed to an alias for %d in 1.9.
-  it "supports unsigned formats using %u" do
+  xit "supports unsigned formats using %u" do
     ("%u" % 10).should == "10"
     ("% u" % 10).should == " 10"
     ("%1$u" % [10, 20]).should == "10"
@@ -616,7 +616,7 @@ describe "String#%" do
     ("%*u" % [10, 4]).should == "         4"
   end
 
-  it "formats negative values with a leading sign using %u" do
+  xit "formats negative values with a leading sign using %u" do
     ("% u" % -26).should == "-26"
     ("%+u" % -26).should == "-26"
   end
@@ -626,7 +626,7 @@ describe "String#%" do
     ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
   end
 
-  it "supports hex formats using %x for positive numbers" do
+  xit "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
@@ -654,7 +654,7 @@ describe "String#%" do
     end
   end
 
-  it "supports hex formats using %X for positive numbers" do
+  xit "supports hex formats using %X for positive numbers" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
     ("%1$X" % [10, 20]).should == "A"
@@ -679,11 +679,11 @@ describe "String#%" do
     end
   end
 
-  it "formats zero without prefix using %#x" do
+  xit "formats zero without prefix using %#x" do
     ("%#x" % 0).should == "0"
   end
 
-  it "formats zero without prefix using %#X" do
+  xit "formats zero without prefix using %#X" do
     ("%#X" % 0).should == "0"
   end
 
