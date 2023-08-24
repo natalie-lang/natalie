@@ -18,6 +18,7 @@ public:
     Value each(Env *, Block *block);
     Value each_key(Env *, Block *);
     Value each_value(Env *, Block *);
+    Value except(Env *, Args);
     Value fetch(Env *, Value name, Value default_value, Block *block);
     bool has_key(Env *, Value name);
     Value has_value(Env *, Value name);

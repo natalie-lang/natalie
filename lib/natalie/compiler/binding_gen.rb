@@ -499,6 +499,7 @@ gen.singleton_binding('ENV', 'each_key', 'EnvObject', 'each_key', argc: 0, pass_
 gen.singleton_binding('ENV', 'each_pair', 'EnvObject', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'each_value', 'EnvObject', 'each_value', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'empty?', 'EnvObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.singleton_binding('ENV', 'except', 'EnvObject', 'except', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'fetch', 'EnvObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'has_key?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'has_value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

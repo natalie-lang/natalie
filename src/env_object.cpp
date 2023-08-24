@@ -154,6 +154,14 @@ Value EnvObject::ref(Env *env, Value name) {
     }
 }
 
+Value EnvObject::except(Env *env, Args args) {
+    auto result = to_hash(env, nullptr)->as_hash();
+    for (size_t i = 0; i < args.size(); i++) {
+        result->remove(env, args[i]);
+    }
+    return result;
+}
+
 Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
     name->assert_type(env, Object::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
