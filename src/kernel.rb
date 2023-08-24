@@ -147,7 +147,7 @@ module Kernel
       end
     end
 
-    tokens.map do |token|
+    result = tokens.map do |token|
       case token.first
       when :str
         token.last
@@ -171,7 +171,7 @@ module Kernel
               when 'x'
                 arg.to_i.to_s(16)
               else
-                raise "unknown field type: #{token.last}"
+                raise ArgumentError, "malformed format string - %#{token[1]}"
               end
         while width && val.size < width
           val = ' ' + val
@@ -181,6 +181,12 @@ module Kernel
         raise "unknown token: #{token.inspect}"
       end
     end.join
+
+    if $DEBUG && arguments.any?
+      raise ArgumentError, "too many arguments for format string"
+    end
+
+    result
   end
 
   # NATFIXME: the ... syntax doesnt appear to pass the block

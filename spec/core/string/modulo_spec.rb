@@ -68,7 +68,7 @@ describe "String#%" do
     ("%\0.3f" % 1.2).should == "%\0.3f"
   end
 
-  xit "raises an error if single % appears anywhere else" do
+  it "raises an error if single % appears anywhere else" do
     -> { (" % " % []) }.should raise_error(ArgumentError)
     -> { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
@@ -98,7 +98,7 @@ describe "String#%" do
     end
   end
 
-  xit "raises an ArgumentError for unused arguments when $DEBUG is true" do
+  it "raises an ArgumentError for unused arguments when $DEBUG is true" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
