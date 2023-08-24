@@ -362,9 +362,16 @@ Value EnvObject::shift() {
 
     char *eq = strchr(pair, '=');
     assert(eq);
-    auto name = new StringObject { pair, static_cast<size_t>(eq - pair) };
-    auto value = new StringObject { getenv(name->c_str()) };
-    unsetenv(name->c_str());
+    Value name;
+    Value value;
+    if (EncodingObject::default_internal()) {
+        name = new StringObject { pair, static_cast<size_t>(eq - pair), EncodingObject::default_internal() };
+        value = new StringObject { getenv(name->as_string()->c_str()), EncodingObject::default_internal() };
+    } else {
+        name = new StringObject { pair, static_cast<size_t>(eq - pair) };
+        value = new StringObject { getenv(name->as_string()->c_str()) };
+    }
+    unsetenv(name->as_string()->c_str());
     return new ArrayObject { name, value };
 }
 
