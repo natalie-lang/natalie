@@ -162,6 +162,8 @@ Value EnvObject::ref(Env *env, Value name) {
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
+        if (EncodingObject::default_internal())
+            return new StringObject { value, EncodingObject::default_internal() };
         return new StringObject { value };
     } else {
         return NilObject::the();
