@@ -69,56 +69,138 @@ module Kernel
 
     attr_reader :format_string, :index, :chars
 
+    TRANSITIONS = {
+      literal: {
+        on_percent: :field_beginning,
+      },
+      field_beginning: {
+        on_percent: :literal,
+        on_alpha: :field_end,
+        on_number: :field_width,
+      },
+      field_width: {
+        on_number: :field_width,
+        on_zero: :field_width,
+        on_period: :field_precision_period,
+        on_alpha: :field_end,
+      },
+      field_precision_period: {
+        on_number: :field_precision,
+      },
+      field_precision: {
+        on_number: :field_precision,
+        on_alpha: :field_end,
+      },
+      field_end: {
+        on_alpha: :literal,
+        on_space: :literal,
+      },
+    }.freeze
+
     def tokens
+      state = :literal
+      width = []
+      precision = []
+      flags = []
       tokens = []
 
       while index < chars.size
-        c = current_char
-        if c == '%'
-          next_char
-          flags = consume_flags
-          case (c = current_char)
-          when '%'
-            tokens << [:str, '%']
-          when 'a'..'z', 'A'..'Z'
-            tokens << [:field, c, flags]
-          when "\n", "\0"
-            tokens << [:str, "%#{c}"]
-          when '1'..'9'
-            width = consume_number
-            case (c = current_char)
-            when 'a'..'z', 'A'..'Z'
-              tokens << [:field, c, flags, width]
-            when '.'
-              next_char
-              precision = consume_number
-              case (c = current_char)
-              when 'a'..'z', 'A'..'Z'
-                tokens << [:field, c, flags, width, precision]
-              else
-                raise ArgumentError, 'invalid format character - %'
-              end
-            else
-              raise ArgumentError, 'invalid format character - %'
-            end
-          when nil
-            raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
-          else
-            raise ArgumentError, 'invalid format character - %'
-          end
-          next_char
-        else
-          start_index = index
-          while chars[index] && chars[index] != '%'
-            @index += 1
-          end
-          literal = chars[start_index...index].join
-          tokens << [:str, literal]
+        char = current_char
+        transition = case char
+                     when '%'
+                       :on_percent
+                     when '.'
+                       :on_period
+                     when '0'
+                       :on_zero
+                     when '1'..'9'
+                       :on_number
+                     when 'a'..'z', 'A'..'Z'
+                       :on_alpha
+                     when ' '
+                       :on_space
+                     end
+
+        new_state = TRANSITIONS.dig(state, transition)
+
+        if $DEBUG
+          puts "#{state.inspect}, given #{char.inspect}, " \
+               "transition #{transition.inspect} to #{new_state.inspect}"
         end
+
+        state = new_state
+        next_char
+
+        case state
+        when :literal
+          tokens << [:str, char]
+        when :field_beginning, :field_precision_period
+          :noop
+        when :field_width
+          width << char
+        when :field_precision
+          precision << char
+        when :field_end
+          tokens << [
+            :field,
+            char,
+            flags.dup,
+            width.any? ? width.join.to_i : nil,
+            precision.any? ? precision.join.to_i : nil,
+          ]
+          width = []
+          precision = []
+        else
+          raise ArgumentError, "unknown state: #{state.inspect}"
+        end
+
       end
 
       tokens
     end
+
+        #while false
+          #next_char
+          #flags = consume_flags
+          #case (c = current_char)
+          #when '%'
+            #tokens << [:str, '%']
+          #when 'a'..'z', 'A'..'Z'
+            #tokens << [:field, c, flags]
+          #when "\n", "\0"
+            #tokens << [:str, "%#{c}"]
+          #when '1'..'9'
+            #width = consume_number
+            #case (c = current_char)
+            #when 'a'..'z', 'A'..'Z'
+              #tokens << [:field, c, flags, width]
+            #when '.'
+              #next_char
+              #precision = consume_number
+              #case (c = current_char)
+              #when 'a'..'z', 'A'..'Z'
+                #tokens << [:field, c, flags, width, precision]
+              #else
+                #raise ArgumentError, 'invalid format character - %'
+              #end
+            #else
+              #raise ArgumentError, 'invalid format character - %'
+            #end
+          #when nil
+            #raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
+          #else
+            #raise ArgumentError, 'invalid format character - %'
+          #end
+          #next_char
+        #else
+          #start_index = index
+          #while chars[index] && chars[index] != '%'
+            #@index += 1
+          #end
+          #literal = chars[start_index...index].join
+          #tokens << [:str, literal]
+        #end
+      #end
 
     private
 
