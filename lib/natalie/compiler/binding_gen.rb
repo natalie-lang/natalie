@@ -510,8 +510,10 @@ gen.singleton_binding('ENV', 'key', 'EnvObject', 'key', argc: 1, pass_env: true,
 gen.singleton_binding('ENV', 'keys', 'EnvObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'length', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.singleton_binding('ENV', 'member?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.singleton_binding('ENV', 'rassoc', 'EnvObject', 'rassoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'rehash', 'EnvObject', 'rehash', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'replace', 'EnvObject', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'shift', 'EnvObject', 'shift', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'size', 'EnvObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.singleton_binding('ENV', 'slice', 'EnvObject', 'slice', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'store', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
@@ -521,6 +523,7 @@ gen.singleton_binding('ENV', 'to_s', 'EnvObject', 'to_s', argc: 0, pass_env: fal
 gen.singleton_binding('ENV', 'update', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'value?', 'EnvObject', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'values', 'EnvObject', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'values_at', 'EnvObject', 'values_at', argc: 0.., pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'merge!', 'EnvObject', 'update', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 
 gen.static_binding('Exception', 'exception', 'ExceptionObject', 'exception', argc: 0..1, pass_env: true, pass_klass: true, pass_block: false, return_type: :Object)

@@ -131,6 +131,18 @@ Value EnvObject::assoc(Env *env, Value name) {
         return NilObject::the();
     }
 }
+
+Value EnvObject::rassoc(Env *env, Value value) {
+    if (!value->is_string() && value->respond_to(env, "to_str"_s))
+        value = value->to_str(env);
+    if (!value->is_string())
+        return NilObject::the();
+    auto name = key(env, value);
+    if (name->is_nil())
+        return NilObject::the();
+    return new ArrayObject { name, value };
+}
+
 Value EnvObject::ref(Env *env, Value name) {
     StringObject *namestr;
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
@@ -248,6 +260,22 @@ Value EnvObject::replace(Env *env, Value hash) {
     return this;
 }
 
+Value EnvObject::shift() {
+    if (!environ)
+        return NilObject::the();
+
+    char *pair = *environ;
+    if (!pair)
+        return NilObject::the();
+
+    char *eq = strchr(pair, '=');
+    assert(eq);
+    auto name = new StringObject { pair, static_cast<size_t>(eq - pair) };
+    auto value = new StringObject { getenv(name->c_str()) };
+    unsetenv(name->c_str());
+    return new ArrayObject { name, value };
+}
+
 Value EnvObject::invert(Env *env) {
     return to_hash(env, nullptr)->send(env, "invert"_s);
 }
@@ -302,6 +330,14 @@ Value EnvObject::update(Env *env, Args args, Block *block) {
 
 Value EnvObject::values(Env *env) {
     return to_hash(env, nullptr)->as_hash()->values(env);
+}
+
+Value EnvObject::values_at(Env *env, Args args) {
+    auto result = new ArrayObject { args.size() };
+    for (size_t i = 0; i < args.size(); i++) {
+        result->push(ref(env, args[i]));
+    }
+    return result;
 }
 
 }
