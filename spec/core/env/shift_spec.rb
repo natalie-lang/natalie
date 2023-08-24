@@ -41,9 +41,7 @@ describe "ENV.shift" do
     Encoding.default_internal = Encoding::IBM437
 
     pair = ENV.shift
-    NATFIXME 'Encoding', exception: SpecFailedException do
-      pair.first.encoding.should equal(Encoding::IBM437)
-      pair.last.encoding.should equal(Encoding::IBM437)
-    end
+    pair.first.encoding.should equal(Encoding::IBM437)
+    pair.last.encoding.should equal(Encoding::IBM437)
   end
 end
