@@ -60,27 +60,88 @@ module Kernel
     nil
   end
 
-  def sprintf(format_string, *arguments)
-    tokens = []
+  class SprintfParser
+    def initialize(format_string)
+      @format_string = format_string
+      @index = 0
+      @chars = format_string.chars
+    end
 
-    index = 0
-    chars = format_string.chars
+    attr_reader :format_string, :index, :chars
 
-    current_char = -> { chars[index] }
-    next_char = lambda {
-      index += 1
+    def tokens
+      tokens = []
+
+      while index < chars.size
+        c = current_char
+        if c == '%'
+          next_char
+          flags = consume_flags
+          case (c = current_char)
+          when '%'
+            tokens << [:str, '%']
+          when 'a'..'z', 'A'..'Z'
+            tokens << [:field, c, flags]
+          when "\n", "\0"
+            tokens << [:str, "%#{c}"]
+          when '1'..'9'
+            width = consume_number
+            case (c = current_char)
+            when 'a'..'z', 'A'..'Z'
+              tokens << [:field, c, flags, width]
+            when '.'
+              next_char
+              precision = consume_number
+              case (c = current_char)
+              when 'a'..'z', 'A'..'Z'
+                tokens << [:field, c, flags, width, precision]
+              else
+                raise ArgumentError, 'invalid format character - %'
+              end
+            else
+              raise ArgumentError, 'invalid format character - %'
+            end
+          when nil
+            raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
+          else
+            raise ArgumentError, 'invalid format character - %'
+          end
+          next_char
+        else
+          start_index = index
+          while chars[index] && chars[index] != '%'
+            @index += 1
+          end
+          literal = chars[start_index...index].join
+          tokens << [:str, literal]
+        end
+      end
+
+      tokens
+    end
+
+    private
+
+    def current_char
       chars[index]
-    }
-    next_number = lambda {
+    end
+
+    def next_char
+      @index += 1
+      chars[index]
+    end
+
+    def consume_number
       c = chars[index]
       raise ArgumentError, 'bad width' unless ('1'..'9').cover?(c)
       num = [c]
-      while ('0'..'9').cover?(c = next_char.())
+      while ('0'..'9').cover?(c = next_char)
         num << c
       end
       num.join.to_i
-    }
-    consume_flags = lambda {
+    end
+
+    def consume_flags
       f = chars[index]
       flags = []
       while [' ', '#', '-', '+', '0', '*'].include?(f)
@@ -96,56 +157,15 @@ module Kernel
         else
           raise NotImplementedError, 'invalid branch for consuming flags'
         end
-        index += 1
+        @index += 1
         f = chars[index]
       end
       flags
-    }
-
-    while index < chars.size
-      c = current_char.()
-      if c == '%'
-        next_char.()
-        flags = consume_flags.()
-        case (c = current_char.())
-        when '%'
-          tokens << [:str, '%']
-        when 'a'..'z', 'A'..'Z'
-          tokens << [:field, c, flags]
-        when "\n", "\0"
-          tokens << [:str, "%#{c}"]
-        when '1'..'9'
-          width = next_number.()
-          case (c = current_char.())
-          when 'a'..'z', 'A'..'Z'
-            tokens << [:field, c, flags, width]
-          when '.'
-            next_char.()
-            precision = next_number.()
-            case (c = current_char.())
-            when 'a'..'z', 'A'..'Z'
-              tokens << [:field, c, flags, width, precision]
-            else
-              raise ArgumentError, 'invalid format character - %'
-            end
-          else
-            raise ArgumentError, 'invalid format character - %'
-          end
-        when nil
-          raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
-        else
-          raise ArgumentError, 'invalid format character - %'
-        end
-        next_char.()
-      else
-        start_index = index
-        while chars[index] && chars[index] != '%'
-          index += 1
-        end
-        literal = chars[start_index...index].join
-        tokens << [:str, literal]
-      end
     end
+  end
+
+  def sprintf(format_string, *arguments)
+    tokens = SprintfParser.new(format_string).tokens
 
     result = tokens.map do |token|
       case token.first
