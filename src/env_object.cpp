@@ -23,8 +23,7 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        Value name = new StringObject { pair };
-        name->as_string()->truncate(index);
+        Value name = new StringObject { pair, index };
         Value value = new StringObject { getenv(name->as_string()->c_str()) };
         if (block) {
             auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
