@@ -23,8 +23,15 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        Value name = new StringObject { pair, index };
-        Value value = new StringObject { getenv(name->as_string()->c_str()) };
+        Value name;
+        Value value;
+        if (EncodingObject::default_internal()) {
+            name = new StringObject { pair, index, EncodingObject::default_internal() };
+            value = new StringObject { getenv(name->as_string()->c_str()), EncodingObject::default_internal() };
+        } else {
+            name = new StringObject { pair, index };
+            value = new StringObject { getenv(name->as_string()->c_str()) };
+        }
         if (block) {
             auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
             if (!transformed->is_array() && transformed->respond_to(env, "to_ary"_s))

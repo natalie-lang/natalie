@@ -55,11 +55,9 @@ describe :env_each, shared: true do
       Encoding.default_internal = internal = Encoding::IBM437
 
       ENV.send(@method) do |key, value|
-        NATFIXME 'Save encoding', exception: SpecFailedException do
-          key.encoding.should equal(internal)
-          if value.ascii_only?
-            value.encoding.should equal(internal)
-          end
+        key.encoding.should equal(internal)
+        if value.ascii_only?
+          value.encoding.should equal(internal)
         end
       end
     end
