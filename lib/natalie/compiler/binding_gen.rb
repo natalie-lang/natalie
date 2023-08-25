@@ -516,6 +516,7 @@ gen.singleton_binding('ENV', 'length', 'EnvObject', 'size', argc: 0, pass_env: f
 gen.singleton_binding('ENV', 'member?', 'EnvObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.singleton_binding('ENV', 'rassoc', 'EnvObject', 'rassoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'rehash', 'EnvObject', 'rehash', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'reject', 'EnvObject', 'reject', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'replace', 'EnvObject', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'select', 'EnvObject', 'select', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'select!', 'EnvObject', 'select_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Object)

@@ -267,6 +267,15 @@ Value EnvObject::clear(Env *env) {
     return this;
 }
 
+Value EnvObject::reject(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "reject"_s }, size_block);
+    }
+
+    return to_hash(env, nullptr)->as_hash()->delete_if(env, block);
+}
+
 Value EnvObject::replace(Env *env, Value hash) {
     hash->assert_type(env, Object::Type::Hash, "Hash");
     for (HashObject::Key &node : *hash->as_hash()) {
