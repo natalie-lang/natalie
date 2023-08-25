@@ -141,7 +141,7 @@ module Kernel
     def tokens
       state = :literal
       width = nil
-      width_minus = false
+      width_negative = false
       precision = nil
       arg_position = nil
       flags = []
@@ -222,12 +222,10 @@ module Kernel
                    end
         when :field_width
           width = (width || 0) * 10 + char.to_i
-          width *= -1 if width_minus
-          width_minus = false
         when :field_width_from_arg
           width = :from_arg
         when :field_width_minus
-          width_minus = true
+          width_negative = true
         when :field_precision
           precision = (precision || 0) * 10 + char.to_i
         when :field_end
@@ -235,11 +233,12 @@ module Kernel
             type: :field,
             datum: char,
             flags: flags.dup,
-            width: width,
+            width: width_negative ? -width : width,
             precision: precision,
             arg_position: arg_position
           )
           width = nil
+          width_negative = false
           precision = nil
           arg_position = nil
         when :positional_argument

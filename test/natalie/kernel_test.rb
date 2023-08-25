@@ -128,7 +128,7 @@ describe 'Kernel' do
     end
 
     it 'handles width and precision' do
-      format('%10d %1.13f', 99, 1.2).should == '        99 1.2000000000000'
+      format('%10d %1.13f %-12d', 99, 1.2, 30).should == '        99 1.2000000000000 30          '
     end
   end
 end
