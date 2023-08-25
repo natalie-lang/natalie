@@ -196,6 +196,16 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
     return value;
 }
 
+Value EnvObject::keep_if(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
+    }
+
+    select_in_place(env, block);
+    return this;
+}
+
 Value EnvObject::key(Env *env, Value value) {
     if (!value->is_string() && value->respond_to(env, "to_str"_s))
         value = value->send(env, "to_str"_s);

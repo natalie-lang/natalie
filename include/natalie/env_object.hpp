@@ -25,6 +25,7 @@ public:
     Value inspect(Env *);
     Value invert(Env *);
     bool is_empty() const;
+    Value keep_if(Env *, Block *);
     Value key(Env *, Value);
     Value keys(Env *);
     Value rassoc(Env *, Value name);
