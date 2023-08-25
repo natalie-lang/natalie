@@ -58,6 +58,16 @@ size_t EnvObject::size() const {
     return idx;
 }
 
+Value EnvObject::delete_if(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
+    }
+
+    reject_in_place(env, block);
+    return this;
+}
+
 Value EnvObject::delete_key(Env *env, Value name, Block *block) {
     auto namestr = name->is_string() ? name->as_string() : name->to_str(env);
     char *value = getenv(namestr->c_str());
