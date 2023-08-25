@@ -88,6 +88,7 @@ module Kernel
         on_null_byte: :literal_percent,
         on_number: :field_width,
         on_percent: :literal,
+        on_period: :field_precision_period,
         on_plus: :field_flag,
         on_pound: :field_flag,
         on_space: :field_flag,
@@ -106,6 +107,8 @@ module Kernel
       },
       field_width: {
         on_dollar: :positional_argument,
+        on_number: :field_width,
+        on_zero: :field_width,
         return: :field_pending,
       },
       field_width_minus: {
