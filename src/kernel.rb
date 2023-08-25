@@ -72,9 +72,15 @@ module Kernel
     TRANSITIONS = {
       literal: {
         on_percent: :field_beginning,
+        default: :literal,
+      },
+      literal_percent: {
+        default: :literal,
       },
       field_beginning: {
         on_percent: :literal,
+        on_null_byte: :literal_percent,
+        on_newline: :literal_percent,
         on_alpha: :field_end,
         on_number: :field_width,
       },
@@ -92,15 +98,21 @@ module Kernel
         on_alpha: :field_end,
       },
       field_end: {
-        on_alpha: :literal,
-        on_space: :literal,
+        on_percent: :field_beginning,
+        default: :literal,
       },
     }.freeze
 
+    COMPLETE_STATES = %i[
+      field_end
+      literal
+      literal_percent
+    ].freeze
+
     def tokens
       state = :literal
-      width = []
-      precision = []
+      width = nil
+      precision = nil
       flags = []
       tokens = []
 
@@ -109,6 +121,10 @@ module Kernel
         transition = case char
                      when '%'
                        :on_percent
+                     when "\n"
+                       :on_newline
+                     when "\0"
+                       :on_null_byte
                      when '.'
                        :on_period
                      when '0'
@@ -121,11 +137,13 @@ module Kernel
                        :on_space
                      end
 
-        new_state = TRANSITIONS.dig(state, transition)
+        new_state = TRANSITIONS.dig(state, transition) || TRANSITIONS.dig(state, :default)
 
-        if $DEBUG
-          puts "#{state.inspect}, given #{char.inspect}, " \
-               "transition #{transition.inspect} to #{new_state.inspect}"
+        #puts "#{state.inspect}, given #{char.inspect}, " \
+             #"transition #{transition.inspect} to #{new_state.inspect}"
+
+        unless new_state
+          raise ArgumentError, "no transition from #{state.inspect} with char #{char.inspect}"
         end
 
         state = new_state
@@ -134,26 +152,25 @@ module Kernel
         case state
         when :literal
           tokens << [:str, char]
+        when :literal_percent
+          tokens << [:str, "%#{char}"]
         when :field_beginning, :field_precision_period
           :noop
         when :field_width
-          width << char
+          width = (width || 0) * 10 + char.to_i
         when :field_precision
-          precision << char
+          precision = (precision || 0) * 10 + char.to_i
         when :field_end
-          tokens << [
-            :field,
-            char,
-            flags.dup,
-            width.any? ? width.join.to_i : nil,
-            precision.any? ? precision.join.to_i : nil,
-          ]
-          width = []
-          precision = []
+          tokens << [:field, char, flags.dup, width, precision]
+          width = nil
+          precision = nil
         else
           raise ArgumentError, "unknown state: #{state.inspect}"
         end
+      end
 
+      unless COMPLETE_STATES.include?(state)
+        raise ArgumentError, 'malformed format string'
       end
 
       tokens
