@@ -72,19 +72,15 @@ module Kernel
     TRANSITIONS = {
       literal: {
         default: :literal,
-        on_percent: :field_beginning,
+        on_percent: :field_pending,
       },
       literal_percent: {
         default: :literal,
       },
       field_flag: {
-        on_alpha: :field_end,
-        on_newline: :literal_percent,
-        on_null_byte: :literal_percent,
-        on_number: :field_width,
-        on_percent: :literal,
+        return: :field_pending,
       },
-      field_beginning: {
+      field_pending: {
         on_alpha: :field_end,
         on_asterisk: :field_flag,
         on_minus: :field_width_minus,
@@ -99,7 +95,7 @@ module Kernel
       },
       field_end: {
         default: :literal,
-        on_percent: :field_beginning,
+        on_percent: :field_pending,
       },
       field_precision: {
         on_alpha: :field_end,
@@ -109,20 +105,14 @@ module Kernel
         on_number: :field_precision,
       },
       field_width: {
-        on_alpha: :field_end,
         on_dollar: :positional_argument,
-        on_number: :field_width,
-        on_period: :field_precision_period,
-        on_zero: :field_width,
+        return: :field_pending,
       },
       field_width_minus: {
         on_number: :field_width,
       },
       positional_argument: {
-        on_alpha: :field_end,
-        on_number: :field_width,
-        on_period: :field_precision_period,
-        on_zero: :field_width,
+        return: :field_pending,
       }
     }.freeze
 
@@ -187,6 +177,12 @@ module Kernel
 
         new_state = TRANSITIONS.dig(state, transition) || TRANSITIONS.dig(state, :default)
 
+        if !new_state && (return_state = TRANSITIONS.dig(state, :return))
+          # special transition that consumes no characters
+          # helps us reduce transitions
+          new_state = return_state
+        end
+
         #puts "#{state.inspect}, given #{char.inspect}, " \
              #"transition #{transition.inspect} to #{new_state.inspect}"
 
@@ -195,14 +191,15 @@ module Kernel
         end
 
         state = new_state
-        next_char
+        next_char unless return_state
+        return_state = nil
 
         case state
         when :literal
           tokens << Token.new(type: :str, datum: char)
         when :literal_percent
           tokens << Token.new(type: :str, datum: "%#{char}")
-        when :field_beginning, :field_precision_period
+        when :field_pending, :field_precision_period
           :noop
         when :field_flag
           flags << case char
@@ -215,6 +212,7 @@ module Kernel
                    when '0'
                      :zero_padded
                    when '*'
+                     raise ArgumentError, 'width given twice' if width || flags.include?(:width_given_as_arg)
                      :width_given_as_arg
                    else
                      raise ArgumentError, "unknown flag: #{char.inspect}"
