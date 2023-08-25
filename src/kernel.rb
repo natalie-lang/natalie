@@ -71,36 +71,59 @@ module Kernel
 
     TRANSITIONS = {
       literal: {
-        on_percent: :field_beginning,
         default: :literal,
+        on_percent: :field_beginning,
       },
       literal_percent: {
         default: :literal,
       },
-      field_beginning: {
-        on_percent: :literal,
-        on_null_byte: :literal_percent,
+      field_flag: {
+        on_alpha: :field_end,
         on_newline: :literal_percent,
-        on_alpha: :field_end,
+        on_null_byte: :literal_percent,
         on_number: :field_width,
+        on_percent: :literal,
       },
-      field_width: {
-        on_number: :field_width,
-        on_zero: :field_width,
-        on_period: :field_precision_period,
+      field_beginning: {
         on_alpha: :field_end,
+        on_asterisk: :field_flag,
+        on_minus: :field_width_minus,
+        on_newline: :literal_percent,
+        on_null_byte: :literal_percent,
+        on_number: :field_width,
+        on_percent: :literal,
+        on_plus: :field_flag,
+        on_pound: :field_flag,
+        on_space: :field_flag,
+        on_zero: :field_flag,
+      },
+      field_end: {
+        default: :literal,
+        on_percent: :field_beginning,
+      },
+      field_precision: {
+        on_alpha: :field_end,
+        on_number: :field_precision,
       },
       field_precision_period: {
         on_number: :field_precision,
       },
-      field_precision: {
-        on_number: :field_precision,
+      field_width: {
         on_alpha: :field_end,
+        on_dollar: :positional_argument,
+        on_number: :field_width,
+        on_period: :field_precision_period,
+        on_zero: :field_width,
       },
-      field_end: {
-        on_percent: :field_beginning,
-        default: :literal,
+      field_width_minus: {
+        on_number: :field_width,
       },
+      positional_argument: {
+        on_alpha: :field_end,
+        on_number: :field_width,
+        on_period: :field_precision_period,
+        on_zero: :field_width,
+      }
     }.freeze
 
     COMPLETE_STATES = %i[
@@ -109,10 +132,25 @@ module Kernel
       literal_percent
     ].freeze
 
+    class Token
+      def initialize(type:, datum:, flags: nil, width: nil, precision: nil, arg_position: nil)
+        @type = type
+        @datum = datum
+        @flags = flags
+        @width = width
+        @precision = precision
+        @arg_position = arg_position
+      end
+
+      attr_accessor :type, :datum, :flags, :width, :precision, :arg_position
+    end
+
     def tokens
       state = :literal
       width = nil
+      width_minus = false
       precision = nil
+      arg_position = nil
       flags = []
       tokens = []
 
@@ -127,14 +165,24 @@ module Kernel
                        :on_null_byte
                      when '.'
                        :on_period
+                     when '#'
+                       :on_pound
+                     when '+'
+                       :on_plus
+                     when '-'
+                       :on_minus
+                     when '*'
+                       :on_asterisk
                      when '0'
                        :on_zero
+                     when ' '
+                       :on_space
+                     when '$'
+                       :on_dollar
                      when '1'..'9'
                        :on_number
                      when 'a'..'z', 'A'..'Z'
                        :on_alpha
-                     when ' '
-                       :on_space
                      end
 
         new_state = TRANSITIONS.dig(state, transition) || TRANSITIONS.dig(state, :default)
@@ -151,19 +199,51 @@ module Kernel
 
         case state
         when :literal
-          tokens << [:str, char]
+          tokens << Token.new(type: :str, datum: char)
         when :literal_percent
-          tokens << [:str, "%#{char}"]
+          tokens << Token.new(type: :str, datum: "%#{char}")
         when :field_beginning, :field_precision_period
           :noop
+        when :field_flag
+          flags << case char
+                   when '#'
+                     :alternate_format
+                   when ' '
+                     :space
+                   when '+'
+                     :plus
+                   when '0'
+                     :zero_padded
+                   when '*'
+                     :width_given_as_arg
+                   else
+                     raise ArgumentError, "unknown flag: #{char.inspect}"
+                   end
         when :field_width
           width = (width || 0) * 10 + char.to_i
+          width *= -1 if width_minus
+          width_minus = false
+        when :field_width_from_arg
+          width = :from_arg
+        when :field_width_minus
+          width_minus = true
         when :field_precision
           precision = (precision || 0) * 10 + char.to_i
         when :field_end
-          tokens << [:field, char, flags.dup, width, precision]
+          tokens << Token.new(
+            type: :field,
+            datum: char,
+            flags: flags.dup,
+            width: width,
+            precision: precision,
+            arg_position: arg_position
+          )
           width = nil
           precision = nil
+          arg_position = nil
+        when :positional_argument
+          arg_position = width
+          width = nil
         else
           raise ArgumentError, "unknown state: #{state.inspect}"
         end
@@ -176,49 +256,6 @@ module Kernel
       tokens
     end
 
-        #while false
-          #next_char
-          #flags = consume_flags
-          #case (c = current_char)
-          #when '%'
-            #tokens << [:str, '%']
-          #when 'a'..'z', 'A'..'Z'
-            #tokens << [:field, c, flags]
-          #when "\n", "\0"
-            #tokens << [:str, "%#{c}"]
-          #when '1'..'9'
-            #width = consume_number
-            #case (c = current_char)
-            #when 'a'..'z', 'A'..'Z'
-              #tokens << [:field, c, flags, width]
-            #when '.'
-              #next_char
-              #precision = consume_number
-              #case (c = current_char)
-              #when 'a'..'z', 'A'..'Z'
-                #tokens << [:field, c, flags, width, precision]
-              #else
-                #raise ArgumentError, 'invalid format character - %'
-              #end
-            #else
-              #raise ArgumentError, 'invalid format character - %'
-            #end
-          #when nil
-            #raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
-          #else
-            #raise ArgumentError, 'invalid format character - %'
-          #end
-          #next_char
-        #else
-          #start_index = index
-          #while chars[index] && chars[index] != '%'
-            #@index += 1
-          #end
-          #literal = chars[start_index...index].join
-          #tokens << [:str, literal]
-        #end
-      #end
-
     private
 
     def current_char
@@ -229,71 +266,60 @@ module Kernel
       @index += 1
       chars[index]
     end
-
-    def consume_number
-      c = chars[index]
-      raise ArgumentError, 'bad width' unless ('1'..'9').cover?(c)
-      num = [c]
-      while ('0'..'9').cover?(c = next_char)
-        num << c
-      end
-      num.join.to_i
-    end
-
-    def consume_flags
-      f = chars[index]
-      flags = []
-      while [' ', '#', '-', '+', '0', '*'].include?(f)
-        case f
-        when ' ' then flags << :space
-        when '#' then flags << :alter
-        when "0" then flags << :zero
-        when "+" then flags << :plus
-        when "-" then flags << :left
-        when "*" then
-          raise ArgumentError, "cannot specify '*' multiple times" if flags.include?(:star)
-          flags << :star
-        else
-          raise NotImplementedError, 'invalid branch for consuming flags'
-        end
-        @index += 1
-        f = chars[index]
-      end
-      flags
-    end
   end
 
   def sprintf(format_string, *arguments)
     tokens = SprintfParser.new(format_string).tokens
 
+    apply_number_flags = lambda do |num, flags|
+      num = "+#{num}" if flags.include?(:plus) && !num.start_with?('-')
+      num = " #{num}" if flags.include?(:space) && !flags.include?(:plus) && !num.start_with?('-')
+      num
+    end
+
     result = tokens.map do |token|
-      case token.first
+      case token.type
       when :str
-        token.last
+        token.datum
       when :field
         arg = arguments.shift
-        _, type, flags, width, precision = token
-        precision ||= 6
-        val = case type
+        token.precision ||= 6
+        if token.flags.include?(:width_given_as_arg)
+          token.width = arg
+          arg = arguments.shift
+        end
+        val = case token.datum
               when 'b'
-                arg.to_s(2)
+                b = arg.to_s(2)
+                apply_number_flags.(b, token.flags)
               when 's'
                 arg.to_s
               when 'd', 'u'
-                arg.to_i.to_s
+                d = arg.to_i.to_s
+                apply_number_flags.(d, token.flags)
               when 'f'
                 f = arg.to_f.to_s
-                f = " #{f}" if flags.include?(:space) && !f.start_with?('-')
+                f = apply_number_flags.(f, token.flags)
                 f << '.0' unless f.index('.')
-                f << '0' until f.split('.').last.size >= precision
+                f << '0' until f.split('.').last.size >= token.precision
                 f
               when 'x'
-                arg.to_i.to_s(16)
+                x = arg.to_i.to_s(16)
+                x = "0x#{x}" if token.flags.include?(:alternate_format) && x != '0'
+                apply_number_flags.(x, token.flags)
+              when 'X'
+                x = arg.to_i.to_s(16).upcase
+                x = "0X#{x}" if token.flags.include?(:alternate_format) && x != '0'
+                apply_number_flags.(x, token.flags)
               else
-                raise ArgumentError, "malformed format string - %#{token[1]}"
+                raise ArgumentError, "malformed format string - %#{token.datum}"
               end
-        while width && val.size < width
-          val = ' ' + val
+        pad_char = token.flags.include?(:zero_padded) ? '0' : ' '
+        while token.width && val.size < token.width
+          val = pad_char + val
+        end
+        if token.width && token.width < 0
+          val << pad_char while val.size < token.width.abs
         end
         val
       else
