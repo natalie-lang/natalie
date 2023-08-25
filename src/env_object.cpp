@@ -10,6 +10,10 @@ extern char **environ;
 
 namespace Natalie {
 
+static Value env_size(Env *env, Value self, Args, Block *) {
+    return self->send(env, "size"_s);
+}
+
 Value EnvObject::inspect(Env *env) {
     return this->to_hash(env, nullptr)->as_hash()->inspect(env);
 }
@@ -266,6 +270,15 @@ Value EnvObject::replace(Env *env, Value hash) {
             env->raise_errno();
     }
     return this;
+}
+
+Value EnvObject::select(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "select"_s }, size_block);
+    }
+
+    return to_hash(env, nullptr)->as_hash()->keep_if(env, block);
 }
 
 Value EnvObject::shift() {

@@ -32,6 +32,7 @@ public:
     Value refeq(Env *, Value name, Value value);
     Value rehash() const;
     Value replace(Env *, Value hash);
+    Value select(Env *, Block *);
     Value shift();
     size_t size() const;
     Value slice(Env *, Args);
