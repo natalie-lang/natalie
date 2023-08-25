@@ -33,6 +33,7 @@ public:
     Value refeq(Env *, Value name, Value value);
     Value rehash() const;
     Value reject(Env *, Block *);
+    Value reject_in_place(Env *, Block *);
     Value replace(Env *, Value hash);
     Value select(Env *, Block *);
     Value select_in_place(Env *, Block *);

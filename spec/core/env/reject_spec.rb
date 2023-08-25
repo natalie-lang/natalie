@@ -1,8 +1,7 @@
 require_relative '../../spec_helper'
 require_relative '../enumerable/shared/enumeratorized'
 
-# NATFIXME: Implement ENV.reject!
-xdescribe "ENV.reject!" do
+describe "ENV.reject!" do
   before :each do
     @foo = ENV["foo"]
   end

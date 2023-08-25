@@ -276,6 +276,26 @@ Value EnvObject::reject(Env *env, Block *block) {
     return to_hash(env, nullptr)->as_hash()->delete_if(env, block);
 }
 
+Value EnvObject::reject_in_place(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "reject!"_s }, size_block);
+    }
+
+    auto hash = to_hash(env, nullptr)->as_hash();
+    auto keys = hash->keys(env)->as_array();
+    if (hash->send(env, "reject!"_s, {}, block)->is_nil())
+        // No changes
+        return NilObject::the();
+
+    for (size_t i = 0; i < keys->size(); i++) {
+        auto key = keys->at(i);
+        if (!hash->has_key(env, key))
+            unsetenv(key->as_string()->c_str());
+    }
+    return this;
+}
+
 Value EnvObject::replace(Env *env, Value hash) {
     hash->assert_type(env, Object::Type::Hash, "Hash");
     for (HashObject::Key &node : *hash->as_hash()) {
