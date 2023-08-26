@@ -140,6 +140,7 @@ public:
 #endif
     }
 
+    bool is_alive() const;
     Value resume(Env *env, Args args);
     void yield_back(Env *env, Args args);
 

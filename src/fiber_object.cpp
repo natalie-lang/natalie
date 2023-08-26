@@ -36,6 +36,10 @@ FiberObject *FiberObject::initialize(Env *env, Block *block) {
     return this;
 }
 
+bool FiberObject::is_alive() const {
+    return m_status != Status::Terminated;
+}
+
 Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");

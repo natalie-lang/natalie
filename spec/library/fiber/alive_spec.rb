@@ -1,6 +1,8 @@
 require_relative '../../spec_helper'
 
-require 'fiber'
+NATFIXME 'Add a stub fiber.rb', exception: LoadError do
+  require 'fiber'
+end
 
 describe "Fiber#alive?" do
   it "returns true for a Fiber that hasn't had #resume called" do
