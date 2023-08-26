@@ -126,7 +126,7 @@ describe "String#%" do
     end
   end
 
-  xit "replaces trailing absolute argument specifier without type with percent sign" do
+  it "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
 
@@ -148,7 +148,7 @@ describe "String#%" do
     -> { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
-  xit "respects positional arguments and precision tokens given for one format specifier" do
+  it "respects positional arguments and precision tokens given for one format specifier" do
     ("%2$1d" % [1, 0]).should == "0"
     ("%2$1d" % [0, 1]).should == "1"
 
@@ -156,7 +156,7 @@ describe "String#%" do
     ("%2$.2f" % [0, 1]).should == "1.00"
   end
 
-  xit "allows more than one digit of position" do
+  it "allows more than one digit of position" do
     ("%50$d" % (0..100).to_a).should == "49"
   end
 
@@ -195,7 +195,7 @@ describe "String#%" do
     end
   end
 
-  xit "allows reuse of the one argument multiple via absolute argument numbers" do
+  it "allows reuse of the one argument multiple via absolute argument numbers" do
     ("%1$s %1$s" % "foo").should == "foo foo"
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
@@ -305,7 +305,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %b for positive numbers" do
+  it "supports binary formats using %b for positive numbers" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
@@ -335,7 +335,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
+  it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
     ("%B" % 10).should == ("%b" % 10)
     ("% B" % 10).should == ("% b" % 10)
     ("%1$B" % [10, 20]).should == ("%1$b" % [10, 20])
@@ -358,7 +358,7 @@ describe "String#%" do
     ("%#B" % 10).should == "0B1010"
   end
 
-  xit "supports character formats using %c" do
+  it "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
     ("%-4c" % 10).should == "\n   "
@@ -367,7 +367,7 @@ describe "String#%" do
     -> { "%c" % Object }.should raise_error(TypeError)
   end
 
-  xit "supports single character strings as argument for %c" do
+  it "supports single character strings as argument for %c" do
     ("%c" % 'A').should == "A"
   end
 
@@ -378,25 +378,25 @@ describe "String#%" do
   end
 
   ruby_version_is "3.2" do
-    xit "supports only the first character as argument for %c" do
+    it "supports only the first character as argument for %c" do
       ("%c" % 'AA').should == "A"
     end
   end
 
-  xit "calls to_str on argument for %c formats" do
+  it "calls to_str on argument for %c formats" do
     obj = mock('A')
     obj.should_receive(:to_str).and_return('A')
 
     ("%c" % obj).should == "A"
   end
 
-  xit "calls #to_ary on argument for %c formats" do
+  it "calls #to_ary on argument for %c formats" do
     obj = mock('65')
     obj.should_receive(:to_ary).and_return([65])
     ("%c" % obj).should == ("%c" % [65])
   end
 
-  xit "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
+  it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
     obj = mock('65')
     obj.should_receive(:to_int).and_return(65)
 
@@ -406,7 +406,7 @@ describe "String#%" do
   %w(d i).each do |f|
     format = "%" + f
 
-    xit "supports integer formats using #{format}" do
+    it "supports integer formats using #{format}" do
       ("%#{f}" % 10).should == "10"
       ("% #{f}" % 10).should == " 10"
       ("%1$#{f}" % [10, 20]).should == "10"
@@ -481,7 +481,7 @@ describe "String#%" do
     ("%010E" % Float::NAN).should == "       NaN"
   end
 
-  xit "supports float formats using %f" do
+  it "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
     ("%1$f" % 10).should == "10.000000"
@@ -520,7 +520,7 @@ describe "String#%" do
     ("%*G" % [10, 9]).should == "         9"
   end
 
-  xit "supports octal formats using %o for positive numbers" do
+  it "supports octal formats using %o for positive numbers" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
@@ -547,7 +547,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports inspect formats using %p" do
+  it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
     ("%-22p" % 10).should == "10                    "
@@ -556,7 +556,7 @@ describe "String#%" do
     ("%p" % "str").should == "\"str\""
   end
 
-  xit "calls inspect on arguments for %p format" do
+  it "calls inspect on arguments for %p format" do
     obj = mock('obj')
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"

@@ -101,6 +101,7 @@ module Kernel
       field_precision: {
         on_alpha: :field_end,
         on_number: :field_precision,
+        on_zero: :field_precision,
       },
       field_precision_period: {
         on_number: :field_precision,
@@ -181,8 +182,7 @@ module Kernel
         new_state = TRANSITIONS.dig(state, transition) || TRANSITIONS.dig(state, :default)
 
         if !new_state && (return_state = TRANSITIONS.dig(state, :return))
-          # special transition that consumes no characters
-          # helps us reduce transitions
+          # :return is a special transition that consumes no characters
           new_state = return_state
         end
 
@@ -249,6 +249,13 @@ module Kernel
         end
       end
 
+      # An incomplete field with no type and having a positional argument
+      # produces a literal '%'.
+      if state == :positional_argument
+        tokens << Token.new(type: :str, datum: '%')
+        state = :field_end
+      end
+
       unless COMPLETE_STATES.include?(state)
         raise ArgumentError, 'malformed format string'
       end
@@ -305,10 +312,31 @@ module Kernel
         val = case token.datum
               when 'b'
                 b = arg.to_s(2)
+                b = "0b#{b}" if token.flags.include?(:alternate_format) && b != '0'
                 apply_number_flags.(b, token.flags)
-              when 's'
-                arg.to_s
-              when 'd', 'u'
+              when 'B'
+                b = arg.to_s(2)
+                b = "0B#{b}" if token.flags.include?(:alternate_format) && b != '0'
+                apply_number_flags.(b, token.flags)
+              when 'c'
+                if arg.is_a?(Integer)
+                  arg.chr
+                elsif arg.respond_to?(:to_ary)
+                  arg.to_ary.first
+                elsif arg.respond_to?(:to_int)
+                  arg.to_int.chr
+                elsif arg.respond_to?(:to_str)
+                  s = arg.to_str
+                  if s.is_a?(String)
+                    raise ArgumentError, '%c requires a character' if s.size > 1
+                    s
+                  else
+                    raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
+                  end
+                else
+                  raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
+                end
+              when 'd', 'u', 'i'
                 d = arg.to_i.to_s
                 apply_number_flags.(d, token.flags)
               when 'f'
@@ -317,6 +345,14 @@ module Kernel
                 f << '.0' unless f.index('.')
                 f << '0' until f.split('.').last.size >= token.precision
                 f
+              when 'o'
+                o = arg.to_i.to_s(8)
+                o = "0#{o}" if token.flags.include?(:alternate_format) && o != '0'
+                apply_number_flags.(o, token.flags)
+              when 'p'
+                arg.inspect
+              when 's'
+                arg.to_s
               when 'x'
                 x = arg.to_i.to_s(16)
                 x = "0x#{x}" if token.flags.include?(:alternate_format) && x != '0'
