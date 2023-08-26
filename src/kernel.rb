@@ -277,16 +277,30 @@ module Kernel
       num
     end
 
+    arguments_index = 0
+    next_argument = lambda do
+      arg = arguments[arguments_index]
+      arguments_index += 1
+      arg
+    end
+
+    positional_argument_used = false
+
     result = tokens.map do |token|
       case token.type
       when :str
         token.datum
       when :field
-        arg = arguments.shift
+        arg = if token.arg_position
+                positional_argument_used = true
+                arguments[token.arg_position - 1]
+              else
+                next_argument.()
+              end
         token.precision ||= 6
         if token.flags.include?(:width_given_as_arg)
           token.width = arg
-          arg = arguments.shift
+          arg = next_argument.()
         end
         val = case token.datum
               when 'b'
@@ -327,7 +341,7 @@ module Kernel
       end
     end.join
 
-    if $DEBUG && arguments.any?
+    if $DEBUG && arguments.any? && !positional_argument_used
       raise ArgumentError, "too many arguments for format string"
     end
 

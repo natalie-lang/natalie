@@ -113,7 +113,7 @@ describe "String#%" do
     end
   end
 
-  xit "always allows unused arguments when positional argument style is used" do
+  it "always allows unused arguments when positional argument style is used" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
@@ -579,7 +579,7 @@ describe "String#%" do
     #end
   end
 
-  xit "respects a space padding request not as part of the width" do
+  it "respects a space padding request not as part of the width" do
     x = "% -5s" % ["foo"]
     x.should == "foo  "
   end
@@ -626,7 +626,7 @@ describe "String#%" do
     ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
   end
 
-  xit "supports hex formats using %x for positive numbers" do
+  it "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
