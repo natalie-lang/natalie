@@ -30,9 +30,7 @@ describe "Fiber#resume" do
 
   it "raises a FiberError if the Fiber tries to resume itself" do
     fiber = Fiber.new { fiber.resume }
-    NATFIXME 'Incorrect error message', exception: SpecFailedException do
-      -> { fiber.resume }.should raise_error(FiberError, /current fiber/)
-    end
+    -> { fiber.resume }.should raise_error(FiberError, /current fiber/)
   end
 
   it "returns control to the calling Fiber if called from one" do

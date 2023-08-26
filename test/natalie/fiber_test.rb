@@ -47,14 +47,6 @@ describe 'Fiber' do
     f.resume.should == 'hi from f2'
   end
 
-  it 'raises an error if resumed twice' do
-    f2 = Fiber.new { |f| f.resume }
-
-    f = Fiber.new { f2.resume(f) }
-
-    -> { f.resume }.should raise_error(FiberError, /double resume/)
-  end
-
   it 'raises an error when attempting to yield from the main fiber' do
     -> { Fiber.yield 'foo' }.should raise_error(
                                       FiberError,

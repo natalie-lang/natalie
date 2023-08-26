@@ -40,7 +40,7 @@ Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
-        env->raise("FiberError", "double resume");
+        env->raise("FiberError", "attempt to resume the current fiber");
     auto previous_fiber = FiberObject::current();
     m_previous_fiber = s_current;
     s_current = this;
