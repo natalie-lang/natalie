@@ -187,12 +187,10 @@ describe "String#%" do
     -> { "%s %2$s" % ["foo", "bar"] }.should raise_error(ArgumentError)
     -> { "%2$s %s" % ["foo", "bar"] }.should raise_error(ArgumentError)
 
-    NATFIXME "mixed numbered and unnumbered", exception: SpecFailedException do
-      -> { "%*2$s" % [5, 5, 5]     }.should raise_error(ArgumentError)
-      -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
-      -> { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
-      -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
-    end
+    -> { "%*2$s" % [5, 5, 5]     }.should raise_error(ArgumentError)
+    -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
+    -> { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
+    -> { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
   end
 
   it "allows reuse of the one argument multiple via absolute argument numbers" do

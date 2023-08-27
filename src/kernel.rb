@@ -60,243 +60,350 @@ module Kernel
     nil
   end
 
-  def sprintf(fmt, *positional_args)
-    args = positional_args.dup
-    index = 0
-    format = fmt.chars
-    result = []
-    positional_args_used = nil
-    default_precision = 6
+  class SprintfParser
+    def initialize(format_string)
+      @format_string = format_string
+      @index = 0
+      @chars = format_string.chars
+    end
 
-    # Get non-exclusive flags that occur after a leading '%'
-    # but before the width field
-    get_flags = ->(format_chars, index) {
-      flags = []
-      while [' ', '#', '-', '+', '0', '*'].include?(format_chars[index])
-        case format_chars[index]
-        when ' ' then flags << :space
-        when '#' then flags << :alter
-        when "0" then flags << :zero
-        when "+" then flags << :plus
-        when "-" then flags << :left
-        when "*" then
-          raise ArgumentError, "cannot specify '*' multiple times" if flags.include?(:star)
-          flags << :star
-        else
-          raise NotImplementedError, "invalid branch"
-        end
-        index += 1
-      end
-      [flags, index]
-    }
+    attr_reader :format_string, :index, :chars
 
-    # Lambda to capture 'n$' position flag.
-    # If a numeric value is found that does not end with '$' the index
-    # will move backward so a later proc may capture it as a width
-    get_position_flag = -> (format_chars, index) {
-      original_index = index
-      position = nil
-      while ('0'..'9').cover?(format_chars[index])
-        index += 1
-      end
-      if format_chars[index] == "$"
-        chars = format_chars[original_index ... index].join
-        raise ArgumentError, "malformed format string - %$" if chars == '0' || chars == ''
-        position = chars.to_i - 1
-        index += 1
-      else
-        index = original_index
-      end
-      [position, index]
-    }
-
-    # Lambda to capture width integer, else returns nil
-    get_width = -> (format_chars, index) {
-      original_index = index
-      number = nil
-      while ('0'..'9').cover?(format_chars[index])
-        index += 1
-      end
-      if original_index != index
-        number = format_chars[original_index ... index].join.to_i
-      end
-      [number, index]
-    }
-
-    # Lambda to capture precision integer, else returns nil
-    get_precision = -> (format_chars, index) {
-      precision = nil
-      if format_chars[index] == '.'
-        index += 1
-        precision, index = get_width.(format_chars, index)
-        # nil case gets zero to disambiguate case of not seeing the '.'
-        precision ||= 0
-      end
-      [precision, index]
-    }
-
-    append = ->(format_char, flags: [], arg_index: nil, width: nil, precision: nil) {
-      get_arg = -> {
-        if arg_index
-          if [nil, true].include?(positional_args_used)
-            positional_args_used = true
-          else
-            raise ArgumentError, "unnumbered mixed with numbered"
-          end
-          positional_args[arg_index]
-        else
-          if [nil, false].include?(positional_args_used)
-            positional_args_used = false
-          else
-            raise ArgumentError, "unnumbered mixed with numbered"
-          end
-          raise ArgumentError, "too few arguments" if args.empty?
-          args.shift
-        end
+    STATES_AND_TRANSITIONS = {
+      literal: {
+        default: :literal,
+        on_percent: :field_pending,
+      },
+      literal_percent: {
+        default: :literal,
+      },
+      field_flag: {
+        return: :field_pending,
+      },
+      field_pending: {
+        on_alpha: :field_end,
+        on_asterisk: :field_flag,
+        on_minus: :field_width_minus,
+        on_newline: :literal_percent,
+        on_null_byte: :literal_percent,
+        on_number: :field_width,
+        on_percent: :literal,
+        on_period: :field_precision_period,
+        on_plus: :field_flag,
+        on_pound: :field_flag,
+        on_space: :field_flag,
+        on_zero: :field_flag,
+      },
+      field_end: {
+        default: :literal,
+        on_percent: :field_pending,
+      },
+      field_precision: {
+        on_alpha: :field_end,
+        on_number: :field_precision,
+        on_zero: :field_precision,
+      },
+      field_precision_period: {
+        on_number: :field_precision,
+      },
+      field_width: {
+        on_dollar: :positional_argument,
+        on_number: :field_width,
+        on_zero: :field_width,
+        return: :field_pending,
+      },
+      field_width_minus: {
+        on_number: :field_width,
+      },
+      positional_argument: {
+        return: :field_pending,
       }
-      if flags.include?(:star) && width.nil?
-        star_width = get_arg.()
-        width = star_width.abs if star_width != 0
-        flags << :left if star_width < 0
+    }.freeze
+
+    COMPLETE_STATES = %i[
+      field_end
+      literal
+      literal_percent
+    ].freeze
+
+    class Token
+      def initialize(type:, datum:, flags: nil, width: nil, precision: nil, arg_position: nil)
+        @type = type
+        @datum = datum
+        @flags = flags
+        @width = width
+        @precision = precision
+        @arg_position = arg_position
       end
 
-      case format_char
-      # Integer Type Specifiers
-      when 'b', 'B', 'd', 'f', 'i', 'u', 'o', 'x', 'X'
-        arg = get_arg.()
-        localresult = ""
-        if arg > 0
-          if flags.include?(:plus)
-            localresult << "+"
-          elsif flags.include?(:space)
-            localresult << " "
-          end
-        end
-        case format_char
-        when 'b', 'B'
-          localresult << ("0" + format_char) if flags.include?(:alter)
-          localresult << arg.to_s(2)
-        when 'd', 'i', 'u'
-          localresult << arg.to_s
-        when 'f'
-          s = arg.to_s
-          precision ||= default_precision
-          if (decimal = s.index('.'))
-            decimal_digits = s.size - decimal - 1
-          else
-            s << '.0'
-            decimal_digits = 1
-          end
-          while decimal_digits < precision
-            s << '0'
-            decimal_digits += 1
-          end
-          while decimal_digits > precision
-            s.chop!
-            decimal_digits -= 1
-          end
-          localresult << s
-        when 'o'
-          localresult << '0' if flags.include?(:alter)
-          localresult << arg.to_s(8)
-        when 'x'
-          localresult << ("0" + format_char) if arg != 0 && flags.include?(:alter)
-          localresult << arg.to_s(16)
-        when 'X'
-          localresult << ("0" + format_char) if arg != 0 && flags.include?(:alter)
-          localresult << arg.to_s(16).upcase
-        else
-          raise NotImplementedError, "invalid branch"
-        end
-        # Perform padding
-        if width && localresult.size < width
-          pad_amount = (width - localresult.size)
-          localresult = if flags.include?(:left)
-                          localresult + (' ' * pad_amount)
-                        elsif flags.include?(:zero)
-                          ('0' * pad_amount) + localresult
-                        else
-                          (' ' * pad_amount) + localresult
-                        end
-        end
-        result << localresult
-      # Other Type Specifiers
-      when 'c', 'p', 's'
-        localresult = ""
-        case format_char
-        when 'c' # Character
-          arg = get_arg.()
-          if arg.is_a? Integer
-            if arg < 0 && arg > 256
-              raise NotImplementedError, "Cannot convert value #{arg} to codepoint"
-            end
-            localresult << arg.chr
-          else
-            if !arg.is_a?(String) && arg.respond_to?(:to_str)
-              arg = arg.to_str
-            end
-            raise TypeError, "expected a string, got #{arg.inspect}" unless arg.is_a?(String)
-            raise ArgumentError, "invalid character #{arg}" if arg.size > 1
-            localresult << arg.to_s
-          end
-        when 'p'
-          localresult << get_arg.().inspect
-        when 's'
-          localresult << get_arg.().to_s
-        else
-          raise NotImplementedError, "invalid branch"
-        end
-        # Perform padding
-        if width && localresult.size < width
-          pad_amount = (width - localresult.size)
-          localresult = if flags.include?(:left)
-                          localresult + (' ' * pad_amount)
-                        else
-                          (' ' * pad_amount) + localresult
-                        end
-        end
-        result << localresult
-      when '%', "\n", "\0"
-        if flags.any? || width || precision || arg_index
-          raise ArgumentError, "invalid #{format_char.inspect} after '%' with flags"
-        end
-        result << '%' if format_char != '%'
-        result << format_char
-      when ' '
-        raise ArgumentError, 'invalid format character - %'
-      when nil
-        if arg_index
-          result << '%'
-        else
-          raise ArgumentError, 'incomplete format specifier; use %% (double %) instead'
-        end
-      else
-        raise ArgumentError, "malformed format string - %#{format_char}"
-      end
-    }
-
-    while index < format.size
-      c = format[index]
-      case c
-      when '%'
-        index += 1
-        flaglist, index = get_flags.(format, index)
-        position, index = get_position_flag.(format, index)
-        width, index = get_width.(format, index)
-        precision, index = get_precision.(format, index)
-        f = format[index]
-        append.(f, flags: flaglist, arg_index: position, width: width, precision: precision)
-      else
-        result << c
-      end
-      index += 1
+      attr_accessor :type, :datum, :flags, :width, :precision, :arg_position
     end
 
-    if $DEBUG && args.any? && !positional_args_used
-      raise ArgumentError, 'too many arguments for format string'
+    def tokens
+      state = :literal
+      width = nil
+      width_negative = false
+      precision = nil
+      arg_position = nil
+      flags = []
+      tokens = []
+
+      while index < chars.size
+        char = current_char
+        transition = case char
+                     when '%'
+                       :on_percent
+                     when "\n"
+                       :on_newline
+                     when "\0"
+                       :on_null_byte
+                     when '.'
+                       :on_period
+                     when '#'
+                       :on_pound
+                     when '+'
+                       :on_plus
+                     when '-'
+                       :on_minus
+                     when '*'
+                       :on_asterisk
+                     when '0'
+                       :on_zero
+                     when ' '
+                       :on_space
+                     when '$'
+                       :on_dollar
+                     when '1'..'9'
+                       :on_number
+                     when 'a'..'z', 'A'..'Z'
+                       :on_alpha
+                     end
+
+        new_state = STATES_AND_TRANSITIONS.dig(state, transition) ||
+          STATES_AND_TRANSITIONS.dig(state, :default)
+
+        if !new_state && (return_state = STATES_AND_TRANSITIONS.dig(state, :return))
+          # :return is a special transition that consumes no characters
+          new_state = return_state
+        end
+
+        #puts "#{state.inspect}, given #{char.inspect}, " \
+             #"transition #{transition.inspect} to #{new_state.inspect}"
+
+        unless new_state
+          raise ArgumentError, "no transition from #{state.inspect} with char #{char.inspect}"
+        end
+
+        state = new_state
+        next_char unless return_state
+        return_state = nil
+
+        case state
+        when :literal
+          tokens << Token.new(type: :str, datum: char)
+        when :literal_percent
+          tokens << Token.new(type: :str, datum: "%#{char}")
+        when :field_pending, :field_precision_period
+          :noop
+        when :field_flag
+          flags << case char
+                   when '#'
+                     :alternate_format
+                   when ' '
+                     :space
+                   when '+'
+                     :plus
+                   when '0'
+                     :zero_padded
+                   when '*'
+                     raise ArgumentError, 'width given twice' if width || flags.include?(:width_given_as_arg)
+                     :width_given_as_arg
+                   else
+                     raise ArgumentError, "unknown flag: #{char.inspect}"
+                   end
+        when :field_width
+          width = (width || 0) * 10 + char.to_i
+        when :field_width_from_arg
+          width = :from_arg
+        when :field_width_minus
+          width_negative = true
+        when :field_precision
+          precision = (precision || 0) * 10 + char.to_i
+        when :field_end
+          tokens << Token.new(
+            type: :field,
+            datum: char,
+            flags: flags.dup,
+            width: width_negative ? -width : width,
+            precision: precision,
+            arg_position: arg_position
+          )
+          width = nil
+          width_negative = false
+          precision = nil
+          arg_position = nil
+        when :positional_argument
+          new_arg_position = width
+          width = nil
+          if arg_position
+            raise ArgumentError, "value given twice - #{new_arg_position}$"
+          end
+          arg_position = new_arg_position
+        else
+          raise ArgumentError, "unknown state: #{state.inspect}"
+        end
+      end
+
+      # An incomplete field with no type and having a positional argument
+      # produces a literal '%'.
+      if state == :positional_argument
+        tokens << Token.new(type: :str, datum: '%')
+        state = :field_end
+      end
+
+      unless COMPLETE_STATES.include?(state)
+        raise ArgumentError, 'malformed format string'
+      end
+
+      tokens
     end
 
-    result.join
+    private
+
+    def current_char
+      chars[index]
+    end
+
+    def next_char
+      @index += 1
+      chars[index]
+    end
+  end
+
+  def sprintf(format_string, *arguments)
+    tokens = SprintfParser.new(format_string).tokens
+
+    apply_number_flags = lambda do |num, flags|
+      num = "+#{num}" if flags.include?(:plus) && !num.start_with?('-')
+      num = " #{num}" if flags.include?(:space) && !flags.include?(:plus) && !num.start_with?('-')
+      num
+    end
+
+    arguments_index = 0
+    positional_argument_used = false
+    unnumbered_argument_used = false
+    next_argument = lambda do
+      if arguments_index >= arguments.size
+        raise ArgumentError, 'too few arguments'
+      end
+      if positional_argument_used
+        raise ArgumentError, "unnumbered(#{arguments_index}) mixed with numbered"
+      end
+      arg = arguments[arguments_index]
+      unnumbered_argument_used = arguments_index
+      arguments_index += 1
+      arg
+    end
+
+    get_positional_argument = lambda do |position|
+      if position > arguments.size
+        raise ArgumentError, 'too few arguments'
+      end
+      if unnumbered_argument_used
+        raise ArgumentError, "numbered(#{position}) after unnumbered(#{unnumbered_argument_used})"
+      end
+      positional_argument_used = position
+      arguments[position - 1]
+    end
+
+    result = tokens.map do |token|
+      case token.type
+      when :str
+        token.datum
+      when :field
+        arg = if token.arg_position
+                get_positional_argument.(token.arg_position)
+              else
+                next_argument.()
+              end
+        token.precision ||= 6
+        if token.flags.include?(:width_given_as_arg)
+          token.width = arg
+          arg = next_argument.()
+        end
+        val = case token.datum
+              when 'b'
+                b = arg.to_s(2)
+                b = "0b#{b}" if token.flags.include?(:alternate_format) && b != '0'
+                apply_number_flags.(b, token.flags)
+              when 'B'
+                b = arg.to_s(2)
+                b = "0B#{b}" if token.flags.include?(:alternate_format) && b != '0'
+                apply_number_flags.(b, token.flags)
+              when 'c'
+                if arg.is_a?(Integer)
+                  arg.chr
+                elsif arg.respond_to?(:to_ary)
+                  arg.to_ary.first
+                elsif arg.respond_to?(:to_int)
+                  arg.to_int.chr
+                elsif arg.respond_to?(:to_str)
+                  s = arg.to_str
+                  if s.is_a?(String)
+                    raise ArgumentError, '%c requires a character' if s.size > 1
+                    s
+                  else
+                    raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
+                  end
+                else
+                  raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
+                end
+              when 'd', 'u', 'i'
+                d = arg.to_i.to_s
+                apply_number_flags.(d, token.flags)
+              when 'f'
+                f = arg.to_f.to_s
+                f = apply_number_flags.(f, token.flags)
+                f << '.0' unless f.index('.')
+                f << '0' until f.split('.').last.size >= token.precision
+                f
+              when 'o'
+                o = arg.to_i.to_s(8)
+                o = "0#{o}" if token.flags.include?(:alternate_format) && o != '0'
+                apply_number_flags.(o, token.flags)
+              when 'p'
+                arg.inspect
+              when 's'
+                arg.to_s
+              when 'x'
+                x = arg.to_i.to_s(16)
+                x = "0x#{x}" if token.flags.include?(:alternate_format) && x != '0'
+                apply_number_flags.(x, token.flags)
+              when 'X'
+                x = arg.to_i.to_s(16).upcase
+                x = "0X#{x}" if token.flags.include?(:alternate_format) && x != '0'
+                apply_number_flags.(x, token.flags)
+              else
+                raise ArgumentError, "malformed format string - %#{token.datum}"
+              end
+        pad_char = token.flags.include?(:zero_padded) ? '0' : ' '
+        while token.width && val.size < token.width
+          val = pad_char + val
+        end
+        if token.width && token.width < 0
+          val << pad_char while val.size < token.width.abs
+        end
+        val
+      else
+        raise "unknown token: #{token.inspect}"
+      end
+    end.join
+
+    if $DEBUG && arguments.any? && !positional_argument_used
+      raise ArgumentError, "too many arguments for format string"
+    end
+
+    result
   end
 
   # NATFIXME: the ... syntax doesnt appear to pass the block
