@@ -89,7 +89,7 @@ public:
 
     constexpr static int STACK_SIZE = 1024 * 1024;
 
-    FiberObject *initialize(Env *env, Value, Block *block);
+    FiberObject *initialize(Env *env, Value, Value, Block *block);
 
     static Value yield(Env *env, Args args);
 
@@ -193,6 +193,7 @@ public:
 private:
     Block *m_block { nullptr };
     bool m_blocking { false };
+    HashObject *m_storage { nullptr };
     ::fiber_stack_struct m_fiber {};
     void *m_stack_memory { nullptr };
     void *m_start_of_stack { nullptr };

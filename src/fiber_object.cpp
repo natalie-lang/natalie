@@ -28,7 +28,7 @@
 
 namespace Natalie {
 
-FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
+FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
     env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
@@ -37,6 +37,18 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
         m_blocking = blocking->is_truthy();
     m_file = env->file();
     m_line = env->line();
+    if (storage != nullptr && !storage->is_nil()) {
+        if (!storage->is_hash())
+            env->raise("TypeError", "storage must be a hash");
+        if (storage->is_frozen())
+            env->raise("FrozenError", "storage must not be frozen");
+        auto *hash = storage->as_hash();
+        for (auto it = hash->begin(); it != hash->end(); it++) {
+            if (!it->key->is_symbol())
+                env->raise("TypeError", "wrong argument type Object (expected Symbol)");
+        }
+        m_storage = hash;
+    }
     return this;
 }
 
@@ -118,6 +130,7 @@ void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_previous_fiber);
     visitor.visit(m_error);
     visitor.visit(m_block);
+    visitor.visit(m_storage);
     if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
