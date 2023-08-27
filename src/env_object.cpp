@@ -10,6 +10,22 @@ extern char **environ;
 
 namespace Natalie {
 
+static Value env_size(Env *env, Value self, Args, Block *) {
+    return self->send(env, "size"_s);
+}
+
+static inline StringObject *string_with_default_encoding(const char *str) {
+    if (EncodingObject::default_internal())
+        return new StringObject { str, EncodingObject::default_internal() };
+    return new StringObject { str };
+}
+
+static inline StringObject *string_with_default_encoding(const char *str, size_t len) {
+    if (EncodingObject::default_internal())
+        return new StringObject { str, len, EncodingObject::default_internal() };
+    return new StringObject { str, len };
+}
+
 Value EnvObject::inspect(Env *env) {
     return this->to_hash(env, nullptr)->as_hash()->inspect(env);
 }
@@ -23,9 +39,8 @@ Value EnvObject::to_hash(Env *env, Block *block) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        Value name = new StringObject { pair };
-        name->as_string()->truncate(index);
-        Value value = new StringObject { getenv(name->as_string()->c_str()) };
+        Value name = string_with_default_encoding(pair, index);
+        Value value = string_with_default_encoding(getenv(name->as_string()->c_str()));
         if (block) {
             auto transformed = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args({ name, value }), nullptr);
             if (!transformed->is_array() && transformed->respond_to(env, "to_ary"_s))
@@ -52,6 +67,16 @@ size_t EnvObject::size() const {
         pair = *(environ + idx);
     }
     return idx;
+}
+
+Value EnvObject::delete_if(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
+    }
+
+    reject_in_place(env, block);
+    return this;
 }
 
 Value EnvObject::delete_key(Env *env, Value name, Block *block) {
@@ -148,10 +173,18 @@ Value EnvObject::ref(Env *env, Value name) {
     namestr = name->is_string() ? name->as_string() : name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
-        return new StringObject { value };
+        return string_with_default_encoding(value);
     } else {
         return NilObject::the();
     }
+}
+
+Value EnvObject::except(Env *env, Args args) {
+    auto result = to_hash(env, nullptr)->as_hash();
+    for (size_t i = 0; i < args.size(); i++) {
+        result->remove(env, args[i]);
+    }
+    return result;
 }
 
 Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) {
@@ -182,6 +215,16 @@ Value EnvObject::refeq(Env *env, Value name, Value value) {
             env->raise_errno();
     }
     return value;
+}
+
+Value EnvObject::keep_if(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
+    }
+
+    select_in_place(env, block);
+    return this;
 }
 
 Value EnvObject::key(Env *env, Value value) {
@@ -245,6 +288,35 @@ Value EnvObject::clear(Env *env) {
     return this;
 }
 
+Value EnvObject::reject(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "reject"_s }, size_block);
+    }
+
+    return to_hash(env, nullptr)->as_hash()->delete_if(env, block);
+}
+
+Value EnvObject::reject_in_place(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "reject!"_s }, size_block);
+    }
+
+    auto hash = to_hash(env, nullptr)->as_hash();
+    auto keys = hash->keys(env)->as_array();
+    if (hash->send(env, "reject!"_s, {}, block)->is_nil())
+        // No changes
+        return NilObject::the();
+
+    for (size_t i = 0; i < keys->size(); i++) {
+        auto key = keys->at(i);
+        if (!hash->has_key(env, key))
+            unsetenv(key->as_string()->c_str());
+    }
+    return this;
+}
+
 Value EnvObject::replace(Env *env, Value hash) {
     hash->assert_type(env, Object::Type::Hash, "Hash");
     for (HashObject::Key &node : *hash->as_hash()) {
@@ -260,6 +332,35 @@ Value EnvObject::replace(Env *env, Value hash) {
     return this;
 }
 
+Value EnvObject::select(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "select"_s }, size_block);
+    }
+
+    return to_hash(env, nullptr)->as_hash()->keep_if(env, block);
+}
+
+Value EnvObject::select_in_place(Env *env, Block *block) {
+    if (!block) {
+        Block *size_block = new Block { env, this, env_size, 0 };
+        return send(env, "enum_for"_s, { "select!"_s }, size_block);
+    }
+
+    auto hash = to_hash(env, nullptr)->as_hash();
+    auto keys = hash->keys(env)->as_array();
+    if (hash->send(env, "select!"_s, {}, block)->is_nil())
+        // No changes
+        return NilObject::the();
+
+    for (size_t i = 0; i < keys->size(); i++) {
+        auto key = keys->at(i);
+        if (!hash->has_key(env, key))
+            unsetenv(key->as_string()->c_str());
+    }
+    return this;
+}
+
 Value EnvObject::shift() {
     if (!environ)
         return NilObject::the();
@@ -270,8 +371,8 @@ Value EnvObject::shift() {
 
     char *eq = strchr(pair, '=');
     assert(eq);
-    auto name = new StringObject { pair, static_cast<size_t>(eq - pair) };
-    auto value = new StringObject { getenv(name->c_str()) };
+    auto name = string_with_default_encoding(pair, static_cast<size_t>(eq - pair));
+    auto value = string_with_default_encoding(getenv(name->c_str()));
     unsetenv(name->c_str());
     return new ArrayObject { name, value };
 }

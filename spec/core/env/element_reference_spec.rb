@@ -71,8 +71,6 @@ describe "ENV.[]" do
     ENV[@variable] = ""
     Encoding.default_internal = Encoding::IBM437
 
-    NATFIXME 'Encodings', exception: SpecFailedException do
-      ENV[@variable].encoding.should equal(Encoding::IBM437)
-    end
+    ENV[@variable].encoding.should equal(Encoding::IBM437)
   end
 end
