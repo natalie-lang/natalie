@@ -1711,6 +1711,17 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     }
 }
 
+Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
+    assert_not_frozen(env);
+
+    auto replacement = sub(env, find, replacement_value, block)->as_string()->string();
+    if (m_string == replacement)
+        return NilObject::the();
+
+    m_string = replacement;
+    return this;
+}
+
 Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
     StringObject *replacement = nullptr;
     if (replacement_value) {

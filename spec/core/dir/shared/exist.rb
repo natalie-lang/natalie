@@ -28,11 +28,9 @@ describe :dir_exist, shared: true do
   end
 
   it "doesn't require the name to have a trailing slash" do
-    NATFIXME "Pending String#sub! implementation", exception: NoMethodError, message: /undefined method `sub!'/ do
-      dir = File.dirname(__FILE__)
-      dir.sub!(/\/$/,'')
-      Dir.send(@method, dir).should be_true
-    end
+    dir = File.dirname(__FILE__)
+    dir.sub!(/\/$/,'')
+    Dir.send(@method, dir).should be_true
   end
 
   it "doesn't expand paths" do

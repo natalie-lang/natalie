@@ -283,6 +283,7 @@ public:
     Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
     Value getbyte(Env *, Value) const;
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value sub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
     bool ascii_only(Env *) const;

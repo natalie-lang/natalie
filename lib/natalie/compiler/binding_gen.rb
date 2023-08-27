@@ -1236,6 +1236,7 @@ gen.binding('String', 'start_with?', 'StringObject', 'start_with', argc: :any, p
 gen.binding('String', 'strip', 'StringObject', 'strip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'strip!', 'StringObject', 'strip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'sub', 'StringObject', 'sub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'sub!', 'StringObject', 'sub_in_place', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'succ', 'StringObject', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'succ!', 'StringObject', 'successive_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'swapcase', 'StringObject', 'swapcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)

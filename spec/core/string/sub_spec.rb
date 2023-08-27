@@ -309,8 +309,7 @@ describe "String#sub with pattern and block" do
   end
 end
 
-# NATFIXME: Implement String#sub!
-xdescribe "String#sub! with pattern, replacement" do
+describe "String#sub! with pattern, replacement" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.sub!(/[aeiou]/, '*').should equal(a)
@@ -355,8 +354,7 @@ xdescribe "String#sub! with pattern, replacement" do
   end
 end
 
-# NATFIXME: Implement String#sub!
-xdescribe "String#sub! with pattern and block" do
+describe "String#sub! with pattern and block" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.sub!(/[aeiou]/) { '*' }.should equal(a)
@@ -365,20 +363,22 @@ xdescribe "String#sub! with pattern and block" do
 
   it "sets $~ for access from the block" do
     str = "hello"
-    str.dup.sub!(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
-    str.dup.sub!(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
-    str.dup.sub!("l") { "<#{$~[0]}>" }.should == "he<l>lo"
+    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil" do
+      str.dup.sub!(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
+      str.dup.sub!(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
+      str.dup.sub!("l") { "<#{$~[0]}>" }.should == "he<l>lo"
 
-    offsets = []
+      offsets = []
 
-    str.dup.sub!(/([aeiou])/) do
-       md = $~
-       md.string.should == str
-       offsets << md.offset(0)
-       str
-    end.should == "hhellollo"
+      str.dup.sub!(/([aeiou])/) do
+         md = $~
+         md.string.should == str
+         offsets << md.offset(0)
+         str
+      end.should == "hhellollo"
 
-    offsets.should == [[1, 2]]
+      offsets.should == [[1, 2]]
+    end
   end
 
   it "returns nil if no modifications were made" do
@@ -390,7 +390,9 @@ xdescribe "String#sub! with pattern and block" do
 
   it "raises a RuntimeError if the string is modified while substituting" do
     str = "hello"
-    -> { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
+    NATFIXME 'raises a RuntimeError if the string is modified while substituting', exception: SpecFailedException do
+      -> { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
+    end
   end
 
   it "raises a FrozenError when self is frozen" do
@@ -486,32 +488,41 @@ describe "String#sub with pattern and Hash" do
 
 end
 
-# NATFIXME: Implement String#sub!
-xdescribe "String#sub! with pattern and Hash" do
+describe "String#sub! with pattern and Hash" do
 
   it "returns self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
-    "hello".sub!(/./, 'l' => 'L').should == "ello"
-    "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
-    "hello".sub!('l', 'l' => 'el').should == 'heello'
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "hello".sub!(/./, 'l' => 'L').should == "ello"
+      "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+      "hello".sub!('l', 'l' => 'el').should == 'heello'
+    end
   end
 
   it "removes keys that don't correspond to matches" do
-    "hello".sub!(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "hello".sub!(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
+    end
   end
 
   it "ignores non-String keys" do
-    "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
+    end
   end
 
   it "uses a key's value only a single time" do
-    "food".sub!(/o/, 'o' => '0').should == "f0od"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "food".sub!(/o/, 'o' => '0').should == "f0od"
+    end
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    "food".sub!(/./, hsh).should == "?ood"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "food".sub!(/./, hsh).should == "?ood"
+    end
   end
 
   it "coerces the hash values with #to_s" do
@@ -519,35 +530,43 @@ xdescribe "String#sub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    obj.should_receive(:to_s).and_return('!')
-    hsh['f'] = obj
-    "food!".sub!(/./, hsh).should == "!ood!"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      obj.should_receive(:to_s).and_return('!')
+      hsh['f'] = obj
+      "food!".sub!(/./, hsh).should == "!ood!"
+    end
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    "food!".sub!(/./, hsh).should == "lambood!"
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "food!".sub!(/./, hsh).should == "lambood!"
+    end
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
-    'hello.'.sub!('l', 'l' => 'L')
-    $~.begin(0).should == 2
-    $~[0].should == 'l'
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      'hello.'.sub!('l', 'l' => 'L')
+      $~.begin(0).should == 2
+      $~[0].should == 'l'
 
-    'hello.'.sub!('not', 'ot' => 'to')
-    $~.should == nil
+      'hello.'.sub!('not', 'ot' => 'to')
+      $~.should == nil
 
-    'hello.'.sub!(/.(.)/, 'o' => ' hole')
-    $~[0].should == 'he'
+      'hello.'.sub!(/.(.)/, 'o' => ' hole')
+      $~[0].should == 'he'
 
-    'hello.'.sub!(/not/, 'z' => 'glark')
-    $~.should == nil
+      'hello.'.sub!(/not/, 'z' => 'glark')
+      $~.should == nil
+    end
   end
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
+    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
+    end
   end
 end
 
@@ -557,8 +576,7 @@ describe "String#sub with pattern and without replacement and block" do
   end
 end
 
-# NATFIXME: Implement String#sub!
-xdescribe "String#sub! with pattern and without replacement and block" do
+describe "String#sub! with pattern and without replacement and block" do
   it "raises a ArgumentError" do
     -> { "abca".sub!(/a/) }.should raise_error(ArgumentError)
   end
