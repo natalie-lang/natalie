@@ -6,18 +6,15 @@ NATFIXME 'Add a stub fiber.rb', exception: LoadError do
 end
 
 describe "Fiber.blocking?" do
-  # NATFIXME: Shared with Fiber#blocking?
-  # it_behaves_like :non_blocking_fiber, -> { Fiber.blocking? }
+  it_behaves_like :non_blocking_fiber, -> { Fiber.blocking? }
 
   context "when fiber is blocking" do
     context "root Fiber of the main thread" do
       it "returns 1 for blocking: true" do
-        NATFIXME 'Implement Fiber.blocking?', exception: NoMethodError, message: "undefined method `blocking?' for Fiber:Class" do
-          fiber = Fiber.new(blocking: true) { Fiber.blocking? }
-          blocking = fiber.resume
+        fiber = Fiber.new(blocking: true) { Fiber.blocking? }
+        blocking = fiber.resume
 
-          blocking.should == 1
-        end
+        blocking.should == 1
       end
     end
 

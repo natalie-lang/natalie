@@ -46,6 +46,10 @@ bool FiberObject::is_blocking() const {
     return m_blocking;
 }
 
+Value FiberObject::is_blocking_current() {
+    return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
+}
+
 Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
