@@ -26,9 +26,10 @@ describe :enumerator_lazy_to_enum, shared: true do
     Enumerator::Lazy.new(Object.new, 100) {}.send(@method) { 30 }.size.should == 30
   end
 
-  # TODO: Enumerator::Lazy#with_index
-  xit "generates a lazy enumerator from the given name" do
-    @infinite.send(@method, :with_index, 10).first(3).should == [[0, 10], [1, 11], [2, 12]]
+  it "generates a lazy enumerator from the given name" do
+    NATFIXME 'Enumerator::Lazy#with_index', exception: SpecFailedException do
+      @infinite.send(@method, :with_index, 10).first(3).should == [[0, 10], [1, 11], [2, 12]]
+    end
   end
 
   it "passes given arguments to wrapped method" do
@@ -51,10 +52,11 @@ describe :enumerator_lazy_to_enum, shared: true do
     end
   end
 
-  # TODO: Enumerator::Lazy#with_index has to be implemented
-  xit "works with an infinite enumerable" do
+  it "works with an infinite enumerable" do
     s = 0..Float::INFINITY
-    s.lazy.send(@method, :with_index).first(100).should ==
-      s.first(100).to_enum.send(@method, :with_index).to_a
+    NATFIXME 'Enumerator::Lazy#with_index', exception: SpecFailedException do
+      s.lazy.send(@method, :with_index).first(100).should ==
+        s.first(100).to_enum.send(@method, :with_index).to_a
+    end
   end
 end

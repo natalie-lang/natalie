@@ -36,7 +36,7 @@ describe :hash_store, shared: true do
     h[key].should == "foo"
   end
 
-  xit "accepts keys with an Integer hash" do
+  it "accepts keys with an Integer hash" do
     o = mock(hash: 1 << 100)
     h = {}
     h[o] = 1

@@ -11,8 +11,7 @@ describe :array_clone, shared: true do
     b.last.should equal a.last
   end
 
-  #FIXME add back once __id__ has been properly implemented
-  xit "creates a new array containing all elements or the original" do
+  it "creates a new array containing all elements or the original" do
     a = [1, 2, 3, 4]
     b = a.send @method
     b.should == a

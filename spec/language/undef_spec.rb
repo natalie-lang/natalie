@@ -45,12 +45,13 @@ describe "The undef keyword" do
       -> { @obj.meth(5) }.should raise_error(NoMethodError)
     end
 
-    # TODO: support real dynamic symbol
-    xit "with a interpolated symbol" do
+    it "with a interpolated symbol" do
       @undef_class.class_eval do
         undef :"me#{'th'}"
       end
-      -> { @obj.meth(5) }.should raise_error(NoMethodError)
+      NATFIXME 'support real dynamic symbol', exception: SpecFailedException do
+        -> { @obj.meth(5) }.should raise_error(NoMethodError)
+      end
     end
   end
 

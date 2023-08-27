@@ -720,6 +720,7 @@ describe 'string' do
       s.chop!
       s.should == ''.force_encoding('EUCJP')
     end
+
     # NATFIXME: Pending implementation of EucJpEncoding::decode_codepoint
     xit "chops the last char of a string with single-byte final char" do
       # single-byte char

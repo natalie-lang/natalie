@@ -32,7 +32,7 @@ describe "Enumerator::Lazy#grep_v" do
     Enumerator::Lazy.new(Object.new, 100) {}.grep_v(Object).size.should == nil
   end
 
-  xit "sets $~ in the block" do
+  it "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep_v(/e/) { |e|
       e.should == "abc"
@@ -40,21 +40,27 @@ describe "Enumerator::Lazy#grep_v" do
     }.force
 
     # Set by the match of "def"
-    $&.should == "e"
+    NATFIXME 'Implement $&', exception: SpecFailedException do
+      $&.should == "e"
+    end
   end
 
-  xit "sets $~ in the next block with each" do
+  it "sets $~ in the next block with each" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep_v(/e/).each { |e|
       e.should == "abc"
-      $~.should == nil
+      NATFIXME 'Implement $~', exception: SpecFailedException do
+        $~.should == nil
+      end
     }
 
     # Set by the match of "def"
-    $&.should == "e"
+    NATFIXME 'Implement $&', exception: SpecFailedException do
+      $&.should == "e"
+    end
   end
 
-  xit "sets $~ in the next block with map" do
+  it "sets $~ in the next block with map" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].lazy.grep_v(/e/).map { |e|
       e.should == "abc"
@@ -62,7 +68,9 @@ describe "Enumerator::Lazy#grep_v" do
     }.force
 
     # Set by the match of "def"
-    $&.should == "e"
+    NATFIXME 'Implement $&', exception: SpecFailedException do
+      $&.should == "e"
+    end
   end
 
   describe "when the returned lazy enumerator is evaluated by Enumerable#first" do

@@ -28,12 +28,10 @@ describe "Enumerable#sort" do
     }.should == [true, true, nil, nil, nil, nil, nil, false, false]
   end
 
-  # TODO: Natalie has no Comparable module with results in "" <=> 0 raising a
-  # NoMethodError instead of a ArgumentError
-  xit "compare values returned by block with 0" do
+  it "compare values returned by block with 0" do
     EnumerableSpecs::Numerous.new.sort { |n, m| -(n+m) * (n <=> m) }.should == [6, 5, 4, 3, 2, 1]
     EnumerableSpecs::Numerous.new.sort { |n, m|
-      EnumerableSpecs::ComparableWithFixnum.new(-(n+m) * (n <=> m))
+      EnumerableSpecs::ComparableWithInteger.new(-(n+m) * (n <=> m))
     }.should == [6, 5, 4, 3, 2, 1]
     -> {
       EnumerableSpecs::Numerous.new.sort { |n, m| (n <=> m).to_s }

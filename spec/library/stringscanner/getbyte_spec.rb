@@ -6,11 +6,13 @@ require 'strscan'
 describe "StringScanner#getbyte" do
   it_behaves_like :strscan_get_byte, :getbyte
 
-  xit "warns in verbose mode that the method is obsolete" do
+  it "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
-    -> {
-      s.getbyte
-    }.should complain(/getbyte.*obsolete.*get_byte/, verbose: true)
+    NATFIXME 'Warnings', exception: SpecFailedException do
+      -> {
+        s.getbyte
+      }.should complain(/getbyte.*obsolete.*get_byte/, verbose: true)
+    end
 
     -> {
       s.getbyte

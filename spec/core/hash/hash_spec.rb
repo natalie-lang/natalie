@@ -35,10 +35,12 @@ describe "Hash#hash" do
     # Check the Hash#eql? specs!
   end
 
-  xit "returns the same hash for recursive hashes through arrays" do
+  it "returns the same hash for recursive hashes through arrays" do
     h = {} ; rec = [h] ; h[:x] = rec
-    h.hash.should == {x: rec}.hash
-    h.hash.should == {x: [h]}.hash
+    NATFIXME 'returns the same hash for recursive hashes through arrays', exception: SpecFailedException do
+      h.hash.should == {x: rec}.hash
+      h.hash.should == {x: [h]}.hash
+    end
     # Like above, because h.eql?(x: [h])
   end
 end
