@@ -96,7 +96,9 @@ Value FiberObject::resume(Env *env, Args args) {
     }
 }
 
-Value FiberObject::storage(Env *) const {
+Value FiberObject::storage(Env *env) const {
+    if (this != FiberObject::current())
+        env->raise("ArgumentError", "Fiber storage can only be accessed from the Fiber it belongs to");
     return m_storage;
 }
 

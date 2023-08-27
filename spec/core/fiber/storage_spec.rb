@@ -40,12 +40,10 @@ end
 
 describe "Fiber#storage" do
   it "cannot be accessed from a different fiber" do
-    NATFIXME 'Access checks onf Fiber#storage', exception: SpecFailedException do
-      f = Fiber.new(storage: {life: 42}) { nil }
-      -> {
-        f.storage
-      }.should raise_error(ArgumentError, /Fiber storage can only be accessed from the Fiber it belongs to/)
-    end
+    f = Fiber.new(storage: {life: 42}) { nil }
+    -> {
+      f.storage
+    }.should raise_error(ArgumentError, /Fiber storage can only be accessed from the Fiber it belongs to/)
   end
 end
 
