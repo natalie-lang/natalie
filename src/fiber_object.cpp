@@ -80,6 +80,15 @@ Value FiberObject::ref(Env *env, Value key) {
     return fiber->m_storage->ref(env, key);
 }
 
+Value FiberObject::refeq(Env *env, Value key, Value value) {
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    if (s_current->m_storage == nullptr)
+        s_current->m_storage = new HashObject {};
+    s_current->m_storage->refeq(env, key, value);
+    return value;
+}
+
 Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");

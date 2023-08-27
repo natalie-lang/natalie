@@ -11,9 +11,7 @@ describe "Fiber.new(storage:)" do
   end
 
   it "creates a fiber with lazily initialized storage" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      Fiber.new(storage: nil) { Fiber[:x] = 10; Fiber.current.storage }.resume.should == {x: 10}
-    end
+    Fiber.new(storage: nil) { Fiber[:x] = 10; Fiber.current.storage }.resume.should == {x: 10}
   end
 
   it "creates a fiber by inheriting the storage of the parent fiber" do
@@ -47,14 +45,12 @@ end
 
 describe "Fiber#storage=" do
   it "can clear the storage of the fiber" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      fiber = Fiber.new(storage: {life: 42}) do
-        Fiber.current.storage = nil
-        Fiber[:x] = 10
-        Fiber.current.storage
-      end
-      fiber.resume.should == {x: 10}
+    fiber = Fiber.new(storage: {life: 42}) do
+      Fiber.current.storage = nil
+      Fiber[:x] = 10
+      Fiber.current.storage
     end
+    fiber.resume.should == {x: 10}
   end
 
   it "can set the storage of the fiber" do
@@ -105,38 +101,28 @@ end
 
 describe "Fiber.[]=" do
   it "sets the value of the given key in the storage of the current fiber" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      Fiber.new(storage: {life: 42}) { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
-    end
+    Fiber.new(storage: {life: 42}) { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
   end
 
   it "sets the value of the given key in the storage of the current fiber" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      Fiber.new(storage: {life: 42}) { Fiber[:death] = 43; Fiber[:death] }.resume.should == 43
-    end
+    Fiber.new(storage: {life: 42}) { Fiber[:death] = 43; Fiber[:death] }.resume.should == 43
   end
 
   it "sets the value of the given key in the storage of the current fiber" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
-    end
+    Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
   end
 
   it "does not overwrite the storage of the parent fiber" do
-    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
-      f = Fiber.new(storage: {life: 42}) do
-        Fiber.yield Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume
-        Fiber[:life]
-      end
-      f.resume.should == 43 # Value of the inner fiber
-      f.resume.should == 42 # Value of the outer fiber
+    f = Fiber.new(storage: {life: 42}) do
+      Fiber.yield Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume
+      Fiber[:life]
     end
+    f.resume.should == 43 # Value of the inner fiber
+    f.resume.should == 42 # Value of the outer fiber
   end
 
   it "can't access the storage of the fiber with non-symbol keys" do
-    NATFIXME 'Implement Fiber.[]=', exception: SpecFailedException do
-      -> { Fiber[Object.new] = 44 }.should raise_error(TypeError)
-    end
+    -> { Fiber[Object.new] = 44 }.should raise_error(TypeError)
   end
 
   ruby_version_is "3.3" do
