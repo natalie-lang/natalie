@@ -417,8 +417,14 @@ module Kernel
               when 'd', 'u', 'i'
                 d = arg.to_i.to_s
                 apply_number_flags.(d, token.flags)
-              when 'f'
-                f = arg.to_f.to_s
+              when 'e', 'E', 'f', 'g', 'G'
+                f = if arg.is_a?(Float)
+                      arg.to_s
+                    elsif arg.respond_to?(:to_ary)
+                      arg.to_ary.first.to_s
+                    else
+                      Float(arg).to_s
+                    end
                 f = apply_number_flags.(f, token.flags)
                 f << '.0' unless f.index('.')
                 f << '0' until f.split('.').last.size >= token.precision

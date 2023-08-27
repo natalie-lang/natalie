@@ -722,13 +722,13 @@ describe "String#%" do
   %w(e E f g G).each do |f|
     format = "%" + f
 
-    xit "tries to convert the passed argument to an Array using #to_ary" do
+    it "tries to convert the passed argument to an Array using #to_ary" do
       obj = mock('3.14')
       obj.should_receive(:to_ary).and_return([3.14])
       (format % obj).should == (format % [3.14])
     end
 
-    xit "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument does not respond to #to_ary" do
+    it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument does not respond to #to_ary" do
       (format % 10).should == (format % 10.0)
       (format % "-10.4e-20").should == (format % -10.4e-20)
       (format % ".5").should == (format % 0.5)
@@ -754,7 +754,7 @@ describe "String#%" do
       (format % obj).should == (format % 5.0)
     end
 
-    xit "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
+    it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
       (format % "0xA").should == (format % 0xA)
     end
   end
