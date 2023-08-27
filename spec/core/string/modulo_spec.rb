@@ -688,7 +688,7 @@ describe "String#%" do
   %w(b d i o u x X).each do |f|
     format = "%" + f
 
-    xit "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
+    it "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
       (format % "10").should == (format % Kernel.Integer("10"))
       (format % "0x42").should == (format % Kernel.Integer("0x42"))
       (format % "0b1101").should == (format % Kernel.Integer("0b1101"))

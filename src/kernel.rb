@@ -363,6 +363,16 @@ module Kernel
       arguments[position - 1]
     end
 
+    convert_int = lambda do |i|
+      if i.is_a?(Integer)
+        i
+      elsif i.respond_to?(:to_ary)
+        i.to_ary.first
+      else
+        Integer(i)
+      end
+    end
+
     result = tokens.map do |token|
       case token.type
       when :str
@@ -389,11 +399,11 @@ module Kernel
                   raise ArgumentError, 'malformed format string'
                 end
               when 'b'
-                b = arg.to_s(2)
+                b = convert_int.(arg).to_s(2)
                 b = "0b#{b}" if token.flags.include?(:alternate_format) && b != '0'
                 apply_number_flags.(b, token.flags)
               when 'B'
-                b = arg.to_s(2)
+                b = convert_int.(arg).to_s(2)
                 b = "0B#{b}" if token.flags.include?(:alternate_format) && b != '0'
                 apply_number_flags.(b, token.flags)
               when 'c'
@@ -415,7 +425,7 @@ module Kernel
                   raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
                 end
               when 'd', 'u', 'i'
-                d = arg.to_i.to_s
+                d = convert_int.(arg).to_s
                 apply_number_flags.(d, token.flags)
               when 'e', 'E', 'f', 'g', 'G'
                 f = if arg.is_a?(Float)
@@ -430,7 +440,7 @@ module Kernel
                 f << '0' until f.split('.').last.size >= token.precision
                 f
               when 'o'
-                o = arg.to_i.to_s(8)
+                o = convert_int.(arg).to_s(8)
                 o = "0#{o}" if token.flags.include?(:alternate_format) && o != '0'
                 apply_number_flags.(o, token.flags)
               when 'p'
@@ -438,11 +448,11 @@ module Kernel
               when 's'
                 arg.to_s
               when 'x'
-                x = arg.to_i.to_s(16)
+                x = convert_int.(arg).to_s(16)
                 x = "0x#{x}" if token.flags.include?(:alternate_format) && x != '0'
                 apply_number_flags.(x, token.flags)
               when 'X'
-                x = arg.to_i.to_s(16).upcase
+                x = convert_int.(arg).to_s(16).upcase
                 x = "0X#{x}" if token.flags.include?(:alternate_format) && x != '0'
                 apply_number_flags.(x, token.flags)
               else
