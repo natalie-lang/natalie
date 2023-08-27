@@ -347,7 +347,7 @@ end
 describe "String#gsub! with pattern and Hash" do
 
   it "returns self with all occurrences of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "hello".gsub!(/./, 'l' => 'L').should == "LL"
       "hello!".gsub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
       "hello".gsub!('l', 'l' => 'el').should == 'heelelo'
@@ -355,25 +355,25 @@ describe "String#gsub! with pattern and Hash" do
   end
 
   it "ignores keys that don't correspond to matches" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "hello".gsub!(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
     end
   end
 
   it "replaces self with an empty string if the pattern matches but the hash specifies no replacements" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "hello".gsub!(/./, 'z' => 'L').should == ""
     end
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "hello".gsub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
     end
   end
 
   it "uses a key's value as many times as needed" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "food".gsub!(/o/, 'o' => '0').should == "f00d"
     end
   end
@@ -382,7 +382,7 @@ describe "String#gsub! with pattern and Hash" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "food".gsub!(/./, hsh).should == "?00?"
     end
   end
@@ -392,9 +392,9 @@ describe "String#gsub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    # obj.should_receive(:to_s).and_return('!')
-    hsh['!'] = obj
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      obj.should_receive(:to_s).and_return('!')
+      hsh['!'] = obj
       "food!".gsub!(/./, hsh).should == "[]00[]!"
     end
   end
@@ -402,13 +402,13 @@ describe "String#gsub! with pattern and Hash" do
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "food!".gsub!(/./, hsh).should == "lamblamblamblamblamb"
     end
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       'hello.'.gsub!('l', 'l' => 'L')
       $~.begin(0).should == 3
       $~[0].should == 'l'
@@ -426,7 +426,7 @@ describe "String#gsub! with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
       "hello".gsub!(/(.+)/, 'hello' => repl ).should == repl
     end
   end
@@ -587,27 +587,22 @@ end
 describe "String#gsub! with pattern and replacement" do
   it "modifies self in place and returns self" do
     a = "hello"
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      a.gsub!(/[aeiou]/, '*').should equal(a)
-      a.should == "h*ll*"
-    end
+    a.gsub!(/[aeiou]/, '*').should equal(a)
+    a.should == "h*ll*"
   end
 
-  it "modifies self in place with multi-byte characters and returns self" do
+  # NATFIXME: Fix infinite loop
+  xit "modifies self in place with multi-byte characters and returns self" do
     a = "¿por qué?"
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      a.gsub!(/([a-z\d]*)/, "*").should equal(a)
-      a.should == "*¿** **é*?*"
-    end
+    a.gsub!(/([a-z\d]*)/, "*").should equal(a)
+    a.should == "*¿** **é*?*"
   end
 
   it "returns nil if no modifications were made" do
     a = "hello"
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      a.gsub!(/z/, '*').should == nil
-      a.gsub!(/z/, 'z').should == nil
-      a.should == "hello"
-    end
+    a.gsub!(/z/, '*').should == nil
+    a.gsub!(/z/, 'z').should == nil
+    a.should == "hello"
   end
 
   # See [ruby-core:23666]
@@ -615,55 +610,45 @@ describe "String#gsub! with pattern and replacement" do
     s = "hello"
     s.freeze
 
-    NATFIXME 'Implement String#gsub!', exception: SpecFailedException do
-      -> { s.gsub!(/ROAR/, "x")    }.should raise_error(FrozenError)
-      -> { s.gsub!(/e/, "e")       }.should raise_error(FrozenError)
-      -> { s.gsub!(/[aeiou]/, '*') }.should raise_error(FrozenError)
-    end
+    -> { s.gsub!(/ROAR/, "x")    }.should raise_error(FrozenError)
+    -> { s.gsub!(/e/, "e")       }.should raise_error(FrozenError)
+    -> { s.gsub!(/[aeiou]/, '*') }.should raise_error(FrozenError)
   end
 
   it "handles a pattern in a superset encoding" do
     string = 'abc'.force_encoding(Encoding::US_ASCII)
 
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      result = string.gsub!('é', 'è')
+    result = string.gsub!('é', 'è')
 
-      result.should == nil
-      string.should == 'abc'
-      string.encoding.should == Encoding::US_ASCII
-    end
+    result.should == nil
+    string.should == 'abc'
+    string.encoding.should == Encoding::US_ASCII
   end
 
   it "handles a pattern in a subset encoding" do
     string = 'été'
     pattern = 't'.force_encoding(Encoding::US_ASCII)
 
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      result = string.gsub!(pattern, 'u')
+    result = string.gsub!(pattern, 'u')
 
-      result.should == string
-      string.should == 'éué'
-      string.encoding.should == Encoding::UTF_8
-    end
+    result.should == string
+    string.should == 'éué'
+    string.encoding.should == Encoding::UTF_8
   end
 end
 
 describe "String#gsub! with pattern and block" do
   it "modifies self in place and returns self" do
     a = "hello"
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      a.gsub!(/[aeiou]/) { '*' }.should equal(a)
-      a.should == "h*ll*"
-    end
+    a.gsub!(/[aeiou]/) { '*' }.should equal(a)
+    a.should == "h*ll*"
   end
 
   it "returns nil if no modifications were made" do
     a = "hello"
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
-      a.gsub!(/z/) { '*' }.should == nil
-      a.gsub!(/z/) { 'z' }.should == nil
-      a.should == "hello"
-    end
+    a.gsub!(/z/) { '*' }.should == nil
+    a.gsub!(/z/) { 'z' }.should == nil
+    a.should == "hello"
   end
 
   # See [ruby-core:23663]
@@ -671,18 +656,16 @@ describe "String#gsub! with pattern and block" do
     s = "hello"
     s.freeze
 
-    NATFIXME 'Implement String#gsub!', exception: SpecFailedException do
-      -> { s.gsub!(/ROAR/)    { "x" } }.should raise_error(FrozenError)
-      -> { s.gsub!(/e/)       { "e" } }.should raise_error(FrozenError)
-      -> { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(FrozenError)
-    end
+    -> { s.gsub!(/ROAR/)    { "x" } }.should raise_error(FrozenError)
+    -> { s.gsub!(/e/)       { "e" } }.should raise_error(FrozenError)
+    -> { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(FrozenError)
   end
 
   it "uses the compatible encoding if they are compatible" do
     s  = "hello"
     s2 = "#{195.chr}#{192.chr}#{195.chr}"
 
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Encodings', exception: SpecFailedException do
       s.gsub!(/l/) { |bar| 195.chr }.encoding.should == Encoding::BINARY
       s2.gsub!("#{192.chr}") { |bar| "hello" }.encoding.should == Encoding::BINARY
     end
@@ -701,15 +684,15 @@ describe "String#gsub! with pattern and block" do
   it "replaces the incompatible part properly even if the encodings are not compatible" do
     s = "hllëllo"
 
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Encodings', exception: SpecFailedException do
       s.gsub!(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
     end
   end
 
   not_supported_on :opal do
-    xit "raises an ArgumentError if encoding is not valid" do
+    it "raises an ArgumentError if encoding is not valid" do
       x92 = [0x92].pack('C').force_encoding('utf-8')
-      NATFIXME 'Implement String#gsub!', exception: SpecFailedException do
+      NATFIXME 'Encodings', exception: SpecFailedException do
         -> { "a#{x92}b".gsub!(/[^\x00-\x7f]/u, '') }.should raise_error(ArgumentError)
       end
     end
@@ -718,7 +701,7 @@ end
 
 describe "String#gsub! with pattern and without replacement and block" do
   it "returns an enumerator" do
-    NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+    NATFIXME 'Enumerator reply in String#gsub!', exception: NotImplementedError do
       enum = "abca".gsub!(/a/)
       enum.should be_an_instance_of(Enumerator)
       enum.to_a.should == ["a", "a"]
@@ -728,7 +711,7 @@ describe "String#gsub! with pattern and without replacement and block" do
   describe "returned Enumerator" do
     describe "size" do
       it "should return nil" do
-        NATFIXME 'Implement String#gsub!', exception: NoMethodError, message: "undefined method `gsub!'" do
+        NATFIXME 'Enumerator reply in String#gsub!', exception: NotImplementedError do
           "abca".gsub!(/a/).size.should == nil
         end
       end

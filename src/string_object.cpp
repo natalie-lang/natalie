@@ -1750,6 +1750,17 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     }
 }
 
+Value StringObject::gsub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
+    assert_not_frozen(env);
+
+    auto replacement = gsub(env, find, replacement_value, block)->as_string()->string();
+    if (m_string == replacement)
+        return NilObject::the();
+
+    m_string = replacement;
+    return this;
+}
+
 Value StringObject::getbyte(Env *env, Value index_obj) const {
     nat_int_t index = IntegerObject::convert_to_nat_int_t(env, index_obj);
     nat_int_t length = static_cast<nat_int_t>(m_string.length());
