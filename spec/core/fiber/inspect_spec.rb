@@ -4,8 +4,10 @@ require 'fiber'
 describe "Fiber#inspect" do
   describe "status" do
     it "is resumed for the root Fiber of a Thread" do
-      inspected = Thread.new { Fiber.current.inspect }.value
-      inspected.should =~ /\A#<Fiber:0x\h+ .*\(resumed\)>\z/
+      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+        inspected = Thread.new { Fiber.current.inspect }.value
+        inspected.should =~ /\A#<Fiber:0x\h+ .*\(resumed\)>\z/
+      end
     end
 
     it "is created for a Fiber which did not run yet" do
@@ -19,8 +21,10 @@ describe "Fiber#inspect" do
     end
 
     it "is resumed for a Fiber which was transferred" do
-      inspected = Fiber.new { Fiber.current.inspect }.transfer
-      inspected.should =~ /\A#<Fiber:0x\h+ .+ \(resumed\)>\z/
+      NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method `transfer'" do
+        inspected = Fiber.new { Fiber.current.inspect }.transfer
+        inspected.should =~ /\A#<Fiber:0x\h+ .+ \(resumed\)>\z/
+      end
     end
 
     it "is suspended for a Fiber which was resumed and yielded" do

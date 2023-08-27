@@ -35,7 +35,14 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
     m_block = block;
     if (blocking != nullptr)
         m_blocking = blocking->is_truthy();
+    m_file = env->file();
+    m_line = env->line();
     return this;
+}
+
+Value FiberObject::inspect(Env *env) {
+    const TM::String file_and_line { m_file && m_line ? TM::String::format(" {}:{}", *m_file, *m_line) : "" };
+    return StringObject::format("#<{}:{}{} ({})>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed), file_and_line, status(env));
 }
 
 bool FiberObject::is_alive() const {
