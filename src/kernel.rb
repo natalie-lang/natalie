@@ -242,8 +242,12 @@ module Kernel
           precision = nil
           arg_position = nil
         when :positional_argument
-          arg_position = width
+          new_arg_position = width
           width = nil
+          if arg_position
+            raise ArgumentError, "value given twice - #{new_arg_position}$"
+          end
+          arg_position = new_arg_position
         else
           raise ArgumentError, "unknown state: #{state.inspect}"
         end
@@ -285,13 +289,31 @@ module Kernel
     end
 
     arguments_index = 0
+    positional_argument_used = false
+    unnumbered_argument_used = false
     next_argument = lambda do
+      if arguments_index >= arguments.size
+        raise ArgumentError, 'too few arguments'
+      end
+      if positional_argument_used
+        raise ArgumentError, "unnumbered(#{arguments_index}) mixed with numbered"
+      end
       arg = arguments[arguments_index]
+      unnumbered_argument_used = arguments_index
       arguments_index += 1
       arg
     end
 
-    positional_argument_used = false
+    get_positional_argument = lambda do |position|
+      if position > arguments.size
+        raise ArgumentError, 'too few arguments'
+      end
+      if unnumbered_argument_used
+        raise ArgumentError, "numbered(#{position}) after unnumbered(#{unnumbered_argument_used})"
+      end
+      positional_argument_used = position
+      arguments[position - 1]
+    end
 
     result = tokens.map do |token|
       case token.type
@@ -299,8 +321,7 @@ module Kernel
         token.datum
       when :field
         arg = if token.arg_position
-                positional_argument_used = true
-                arguments[token.arg_position - 1]
+                get_positional_argument.(token.arg_position)
               else
                 next_argument.()
               end
