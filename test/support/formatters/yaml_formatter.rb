@@ -15,10 +15,14 @@ class YamlFormatter
       print "exceptions:\n"
       (errors + failures).each do |failure|
         context, test, error = failure
-        outcome = error.is_a?(SpecFailedException) ? 'FAILED' : 'ERROR'
-        str = "#{test} #{outcome}\n"
-        str << error.message << "\n" << error.backtrace.to_s
-        print '- ', str.inspect, "\n"
+        type = error.is_a?(SpecFailedException) ? 'FAILED' : 'ERROR'
+        puts "- type: #{type}"
+        puts "  class: #{error.class.name.inspect}"
+        puts "  message: #{error.message.inspect}"
+        puts "  backtrace: "
+        error.backtrace.each do |line|
+          puts "  - #{line.inspect}"
+        end
       end
     end
 
