@@ -96,6 +96,24 @@ Value FiberObject::resume(Env *env, Args args) {
     }
 }
 
+Value FiberObject::set_storage(Env *env, Value storage) {
+    if (storage == nullptr || storage->is_nil()) {
+        m_storage = nullptr;
+    } else if (!storage->is_hash()) {
+        env->raise("TypeError", "storage must be a hash");
+    } else {
+        if (storage->is_frozen())
+            env->raise("FrozenError", "storage must not be frozen");
+        auto *hash = storage->as_hash();
+        for (auto it = hash->begin(); it != hash->end(); it++) {
+            if (!it->key->is_symbol())
+                env->raise("TypeError", "wrong argument type Object (expected Symbol)");
+        }
+        m_storage = hash;
+    }
+    return m_storage;
+}
+
 Value FiberObject::storage(Env *env) const {
     auto fiber = FiberObject::current();
     if (this != fiber)

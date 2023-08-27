@@ -145,6 +145,7 @@ public:
     bool is_blocking() const;
     static Value is_blocking_current();
     Value resume(Env *env, Args args);
+    Value set_storage(Env *, Value);
     Value storage(Env *) const;
     void yield_back(Env *env, Args args);
 

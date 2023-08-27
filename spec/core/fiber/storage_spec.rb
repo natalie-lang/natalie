@@ -47,7 +47,7 @@ end
 
 describe "Fiber#storage=" do
   it "can clear the storage of the fiber" do
-    NATFIXME 'Implement Fiber#storage=', exception: NoMethodError, message: "undefined method `storage='" do
+    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
       fiber = Fiber.new(storage: {life: 42}) do
         Fiber.current.storage = nil
         Fiber[:x] = 10
@@ -58,31 +58,23 @@ describe "Fiber#storage=" do
   end
 
   it "can set the storage of the fiber" do
-    NATFIXME 'Implement Fiber#storage=', exception: NoMethodError, message: "undefined method `storage='" do
-      fiber = Fiber.new(storage: {life: 42}) do
-        Fiber.current.storage = {life: 43}
-        Fiber.current.storage
-      end
-      fiber.resume.should == {life: 43}
+    fiber = Fiber.new(storage: {life: 42}) do
+      Fiber.current.storage = {life: 43}
+      Fiber.current.storage
     end
+    fiber.resume.should == {life: 43}
   end
 
   it "can't set the storage of the fiber to non-hash" do
-    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
-      -> { Fiber.current.storage = 42 }.should raise_error(TypeError)
-    end
+    -> { Fiber.current.storage = 42 }.should raise_error(TypeError)
   end
 
   it "can't set the storage of the fiber to a frozen hash" do
-    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
-      -> { Fiber.current.storage = {life: 43}.freeze }.should raise_error(FrozenError)
-    end
+    -> { Fiber.current.storage = {life: 43}.freeze }.should raise_error(FrozenError)
   end
 
   it "can't set the storage of the fiber to a hash with non-symbol keys" do
-    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
-      -> { Fiber.current.storage = {life: 43, Object.new => 44} }.should raise_error(TypeError)
-    end
+    -> { Fiber.current.storage = {life: 43, Object.new => 44} }.should raise_error(TypeError)
   end
 end
 
