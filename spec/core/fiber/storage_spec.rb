@@ -6,10 +6,8 @@ require_relative '../../spec_helper'
 describe "Fiber.new(storage:)" do
   it "creates a Fiber with the given storage" do
     storage = {life: 42}
-    NATFIXME 'Implement Fiber#storage', exception: NoMethodError, message: "undefined method `storage'" do
-      fiber = Fiber.new(storage: storage) { Fiber.current.storage }
-      fiber.resume.should == storage
-    end
+    fiber = Fiber.new(storage: storage) { Fiber.current.storage }
+    fiber.resume.should == storage
   end
 
   it "creates a fiber with lazily initialized storage" do
@@ -19,10 +17,10 @@ describe "Fiber.new(storage:)" do
   end
 
   it "creates a fiber by inheriting the storage of the parent fiber" do
-    NATFIXME 'Implement Fiber#storage', exception: NoMethodError, message: "undefined method `storage'" do
-      fiber = Fiber.new(storage: {life: 42}) do
-        Fiber.new { Fiber.current.storage }.resume
-      end
+    fiber = Fiber.new(storage: {life: 42}) do
+      Fiber.new { Fiber.current.storage }.resume
+    end
+    NATFIXME 'creates a fiber by inheriting the storage of the parent fiber', exception: SpecFailedException do
       fiber.resume.should == {life: 42}
     end
   end
@@ -40,16 +38,18 @@ describe "Fiber.new(storage:)" do
   end
 end
 
-ruby_version_is "3.2" do
-  describe "Fiber#storage" do
-    it "cannot be accessed from a different fiber" do
+describe "Fiber#storage" do
+  it "cannot be accessed from a different fiber" do
+    NATFIXME 'Access checks onf Fiber#storage', exception: SpecFailedException do
       f = Fiber.new(storage: {life: 42}) { nil }
       -> {
         f.storage
       }.should raise_error(ArgumentError, /Fiber storage can only be accessed from the Fiber it belongs to/)
     end
   end
+end
 
+ruby_version_is "3.2" do
   describe "Fiber#storage=" do
     it "can clear the storage of the fiber" do
       fiber = Fiber.new(storage: {life: 42}) do

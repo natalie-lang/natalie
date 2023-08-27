@@ -96,6 +96,10 @@ Value FiberObject::resume(Env *env, Args args) {
     }
 }
 
+Value FiberObject::storage(Env *) const {
+    return m_storage;
+}
+
 Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
     if (!current_fiber->m_previous_fiber)
