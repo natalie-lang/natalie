@@ -40,10 +40,11 @@ describe "A block yielded a single" do
       m([1, 2]) { |a=5, b, c, d| [a, b, c, d] }.should == [5, 1, 2, nil]
     end
 
-    xit "assigns elements to required arguments when a keyword rest argument is present" do
-      #m([1, 2]) { |a, **k| [a, k] }.should == [1, {}]
+    it "assigns elements to required arguments when a keyword rest argument is present" do
+      m([1, 2]) { |a, **k| [a, k] }.should == [1, {}]
     end
 
+    # NATFIXME: Stack overflow
     xit "assigns elements to mixed argument types" do
       #suppress_keyword_warning do
         #result = m([1, 2, 3, {x: 9}]) { |a, b=5, *c, d, e: 2, **k| [a, b, c, d, e, k] }
@@ -51,6 +52,7 @@ describe "A block yielded a single" do
       #end
     end
 
+    # NATFIXME: Stack overflow
     xit "assigns symbol keys from a Hash to keyword arguments" do
       #suppress_keyword_warning do
         #result = m(["a" => 1, a: 10]) { |a=nil, **b| [a, b] }

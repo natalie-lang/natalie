@@ -13,9 +13,10 @@ describe :enum_with_index, shared: true do
     a.should == [[1, 0], [2, 1], [3, 2], [4, 3]]
   end
 
-  # TODO: Enumerator has no reference to its origin
-  xit "returns the object being enumerated when given a block" do
-    @enum.send(@method) { |o, i| :glark }.should equal(@origin)
+  it "returns the object being enumerated when given a block" do
+    NATFIXME 'Enumerator has no reference to its origin', exception: SpecFailedException do
+      @enum.send(@method) { |o, i| :glark }.should equal(@origin)
+    end
   end
 
   it "binds splat arguments properly" do

@@ -134,14 +134,15 @@ describe "The alias keyword" do
     -> { Object.__klass_method }.should raise_error(NoMethodError)
   end
 
-  # TODO: implement instance_exec
-  xit "operates on the class/module metaclass when used in instance_exec" do
-    AliasObject.instance_exec do
-      alias __klass_method2 klass_method
-    end
+  it "operates on the class/module metaclass when used in instance_exec" do
+    NATFIXME 'implement instance_exec', exception: NoMethodError, message: "undefined method `instance_exec'" do
+      AliasObject.instance_exec do
+        alias __klass_method2 klass_method
+      end
 
-    AliasObject.__klass_method2.should == 7
-    -> { Object.__klass_method2 }.should raise_error(NoMethodError)
+      AliasObject.__klass_method2.should == 7
+      -> { Object.__klass_method2 }.should raise_error(NoMethodError)
+    end
   end
 
   it "operates on methods defined via attr, attr_reader, and attr_accessor" do
@@ -204,20 +205,21 @@ describe "The alias keyword" do
     sub.new.test(1,2,3,4,5).should == 4
   end
 
-  # TODO: implement class_eval with string (maybe)
-  xit "operates on methods with splat arguments defined in a superclass using text block for class eval" do
+  it "operates on methods with splat arguments defined in a superclass using text block for class eval" do
     subclass = Class.new(AliasObject)
-    AliasObject.class_eval <<-code
-      def test(*args)
-        4
-      end
-      def test_with_check(*args)
-        test_without_check(*args)
-      end
-      alias test_without_check test
-      alias test test_with_check
-    code
-    subclass.new.test("testing").should == 4
+    NATFIXME 'implement class_eval with string (maybe)', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      AliasObject.class_eval <<-code
+        def test(*args)
+          4
+        end
+        def test_with_check(*args)
+          test_without_check(*args)
+        end
+        alias test_without_check test
+        alias test test_with_check
+      code
+      subclass.new.test("testing").should == 4
+    end
   end
 
   it "is not allowed against Integer or String instances" do
@@ -234,8 +236,7 @@ describe "The alias keyword" do
     end.should raise_error(TypeError)
   end
 
-  xit "on top level defines the alias on Object" do
-    # because it defines on the default definee / current module
+  it "on top level defines the alias on Object" do
     ruby_exe("def foo; end; alias bla foo; print method(:bla).owner", escape: true).should == "Object"
   end
 
@@ -248,6 +249,7 @@ describe "The alias keyword" do
 end
 
 describe "The alias keyword" do
+  # NATFIXME: Parser error, https://github.com/natalie-lang/natalie_parser/issues/60
   xit "can create a new global variable, synonym of the original" do
     code = '$a = 1; alias $b $a; p [$a, $b]; $b = 2; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n[2, 2]\n"

@@ -3,7 +3,7 @@ describe :float_quo, shared: true do
     8.9.send(@method, 7).should == 1.2714285714285716
   end
 
-  xit "performs floating-point division between self and a Bignum" do
+  it "performs floating-point division between self and a Bignum" do
     8.9.send(@method, 9999999999999**9).should == 8.900000000008011e-117
   end
 
@@ -40,11 +40,11 @@ describe :float_quo, shared: true do
     1.9999918.send(@method, -infinity_value).should == -0.0
   end
 
-  xit "performs floating-point division between self and a Rational" do
+  it "performs floating-point division between self and a Rational" do
     74620.09.send(@method, Rational(2,3)).should == 111930.135
   end
 
-  xit "performs floating-point division between self and a Complex" do
+  it "performs floating-point division between self and a Complex" do
     74620.09.send(@method, Complex(8,2)).should == Complex(
       8778.834117647059, -2194.7085294117646)
   end

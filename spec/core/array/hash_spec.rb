@@ -29,11 +29,12 @@ describe "Array#hash" do
     # Check the Array#eql? specs!
   end
 
-  #TODO add back once we implement Hash::hash from https://github.com/natalie-lang/natalie/issues/96
-  xit "returns the same hash for equal recursive arrays through hashes" do
+  it "returns the same hash for equal recursive arrays through hashes" do
     h = {} ; rec = [h] ; h[:x] = rec
-    rec.hash.should == [h].hash
-    rec.hash.should == [{x: rec}].hash
+    NATFIXME 'returns the same hash for equal recursive arrays through hashes', exception: SpecFailedException do
+      rec.hash.should == [h].hash
+      rec.hash.should == [{x: rec}].hash
+    end
     # Like above, this is because rec.eql?([{x: rec}])
   end
 
