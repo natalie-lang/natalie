@@ -19,9 +19,7 @@ describe "Fiber.current" do
       NATFIXME 'Implement Fiber#transfer', exception: NoMethodError, message: "undefined method `transfer'" do
         root.transfer.should be_nil
       end
-      NATFIXME 'Implement Fiber#alive?', exception: NoMethodError, message: "undefined method `alive?'" do
-        root.alive?.should be_true
-      end
+      root.alive?.should be_true
     end
   end
 
@@ -30,9 +28,7 @@ describe "Fiber.current" do
       this = Fiber.current
       this.should be_an_instance_of(Fiber)
       this.should == fiber
-      NATFIXME 'Implement Fiber#alive?', exception: NoMethodError, message: "undefined method `alive?'" do
-        this.alive?.should be_true
-      end
+      this.alive?.should be_true
     end
     fiber.resume
   end
