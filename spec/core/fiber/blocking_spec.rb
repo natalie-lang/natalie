@@ -1,9 +1,7 @@
 require_relative '../../spec_helper'
 require_relative 'shared/blocking'
 
-NATFIXME 'Add a stub fiber.rb', exception: LoadError do
-  require "fiber"
-end
+require "fiber"
 
 describe "Fiber.blocking?" do
   it_behaves_like :non_blocking_fiber, -> { Fiber.blocking? }

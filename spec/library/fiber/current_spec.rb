@@ -1,8 +1,6 @@
 require_relative '../../spec_helper'
 
-NATFIXME 'Add a stub fiber.rb', exception: LoadError do
-  require 'fiber'
-end
+require 'fiber'
 
 describe "Fiber.current" do
   ruby_version_is "3.1" do
