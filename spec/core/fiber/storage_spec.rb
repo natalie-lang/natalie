@@ -45,9 +45,9 @@ describe "Fiber#storage" do
   end
 end
 
-ruby_version_is "3.2" do
-  describe "Fiber#storage=" do
-    it "can clear the storage of the fiber" do
+describe "Fiber#storage=" do
+  it "can clear the storage of the fiber" do
+    NATFIXME 'Implement Fiber#storage=', exception: NoMethodError, message: "undefined method `storage='" do
       fiber = Fiber.new(storage: {life: 42}) do
         Fiber.current.storage = nil
         Fiber[:x] = 10
@@ -55,28 +55,38 @@ ruby_version_is "3.2" do
       end
       fiber.resume.should == {x: 10}
     end
+  end
 
-    it "can set the storage of the fiber" do
+  it "can set the storage of the fiber" do
+    NATFIXME 'Implement Fiber#storage=', exception: NoMethodError, message: "undefined method `storage='" do
       fiber = Fiber.new(storage: {life: 42}) do
         Fiber.current.storage = {life: 43}
         Fiber.current.storage
       end
       fiber.resume.should == {life: 43}
     end
+  end
 
-    it "can't set the storage of the fiber to non-hash" do
+  it "can't set the storage of the fiber to non-hash" do
+    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
       -> { Fiber.current.storage = 42 }.should raise_error(TypeError)
-    end
-
-    it "can't set the storage of the fiber to a frozen hash" do
-      -> { Fiber.current.storage = {life: 43}.freeze }.should raise_error(FrozenError)
-    end
-
-    it "can't set the storage of the fiber to a hash with non-symbol keys" do
-      -> { Fiber.current.storage = {life: 43, Object.new => 44} }.should raise_error(TypeError)
     end
   end
 
+  it "can't set the storage of the fiber to a frozen hash" do
+    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
+      -> { Fiber.current.storage = {life: 43}.freeze }.should raise_error(FrozenError)
+    end
+  end
+
+  it "can't set the storage of the fiber to a hash with non-symbol keys" do
+    NATFIXME 'Implement Fiber#storage=', exception: SpecFailedException do
+      -> { Fiber.current.storage = {life: 43, Object.new => 44} }.should raise_error(TypeError)
+    end
+  end
+end
+
+ruby_version_is "3.2" do
   describe "Fiber.[]" do
     it "returns the value of the given key in the storage of the current fiber" do
       Fiber.new(storage: {life: 42}) { Fiber[:life] }.resume.should == 42
