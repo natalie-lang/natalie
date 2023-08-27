@@ -6,7 +6,7 @@
 
 require 'yaml'
 
-exceptions = YAML.load($stdin.read)['exceptions']
+exceptions = YAML.load($stdin.read)['exceptions'] || []
 
 exceptions.each do |exception|
   relevant_backtrace_line = exception['backtrace'].detect { |l| l =~ /^spec/ && l !~ /^spec\/support/ }
