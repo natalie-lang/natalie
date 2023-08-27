@@ -103,21 +103,27 @@ describe "Fiber.[]" do
   end
 end
 
-ruby_version_is "3.2" do
-  describe "Fiber.[]=" do
-    it "sets the value of the given key in the storage of the current fiber" do
+describe "Fiber.[]=" do
+  it "sets the value of the given key in the storage of the current fiber" do
+    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
       Fiber.new(storage: {life: 42}) { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
     end
+  end
 
-    it "sets the value of the given key in the storage of the current fiber" do
+  it "sets the value of the given key in the storage of the current fiber" do
+    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
       Fiber.new(storage: {life: 42}) { Fiber[:death] = 43; Fiber[:death] }.resume.should == 43
     end
+  end
 
-    it "sets the value of the given key in the storage of the current fiber" do
+  it "sets the value of the given key in the storage of the current fiber" do
+    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
       Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume.should == 43
     end
+  end
 
-    it "does not overwrite the storage of the parent fiber" do
+  it "does not overwrite the storage of the parent fiber" do
+    NATFIXME 'Implement Fiber.[]=', exception: NoMethodError, message: "undefined method `[]=' for Fiber:Class" do
       f = Fiber.new(storage: {life: 42}) do
         Fiber.yield Fiber.new { Fiber[:life] = 43; Fiber[:life] }.resume
         Fiber[:life]
@@ -125,8 +131,10 @@ ruby_version_is "3.2" do
       f.resume.should == 43 # Value of the inner fiber
       f.resume.should == 42 # Value of the outer fiber
     end
+  end
 
-    it "can't access the storage of the fiber with non-symbol keys" do
+  it "can't access the storage of the fiber with non-symbol keys" do
+    NATFIXME 'Implement Fiber.[]=', exception: SpecFailedException do
       -> { Fiber[Object.new] = 44 }.should raise_error(TypeError)
     end
   end
@@ -136,7 +144,9 @@ ruby_version_is "3.2" do
       Fiber.new(storage: {life: 42}) { Fiber[:life] = nil; Fiber.current.storage }.resume.should == {}
     end
   end
+end
 
+ruby_version_is "3.2" do
   describe "Thread.new" do
     it "creates a thread with the storage of the current fiber" do
       fiber = Fiber.new(storage: {life: 42}) do
