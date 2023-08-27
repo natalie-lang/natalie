@@ -760,25 +760,25 @@ describe "String#%" do
   end
 
   describe "when format string contains %{} sections" do
-    xit "replaces %{} sections with values from passed-in hash" do
+    it "replaces %{} sections with values from passed-in hash" do
       ("%{foo}bar" % {foo: 'oof'}).should == "oofbar"
     end
 
-    xit "should raise ArgumentError if no hash given" do
+    it "should raise ArgumentError if no hash given" do
       -> {"%{foo}" % []}.should raise_error(ArgumentError)
     end
   end
 
   describe "when format string contains %<> formats" do
-    xit "uses the named argument for the format's value" do
+    it "uses the named argument for the format's value" do
       ("%<foo>d" % {foo: 1}).should == "1"
     end
 
-    xit "raises KeyError if key is missing from passed-in hash" do
+    it "raises KeyError if key is missing from passed-in hash" do
       -> {"%<foo>d" % {}}.should raise_error(KeyError)
     end
 
-    xit "should raise ArgumentError if no hash given" do
+    it "should raise ArgumentError if no hash given" do
       -> {"%<foo>" % []}.should raise_error(ArgumentError)
     end
   end

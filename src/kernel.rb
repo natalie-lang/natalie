@@ -80,10 +80,24 @@ module Kernel
       field_flag: {
         return: :field_pending,
       },
+      field_named_argument_angled: {
+        on_greater_than: :field_pending,
+        default: :field_named_argument_angled,
+      },
+      field_named_argument_curly: {
+        on_right_curly_brace: :field_named_argument_curly_end,
+        default: :field_named_argument_curly,
+      },
+      field_named_argument_curly_end: {
+        default: :literal,
+        on_percent: :field_pending,
+      },
       field_pending: {
         on_alpha: :field_end,
         on_asterisk: :field_flag,
         on_minus: :field_width_minus,
+        on_less_than: :field_named_argument_angled,
+        on_left_curly_brace: :field_named_argument_curly,
         on_newline: :literal_percent,
         on_null_byte: :literal_percent,
         on_number: :field_width,
@@ -127,16 +141,17 @@ module Kernel
     ].freeze
 
     class Token
-      def initialize(type:, datum:, flags: nil, width: nil, precision: nil, arg_position: nil)
+      def initialize(type:, datum:, flags: [], width: nil, precision: nil, arg_position: nil, arg_name: nil)
         @type = type
         @datum = datum
         @flags = flags
         @width = width
         @precision = precision
         @arg_position = arg_position
+        @arg_name = arg_name
       end
 
-      attr_accessor :type, :datum, :flags, :width, :precision, :arg_position
+      attr_accessor :type, :datum, :flags, :width, :precision, :arg_position, :arg_name
     end
 
     def tokens
@@ -145,6 +160,7 @@ module Kernel
       width_negative = false
       precision = nil
       arg_position = nil
+      arg_name = nil
       flags = []
       tokens = []
 
@@ -173,6 +189,14 @@ module Kernel
                        :on_space
                      when '$'
                        :on_dollar
+                     when '<'
+                       :on_less_than
+                     when '>'
+                       :on_greater_than
+                     when '{'
+                       :on_left_curly_brace
+                     when '}'
+                       :on_right_curly_brace
                      when '1'..'9'
                        :on_number
                      when 'a'..'z', 'A'..'Z'
@@ -229,6 +253,19 @@ module Kernel
           width_negative = true
         when :field_precision
           precision = (precision || 0) * 10 + char.to_i
+        when :field_named_argument_angled, :field_named_argument_curly
+          if arg_name
+            arg_name << char
+          else
+            arg_name = ''
+          end
+        when :field_named_argument_curly_end
+          tokens << Token.new(
+            type: :field,
+            datum: nil,
+            arg_name: arg_name,
+          )
+          arg_name = nil
         when :field_end
           tokens << Token.new(
             type: :field,
@@ -236,12 +273,14 @@ module Kernel
             flags: flags.dup,
             width: width_negative ? -width : width,
             precision: precision,
-            arg_position: arg_position
+            arg_position: arg_position,
+            arg_name: arg_name,
           )
           width = nil
           width_negative = false
           precision = nil
           arg_position = nil
+          arg_name = nil
         when :positional_argument
           new_arg_position = width
           width = nil
@@ -305,6 +344,14 @@ module Kernel
       arg
     end
 
+    get_named_argument = lambda do |name|
+      if arguments.size == 1 && arguments.first.is_a?(Hash)
+        arguments.first.fetch(name.to_sym)
+      else
+        raise ArgumentError, 'one hash required'
+      end
+    end
+
     get_positional_argument = lambda do |position|
       if position > arguments.size
         raise ArgumentError, 'too few arguments'
@@ -321,7 +368,9 @@ module Kernel
       when :str
         token.datum
       when :field
-        arg = if token.arg_position
+        arg = if token.arg_name
+                get_named_argument.(token.arg_name)
+              elsif token.arg_position
                 get_positional_argument.(token.arg_position)
               else
                 next_argument.()
@@ -332,6 +381,13 @@ module Kernel
           arg = next_argument.()
         end
         val = case token.datum
+              when nil
+                if token.arg_name
+                  # %{foo} doesn't require a specifier
+                  arg.to_s
+                else
+                  raise ArgumentError, 'malformed format string'
+                end
               when 'b'
                 b = arg.to_s(2)
                 b = "0b#{b}" if token.flags.include?(:alternate_format) && b != '0'
