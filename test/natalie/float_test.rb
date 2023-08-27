@@ -27,4 +27,13 @@ describe 'float' do
       0.3.to_r.should == Rational(5404319552844595, 18014398509481984)
     end
   end
+
+  describe 'Float()' do
+    it 'raises an error for invalid inputs' do
+      -> { Float('') }.should raise_error(ArgumentError, 'invalid value for Float(): ""')
+      %w[x . 10. 5x 0b1 10e10.5 10__10 10.10__10].each do |input|
+        -> { Float(input) }.should raise_error(ArgumentError, "invalid value for Float(): #{input.inspect}")
+      end
+    end
+  end
 end
