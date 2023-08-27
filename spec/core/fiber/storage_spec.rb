@@ -80,36 +80,26 @@ end
 
 describe "Fiber.[]" do
   it "returns the value of the given key in the storage of the current fiber" do
-    NATFIXME 'Implement Fiber.[]', exception: NoMethodError, message: "undefined method `[]' for Fiber:Class" do
-      Fiber.new(storage: {life: 42}) { Fiber[:life] }.resume.should == 42
-    end
+    Fiber.new(storage: {life: 42}) { Fiber[:life] }.resume.should == 42
   end
 
   it "returns nil if the key is not present in the storage of the current fiber" do
-    NATFIXME 'Implement Fiber.[]', exception: NoMethodError, message: "undefined method `[]' for Fiber:Class" do
-      Fiber.new(storage: {life: 42}) { Fiber[:death] }.resume.should be_nil
-    end
+    Fiber.new(storage: {life: 42}) { Fiber[:death] }.resume.should be_nil
   end
 
   it "returns nil if the current fiber has no storage" do
-    NATFIXME 'Implement Fiber.[]', exception: NoMethodError, message: "undefined method `[]' for Fiber:Class" do
-      Fiber.new { Fiber[:life] }.resume.should be_nil
-    end
+    Fiber.new { Fiber[:life] }.resume.should be_nil
   end
 
   it "can access the storage of the parent fiber" do
-    NATFIXME 'Implement Fiber.[]', exception: NoMethodError, message: "undefined method `[]' for Fiber:Class" do
-      f = Fiber.new(storage: {life: 42}) do
-        Fiber.new { Fiber[:life] }.resume
-      end
-      f.resume.should == 42
+    f = Fiber.new(storage: {life: 42}) do
+      Fiber.new { Fiber[:life] }.resume
     end
+    f.resume.should == 42
   end
 
   it "can't access the storage of the fiber with non-symbol keys" do
-    NATFIXME 'Implement Fiber.[]', exception: SpecFailedException do
-      -> { Fiber[Object.new] }.should raise_error(TypeError)
-    end
+    -> { Fiber[Object.new] }.should raise_error(TypeError)
   end
 end
 

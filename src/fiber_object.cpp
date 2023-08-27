@@ -69,6 +69,17 @@ Value FiberObject::is_blocking_current() {
     return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
 }
 
+Value FiberObject::ref(Env *env, Value key) {
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    auto fiber = s_current;
+    while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
+        fiber = fiber->m_previous_fiber;
+    if (fiber->m_storage == nullptr)
+        return NilObject::the();
+    return fiber->m_storage->ref(env, key);
+}
+
 Value FiberObject::resume(Env *env, Args args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");

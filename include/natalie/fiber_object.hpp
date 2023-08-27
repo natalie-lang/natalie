@@ -144,6 +144,7 @@ public:
     bool is_alive() const;
     bool is_blocking() const;
     static Value is_blocking_current();
+    static Value ref(Env *env, Value);
     Value resume(Env *env, Args args);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
