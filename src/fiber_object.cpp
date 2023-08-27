@@ -28,11 +28,13 @@
 
 namespace Natalie {
 
-FiberObject *FiberObject::initialize(Env *env, Block *block) {
+FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
     env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
     m_block = block;
+    if (blocking != nullptr)
+        m_blocking = blocking->is_truthy();
     return this;
 }
 

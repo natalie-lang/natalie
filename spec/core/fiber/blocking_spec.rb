@@ -11,7 +11,7 @@ describe "Fiber.blocking?" do
   context "when fiber is blocking" do
     context "root Fiber of the main thread" do
       it "returns 1 for blocking: true" do
-        NATFIXME 'Support keyword arguments in Fiber.new', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        NATFIXME 'Implement Fiber.blocking?', exception: NoMethodError, message: "undefined method `blocking?' for Fiber:Class" do
           fiber = Fiber.new(blocking: true) { Fiber.blocking? }
           blocking = fiber.resume
 
@@ -43,7 +43,7 @@ describe "Fiber#blocking?" do
   context "when fiber is blocking" do
     context "root Fiber of the main thread" do
       it "returns true for blocking: true" do
-        NATFIXME 'Support keyword arguments in Fiber.new', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        NATFIXME 'Implement Fiber#blocking?', exception: NoMethodError, message: "undefined method `blocking?'" do
           fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
           blocking = fiber.resume
 

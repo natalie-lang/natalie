@@ -10,7 +10,7 @@ describe :non_blocking_fiber, shared: true do
     end
 
     it "returns false for blocking: false" do
-      NATFIXME 'Support keyword arguments in Fiber.new', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Implement Fiber.blocking? and Fiber#blocking?', exception: NoMethodError, message: "undefined method `blocking?'" do
         fiber = Fiber.new(blocking: false) { @method.call }
         blocking = fiber.resume
 
