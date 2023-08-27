@@ -20,9 +20,7 @@ describe "Fiber.new(storage:)" do
     fiber = Fiber.new(storage: {life: 42}) do
       Fiber.new { Fiber.current.storage }.resume
     end
-    NATFIXME 'creates a fiber by inheriting the storage of the parent fiber', exception: SpecFailedException do
-      fiber.resume.should == {life: 42}
-    end
+    fiber.resume.should == {life: 42}
   end
 
   it "cannot create a fiber with non-hash storage" do

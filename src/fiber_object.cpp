@@ -97,9 +97,14 @@ Value FiberObject::resume(Env *env, Args args) {
 }
 
 Value FiberObject::storage(Env *env) const {
-    if (this != FiberObject::current())
+    auto fiber = FiberObject::current();
+    if (this != fiber)
         env->raise("ArgumentError", "Fiber storage can only be accessed from the Fiber it belongs to");
-    return m_storage;
+    while (fiber->m_storage == nullptr && fiber->m_previous_fiber != nullptr)
+        fiber = fiber->m_previous_fiber;
+    if (fiber->m_storage == nullptr)
+        return NilObject::the();
+    return fiber->m_storage;
 }
 
 Value FiberObject::yield(Env *env, Args args) {
