@@ -28,16 +28,26 @@
 
 namespace Natalie {
 
-FiberObject *FiberObject::initialize(Env *env, Block *block) {
+FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
     env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
     m_block = block;
+    if (blocking != nullptr)
+        m_blocking = blocking->is_truthy();
     return this;
 }
 
 bool FiberObject::is_alive() const {
     return m_status != Status::Terminated;
+}
+
+bool FiberObject::is_blocking() const {
+    return m_blocking;
+}
+
+Value FiberObject::is_blocking_current() {
+    return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
 }
 
 Value FiberObject::resume(Env *env, Args args) {

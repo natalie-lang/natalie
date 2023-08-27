@@ -550,10 +550,12 @@ gen.binding('FalseClass', '^', 'FalseObject', 'or_method', argc: 1, pass_env: tr
 gen.binding('FalseClass', 'inspect', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('FalseClass', 'to_s', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.static_binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking_current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding('Fiber', 'current', 'FiberObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding('Fiber', 'yield', 'FiberObject', 'yield', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'alive?', 'FiberObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
-gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: [:blocking], pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Fiber', 'resume', 'FiberObject', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'status', 'FiberObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
