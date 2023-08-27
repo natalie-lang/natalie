@@ -1,37 +1,52 @@
+# NATFIXME: Even though this is a spec for Ruby 3.2, we're going to implement parts of
+# it to help with detecting cycling data structures.
+
 require_relative '../../spec_helper'
 
-ruby_version_is "3.2" do
-  describe "Fiber.new(storage:)" do
-    it "creates a Fiber with the given storage" do
-      storage = {life: 42}
+describe "Fiber.new(storage:)" do
+  it "creates a Fiber with the given storage" do
+    storage = {life: 42}
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: ArgumentError, message: 'unknown keyword: :storage' do
       fiber = Fiber.new(storage: storage) { Fiber.current.storage }
       fiber.resume.should == storage
     end
+  end
 
-    it "creates a fiber with lazily initialized storage" do
+  it "creates a fiber with lazily initialized storage" do
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: ArgumentError, message: 'unknown keyword: :storage' do
       Fiber.new(storage: nil) { Fiber[:x] = 10; Fiber.current.storage }.resume.should == {x: 10}
     end
+  end
 
-    it "creates a fiber by inheriting the storage of the parent fiber" do
+  it "creates a fiber by inheriting the storage of the parent fiber" do
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: ArgumentError, message: 'unknown keyword: :storage' do
       fiber = Fiber.new(storage: {life: 42}) do
         Fiber.new { Fiber.current.storage }.resume
       end
       fiber.resume.should == {life: 42}
     end
+  end
 
-    it "cannot create a fiber with non-hash storage" do
+  it "cannot create a fiber with non-hash storage" do
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: SpecFailedException do
       -> { Fiber.new(storage: 42) {} }.should raise_error(TypeError)
-    end
-
-    it "cannot create a fiber with a frozen hash as storage" do
-      -> { Fiber.new(storage: {life: 43}.freeze) {} }.should raise_error(FrozenError)
-    end
-
-    it "cannot create a fiber with a storage hash with non-symbol keys" do
-      -> { Fiber.new(storage: {life: 43, Object.new => 44}) {} }.should raise_error(TypeError)
     end
   end
 
+  it "cannot create a fiber with a frozen hash as storage" do
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: SpecFailedException do
+      -> { Fiber.new(storage: {life: 43}.freeze) {} }.should raise_error(FrozenError)
+    end
+  end
+
+  it "cannot create a fiber with a storage hash with non-symbol keys" do
+    NATFIXME 'Add storage: keyword to Fiber.new', exception: SpecFailedException do
+      -> { Fiber.new(storage: {life: 43, Object.new => 44}) {} }.should raise_error(TypeError)
+    end
+  end
+end
+
+ruby_version_is "3.2" do
   describe "Fiber#storage" do
     it "cannot be accessed from a different fiber" do
       f = Fiber.new(storage: {life: 42}) { nil }
