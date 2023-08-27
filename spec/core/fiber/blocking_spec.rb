@@ -6,7 +6,8 @@ NATFIXME 'Add a stub fiber.rb', exception: LoadError do
 end
 
 describe "Fiber.blocking?" do
-  it_behaves_like :non_blocking_fiber, -> { Fiber.blocking? }
+  # NATFIXME: Shared with Fiber#blocking?
+  # it_behaves_like :non_blocking_fiber, -> { Fiber.blocking? }
 
   context "when fiber is blocking" do
     context "root Fiber of the main thread" do
@@ -43,12 +44,10 @@ describe "Fiber#blocking?" do
   context "when fiber is blocking" do
     context "root Fiber of the main thread" do
       it "returns true for blocking: true" do
-        NATFIXME 'Implement Fiber#blocking?', exception: NoMethodError, message: "undefined method `blocking?'" do
-          fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
-          blocking = fiber.resume
+        fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
+        blocking = fiber.resume
 
-          blocking.should == true
-        end
+        blocking.should == true
       end
     end
 

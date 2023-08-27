@@ -141,6 +141,7 @@ public:
     }
 
     bool is_alive() const;
+    bool is_blocking() const;
     Value resume(Env *env, Args args);
     void yield_back(Env *env, Args args);
 
