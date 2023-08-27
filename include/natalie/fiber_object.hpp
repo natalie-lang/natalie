@@ -57,7 +57,7 @@ class FiberObject : public Object {
 public:
     enum class Status {
         Created,
-        Active,
+        Resumed,
         Suspended,
         Terminated,
     };
@@ -158,7 +158,7 @@ public:
         switch (m_status) {
         case Status::Created:
             return "created"_s;
-        case Status::Active:
+        case Status::Resumed:
             return "resumed"_s;
         case Status::Suspended:
             return "suspended"_s;

@@ -150,7 +150,7 @@ void fiber_exit() {
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
-    fiber->set_status(Natalie::FiberObject::Status::Active);
+    fiber->set_status(Natalie::FiberObject::Status::Resumed);
     assert(fiber->block());
     Natalie::Value return_arg = nullptr;
     bool reraise = false;
