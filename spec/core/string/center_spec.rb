@@ -99,16 +99,18 @@ describe "String#center with length, padding" do
     end
   end
 
-  # NATFIXME: Add back after adding encodings.
-  xdescribe "with width, pattern" do
+  describe "with width, pattern" do
     it "returns a String in the compatible encoding" do
       str = "abc".force_encoding Encoding::IBM437
       result = str.center 6, "あ"
-      result.should == "あabcああ"
-      result.encoding.should equal(Encoding::UTF_8)
+      NATFIXME 'returns a String in the compatible encoding', exception: SpecFailedException do
+        result.should == "あabcああ"
+        result.encoding.should equal(Encoding::UTF_8)
+      end
     end
 
-    it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+    # NATFIXME: Add back after adding encodings.
+    xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       pat = "ア".encode Encoding::EUC_JP
       -> do
         "あれ".center 5, pat

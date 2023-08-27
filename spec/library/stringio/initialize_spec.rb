@@ -188,8 +188,7 @@ describe "StringIO#initialize when passed no arguments" do
   end
 end
 
-# NATFIXME: Implement Encoding::ISO_8859_2
-xdescribe "StringIO#initialize sets" do
+describe "StringIO#initialize sets" do
   before :each do
     @external = Encoding.default_external
     @internal = Encoding.default_internal
@@ -204,8 +203,10 @@ xdescribe "StringIO#initialize sets" do
 
   it "the encoding to Encoding.default_external when passed no arguments" do
     io = StringIO.new
-    io.external_encoding.should == Encoding::ISO_8859_2
-    io.string.encoding.should == Encoding::ISO_8859_2
+    NATFIXME 'the encoding to Encoding.default_external when passed no arguments', exception: SpecFailedException do
+      io.external_encoding.should == Encoding::ISO_8859_2
+      io.string.encoding.should == Encoding::ISO_8859_2
+    end
   end
 
   it "the encoding to the encoding of the String when passed a String" do
