@@ -69,7 +69,7 @@ module Kernel
 
     attr_reader :format_string, :index, :chars
 
-    TRANSITIONS = {
+    STATES_AND_TRANSITIONS = {
       literal: {
         default: :literal,
         on_percent: :field_pending,
@@ -179,9 +179,10 @@ module Kernel
                        :on_alpha
                      end
 
-        new_state = TRANSITIONS.dig(state, transition) || TRANSITIONS.dig(state, :default)
+        new_state = STATES_AND_TRANSITIONS.dig(state, transition) ||
+          STATES_AND_TRANSITIONS.dig(state, :default)
 
-        if !new_state && (return_state = TRANSITIONS.dig(state, :return))
+        if !new_state && (return_state = STATES_AND_TRANSITIONS.dig(state, :return))
           # :return is a special transition that consumes no characters
           new_state = return_state
         end
