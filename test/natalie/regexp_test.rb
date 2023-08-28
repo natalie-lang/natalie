@@ -241,4 +241,13 @@ describe 'regexp' do
       /f(.)(o)/.match('foo').captures.should == ['o', 'o']
     end
   end
+
+  describe '#sub' do
+    it 'expands backrefs' do
+      'tim'.sub(/t(i)m/, "\\1").should == 'i'
+      'tim'.sub(/t(i)m/, "\\9").should == ''
+      'tim'.sub(/t(i)m/, "0\\10").should == '0i0'
+      'tim'.sub(/t(i)m/, "0\\90").should == '00'
+    end
+  end
 end

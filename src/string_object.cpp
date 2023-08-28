@@ -1830,7 +1830,9 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '8':
             case '9': {
                 int num = c - 48;
-                expanded->append(match->group(num)->as_string());
+                auto val = match->group(num);
+                if (val->is_string())
+                    expanded->append(val->as_string());
                 break;
             }
             case '\\':
