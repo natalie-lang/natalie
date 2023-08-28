@@ -319,14 +319,17 @@ describe "String#%" do
     end
   end
 
-  xit "supports binary formats using %b for negative numbers" do
+  it "supports binary formats using %b for negative numbers" do
     ("%b" % -5).should == "..1011"
+    ("%#b" % -5).should == "0b..1011"
     ("%0b" % -5).should == "..1011"
     ("%.1b" % -5).should == "..1011"
     ("%.7b" % -5).should == "..11011"
     ("%.10b" % -5).should == "..11111011"
+    ("%#.10b" % -5).should == "0b..11111011"
     ("% b" % -5).should == "-101"
     ("%+b" % -5).should == "-101"
+    ("%#+b" % -5).should == "-0b101"
     not_supported_on :opal do
       ("%b" % -(2 ** 64 + 5)).should ==
         "..101111111111111111111111111111111111111111111111111111111111111011"

@@ -163,9 +163,39 @@ module Kernel
     end
 
     def format_binary(token, arg)
-      b = convert_int(arg).to_s(2)
-      b = "0b#{b}" if token.flags.include?(:alternate_format) && b != '0'
-      apply_number_flags(b, token.flags)
+      i = convert_int(arg)
+
+      if i.negative?
+        if (token.flags & [:space, :plus]).any?
+          sign = '-'
+          value = i.abs.to_s(2)
+        else
+          dotdot_sign = '..1'
+          width = token.precision - 3
+          value = twos_complement(arg, 2, width)
+        end
+      else
+        if token.flags.include?(:plus)
+          sign = '+'
+        elsif token.flags.include?(:space)
+          sign = ' '
+        end
+        value = i.abs.to_s(2)
+      end
+
+      if token.flags.include?(:alternate_format) && value != '0'
+        prefix = '0b'
+      end
+
+      "#{sign}#{prefix}#{dotdot_sign}#{value}"
+    end
+
+    def twos_complement(num, base, width)
+      bytes = num.abs.to_s(2).bytes.map { |b| b - 48 ^ 1 }
+      int = bytes.join.to_i(2) + 1
+      str = int.to_s(base)
+      str = ('0' * (bytes.size - str.size)) + str
+      ('1' * [width - str.size, 0].max) + str
     end
 
     def format_char(token, arg)
@@ -220,7 +250,7 @@ module Kernel
     end
 
     def apply_number_flags(num, flags)
-      num = "+#{num}" if flags.include?(:plus) && !num.start_with?('-')
+      num = "+#{num}" if flags.include?(:plus) && !num.start_with?('-') && !num.start_with?('..')
       num = " #{num}" if flags.include?(:space) && !flags.include?(:plus) && !num.start_with?('-')
       num
     end
@@ -261,7 +291,9 @@ module Kernel
       if i.is_a?(Integer)
         i
       elsif i.respond_to?(:to_ary)
-        i.to_ary.first
+        i = i.to_ary.first
+        raise ArgumentError unless i.is_a?(Integer)
+        i
       else
         Integer(i)
       end
