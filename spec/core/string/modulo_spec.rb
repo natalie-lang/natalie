@@ -326,11 +326,9 @@ describe "String#%" do
     ("%#b" % -5).should == "0b..1011"
     ("%0b" % -5).should == "..1011"
     ("%.1b" % -5).should == "..1011"
-    NATFIXME 'something wrong with precision', exception: RuntimeError do
-      ("%.7b" % -5).should == "..11011"
-      ("%.10b" % -5).should == "..11111011"
-      ("%#.10b" % -5).should == "0b..11111011"
-    end
+    ("%.7b" % -5).should == "..11011"
+    ("%.10b" % -5).should == "..11111011"
+    ("%#.10b" % -5).should == "0b..11111011"
     ("% b" % -5).should == "-101"
     ("%+b" % -5).should == "-101"
     ("%#+b" % -5).should == "-0b101"
@@ -352,10 +350,8 @@ describe "String#%" do
     ("%B" % -5).should == ("%b" % -5)
     ("%0B" % -5).should == ("%0b" % -5)
     ("%.1B" % -5).should == ("%.1b" % -5)
-    NATFIXME 'something wrong with precision', exception: RuntimeError do
-      ("%.7B" % -5).should == ("%.7b" % -5)
-      ("%.10B" % -5).should == ("%.10b" % -5)
-    end
+    ("%.7B" % -5).should == ("%.7b" % -5)
+    ("%.10B" % -5).should == ("%.10b" % -5)
     ("% B" % -5).should == ("% b" % -5)
     ("%+B" % -5).should == ("%+b" % -5)
     not_supported_on :opal do
@@ -542,10 +538,8 @@ describe "String#%" do
     ("%0o" % -5).should == "..73"
     ("%.4o" % 20).should == "0024"
     ("%.1o" % -5).should == "..73"
-    NATFIXME 'something wrong with precision', exception: SpecFailedException do
-      ("%.7o" % -5).should == "..77773"
-      ("%.10o" % -5).should == "..77777773"
-    end
+    ("%.7o" % -5).should == "..77773"
+    ("%.10o" % -5).should == "..77777773"
 
     ("% o" % -26).should == "-32"
     ("%+o" % -26).should == "-32"

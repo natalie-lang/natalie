@@ -229,11 +229,10 @@ module Kernel
       needed_bits = num.abs.to_s(2).size + 1
       bits = [width.to_i, needed_bits].max
       first_digit = (base - 1).to_s
-      bad_start = first_digit + first_digit
       loop do
         result = (2**bits - num.abs).to_s(base)
         bits += 1
-        if result.start_with?(first_digit) && !result.start_with?(bad_start)
+        if result.start_with?(first_digit)
           return result 
         end
         raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
@@ -313,8 +312,8 @@ module Kernel
           value = i.abs.to_s(8)
         else
           dotdot_sign = '..'
-          width = token.precision - 2 if token.precision
-          value = twos_complement(arg, 8, width)
+          width = (token.precision.to_i - 2) * 3
+          value = twos_complement(arg, 8, [width, 0].max)
         end
       else
         if token.flags.include?(:plus)
