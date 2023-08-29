@@ -188,7 +188,7 @@ Value IoObject::gets(Env *env) const {
 Value IoObject::get_path() const {
     if (m_path == nullptr)
         return NilObject::the();
-    return m_path;
+    return new StringObject { *m_path };
 }
 
 void IoObject::putstr(Env *env, StringObject *str) {
