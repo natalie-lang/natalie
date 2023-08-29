@@ -646,13 +646,11 @@ describe "String#%" do
     ("%-9x" % 10).should == "a        "
     ("%05x" % 10).should == "0000a"
     ("%*x" % [10, 6]).should == "         6"
-    NATFIXME "precision unsupported", exception: SpecFailedException do
-      ("%.4x" % 20).should == "0014"
-    end
+    ("%.4x" % 20).should == "0014"
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
   end
 
-  xit "supports hex formats using %x for negative numbers" do
+  it "supports hex formats using %x for negative numbers" do
     ("%x" % -5).should == "..fb"
     ("%0x" % -5).should == "..fb"
     ("%.1x" % -5).should == "..fb"
@@ -677,7 +675,7 @@ describe "String#%" do
     ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
   end
 
-  xit "supports hex formats using %X for negative numbers" do
+  it "supports hex formats using %X for negative numbers" do
     ("%X" % -5).should == "..FB"
     ("%0X" % -5).should == "..FB"
     ("%.1X" % -5).should == "..FB"

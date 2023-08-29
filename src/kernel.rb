@@ -228,7 +228,7 @@ module Kernel
       # https://github.com/ruby/ruby/blob/3151d7876fac408ad7060b317ae7798263870daa/sprintf.c#L662-L670
       needed_bits = num.abs.to_s(2).size + 1
       bits = [width.to_i, needed_bits].max
-      first_digit = (base - 1).to_s
+      first_digit = (base - 1).to_s(base)
       loop do
         result = (2**bits - num.abs).to_s(base)
         bits += 1
@@ -343,9 +343,44 @@ module Kernel
     end
 
     def format_hex(token, arg)
-      x = convert_int(arg).to_s(16)
-      x = "0x#{x}" if token.flags.include?(:alternate_format) && x != '0'
-      apply_number_flags(x, token.flags)
+      i = convert_int(arg)
+
+      sign = ''
+
+      if i.negative?
+        if (token.flags & [:space, :plus]).any?
+          sign = '-'
+          value = i.abs.to_s(16)
+        else
+          dotdot_sign = '..'
+          width = (token.precision.to_i - 2) * 4
+          value = twos_complement(arg, 16, [width, 0].max)
+        end
+      else
+        if token.flags.include?(:plus)
+          sign = '+'
+        elsif token.flags.include?(:space)
+          sign = ' '
+        end
+        value = i.abs.to_s(16)
+      end
+
+      if token.flags.include?(:alternate_format) && value != '0'
+        prefix = '0x'
+      end
+
+      if token.precision
+        needed = token.precision - value.size - (dotdot_sign&.size || 0)
+        value = ('0' * ([needed, 0].max)) + value
+      end
+
+      build_numeric_value_with_padding(
+        token: token,
+        sign: sign,
+        value: value,
+        prefix: prefix,
+        dotdot_sign: dotdot_sign
+      )
     end
 
     def apply_number_flags(num, flags)
