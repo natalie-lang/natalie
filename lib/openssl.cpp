@@ -53,8 +53,11 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
 }
 
 Value init(Env *env, Value self) {
-    ModuleObject *OpenSSL = new ModuleObject { "OpenSSL" };
-    GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
+    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    if (!OpenSSL) {
+        OpenSSL = new ModuleObject { "OpenSSL" };
+        GlobalEnv::the()->Object()->const_set("OpenSSL"_s, OpenSSL);
+    }
 
     // OpenSSL < 3.0 does not have a OPENSSL_VERSION_STR
     const auto openssl_version_major = static_cast<nat_int_t>((OPENSSL_VERSION_NUMBER >> 28) & 0xFF);
@@ -65,8 +68,11 @@ Value init(Env *env, Value self) {
     };
     OpenSSL->const_set("VERSION"_s, VERSION);
 
-    ClassObject *Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
-    OpenSSL->const_set("Digest"_s, Digest);
+    auto Digest = OpenSSL->const_get("Digest"_s);
+    if (!Digest) {
+        Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
+        OpenSSL->const_set("Digest"_s, Digest);
+    }
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, 1);
 
