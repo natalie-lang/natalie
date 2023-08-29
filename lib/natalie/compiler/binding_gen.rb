@@ -556,8 +556,10 @@ gen.static_binding('Fiber', 'yield', 'FiberObject', 'yield', argc: :any, pass_en
 gen.binding('Fiber', 'alive?', 'FiberObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'blocking?', 'FiberObject', 'is_blocking', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Fiber', 'initialize', 'FiberObject', 'initialize', argc: 0, kwargs: [:blocking], pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Fiber', 'inspect', 'FiberObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'resume', 'FiberObject', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Fiber', 'status', 'FiberObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Fiber', 'to_s', 'FiberObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('File', 'atime', 'FileObject', 'atime', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

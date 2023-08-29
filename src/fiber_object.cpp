@@ -35,7 +35,14 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
     m_block = block;
     if (blocking != nullptr)
         m_blocking = blocking->is_truthy();
+    m_file = env->file();
+    m_line = env->line();
     return this;
+}
+
+Value FiberObject::inspect(Env *env) {
+    const TM::String file_and_line { m_file && m_line ? TM::String::format(" {}:{}", *m_file, *m_line) : "" };
+    return StringObject::format("#<{}:{}{} ({})>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed), file_and_line, status(env));
 }
 
 bool FiberObject::is_alive() const {
@@ -143,7 +150,7 @@ void fiber_exit() {
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
-    fiber->set_status(Natalie::FiberObject::Status::Active);
+    fiber->set_status(Natalie::FiberObject::Status::Resumed);
     assert(fiber->block());
     Natalie::Value return_arg = nullptr;
     bool reraise = false;

@@ -57,7 +57,7 @@ class FiberObject : public Object {
 public:
     enum class Status {
         Created,
-        Active,
+        Resumed,
         Suspended,
         Terminated,
     };
@@ -140,6 +140,7 @@ public:
 #endif
     }
 
+    Value inspect(Env *);
     bool is_alive() const;
     bool is_blocking() const;
     static Value is_blocking_current();
@@ -157,8 +158,8 @@ public:
         switch (m_status) {
         case Status::Created:
             return "created"_s;
-        case Status::Active:
-            return "active"_s;
+        case Status::Resumed:
+            return "resumed"_s;
         case Status::Suspended:
             return "suspended"_s;
         case Status::Terminated:
@@ -197,6 +198,8 @@ private:
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     Status m_status { Status::Created };
+    TM::Optional<TM::String> m_file {};
+    TM::Optional<size_t> m_line {};
     Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
