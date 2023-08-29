@@ -181,34 +181,6 @@ module Kernel
       end
     end
 
-    def format_integer(token, arg)
-      i = convert_int(arg)
-
-      sign = ''
-
-      if i.negative?
-        sign = '-'
-        value = i.abs.to_s
-      else
-        if token.flags.include?(:plus)
-          sign = '+'
-        elsif token.flags.include?(:space)
-          sign = ' '
-        end
-        value = i.abs.to_s
-      end
-
-      if token.precision
-        value = ('0' * ([token.precision - value.size, 0].max)) + value
-      end
-
-      build_numeric_value_with_padding(
-        token: token,
-        sign: sign,
-        value: value
-      )
-    end
-
     def format_float(token, arg)
       f = if arg.is_a?(Float)
         arg.to_s
@@ -229,6 +201,10 @@ module Kernel
       f
     end
 
+    def format_integer(token, arg)
+      format_number(token: token, arg: arg, base: 10, bits_per_char: 4, prefix: '')
+    end
+
     def format_binary(token, arg)
       format_number(token: token, arg: arg, base: 2, bits_per_char: 1, prefix: '0b')
     end
@@ -247,7 +223,7 @@ module Kernel
       sign = ''
 
       if i.negative?
-        if (token.flags & [:space, :plus]).any?
+        if (token.flags & [:space, :plus]).any? || base == 10
           sign = '-'
           value = i.abs.to_s(base)
         else
