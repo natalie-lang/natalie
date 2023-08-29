@@ -161,84 +161,6 @@ module Kernel
       val
     end
 
-    def build_numeric_value_with_padding(token:, sign:, value:, prefix: nil, dotdot_sign: nil)
-      width = token.width
-      return "#{sign}#{prefix}#{dotdot_sign}#{value}" unless width
-
-      sign_size = sign&.size || 0
-      prefix_size = prefix&.size || 0
-      dotdot_sign_size = dotdot_sign&.size || 0
-
-      pad_char = token.flags.include?(:zero_padded) && !width.negative? ? '0' : ' '
-      needed = width.abs - sign_size - prefix_size - dotdot_sign_size - value.size
-      padding = pad_char * [needed, 0].max
-
-      if width.negative?
-        "#{sign}#{prefix}#{value}#{padding}"
-      elsif pad_char == '0'
-        "#{sign}#{prefix}#{padding}#{value}"
-      else
-        "#{padding}#{prefix}#{sign}#{value}"
-      end
-    end
-
-    def format_binary(token, arg)
-      i = convert_int(arg)
-
-      sign = ''
-
-      if i.negative?
-        if (token.flags & [:space, :plus]).any?
-          sign = '-'
-          value = i.abs.to_s(2)
-        else
-          dotdot_sign = '..'
-          width = token.precision - 2 if token.precision
-          value = twos_complement(arg, 2, width)
-        end
-      else
-        if token.flags.include?(:plus)
-          sign = '+'
-        elsif token.flags.include?(:space)
-          sign = ' '
-        end
-        value = i.abs.to_s(2)
-      end
-
-      if token.flags.include?(:alternate_format) && value != '0'
-        prefix = '0b'
-      end
-
-      if token.precision
-        needed = token.precision - value.size - (dotdot_sign&.size || 0)
-        value = ('0' * ([needed, 0].max)) + value
-      end
-
-      build_numeric_value_with_padding(
-        token: token,
-        sign: sign,
-        value: value,
-        prefix: prefix,
-        dotdot_sign: dotdot_sign
-      )
-    end
-
-    def twos_complement(num, base, width)
-      # See this comment in the Ruby source for how this should work:
-      # https://github.com/ruby/ruby/blob/3151d7876fac408ad7060b317ae7798263870daa/sprintf.c#L662-L670
-      needed_bits = num.abs.to_s(2).size + 1
-      bits = [width.to_i, needed_bits].max
-      first_digit = (base - 1).to_s(base)
-      loop do
-        result = (2**bits - num.abs).to_s(base)
-        bits += 1
-        if result.start_with?(first_digit)
-          return result 
-        end
-        raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
-      end
-    end
-
     def format_char(token, arg)
       if arg.is_a?(Integer)
         arg.chr
@@ -295,54 +217,31 @@ module Kernel
       else
         Float(arg).to_s
       end
-      f = apply_number_flags(f, token.flags)
+
+      if token.flags.include?(:plus)
+        f = "+#{f}" unless f.start_with?('-')
+      elsif token.flags.include?(:space)
+        f = " #{f}" unless f.start_with?('-')
+      end
+
       f << '.0' unless f.index('.')
       f << '0' until f.split('.').last.size >= token.precision
       f
     end
 
+    def format_binary(token, arg)
+      format_number(token: token, arg: arg, base: 2, bits_per_char: 1, prefix: '0b')
+    end
+
     def format_octal(token, arg)
-      i = convert_int(arg)
-
-      sign = ''
-
-      if i.negative?
-        if (token.flags & [:space, :plus]).any?
-          sign = '-'
-          value = i.abs.to_s(8)
-        else
-          dotdot_sign = '..'
-          width = (token.precision.to_i - 2) * 3
-          value = twos_complement(arg, 8, [width, 0].max)
-        end
-      else
-        if token.flags.include?(:plus)
-          sign = '+'
-        elsif token.flags.include?(:space)
-          sign = ' '
-        end
-        value = i.abs.to_s(8)
-      end
-
-      if token.flags.include?(:alternate_format) && value != '0'
-        prefix = '0'
-      end
-
-      if token.precision
-        needed = token.precision - value.size - (dotdot_sign&.size || 0)
-        value = ('0' * ([needed, 0].max)) + value
-      end
-
-      build_numeric_value_with_padding(
-        token: token,
-        sign: sign,
-        value: value,
-        prefix: prefix,
-        dotdot_sign: dotdot_sign
-      )
+      format_number(token: token, arg: arg, base: 8, bits_per_char: 3, prefix: '0')
     end
 
     def format_hex(token, arg)
+      format_number(token: token, arg: arg, base: 16, bits_per_char: 4, prefix: '0x')
+    end
+
+    def format_number(token:, arg:, base:, bits_per_char:, prefix:)
       i = convert_int(arg)
 
       sign = ''
@@ -350,11 +249,11 @@ module Kernel
       if i.negative?
         if (token.flags & [:space, :plus]).any?
           sign = '-'
-          value = i.abs.to_s(16)
+          value = i.abs.to_s(base)
         else
           dotdot_sign = '..'
-          width = (token.precision.to_i - 2) * 4
-          value = twos_complement(arg, 16, [width, 0].max)
+          width = (token.precision.to_i - 2) * bits_per_char
+          value = twos_complement(arg, base, [width, 0].max)
         end
       else
         if token.flags.include?(:plus)
@@ -362,11 +261,11 @@ module Kernel
         elsif token.flags.include?(:space)
           sign = ' '
         end
-        value = i.abs.to_s(16)
+        value = i.abs.to_s(base)
       end
 
-      if token.flags.include?(:alternate_format) && value != '0'
-        prefix = '0x'
+      if !token.flags.include?(:alternate_format) || value == '0'
+        prefix = ''
       end
 
       if token.precision
@@ -383,10 +282,41 @@ module Kernel
       )
     end
 
-    def apply_number_flags(num, flags)
-      num = "+#{num}" if flags.include?(:plus) && !num.start_with?('-') && !num.start_with?('..')
-      num = " #{num}" if flags.include?(:space) && !flags.include?(:plus) && !num.start_with?('-')
-      num
+    def build_numeric_value_with_padding(token:, sign:, value:, prefix: nil, dotdot_sign: nil)
+      width = token.width
+      return "#{sign}#{prefix}#{dotdot_sign}#{value}" unless width
+
+      sign_size = sign&.size || 0
+      prefix_size = prefix&.size || 0
+      dotdot_sign_size = dotdot_sign&.size || 0
+
+      pad_char = token.flags.include?(:zero_padded) && !width.negative? ? '0' : ' '
+      needed = width.abs - sign_size - prefix_size - dotdot_sign_size - value.size
+      padding = pad_char * [needed, 0].max
+
+      if width.negative?
+        "#{sign}#{prefix}#{value}#{padding}"
+      elsif pad_char == '0'
+        "#{sign}#{prefix}#{padding}#{value}"
+      else
+        "#{padding}#{prefix}#{sign}#{value}"
+      end
+    end
+
+    def twos_complement(num, base, width)
+      # See this comment in the Ruby source for how this should work:
+      # https://github.com/ruby/ruby/blob/3151d7876fac408ad7060b317ae7798263870daa/sprintf.c#L662-L670
+      needed_bits = num.abs.to_s(2).size + 1
+      bits = [width.to_i, needed_bits].max
+      first_digit = (base - 1).to_s(base)
+      loop do
+        result = (2**bits - num.abs).to_s(base)
+        bits += 1
+        if result.start_with?(first_digit)
+          return result 
+        end
+        raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
+      end
     end
 
     def next_argument
