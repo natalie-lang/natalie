@@ -16,10 +16,7 @@ describe :set_inspect, shared: true do
   end
 
   it "correctly handles self-references" do
-    # NATFIXME: Support this syntax
-    # (set = Set[]) << set
-    set = Set[]
-    set << set
+    (set = Set[]) << set
     set.send(@method).should be_kind_of(String)
     set.send(@method).should include("#<Set: {...}>")
   end
