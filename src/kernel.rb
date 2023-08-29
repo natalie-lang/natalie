@@ -106,8 +106,6 @@ module Kernel
               next_argument
             end
 
-      token.precision ||= 6
-
       if token.flags.include?(:width_given_as_arg)
         token.width = arg
         arg = next_argument
@@ -130,6 +128,7 @@ module Kernel
             when 'd', 'u', 'i'
               format_integer(token, arg)
             when 'e', 'E', 'f', 'g', 'G'
+              token.precision ||= 6
               format_float(token, arg)
             when 'o'
               format_octal(token, arg)
@@ -162,8 +161,31 @@ module Kernel
       val
     end
 
+    def build_numeric_value_with_padding(token:, sign:, value:, prefix: nil, dotdot_sign: nil)
+      width = token.width
+      return "#{sign}#{prefix}#{dotdot_sign}#{value}" unless width
+
+      sign_size = sign&.size || 0
+      prefix_size = prefix&.size || 0
+      dotdot_sign_size = dotdot_sign&.size || 0
+
+      pad_char = token.flags.include?(:zero_padded) && !width.negative? ? '0' : ' '
+      needed = width.abs - sign_size - prefix_size - dotdot_sign_size - value.size
+      padding = pad_char * [needed, 0].max
+
+      if width.negative?
+        "#{sign}#{prefix}#{value}#{padding}"
+      elsif pad_char == '0'
+        "#{sign}#{prefix}#{padding}#{value}"
+      else
+        "#{padding}#{prefix}#{sign}#{value}"
+      end
+    end
+
     def format_binary(token, arg)
       i = convert_int(arg)
+
+      sign = ''
 
       if i.negative?
         if (token.flags & [:space, :plus]).any?
@@ -171,7 +193,7 @@ module Kernel
           value = i.abs.to_s(2)
         else
           dotdot_sign = '..1'
-          width = token.precision - 3
+          width = token.precision ? token.precision - 3 : 0
           value = twos_complement(arg, 2, width)
         end
       else
@@ -187,7 +209,18 @@ module Kernel
         prefix = '0b'
       end
 
-      "#{sign}#{prefix}#{dotdot_sign}#{value}"
+      if token.precision
+        needed = token.precision - value.size - (dotdot_sign&.size || 0)
+        value = ('0' * ([needed, 0].max)) + value
+      end
+
+      build_numeric_value_with_padding(
+        token: token,
+        sign: sign,
+        value: value,
+        prefix: prefix,
+        dotdot_sign: dotdot_sign
+      )
     end
 
     def twos_complement(num, base, width)
@@ -219,8 +252,31 @@ module Kernel
     end
 
     def format_integer(token, arg)
-      d = convert_int(arg).to_s
-      apply_number_flags(d, token.flags)
+      i = convert_int(arg)
+
+      sign = ''
+
+      if i.negative?
+        sign = '-'
+        value = i.abs.to_s
+      else
+        if token.flags.include?(:plus)
+          sign = '+'
+        elsif token.flags.include?(:space)
+          sign = ' '
+        end
+        value = i.abs.to_s
+      end
+
+      if token.precision
+        value = ('0' * ([token.precision - value.size, 0].max)) + value
+      end
+
+      build_numeric_value_with_padding(
+        token: token,
+        sign: sign,
+        value: value
+      )
     end
 
     def format_float(token, arg)

@@ -287,7 +287,7 @@ describe "String#%" do
     ("%s" % obj).should == "1"
   end
 
-  xit "doesn't return subclass instances when called on a subclass" do
+  it "doesn't return subclass instances when called on a subclass" do
     universal = mock('0')
     def universal.to_int() 0 end
     def universal.to_str() "0" end
@@ -309,14 +309,16 @@ describe "String#%" do
     ("%1$b" % [10, 20]).should == "1010"
     ("%#b" % 10).should == "0b1010"
     ("%+b" % 10).should == "+1010"
+    ("%09b" % 10).should == "000001010"
+    ("%#09b" % 10).should == "0b0001010"
     ("%-9b" % 10).should == "1010     "
+    ("%#-9b" % 10).should == "0b1010   "
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
-    NATFIXME "precision unsupported", exception: SpecFailedException do
-      ("%.4b" % 2).should == "0010"
-      ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
-    end
+    ("%.4b" % 2).should == "0010"
+    ("%#.4b" % 2).should == "0b0010"
+    ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
   end
 
   it "supports binary formats using %b for negative numbers" do
@@ -379,12 +381,12 @@ describe "String#%" do
   end
 
   ruby_version_is "3.2" do
-    xit "supports only the first character as argument for %c" do
+    it "supports only the first character as argument for %c" do
       ("%c" % 'AA').should == "A"
     end
   end
 
-  xit "calls to_str on argument for %c formats" do
+  it "calls to_str on argument for %c formats" do
     obj = mock('A')
     obj.should_receive(:to_str).and_return('A')
 
@@ -397,7 +399,7 @@ describe "String#%" do
     ("%c" % obj).should == ("%c" % [65])
   end
 
-  xit "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
+  it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
     obj = mock('65')
     obj.should_receive(:to_int).and_return(65)
 
@@ -415,12 +417,10 @@ describe "String#%" do
       ("%-7#{f}" % 10).should == "10     "
       ("%04#{f}" % 10).should == "0010"
       ("%*#{f}" % [10, 4]).should == "         4"
-      NATFIXME "precision unsupported", exception: SpecFailedException do
-        ("%6.4#{f}" % 123).should == "  0123"
-      end
+      ("%6.4#{f}" % 123).should == "  0123"
     end
 
-    xit "supports negative integers using #{format}" do
+    it "supports negative integers using #{format}" do
       ("%#{f}" % -5).should == "-5"
       ("%3#{f}" % -5).should == " -5"
       ("%03#{f}" % -5).should == "-05"
