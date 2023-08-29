@@ -2777,7 +2777,7 @@ Value StringObject::convert_float() {
     String string = String(m_string);
 
     // check for two consequtive underscores
-    for (ssize_t i = 1; i < (ssize_t)string.length(); ++i) {
+    for (size_t i = 1; i < string.length(); ++i) {
         auto c2 = string[i];
         auto c1 = string[i - 1];
         if (c1 == '_' && c2 == '_')
