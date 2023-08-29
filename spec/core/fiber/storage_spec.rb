@@ -132,9 +132,9 @@ describe "Fiber.[]=" do
   end
 end
 
-ruby_version_is "3.2" do
-  describe "Thread.new" do
-    it "creates a thread with the storage of the current fiber" do
+describe "Thread.new" do
+  it "creates a thread with the storage of the current fiber" do
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
       fiber = Fiber.new(storage: {life: 42}) do
         Thread.new { Fiber.current.storage }.value
       end
