@@ -84,6 +84,10 @@ class Struct
           end
         end
 
+        define_method :eql? do |other|
+          self.class == other.class && values.zip(other.values).all? { |x, y| x.eql?(y) }
+        end
+
         alias_method :values, :to_a
 
         define_method :inspect do
@@ -138,6 +142,10 @@ class Struct
             key = attrs.fetch(key)
           end
           send("#{key}=", value)
+        end
+
+        define_method :== do |other|
+          self.class == other.class && values == other.values
         end
 
         define_method :dig do |*args|
