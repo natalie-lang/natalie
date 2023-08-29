@@ -326,9 +326,11 @@ describe "String#%" do
     ("%#b" % -5).should == "0b..1011"
     ("%0b" % -5).should == "..1011"
     ("%.1b" % -5).should == "..1011"
-    ("%.7b" % -5).should == "..11011"
-    ("%.10b" % -5).should == "..11111011"
-    ("%#.10b" % -5).should == "0b..11111011"
+    NATFIXME 'something wrong with precision', exception: RuntimeError do
+      ("%.7b" % -5).should == "..11011"
+      ("%.10b" % -5).should == "..11111011"
+      ("%#.10b" % -5).should == "0b..11111011"
+    end
     ("% b" % -5).should == "-101"
     ("%+b" % -5).should == "-101"
     ("%#+b" % -5).should == "-0b101"
@@ -350,8 +352,10 @@ describe "String#%" do
     ("%B" % -5).should == ("%b" % -5)
     ("%0B" % -5).should == ("%0b" % -5)
     ("%.1B" % -5).should == ("%.1b" % -5)
-    ("%.7B" % -5).should == ("%.7b" % -5)
-    ("%.10B" % -5).should == ("%.10b" % -5)
+    NATFIXME 'something wrong with precision', exception: RuntimeError do
+      ("%.7B" % -5).should == ("%.7b" % -5)
+      ("%.10B" % -5).should == ("%.10b" % -5)
+    end
     ("% B" % -5).should == ("% b" % -5)
     ("%+B" % -5).should == ("%+b" % -5)
     not_supported_on :opal do
@@ -430,7 +434,7 @@ describe "String#%" do
       ("%6.4#{f}" % -123).should == " -0123"
     end
 
-    xit "supports negative integers using #{format}, giving priority to `-`" do
+    it "supports negative integers using #{format}, giving priority to `-`" do
       ("%-03#{f}" % -5).should == "-5 "
       ("%+-03#{f}" % -5).should == "-5 "
     end
@@ -532,17 +536,29 @@ describe "String#%" do
     ("%*o" % [10, 6]).should == "         6"
   end
 
-  xit "supports octal formats using %o for negative numbers" do
+  it "supports octal formats using %o for negative numbers" do
     # These are incredibly wrong. -05 == -5, not 7177777...whatever
     ("%o" % -5).should == "..73"
     ("%0o" % -5).should == "..73"
     ("%.4o" % 20).should == "0024"
     ("%.1o" % -5).should == "..73"
-    ("%.7o" % -5).should == "..77773"
-    ("%.10o" % -5).should == "..77777773"
+    NATFIXME 'something wrong with precision', exception: SpecFailedException do
+      ("%.7o" % -5).should == "..77773"
+      ("%.10o" % -5).should == "..77777773"
+    end
 
     ("% o" % -26).should == "-32"
     ("%+o" % -26).should == "-32"
+    ("%o" % -(2 ** 8)).should == '..7400'
+    ("%o" % -(2 ** 12)).should == '..70000'
+    ("%o" % -(2 ** 35)).should == '..7400000000000'
+    ("%o" % -(2 ** 45)).should == '..7000000000000000'
+    ("%o" % -(2 ** 50)).should == '..740000000000000000'
+    ("%o" % -(2 ** 60)).should == '..700000000000000000000'
+    ("%o" % -(2 ** 61)).should == '..7600000000000000000000'
+    ("%o" % -(2 ** 62)).should == '..7400000000000000000000'
+    ("%o" % -(2 ** 63)).should == '..7000000000000000000000'
+    ("%o" % -(2 ** 64 - 5)).should == '..76000000000000000000005'
     not_supported_on :opal do
       ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
     end

@@ -192,8 +192,8 @@ module Kernel
           sign = '-'
           value = i.abs.to_s(2)
         else
-          dotdot_sign = '..1'
-          width = token.precision ? token.precision - 3 : 0
+          dotdot_sign = '..'
+          width = token.precision - 2 if token.precision
           value = twos_complement(arg, 2, width)
         end
       else
@@ -224,11 +224,20 @@ module Kernel
     end
 
     def twos_complement(num, base, width)
-      bytes = num.abs.to_s(2).bytes.map { |b| b - 48 ^ 1 }
-      int = bytes.join.to_i(2) + 1
-      str = int.to_s(base)
-      str = ('0' * (bytes.size - str.size)) + str
-      ('1' * [width - str.size, 0].max) + str
+      # See this comment in the Ruby source for how this should work:
+      # https://github.com/ruby/ruby/blob/3151d7876fac408ad7060b317ae7798263870daa/sprintf.c#L662-L670
+      needed_bits = num.abs.to_s(2).size + 1
+      bits = [width.to_i, needed_bits].max
+      first_digit = (base - 1).to_s
+      bad_start = first_digit + first_digit
+      loop do
+        result = (2**bits - num.abs).to_s(base)
+        bits += 1
+        if result.start_with?(first_digit) && !result.start_with?(bad_start)
+          return result 
+        end
+        raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
+      end
     end
 
     def format_char(token, arg)
@@ -294,9 +303,44 @@ module Kernel
     end
 
     def format_octal(token, arg)
-      o = convert_int(arg).to_s(8)
-      o = "0#{o}" if token.flags.include?(:alternate_format) && o != '0'
-      apply_number_flags(o, token.flags)
+      i = convert_int(arg)
+
+      sign = ''
+
+      if i.negative?
+        if (token.flags & [:space, :plus]).any?
+          sign = '-'
+          value = i.abs.to_s(8)
+        else
+          dotdot_sign = '..'
+          width = token.precision - 2 if token.precision
+          value = twos_complement(arg, 8, width)
+        end
+      else
+        if token.flags.include?(:plus)
+          sign = '+'
+        elsif token.flags.include?(:space)
+          sign = ' '
+        end
+        value = i.abs.to_s(8)
+      end
+
+      if token.flags.include?(:alternate_format) && value != '0'
+        prefix = '0'
+      end
+
+      if token.precision
+        needed = token.precision - value.size - (dotdot_sign&.size || 0)
+        value = ('0' * ([needed, 0].max)) + value
+      end
+
+      build_numeric_value_with_padding(
+        token: token,
+        sign: sign,
+        value: value,
+        prefix: prefix,
+        dotdot_sign: dotdot_sign
+      )
     end
 
     def format_hex(token, arg)
@@ -423,6 +467,7 @@ module Kernel
         },
         field_width_minus: {
           on_number: :field_width,
+          on_zero: :field_width,
         },
         positional_argument: {
           return: :field_pending,
