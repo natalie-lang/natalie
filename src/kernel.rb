@@ -106,9 +106,15 @@ module Kernel
               next_argument
             end
 
-      if token.flags.include?(:width_given_as_arg)
-        token.width = arg
-        arg = next_argument
+      token.flags.each do |flag|
+        case flag
+        when :width_given_as_arg
+          token.width = int_from_arg(arg)
+          arg = next_argument
+        when :precision_given_as_arg
+          token.precision = int_from_arg(arg)
+          arg = next_argument
+        end
       end
 
       val = case token.datum
@@ -145,6 +151,18 @@ module Kernel
             end
 
       pad_value(token, val)
+    end
+
+    def int_from_arg(arg)
+      int = if arg.is_a?(Integer)
+              arg
+            elsif arg.respond_to?(:to_int)
+              arg.to_int
+            end
+      unless int.is_a?(Integer)
+        raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
+      end
+      int
     end
 
     def pad_value(token, val)
@@ -373,7 +391,7 @@ module Kernel
         },
         field_pending: {
           on_alpha: :field_end,
-          on_asterisk: :field_flag,
+          on_asterisk: :field_width_from_arg,
           on_minus: :field_width_minus,
           on_less_than: :field_named_argument_angled,
           on_left_curly_brace: :field_named_argument_curly,
@@ -396,8 +414,12 @@ module Kernel
           on_number: :field_precision,
           on_zero: :field_precision,
         },
+        field_precision_from_arg: {
+          return: :field_pending,
+        },
         field_precision_period: {
           on_number: :field_precision,
+          on_asterisk: :field_precision_from_arg,
         },
         field_width: {
           on_dollar: :positional_argument,
@@ -408,6 +430,9 @@ module Kernel
         field_width_minus: {
           on_number: :field_width,
           on_zero: :field_width,
+        },
+        field_width_from_arg: {
+          return: :field_pending,
         },
         positional_argument: {
           return: :field_pending,
@@ -519,20 +544,24 @@ module Kernel
                       :plus
                     when '0'
                       :zero_padded
-                    when '*'
-                      raise ArgumentError, 'width given twice' if width || flags.include?(:width_given_as_arg)
-                      :width_given_as_arg
                     else
                       raise ArgumentError, "unknown flag: #{char.inspect}"
                     end
           when :field_width
+            raise ArgumentError, 'width given twice' if flags.include?(:width_given_as_arg)
             width = (width || 0) * 10 + char.to_i
-          when :field_width_from_arg
-            width = :from_arg
           when :field_width_minus
             width_negative = true
+          when :field_width_from_arg
+            raise ArgumentError, 'width given twice' if width || flags.include?(:width_given_as_arg)
+            flags << :width_given_as_arg
           when :field_precision
+            raise ArgumentError, 'precision given twice' if flags.include?(:precision_given_as_arg)
             precision = (precision || 0) * 10 + char.to_i
+            raise ArgumentError, 'precision too big' if precision > 2**64
+          when :field_precision_from_arg
+            raise ArgumentError, 'precision given twice' if precision || flags.include?(:precision_given_as_arg)
+            flags << :precision_given_as_arg
           when :field_named_argument_angled, :field_named_argument_curly
             if arg_name
               arg_name << char
@@ -581,7 +610,7 @@ module Kernel
         end
 
         unless COMPLETE_STATES.include?(state)
-          raise ArgumentError, 'malformed format string'
+          raise ArgumentError, "malformed format string #{state}"
         end
 
         tokens

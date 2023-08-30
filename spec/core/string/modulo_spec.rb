@@ -229,7 +229,7 @@ describe "String#%" do
     ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
   end
 
-  xit "calls to_int on width star and precision star tokens" do
+  it "calls to_int on width star and precision star tokens" do
     w = mock('10')
     w.should_receive(:to_int).and_return(10)
 
@@ -611,7 +611,7 @@ describe "String#%" do
 
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  xit "raises an ArgumentError for huge precisions for %s" do
+  it "raises an ArgumentError for huge precisions for %s" do
     block = -> { "%.25555555555555555555555555555555555555s" % "hello world" }
     block.should raise_error(ArgumentError)
   end
