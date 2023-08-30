@@ -440,7 +440,7 @@ describe "String#%" do
     end
   end
 
-  xit "supports float formats using %e" do
+  it "supports float formats using %e" do
     ("%e" % 10).should == "1.000000e+01"
     ("% e" % 10).should == " 1.000000e+01"
     ("%1$e" % 10).should == "1.000000e+01"
@@ -469,7 +469,7 @@ describe "String#%" do
     ("%E" % -Float::NAN).should == "NaN"
   end
 
-  xit "supports float formats using %E" do
+  it "supports float formats using %E" do
     ("%E" % 10).should == "1.000000E+01"
     ("% E" % 10).should == " 1.000000E+01"
     ("%1$E" % 10).should == "1.000000E+01"

@@ -146,8 +146,11 @@ module Kernel
               format_char(token, val)
             when 'd', 'u', 'i'
               format_integer(token, val)
-            when 'e', 'E', 'f', 'g', 'G'
-              token.precision ||= 6
+            when 'e'
+              format_float_with_e_notation(token, val)
+            when 'E'
+              format_float_with_e_notation(token, val).upcase
+            when 'f', 'g', 'G'
               format_float(token, val)
             when 'o'
               format_octal(token, val)
@@ -221,6 +224,8 @@ module Kernel
         Float(arg).to_s
       end
 
+      precision = token.precision || 6
+
       if token.flags.include?(:plus)
         f = "+#{f}" unless f.start_with?('-')
       elsif token.flags.include?(:space)
@@ -228,7 +233,38 @@ module Kernel
       end
 
       f << '.0' unless f.index('.')
-      f << '0' until f.split('.').last.size >= token.precision
+      f << '0' until f.split('.').last.size >= precision
+      f
+    end
+
+    def format_float_with_e_notation(token, arg)
+      f = if arg.is_a?(Float)
+        arg.to_s
+      elsif arg.respond_to?(:to_ary)
+        arg.to_ary.first.to_s
+      else
+        Float(arg).to_s
+      end
+
+      precision = token.precision || 6
+
+      whole, decimal = f.split('.')
+      move = whole.size - 1
+      if move > 0
+        whole = whole[0]
+        decimal = whole[1..] + decimal
+      end
+
+      decimal += ('0' * [precision - decimal.size, 0].max)
+
+      f = "%s.%se%+03d" % [whole, decimal, move]
+
+      if token.flags.include?(:plus)
+        f = "+#{f}" unless f.start_with?('-')
+      elsif token.flags.include?(:space)
+        f = " #{f}" unless f.start_with?('-')
+      end
+
       f
     end
 
