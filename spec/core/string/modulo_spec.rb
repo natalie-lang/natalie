@@ -218,7 +218,7 @@ describe "String#%" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
 
-  xit "allows negative width to imply '-' flag" do
+  it "allows negative width to imply '-' flag" do
     ("%*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
     ("%-*1$.*2$3$d" % [10, 5, 1]).should == "00001     "
     ("%-*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "

@@ -112,6 +112,7 @@ module Kernel
           else
             token.width = int_from_arg(next_argument)
           end
+          token.width *= -1 if token.flags.include?(:width_negative) && !token.width.negative?
         when :precision_given_as_arg
           if token.precision_arg_position
             token.precision = int_from_arg(get_positional_argument(token.precision_arg_position))
@@ -452,6 +453,7 @@ module Kernel
         field_width_minus: {
           on_number: :field_width_or_positional_arg,
           on_zero: :field_width_or_positional_arg,
+          on_asterisk: :field_width_from_arg,
         },
         field_width_from_arg: {
           on_number: :field_width_from_positional_arg,
@@ -500,7 +502,6 @@ module Kernel
         state = :literal
         width_or_positional_arg = nil
         width = nil
-        width_negative = false
         width_arg_position = nil
         precision = nil
         precision_arg_position = nil
@@ -590,7 +591,7 @@ module Kernel
           when :field_width_or_positional_arg
             width_or_positional_arg = (width_or_positional_arg || 0) * 10 + char.to_i
           when :field_width_minus
-            width_negative = true
+            flags << :width_negative
           when :field_width_from_arg
             raise ArgumentError, 'width given twice' if width_or_positional_arg || flags.include?(:width_given_as_arg)
             flags << :width_given_as_arg
@@ -624,7 +625,11 @@ module Kernel
             value_arg_name = nil
           when :field_end
             if width_or_positional_arg
-              width = width_negative ? -width_or_positional_arg : width_or_positional_arg
+              width = if flags.include?(:width_negative)
+                        -width_or_positional_arg
+                      else
+                        width_or_positional_arg
+                      end
             end
             tokens << Token.new(
               type: :field,
@@ -638,7 +643,6 @@ module Kernel
               value_arg_name: value_arg_name,
             )
             width = nil
-            width_negative = false
             width_arg_position = nil
             width_or_positional_arg = nil
             precision = nil
