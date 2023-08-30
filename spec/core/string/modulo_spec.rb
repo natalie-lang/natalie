@@ -35,19 +35,23 @@ describe "String#%" do
   end
 
   describe "output's encoding" do
-    xit "is the same as the format string if passed value is encoding-compatible" do
+    it "is the same as the format string if passed value is encoding-compatible" do
       [Encoding::BINARY, Encoding::US_ASCII, Encoding::UTF_8, Encoding::SHIFT_JIS].each do |encoding|
         ("hello %s!".encode(encoding) % "world").encoding.should == encoding
       end
     end
 
-    xit "negotiates a compatible encoding if necessary" do
-      ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
-      ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
+    it "negotiates a compatible encoding if necessary" do
+      NATFIXME 'encoding negotation', exception: SpecFailedException do
+        ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
+        ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
+      end
     end
 
-    xit "raises if a compatible encoding can't be found" do
-      -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
+    it "raises if a compatible encoding can't be found" do
+      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError do
+        -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 

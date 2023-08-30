@@ -88,6 +88,12 @@ module Kernel
         end
       end.join
 
+      begin
+        result = result.encode(format_string.encoding)
+      rescue ArgumentError
+        # we tried
+      end
+
       if $DEBUG && arguments.any? && !@positional_argument_used
         raise ArgumentError, "too many arguments for format string"
       end
