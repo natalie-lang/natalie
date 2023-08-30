@@ -1294,6 +1294,7 @@ gen.binding('Symbol', 'inspect', 'SymbolObject', 'inspect', argc: 0, pass_env: t
 gen.binding('Symbol', 'intern', 'SymbolObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'length', 'SymbolObject', 'length', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'name', 'SymbolObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Symbol', 'next', 'SymbolObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'size', 'SymbolObject', 'length', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'slice', 'SymbolObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'start_with?', 'SymbolObject', 'start_with', argc: :any, pass_env: true, pass_block: false, return_type: :bool)
