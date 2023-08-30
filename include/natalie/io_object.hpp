@@ -68,7 +68,7 @@ public:
     Value seek(Env *, Value, Value) const;
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value stat(Env *) const;
-    static Value sysopen(Env *, Value);
+    static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value) const;
     static Value read_file(Env *, Value);
     Value readline(Env *) const;

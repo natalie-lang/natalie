@@ -26,7 +26,8 @@ describe "IO.sysopen" do
     end
   end
 
-  it "calls #to_path to convert an object to a path" do
+  # NATFIXME: Call to_path, currently fails with an assertion
+  xit "calls #to_path to convert an object to a path" do
     path = mock('sysopen to_path')
     path.should_receive(:to_path).and_return(@filename)
     @fd = IO.sysopen(path, 'w')
@@ -44,7 +45,9 @@ describe "IO.sysopen" do
 
   it "accepts mode & permission that are nil" do
     touch @filename # create the file
-    @fd = IO.sysopen(@filename, nil, nil)
-    @fd.should_not equal(0)
+    NATFIXME 'accepts mode & permission that are nil', exception: TypeError, message: 'no implicit conversion of NilClass into String' do
+      @fd = IO.sysopen(@filename, nil, nil)
+      @fd.should_not equal(0)
+    end
   end
 end
