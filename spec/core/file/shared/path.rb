@@ -42,22 +42,28 @@ describe :file_path, shared: true do
   it "does not normalise the path it returns" do
     Dir.chdir(tmp("")) do
       unorm = "./#{@name}"
-      @file = File.new unorm
-      @file.send(@method).should == unorm
+      NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
+        @file = File.new unorm
+        @file.send(@method).should == unorm
+      end
     end
   end
 
   it "does not canonicalize the path it returns" do
     dir = File.basename tmp("")
     path = "#{tmp("")}../#{dir}/#{@name}"
-    @file = File.new path
-    @file.send(@method).should == path
+    NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
+      @file = File.new path
+      @file.send(@method).should == path
+    end
   end
 
   it "does not absolute-ise the path it returns" do
     Dir.chdir(tmp("")) do
-      @file = File.new @name
-      @file.send(@method).should == @name
+      NATFIXME 'Open path in File.new', exception: Errno::ENOENT, message: 'No such file or directory' do
+        @file = File.new @name
+        @file.send(@method).should == @name
+      end
     end
   end
 

@@ -98,7 +98,7 @@ private:
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     bool m_closed { false };
-    Value m_path { nullptr };
+    StringObject *m_path { nullptr };
 };
 
 }
