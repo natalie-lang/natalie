@@ -451,14 +451,14 @@ describe "String#%" do
     ("%*e" % [10, 9]).should == "9.000000e+00"
   end
 
-  xit "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
+  it "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
     ("%e" % 1e1020).should == "Inf"
     ("%e" % -1e1020).should == "-Inf"
     ("%e" % -Float::NAN).should == "NaN"
     ("%e" % Float::NAN).should == "NaN"
   end
 
-  xit "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
+  it "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
     ("%E" % 1e1020).should == "Inf"
     ("%E" % -1e1020).should == "-Inf"
     ("%-10E" % 1e1020).should == "Inf       "
@@ -480,7 +480,7 @@ describe "String#%" do
     ("%*E" % [10, 9]).should == "9.000000E+00"
   end
 
-  xit "pads with spaces for %E with Inf, -Inf, and NaN" do
+  it "pads with spaces for %E with Inf, -Inf, and NaN" do
     ("%010E" % -1e1020).should == "      -Inf"
     ("%010E" % 1e1020).should == "       Inf"
     ("%010E" % Float::NAN).should == "       NaN"

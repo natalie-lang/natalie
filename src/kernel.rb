@@ -147,9 +147,9 @@ module Kernel
             when 'd', 'u', 'i'
               format_integer(token, val)
             when 'e'
-              format_float_with_e_notation(token, val)
+              format_float_with_e_notation(token, val, e: 'e')
             when 'E'
-              format_float_with_e_notation(token, val).upcase
+              format_float_with_e_notation(token, val, e: 'E')
             when 'f', 'g', 'G'
               format_float(token, val)
             when 'o'
@@ -237,35 +237,50 @@ module Kernel
       f
     end
 
-    def format_float_with_e_notation(token, arg)
-      f = if arg.is_a?(Float)
-        arg.to_s
-      elsif arg.respond_to?(:to_ary)
-        arg.to_ary.first.to_s
-      else
-        Float(arg).to_s
-      end
+    def format_float_with_e_notation(token, arg, e: 'e')
+      val = if arg.is_a?(Float)
+              arg.to_s
+            elsif arg.respond_to?(:to_ary)
+              arg.to_ary.first.to_s
+            else
+              Float(arg).to_s
+            end
 
       precision = token.precision || 6
 
-      whole, decimal = f.split('.')
-      move = whole.size - 1
-      if move > 0
-        whole = whole[0]
-        decimal = whole[1..] + decimal
+      if val == 'Infinity'
+        val = 'Inf'
+        token.flags.delete(:zero_padded)
+      elsif val == '-Infinity'
+        val = '-Inf'
+        token.flags.delete(:zero_padded)
+      elsif val == 'NaN'
+        val = 'NaN'
+        token.flags.delete(:zero_padded)
+      else
+        unless val.index('.')
+          raise "Unexpected float value: #{val.inspect}"
+        end
+
+        whole, decimal = val.split('.')
+        move = whole.size - 1
+        if move > 0
+          whole = whole[0]
+          decimal = whole[1..] + decimal
+        end
+
+        decimal += ('0' * [precision - decimal.size, 0].max)
+
+        val = "%s.%s%s%+03d" % [whole, decimal, e, move]
       end
-
-      decimal += ('0' * [precision - decimal.size, 0].max)
-
-      f = "%s.%se%+03d" % [whole, decimal, move]
 
       if token.flags.include?(:plus)
-        f = "+#{f}" unless f.start_with?('-')
+        val = "+#{val}" unless val.start_with?('-')
       elsif token.flags.include?(:space)
-        f = " #{f}" unless f.start_with?('-')
+        val = " #{val}" unless val.start_with?('-')
       end
 
-      f
+      val
     end
 
     def format_integer(token, arg)
