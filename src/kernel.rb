@@ -104,54 +104,60 @@ module Kernel
     private
 
     def format_field(token)
-      arg = if token.arg_name
-              get_named_argument(token.arg_name)
-            elsif token.arg_position
-              get_positional_argument(token.arg_position)
+      token.flags.each do |flag|
+        case flag
+        when :width_given_as_arg
+          if token.width_arg_position
+            token.width = int_from_arg(get_positional_argument(token.width_arg_position))
+          else
+            token.width = int_from_arg(next_argument)
+          end
+        when :precision_given_as_arg
+          if token.precision_arg_position
+            token.precision = int_from_arg(get_positional_argument(token.precision_arg_position))
+          else
+            token.precision = int_from_arg(next_argument)
+          end
+        end
+      end
+
+      val = if token.value_arg_name
+              get_named_argument(token.value_arg_name)
+            elsif token.value_arg_position
+              get_positional_argument(token.value_arg_position)
             else
               next_argument
             end
 
-      token.flags.each do |flag|
-        case flag
-        when :width_given_as_arg
-          token.width = int_from_arg(arg)
-          arg = next_argument
-        when :precision_given_as_arg
-          token.precision = int_from_arg(arg)
-          arg = next_argument
-        end
-      end
-
       val = case token.datum
             when nil
-              if token.arg_name
+              if token.value_arg_name
                 # %{foo} doesn't require a specifier
-                arg.to_s
+                val.to_s
               else
                 raise ArgumentError, 'malformed format string'
               end
             when 'b'
-              format_binary(token, arg)
+              format_binary(token, val)
             when 'B'
-              format_binary(token, arg).upcase
+              format_binary(token, val).upcase
             when 'c'
-              format_char(token, arg)
+              format_char(token, val)
             when 'd', 'u', 'i'
-              format_integer(token, arg)
+              format_integer(token, val)
             when 'e', 'E', 'f', 'g', 'G'
               token.precision ||= 6
-              format_float(token, arg)
+              format_float(token, val)
             when 'o'
-              format_octal(token, arg)
+              format_octal(token, val)
             when 'p'
-              arg.inspect
+              val.inspect
             when 's'
-              arg.to_s
+              val.to_s
             when 'x'
-              format_hex(token, arg)
+              format_hex(token, val)
             when 'X'
-              format_hex(token, arg).upcase
+              format_hex(token, val).upcase
             else
               raise ArgumentError, "malformed format string - %#{token.datum}"
             end
@@ -403,7 +409,7 @@ module Kernel
           on_left_curly_brace: :field_named_argument_curly,
           on_newline: :literal_percent,
           on_null_byte: :literal_percent,
-          on_number: :field_width,
+          on_number: :field_width_or_positional_arg,
           on_percent: :literal,
           on_period: :field_precision_period,
           on_plus: :field_flag,
@@ -421,26 +427,46 @@ module Kernel
           on_zero: :field_precision,
         },
         field_precision_from_arg: {
+          on_number: :field_precision_from_positional_arg,
           return: :field_pending,
         },
         field_precision_period: {
           on_number: :field_precision,
           on_asterisk: :field_precision_from_arg,
         },
-        field_width: {
-          on_dollar: :positional_argument,
-          on_number: :field_width,
-          on_zero: :field_width,
+        field_precision_from_positional_arg: {
+          on_dollar: :field_precision_from_positional_arg_end,
+          on_number: :field_precision_from_positional_arg,
+          on_zero: :field_precision_from_positional_arg,
+          return: :field_pending,
+        },
+        field_precision_from_positional_arg_end: {
+          return: :field_pending,
+        },
+        field_width_or_positional_arg: {
+          on_dollar: :positional_argument_end,
+          on_number: :field_width_or_positional_arg,
+          on_zero: :field_width_or_positional_arg,
           return: :field_pending,
         },
         field_width_minus: {
-          on_number: :field_width,
-          on_zero: :field_width,
+          on_number: :field_width_or_positional_arg,
+          on_zero: :field_width_or_positional_arg,
         },
         field_width_from_arg: {
+          on_number: :field_width_from_positional_arg,
           return: :field_pending,
         },
-        positional_argument: {
+        field_width_from_positional_arg: {
+          on_dollar: :field_width_from_positional_arg_end,
+          on_number: :field_width_from_positional_arg,
+          on_zero: :field_width_from_positional_arg,
+          return: :field_pending,
+        },
+        field_width_from_positional_arg_end: {
+          return: :field_pending,
+        },
+        positional_argument_end: {
           return: :field_pending,
         }
       }.freeze
@@ -452,26 +478,34 @@ module Kernel
       ].freeze
 
       class Token
-        def initialize(type:, datum:, flags: [], width: nil, precision: nil, arg_position: nil, arg_name: nil)
+        def initialize(type:, datum:, flags: [], width: nil, width_arg_position: nil, precision: nil, precision_arg_position: nil, value_arg_position: nil, value_arg_name: nil)
           @type = type
           @datum = datum
           @flags = flags
           @width = width
+          @width_arg_position = width_arg_position
           @precision = precision
-          @arg_position = arg_position
-          @arg_name = arg_name
+          @precision_arg_position = precision_arg_position
+          @value_arg_position = value_arg_position
+          @value_arg_name = value_arg_name
         end
 
-        attr_accessor :type, :datum, :flags, :width, :precision, :arg_position, :arg_name
+        attr_accessor :type, :datum, :flags,
+          :width, :width_arg_position,
+          :precision, :precision_arg_position,
+          :value_arg_position, :value_arg_name
       end
 
       def tokens
         state = :literal
+        width_or_positional_arg = nil
         width = nil
         width_negative = false
+        width_arg_position = nil
         precision = nil
-        arg_position = nil
-        arg_name = nil
+        precision_arg_position = nil
+        value_arg_position = nil
+        value_arg_name = nil
         flags = []
         tokens = []
 
@@ -553,14 +587,17 @@ module Kernel
                     else
                       raise ArgumentError, "unknown flag: #{char.inspect}"
                     end
-          when :field_width
-            raise ArgumentError, 'width given twice' if flags.include?(:width_given_as_arg)
-            width = (width || 0) * 10 + char.to_i
+          when :field_width_or_positional_arg
+            width_or_positional_arg = (width_or_positional_arg || 0) * 10 + char.to_i
           when :field_width_minus
             width_negative = true
           when :field_width_from_arg
-            raise ArgumentError, 'width given twice' if width || flags.include?(:width_given_as_arg)
+            raise ArgumentError, 'width given twice' if width_or_positional_arg || flags.include?(:width_given_as_arg)
             flags << :width_given_as_arg
+          when :field_width_from_positional_arg
+            width_arg_position = (width_arg_position || 0) * 10 + char.to_i
+          when :field_width_from_positional_arg_end
+            :noop
           when :field_precision
             raise ArgumentError, 'precision given twice' if flags.include?(:precision_given_as_arg)
             precision = (precision || 0) * 10 + char.to_i
@@ -568,41 +605,53 @@ module Kernel
           when :field_precision_from_arg
             raise ArgumentError, 'precision given twice' if precision || flags.include?(:precision_given_as_arg)
             flags << :precision_given_as_arg
+          when :field_precision_from_positional_arg
+            precision_arg_position = (precision_arg_position || 0) * 10 + char.to_i
+          when :field_precision_from_positional_arg_end
+            :noop
           when :field_named_argument_angled, :field_named_argument_curly
-            if arg_name
-              arg_name << char
+            if value_arg_name
+              value_arg_name << char
             else
-              arg_name = ''
+              value_arg_name = ''
             end
           when :field_named_argument_curly_end
             tokens << Token.new(
               type: :field,
               datum: nil,
-              arg_name: arg_name,
+              value_arg_name: value_arg_name,
             )
-            arg_name = nil
+            value_arg_name = nil
           when :field_end
+            if width_or_positional_arg
+              width = width_negative ? -width_or_positional_arg : width_or_positional_arg
+            end
             tokens << Token.new(
               type: :field,
               datum: char,
               flags: flags.dup,
-              width: width_negative ? -width : width,
+              width: width,
+              width_arg_position: width_arg_position,
               precision: precision,
-              arg_position: arg_position,
-              arg_name: arg_name,
+              precision_arg_position: precision_arg_position,
+              value_arg_position: value_arg_position,
+              value_arg_name: value_arg_name,
             )
             width = nil
             width_negative = false
+            width_arg_position = nil
+            width_or_positional_arg = nil
             precision = nil
-            arg_position = nil
-            arg_name = nil
-          when :positional_argument
-            new_arg_position = width
-            width = nil
-            if arg_position
+            precision_arg_position = nil
+            value_arg_position = nil
+            value_arg_name = nil
+          when :positional_argument_end
+            new_arg_position = width_or_positional_arg
+            width_or_positional_arg = nil
+            if value_arg_position
               raise ArgumentError, "value given twice - #{new_arg_position}$"
             end
-            arg_position = new_arg_position
+            value_arg_position = new_arg_position
           else
             raise ArgumentError, "unknown state: #{state.inspect}"
           end
@@ -610,7 +659,7 @@ module Kernel
 
         # An incomplete field with no type and having a positional argument
         # produces a literal '%'.
-        if state == :positional_argument
+        if state == :positional_argument_end
           tokens << Token.new(type: :literal, datum: '%')
           state = :field_end
         end

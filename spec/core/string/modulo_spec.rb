@@ -214,7 +214,7 @@ describe "String#%" do
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
   end
 
-  xit "allows positional arguments for width star and precision star arguments" do
+  it "allows positional arguments for width star and precision star arguments" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
 
