@@ -224,11 +224,11 @@ describe "String#%" do
     ("%-*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
   end
 
-  xit "ignores negative precision" do
+  it "ignores negative precision" do
     ("%*1$.*2$3$d" % [10, -5, 1]).should == "         1"
   end
 
-  xit "allows a star to take an argument number to use as the width" do
+  it "allows a star to take an argument number to use as the width" do
     ("%1$*2$s" % ["a", 8]).should == "       a"
     ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
   end
