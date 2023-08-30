@@ -12,6 +12,14 @@ class Enumerator
       enumerables = defined?(@enumerables) ? @enumerables.inspect : 'uninitialized'
       "#<Enumerator::Chain: #{enumerables}>"
     end
+
+    def size
+      @enumerables.inject(0) do |sum, enumerable|
+        size = enumerable.size
+        return size if size.nil? || size.infinite?
+        sum + size
+      end
+    end
   end
 
   class Yielder
