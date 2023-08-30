@@ -303,6 +303,11 @@ Value IoObject::stat(Env *env) const {
     return new FileStatObject { sb };
 }
 
+Value IoObject::sysopen(Env *env, Value filename) {
+    const auto fd = ::open(filename->as_string()->c_str(), O_RDONLY);
+    return IntegerObject::create(fd);
+}
+
 IoObject *IoObject::to_io(Env *env) {
     return this->as_io();
 }
