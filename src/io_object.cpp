@@ -358,6 +358,7 @@ Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
     else
         modenum = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
 
+    path = fileutil::convert_using_to_path(env, path);
     const auto fd = ::open(path->as_string()->c_str(), flags, modenum);
     return IntegerObject::create(fd);
 }

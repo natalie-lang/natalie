@@ -26,8 +26,7 @@ describe "IO.sysopen" do
     end
   end
 
-  # NATFIXME: Call to_path, currently fails with an assertion
-  xit "calls #to_path to convert an object to a path" do
+  it "calls #to_path to convert an object to a path" do
     path = mock('sysopen to_path')
     path.should_receive(:to_path).and_return(@filename)
     @fd = IO.sysopen(path, 'w')
