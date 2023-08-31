@@ -156,6 +156,10 @@ class Enumerator
     self
   end
 
+  def +(other)
+    Chain.new(self, other)
+  end
+
   class Lazy < Enumerator
     def initialize(obj, size = nil, &block)
       raise ArgumentError, 'tried to call lazy new without a block' unless block_given?
