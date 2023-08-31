@@ -259,7 +259,9 @@ module Kernel
       alternate_format = token.flags.include?(:alternate_format)
 
       if f < -4 || s.sub(/\.0$/, '').size > 6
-        token.precision = 0
+        if (m = f.to_s.match(/\.(\d+)/))
+          token.precision = m[1].size
+        end
         format_float_with_e_notation(token, f, e: e).sub(/\.0+(?=e)/i, '')
       elsif decimal == '0' && !alternate_format
         token.precision = 0
@@ -280,44 +282,18 @@ module Kernel
     end
 
     def format_float_with_e_notation(token, f, e: 'e')
-      precision = token.precision || 6
-
-      val = f.to_s
-
-      if val == 'Infinity'
+      if f == Float::INFINITY
         val = 'Inf'
         token.flags.delete(:zero_padded)
-      elsif val == '-Infinity'
+      elsif f == -Float::INFINITY
         val = '-Inf'
         token.flags.delete(:zero_padded)
-      elsif val == 'NaN'
+      elsif f.nan?
         val = 'NaN'
         token.flags.delete(:zero_padded)
       else
-        unless val.index('.')
-          raise "Unexpected float value: #{val.inspect}"
-        end
-
-        if val.index('e')
-          # already in e notation
-          return val.tr('e', e)
-        elsif (sign, leading_zeros, decimal = val.match(/^(-?)0\.(0*)(\d+)$/)&.captures)
-          move = -leading_zeros.size - 1
-          whole = decimal[0]
-          decimal = decimal[1..]
-        elsif (sign, whole, decimal = val.match(/^(-?)(\d+)\.(\d+)$/)&.captures)
-          move = whole.size - 1
-          if move > 0
-            decimal = whole[1..] + decimal
-            whole = whole[0]
-          end
-        else
-          raise "Something went wrong: #{val}"
-        end
-
-        decimal += ('0' * [precision - decimal.size, 0].max)
-
-        val = "%s%s.%s%s%+03d" % [sign, whole, decimal, e, move]
+        precision = token.precision || 6
+        val = sprintf("%.#{precision}#{e}", f)
       end
 
       if token.flags.include?(:plus)
@@ -429,6 +405,15 @@ module Kernel
         result
       end
     end
+
+    __define_method__ :sprintf, [:format, :val], <<-END
+      assert(format->is_string());
+      assert(val->is_float());
+      char buf[100];
+      if (snprintf(buf, 100, format->as_string()->c_str(), val->as_float()->to_double()) > 0)
+          return new StringObject { buf };
+      env->raise("ArgumentError", "could not format value");
+    END
 
     def next_argument
       if arguments_index >= arguments.size

@@ -129,17 +129,13 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "cuts excessive digits and keeps only 6 ones" do
-          NATFIXME 'should round', exception: SpecFailedException do
-            @method.call("%#{f}", 1.123456789).should == "1.123457#{exp}+00"
-          end
+          @method.call("%#{f}", 1.123456789).should == "1.123457#{exp}+00"
         end
 
         it "rounds the last significant digit to the closest one" do
-          NATFIXME 'should round', exception: SpecFailedException do
-            @method.call("%#{f}", 1.555555555).should == "1.555556#{exp}+00"
-            @method.call("%#{f}", -1.555555555).should == "-1.555556#{exp}+00"
-            @method.call("%#{f}", 1.444444444).should == "1.444444#{exp}+00"
-          end
+          @method.call("%#{f}", 1.555555555).should == "1.555556#{exp}+00"
+          @method.call("%#{f}", -1.555555555).should == "-1.555556#{exp}+00"
+          @method.call("%#{f}", 1.444444444).should == "1.444444#{exp}+00"
         end
 
         it "displays Float::INFINITY as Inf" do
