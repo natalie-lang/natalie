@@ -124,7 +124,7 @@ describe :kernel_sprintf, shared: true do
     {"e" => "e", "E" => "E"}.each_pair do |f, exp|
       describe f do
         it "converts argument into exponential notation [-]d.dddddde[+-]dd" do
-          NATFIXME 'buggy floats', exception: SpecFailedException do
+          NATFIXME 'weird decimal position bug', exception: SpecFailedException do
             @method.call("%#{f}", 109.52).should == "1.095200#{exp}+02"
             @method.call("%#{f}", -109.52).should == "-1.095200#{exp}+02"
             @method.call("%#{f}", 0.10952).should == "1.095200#{exp}-01"
@@ -537,10 +537,10 @@ describe :kernel_sprintf, shared: true do
           @method.call("% x", 196).should == " c4"
           @method.call("% X", 196).should == " C4"
 
-          NATFIXME 'buggy floats', exception: SpecFailedException do
-            @method.call("% e", 109.52).should == " 1.095200e+02"
-            @method.call("% E", 109.52).should == " 1.095200E+02"
-            @method.call("% f", 10.952).should == " 10.952000"
+          @method.call("% e", 109.52).should == " 1.095200e+02"
+          @method.call("% E", 109.52).should == " 1.095200E+02"
+          @method.call("% f", 10.952).should == " 10.952000"
+          NATFIXME 'skip e notation', exception: SpecFailedException do
             @method.call("% g", 12.1234).should == " 12.1234"
             @method.call("% G", 12.1234).should == " 12.1234"
           end
@@ -560,10 +560,14 @@ describe :kernel_sprintf, shared: true do
           @method.call("% x", -196).should == "-c4"
           @method.call("% X", -196).should == "-C4"
 
-          NATFIXME 'buggy floats', exception: SpecFailedException do
+          NATFIXME 'weird bug', exception: SpecFailedException, message: '"-.109520e+03" should be == to "-1.095200e+02"' do
             @method.call("% e", -109.52).should == "-1.095200e+02"
+          end
+          NATFIXME 'weird bug', exception: SpecFailedException, message: '"-.109520E+03" should be == to "-1.095200E+02"' do
             @method.call("% E", -109.52).should == "-1.095200E+02"
-            @method.call("% f", -10.952).should == "-10.952000"
+          end
+          @method.call("% f", -10.952).should == "-10.952000"
+          NATFIXME 'skip e notation', exception: SpecFailedException do
             @method.call("% g", -12.1234).should == "-12.1234"
             @method.call("% G", -12.1234).should == "-12.1234"
           end
@@ -591,10 +595,10 @@ describe :kernel_sprintf, shared: true do
           @method.call("%     x", 196).should == " c4"
           @method.call("%     X", 196).should == " C4"
 
-          NATFIXME 'buggy floats', exception: SpecFailedException do
-            @method.call("%     e", 109.52).should == " 1.095200e+02"
-            @method.call("%     E", 109.52).should == " 1.095200E+02"
-            @method.call("%     f", 10.952).should == " 10.952000"
+          @method.call("%     e", 109.52).should == " 1.095200e+02"
+          @method.call("%     E", 109.52).should == " 1.095200E+02"
+          @method.call("%     f", 10.952).should == " 10.952000"
+          NATFIXME 'skip e notation', exception: SpecFailedException do
             @method.call("%     g", 12.1234).should == " 12.1234"
             @method.call("%     G", 12.1234).should == " 12.1234"
           end
@@ -617,10 +621,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%2$x", 0, 196).should == "c4"
         @method.call("%2$X", 0, 196).should == "C4"
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
-          @method.call("%2$e", 0, 109.52).should == "1.095200e+02"
-          @method.call("%2$E", 0, 109.52).should == "1.095200E+02"
-          @method.call("%2$f", 0, 10.952).should == "10.952000"
+        @method.call("%2$e", 0, 109.52).should == "1.095200e+02"
+        @method.call("%2$E", 0, 109.52).should == "1.095200E+02"
+        @method.call("%2$f", 0, 10.952).should == "10.952000"
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%2$g", 0, 12.1234).should == "12.1234"
           @method.call("%2$G", 0, 12.1234).should == "12.1234"
         end
@@ -735,10 +739,10 @@ describe :kernel_sprintf, shared: true do
           @method.call("%+x", 196).should == "+c4"
           @method.call("%+X", 196).should == "+C4"
 
-          NATFIXME 'buggy floats', exception: SpecFailedException do
-            @method.call("%+e", 109.52).should == "+1.095200e+02"
-            @method.call("%+E", 109.52).should == "+1.095200E+02"
-            @method.call("%+f", 10.952).should == "+10.952000"
+          @method.call("%+e", 109.52).should == "+1.095200e+02"
+          @method.call("%+E", 109.52).should == "+1.095200E+02"
+          @method.call("%+f", 10.952).should == "+10.952000"
+          NATFIXME 'skip e notation', exception: SpecFailedException do
             @method.call("%+g", 12.1234).should == "+12.1234"
             @method.call("%+G", 12.1234).should == "+12.1234"
           end
@@ -769,10 +773,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%-10x", 196).should == "c4        "
         @method.call("%-10X", 196).should == "C4        "
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
-          @method.call("%-20e", 109.52).should == "1.095200e+02        "
-          @method.call("%-20E", 109.52).should == "1.095200E+02        "
-          @method.call("%-20f", 10.952).should == "10.952000           "
+        @method.call("%-20e", 109.52).should == "1.095200e+02        "
+        @method.call("%-20E", 109.52).should == "1.095200E+02        "
+        @method.call("%-20f", 10.952).should == "10.952000           "
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%-20g", 12.1234).should == "12.1234             "
           @method.call("%-20G", 12.1234).should == "12.1234             "
         end
@@ -833,10 +837,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%*x", 10, 196).should == "        c4"
         @method.call("%*X", 10, 196).should == "        C4"
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
-          @method.call("%*e", 20, 109.52).should == "        1.095200e+02"
-          @method.call("%*E", 20, 109.52).should == "        1.095200E+02"
-          @method.call("%*f", 20, 10.952).should == "           10.952000"
+        @method.call("%*e", 20, 109.52).should == "        1.095200e+02"
+        @method.call("%*E", 20, 109.52).should == "        1.095200E+02"
+        @method.call("%*f", 20, 10.952).should == "           10.952000"
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%*g", 20, 12.1234).should == "             12.1234"
           @method.call("%*G", 20, 12.1234).should == "             12.1234"
         end
@@ -860,10 +864,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%*x", -10, 196).should == "c4        "
         @method.call("%*X", -10, 196).should == "C4        "
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
-          @method.call("%*e", -20, 109.52).should == "1.095200e+02        "
-          @method.call("%*E", -20, 109.52).should == "1.095200E+02        "
-          @method.call("%*f", -20, 10.952).should == "10.952000           "
+        @method.call("%*e", -20, 109.52).should == "1.095200e+02        "
+        @method.call("%*E", -20, 109.52).should == "1.095200E+02        "
+        @method.call("%*f", -20, 10.952).should == "10.952000           "
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%*g", -20, 12.1234).should == "12.1234             "
           @method.call("%*G", -20, 12.1234).should == "12.1234             "
         end
@@ -887,10 +891,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%1$*2$x", 196, 10).should == "        c4"
         @method.call("%1$*2$X", 196, 10).should == "        C4"
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
           @method.call("%1$*2$e", 109.52, 20).should == "        1.095200e+02"
           @method.call("%1$*2$E", 109.52, 20).should == "        1.095200E+02"
           @method.call("%1$*2$f", 10.952, 20).should == "           10.952000"
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%1$*2$g", 12.1234, 20).should == "             12.1234"
           @method.call("%1$*2$G", 12.1234, 20).should == "             12.1234"
         end
@@ -914,10 +918,10 @@ describe :kernel_sprintf, shared: true do
         @method.call("%1$*2$x", 196, -10).should == "c4        "
         @method.call("%1$*2$X", 196, -10).should == "C4        "
 
-        NATFIXME 'buggy floats', exception: SpecFailedException do
-          @method.call("%1$*2$e", 109.52, -20).should == "1.095200e+02        "
-          @method.call("%1$*2$E", 109.52, -20).should == "1.095200E+02        "
-          @method.call("%1$*2$f", 10.952, -20).should == "10.952000           "
+        @method.call("%1$*2$e", 109.52, -20).should == "1.095200e+02        "
+        @method.call("%1$*2$E", 109.52, -20).should == "1.095200E+02        "
+        @method.call("%1$*2$f", 10.952, -20).should == "10.952000           "
+        NATFIXME 'skip e notation', exception: SpecFailedException do
           @method.call("%1$*2$g", 12.1234, -20).should == "12.1234             "
           @method.call("%1$*2$G", 12.1234, -20).should == "12.1234             "
         end
@@ -950,10 +954,8 @@ describe :kernel_sprintf, shared: true do
       @method.call("%10x", 196).should == "        c4"
       @method.call("%10X", 196).should == "        C4"
 
-      NATFIXME 'buggy %e', exception: SpecFailedException do
-        @method.call("%20e", 109.52).should == "        1.095200e+02"
-        @method.call("%20E", 109.52).should == "        1.095200E+02"
-      end
+      @method.call("%20e", 109.52).should == "        1.095200e+02"
+      @method.call("%20E", 109.52).should == "        1.095200E+02"
       @method.call("%20f", 10.952).should == "           10.952000"
       NATFIXME 'exponent on %g', exception: SpecFailedException do
         @method.call("%20g", 12.1234).should == "             12.1234"
@@ -991,10 +993,10 @@ describe :kernel_sprintf, shared: true do
 
     context "float types" do
       it "controls the number of decimal places displayed in fraction part" do
-        NATFIXME 'buggy %e', exception: SpecFailedException do
-          @method.call("%.10e", 109.52).should == "1.0952000000e+02"
-          @method.call("%.10E", 109.52).should == "1.0952000000E+02"
-          @method.call("%.10f", 10.952).should == "10.9520000000"
+        @method.call("%.10e", 109.52).should == "1.0952000000e+02"
+        @method.call("%.10E", 109.52).should == "1.0952000000E+02"
+        @method.call("%.10f", 10.952).should == "10.9520000000"
+        NATFIXME 'implement %a', exception: ArgumentError do
           @method.call("%.10a", 196).should == "0x1.8800000000p+7"
           @method.call("%.10A", 196).should == "0X1.8800000000P+7"
         end

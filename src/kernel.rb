@@ -299,8 +299,8 @@ module Kernel
         whole, decimal = val.split('.')
         move = whole.size - 1
         if move > 0
-          whole = whole[0]
           decimal = whole[1..] + decimal
+          whole = whole[0]
         end
 
         decimal += ('0' * [precision - decimal.size, 0].max)
