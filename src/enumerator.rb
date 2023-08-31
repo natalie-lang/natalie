@@ -438,7 +438,6 @@ class Enumerator
 
     private
 
-    # Add #with_index if implemented in Enumerator
     %i[
       collect
       collect_concat
@@ -456,6 +455,7 @@ class Enumerator
       take
       take_while
       uniq
+      with_index
       zip
     ].each { |meth| alias_method "_enumerable_#{meth}", meth }
   end
