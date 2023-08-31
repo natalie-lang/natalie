@@ -147,6 +147,8 @@ public:
     static Value ref(Env *env, Value);
     static Value refeq(Env *env, Value, Value);
     Value resume(Env *env, Args args);
+    static Value scheduler();
+    static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
     void yield_back(Env *env, Args args);
@@ -211,6 +213,7 @@ private:
 
     inline static FiberObject *s_current = nullptr;
     inline static FiberObject *s_main = nullptr;
+    inline static Value s_scheduler { nullptr };
 };
 
 }

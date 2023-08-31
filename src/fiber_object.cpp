@@ -116,6 +116,24 @@ Value FiberObject::resume(Env *env, Args args) {
     }
 }
 
+Value FiberObject::scheduler() {
+    return s_scheduler;
+}
+
+Value FiberObject::set_scheduler(Env *env, Value scheduler) {
+    if (scheduler->is_nil()) {
+        s_scheduler = nullptr;
+    } else {
+        TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
+        for (const auto &required_method : required_methods) {
+            if (!scheduler->respond_to(env, SymbolObject::intern(required_method)))
+                env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
+        }
+        s_scheduler = scheduler;
+    }
+    return scheduler;
+}
+
 Value FiberObject::set_storage(Env *env, Value storage) {
     if (storage == nullptr || storage->is_nil()) {
         m_storage = nullptr;
