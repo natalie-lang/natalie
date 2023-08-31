@@ -4,7 +4,7 @@ module Base64
   end
 
   def self.decode64(str)
-    str.unpack("m").first
+    str.unpack1("m")
   end
 
   def self.strict_encode64(str)
@@ -12,7 +12,7 @@ module Base64
   end
 
   def self.strict_decode64(str)
-    str.unpack("m0").first
+    str.unpack1("m0")
   end
 
   def self.urlsafe_encode64(bin, padding: true)
