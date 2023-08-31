@@ -1055,9 +1055,7 @@ describe :kernel_sprintf, shared: true do
 
     describe "%{name} style" do
       it "uses value passed in a hash argument" do
-        NATFIXME 'named arg', exception: ArgumentError do
-          @method.call("%{foo}", foo: 123).should == "123"
-        end
+        @method.call("%{foo}", foo: 123).should == "123"
       end
 
       it "does not support type style" do
@@ -1065,7 +1063,7 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "supports flags, width and precision" do
-        NATFIXME 'named arg', exception: ArgumentError do
+        NATFIXME 'named arg after precision', exception: ArgumentError do
           @method.call("%-20.5{foo}", foo: "123456789").should == "12345               "
         end
       end
@@ -1077,24 +1075,20 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "raises KeyError when there is no matching key" do
-        NATFIXME 'named arg', exception: SpecFailedException do
-          -> {
-            @method.call("%{foo}", {})
-          }.should raise_error(KeyError)
-        end
+        -> {
+          @method.call("%{foo}", {})
+        }.should raise_error(KeyError)
       end
 
       it "converts value to String with to_s" do
-        NATFIXME 'named arg', exception: ArgumentError do
-          obj = Object.new
-          def obj.to_s; end
-          def obj.to_str; end
+        obj = Object.new
+        def obj.to_s; end
+        def obj.to_str; end
 
-          obj.should_receive(:to_s).and_return("42")
-          obj.should_not_receive(:to_str)
+        obj.should_receive(:to_s).and_return("42")
+        obj.should_not_receive(:to_str)
 
-          @method.call("%{foo}", foo: obj).should == "42"
-        end
+        @method.call("%{foo}", foo: obj).should == "42"
       end
     end
   end

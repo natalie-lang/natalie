@@ -562,6 +562,7 @@ module Kernel
         field_end
         literal
         literal_percent
+        field_named_argument_curly_end
       ].freeze
 
       class Token

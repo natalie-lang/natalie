@@ -18,7 +18,7 @@ end
 # TODO: these specs are mostly redundant with kernel/shared/sprintf.rb specs.
 # These specs should be moved there and deduplicated.
 describe "String#%" do
-  xcontext "when key is missing from passed-in hash" do
+  context "when key is missing from passed-in hash" do
     it_behaves_like :key_error, -> obj, key { "%{#{key}}" % obj }, { a: 5 }
   end
 
