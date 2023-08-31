@@ -23,11 +23,7 @@ end
 class NoMethodError < NameError
   attr_reader :args, :private_call?
   def initialize(message=nil, name=nil, args=nil, priv=false, receiver: nil)
-    # TODO: Why is the next line broken with an ArgumentError? Feels like it should work.
-    #super(message, name, receiver: receiver)
-    super(message)
-    @name = name
-    @receiver = receiver
+    super(message, name, receiver: receiver)
     # Set instance variables on NoMethodError but not NameError
     @args = args
     instance_variable_set("@private_call?", !!priv)
