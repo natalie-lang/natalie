@@ -90,7 +90,7 @@ module Kernel
 
       begin
         result = result.encode(format_string.encoding)
-      rescue ArgumentError
+      rescue ArgumentError, Encoding::UndefinedConversionError
         # we tried
       end
 
@@ -215,11 +215,11 @@ module Kernel
 
     def format_char(token, arg)
       if arg.is_a?(Integer)
-        arg.chr
+        arg.chr(format_string.encoding)
       elsif arg.respond_to?(:to_ary)
         arg.to_ary.first
       elsif arg.respond_to?(:to_int)
-        arg.to_int.chr
+        arg.to_int.chr(format_string.encoding)
       elsif arg.respond_to?(:to_str)
         s = arg.to_str
         if s.is_a?(String)
