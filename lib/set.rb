@@ -231,8 +231,14 @@ class Set
   alias === include?
 
   def inspect
-    items = to_a.map { |e| equal?(e) ? '#<Set: {...}>' : e.inspect }
-    "#<Set: {#{items.join(', ')}}>"
+    if !Fiber[:__set_inspect_current]
+      Fiber.new(storage: { __set_inspect_current: [] }, &method(:inspect)).resume
+    elsif Fiber[:__set_inspect_current].include?(object_id)
+      '#<Set: {...}>'
+    else
+      Fiber[:__set_inspect_current] << object_id
+      "#<Set: {#{map(&:inspect).join(', ')}}>"
+    end
   end
   alias to_s inspect
 

@@ -28,7 +28,7 @@
 
 namespace Natalie {
 
-FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
+FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
     env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
@@ -37,6 +37,18 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Block *block) {
         m_blocking = blocking->is_truthy();
     m_file = env->file();
     m_line = env->line();
+    if (storage != nullptr && !storage->is_nil()) {
+        if (!storage->is_hash())
+            env->raise("TypeError", "storage must be a hash");
+        if (storage->is_frozen())
+            env->raise("FrozenError", "storage must not be frozen");
+        auto *hash = storage->as_hash();
+        for (auto it = hash->begin(); it != hash->end(); it++) {
+            if (!it->key->is_symbol())
+                env->raise("TypeError", "wrong argument type Object (expected Symbol)");
+        }
+        m_storage = hash;
+    }
     return this;
 }
 
@@ -55,6 +67,26 @@ bool FiberObject::is_blocking() const {
 
 Value FiberObject::is_blocking_current() {
     return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
+}
+
+Value FiberObject::ref(Env *env, Value key) {
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    auto fiber = s_current;
+    while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
+        fiber = fiber->m_previous_fiber;
+    if (fiber->m_storage == nullptr)
+        return NilObject::the();
+    return fiber->m_storage->ref(env, key);
+}
+
+Value FiberObject::refeq(Env *env, Value key, Value value) {
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    if (s_current->m_storage == nullptr)
+        s_current->m_storage = new HashObject {};
+    s_current->m_storage->refeq(env, key, value);
+    return value;
 }
 
 Value FiberObject::resume(Env *env, Args args) {
@@ -82,6 +114,35 @@ Value FiberObject::resume(Env *env, Args args) {
     } else {
         return new ArrayObject { fiber_args.size(), fiber_args.data() };
     }
+}
+
+Value FiberObject::set_storage(Env *env, Value storage) {
+    if (storage == nullptr || storage->is_nil()) {
+        m_storage = nullptr;
+    } else if (!storage->is_hash()) {
+        env->raise("TypeError", "storage must be a hash");
+    } else {
+        if (storage->is_frozen())
+            env->raise("FrozenError", "storage must not be frozen");
+        auto *hash = storage->as_hash();
+        for (auto it = hash->begin(); it != hash->end(); it++) {
+            if (!it->key->is_symbol())
+                env->raise("TypeError", "wrong argument type Object (expected Symbol)");
+        }
+        m_storage = hash;
+    }
+    return m_storage;
+}
+
+Value FiberObject::storage(Env *env) const {
+    auto fiber = FiberObject::current();
+    if (this != fiber)
+        env->raise("ArgumentError", "Fiber storage can only be accessed from the Fiber it belongs to");
+    while (fiber->m_storage == nullptr && fiber->m_previous_fiber != nullptr)
+        fiber = fiber->m_previous_fiber;
+    if (fiber->m_storage == nullptr)
+        return NilObject::the();
+    return fiber->m_storage;
 }
 
 Value FiberObject::yield(Env *env, Args args) {
@@ -118,6 +179,7 @@ void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_previous_fiber);
     visitor.visit(m_error);
     visitor.visit(m_block);
+    visitor.visit(m_storage);
     if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
