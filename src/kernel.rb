@@ -1,3 +1,5 @@
+require 'natalie/inline'
+
 module Kernel
   def <=>(other)
     0 if other.object_id == self.object_id || (!is_a?(Comparable) && self == other)
@@ -296,16 +298,26 @@ module Kernel
           raise "Unexpected float value: #{val.inspect}"
         end
 
-        whole, decimal = val.split('.')
-        move = whole.size - 1
-        if move > 0
-          decimal = whole[1..] + decimal
-          whole = whole[0]
+        if val.index('e')
+          # already in e notation
+          return val.tr('e', e)
+        elsif (sign, leading_zeros, decimal = val.match(/^(-?)0\.(0*)(\d+)$/)&.captures)
+          move = -leading_zeros.size - 1
+          whole = decimal[0]
+          decimal = decimal[1..]
+        elsif (sign, whole, decimal = val.match(/^(-?)(\d+)\.(\d+)$/)&.captures)
+          move = whole.size - 1
+          if move > 0
+            decimal = whole[1..] + decimal
+            whole = whole[0]
+          end
+        else
+          raise "Something went wrong: #{val}"
         end
 
         decimal += ('0' * [precision - decimal.size, 0].max)
 
-        val = "%s.%s%s%+03d" % [whole, decimal, e, move]
+        val = "%s%s.%s%s%+03d" % [sign, whole, decimal, e, move]
       end
 
       if token.flags.include?(:plus)
@@ -401,13 +413,20 @@ module Kernel
       needed_bits = num.abs.to_s(2).size + 1
       bits = [width.to_i, needed_bits].max
       first_digit = (base - 1).to_s(base)
+      result = nil
       loop do
         result = (2**bits - num.abs).to_s(base)
         bits += 1
         if result.start_with?(first_digit)
-          return result 
+          break
         end
         raise 'something went wrong' if bits > 128 # arbitrarily chosen upper sanity limit
+      end
+      if result == first_digit + first_digit
+        # ..11 can be represented as just ..1
+        first_digit
+      else
+        result
       end
     end
 

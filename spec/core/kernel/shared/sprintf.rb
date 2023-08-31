@@ -41,10 +41,8 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "collapse negative number representation if it equals 1" do
-          NATFIXME 'collapse twos-complement', exception: SpecFailedException do
-            @method.call("%#{f}", -1).should_not == "..11"
-            @method.call("%#{f}", -1).should == "..1"
-          end
+          @method.call("%#{f}", -1).should_not == "..11"
+          @method.call("%#{f}", -1).should == "..1"
         end
       end
     end
@@ -124,12 +122,10 @@ describe :kernel_sprintf, shared: true do
     {"e" => "e", "E" => "E"}.each_pair do |f, exp|
       describe f do
         it "converts argument into exponential notation [-]d.dddddde[+-]dd" do
-          NATFIXME 'weird decimal position bug', exception: SpecFailedException do
-            @method.call("%#{f}", 109.52).should == "1.095200#{exp}+02"
-            @method.call("%#{f}", -109.52).should == "-1.095200#{exp}+02"
-            @method.call("%#{f}", 0.10952).should == "1.095200#{exp}-01"
-            @method.call("%#{f}", -0.10952).should == "-1.095200#{exp}-01"
-          end
+          @method.call("%#{f}", 109.52).should == "1.095200#{exp}+02"
+          @method.call("%#{f}", -109.52).should == "-1.095200#{exp}+02"
+          @method.call("%#{f}", 0.10952).should == "1.095200#{exp}-01"
+          @method.call("%#{f}", -0.10952).should == "-1.095200#{exp}-01"
         end
 
         it "cuts excessive digits and keeps only 6 ones" do
@@ -197,13 +193,11 @@ describe :kernel_sprintf, shared: true do
       describe f do
         context "the exponent is less than -4" do
           it "converts a floating point number using exponential form" do
-            NATFIXME 'E notation bug', exception: SpecFailedException do
-              @method.call("%#{f}", 0.0000123456).should == "1.23456#{exp}-05"
-              @method.call("%#{f}", -0.0000123456).should == "-1.23456#{exp}-05"
+            @method.call("%#{f}", 0.0000123456).should == "1.23456#{exp}-05"
+            @method.call("%#{f}", -0.0000123456).should == "-1.23456#{exp}-05"
 
-              @method.call("%#{f}", 0.000000000123456).should == "1.23456#{exp}-10"
-              @method.call("%#{f}", -0.000000000123456).should == "-1.23456#{exp}-10"
-            end
+            @method.call("%#{f}", 0.000000000123456).should == "1.23456#{exp}-10"
+            @method.call("%#{f}", -0.000000000123456).should == "-1.23456#{exp}-10"
           end
         end
 
@@ -560,12 +554,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("% x", -196).should == "-c4"
           @method.call("% X", -196).should == "-C4"
 
-          NATFIXME 'weird bug', exception: SpecFailedException, message: '"-.109520e+03" should be == to "-1.095200e+02"' do
-            @method.call("% e", -109.52).should == "-1.095200e+02"
-          end
-          NATFIXME 'weird bug', exception: SpecFailedException, message: '"-.109520E+03" should be == to "-1.095200E+02"' do
-            @method.call("% E", -109.52).should == "-1.095200E+02"
-          end
+          @method.call("% e", -109.52).should == "-1.095200e+02"
+          @method.call("% E", -109.52).should == "-1.095200E+02"
           @method.call("% f", -10.952).should == "-10.952000"
           NATFIXME 'skip e notation', exception: SpecFailedException do
             @method.call("% g", -12.1234).should == "-12.1234"
