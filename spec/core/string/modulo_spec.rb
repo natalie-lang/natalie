@@ -499,7 +499,7 @@ describe "String#%" do
     ("%*f" % [10, 9]).should == "  9.000000"
   end
 
-  xit "supports float formats using %g" do
+  it "supports float formats using %g" do
     ("%g" % 10).should == "10"
     ("% g" % 10).should == " 10"
     ("%1$g" % 10).should == "10"
@@ -512,7 +512,7 @@ describe "String#%" do
     ("%*g" % [10, 9]).should == "         9"
   end
 
-  xit "supports float formats using %G" do
+  it "supports float formats using %G" do
     ("%G" % 10).should == "10"
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"

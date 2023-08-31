@@ -147,11 +147,15 @@ module Kernel
             when 'd', 'u', 'i'
               format_integer(token, val)
             when 'e'
-              format_float_with_e_notation(token, val, e: 'e')
+              format_float_with_e_notation(token, float_from_arg(val), e: 'e')
             when 'E'
-              format_float_with_e_notation(token, val, e: 'E')
-            when 'f', 'g', 'G'
-              format_float(token, val)
+              format_float_with_e_notation(token, float_from_arg(val), e: 'E')
+            when 'f'
+              format_float(token, float_from_arg(val))
+            when 'g'
+              format_float_g(token, float_from_arg(val), e: 'e')
+            when 'G'
+              format_float_g(token, float_from_arg(val), e: 'E')
             when 'o'
               format_octal(token, val)
             when 'p'
@@ -167,6 +171,20 @@ module Kernel
             end
 
       pad_value(token, val)
+    end
+
+    def float_from_arg(arg)
+      f = if arg.is_a?(Float)
+            arg
+          elsif arg.respond_to?(:to_ary)
+            arg.to_ary.first
+          else
+            Float(arg)
+          end
+      unless f.is_a?(Float)
+        raise TypeError, "no implicit conversion of #{arg.class.name} into Float"
+      end
+      f
     end
 
     def int_from_arg(arg)
@@ -215,38 +233,54 @@ module Kernel
       end
     end
 
-    def format_float(token, arg)
-      f = if arg.is_a?(Float)
-        arg.to_s
-      elsif arg.respond_to?(:to_ary)
-        arg.to_ary.first.to_s
-      else
-        Float(arg).to_s
-      end
+    def format_float(token, f, force_dot_zero: true)
+      val = f.to_s
 
       precision = token.precision || 6
 
       if token.flags.include?(:plus)
-        f = "+#{f}" unless f.start_with?('-')
+        val = "+#{val}" unless val.start_with?('-')
       elsif token.flags.include?(:space)
-        f = " #{f}" unless f.start_with?('-')
+        val = " #{val}" unless val.start_with?('-')
       end
 
-      f << '.0' unless f.index('.')
-      f << '0' until f.split('.').last.size >= precision
-      f
+      val << '.0' unless val.index('.') || !force_dot_zero
+      val << '0' until val.split('.').last.size >= precision
+      val
     end
 
-    def format_float_with_e_notation(token, arg, e: 'e')
-      val = if arg.is_a?(Float)
-              arg.to_s
-            elsif arg.respond_to?(:to_ary)
-              arg.to_ary.first.to_s
-            else
-              Float(arg).to_s
-            end
-
+    def format_float_g(token, f, e: 'e')
       precision = token.precision || 6
+
+      s = f.to_s
+      whole, decimal = s.split('.')
+      alternate_format = token.flags.include?(:alternate_format)
+
+      if f < -4 || s.sub(/\.0$/, '').size > 6
+        token.precision = 0
+        format_float_with_e_notation(token, f, e: e).sub(/\.0+(?=e)/i, '')
+      elsif decimal == '0' && !alternate_format
+        token.precision = 0
+        format_float(token, f.to_i, force_dot_zero: false)
+      else
+        if alternate_format
+          if token.precision
+            token.width = token.precision
+            token.precision = 0
+          else
+            token.precision = 4
+          end
+        else
+          token.precision = 0
+        end
+        format_float(token, f)
+      end
+    end
+
+    def format_float_with_e_notation(token, f, e: 'e')
+      precision = token.precision || 6
+
+      val = f.to_s
 
       if val == 'Infinity'
         val = 'Inf'
