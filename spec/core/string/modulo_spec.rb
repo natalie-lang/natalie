@@ -5,7 +5,7 @@ require_relative '../kernel/shared/sprintf_encoding'
 require_relative 'fixtures/classes'
 require_relative '../../shared/hash/key_error'
 
-xdescribe "String#%" do
+describe "String#%" do
   it_behaves_like :kernel_sprintf, -> format, *args {
     format % args
   }

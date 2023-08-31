@@ -2,21 +2,27 @@
 # It's difficult to check result's encoding in the test after writing to a file/io buffer.
 describe :kernel_sprintf_encoding, shared: true do
   it "can produce a string with valid encoding" do
-    string = @method.call("good day %{valid}", valid: "e")
-    string.encoding.should == Encoding::UTF_8
-    string.valid_encoding?.should be_true
+    NATFIXME 'named arg', exception: ArgumentError do
+      string = @method.call("good day %{valid}", valid: "e")
+      string.encoding.should == Encoding::UTF_8
+      string.valid_encoding?.should be_true
+    end
   end
 
   it "can produce a string with invalid encoding" do
-    string = @method.call("good day %{invalid}", invalid: "\x80")
-    string.encoding.should == Encoding::UTF_8
-    string.valid_encoding?.should be_false
+    NATFIXME 'named arg', exception: ArgumentError do
+      string = @method.call("good day %{invalid}", invalid: "\x80")
+      string.encoding.should == Encoding::UTF_8
+      string.valid_encoding?.should be_false
+    end
   end
 
   it "returns a String in the same encoding as the format String if compatible" do
-    string = "%s".force_encoding(Encoding::KOI8_U)
-    result = @method.call(string, "dogs")
-    result.encoding.should equal(Encoding::KOI8_U)
+    NATFIXME 'KOI8_U encoding not implemented', exception: NameError do
+      string = "%s".force_encoding(Encoding::KOI8_U)
+      result = @method.call(string, "dogs")
+      result.encoding.should equal(Encoding::KOI8_U)
+    end
   end
 
   it "returns a String in the argument's encoding if format encoding is more restrictive" do
@@ -56,7 +62,8 @@ describe :kernel_sprintf_encoding, shared: true do
       }.should raise_error(RangeError, /out of char range/)
     end
 
-    it "uses the encoding of the format string to interpret codepoints" do
+    # NATFIXME: euc-jp stuff not implemented
+    xit "uses the encoding of the format string to interpret codepoints" do
       format = "%c".force_encoding("euc-jp")
       result = @method.call(format, 9415601)
 
