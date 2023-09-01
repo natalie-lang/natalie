@@ -699,8 +699,13 @@ Value StringObject::eqtilde(Env *env, Value other) {
 }
 
 Value StringObject::match(Env *env, Value other, Value index, Block *block) {
-    if (other->is_string())
-        other = new RegexpObject { env, other->as_string()->string() };
+    if (!other->is_regexp()) {
+        if (other->is_string()) {
+            other = new RegexpObject { env, other->as_string()->string() };
+        } else if (other->respond_to(env, "to_str"_s)) {
+            other = new RegexpObject { env, other->send(env, "to_str"_s)->as_string()->string() };
+        }
+    }
     other->assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->match(env, this, index, block);
 }

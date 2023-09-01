@@ -108,14 +108,12 @@ describe "String#match" do
   it "tries to convert pattern to a string via to_str" do
     obj = mock('.')
     def obj.to_str() "." end
-    NATFIXME 'Convert pattern via to_str', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
-      "hello".match(obj)[0].should == "h"
+    "hello".match(obj)[0].should == "h"
 
-      obj = mock('.')
-      def obj.respond_to?(type, *) true end
-      def obj.method_missing(*args) "." end
-      "hello".match(obj)[0].should == "h"
-    end
+    obj = mock('.')
+    def obj.respond_to?(type, *) true end
+    def obj.method_missing(*args) "." end
+    "hello".match(obj)[0].should == "h"
   end
 
   it "raises a TypeError if pattern is not a regexp or a string" do
