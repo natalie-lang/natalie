@@ -29,7 +29,7 @@ describe "String#=~" do
     str = "w00t"
     obj = mock('x')
 
-    NATFIXME 'Support arguments other than string and regexp', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
+    NATFIXME 'This works in the REPL, but not in the specs?', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
       obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
       str.should =~ obj
 

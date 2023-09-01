@@ -704,6 +704,8 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
             other = new RegexpObject { env, other->as_string()->string() };
         } else if (other->respond_to(env, "to_str"_s)) {
             other = new RegexpObject { env, other->send(env, "to_str"_s)->as_string()->string() };
+        } else if (other->respond_to(env, "=~"_s)) {
+            return other->send(env, "=~"_s, { this });
         }
     }
     other->assert_type(env, Object::Type::Regexp, "Regexp");
