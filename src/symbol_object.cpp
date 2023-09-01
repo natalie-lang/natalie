@@ -154,6 +154,11 @@ Value SymbolObject::length(Env *env) {
     return to_s(env)->size(env);
 }
 
+Value SymbolObject::match(Env *env, Value other, Block *block) const {
+    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    return other->as_regexp()->match(env, name(env), nullptr, block);
+}
+
 Value SymbolObject::name(Env *env) const {
     SymbolObject *symbol = intern(m_name);
     if (!symbol->m_string) {

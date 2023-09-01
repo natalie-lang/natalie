@@ -61,6 +61,7 @@ public:
 
     Value eqtilde(Env *, Value);
     Value length(Env *);
+    Value match(Env *, Value, Block *) const;
     Value name(Env *) const;
     Value ref(Env *, Value, Value);
 
