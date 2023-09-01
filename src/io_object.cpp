@@ -154,8 +154,20 @@ int IoObject::write(Env *env, Value obj) const {
     obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
     int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
-    if (result == -1)
+    if (result == -1) {
+        // write(2) assigns EBADF to errno if not writable, we want an IOError instead
+        const auto old_errno = errno;
+        struct stat sb;
+        auto file_desc = fileno(env); // current file descriptor
+        if (fstat(file_desc, &sb) == 0) {
+            if (sb.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))
+                env->raise("IOError", "not opened for writing");
+        } else {
+            // errno is now changed by fstat, revert to the old value
+            errno = old_errno;
+        }
         env->raise_errno();
+    }
     return result;
 }
 
