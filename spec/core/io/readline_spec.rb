@@ -29,9 +29,7 @@ describe "IO#readline" do
 
   it "raises EOFError on end of stream" do
     IOSpecs.lines.length.times { @io.readline }
-    NATFIXME 'Add EOFError', exception: NameError, message: 'uninitialized constant EOFError' do
-      -> { @io.readline }.should raise_error(EOFError)
-    end
+    -> { @io.readline }.should raise_error(EOFError)
   end
 
   it "raises IOError on closed stream" do

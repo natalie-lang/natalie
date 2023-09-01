@@ -403,6 +403,14 @@ int IoObject::pos(Env *env) {
     return result;
 }
 
+// This is a variant of getbyte that raises EOFError
+Value IoObject::readbyte(Env *env) {
+    auto result = getbyte(env);
+    if (result->is_nil())
+        env->raise("EOFError", "end of file reached");
+    return result;
+}
+
 // This is a variant of gets that raises EOFError
 // NATFIXME: Add arguments and chomp kwarg when those features are
 //  added to IOObject::gets()
