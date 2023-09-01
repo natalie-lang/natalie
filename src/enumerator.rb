@@ -156,6 +156,14 @@ class Enumerator
     self
   end
 
+  def with_object(memo)
+    return to_enum(:with_object, memo) { respond_to?(:size) ? size : @size } unless block_given?
+    each do |item|
+      yield item, memo
+    end
+    memo
+  end
+
   def +(other)
     Chain.new(self, other)
   end
