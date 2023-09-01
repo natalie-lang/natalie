@@ -698,9 +698,9 @@ Value StringObject::eqtilde(Env *env, Value other) {
     return other->as_regexp()->eqtilde(env, this);
 }
 
-Value StringObject::match(Env *env, Value other) {
+Value StringObject::match(Env *env, Value other, Value index, Block *block) {
     other->assert_type(env, Object::Type::Regexp, "Regexp");
-    return other->as_regexp()->match(env, this);
+    return other->as_regexp()->match(env, this, index, block);
 }
 
 Value StringObject::ord(Env *env) const {

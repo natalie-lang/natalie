@@ -65,13 +65,11 @@ describe "String#match" do
   describe "with [pattern, position]" do
     describe "when given a positive position" do
       it "matches the pattern against self starting at an optional index" do
-        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-          "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
-        end
+        "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
       end
 
       it "uses the start as a character offset" do
-        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        NATFIXME 'Multibyte encodings', exception: SpecFailedException do
           "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
         end
       end
@@ -79,13 +77,11 @@ describe "String#match" do
 
     describe "when given a negative position" do
       it "matches the pattern against self starting at an optional index" do
-        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-          "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
-        end
+        "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
       end
 
       it "uses the start as a character offset" do
-        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        NATFIXME 'Multibyte encodings', exception: NoMethodError, message: "undefined method `captures' for nil" do
           "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
         end
       end
@@ -95,15 +91,11 @@ describe "String#match" do
   describe "when passed a block" do
     it "yields the MatchData" do
       "abc".match(/./) {|m| ScratchPad.record m }
-      NATFIXME 'Support blocks', exception: SpecFailedException do
-        ScratchPad.recorded.should be_kind_of(MatchData)
-      end
+      ScratchPad.recorded.should be_kind_of(MatchData)
     end
 
     it "returns the block result" do
-      NATFIXME 'Support blocks', exception: SpecFailedException do
-        "abc".match(/./) { :result }.should == :result
-      end
+      "abc".match(/./) { :result }.should == :result
     end
 
     it "does not yield if there is no match" do

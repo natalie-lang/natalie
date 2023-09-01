@@ -323,7 +323,7 @@ public:
     Value ljust(Env *, Value, Value) const;
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);
-    Value match(Env *, Value);
+    Value match(Env *, Value, Value = nullptr, Block * = nullptr);
     Value mul(Env *, Value) const;
     Value ord(Env *) const;
     Value partition(Env *, Value);
