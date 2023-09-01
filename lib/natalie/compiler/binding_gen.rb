@@ -1240,6 +1240,7 @@ gen.binding('String', 'ljust', 'StringObject', 'ljust', argc: 1..2, pass_env: tr
 gen.binding('String', 'lstrip', 'StringObject', 'lstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'lstrip!', 'StringObject', 'lstrip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'match', 'StringObject', 'match', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'match?', 'StringObject', 'has_match', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'next', 'StringObject', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'next!', 'StringObject', 'successive_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'prepend', 'StringObject', 'prepend', argc: :any, pass_env: true, pass_block: false, return_type: :Object)

@@ -839,6 +839,11 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
     return this;
 }
 
+bool StringObject::has_match(Env *env, Value other, Value start) {
+    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    return other->as_regexp()->has_match(env, this, start);
+}
+
 /**
  * String#hex
  *

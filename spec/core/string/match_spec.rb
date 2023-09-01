@@ -162,23 +162,17 @@ describe "String#match?" do
 
   context "when matches the given regex" do
     it "returns true but does not set Regexp.last_match" do
-      NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
-        'string'.match?(/string/i).should be_true
-        Regexp.last_match.should be_nil
-      end
+      'string'.match?(/string/i).should be_true
+      Regexp.last_match.should be_nil
     end
   end
 
   it "returns false when does not match the given regex" do
-    NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
-      'string'.match?(/STRING/).should be_false
-    end
+    'string'.match?(/STRING/).should be_false
   end
 
   it "takes matching position as the 2nd argument" do
-    NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
-      'string'.match?(/str/i, 0).should be_true
-      'string'.match?(/str/i, 1).should be_false
-    end
+    'string'.match?(/str/i, 0).should be_true
+    'string'.match?(/str/i, 1).should be_false
   end
 end

@@ -316,6 +316,7 @@ public:
     bool eq(Env *, Value arg);
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
+    bool has_match(Env *, Value, Value = nullptr);
     Value hex(Env *) const;
     bool include(Env *, Value);
     bool include(const char *) const;
