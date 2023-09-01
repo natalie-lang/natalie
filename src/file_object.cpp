@@ -62,26 +62,26 @@ namespace fileutil {
         return ::stat(file->as_string()->c_str(), sb);
     }
 
-}
+    int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
+        int flags = O_RDONLY;
+        if (!flags_obj || flags_obj->is_nil())
+            return flags;
 
-// NATFIXME : block form is not used, option-hash arg not implemented.
-Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    int flags = O_RDONLY;
-    if (flags_obj) {
         switch (flags_obj->type()) {
         case Object::Type::Integer:
-            flags = flags_obj->as_integer()->to_nat_int_t();
-            break;
+            return flags_obj->as_integer()->to_nat_int_t();
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
             auto flags_str = flagsplit->first()->as_string()->string();
             auto extenc = flagsplit->ref(env, new IntegerObject { 1 }, nullptr);
             auto intenc = flagsplit->ref(env, new IntegerObject { 2 }, nullptr);
-            EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
-            EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
-            set_external_encoding(env, ext_e);
-            set_internal_encoding(env, int_e);
+            if (self) {
+                EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
+                EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
+                self->set_external_encoding(env, ext_e);
+                self->set_internal_encoding(env, int_e);
+            }
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -112,18 +112,25 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
                 flags = O_RDWR | O_CREAT | O_APPEND;
             else
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
-            break;
+            return flags;
         }
         default:
             env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
         }
     }
 
-    mode_t modenum;
-    if (perm)
-        modenum = IntegerObject::convert_to_int(env, perm);
-    else
-        modenum = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
+    mode_t perm_to_mode(Env *env, Value perm) {
+        if (perm && !perm->is_nil())
+            return IntegerObject::convert_to_int(env, perm);
+        else
+            return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
+    }
+}
+
+// NATFIXME : block form is not used, option-hash arg not implemented.
+Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
+    const auto flags = fileutil::flags_obj_to_flags(env, this, flags_obj);
+    const auto modenum = fileutil::perm_to_mode(env, perm);
 
     if (filename->is_integer()) { // passing in a number uses fd number
         int fileno = IntegerObject::convert_to_int(env, filename);
