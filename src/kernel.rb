@@ -225,7 +225,7 @@ module Kernel
       elsif arg.respond_to?(:to_str)
         s = arg.to_str
         if s.is_a?(String)
-          raise ArgumentError, '%c requires a character' if s.size > 1
+          raise ArgumentError, '%c requires a character' if s.size != 1
           s
         else
           raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"

@@ -309,11 +309,9 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "raises ArgumentError if argument is an empty string" do
-          NATFIXME 'missing error', exception: SpecFailedException do
-            -> {
-              @method.call("%c", "")
-            }.should raise_error(ArgumentError, /%c requires a character/)
-          end
+          -> {
+            @method.call("%c", "")
+          }.should raise_error(ArgumentError, /%c requires a character/)
         end
       end
 
