@@ -82,11 +82,9 @@ describe "File.new" do
   it "returns a new read-only File when mode is not specified" do
     @fh = File.new(@file)
 
-    NATFIXME 'Raise correct exception (possible issue in IO#puts)', exception: SpecFailedException do
-      -> { @fh.puts("test") }.should raise_error(IOError)
-      @fh.read.should == ""
-      File.should.exist?(@file)
-    end
+    -> { @fh.puts("test") }.should raise_error(IOError)
+    @fh.read.should == ""
+    File.should.exist?(@file)
   end
 
   it "returns a new read-only File when mode is not specified but flags option is present" do
@@ -145,9 +143,7 @@ describe "File.new" do
     File.should.exist?(@file)
 
     # it's read-only
-    NATFIXME 'Raise correct exception (possible issue in IO#puts)', exception: SpecFailedException do
-      -> { @fh.puts("test") }.should raise_error(IOError)
-    end
+    -> { @fh.puts("test") }.should raise_error(IOError)
     @fh.read.should == ""
   end
 
@@ -157,9 +153,7 @@ describe "File.new" do
     File.should.exist?(@file)
 
     # it's read-only
-    NATFIXME 'Raise correct exception (possible issue in IO#puts)', exception: SpecFailedException do
-      -> { @fh.puts("test") }.should raise_error(IOError)
-    end
+    -> { @fh.puts("test") }.should raise_error(IOError)
     @fh.read.should == ""
   end
 
