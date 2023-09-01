@@ -44,9 +44,7 @@ describe "IO.sysopen" do
 
   it "accepts mode & permission that are nil" do
     touch @filename # create the file
-    NATFIXME 'accepts mode & permission that are nil', exception: TypeError, message: 'no implicit conversion of NilClass into String' do
-      @fd = IO.sysopen(@filename, nil, nil)
-      @fd.should_not equal(0)
-    end
+    @fd = IO.sysopen(@filename, nil, nil)
+    @fd.should_not equal(0)
   end
 end

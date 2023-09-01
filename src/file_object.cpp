@@ -64,7 +64,7 @@ namespace fileutil {
 
     int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
         int flags = O_RDONLY;
-        if (!flags_obj)
+        if (!flags_obj || flags_obj->is_nil())
             return flags;
 
         switch (flags_obj->type()) {
@@ -120,7 +120,7 @@ namespace fileutil {
     }
 
     mode_t perm_to_mode(Env *env, Value perm) {
-        if (perm)
+        if (perm && !perm->is_nil())
             return IntegerObject::convert_to_int(env, perm);
         else
             return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
