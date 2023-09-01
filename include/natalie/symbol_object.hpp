@@ -60,7 +60,9 @@ public:
     bool start_with(Env *, Args);
 
     Value eqtilde(Env *, Value);
+    bool has_match(Env *, Value, Value = nullptr) const;
     Value length(Env *);
+    Value match(Env *, Value, Block *) const;
     Value name(Env *) const;
     Value ref(Env *, Value, Value);
 
