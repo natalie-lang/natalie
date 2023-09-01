@@ -4,7 +4,7 @@ require_relative 'fixtures/classes'
 
 describe :string_match_escaped_literal, shared: true do
   not_supported_on :opal do
-    it "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
+    xit "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
       "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
     end
   end
@@ -12,10 +12,12 @@ end
 
 describe "String#=~" do
   it "behaves the same way as index() when given a regexp" do
-    ("rudder" =~ /udder/).should == "rudder".index(/udder/)
-    ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
-    ("bean" =~ /bag/).should == "bean".index(/bag/)
-    ("true" =~ /false/).should == "true".index(/false/)
+    NATFIXME 'Implement Regexp argument in String#index', exception: TypeError, message: 'no implicit conversion of Regexp into String' do
+      ("rudder" =~ /udder/).should == "rudder".index(/udder/)
+      ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
+      ("bean" =~ /bag/).should == "bean".index(/bag/)
+      ("true" =~ /false/).should == "true".index(/false/)
+    end
   end
 
   it "raises a TypeError if a obj is a string" do
@@ -27,12 +29,14 @@ describe "String#=~" do
     str = "w00t"
     obj = mock('x')
 
-    obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
-    str.should =~ obj
+    NATFIXME 'Support arguments other than string and regexp', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
+      obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
+      str.should =~ obj
 
-    obj = mock('y')
-    obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
-    str.should_not =~ obj
+      obj = mock('y')
+      obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
+      str.should_not =~ obj
+    end
   end
 
   it "sets $~ to MatchData when there is a match and nil when there's none" do
@@ -44,7 +48,9 @@ describe "String#=~" do
   end
 
   it "returns the character index of a found match" do
-    ("こにちわ" =~ /に/).should == 1
+    NATFIXME 'Multibyte encodings', exception: SpecFailedException do
+      ("こにちわ" =~ /に/).should == 1
+    end
   end
 
 end
@@ -59,21 +65,29 @@ describe "String#match" do
   describe "with [pattern, position]" do
     describe "when given a positive position" do
       it "matches the pattern against self starting at an optional index" do
-        "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
+        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
+        end
       end
 
       it "uses the start as a character offset" do
-        "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
+        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
+        end
       end
     end
 
     describe "when given a negative position" do
       it "matches the pattern against self starting at an optional index" do
-        "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
+        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
+        end
       end
 
       it "uses the start as a character offset" do
-        "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+        NATFIXME 'Support index argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+          "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+        end
       end
     end
   end
@@ -81,11 +95,15 @@ describe "String#match" do
   describe "when passed a block" do
     it "yields the MatchData" do
       "abc".match(/./) {|m| ScratchPad.record m }
-      ScratchPad.recorded.should be_kind_of(MatchData)
+      NATFIXME 'Support blocks', exception: SpecFailedException do
+        ScratchPad.recorded.should be_kind_of(MatchData)
+      end
     end
 
     it "returns the block result" do
-      "abc".match(/./) { :result }.should == :result
+      NATFIXME 'Support blocks', exception: SpecFailedException do
+        "abc".match(/./) { :result }.should == :result
+      end
     end
 
     it "does not yield if there is no match" do
@@ -98,12 +116,14 @@ describe "String#match" do
   it "tries to convert pattern to a string via to_str" do
     obj = mock('.')
     def obj.to_str() "." end
-    "hello".match(obj)[0].should == "h"
+    NATFIXME 'Convert pattern via to_str', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
+      "hello".match(obj)[0].should == "h"
 
-    obj = mock('.')
-    def obj.respond_to?(type, *) true end
-    def obj.method_missing(*args) "." end
-    "hello".match(obj)[0].should == "h"
+      obj = mock('.')
+      def obj.respond_to?(type, *) true end
+      def obj.method_missing(*args) "." end
+      "hello".match(obj)[0].should == "h"
+    end
   end
 
   it "raises a TypeError if pattern is not a regexp or a string" do
@@ -114,11 +134,15 @@ describe "String#match" do
   end
 
   it "converts string patterns to regexps without escaping" do
-    'hello'.match('(.)\1')[0].should == 'll'
+    NATFIXME 'converts string patterns to regexps without escaping', exception: TypeError, message: 'no implicit conversion of String into Regexp' do
+      'hello'.match('(.)\1')[0].should == 'll'
+    end
   end
 
   it "returns nil if there's no match" do
-    'hello'.match('xx').should == nil
+    NATFIXME 'converts string patterns to regexps without escaping', exception: TypeError, message: 'no implicit conversion of String into Regexp' do
+      'hello'.match('xx').should == nil
+    end
   end
 
   it "matches \\G at the start of the string" do
@@ -136,7 +160,8 @@ describe "String#match" do
     Regexp.last_match.should == nil
   end
 
-  it "calls match on the regular expression" do
+  # NATFIXME: Implement Regexp#dup
+  xit "calls match on the regular expression" do
     regexp = /./.dup
     regexp.should_receive(:match).and_return(:foo)
     'hello'.match(regexp).should == :foo
@@ -151,17 +176,23 @@ describe "String#match?" do
 
   context "when matches the given regex" do
     it "returns true but does not set Regexp.last_match" do
-      'string'.match?(/string/i).should be_true
-      Regexp.last_match.should be_nil
+      NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
+        'string'.match?(/string/i).should be_true
+        Regexp.last_match.should be_nil
+      end
     end
   end
 
   it "returns false when does not match the given regex" do
-    'string'.match?(/STRING/).should be_false
+    NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
+      'string'.match?(/STRING/).should be_false
+    end
   end
 
   it "takes matching position as the 2nd argument" do
-    'string'.match?(/str/i, 0).should be_true
-    'string'.match?(/str/i, 1).should be_false
+    NATFIXME 'Implement String#match?', exception: NoMethodError, message: "undefined method `match?'" do
+      'string'.match?(/str/i, 0).should be_true
+      'string'.match?(/str/i, 1).should be_false
+    end
   end
 end
