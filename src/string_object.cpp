@@ -698,9 +698,18 @@ Value StringObject::eqtilde(Env *env, Value other) {
     return other->as_regexp()->eqtilde(env, this);
 }
 
-Value StringObject::match(Env *env, Value other) {
+Value StringObject::match(Env *env, Value other, Value index, Block *block) {
+    if (!other->is_regexp()) {
+        if (other->is_string()) {
+            other = new RegexpObject { env, other->as_string()->string() };
+        } else if (other->respond_to(env, "to_str"_s)) {
+            other = new RegexpObject { env, other->send(env, "to_str"_s)->as_string()->string() };
+        } else if (other->respond_to(env, "=~"_s)) {
+            return other->send(env, "=~"_s, { this });
+        }
+    }
     other->assert_type(env, Object::Type::Regexp, "Regexp");
-    return other->as_regexp()->match(env, this);
+    return other->as_regexp()->match(env, this, index, block);
 }
 
 Value StringObject::ord(Env *env) const {
@@ -828,6 +837,11 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
     assert_not_frozen(env);
     set_encoding(EncodingObject::find_encoding(env, encoding));
     return this;
+}
+
+bool StringObject::has_match(Env *env, Value other, Value start) {
+    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    return other->as_regexp()->has_match(env, this, start);
 }
 
 /**
