@@ -252,33 +252,8 @@ module Kernel
     end
 
     def format_float_g(token, f, e: 'e')
-      precision = token.precision || 6
-
-      s = f.to_s
-      whole, decimal = s.split('.')
-      alternate_format = token.flags.include?(:alternate_format)
-
-      if f < -4 || s.sub(/\.0$/, '').size > 6
-        if (m = f.to_s.match(/\.(\d+)/))
-          token.precision = m[1].size
-        end
-        format_float_with_e_notation(token, f, e: e).sub(/\.0+(?=e)/i, '')
-      elsif decimal == '0' && !alternate_format
-        token.precision = 0
-        format_float(token, f.to_i, force_dot_zero: false)
-      else
-        if alternate_format
-          if token.precision
-            token.width = token.precision
-            token.precision = 0
-          else
-            token.precision = 4
-          end
-        else
-          token.precision = 0
-        end
-        format_float(token, f)
-      end
+      token.precision ||= 6
+      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf')
     end
 
     def format_float_with_e_notation(token, f, e: 'e')
@@ -586,6 +561,16 @@ module Kernel
           :width, :width_arg_position,
           :precision, :precision_arg_position,
           :value_arg_position, :value_arg_name
+
+        def c_printf_format
+          flag_chars = {
+            alternate_format: '#',
+            space: ' ',
+            plus: '+',
+            zero_padded: '0',
+          }.select { |k| flags.include?(k) }.values.join
+          "%#{flag_chars}#{width}.#{precision}#{datum}"
+        end
       end
 
       def tokens
