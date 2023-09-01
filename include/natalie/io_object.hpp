@@ -71,6 +71,7 @@ public:
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value) const;
     static Value read_file(Env *, Value);
+    Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);
     void set_external_encoding(Env *env, EncodingObject *enc) {

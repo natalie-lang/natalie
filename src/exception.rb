@@ -31,6 +31,7 @@ class NoMethodError < NameError
 end
 
   class IOError < StandardError; end
+    class EOFError < IOError; end
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end
   class RegexpError < StandardError; end
