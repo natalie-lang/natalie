@@ -159,6 +159,11 @@ Value SymbolObject::match(Env *env, Value other, Block *block) const {
     return other->as_regexp()->match(env, name(env), nullptr, block);
 }
 
+bool SymbolObject::has_match(Env *env, Value other, Value start) const {
+    other->assert_type(env, Object::Type::Regexp, "Regexp");
+    return other->as_regexp()->has_match(env, name(env), start);
+}
+
 Value SymbolObject::name(Env *env) const {
     SymbolObject *symbol = intern(m_name);
     if (!symbol->m_string) {
