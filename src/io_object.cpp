@@ -304,59 +304,8 @@ Value IoObject::stat(Env *env) const {
 }
 
 Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
-    // NATFIXME: Copy-paste from FileObject::initialize, make code generic
-    int flags = O_RDONLY;
-    if (flags_obj) {
-        switch (flags_obj->type()) {
-        case Object::Type::Integer:
-            flags = flags_obj->as_integer()->to_nat_int_t();
-            break;
-        case Object::Type::String: {
-            auto colon = new StringObject { ":" };
-            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->first()->as_string()->string();
-
-            if (flags_str.length() < 1 || flags_str.length() > 3)
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-            // rb+ => 'r', 'b', '+'
-            auto main_mode = flags_str.at(0);
-            auto read_write_mode = flags_str.length() > 1 ? flags_str.at(1) : 0;
-            auto binary_text_mode = flags_str.length() > 2 ? flags_str.at(2) : 0;
-
-            // rb+ => r+b
-            if (read_write_mode == 'b' || read_write_mode == 't')
-                std::swap(read_write_mode, binary_text_mode);
-
-            if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-            if (main_mode == 'r' && !read_write_mode)
-                flags = O_RDONLY;
-            else if (main_mode == 'r' && read_write_mode == '+')
-                flags = O_RDWR;
-            else if (main_mode == 'w' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_TRUNC;
-            else if (main_mode == 'w' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_TRUNC;
-            else if (main_mode == 'a' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_APPEND;
-            else if (main_mode == 'a' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_APPEND;
-            else
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-            break;
-        }
-        default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
-        }
-    }
-
-    mode_t modenum;
-    if (perm)
-        modenum = IntegerObject::convert_to_int(env, perm);
-    else
-        modenum = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
+    const auto flags = fileutil::flags_obj_to_flags(env, nullptr, flags_obj);
+    const auto modenum = fileutil::perm_to_mode(env, perm);
 
     path = fileutil::convert_using_to_path(env, path);
     const auto fd = ::open(path->as_string()->c_str(), flags, modenum);
