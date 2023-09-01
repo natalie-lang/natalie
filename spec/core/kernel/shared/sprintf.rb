@@ -157,31 +157,23 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "cuts excessive digits and keeps only 6 ones" do
-        NATFIXME 'should round', exception: SpecFailedException do
-          @method.call("%f", 1.123456789).should == "1.123457"
-        end
+        @method.call("%f", 1.123456789).should == "1.123457"
       end
 
       it "rounds the last significant digit to the closest one" do
-        NATFIXME 'should round', exception: SpecFailedException do
-          @method.call("%f", 1.555555555).should == "1.555556"
-          @method.call("%f", -1.555555555).should == "-1.555556"
-          @method.call("%f", 1.444444444).should == "1.444444"
-        end
+        @method.call("%f", 1.555555555).should == "1.555556"
+        @method.call("%f", -1.555555555).should == "-1.555556"
+        @method.call("%f", 1.444444444).should == "1.444444"
       end
 
       it "displays Float::INFINITY as Inf" do
-        NATFIXME 'Infinity bug', exception: SpecFailedException do
-          @method.call("%f", Float::INFINITY).should == "Inf"
-          @method.call("%f", -Float::INFINITY).should == "-Inf"
-        end
+        @method.call("%f", Float::INFINITY).should == "Inf"
+        @method.call("%f", -Float::INFINITY).should == "-Inf"
       end
 
       it "displays Float::NAN as NaN" do
-        NATFIXME 'NaN bug', exception: SpecFailedException do
-          @method.call("%f", Float::NAN).should == "NaN"
-          @method.call("%f", -Float::NAN).should == "NaN"
-        end
+        @method.call("%f", Float::NAN).should == "NaN"
+        @method.call("%f", -Float::NAN).should == "NaN"
       end
     end
 
@@ -240,10 +232,8 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "displays Float::NAN as NaN" do
-          NATFIXME 'buggy NaN', exception: SpecFailedException do
-            @method.call("%#{f}", Float::NAN).should == "NaN"
-            @method.call("%#{f}", -Float::NAN).should == "NaN"
-          end
+          @method.call("%#{f}", Float::NAN).should == "NaN"
+          @method.call("%#{f}", -Float::NAN).should == "NaN"
         end
       end
     end

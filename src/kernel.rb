@@ -235,49 +235,19 @@ module Kernel
       end
     end
 
-    def format_float(token, f, force_dot_zero: true)
-      val = f.to_s
-
-      precision = token.precision || 6
-
-      if token.flags.include?(:plus)
-        val = "+#{val}" unless val.start_with?('-')
-      elsif token.flags.include?(:space)
-        val = " #{val}" unless val.start_with?('-')
-      end
-
-      val << '.0' unless val.index('.') || !force_dot_zero
-      val << '0' until val.split('.').last.size >= precision
-      val
+    def format_float(token, f)
+      token.precision ||= 6
+      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf').sub(/-?nan/i, 'NaN')
     end
 
     def format_float_g(token, f, e: 'e')
       token.precision ||= 6
-      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf')
+      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf').sub(/-?nan/i, 'NaN')
     end
 
     def format_float_with_e_notation(token, f, e: 'e')
-      if f == Float::INFINITY
-        val = 'Inf'
-        token.flags.delete(:zero_padded)
-      elsif f == -Float::INFINITY
-        val = '-Inf'
-        token.flags.delete(:zero_padded)
-      elsif f.nan?
-        val = 'NaN'
-        token.flags.delete(:zero_padded)
-      else
-        precision = token.precision || 6
-        val = sprintf("%.#{precision}#{e}", f)
-      end
-
-      if token.flags.include?(:plus)
-        val = "+#{val}" unless val.start_with?('-')
-      elsif token.flags.include?(:space)
-        val = " #{val}" unless val.start_with?('-')
-      end
-
-      val
+      token.precision ||= 6
+      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf').sub(/-?nan/i, 'NaN')
     end
 
     def format_integer(token, arg)
