@@ -483,9 +483,7 @@ describe "String#%" do
   it "pads with spaces for %E with Inf, -Inf, and NaN" do
     ("%010E" % -1e1020).should == "      -Inf"
     ("%010E" % 1e1020).should == "       Inf"
-    NATFIXME '-NaN produces wrong number of spaces', exception: SpecFailedException do
-      ("%010E" % Float::NAN).should == "       NaN"
-    end
+    ("%010E" % Float::NAN).should == "       NaN"
   end
 
   it "supports float formats using %f" do

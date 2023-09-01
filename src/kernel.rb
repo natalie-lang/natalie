@@ -355,8 +355,18 @@ module Kernel
       assert(format->is_string());
       assert(val->is_float());
       char buf[100];
-      if (snprintf(buf, 100, format->as_string()->c_str(), val->as_float()->to_double()) > 0)
-          return new StringObject { buf };
+      auto fmt = format->as_string()->c_str();
+      auto dbl = val->as_float()->to_double();
+      if (snprintf(buf, 100, fmt, dbl) > 0) {
+          if (isnan(dbl) && strcasestr(buf, "-nan")) {
+              // dumb hack to fix -NAN on some systems
+              dbl *= -1;
+              if (snprintf(buf, 100, fmt, dbl) > 0)
+                  return new StringObject { buf };
+          } else {
+              return new StringObject { buf };
+          }
+      }
       env->raise("ArgumentError", "could not format value");
     END
 
