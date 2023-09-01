@@ -126,15 +126,11 @@ describe "String#match" do
   end
 
   it "converts string patterns to regexps without escaping" do
-    NATFIXME 'converts string patterns to regexps without escaping', exception: TypeError, message: 'no implicit conversion of String into Regexp' do
-      'hello'.match('(.)\1')[0].should == 'll'
-    end
+    'hello'.match('(.)\1')[0].should == 'll'
   end
 
   it "returns nil if there's no match" do
-    NATFIXME 'converts string patterns to regexps without escaping', exception: TypeError, message: 'no implicit conversion of String into Regexp' do
-      'hello'.match('xx').should == nil
-    end
+    'hello'.match('xx').should == nil
   end
 
   it "matches \\G at the start of the string" do
