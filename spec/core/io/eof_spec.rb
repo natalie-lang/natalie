@@ -48,13 +48,17 @@ describe "IO#eof?" do
   end
 
   it "returns true after reading with sysread" do
-    @io.sysread(File.size(@name))
-    @io.should.eof?
+    NATFIXME 'Implement IO#sysread', exception: NoMethodError, message: "undefined method `sysread'" do
+      @io.sysread(File.size(@name))
+      @io.should.eof?
+    end
   end
 
   it "returns true after reading with readlines" do
-    @io.readlines
-    @io.should.eof?
+    NATFIXME 'Implement IO#readlines', exception: NoMethodError, message: "undefined method `readlines'" do
+      @io.readlines
+      @io.should.eof?
+    end
   end
 
   it "returns false on just opened non-empty stream" do
@@ -63,7 +67,9 @@ describe "IO#eof?" do
 
   it "does not consume the data from the stream" do
     @io.should_not.eof?
-    @io.getc.should == 'V'
+    NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
+      @io.getc.should == 'V'
+    end
   end
 
   it "raises IOError on closed stream" do
@@ -71,8 +77,10 @@ describe "IO#eof?" do
   end
 
   it "raises IOError on stream closed for reading by close_read" do
-    @io.close_read
-    -> { @io.eof? }.should raise_error(IOError)
+    NATFIXME 'Implement IO#close_read', exception: NoMethodError, message: "undefined method `close_read'" do
+      @io.close_read
+      -> { @io.eof? }.should raise_error(IOError)
+    end
   end
 
   it "returns true on one-byte stream after single-byte read" do
@@ -90,18 +98,22 @@ describe "IO#eof?" do
   end
 
   it "returns true on receiving side of Pipe when writing side is closed" do
-    @r, @w = IO.pipe
-    @w.close
-    @r.should.eof?
+    NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
+      @r, @w = IO.pipe
+      @w.close
+      @r.should.eof?
+    end
   end
 
   it "returns false on receiving side of Pipe when writing side wrote some data" do
-    @r, @w = IO.pipe
-    @w.puts "hello"
-    @r.should_not.eof?
-    @w.close
-    @r.should_not.eof?
-    @r.read
-    @r.should.eof?
+    NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
+      @r, @w = IO.pipe
+      @w.puts "hello"
+      @r.should_not.eof?
+      @w.close
+      @r.should_not.eof?
+      @r.read
+      @r.should.eof?
+    end
   end
 end
