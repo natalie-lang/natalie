@@ -136,7 +136,7 @@ module Kernel
             when nil
               if token.value_arg_name
                 # %{foo} doesn't require a specifier
-                val.to_s
+                s = format_str(token, val)
               else
                 raise ArgumentError, 'malformed format string'
               end
@@ -163,7 +163,7 @@ module Kernel
             when 'p'
               val.inspect
             when 's'
-              val.to_s
+              format_str(token, val)
             when 'x'
               format_hex(token, val)
             when 'X'
@@ -213,6 +213,17 @@ module Kernel
       end
 
       val
+    end
+
+    def format_str(token, arg)
+      s = arg.to_s
+      if token.precision && s.size > token.precision
+        s = s[0...token.precision]
+      end
+      if token.width && s.size < token.width
+        s = (' ' * (token.width - s.size)) + s
+      end
+      s
     end
 
     def format_char(token, arg)
@@ -427,6 +438,7 @@ module Kernel
       arguments[position - 1]
     end
 
+    # FIXME: this is wrong, shouldn't call to_ary I think
     def convert_int(i)
       if i.is_a?(Integer)
         i
@@ -583,15 +595,8 @@ module Kernel
 
       def tokens
         state = :literal
-        width_or_positional_arg = nil
-        width = nil
-        width_arg_position = nil
-        precision = nil
-        precision_arg_position = nil
-        value_arg_position = nil
-        value_arg_name = nil
-        flags = []
         tokens = []
+        reset_token_args
 
         while index < chars.size
           char = current_char
@@ -672,73 +677,46 @@ module Kernel
                       raise ArgumentError, "unknown flag: #{char.inspect}"
                     end
           when :field_width_or_positional_arg
-            width_or_positional_arg = (width_or_positional_arg || 0) * 10 + char.to_i
+            @width_or_positional_arg = (@width_or_positional_arg || 0) * 10 + char.to_i
           when :field_width_minus
             flags << :width_negative
           when :field_width_from_arg
-            raise ArgumentError, 'width given twice' if width_or_positional_arg || flags.include?(:width_given_as_arg)
+            raise ArgumentError, 'width given twice' if @width_or_positional_arg || flags.include?(:width_given_as_arg)
             flags << :width_given_as_arg
           when :field_width_from_positional_arg
-            width_arg_position = (width_arg_position || 0) * 10 + char.to_i
+            @width_arg_position = (@width_arg_position || 0) * 10 + char.to_i
           when :field_width_from_positional_arg_end
             :noop
           when :field_precision
             raise ArgumentError, 'precision given twice' if flags.include?(:precision_given_as_arg)
-            precision = (precision || 0) * 10 + char.to_i
+            @precision = (@precision || 0) * 10 + char.to_i
             raise ArgumentError, 'precision too big' if precision > 2**64
           when :field_precision_from_arg
             raise ArgumentError, 'precision given twice' if precision || flags.include?(:precision_given_as_arg)
             flags << :precision_given_as_arg
           when :field_precision_from_positional_arg
-            precision_arg_position = (precision_arg_position || 0) * 10 + char.to_i
+            @precision_arg_position = (@precision_arg_position || 0) * 10 + char.to_i
           when :field_precision_from_positional_arg_end
             :noop
           when :field_named_argument_angled, :field_named_argument_curly
-            if value_arg_name
-              value_arg_name << char
+            if @value_arg_name
+              @value_arg_name << char
             else
-              value_arg_name = ''
+              @value_arg_name = ''
             end
           when :field_named_argument_curly_end
-            tokens << Token.new(
-              type: :field,
-              datum: nil,
-              value_arg_name: value_arg_name,
-            )
-            value_arg_name = nil
+            tokens << build_token(nil)
+            reset_token_args
           when :field_end
-            if width_or_positional_arg
-              width = if flags.include?(:width_negative)
-                        -width_or_positional_arg
-                      else
-                        width_or_positional_arg
-                      end
-            end
-            tokens << Token.new(
-              type: :field,
-              datum: char,
-              flags: flags.dup,
-              width: width,
-              width_arg_position: width_arg_position,
-              precision: precision,
-              precision_arg_position: precision_arg_position,
-              value_arg_position: value_arg_position,
-              value_arg_name: value_arg_name,
-            )
-            width = nil
-            width_arg_position = nil
-            width_or_positional_arg = nil
-            precision = nil
-            precision_arg_position = nil
-            value_arg_position = nil
-            value_arg_name = nil
+            tokens << build_token(char)
+            reset_token_args
           when :positional_argument_end
-            new_arg_position = width_or_positional_arg
-            width_or_positional_arg = nil
-            if value_arg_position
+            new_arg_position = @width_or_positional_arg
+            @width_or_positional_arg = nil
+            if @value_arg_position
               raise ArgumentError, "value given twice - #{new_arg_position}$"
             end
-            value_arg_position = new_arg_position
+            @value_arg_position = new_arg_position
           else
             raise ArgumentError, "unknown state: #{state.inspect}"
           end
@@ -759,6 +737,48 @@ module Kernel
       end
 
       private
+
+      attr_reader \
+        :flags,
+        :precision_arg_position,
+        :precision,
+        :value_arg_name,
+        :value_arg_position,
+        :width_arg_position,
+        :width,
+        :width_or_positional_arg
+
+      def reset_token_args
+        @flags = []
+        @precision_arg_position = nil
+        @precision = nil
+        @value_arg_name = nil
+        @value_arg_position = nil
+        @width_arg_position = nil
+        @width_or_positional_arg = nil
+      end
+
+      def build_token(datum)
+        if width_or_positional_arg
+          width = if flags.include?(:width_negative)
+                    -width_or_positional_arg
+                  else
+                    width_or_positional_arg
+                  end
+        end
+
+        Token.new(
+          type: :field,
+          datum: datum,
+          flags: flags.dup,
+          width: width,
+          width_arg_position: width_arg_position,
+          precision: precision,
+          precision_arg_position: precision_arg_position,
+          value_arg_position: value_arg_position,
+          value_arg_name: value_arg_name,
+        )
+      end
 
       def current_char
         chars[index]

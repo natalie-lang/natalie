@@ -415,18 +415,14 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "formats a partial substring without including omitted characters" do
-        NATFIXME 'truncation for string', exception: SpecFailedException do
-          long_string = "aabbccddhelloddccbbaa"
-          sub_string = long_string[8, 5]
-          sprintf("%.#{1 * 3}s", sub_string).should == "hel"
-        end
+        long_string = "aabbccddhelloddccbbaa"
+        sub_string = long_string[8, 5]
+        sprintf("%.#{1 * 3}s", sub_string).should == "hel"
       end
 
       it "formats string with precision" do
-        NATFIXME 'truncation for string', exception: SpecFailedException do
-          Kernel.format("%.3s", "hello").should == "hel"
-          Kernel.format("%-3.3s", "hello").should == "hel"
-        end
+        Kernel.format("%.3s", "hello").should == "hel"
+        Kernel.format("%-3.3s", "hello").should == "hel"
       end
 
       it "formats string with width" do
@@ -436,9 +432,7 @@ describe :kernel_sprintf, shared: true do
 
       it "formats string with width and precision" do
         @method.call("%4.6s", "abc").should == " abc"
-        NATFIXME 'truncation for string', exception: SpecFailedException do
-          @method.call("%4.6s", "abcdefg").should == "abcdef"
-        end
+        @method.call("%4.6s", "abcdefg").should == "abcdef"
       end
 
       it "formats nil with width" do
@@ -454,9 +448,7 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "formats multibyte string with precision" do
-        NATFIXME 'multi-byte characters and precision', exception: SpecFailedException do
-          Kernel.format("%.2s", "été").should == "ét"
-        end
+        Kernel.format("%.2s", "été").should == "ét"
       end
 
       it "preserves encoding of the format string" do
