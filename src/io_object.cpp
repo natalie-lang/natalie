@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
 #include <unistd.h>
@@ -68,6 +69,23 @@ int IoObject::fileno() const {
 int IoObject::fileno(Env *env) const {
     raise_if_closed(env);
     return m_fileno;
+}
+
+Value IoObject::fcntl(Env *env, Value cmd_value, Value arg_value) {
+    raise_if_closed(env);
+    const auto cmd = IntegerObject::convert_to_int(env, cmd_value);
+    int result;
+    if (arg_value == nullptr || arg_value->is_nil()) {
+        result = ::fcntl(m_fileno, cmd);
+    } else if (arg_value->is_string()) {
+        const auto arg = arg_value->as_string()->c_str();
+        result = ::fcntl(m_fileno, cmd, arg);
+    } else {
+        const auto arg = IntegerObject::convert_to_int(env, arg_value);
+        result = ::fcntl(m_fileno, cmd, arg);
+    }
+    if (result < 0) env->raise_errno();
+    return IntegerObject::create(result);
 }
 
 int IoObject::fdatasync(Env *env) {
