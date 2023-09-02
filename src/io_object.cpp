@@ -118,7 +118,13 @@ Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
     unsigned char buffer;
     int result = ::read(m_fileno, &buffer, 1);
-    if (result < 0) env->raise_errno();
+    if (result == -1) {
+        const auto old_errno = errno;
+        if (!is_readable(fileno(env)))
+            env->raise("IOError", "not opened for reading");
+        errno = old_errno; // errno may have been changed by fcntl, revert to the old value
+        env->raise_errno();
+    }
     if (result == 0) return NilObject::the(); // eof case
     return Value::integer(buffer);
 }
