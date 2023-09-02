@@ -246,7 +246,6 @@ module Kernel
       end
     rescue NoMethodError
       raise unless Kernel.instance_method(:instance_of?).bind(arg).call(BasicObject)
-
       begin
         i = arg.to_int
         unless i.is_a?(Integer)
@@ -511,6 +510,7 @@ module Kernel
         },
         field_precision_period: {
           on_number: :field_precision,
+          on_zero: :field_precision,
           on_asterisk: :field_precision_from_arg,
         },
         field_precision_from_positional_arg: {

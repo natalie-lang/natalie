@@ -646,22 +646,18 @@ describe :kernel_sprintf, shared: true do
             @method.call("%#.0A", 16.25).should == "0X1.P+4"
           end
 
-          NATFIXME '# followed by .', exception: ArgumentError do
-            @method.call("%#.0e", 100).should == "1.e+02"
-            @method.call("%#.0E", 100).should == "1.E+02"
+          @method.call("%#.0e", 100).should == "1.e+02"
+          @method.call("%#.0E", 100).should == "1.E+02"
 
-            @method.call("%#.0f", 123.4).should == "123."
+          @method.call("%#.0f", 123.4).should == "123."
 
-            @method.call("%#g", 123456).should == "123456."
-            @method.call("%#G", 123456).should == "123456."
-          end
+          @method.call("%#g", 123456).should == "123456."
+          @method.call("%#G", 123456).should == "123456."
         end
 
         it "changes format from dd.dddd to exponential form for gG" do
-          NATFIXME '# followed by .', exception: ArgumentError do
-            @method.call("%#.0g", 123.4).should_not == "123."
-            @method.call("%#.0g", 123.4).should == "1.e+02"
-          end
+          @method.call("%#.0g", 123.4).should_not == "123."
+          @method.call("%#.0g", 123.4).should == "1.e+02"
         end
       end
 
