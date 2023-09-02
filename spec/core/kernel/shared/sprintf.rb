@@ -601,9 +601,7 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "does nothing for negative argument" do
-          NATFIXME 'leading zero bug', exception: SpecFailedException do
-            @method.call("%#o", -87).should == "..7651"
-          end
+          @method.call("%#o", -87).should == "..7651"
         end
       end
 

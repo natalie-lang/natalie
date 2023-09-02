@@ -325,9 +325,13 @@ module Kernel
         value = i.abs.to_s(base)
       end
 
-      if !token.flags.include?(:alternate_format) || value == '0'
-        prefix = ''
-      end
+      prefix = '' unless token.flags.include?(:alternate_format)
+
+      # '%#x' % 0 should not produce '0x0'
+      prefix = '' if value == '0'
+
+      # '%o' % -10 should not produce '0..766'
+      prefix = '' if prefix == '0' && i.negative?
 
       if token.precision
         needed = token.precision - value.size - (dotdot_sign&.size || 0)
