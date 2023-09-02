@@ -50,6 +50,17 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     return NilObject::the();
 }
 
+Value IoObject::each_byte(Env *env, Block *block) {
+    if (block == nullptr)
+        return send(env, "enum_for"_s, { "each_byte"_s });
+
+    Value byte;
+    while (!(byte = getbyte(env))->is_nil())
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { byte }, nullptr);
+
+    return this;
+}
+
 int IoObject::fileno() const {
     return m_fileno;
 }
