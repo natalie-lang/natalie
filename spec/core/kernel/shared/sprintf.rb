@@ -326,15 +326,13 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "raises TypeError if argument is not String or Integer and cannot be converted to them" do
-        NATFIXME 'missing error', exception: SpecFailedException do
-          -> {
-            @method.call("%c", [])
-          }.should raise_error(TypeError, /no implicit conversion of Array into Integer/)
-        end
+        -> {
+          @method.call("%c", [])
+        }.should raise_error(TypeError, /no implicit conversion of Array into Integer/)
       end
 
       it "raises TypeError if argument is nil" do
-        NATFIXME 'BasicObject support', exception: SpecFailedException do
+        NATFIXME 'missing error', exception: SpecFailedException do
           -> {
             @method.call("%c", nil)
           }.should raise_error(TypeError, /no implicit conversion from nil to integer/)
@@ -342,51 +340,43 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "tries to convert argument to String with to_str" do
-        NATFIXME 'BasicObject handling', exception: NoMethodError do
-          obj = BasicObject.new
-          def obj.to_str
-            "a"
-          end
-
-          @method.call("%c", obj).should == "a"
+        obj = BasicObject.new
+        def obj.to_str
+          "a"
         end
+
+        @method.call("%c", obj).should == "a"
       end
 
       it "tries to convert argument to Integer with to_int" do
-        NATFIXME 'wrong error message', exception: NoMethodError do
-          obj = BasicObject.new
-          def obj.to_int
-            90
-          end
-
-          @method.call("%c", obj).should == "Z"
+        obj = BasicObject.new
+        def obj.to_int
+          90
         end
+
+        @method.call("%c", obj).should == "Z"
       end
 
       it "raises TypeError if converting to String with to_str returns non-String" do
-        NATFIXME 'BasicObject support', exception: SpecFailedException do
-          obj = BasicObject.new
-          def obj.to_str
-            :foo
-          end
-
-          -> {
-            @method.call("%c", obj)
-          }.should raise_error(TypeError, /can't convert BasicObject to String/)
+        obj = BasicObject.new
+        def obj.to_str
+          :foo
         end
+
+        -> {
+          @method.call("%c", obj)
+        }.should raise_error(TypeError, /can't convert BasicObject to String/)
       end
 
       it "raises TypeError if converting to Integer with to_int returns non-Integer" do
-        NATFIXME 'BasicObject support', exception: SpecFailedException do
-          obj = BasicObject.new
-          def obj.to_str
-            :foo
-          end
-
-          -> {
-            @method.call("%c", obj)
-          }.should raise_error(TypeError, /can't convert BasicObject to String/)
+        obj = BasicObject.new
+        def obj.to_int
+          :foo
         end
+
+        -> {
+          @method.call("%c", obj)
+        }.should raise_error(TypeError, /can't convert BasicObject to Integer/)
       end
     end
 
@@ -651,10 +641,12 @@ describe :kernel_sprintf, shared: true do
 
       context "applies to formats aAeEfgG" do
         it "forces a decimal point to be added, even if no digits follow" do
-          NATFIXME 'missing transition', exception: ArgumentError do
+          NATFIXME 'implement %a', exception: ArgumentError do
             @method.call("%#.0a", 16.25).should == "0x1.p+4"
             @method.call("%#.0A", 16.25).should == "0X1.P+4"
+          end
 
+          NATFIXME '# followed by .', exception: ArgumentError do
             @method.call("%#.0e", 100).should == "1.e+02"
             @method.call("%#.0E", 100).should == "1.E+02"
 
@@ -666,7 +658,7 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "changes format from dd.dddd to exponential form for gG" do
-          NATFIXME 'missing transition', exception: ArgumentError do
+          NATFIXME '# followed by .', exception: ArgumentError do
             @method.call("%#.0g", 123.4).should_not == "123."
             @method.call("%#.0g", 123.4).should == "1.e+02"
           end

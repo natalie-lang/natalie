@@ -576,11 +576,10 @@ describe "String#%" do
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
 
-    # undef is not working
-    # obj = mock('obj')
-    # class << obj; undef :inspect; end
-    # def obj.method_missing(*args) "obj" end
-    # ("%p" % obj).should == "obj"
+     obj = mock('obj')
+     class << obj; undef :inspect; end
+     def obj.method_missing(*args) "obj" end
+     ("%p" % obj).should == "obj"
   end
 
   it "supports string formats using %s" do
@@ -588,10 +587,8 @@ describe "String#%" do
     ("%s" % "").should == ""
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
-    #NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
-    #end
   end
 
   it "respects a space padding request not as part of the width" do

@@ -215,23 +215,57 @@ module Kernel
       val
     end
 
+    def arg_to_str(arg, one_char: false)
+      s = arg.to_str
+      unless s.is_a?(String)
+        raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
+      end
+      if one_char && s.size != 1
+        raise ArgumentError, '%c requires a character'
+      end
+      s
+    end
+
+    def arg_to_int(arg)
+      i = arg.to_int
+      unless i.is_a?(Integer)
+        raise TypeError, "can't convert Object to Integer (#{arg.class.name}#to_int gives #{i.class.name})"
+      end
+      i
+    end
+
     def format_char(token, arg)
       if arg.is_a?(Integer)
         arg.chr(format_string.encoding)
-      elsif arg.respond_to?(:to_ary)
-        arg.to_ary.first
       elsif arg.respond_to?(:to_int)
-        arg.to_int.chr(format_string.encoding)
+        arg_to_int(arg).chr(format_string.encoding)
       elsif arg.respond_to?(:to_str)
-        s = arg.to_str
-        if s.is_a?(String)
-          raise ArgumentError, '%c requires a character' if s.size != 1
-          s
-        else
-          raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
-        end
+        arg_to_str(arg, one_char: true)
       else
         raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
+      end
+    rescue NoMethodError
+      raise unless Kernel.instance_method(:instance_of?).bind(arg).call(BasicObject)
+
+      begin
+        i = arg.to_int
+        unless i.is_a?(Integer)
+          raise TypeError, "can't convert BasicObject to Integer"
+        end
+        i.chr(format_string.encoding)
+      rescue NoMethodError
+        begin
+          s = arg.to_str
+          unless s.is_a?(String)
+            raise TypeError, "can't convert BasicObject to String"
+          end
+          if s.size != 1
+            raise ArgumentError, '%c requires a character'
+          end
+          s
+        rescue NoMethodError
+          raise TypeError, "no implicit conversion of BasicObject into Integer"
+        end
       end
     end
 
