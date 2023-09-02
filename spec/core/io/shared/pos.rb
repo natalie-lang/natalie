@@ -23,13 +23,11 @@ describe :io_pos, shared: true do
   end
 
   it "resets #eof?" do
-    NATFIXME "Pending IO#eof?", exception: NoMethodError, message: /undefined method \`eof\?\'/ do
-      open @fname do |io|
-        io.read 1
-        io.read 1
-        io.send(@method)
-        io.should_not.eof?
-      end
+    open @fname do |io|
+      io.read 1
+      io.read 1
+      io.send(@method)
+      io.should_not.eof?
     end
   end
 end
