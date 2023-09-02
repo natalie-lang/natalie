@@ -482,9 +482,9 @@ module Kernel
         field_pending: {
           on_alpha: :field_end,
           on_asterisk: :field_width_from_arg,
-          on_minus: :field_width_minus,
-          on_less_than: :field_named_argument_angled,
           on_left_curly_brace: :field_named_argument_curly,
+          on_less_than: :field_named_argument_angled,
+          on_minus: :field_width_minus,
           on_newline: :literal_percent,
           on_null_byte: :literal_percent,
           on_number: :field_width_or_positional_arg,
@@ -501,6 +501,8 @@ module Kernel
         },
         field_precision: {
           on_alpha: :field_end,
+          on_left_curly_brace: :field_named_argument_curly,
+          on_less_than: :field_named_argument_angled,
           on_number: :field_precision,
           on_zero: :field_precision,
         },

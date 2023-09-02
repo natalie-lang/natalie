@@ -240,7 +240,7 @@ describe :kernel_sprintf, shared: true do
 
     describe "a" do
       it "converts floating point argument as [-]0xh.hhhhp[+-]dd" do
-        NATFIXME '%a', exception: ArgumentError do
+        NATFIXME 'implement %a', exception: ArgumentError do
           @method.call("%a", 196).should == "0x1.88p+7"
           @method.call("%a", -196).should == "-0x1.88p+7"
           @method.call("%a", 196.1).should == "0x1.8833333333333p+7"
@@ -250,14 +250,14 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "displays Float::INFINITY as Inf" do
-        NATFIXME '%a', exception: ArgumentError do
+        NATFIXME 'implement %a', exception: ArgumentError do
           @method.call("%a", Float::INFINITY).should == "Inf"
           @method.call("%a", -Float::INFINITY).should == "-Inf"
         end
       end
 
       it "displays Float::NAN as NaN" do
-        NATFIXME '%a', exception: ArgumentError do
+        NATFIXME 'implement %a', exception: ArgumentError do
           @method.call("%a", Float::NAN).should == "NaN"
           @method.call("%a", -Float::NAN).should == "NaN"
         end
@@ -266,7 +266,7 @@ describe :kernel_sprintf, shared: true do
 
     describe "A" do
       it "converts floating point argument as [-]0xh.hhhhp[+-]dd and use uppercase X and P" do
-        NATFIXME '%A', exception: ArgumentError do
+        NATFIXME 'implement %A', exception: ArgumentError do
           @method.call("%A", 196).should == "0X1.88P+7"
           @method.call("%A", -196).should == "-0X1.88P+7"
           @method.call("%A", 196.1).should == "0X1.8833333333333P+7"
@@ -276,14 +276,14 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "displays Float::INFINITY as Inf" do
-        NATFIXME '%A', exception: ArgumentError do
+        NATFIXME 'implement %A', exception: ArgumentError do
           @method.call("%A", Float::INFINITY).should == "Inf"
           @method.call("%A", -Float::INFINITY).should == "-Inf"
         end
       end
 
       it "displays Float::NAN as NaN" do
-        NATFIXME '%A', exception: ArgumentError do
+        NATFIXME 'implement %A', exception: ArgumentError do
           @method.call("%A", Float::NAN).should == "NaN"
           @method.call("%A", -Float::NAN).should == "NaN"
         end
@@ -960,18 +960,14 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "supports flags, width, precision and type" do
-        NATFIXME 'named arg after precision', exception: ArgumentError do
-          @method.call("%+20.10<foo>f", foo: 10.952).should == "      +10.9520000000"
-        end
+        @method.call("%+20.10<foo>f", foo: 10.952).should == "      +10.9520000000"
       end
 
       it "allows to place name in any position" do
-        NATFIXME 'named arg after precision', exception: ArgumentError do
-          @method.call("%+15.5<foo>f", foo: 10.952).should == "      +10.95200"
-          @method.call("%+15<foo>.5f", foo: 10.952).should == "      +10.95200"
-          @method.call("%+<foo>15.5f", foo: 10.952).should == "      +10.95200"
-          @method.call("%<foo>+15.5f", foo: 10.952).should == "      +10.95200"
-        end
+        @method.call("%+15.5<foo>f", foo: 10.952).should == "      +10.95200"
+        @method.call("%+15<foo>.5f", foo: 10.952).should == "      +10.95200"
+        @method.call("%+<foo>15.5f", foo: 10.952).should == "      +10.95200"
+        @method.call("%<foo>+15.5f", foo: 10.952).should == "      +10.95200"
       end
 
       it "cannot be mixed with unnamed style" do
@@ -991,9 +987,7 @@ describe :kernel_sprintf, shared: true do
       end
 
       it "supports flags, width and precision" do
-        NATFIXME 'named arg after precision', exception: ArgumentError do
-          @method.call("%-20.5{foo}", foo: "123456789").should == "12345               "
-        end
+        @method.call("%-20.5{foo}", foo: "123456789").should == "12345               "
       end
 
       it "cannot be mixed with unnamed style" do
