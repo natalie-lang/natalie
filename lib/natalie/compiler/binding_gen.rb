@@ -53,6 +53,9 @@ class BindingGen
       if binding.needs_to_set_visibility?
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
+      binding.aliases.each do |method|
+        puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{method.inspect}_s, #{binding.name}, #{binding.arity}, #{binding.optimized ? 'true' : 'false'});"
+      end
     end
     @undefine_methods.each { |rb_class, method| puts "    #{rb_class}->undefine_method(env, #{method.inspect}_s);" }
     @undefine_singleton_methods.each do |rb_class, method|
@@ -77,7 +80,8 @@ class BindingGen
       pass_klass: false,
       kwargs: [],
       visibility: :public,
-      optimized: false
+      optimized: false,
+      aliases: []
     )
       @rb_class = rb_class
       @rb_method = rb_method
@@ -94,6 +98,7 @@ class BindingGen
       @static = static
       @visibility = visibility
       @optimized = optimized
+      @aliases = aliases
       generate_name
     end
 
@@ -108,7 +113,8 @@ class BindingGen
                 :return_type,
                 :name,
                 :visibility,
-                :optimized
+                :optimized,
+                :aliases
 
     def module_function?
       @module_function
@@ -393,7 +399,7 @@ gen.binding('Array', 'inspect', 'ArrayObject', 'inspect', argc: 0, pass_env: tru
 gen.binding('Array', 'join', 'ArrayObject', 'join', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'keep_if', 'ArrayObject', 'keep_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'last', 'ArrayObject', 'last', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Array', 'length', 'ArrayObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
+gen.binding('Array', 'length', 'ArrayObject', 'size', argc: 0, pass_env: false, pass_block: false, aliases: ['size'], return_type: :size_t)
 gen.binding('Array', 'map', 'ArrayObject', 'map', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'map!', 'ArrayObject', 'map_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'max', 'ArrayObject', 'max', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
@@ -418,7 +424,6 @@ gen.binding('Array', 'rotate!', 'ArrayObject', 'rotate_in_place', argc: 0..1, pa
 gen.binding('Array', 'select', 'ArrayObject', 'select', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'select!', 'ArrayObject', 'select_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Array', 'shift', 'ArrayObject', 'shift', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Array', 'size', 'ArrayObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('Array', 'slice', 'ArrayObject', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'slice!', 'ArrayObject', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', 'sort', 'ArrayObject', 'sort', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
