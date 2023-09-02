@@ -215,32 +215,24 @@ module Kernel
       val
     end
 
-    def arg_to_str(arg, one_char: false)
-      s = arg.to_str
-      unless s.is_a?(String)
-        raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
-      end
-      if one_char && s.size != 1
-        raise ArgumentError, '%c requires a character'
-      end
-      s
-    end
-
-    def arg_to_int(arg)
-      i = arg.to_int
-      unless i.is_a?(Integer)
-        raise TypeError, "can't convert Object to Integer (#{arg.class.name}#to_int gives #{i.class.name})"
-      end
-      i
-    end
-
     def format_char(token, arg)
       if arg.is_a?(Integer)
         arg.chr(format_string.encoding)
       elsif arg.respond_to?(:to_int)
-        arg_to_int(arg).chr(format_string.encoding)
+        i = arg.to_int
+        unless i.is_a?(Integer)
+          raise TypeError, "can't convert Object to Integer (#{arg.class.name}#to_int gives #{i.class.name})"
+        end
+        i.chr(format_string.encoding)
       elsif arg.respond_to?(:to_str)
-        arg_to_str(arg, one_char: true)
+        s = arg.to_str
+        unless s.is_a?(String)
+          raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
+        end
+        if s.size != 1
+          raise ArgumentError, '%c requires a character'
+        end
+        s
       else
         raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
       end
