@@ -60,6 +60,7 @@ public:
     Value gets(Env *) const;
     Value initialize(Env *, Value);
     bool is_closed() const { return m_closed; }
+    bool is_eof(Env *);
     bool isatty(Env *) const;
     int pos(Env *);
     Value puts(Env *, Args);

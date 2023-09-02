@@ -117,6 +117,10 @@ Value IoObject::getbyte(Env *env) {
     return Value::integer(buffer);
 }
 
+bool IoObject::is_eof(Env *env) {
+    return false;
+}
+
 bool IoObject::isatty(Env *env) const {
     raise_if_closed(env);
     return ::isatty(m_fileno) == 1;
