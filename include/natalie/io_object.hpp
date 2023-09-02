@@ -50,6 +50,7 @@ public:
     Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
     Value close(Env *);
+    Value each_byte(Env *, Block *);
     int fdatasync(Env *);
     int fileno() const;
     int fileno(Env *) const;
