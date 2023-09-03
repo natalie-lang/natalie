@@ -1844,7 +1844,9 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '8':
             case '9': {
                 int num = c - 48;
-                expanded->append(match->group(num)->as_string());
+                auto val = match->group(num);
+                if (val->is_string())
+                    expanded->append(val->as_string());
                 break;
             }
             case '\\':
@@ -2765,7 +2767,7 @@ Value StringObject::convert_integer(Env *env, nat_int_t base) {
     return nullptr;
 }
 Value StringObject::convert_float() {
-    if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+    if (m_string.length() == 0 || m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
 
     auto check_underscores = [this](char delimiter) -> bool {
         ssize_t p = m_string.find(delimiter);
@@ -2788,9 +2790,22 @@ Value StringObject::convert_float() {
     char *endptr = nullptr;
     String string = String(m_string);
 
+    // check for two consequtive underscores
+    for (size_t i = 1; i < string.length(); ++i) {
+        auto c2 = string[i];
+        auto c1 = string[i - 1];
+        if (c1 == '_' && c2 == '_')
+            return nullptr;
+    }
+
     string.remove('_');
     string.strip_trailing_whitespace();
-    if (string.length() == 0) return nullptr;
+
+    if (string.length() == 0)
+        return nullptr;
+
+    if (string.last_char() == '.')
+        return nullptr;
 
     double value = strtod(string.c_str(), &endptr);
 

@@ -14,9 +14,11 @@ describe :kernel_sprintf_encoding, shared: true do
   end
 
   it "returns a String in the same encoding as the format String if compatible" do
-    string = "%s".force_encoding(Encoding::KOI8_U)
-    result = @method.call(string, "dogs")
-    result.encoding.should equal(Encoding::KOI8_U)
+    NATFIXME 'KOI8_U encoding not implemented', exception: NameError do
+      string = "%s".force_encoding(Encoding::KOI8_U)
+      result = @method.call(string, "dogs")
+      result.encoding.should equal(Encoding::KOI8_U)
+    end
   end
 
   it "returns a String in the argument's encoding if format encoding is more restrictive" do
@@ -56,7 +58,8 @@ describe :kernel_sprintf_encoding, shared: true do
       }.should raise_error(RangeError, /out of char range/)
     end
 
-    it "uses the encoding of the format string to interpret codepoints" do
+    # NATFIXME: euc-jp stuff not implemented
+    xit "uses the encoding of the format string to interpret codepoints" do
       format = "%c".force_encoding("euc-jp")
       result = @method.call(format, 9415601)
 

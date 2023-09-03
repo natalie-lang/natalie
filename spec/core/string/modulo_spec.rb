@@ -5,7 +5,7 @@ require_relative '../kernel/shared/sprintf_encoding'
 require_relative 'fixtures/classes'
 require_relative '../../shared/hash/key_error'
 
-xdescribe "String#%" do
+describe "String#%" do
   it_behaves_like :kernel_sprintf, -> format, *args {
     format % args
   }
@@ -18,7 +18,7 @@ end
 # TODO: these specs are mostly redundant with kernel/shared/sprintf.rb specs.
 # These specs should be moved there and deduplicated.
 describe "String#%" do
-  xcontext "when key is missing from passed-in hash" do
+  context "when key is missing from passed-in hash" do
     it_behaves_like :key_error, -> obj, key { "%{#{key}}" % obj }, { a: 5 }
   end
 
@@ -35,19 +35,23 @@ describe "String#%" do
   end
 
   describe "output's encoding" do
-    xit "is the same as the format string if passed value is encoding-compatible" do
+    it "is the same as the format string if passed value is encoding-compatible" do
       [Encoding::BINARY, Encoding::US_ASCII, Encoding::UTF_8, Encoding::SHIFT_JIS].each do |encoding|
         ("hello %s!".encode(encoding) % "world").encoding.should == encoding
       end
     end
 
-    xit "negotiates a compatible encoding if necessary" do
-      ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
-      ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
+    it "negotiates a compatible encoding if necessary" do
+      NATFIXME 'encoding negotation', exception: SpecFailedException do
+        ("hello %s" % 195.chr).encoding.should == Encoding::BINARY
+        ("hello %s".encode("shift_jis") % "wörld").encoding.should == Encoding::UTF_8
+      end
     end
 
-    xit "raises if a compatible encoding can't be found" do
-      -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
+    it "raises if a compatible encoding can't be found" do
+      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError do
+        -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 
@@ -210,26 +214,26 @@ describe "String#%" do
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
   end
 
-  xit "allows positional arguments for width star and precision star arguments" do
+  it "allows positional arguments for width star and precision star arguments" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
 
-  xit "allows negative width to imply '-' flag" do
+  it "allows negative width to imply '-' flag" do
     ("%*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
     ("%-*1$.*2$3$d" % [10, 5, 1]).should == "00001     "
     ("%-*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
   end
 
-  xit "ignores negative precision" do
+  it "ignores negative precision" do
     ("%*1$.*2$3$d" % [10, -5, 1]).should == "         1"
   end
 
-  xit "allows a star to take an argument number to use as the width" do
+  it "allows a star to take an argument number to use as the width" do
     ("%1$*2$s" % ["a", 8]).should == "       a"
     ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
   end
 
-  xit "calls to_int on width star and precision star tokens" do
+  it "calls to_int on width star and precision star tokens" do
     w = mock('10')
     w.should_receive(:to_int).and_return(10)
 
@@ -287,7 +291,7 @@ describe "String#%" do
     ("%s" % obj).should == "1"
   end
 
-  xit "doesn't return subclass instances when called on a subclass" do
+  it "doesn't return subclass instances when called on a subclass" do
     universal = mock('0')
     def universal.to_int() 0 end
     def universal.to_str() "0" end
@@ -309,24 +313,29 @@ describe "String#%" do
     ("%1$b" % [10, 20]).should == "1010"
     ("%#b" % 10).should == "0b1010"
     ("%+b" % 10).should == "+1010"
+    ("%09b" % 10).should == "000001010"
+    ("%#09b" % 10).should == "0b0001010"
     ("%-9b" % 10).should == "1010     "
+    ("%#-9b" % 10).should == "0b1010   "
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
-    NATFIXME "precision unsupported", exception: SpecFailedException do
-      ("%.4b" % 2).should == "0010"
-      ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
-    end
+    ("%.4b" % 2).should == "0010"
+    ("%#.4b" % 2).should == "0b0010"
+    ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
   end
 
-  xit "supports binary formats using %b for negative numbers" do
+  it "supports binary formats using %b for negative numbers" do
     ("%b" % -5).should == "..1011"
+    ("%#b" % -5).should == "0b..1011"
     ("%0b" % -5).should == "..1011"
     ("%.1b" % -5).should == "..1011"
     ("%.7b" % -5).should == "..11011"
     ("%.10b" % -5).should == "..11111011"
+    ("%#.10b" % -5).should == "0b..11111011"
     ("% b" % -5).should == "-101"
     ("%+b" % -5).should == "-101"
+    ("%#+b" % -5).should == "-0b101"
     not_supported_on :opal do
       ("%b" % -(2 ** 64 + 5)).should ==
         "..101111111111111111111111111111111111111111111111111111111111111011"
@@ -376,12 +385,12 @@ describe "String#%" do
   end
 
   ruby_version_is "3.2" do
-    xit "supports only the first character as argument for %c" do
+    it "supports only the first character as argument for %c" do
       ("%c" % 'AA').should == "A"
     end
   end
 
-  xit "calls to_str on argument for %c formats" do
+  it "calls to_str on argument for %c formats" do
     obj = mock('A')
     obj.should_receive(:to_str).and_return('A')
 
@@ -394,7 +403,7 @@ describe "String#%" do
     ("%c" % obj).should == ("%c" % [65])
   end
 
-  xit "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
+  it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
     obj = mock('65')
     obj.should_receive(:to_int).and_return(65)
 
@@ -412,12 +421,10 @@ describe "String#%" do
       ("%-7#{f}" % 10).should == "10     "
       ("%04#{f}" % 10).should == "0010"
       ("%*#{f}" % [10, 4]).should == "         4"
-      NATFIXME "precision unsupported", exception: SpecFailedException do
-        ("%6.4#{f}" % 123).should == "  0123"
-      end
+      ("%6.4#{f}" % 123).should == "  0123"
     end
 
-    xit "supports negative integers using #{format}" do
+    it "supports negative integers using #{format}" do
       ("%#{f}" % -5).should == "-5"
       ("%3#{f}" % -5).should == " -5"
       ("%03#{f}" % -5).should == "-05"
@@ -427,13 +434,13 @@ describe "String#%" do
       ("%6.4#{f}" % -123).should == " -0123"
     end
 
-    xit "supports negative integers using #{format}, giving priority to `-`" do
+    it "supports negative integers using #{format}, giving priority to `-`" do
       ("%-03#{f}" % -5).should == "-5 "
       ("%+-03#{f}" % -5).should == "-5 "
     end
   end
 
-  xit "supports float formats using %e" do
+  it "supports float formats using %e" do
     ("%e" % 10).should == "1.000000e+01"
     ("% e" % 10).should == " 1.000000e+01"
     ("%1$e" % 10).should == "1.000000e+01"
@@ -444,14 +451,14 @@ describe "String#%" do
     ("%*e" % [10, 9]).should == "9.000000e+00"
   end
 
-  xit "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
+  it "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
     ("%e" % 1e1020).should == "Inf"
     ("%e" % -1e1020).should == "-Inf"
     ("%e" % -Float::NAN).should == "NaN"
     ("%e" % Float::NAN).should == "NaN"
   end
 
-  xit "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
+  it "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
     ("%E" % 1e1020).should == "Inf"
     ("%E" % -1e1020).should == "-Inf"
     ("%-10E" % 1e1020).should == "Inf       "
@@ -462,7 +469,7 @@ describe "String#%" do
     ("%E" % -Float::NAN).should == "NaN"
   end
 
-  xit "supports float formats using %E" do
+  it "supports float formats using %E" do
     ("%E" % 10).should == "1.000000E+01"
     ("% E" % 10).should == " 1.000000E+01"
     ("%1$E" % 10).should == "1.000000E+01"
@@ -473,7 +480,7 @@ describe "String#%" do
     ("%*E" % [10, 9]).should == "9.000000E+00"
   end
 
-  xit "pads with spaces for %E with Inf, -Inf, and NaN" do
+  it "pads with spaces for %E with Inf, -Inf, and NaN" do
     ("%010E" % -1e1020).should == "      -Inf"
     ("%010E" % 1e1020).should == "       Inf"
     ("%010E" % Float::NAN).should == "       NaN"
@@ -492,7 +499,7 @@ describe "String#%" do
     ("%*f" % [10, 9]).should == "  9.000000"
   end
 
-  xit "supports float formats using %g" do
+  it "supports float formats using %g" do
     ("%g" % 10).should == "10"
     ("% g" % 10).should == " 10"
     ("%1$g" % 10).should == "10"
@@ -505,7 +512,7 @@ describe "String#%" do
     ("%*g" % [10, 9]).should == "         9"
   end
 
-  xit "supports float formats using %G" do
+  it "supports float formats using %G" do
     ("%G" % 10).should == "10"
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"
@@ -529,7 +536,7 @@ describe "String#%" do
     ("%*o" % [10, 6]).should == "         6"
   end
 
-  xit "supports octal formats using %o for negative numbers" do
+  it "supports octal formats using %o for negative numbers" do
     # These are incredibly wrong. -05 == -5, not 7177777...whatever
     ("%o" % -5).should == "..73"
     ("%0o" % -5).should == "..73"
@@ -540,6 +547,16 @@ describe "String#%" do
 
     ("% o" % -26).should == "-32"
     ("%+o" % -26).should == "-32"
+    ("%o" % -(2 ** 8)).should == '..7400'
+    ("%o" % -(2 ** 12)).should == '..70000'
+    ("%o" % -(2 ** 35)).should == '..7400000000000'
+    ("%o" % -(2 ** 45)).should == '..7000000000000000'
+    ("%o" % -(2 ** 50)).should == '..740000000000000000'
+    ("%o" % -(2 ** 60)).should == '..700000000000000000000'
+    ("%o" % -(2 ** 61)).should == '..7600000000000000000000'
+    ("%o" % -(2 ** 62)).should == '..7400000000000000000000'
+    ("%o" % -(2 ** 63)).should == '..7000000000000000000000'
+    ("%o" % -(2 ** 64 - 5)).should == '..76000000000000000000005'
     not_supported_on :opal do
       ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
     end
@@ -559,11 +576,10 @@ describe "String#%" do
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
 
-    # undef is not working
-    # obj = mock('obj')
-    # class << obj; undef :inspect; end
-    # def obj.method_missing(*args) "obj" end
-    # ("%p" % obj).should == "obj"
+     obj = mock('obj')
+     class << obj; undef :inspect; end
+     def obj.method_missing(*args) "obj" end
+     ("%p" % obj).should == "obj"
   end
 
   it "supports string formats using %s" do
@@ -571,10 +587,8 @@ describe "String#%" do
     ("%s" % "").should == ""
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
-    #NATFIXME "number format and asterisk unsupported", exception: NotImplementedError, message: /todo/ do
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
-    #end
   end
 
   it "respects a space padding request not as part of the width" do
@@ -598,7 +612,7 @@ describe "String#%" do
 
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  xit "raises an ArgumentError for huge precisions for %s" do
+  it "raises an ArgumentError for huge precisions for %s" do
     block = -> { "%.25555555555555555555555555555555555555s" % "hello world" }
     block.should raise_error(ArgumentError)
   end
@@ -633,13 +647,11 @@ describe "String#%" do
     ("%-9x" % 10).should == "a        "
     ("%05x" % 10).should == "0000a"
     ("%*x" % [10, 6]).should == "         6"
-    NATFIXME "precision unsupported", exception: SpecFailedException do
-      ("%.4x" % 20).should == "0014"
-    end
+    ("%.4x" % 20).should == "0014"
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
   end
 
-  xit "supports hex formats using %x for negative numbers" do
+  it "supports hex formats using %x for negative numbers" do
     ("%x" % -5).should == "..fb"
     ("%0x" % -5).should == "..fb"
     ("%.1x" % -5).should == "..fb"
@@ -664,7 +676,7 @@ describe "String#%" do
     ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
   end
 
-  xit "supports hex formats using %X for negative numbers" do
+  it "supports hex formats using %X for negative numbers" do
     ("%X" % -5).should == "..FB"
     ("%0X" % -5).should == "..FB"
     ("%.1X" % -5).should == "..FB"
@@ -688,7 +700,7 @@ describe "String#%" do
   %w(b d i o u x X).each do |f|
     format = "%" + f
 
-    xit "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
+    it "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
       (format % "10").should == (format % Kernel.Integer("10"))
       (format % "0x42").should == (format % Kernel.Integer("0x42"))
       (format % "0b1101").should == (format % Kernel.Integer("0b1101"))
@@ -722,13 +734,13 @@ describe "String#%" do
   %w(e E f g G).each do |f|
     format = "%" + f
 
-    xit "tries to convert the passed argument to an Array using #to_ary" do
+    it "tries to convert the passed argument to an Array using #to_ary" do
       obj = mock('3.14')
       obj.should_receive(:to_ary).and_return([3.14])
       (format % obj).should == (format % [3.14])
     end
 
-    xit "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument does not respond to #to_ary" do
+    it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument does not respond to #to_ary" do
       (format % 10).should == (format % 10.0)
       (format % "-10.4e-20").should == (format % -10.4e-20)
       (format % ".5").should == (format % 0.5)
@@ -754,7 +766,7 @@ describe "String#%" do
       (format % obj).should == (format % 5.0)
     end
 
-    xit "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
+    it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
       (format % "0xA").should == (format % 0xA)
     end
   end

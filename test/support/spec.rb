@@ -428,12 +428,15 @@ class Matcher
     @inverted ? neq(other) : eq(other)
   end
 
+  MIN_STRING_SIZE_TO_RUN_DIFF = 100
+  MIN_ARRAY_SIZE_TO_RUN_DIFF = 2
+
   def eq(other)
     if @subject != other
-      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size > 50 || other.size > 50)
+      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF)
         diff(@subject, other)
         raise SpecFailedException, 'two strings should match'
-      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size > 1 || other.size > 1)
+      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF)
         diff(
           "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
           "[\n" + other.map(&:inspect).join("\n") + "\n]",
