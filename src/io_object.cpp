@@ -1,10 +1,16 @@
 #include "natalie.hpp"
 
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
 #include <unistd.h>
 
 namespace Natalie {
+
+static inline bool is_writable(const int fd) {
+    const int flags = fcntl(fd, F_GETFL);
+    return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_RDONLY;
+}
 
 Value IoObject::initialize(Env *env, Value file_number) {
     file_number->assert_type(env, Object::Type::Integer, "Integer");
@@ -168,15 +174,9 @@ int IoObject::write(Env *env, Value obj) const {
     if (result == -1) {
         // write(2) assigns EBADF to errno if not writable, we want an IOError instead
         const auto old_errno = errno;
-        struct stat sb;
-        auto file_desc = fileno(env); // current file descriptor
-        if (fstat(file_desc, &sb) == 0) {
-            if (sb.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))
-                env->raise("IOError", "not opened for writing");
-        } else {
-            // errno is now changed by fstat, revert to the old value
-            errno = old_errno;
-        }
+        if (!is_writable(fileno(env)))
+            env->raise("IOError", "not opened for writing");
+        errno = old_errno; // errno may have been changed by fcntl, revert to the old value
         env->raise_errno();
     }
     return result;
