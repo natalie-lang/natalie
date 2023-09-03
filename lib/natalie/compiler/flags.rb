@@ -3,8 +3,7 @@ module Natalie
     module Flags
       RELEASE_FLAGS = %w[
         -pthread
-        -g
-        -O2
+        -O3
         -Wno-unused-value
       ].freeze
 
