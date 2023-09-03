@@ -466,13 +466,8 @@ module Kernel
       arguments[position - 1]
     end
 
-    # FIXME: this is wrong, shouldn't call to_ary I think
     def convert_int(i)
       if i.is_a?(Integer)
-        i
-      elsif i.respond_to?(:to_ary)
-        i = i.to_ary.first
-        raise ArgumentError unless i.is_a?(Integer)
         i
       else
         Integer(i)
