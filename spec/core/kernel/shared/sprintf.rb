@@ -743,13 +743,11 @@ describe :kernel_sprintf, shared: true do
         end
 
         it "uses radix-1 when displays negative argument as a two's complement" do
-          NATFIXME 'twos complement representation', exception: SpecFailedException do
-            @method.call("%010b", -10).should == "..11110110"
-            @method.call("%010B", -10).should == "..11110110"
-            @method.call("%010o", -87).should == "..77777651"
-            @method.call("%010x", -196).should == "..ffffff3c"
-            @method.call("%010X", -196).should == "..FFFFFF3C"
-          end
+          @method.call("%010b", -10).should == "..11110110"
+          @method.call("%010B", -10).should == "..11110110"
+          @method.call("%010o", -87).should == "..77777651"
+          @method.call("%010x", -196).should == "..ffffff3c"
+          @method.call("%010X", -196).should == "..FFFFFF3C"
         end
       end
     end

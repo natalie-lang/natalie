@@ -202,7 +202,7 @@ module Kernel
     end
 
     def pad_value(token, val)
-      pad_char = token.flags.include?(:zero_padded) ? '0' : ' '
+      pad_char = token.flags.include?(:zero) ? '0' : ' '
 
       while token.width && val.size < token.width
         val = pad_char + val
@@ -313,7 +313,13 @@ module Kernel
           value = i.abs.to_s(base)
         else
           dotdot_sign = '..'
-          width = (token.precision.to_i - 2) * bits_per_char
+          width = if token.precision
+                    (token.precision.to_i - 2) * bits_per_char
+                  elsif token.width && token.flags.include?(:zero)
+                    (token.width.to_i - 2) * bits_per_char
+                  else
+                    0
+                  end
           value = twos_complement(arg, base, [width, 0].max)
         end
       else
@@ -355,16 +361,16 @@ module Kernel
       prefix_size = prefix&.size || 0
       dotdot_sign_size = dotdot_sign&.size || 0
 
-      pad_char = token.flags.include?(:zero_padded) && !width.negative? ? '0' : ' '
+      pad_char = token.flags.include?(:zero) && !width.negative? ? '0' : ' '
       needed = width.abs - sign_size - prefix_size - dotdot_sign_size - value.size
       padding = pad_char * [needed, 0].max
 
       if width.negative?
-        "#{sign}#{prefix}#{value}#{padding}"
+        "#{sign}#{prefix}#{dotdot_sign}#{value}#{padding}"
       elsif pad_char == '0'
-        "#{sign}#{prefix}#{padding}#{value}"
+        "#{sign}#{prefix}#{padding}#{dotdot_sign}#{value}"
       else
-        "#{padding}#{prefix}#{sign}#{value}"
+        "#{padding}#{prefix}#{sign}#{dotdot_sign}#{value}"
       end
     end
 
@@ -591,7 +597,7 @@ module Kernel
             alternate_format: '#',
             space: ' ',
             plus: '+',
-            zero_padded: '0',
+            zero: '0',
           }.select { |k| flags.include?(k) }.values.join
           "%#{flag_chars}#{width}.#{precision}#{datum}"
         end
@@ -676,7 +682,7 @@ module Kernel
                     when '+'
                       :plus
                     when '0'
-                      :zero_padded
+                      :zero
                     else
                       raise ArgumentError, "unknown flag: #{char.inspect}"
                     end
