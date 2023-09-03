@@ -180,8 +180,6 @@ module Kernel
     def float_from_arg(arg)
       f = if arg.is_a?(Float)
             arg
-          elsif arg.respond_to?(:to_ary)
-            arg.to_ary.first
           else
             Float(arg)
           end
