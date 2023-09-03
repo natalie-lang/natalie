@@ -484,107 +484,107 @@ module Kernel
       attr_reader :format_string, :index, :chars
 
       STATES_AND_TRANSITIONS = {
+        field: {
+          on_alpha: :field_end,
+          on_asterisk: :width_from_arg,
+          on_left_curly_brace: :named_argument_curly,
+          on_less_than: :named_argument_angled,
+          on_minus: :width_minus,
+          on_newline: :literal_percent,
+          on_null_byte: :literal_percent,
+          on_number: :width_or_positional_arg,
+          on_percent: :literal,
+          on_period: :precision_period,
+          on_plus: :flag,
+          on_pound: :flag,
+          on_space: :flag,
+          on_zero: :flag,
+        },
+        field_end: {
+          default: :literal,
+          on_percent: :field,
+        },
+        flag: {
+          return: :field,
+        },
         literal: {
           default: :literal,
-          on_percent: :field_pending,
+          on_percent: :field,
         },
         literal_percent: {
           default: :literal,
         },
-        field_flag: {
-          return: :field_pending,
+        named_argument_angled: {
+          on_greater_than: :field,
+          default: :named_argument_angled,
         },
-        field_named_argument_angled: {
-          on_greater_than: :field_pending,
-          default: :field_named_argument_angled,
+        named_argument_curly: {
+          on_right_curly_brace: :named_argument_curly_end,
+          default: :named_argument_curly,
         },
-        field_named_argument_curly: {
-          on_right_curly_brace: :field_named_argument_curly_end,
-          default: :field_named_argument_curly,
-        },
-        field_named_argument_curly_end: {
+        named_argument_curly_end: {
           default: :literal,
-          on_percent: :field_pending,
-        },
-        field_pending: {
-          on_alpha: :field_end,
-          on_asterisk: :field_width_from_arg,
-          on_left_curly_brace: :field_named_argument_curly,
-          on_less_than: :field_named_argument_angled,
-          on_minus: :field_width_minus,
-          on_newline: :literal_percent,
-          on_null_byte: :literal_percent,
-          on_number: :field_width_or_positional_arg,
-          on_percent: :literal,
-          on_period: :field_precision_period,
-          on_plus: :field_flag,
-          on_pound: :field_flag,
-          on_space: :field_flag,
-          on_zero: :field_flag,
-        },
-        field_end: {
-          default: :literal,
-          on_percent: :field_pending,
-        },
-        field_precision: {
-          on_alpha: :field_end,
-          on_left_curly_brace: :field_named_argument_curly,
-          on_less_than: :field_named_argument_angled,
-          on_number: :field_precision,
-          on_zero: :field_precision,
-        },
-        field_precision_from_arg: {
-          on_number: :field_precision_from_positional_arg,
-          return: :field_pending,
-        },
-        field_precision_period: {
-          on_number: :field_precision,
-          on_zero: :field_precision,
-          on_asterisk: :field_precision_from_arg,
-        },
-        field_precision_from_positional_arg: {
-          on_dollar: :field_precision_from_positional_arg_end,
-          on_number: :field_precision_from_positional_arg,
-          on_zero: :field_precision_from_positional_arg,
-          return: :field_pending,
-        },
-        field_precision_from_positional_arg_end: {
-          return: :field_pending,
-        },
-        field_width_or_positional_arg: {
-          on_dollar: :positional_argument_end,
-          on_number: :field_width_or_positional_arg,
-          on_zero: :field_width_or_positional_arg,
-          return: :field_pending,
-        },
-        field_width_minus: {
-          on_number: :field_width_or_positional_arg,
-          on_zero: :field_width_or_positional_arg,
-          on_asterisk: :field_width_from_arg,
-        },
-        field_width_from_arg: {
-          on_number: :field_width_from_positional_arg,
-          return: :field_pending,
-        },
-        field_width_from_positional_arg: {
-          on_dollar: :field_width_from_positional_arg_end,
-          on_number: :field_width_from_positional_arg,
-          on_zero: :field_width_from_positional_arg,
-          return: :field_pending,
-        },
-        field_width_from_positional_arg_end: {
-          return: :field_pending,
+          on_percent: :field,
         },
         positional_argument_end: {
-          return: :field_pending,
-        }
+          return: :field,
+        },
+        precision: {
+          on_alpha: :field_end,
+          on_left_curly_brace: :named_argument_curly,
+          on_less_than: :named_argument_angled,
+          on_number: :precision,
+          on_zero: :precision,
+        },
+        precision_from_arg: {
+          on_number: :precision_from_positional_arg,
+          return: :field,
+        },
+        precision_from_positional_arg: {
+          on_dollar: :precision_from_positional_arg_end,
+          on_number: :precision_from_positional_arg,
+          on_zero: :precision_from_positional_arg,
+          return: :field,
+        },
+        precision_from_positional_arg_end: {
+          return: :field,
+        },
+        precision_period: {
+          on_number: :precision,
+          on_zero: :precision,
+          on_asterisk: :precision_from_arg,
+        },
+        width_from_arg: {
+          on_number: :width_from_positional_arg,
+          return: :field,
+        },
+        width_from_positional_arg: {
+          on_dollar: :width_from_positional_arg_end,
+          on_number: :width_from_positional_arg,
+          on_zero: :width_from_positional_arg,
+          return: :field,
+        },
+        width_from_positional_arg_end: {
+          return: :field,
+        },
+        width_minus: {
+          on_number: :width_or_positional_arg,
+          on_zero: :width_or_positional_arg,
+          on_asterisk: :width_from_arg,
+        },
+        width_or_positional_arg: {
+          on_dollar: :positional_argument_end,
+          on_number: :width_or_positional_arg,
+          on_zero: :width_or_positional_arg,
+          return: :field,
+        },
       }.freeze
 
       COMPLETE_STATES = %i[
         field_end
         literal
         literal_percent
-        field_named_argument_curly_end
+        named_argument_curly_end
       ].freeze
 
       class Token
@@ -685,9 +685,9 @@ module Kernel
             tokens << Token.new(type: :literal, datum: char)
           when :literal_percent
             tokens << Token.new(type: :literal, datum: "%#{char}")
-          when :field_pending, :field_precision_period
+          when :field, :precision_period
             :noop
-          when :field_flag
+          when :flag
             flags << case char
                     when '#'
                       :alternate_format
@@ -700,35 +700,35 @@ module Kernel
                     else
                       raise ArgumentError, "unknown flag: #{char.inspect}"
                     end
-          when :field_width_or_positional_arg
+          when :width_or_positional_arg
             @width_or_positional_arg = (@width_or_positional_arg || 0) * 10 + char.to_i
-          when :field_width_minus
+          when :width_minus
             flags << :width_negative
-          when :field_width_from_arg
+          when :width_from_arg
             raise ArgumentError, 'width given twice' if @width_or_positional_arg || flags.include?(:width_given_as_arg)
             flags << :width_given_as_arg
-          when :field_width_from_positional_arg
+          when :width_from_positional_arg
             @width_arg_position = (@width_arg_position || 0) * 10 + char.to_i
-          when :field_width_from_positional_arg_end
+          when :width_from_positional_arg_end
             :noop
-          when :field_precision
+          when :precision
             raise ArgumentError, 'precision given twice' if flags.include?(:precision_given_as_arg)
             @precision = (@precision || 0) * 10 + char.to_i
             raise ArgumentError, 'precision too big' if precision > 2**64
-          when :field_precision_from_arg
+          when :precision_from_arg
             raise ArgumentError, 'precision given twice' if precision || flags.include?(:precision_given_as_arg)
             flags << :precision_given_as_arg
-          when :field_precision_from_positional_arg
+          when :precision_from_positional_arg
             @precision_arg_position = (@precision_arg_position || 0) * 10 + char.to_i
-          when :field_precision_from_positional_arg_end
+          when :precision_from_positional_arg_end
             :noop
-          when :field_named_argument_angled, :field_named_argument_curly
+          when :named_argument_angled, :named_argument_curly
             if @value_arg_name
               @value_arg_name << char
             else
               @value_arg_name = ''
             end
-          when :field_named_argument_curly_end
+          when :named_argument_curly_end
             tokens << build_token(nil)
             reset_token_args
           when :field_end
