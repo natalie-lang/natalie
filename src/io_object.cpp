@@ -18,6 +18,24 @@ static inline bool is_writable(const int fd) {
     return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_RDONLY;
 }
 
+static void throw_unless_readable(Env *env, const IoObject *const self) {
+    // read(2) assigns EBADF to errno if not readable, we want an IOError instead
+    const auto old_errno = errno;
+    if (!is_readable(self->fileno(env)))
+        env->raise("IOError", "not opened for reading");
+    errno = old_errno; // errno may have been changed by fcntl, revert to the old value
+    env->raise_errno();
+}
+
+static void throw_unless_writable(Env *env, const IoObject *const self) {
+    // write(2) assigns EBADF to errno if not writable, we want an IOError instead
+    const auto old_errno = errno;
+    if (!is_writable(self->fileno(env)))
+        env->raise("IOError", "not opened for writing");
+    errno = old_errno; // errno may have been changed by fcntl, revert to the old value
+    env->raise_errno();
+}
+
 Value IoObject::initialize(Env *env, Value file_number) {
     file_number->assert_type(env, Object::Type::Integer, "Integer");
     nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
@@ -118,7 +136,7 @@ Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
     unsigned char buffer;
     int result = ::read(m_fileno, &buffer, 1);
-    if (result < 0) env->raise_errno();
+    if (result == -1) throw_unless_readable(env, this);
     if (result == 0) return NilObject::the(); // eof case
     return Value::integer(buffer);
 }
@@ -204,14 +222,7 @@ int IoObject::write(Env *env, Value obj) const {
     obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
     int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
-    if (result == -1) {
-        // write(2) assigns EBADF to errno if not writable, we want an IOError instead
-        const auto old_errno = errno;
-        if (!is_writable(fileno(env)))
-            env->raise("IOError", "not opened for writing");
-        errno = old_errno; // errno may have been changed by fcntl, revert to the old value
-        env->raise_errno();
-    }
+    if (result == -1) throw_unless_writable(env, this);
     return result;
 }
 
