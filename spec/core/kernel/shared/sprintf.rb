@@ -926,17 +926,15 @@ describe :kernel_sprintf, shared: true do
 
     context "string formats" do
       it "determines the maximum number of characters to be copied from the string" do
-        NATFIXME 'precision for %p', exception: SpecFailedException do
-          @method.call("%.1p", [1]).should == "["
-          @method.call("%.2p", [1]).should == "[1"
-          @method.call("%.10p", [1]).should == "[1]"
-          @method.call("%.0p", [1]).should == ""
+        @method.call("%.1p", [1]).should == "["
+        @method.call("%.2p", [1]).should == "[1"
+        @method.call("%.10p", [1]).should == "[1]"
+        @method.call("%.0p", [1]).should == ""
 
-          @method.call("%.1s", "abc").should == "a"
-          @method.call("%.2s", "abc").should == "ab"
-          @method.call("%.10s", "abc").should == "abc"
-          @method.call("%.0s", "abc").should == ""
-        end
+        @method.call("%.1s", "abc").should == "a"
+        @method.call("%.2s", "abc").should == "ab"
+        @method.call("%.10s", "abc").should == "abc"
+        @method.call("%.0s", "abc").should == ""
       end
     end
   end

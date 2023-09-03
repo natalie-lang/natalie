@@ -161,7 +161,7 @@ module Kernel
             when 'o'
               format_octal(token, val)
             when 'p'
-              val.inspect
+              format_inspect(token, val)
             when 's'
               format_str(token, val)
             when 'x'
@@ -351,6 +351,16 @@ module Kernel
         prefix: prefix,
         dotdot_sign: dotdot_sign
       )
+    end
+
+    def format_inspect(token, val)
+      str = val.inspect
+
+      if token.precision && token.precision < str.size
+        str = str[0...token.precision]
+      end
+
+      str
     end
 
     def build_numeric_value_with_padding(token:, sign:, value:, prefix: nil, dotdot_sign: nil)
