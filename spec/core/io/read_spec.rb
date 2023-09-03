@@ -25,7 +25,9 @@ describe "IO.read" do
 
   # https://bugs.ruby-lang.org/issues/19354
   it "accepts options as keyword arguments" do
-    IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1)' do
+      IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
+    end
 
     -> {
       IO.read(@fname, 3, 0, {mode: "r+"})
@@ -37,80 +39,114 @@ describe "IO.read" do
   end
 
   it "accepts a length, and empty options Hash" do
-    IO.read(@fname, 3, **{}).should == @contents[0, 3]
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, 3, **{}).should == @contents[0, 3]
+    end
   end
 
   it "accepts a length, offset, and empty options Hash" do
-    IO.read(@fname, 3, 0, **{}).should == @contents[0, 3]
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+      IO.read(@fname, 3, 0, **{}).should == @contents[0, 3]
+    end
   end
 
   it "raises an IOError if the options Hash specifies write mode" do
-    -> { IO.read(@fname, 3, 0, mode: "w") }.should raise_error(IOError)
+    NATFIXME 'Keyword arguments', exception: SpecFailedException do
+      -> { IO.read(@fname, 3, 0, mode: "w") }.should raise_error(IOError)
+    end
   end
 
   it "raises an IOError if the options Hash specifies append only mode" do
-    -> { IO.read(@fname, mode: "a") }.should raise_error(IOError)
+    NATFIXME 'Keyword arguments', exception: SpecFailedException do
+      -> { IO.read(@fname, mode: "a") }.should raise_error(IOError)
+    end
   end
 
   it "reads the file if the options Hash includes read mode" do
-    IO.read(@fname, mode: "r").should == @contents
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, mode: "r").should == @contents
+    end
   end
 
   it "reads the file if the options Hash includes read/write mode" do
-    IO.read(@fname, mode: "r+").should == @contents
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, mode: "r+").should == @contents
+    end
   end
 
   it "reads the file if the options Hash includes read/write append mode" do
-    IO.read(@fname, mode: "a+").should == @contents
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, mode: "a+").should == @contents
+    end
   end
 
   platform_is_not :windows do
     ruby_version_is ""..."3.3" do
       it "uses an :open_args option" do
-        string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
-        string.encoding.should == Encoding::US_ASCII
+        NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1)' do
+          string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
+          string.encoding.should == Encoding::US_ASCII
 
-        string = IO.read(@fname, nil, 0, open_args: ["r", nil, {}])
-        string.encoding.should == Encoding::UTF_8
+          string = IO.read(@fname, nil, 0, open_args: ["r", nil, {}])
+          string.encoding.should == Encoding::UTF_8
+        end
       end
     end
   end
 
   it "disregards other options if :open_args is given" do
-    string = IO.read(@fname,mode: "w", encoding: Encoding::UTF_32LE, open_args: ["r", encoding: Encoding::UTF_8])
-    string.encoding.should == Encoding::UTF_8
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      string = IO.read(@fname,mode: "w", encoding: Encoding::UTF_32LE, open_args: ["r", encoding: Encoding::UTF_8])
+      string.encoding.should == Encoding::UTF_8
+    end
   end
 
   it "doesn't require mode to be specified in :open_args" do
-    string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII}])
-    string.encoding.should == Encoding::US_ASCII
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1)' do
+      string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII}])
+      string.encoding.should == Encoding::US_ASCII
+    end
   end
 
   it "doesn't require mode to be specified in :open_args even if flags option passed" do
-    string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII, flags: File::CREAT}])
-    string.encoding.should == Encoding::US_ASCII
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1)' do
+      string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII, flags: File::CREAT}])
+      string.encoding.should == Encoding::US_ASCII
+    end
   end
 
   it "treats second nil argument as no length limit" do
-    IO.read(@fname, nil).should == @contents
-    IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, nil).should == @contents
+    end
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+      IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
+    end
   end
 
   it "treats third nil argument as 0" do
-    IO.read(@fname, nil, nil).should == @contents
-    IO.read(@fname, 5, nil).should == IO.read(@fname, 5, 0)
+    NATFIXME 'Offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+      IO.read(@fname, nil, nil).should == @contents
+      IO.read(@fname, 5, nil).should == IO.read(@fname, 5, 0)
+    end
   end
 
   it "reads the contents of a file up to a certain size when specified" do
-    IO.read(@fname, 5).should == @contents.slice(0..4)
+    NATFIXME 'Length argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, 5).should == @contents.slice(0..4)
+    end
   end
 
   it "reads the contents of a file from an offset of a specific size when specified" do
-    IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
+    NATFIXME 'Length and offset arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+      IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
+    end
   end
 
   it "returns nil at end-of-file when length is passed" do
-    IO.read(@fname, 1, 10).should == nil
+    NATFIXME 'Length and offset arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1)' do
+      IO.read(@fname, 1, 10).should == nil
+    end
   end
 
   it "raises an Errno::ENOENT when the requested file does not exist" do
@@ -128,8 +164,10 @@ describe "IO.read" do
 
   ruby_version_is ''...'3.3' do
     it "raises an Errno::EINVAL when not passed a valid offset" do
-      -> { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
-      -> { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
+      NATFIXME 'Length and offset arguments', exception: SpecFailedException do
+        -> { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
+        -> { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
+      end
     end
   end
 
@@ -141,13 +179,17 @@ describe "IO.read" do
   end
 
   it "uses the external encoding specified via the :external_encoding option" do
-    str = IO.read(@fname, external_encoding: Encoding::ISO_8859_1)
-    str.encoding.should == Encoding::ISO_8859_1
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      str = IO.read(@fname, external_encoding: Encoding::ISO_8859_1)
+      str.encoding.should == Encoding::ISO_8859_1
+    end
   end
 
   it "uses the external encoding specified via the :encoding option" do
-    str = IO.read(@fname, encoding: Encoding::ISO_8859_1)
-    str.encoding.should == Encoding::ISO_8859_1
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      str = IO.read(@fname, encoding: Encoding::ISO_8859_1)
+      str.encoding.should == Encoding::ISO_8859_1
+    end
   end
 
   platform_is :windows do
@@ -165,17 +207,21 @@ describe "IO.read from a pipe" do
     platform_is :windows do
       cmd = "|cmd.exe /C echo hello"
     end
-    IO.read(cmd).should == "hello\n"
+    NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
+      IO.read(cmd).should == "hello\n"
+    end
   end
 
   platform_is_not :windows do
     it "opens a pipe to a fork if the rest is -" do
-      str = IO.read("|-")
-      if str # parent
-        str.should == "hello from child\n"
-      else #child
-        puts "hello from child"
-        exit!
+      NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
+        str = IO.read("|-")
+        if str # parent
+          str.should == "hello from child\n"
+        else #child
+          puts "hello from child"
+          exit!
+        end
       end
     end
   end
@@ -185,14 +231,18 @@ describe "IO.read from a pipe" do
     platform_is :windows do
       cmd = "|cmd.exe /C echo hello"
     end
-    IO.read(cmd, 1).should == "h"
+    NATFIXME 'Implement pipe in IO.read', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(cmd, 1).should == "h"
+    end
   end
 
   platform_is_not :windows do
     it "raises Errno::ESPIPE if passed an offset" do
-      -> {
-        IO.read("|sh -c 'echo hello'", 1, 1)
-      }.should raise_error(Errno::ESPIPE)
+      NATFIXME 'Implement pipe in IO.read', exception: SpecFailedException do
+        -> {
+          IO.read("|sh -c 'echo hello'", 1, 1)
+        }.should raise_error(Errno::ESPIPE)
+      end
     end
   end
 
@@ -220,7 +270,9 @@ describe "IO.read on an empty file" do
   end
 
   it "returns nil when length is passed" do
-    IO.read(@fname, 1).should == nil
+    NATFIXME 'Length argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      IO.read(@fname, 1).should == nil
+    end
   end
 
   it "returns an empty string when no length is passed" do
@@ -255,16 +307,22 @@ describe "IO#read" do
 
     buf = 'non-empty string'
 
-    @io.read(10, buf).should == nil
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read(10, buf).should == nil
 
-    buf.should == ''
+      buf.should == ''
+    end
   end
 
   it "consumes zero bytes when reading zero bytes" do
-    @io.read(0).should == ''
+    NATFIXME 'Empty string when reading zero bytes', exception: SpecFailedException do
+      @io.read(0).should == ''
+    end
     @io.pos.should == 0
 
-    @io.getc.chr.should == '1'
+    NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
+      @io.getc.chr.should == '1'
+    end
   end
 
   it "is at end-of-file when everything has been read" do
@@ -278,57 +336,71 @@ describe "IO#read" do
 
   it "places the specified number of bytes in the buffer" do
     buf = ""
-    @io.read 5, buf
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read 5, buf
 
-    buf.should == "12345"
+      buf.should == "12345"
+    end
   end
 
   it "expands the buffer when too small" do
     buf = "ABCDE"
-    @io.read nil, buf
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read nil, buf
 
-    buf.should == @contents
+      buf.should == @contents
+    end
   end
 
   it "overwrites the buffer" do
     buf = "ABCDEFGHIJ"
-    @io.read nil, buf
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read nil, buf
 
-    buf.should == @contents
+      buf.should == @contents
+    end
   end
 
   it "truncates the buffer when too big" do
     buf = "ABCDEFGHIJKLMNO"
-    @io.read nil, buf
-    buf.should == @contents
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read nil, buf
+      buf.should == @contents
 
-    @io.rewind
+      @io.rewind
 
-    buf = "ABCDEFGHIJKLMNO"
-    @io.read 5, buf
-    buf.should == @contents[0..4]
+      buf = "ABCDEFGHIJKLMNO"
+      @io.read 5, buf
+      buf.should == @contents[0..4]
+    end
   end
 
   it "returns the given buffer" do
     buf = ""
 
-    @io.read(nil, buf).should equal buf
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read(nil, buf).should equal buf
+    end
   end
 
   it "returns the given buffer when there is nothing to read" do
     buf = ""
 
     @io.read
-    @io.read(nil, buf).should equal buf
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      @io.read(nil, buf).should equal buf
+    end
   end
 
   it "coerces the second argument to string and uses it as a buffer" do
     buf = "ABCDE"
     obj = mock("buff")
-    obj.should_receive(:to_str).any_number_of_times.and_return(buf)
+    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+      obj.should_receive(:to_str).any_number_of_times.and_return(buf)
 
-    @io.read(15, obj).should_not equal obj
-    buf.should == @contents
+      @io.read(15, obj).should_not equal obj
+      buf.should == @contents
+    end
   end
 
   it "returns an empty string at end-of-file" do
@@ -364,26 +436,29 @@ describe "IO#read" do
     -> { IOSpecs.closed_io.read }.should raise_error(IOError)
   end
 
-  it "raises ArgumentError when length is less than 0" do
+  # NATFIXME: double free or corruption
+  xit "raises ArgumentError when length is less than 0" do
     -> { @io.read(-1) }.should raise_error(ArgumentError)
   end
 
   platform_is_not :windows do
     it "raises IOError when stream is closed by another thread" do
-      r, w = IO.pipe
-      t = Thread.new do
-        begin
-          r.read(1)
-        rescue => e
-          e
+      NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
+        r, w = IO.pipe
+        t = Thread.new do
+          begin
+            r.read(1)
+          rescue => e
+            e
+          end
         end
-      end
 
-      Thread.pass until t.stop?
-      r.close
-      t.join
-      t.value.should be_kind_of(IOError)
-      w.close
+        Thread.pass until t.stop?
+        r.close
+        t.join
+        t.value.should be_kind_of(IOError)
+        w.close
+      end
     end
   end
 end
@@ -443,9 +518,11 @@ describe "IO#read in binary mode" do
 
     result = File.open(@name, "rb") { |f| f.read }.chomp
 
-    result.encoding.should == Encoding::BINARY
-    xE2 = [226].pack('C*')
-    result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
+    NATFIXME 'Binary encoding (possible error in open)', exception: SpecFailedException do
+      result.encoding.should == Encoding::BINARY
+      xE2 = [226].pack('C*')
+      result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
+    end
   end
 end
 
@@ -475,58 +552,71 @@ end
 describe "IO.read with BOM" do
   it "reads a file without a bom" do
     name = fixture __FILE__, "no_bom_UTF-8.txt"
-    result = File.read(name, mode: "rb:BOM|utf-8")
-    result.force_encoding("binary").should == "UTF-8\n"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-8")
+      result.force_encoding("binary").should == "UTF-8\n"
+    end
   end
 
   it "reads a file with a utf-8 bom" do
     name = fixture __FILE__, "bom_UTF-8.txt"
-    result = File.read(name, mode: "rb:BOM|utf-16le")
-    result.force_encoding("binary").should == "UTF-8\n"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-16le")
+      result.force_encoding("binary").should == "UTF-8\n"
+    end
   end
 
   it "reads a file with a utf-16le bom" do
     name = fixture __FILE__, "bom_UTF-16LE.txt"
-    result = File.read(name, mode: "rb:BOM|utf-8")
-    result.force_encoding("binary").should == "U\x00T\x00F\x00-\x001\x006\x00L\x00E\x00\n\x00"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-8")
+      result.force_encoding("binary").should == "U\x00T\x00F\x00-\x001\x006\x00L\x00E\x00\n\x00"
+    end
   end
 
   it "reads a file with a utf-16be bom" do
     name = fixture __FILE__, "bom_UTF-16BE.txt"
-    result = File.read(name, mode: "rb:BOM|utf-8")
-    result.force_encoding("binary").should == "\x00U\x00T\x00F\x00-\x001\x006\x00B\x00E\x00\n"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-8")
+      result.force_encoding("binary").should == "\x00U\x00T\x00F\x00-\x001\x006\x00B\x00E\x00\n"
+    end
   end
 
   it "reads a file with a utf-32le bom" do
     name = fixture __FILE__, "bom_UTF-32LE.txt"
-    result = File.read(name, mode: "rb:BOM|utf-8")
-    result.force_encoding("binary").should == "U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00L\x00\x00\x00E\x00\x00\x00\n\x00\x00\x00"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-8")
+      result.force_encoding("binary").should == "U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00L\x00\x00\x00E\x00\x00\x00\n\x00\x00\x00"
+    end
   end
 
   it "reads a file with a utf-32be bom" do
     name = fixture __FILE__, "bom_UTF-32BE.txt"
-    result = File.read(name, mode: "rb:BOM|utf-8")
-    result.force_encoding("binary").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      result = File.read(name, mode: "rb:BOM|utf-8")
+      result.force_encoding("binary").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
+    end
   end
 end
 
+# NATFIXME: Various errors depending on callers. Unable to wrap in NATFIXME blocks
 describe :io_read_internal_encoding, shared: true do
-  it "returns a transcoded String" do
+  xit "returns a transcoded String" do
     @io.read.should == "ありがとう\n"
   end
 
-  it "sets the String encoding to the internal encoding" do
+  xit "sets the String encoding to the internal encoding" do
     @io.read.encoding.should equal(Encoding::UTF_8)
   end
 
   describe "when passed nil for limit" do
-    it "sets the buffer to a transcoded String" do
+    xit "sets the buffer to a transcoded String" do
       result = @io.read(nil, buf = "")
       buf.should equal(result)
       buf.should == "ありがとう\n"
     end
 
-    it "sets the buffer's encoding to the internal encoding" do
+    xit "sets the buffer's encoding to the internal encoding" do
       buf = "".force_encoding Encoding::ISO_8859_1
       @io.read(nil, buf)
       buf.encoding.should equal(Encoding::UTF_8)
@@ -534,23 +624,24 @@ describe :io_read_internal_encoding, shared: true do
   end
 end
 
+# NATFIXME: Various errors depending on callers. Unable to wrap in NATFIXME blocks
 describe :io_read_size_internal_encoding, shared: true do
-  it "reads bytes when passed a size" do
+  xit "reads bytes when passed a size" do
     @io.read(2).should == [164, 162].pack('C*').force_encoding(Encoding::BINARY)
   end
 
-  it "returns a String in BINARY when passed a size" do
+  xit "returns a String in BINARY when passed a size" do
     @io.read(4).encoding.should equal(Encoding::BINARY)
   end
 
-  it "does not change the buffer's encoding when passed a limit" do
+  xit "does not change the buffer's encoding when passed a limit" do
     buf = "".force_encoding Encoding::ISO_8859_1
     @io.read(4, buf)
     buf.should == [164, 162, 164, 234].pack('C*').force_encoding(Encoding::ISO_8859_1)
     buf.encoding.should equal(Encoding::ISO_8859_1)
   end
 
-  it "truncates the buffer but does not change the buffer's encoding when no data remains" do
+  xit "truncates the buffer but does not change the buffer's encoding when no data remains" do
     buf = "abc".force_encoding Encoding::ISO_8859_1
     @io.read
 
@@ -588,12 +679,15 @@ describe "IO#read" do
         @io = IOSpecs.io_fixture "read_euc_jp.txt", "r:euc-jp"
       end
 
-      it "does not transcode the String" do
+      # NATFIXME: Multibyte in EUC_JP
+      xit "does not transcode the String" do
         @io.read.should == ("ありがとう\n").encode(Encoding::EUC_JP)
       end
 
       it "sets the String encoding to the external encoding" do
-        @io.read.encoding.should equal(Encoding::EUC_JP)
+        NATFIXME 'sets the String encoding to the external encoding', exception: SpecFailedException do
+          @io.read.encoding.should equal(Encoding::EUC_JP)
+        end
       end
 
       it_behaves_like :io_read_size_internal_encoding, nil
