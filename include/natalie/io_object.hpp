@@ -51,6 +51,7 @@ public:
     Value append(Env *, Value);
     Value close(Env *);
     Value each_byte(Env *, Block *);
+    Value fcntl(Env *, Value, Value = nullptr);
     int fdatasync(Env *);
     int fileno() const;
     int fileno(Env *) const;
