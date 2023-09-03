@@ -3,9 +3,15 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <math.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 namespace Natalie {
+
+static inline bool is_readable(const int fd) {
+    const int flags = fcntl(fd, F_GETFL);
+    return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_WRONLY;
+}
 
 static inline bool is_writable(const int fd) {
     const int flags = fcntl(fd, F_GETFL);
@@ -115,6 +121,16 @@ Value IoObject::getbyte(Env *env) {
     if (result < 0) env->raise_errno();
     if (result == 0) return NilObject::the(); // eof case
     return Value::integer(buffer);
+}
+
+bool IoObject::is_eof(Env *env) {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    size_t buffer = 0;
+    if (::ioctl(m_fileno, FIONREAD, &buffer) < 0)
+        env->raise_errno();
+    return buffer == 0;
 }
 
 bool IoObject::isatty(Env *env) const {

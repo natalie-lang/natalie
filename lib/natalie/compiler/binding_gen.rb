@@ -890,6 +890,7 @@ gen.binding('IO', 'advise', 'IoObject', 'advise', argc: 1..3, pass_env: true, pa
 gen.binding('IO', 'close', 'IoObject', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'closed?', 'IoObject', 'is_closed', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO', 'each_byte', 'IoObject', 'each_byte', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('IO', 'eof?', 'IoObject', 'is_eof', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'fcntl', 'IoObject', 'fcntl', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'fdatasync', 'IoObject', 'fdatasync', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_block: false, return_type: :int)
