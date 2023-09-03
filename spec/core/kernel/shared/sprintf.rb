@@ -240,53 +240,41 @@ describe :kernel_sprintf, shared: true do
 
     describe "a" do
       it "converts floating point argument as [-]0xh.hhhhp[+-]dd" do
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%a", 196).should == "0x1.88p+7"
-          @method.call("%a", -196).should == "-0x1.88p+7"
-          @method.call("%a", 196.1).should == "0x1.8833333333333p+7"
-          @method.call("%a", 0.01).should == "0x1.47ae147ae147bp-7"
-          @method.call("%a", -0.01).should == "-0x1.47ae147ae147bp-7"
-        end
+        @method.call("%a", 196).should == "0x1.88p+7"
+        @method.call("%a", -196).should == "-0x1.88p+7"
+        @method.call("%a", 196.1).should == "0x1.8833333333333p+7"
+        @method.call("%a", 0.01).should == "0x1.47ae147ae147bp-7"
+        @method.call("%a", -0.01).should == "-0x1.47ae147ae147bp-7"
       end
 
       it "displays Float::INFINITY as Inf" do
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%a", Float::INFINITY).should == "Inf"
-          @method.call("%a", -Float::INFINITY).should == "-Inf"
-        end
+        @method.call("%a", Float::INFINITY).should == "Inf"
+        @method.call("%a", -Float::INFINITY).should == "-Inf"
       end
 
       it "displays Float::NAN as NaN" do
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%a", Float::NAN).should == "NaN"
-          @method.call("%a", -Float::NAN).should == "NaN"
-        end
+        @method.call("%a", Float::NAN).should == "NaN"
+        @method.call("%a", -Float::NAN).should == "NaN"
       end
     end
 
     describe "A" do
       it "converts floating point argument as [-]0xh.hhhhp[+-]dd and use uppercase X and P" do
-        NATFIXME 'implement %A', exception: ArgumentError do
-          @method.call("%A", 196).should == "0X1.88P+7"
-          @method.call("%A", -196).should == "-0X1.88P+7"
-          @method.call("%A", 196.1).should == "0X1.8833333333333P+7"
-          @method.call("%A", 0.01).should == "0X1.47AE147AE147BP-7"
-          @method.call("%A", -0.01).should == "-0X1.47AE147AE147BP-7"
-        end
+        @method.call("%A", 196).should == "0X1.88P+7"
+        @method.call("%A", -196).should == "-0X1.88P+7"
+        @method.call("%A", 196.1).should == "0X1.8833333333333P+7"
+        @method.call("%A", 0.01).should == "0X1.47AE147AE147BP-7"
+        @method.call("%A", -0.01).should == "-0X1.47AE147AE147BP-7"
       end
 
       it "displays Float::INFINITY as Inf" do
-        NATFIXME 'implement %A', exception: ArgumentError do
-          @method.call("%A", Float::INFINITY).should == "Inf"
-          @method.call("%A", -Float::INFINITY).should == "-Inf"
-        end
+        @method.call("%A", Float::INFINITY).should == "Inf"
+        @method.call("%A", -Float::INFINITY).should == "-Inf"
       end
 
       it "displays Float::NAN as NaN" do
-        NATFIXME 'implement %A', exception: ArgumentError do
-          @method.call("%A", Float::NAN).should == "NaN"
-          @method.call("%A", -Float::NAN).should == "NaN"
-        end
+        @method.call("%A", Float::NAN).should == "NaN"
+        @method.call("%A", -Float::NAN).should == "NaN"
       end
     end
   end
@@ -490,10 +478,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("% f", 10.952).should == " 10.952000"
           @method.call("% g", 12.1234).should == " 12.1234"
           @method.call("% G", 12.1234).should == " 12.1234"
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("% a", 196).should == " 0x1.88p+7"
-            @method.call("% A", 196).should == " 0X1.88P+7"
-          end
+          @method.call("% a", 196).should == " 0x1.88p+7"
+          @method.call("% A", 196).should == " 0X1.88P+7"
         end
 
         it "does not leave a space at the start of negative numbers" do
@@ -511,10 +497,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("% f", -10.952).should == "-10.952000"
           @method.call("% g", -12.1234).should == "-12.1234"
           @method.call("% G", -12.1234).should == "-12.1234"
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("% a", -196).should == "-0x1.88p+7"
-            @method.call("% A", -196).should == "-0X1.88P+7"
-          end
+          @method.call("% a", -196).should == "-0x1.88p+7"
+          @method.call("% A", -196).should == "-0X1.88P+7"
         end
 
         it "prevents converting negative argument to two's complement form" do
@@ -540,10 +524,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("%     f", 10.952).should == " 10.952000"
           @method.call("%     g", 12.1234).should == " 12.1234"
           @method.call("%     G", 12.1234).should == " 12.1234"
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("%     a", 196).should == " 0x1.88p+7"
-            @method.call("%     A", 196).should == " 0X1.88P+7"
-          end
+          @method.call("%     a", 196).should == " 0x1.88p+7"
+          @method.call("%     A", 196).should == " 0X1.88P+7"
         end
       end
     end
@@ -564,10 +546,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%2$f", 0, 10.952).should == "10.952000"
         @method.call("%2$g", 0, 12.1234).should == "12.1234"
         @method.call("%2$G", 0, 12.1234).should == "12.1234"
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%2$a", 0, 196).should == "0x1.88p+7"
-          @method.call("%2$A", 0, 196).should == "0X1.88P+7"
-        end
+        @method.call("%2$a", 0, 196).should == "0x1.88p+7"
+        @method.call("%2$A", 0, 196).should == "0X1.88P+7"
 
         @method.call("%2$c", 1, 97).should == "a"
         @method.call("%2$p", "a", []).should == "[]"
@@ -629,10 +609,8 @@ describe :kernel_sprintf, shared: true do
 
       context "applies to formats aAeEfgG" do
         it "forces a decimal point to be added, even if no digits follow" do
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("%#.0a", 16.25).should == "0x1.p+4"
-            @method.call("%#.0A", 16.25).should == "0X1.P+4"
-          end
+          @method.call("%#.0a", 16.25).should == "0x1.p+4"
+          @method.call("%#.0A", 16.25).should == "0X1.P+4"
 
           @method.call("%#.0e", 100).should == "1.e+02"
           @method.call("%#.0E", 100).should == "1.E+02"
@@ -674,10 +652,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("%+f", 10.952).should == "+10.952000"
           @method.call("%+g", 12.1234).should == "+12.1234"
           @method.call("%+G", 12.1234).should == "+12.1234"
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("%+a", 196).should == "+0x1.88p+7"
-            @method.call("%+A", 196).should == "+0X1.88P+7"
-          end
+          @method.call("%+a", 196).should == "+0x1.88p+7"
+          @method.call("%+A", 196).should == "+0X1.88P+7"
         end
 
         it "does not use two's complement form for negative numbers for formats bBoxX" do
@@ -706,10 +682,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%-20f", 10.952).should == "10.952000           "
         @method.call("%-20g", 12.1234).should == "12.1234             "
         @method.call("%-20G", 12.1234).should == "12.1234             "
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%-20a", 196).should == "0x1.88p+7           "
-          @method.call("%-20A", 196).should == "0X1.88P+7           "
-        end
+        @method.call("%-20a", 196).should == "0x1.88p+7           "
+        @method.call("%-20A", 196).should == "0X1.88P+7           "
 
         @method.call("%-10c", 97).should == "a         "
         @method.call("%-10p", []).should == "[]        "
@@ -734,10 +708,8 @@ describe :kernel_sprintf, shared: true do
           @method.call("%020f", 10.952).should == "0000000000010.952000"
           @method.call("%020g", 12.1234).should == "000000000000012.1234"
           @method.call("%020G", 12.1234).should == "000000000000012.1234"
-          NATFIXME 'implement %a', exception: ArgumentError do
-            @method.call("%020a", 196).should == "0x000000000001.88p+7"
-            @method.call("%020A", 196).should == "0X000000000001.88P+7"
-          end
+          @method.call("%020a", 196).should == "0x000000000001.88p+7"
+          @method.call("%020A", 196).should == "0X000000000001.88P+7"
         end
 
         it "uses radix-1 when displays negative argument as a two's complement" do
@@ -766,10 +738,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%*f", 20, 10.952).should == "           10.952000"
         @method.call("%*g", 20, 12.1234).should == "             12.1234"
         @method.call("%*G", 20, 12.1234).should == "             12.1234"
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%*a", 20, 196).should == "           0x1.88p+7"
-          @method.call("%*A", 20, 196).should == "           0X1.88P+7"
-        end
+        @method.call("%*a", 20, 196).should == "           0x1.88p+7"
+        @method.call("%*A", 20, 196).should == "           0X1.88P+7"
 
         @method.call("%*c", 10, 97).should == "         a"
         @method.call("%*p", 10, []).should == "        []"
@@ -791,10 +761,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%*f", -20, 10.952).should == "10.952000           "
         @method.call("%*g", -20, 12.1234).should == "12.1234             "
         @method.call("%*G", -20, 12.1234).should == "12.1234             "
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%*a", -20, 196).should == "0x1.88p+7           "
-          @method.call("%*A", -20, 196).should == "0X1.88P+7           "
-        end
+        @method.call("%*a", -20, 196).should == "0x1.88p+7           "
+        @method.call("%*A", -20, 196).should == "0X1.88P+7           "
 
         @method.call("%*c", -10, 97).should == "a         "
         @method.call("%*p", -10, []).should == "[]        "
@@ -816,10 +784,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%1$*2$f", 10.952, 20).should == "           10.952000"
         @method.call("%1$*2$g", 12.1234, 20).should == "             12.1234"
         @method.call("%1$*2$G", 12.1234, 20).should == "             12.1234"
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%1$*2$a", 196, 20).should == "           0x1.88p+7"
-          @method.call("%1$*2$A", 196, 20).should == "           0X1.88P+7"
-        end
+        @method.call("%1$*2$a", 196, 20).should == "           0x1.88p+7"
+        @method.call("%1$*2$A", 196, 20).should == "           0X1.88P+7"
 
         @method.call("%1$*2$c", 97, 10).should == "         a"
         @method.call("%1$*2$p", [], 10).should == "        []"
@@ -841,10 +807,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%1$*2$f", 10.952, -20).should == "10.952000           "
         @method.call("%1$*2$g", 12.1234, -20).should == "12.1234             "
         @method.call("%1$*2$G", 12.1234, -20).should == "12.1234             "
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%1$*2$a", 196, -20).should == "0x1.88p+7           "
-          @method.call("%1$*2$A", 196, -20).should == "0X1.88P+7           "
-        end
+        @method.call("%1$*2$a", 196, -20).should == "0x1.88p+7           "
+        @method.call("%1$*2$A", 196, -20).should == "0X1.88P+7           "
 
         @method.call("%1$*2$c", 97, -10).should == "a         "
         @method.call("%1$*2$p", [], -10).should == "[]        "
@@ -875,10 +839,8 @@ describe :kernel_sprintf, shared: true do
       @method.call("%20f", 10.952).should == "           10.952000"
       @method.call("%20g", 12.1234).should == "             12.1234"
       @method.call("%20G", 12.1234).should == "             12.1234"
-      NATFIXME 'implement %a', exception: ArgumentError do
-        @method.call("%20a", 196).should == "           0x1.88p+7"
-        @method.call("%20A", 196).should == "           0X1.88P+7"
-      end
+      @method.call("%20a", 196).should == "           0x1.88p+7"
+      @method.call("%20A", 196).should == "           0X1.88P+7"
 
       @method.call("%10c", 97).should == "         a"
       @method.call("%10p", []).should == "        []"
@@ -910,10 +872,8 @@ describe :kernel_sprintf, shared: true do
         @method.call("%.10e", 109.52).should == "1.0952000000e+02"
         @method.call("%.10E", 109.52).should == "1.0952000000E+02"
         @method.call("%.10f", 10.952).should == "10.9520000000"
-        NATFIXME 'implement %a', exception: ArgumentError do
-          @method.call("%.10a", 196).should == "0x1.8800000000p+7"
-          @method.call("%.10A", 196).should == "0X1.8800000000P+7"
-        end
+        @method.call("%.10a", 196).should == "0x1.8800000000p+7"
+        @method.call("%.10A", 196).should == "0X1.8800000000P+7"
       end
 
       it "does not affect G format" do

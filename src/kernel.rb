@@ -140,6 +140,8 @@ module Kernel
               else
                 raise ArgumentError, 'malformed format string'
               end
+            when 'a', 'A'
+              format_float_as_hex(token, float_from_arg(val))
             when 'b'
               format_binary(token, val)
             when 'B'
@@ -285,6 +287,10 @@ module Kernel
 
     def format_float_with_e_notation(token, f, e: 'e')
       token.precision ||= 6
+      sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf').sub(/-?nan/i, 'NaN')
+    end
+
+    def format_float_as_hex(token, f)
       sprintf(token.c_printf_format, f).sub(/inf/i, 'Inf').sub(/-?nan/i, 'NaN')
     end
 
@@ -611,7 +617,8 @@ module Kernel
             plus: '+',
             zero: '0',
           }.select { |k| flags.include?(k) }.values.join
-          "%#{flag_chars}#{width}.#{precision}#{datum}"
+          prec = ".#{precision}" if precision
+          "%#{flag_chars}#{width}#{prec}#{datum}"
         end
       end
 
