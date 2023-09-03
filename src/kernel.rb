@@ -227,7 +227,9 @@ module Kernel
     end
 
     def format_char(token, arg)
-      if arg.is_a?(Integer)
+      if arg.nil?
+        raise TypeError, 'no implicit conversion from nil to integer'
+      elsif arg.is_a?(Integer)
         arg.chr(format_string.encoding)
       elsif arg.respond_to?(:to_int)
         i = arg.to_int
