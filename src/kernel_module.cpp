@@ -473,9 +473,8 @@ Value KernelModule::puts(Env *env, Args args) {
 
 Value KernelModule::raise(Env *env, Value klass, Value message) {
     if (!klass) {
-        if (env->exception())
-            klass = env->exception();
-        else {
+        klass = env->exception();
+        if (!klass) {
             klass = find_top_level_const(env, "RuntimeError"_s);
             message = new StringObject { "" };
         }
