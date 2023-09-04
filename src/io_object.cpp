@@ -189,6 +189,8 @@ Value IoObject::read(Env *env, Value count_value) const {
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
             delete[] buf;
+            if (count == 0)
+                return new StringObject {};
             return NilObject::the();
         } else {
             Value result = new StringObject { buf, bytes_read };

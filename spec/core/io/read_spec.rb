@@ -295,9 +295,7 @@ describe "IO#read" do
   end
 
   it "consumes zero bytes when reading zero bytes" do
-    NATFIXME 'Empty string when reading zero bytes', exception: SpecFailedException do
-      @io.read(0).should == ''
-    end
+    @io.read(0).should == ''
     @io.pos.should == 0
 
     NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
