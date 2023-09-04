@@ -55,10 +55,7 @@ module Natalie
             code << t.transform(@discard_catch_result ? nil : "#{result} =")
           end
 
-          # FIXME: can't we just call set_exception without the clear_exception() call?
-          code << 'if (exception_was) env->set_exception(exception_was)'
-          code << 'else env->clear_exception()'
-
+          code << 'env->set_exception(exception_was)'
           code << 'GlobalEnv::the()->set_rescued(true)'
 
           code << '}'
