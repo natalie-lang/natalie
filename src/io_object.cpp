@@ -216,8 +216,8 @@ Value IoObject::append(Env *env, Value obj) {
     if (!obj->is_string() && obj->respond_to(env, "to_str"_s))
         obj = obj.send(env, "to_s"_s);
     obj->assert_type(env, Object::Type::String, "String");
-    ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
-    if (errno) env->raise_errno();
+    auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
+    if (result == -1) env->raise_errno();
     return this;
 }
 

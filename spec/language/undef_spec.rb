@@ -69,13 +69,15 @@ describe "The undef keyword" do
   end
 
   it "raises a NameError when passed a missing name" do
-    Class.new do
-      -> {
-         undef not_exist
-      }.should raise_error(NameError) { |e|
-        # a NameError and not a NoMethodError
-        e.class.should == NameError
-      }
+    NATFIXME 'should raise', exception: SpecFailedException, message: /should have raised an error/ do
+      Class.new do
+        -> {
+          undef not_exist
+        }.should raise_error(NameError) { |e|
+          # a NameError and not a NoMethodError
+          e.class.should == NameError
+        }
+      end
     end
   end
 end

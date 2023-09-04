@@ -10,7 +10,7 @@
 #
 # usage with flags:
 #
-#     bin/natalie -c2 test/runner.rb -- -c2 spec/core/array/pack/{a,b}_spec.rb
+#     bin/natalie test/runner.rb --log-load-error spec/core/array/pack/{a,b}_spec.rb
 
 require_relative 'support/nat_binary'
 

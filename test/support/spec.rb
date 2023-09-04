@@ -761,10 +761,19 @@ class RaiseErrorExpectation
   def match(subject)
     if @block
       # given a block, we rescue everything!
+
+      # FIXME: There is a bug here with rescue + else. See #1201.
+      caught = false
+
       begin
         subject.call
       rescue Exception => e
+        caught = true
         @block.call(e)
+      else
+        unless caught
+          raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
+        end
       end
       return
     end

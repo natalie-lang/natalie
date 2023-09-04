@@ -62,7 +62,9 @@ public:
         size_t length = (size_t)integer->to_nat_int_t();
         char buffer[length];
 #ifdef __linux__
-        getrandom(buffer, length, 0);
+        auto result = getrandom(buffer, length, 0);
+        if (result == -1)
+            env->raise_errno();
 #else
         arc4random_buf(buffer, length);
 #endif
