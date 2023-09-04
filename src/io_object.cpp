@@ -156,10 +156,10 @@ bool IoObject::isatty(Env *env) const {
     return ::isatty(m_fileno) == 1;
 }
 
-Value IoObject::read_file(Env *env, Value filename) {
+Value IoObject::read_file(Env *env, Value filename, Value length) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
-    auto data = file->read(env, nullptr);
+    auto data = file->read(env, length);
     file->close(env);
     return data;
 }
