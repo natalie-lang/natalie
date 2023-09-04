@@ -125,8 +125,35 @@ describe 'begin/rescue/else' do
     end
   end
 
-  it 'does not get confused by a LocalJumpError' do
-    `bin/natalie test/support/rescue_else_bug.rb`.strip.should == 'good'
+  it 'does not get confused by nested rescues' do
+    ran = []
+    begin
+      raise 'foo'
+    rescue
+      ran << :rescue
+      begin
+      rescue
+      end
+    else
+      ran << :else
+    end
+    ran.should == [:rescue]
+  end
+
+  it 'does not get confused by an unused LocalJumpError' do
+    ran = []
+    l = -> {
+      begin
+        raise 'foo'
+      rescue
+        ran << :rescue
+        nil.tap { return 'bar' if false } # return here could raise a LocalJumpError, but doesn't
+      else
+        ran << :else
+      end
+    }
+    l.call
+    ran.should == [:rescue]
   end
 end
 
