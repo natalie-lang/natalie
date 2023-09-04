@@ -125,7 +125,6 @@ int IoObject::fdatasync(Env *env) {
     return 0;
 }
 
-// TODO: check if this IO is writable
 int IoObject::fsync(Env *env) {
     raise_if_closed(env);
     if (::fsync(m_fileno) < 0) env->raise_errno();
