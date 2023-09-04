@@ -531,7 +531,8 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
                 if (length <= 0)
                     return this;
 
-                max = start + length;
+                if (__builtin_add_overflow(start, length, &max))
+                    env->raise("ArgumentError", "argument too big");
             }
         }
     }
