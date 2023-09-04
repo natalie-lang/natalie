@@ -765,6 +765,8 @@ class RaiseErrorExpectation
         subject.call
       rescue Exception => e
         @block.call(e)
+      else
+        raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
       end
       return
     end
