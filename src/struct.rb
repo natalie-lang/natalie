@@ -25,6 +25,10 @@ class Struct
 
       if attrs.last.is_a?(Hash)
         options = attrs.pop
+        unknown_keys = options.keys.difference([:keyword_init])
+        if unknown_keys.any?
+          raise ArgumentError, "unknown keyword: #{unknown_keys.map(&:inspect).join(', ')}"
+        end
       else
         options = {}
       end
