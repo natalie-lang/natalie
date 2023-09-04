@@ -123,6 +123,49 @@ describe 'begin/rescue/else' do
       end
       $!.message.should == 'foo'
     end
+    $!.should be_nil
+
+    begin
+      raise 'foo'
+    rescue
+      begin
+      rescue
+      else
+        $!.message.should == 'foo'
+      end
+      $!.message.should == 'foo'
+    end
+  end
+
+  it 'does not get confused by nested rescues' do
+    ran = []
+    begin
+      raise 'foo'
+    rescue
+      ran << :rescue
+      begin
+      rescue
+      end
+    else
+      ran << :else
+    end
+    ran.should == [:rescue]
+  end
+
+  it 'does not get confused by an unused LocalJumpError' do
+    ran = []
+    l = -> {
+      begin
+        raise 'foo'
+      rescue
+        ran << :rescue
+        nil.tap { return 'bar' if false } # return here could raise a LocalJumpError, but doesn't
+      else
+        ran << :else
+      end
+    }
+    l.call
+    ran.should == [:rescue]
   end
 end
 

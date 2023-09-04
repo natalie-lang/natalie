@@ -49,16 +49,14 @@ module Natalie
           code << '} catch(ExceptionObject *exception) {'
 
           code << 'auto exception_was = env->exception()'
-
-          code << 'GlobalEnv::the()->set_rescued(true)'
           code << 'env->set_exception(exception)'
 
           transform.with_same_scope(catch_body) do |t|
             code << t.transform(@discard_catch_result ? nil : "#{result} =")
           end
 
-          code << 'if (exception_was) env->set_exception(exception_was)'
-          code << 'else env->clear_exception()'
+          code << 'env->set_exception(exception_was)'
+          code << 'GlobalEnv::the()->set_rescued(true)'
 
           code << '}'
         end

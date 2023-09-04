@@ -264,11 +264,9 @@ Value Env::exception_object() {
 
 ExceptionObject *Env::exception() {
     auto e = this;
-    for (;;) {
+    while (e) {
         if (e->m_exception)
             return e->m_exception;
-        if (!e->m_caller)
-            break;
         e = e->m_caller;
     }
     return nullptr;
