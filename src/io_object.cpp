@@ -186,15 +186,14 @@ Value IoObject::read(Env *env, Value count_value) const {
         if (count < 0)
             env->raise("ArgumentError", "negative length {} given", count);
         char *buf = new char[count + 1];
+        auto buf_cleanup = Defer([&]() { delete[] buf; });
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
-            delete[] buf;
             if (count == 0)
                 return new StringObject {};
             return NilObject::the();
         } else {
             Value result = new StringObject { buf, bytes_read };
-            delete[] buf;
             return result;
         }
     }
