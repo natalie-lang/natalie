@@ -123,6 +123,18 @@ describe 'begin/rescue/else' do
       end
       $!.message.should == 'foo'
     end
+    $!.should be_nil
+
+    begin
+      raise 'foo'
+    rescue
+      begin
+      rescue
+      else
+        $!.message.should == 'foo'
+      end
+      $!.message.should == 'foo'
+    end
   end
 
   it 'does not get confused by nested rescues' do
