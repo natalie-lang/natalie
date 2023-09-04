@@ -181,6 +181,8 @@ Value IoObject::read(Env *env, Value count_value) const {
     if (count_value) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_nat_int_t();
+        if (count < 0)
+            env->raise("ArgumentError", "negative length {} given", count);
         char *buf = new char[count + 1];
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {

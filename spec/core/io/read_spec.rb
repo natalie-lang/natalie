@@ -436,8 +436,7 @@ describe "IO#read" do
     -> { IOSpecs.closed_io.read }.should raise_error(IOError)
   end
 
-  # NATFIXME: double free or corruption
-  xit "raises ArgumentError when length is less than 0" do
+  it "raises ArgumentError when length is less than 0" do
     -> { @io.read(-1) }.should raise_error(ArgumentError)
   end
 
