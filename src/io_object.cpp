@@ -179,7 +179,7 @@ Value IoObject::write_file(Env *env, Value filename, Value string) {
 
 Value IoObject::read(Env *env, Value count_value) const {
     raise_if_closed(env);
-    size_t bytes_read;
+    ssize_t bytes_read;
     if (count_value && !count_value->is_nil()) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_nat_int_t();
@@ -188,23 +188,28 @@ Value IoObject::read(Env *env, Value count_value) const {
         char *buf = new char[count + 1];
         auto buf_cleanup = Defer([&]() { delete[] buf; });
         bytes_read = ::read(m_fileno, buf, count);
-        if (bytes_read == 0) {
+        if (bytes_read < 0) {
+            env->raise_errno();
+        } else if (bytes_read == 0) {
             if (count == 0)
                 return new StringObject {};
             return NilObject::the();
         } else {
-            Value result = new StringObject { buf, bytes_read };
+            Value result = new StringObject { buf, static_cast<size_t>(bytes_read) };
             return result;
         }
     }
     char buf[NAT_READ_BYTES + 1];
     bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
-    if (bytes_read == 0) {
+    if (bytes_read < 0) {
+        env->raise_errno();
+    } else if (bytes_read == 0) {
         return new StringObject { "" };
     }
-    StringObject *str = new StringObject { buf, bytes_read };
+    StringObject *str = new StringObject { buf, static_cast<size_t>(bytes_read) };
     while (1) {
         bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+        if (bytes_read < 0) env->raise_errno();
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;
         str->append(buf, bytes_read);
