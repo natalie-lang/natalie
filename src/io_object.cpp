@@ -156,9 +156,11 @@ bool IoObject::isatty(Env *env) const {
     return ::isatty(m_fileno) == 1;
 }
 
-Value IoObject::read_file(Env *env, Value filename, Value length) {
+Value IoObject::read_file(Env *env, Value filename, Value length, Value offset) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
     auto data = file->read(env, length);
     file->close(env);
     return data;

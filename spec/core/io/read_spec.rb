@@ -25,7 +25,7 @@ describe "IO.read" do
 
   # https://bugs.ruby-lang.org/issues/19354
   it "accepts options as keyword arguments" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..2)' do
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
       IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
     end
 
@@ -43,9 +43,7 @@ describe "IO.read" do
   end
 
   it "accepts a length, offset, and empty options Hash" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      IO.read(@fname, 3, 0, **{}).should == @contents[0, 3]
-    end
+    IO.read(@fname, 3, 0, **{}).should == @contents[0, 3]
   end
 
   it "raises an IOError if the options Hash specifies write mode" do
@@ -81,7 +79,7 @@ describe "IO.read" do
   platform_is_not :windows do
     ruby_version_is ""..."3.3" do
       it "uses an :open_args option" do
-        NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..2)' do
+        NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
           string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
           string.encoding.should == Encoding::US_ASCII
 
@@ -100,14 +98,14 @@ describe "IO.read" do
   end
 
   it "doesn't require mode to be specified in :open_args" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..2)' do
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
       string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII}])
       string.encoding.should == Encoding::US_ASCII
     end
   end
 
   it "doesn't require mode to be specified in :open_args even if flags option passed" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..2)' do
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
       string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII, flags: File::CREAT}])
       string.encoding.should == Encoding::US_ASCII
     end
@@ -115,16 +113,12 @@ describe "IO.read" do
 
   it "treats second nil argument as no length limit" do
     IO.read(@fname, nil).should == @contents
-    NATFIXME 'nil length arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
-    end
+    IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
   end
 
   it "treats third nil argument as 0" do
-    NATFIXME 'Offset argument', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      IO.read(@fname, nil, nil).should == @contents
-      IO.read(@fname, 5, nil).should == IO.read(@fname, 5, 0)
-    end
+    IO.read(@fname, nil, nil).should == @contents
+    IO.read(@fname, 5, nil).should == IO.read(@fname, 5, 0)
   end
 
   it "reads the contents of a file up to a certain size when specified" do
@@ -132,15 +126,11 @@ describe "IO.read" do
   end
 
   it "reads the contents of a file from an offset of a specific size when specified" do
-    NATFIXME 'Length and offset arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
-    end
+    IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
   end
 
   it "returns nil at end-of-file when length is passed" do
-    NATFIXME 'Length and offset arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      IO.read(@fname, 1, 10).should == nil
-    end
+    IO.read(@fname, 1, 10).should == nil
   end
 
   it "raises an Errno::ENOENT when the requested file does not exist" do
@@ -158,10 +148,8 @@ describe "IO.read" do
 
   ruby_version_is ''...'3.3' do
     it "raises an Errno::EINVAL when not passed a valid offset" do
-      NATFIXME 'Length and offset arguments', exception: SpecFailedException do
-        -> { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
-        -> { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
-      end
+      -> { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
+      -> { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
     end
   end
 
