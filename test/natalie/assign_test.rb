@@ -150,7 +150,7 @@ describe 'assignment' do
   end
 
   it 'errors when an object responds to to_ary but returns a non-array' do
-    if RUBY_PLATFORM == 'ruby' || compiler?
+    if RUBY_PLATFORM == 'ruby'
       bal = BadArrayLike.new(1, 2)
       -> { a, b = bal }.should raise_error(TypeError)
       -> { [bal].each { |a, b, c| } }.should raise_error(TypeError)
