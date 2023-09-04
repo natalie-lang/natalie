@@ -73,7 +73,7 @@ public:
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value) const;
-    static Value read_file(Env *, Value);
+    static Value read_file(Env *, Value, Value = nullptr, Value = nullptr);
     Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);
