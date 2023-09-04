@@ -201,7 +201,7 @@ describe 'method' do
     default_nils.should == [nil, nil]
     default_nils(1).should == [1, nil]
     default_nils(1, 2).should == [1, 2]
-    out = `bin/natalie -c2 -e "def circular_argument_reference(a = a); a; end" 2>&1`
+    out = `bin/natalie -e "def circular_argument_reference(a = a); a; end" 2>&1`
     out.should =~ /circular argument reference - a \(SyntaxError\)/
   end
 
