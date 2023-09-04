@@ -114,9 +114,7 @@ describe "IO.read" do
   end
 
   it "treats second nil argument as no length limit" do
-    NATFIXME 'nil length arguments', exception: TypeError, message: 'no implicit conversion from nil to integer' do
-      IO.read(@fname, nil).should == @contents
-    end
+    IO.read(@fname, nil).should == @contents
     NATFIXME 'nil length arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
       IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
     end
