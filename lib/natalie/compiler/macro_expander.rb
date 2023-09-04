@@ -1,7 +1,7 @@
 module Natalie
   class Compiler
     class MacroExpander
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false)
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false, loaded_paths: {})
         @ast = ast
         @path = path
         @load_path = load_path
@@ -9,6 +9,7 @@ module Natalie
         @compiler_context = compiler_context
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
+        @loaded_paths = loaded_paths
       end
 
       attr_reader :ast, :path, :load_path
@@ -49,6 +50,7 @@ module Natalie
           load_path: load_path,
           interpret: interpret?,
           compiler_context: @compiler_context,
+          loaded_paths: @loaded_paths,
         )
         expander.expand
       end
@@ -191,30 +193,21 @@ module Natalie
 
       def load_file(path, require_once:)
         return load_cpp_file(path, require_once: require_once) if path =~ /\.cpp$/
-        code = File.read(path)
-        file_ast = Natalie::Parser.new(code, path).ast
-        path_h = path.hash.to_s # the only point of this is to obscure the paths of the host system where natalie is run
-        s(:block,
-          s(:if,
-            if require_once
-              s(:call,
-                s(:call,
-                  s(:op_asgn_or, s(:gvar, :$NAT_LOADED_PATHS), s(:gasgn, :$NAT_LOADED_PATHS, s(:hash))),
-                  :[],
-                  s(:str, path_h),
-                ),
-                :!,
-              )
-            else
-              s(:true)
-            end,
-            s(:block,
-              expand_macros(file_ast, path),
-              require_once ? s(:attrasgn, s(:gvar, :$NAT_LOADED_PATHS), :[]=, s(:str, path_h), s(:true)) : s(:true),
-            ),
-            s(:false),
-          ),
-        )
+
+        if @loaded_paths[path]
+          if require_once
+            s(:false)
+          else
+            s(:true)
+          end
+        else
+          @loaded_paths[path] = true
+          code = File.read(path)
+          file_ast = Natalie::Parser.new(code, path).ast
+          s(:block,
+            expand_macros(file_ast, path),
+            s(:true))
+        end
       end
 
       def load_cpp_file(path, require_once:)
