@@ -124,6 +124,10 @@ describe 'begin/rescue/else' do
       $!.message.should == 'foo'
     end
   end
+
+  it 'does not get confused by a LocalJumpError' do
+    `bin/natalie test/support/rescue_else_bug.rb`.strip.should == 'good'
+  end
 end
 
 describe 'raise' do
