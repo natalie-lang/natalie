@@ -30,9 +30,9 @@ public:
 
     bool is_defined() const { return !m_undefined && m_method; }
 
+    void visit_children(Cell::Visitor &);
+
 private:
-    // WARNING: do not add more members to this object without making sure
-    // they are visited by ModuleObject::visit_children().
     MethodVisibility m_visibility { MethodVisibility::Public };
     Method *m_method { nullptr };
     bool m_undefined { false };
