@@ -3,13 +3,19 @@
 namespace Natalie {
 BSearchCheckResult binary_search_check(Env *env, Value block_result) {
     if (block_result->is_numeric()) {
-        auto number = (block_result->is_integer() ? block_result->as_integer()->to_nat_int_t() : block_result->as_float()->to_double());
-
-        if (number == 0)
-            return BSearchCheckResult::EQUAL;
-
-        if (number < 0)
-            return BSearchCheckResult::SMALLER;
+        if (block_result->is_integer()) {
+            auto i = block_result->as_integer();
+            if (i->is_zero())
+                return BSearchCheckResult::EQUAL;
+            else if (i->is_negative())
+                return BSearchCheckResult::SMALLER;
+        } else {
+            auto f = block_result->as_float();
+            if (f->is_zero())
+                return BSearchCheckResult::EQUAL;
+            else if (f->is_negative())
+                return BSearchCheckResult::SMALLER;
+        }
 
         return BSearchCheckResult::BIGGER;
     } else if (block_result->is_boolean() || block_result->is_nil()) {

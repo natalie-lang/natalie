@@ -216,7 +216,7 @@ Value IntegerObject::pow(Env *env, Value arg) {
 }
 
 Value IntegerObject::powmod(Env *env, Value exponent, Value mod) {
-    if (exponent->is_integer() && exponent->as_integer()->to_nat_int_t() < 0 && mod)
+    if (exponent->is_integer() && exponent->as_integer()->is_negative() && mod)
         env->raise("RangeError", "2nd argument not allowed when first argument is negative");
 
     auto powd = pow(env, exponent);
