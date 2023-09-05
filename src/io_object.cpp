@@ -160,7 +160,7 @@ Value IoObject::read_file(Env *env, Value filename, Value length, Value offset) 
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
-    auto data = file->read(env, length);
+    auto data = file->read(env, length, nullptr);
     file->close(env);
     return data;
 }
@@ -176,8 +176,15 @@ Value IoObject::write_file(Env *env, Value filename, Value string) {
 
 #define NAT_READ_BYTES 1024
 
-Value IoObject::read(Env *env, Value count_value) const {
+Value IoObject::read(Env *env, Value count_value, Value buffer) const {
     raise_if_closed(env);
+    if (buffer != nullptr && !buffer->is_nil()) {
+        if (!buffer->is_string() && buffer->respond_to(env, "to_str"_s))
+            buffer = buffer.send(env, "to_str"_s);
+        buffer->assert_type(env, Object::Type::String, "String");
+    } else {
+        buffer = nullptr;
+    }
     ssize_t bytes_read;
     if (count_value && !count_value->is_nil()) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
@@ -186,25 +193,41 @@ Value IoObject::read(Env *env, Value count_value) const {
             env->raise("ArgumentError", "negative length {} given", count);
         TM::String buf(count, '\0');
         bytes_read = ::read(m_fileno, &buf[0], count);
-        if (bytes_read < 0) {
+        if (bytes_read < 0)
             env->raise_errno();
-        } else if (bytes_read == 0) {
-            if (count == 0)
+        buf.truncate(bytes_read);
+        if (bytes_read == 0) {
+            if (buffer != nullptr)
+                buffer->as_string()->clear(env);
+            if (count == 0) {
+                if (buffer != nullptr)
+                    return buffer;
                 return new StringObject { "", 0, EncodingObject::get(Encoding::ASCII_8BIT) };
+            }
             return NilObject::the();
+        } else if (buffer != nullptr) {
+            buffer->as_string()->set_str(buf.c_str(), static_cast<size_t>(bytes_read));
+            return buffer;
         } else {
-            buf.truncate(bytes_read);
             return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
         }
     }
     char buf[NAT_READ_BYTES + 1];
     bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+    StringObject *str = nullptr;
+    if (buffer != nullptr) {
+        str = buffer->as_string();
+    } else {
+        str = new StringObject {};
+    }
     if (bytes_read < 0) {
         env->raise_errno();
     } else if (bytes_read == 0) {
-        return new StringObject { "" };
+        str->clear(env);
+        return str;
+    } else {
+        str->set_str(buf, bytes_read);
     }
-    StringObject *str = new StringObject { buf, static_cast<size_t>(bytes_read) };
     while (1) {
         bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read < 0) env->raise_errno();
