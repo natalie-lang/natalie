@@ -188,7 +188,7 @@ Value FloatObject::coerce(Env *env, Value arg) {
         ary->push(arg);
         break;
     case Object::Type::Integer:
-        ary->push(new FloatObject { arg->as_integer()->to_nat_int_t() });
+        ary->push(Value::floatingpoint(arg->as_integer()->integer().to_double()));
         break;
     default:
         ary->push(KernelModule::Float(env, arg, true));
