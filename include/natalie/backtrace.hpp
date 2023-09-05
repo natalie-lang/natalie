@@ -15,7 +15,6 @@ public:
     };
 
     void add_item(Env *env, String file, size_t line) {
-        // NATFIXME: Ideally we could store the env and delay building the code location name
         auto name = env->build_code_location_name();
         m_items.push(Item { name, file, line });
     }
