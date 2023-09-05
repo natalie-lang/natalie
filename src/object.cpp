@@ -735,16 +735,19 @@ void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
 
 nat_int_t Object::object_id() const {
     if (is_integer()) {
-        const auto val = as_integer()->to_nat_int_t();
-        /* Recreate the logic from Ruby: Use a long as tagged pointer, where
-         * the rightmost bit is 1, and the remaning bits are the number shifted
-         * one right.
-         * The regular object ids are the actual memory addresses, these are at
-         * least 8 bit aligned, so the rightmost bit will never be set. This
-         * means we don't risk duplicate object ids for different objects.
-         */
-        if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
-            return (val << 1) | 1;
+        const auto i = as_integer();
+        if (i->is_fixnum()) {
+            /* Recreate the logic from Ruby: Use a long as tagged pointer, where
+             * the rightmost bit is 1, and the remaning bits are the number shifted
+             * one right.
+             * The regular object ids are the actual memory addresses, these are at
+             * least 8 bit aligned, so the rightmost bit will never be set. This
+             * means we don't risk duplicate object ids for different objects.
+             */
+            auto val = i->to_nat_int_t();
+            if (val >= (LONG_MIN >> 1) && val <= (LONG_MAX >> 1))
+                return (val << 1) | 1;
+        }
     }
 
     return reinterpret_cast<nat_int_t>(this);
@@ -1165,7 +1168,7 @@ void Object::assert_not_frozen(Env *env, Value receiver) {
 }
 
 bool Object::equal(Value other) {
-    if (is_integer() && other->is_integer())
+    if (is_integer() && as_integer()->is_fixnum() && other->is_integer() && other->as_integer()->is_fixnum())
         return as_integer()->to_nat_int_t() == other->as_integer()->to_nat_int_t();
     // We still need the pointer compare for the identical NaN equality
     if (is_float() && other->is_float())
