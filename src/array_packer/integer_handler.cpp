@@ -81,7 +81,12 @@ namespace ArrayPacker {
     }
 
     void IntegerHandler::pack_U() {
-        auto source = m_source->to_nat_int_t();
+        nat_int_t source;
+        if (m_source->is_bignum())
+            source = (m_source->integer().to_bigint() % 256).to_long_long();
+        else
+            source = m_source->to_nat_int_t();
+
         if (source < 128) { // U+007F	    -> 1-byte last code-point
             m_packed.append_char(static_cast<unsigned char>(source));
             return;
@@ -104,25 +109,31 @@ namespace ArrayPacker {
     }
 
     void IntegerHandler::pack_c() {
-        auto source = m_source->to_nat_int_t();
+        nat_int_t source;
         if (m_source->is_bignum())
             source = (m_source->integer().to_bigint() % 256).to_long_long();
+        else
+            source = m_source->to_nat_int_t();
 
         m_packed.append_char(static_cast<signed char>(source));
     }
 
     void IntegerHandler::pack_I() {
-        auto source = (unsigned int)m_source->to_nat_int_t();
+        unsigned int source;
         if (m_source->is_bignum())
             source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(unsigned int))).to_long_long();
+        else
+            source = (unsigned int)m_source->to_nat_int_t();
 
         append_bytes((const char *)(&source), sizeof(source));
     }
 
     void IntegerHandler::pack_i() {
-        auto source = (signed int)m_source->to_nat_int_t();
+        signed int source;
         if (m_source->is_bignum())
             source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+        else
+            source = (signed int)m_source->to_nat_int_t();
 
         append_bytes((const char *)(&source), sizeof(source));
     }
@@ -208,18 +219,22 @@ namespace ArrayPacker {
     }
 
     void IntegerHandler::pack_S() {
-        auto source = (unsigned short)m_source->to_nat_int_t();
+        unsigned short source;
         if (m_source->is_bignum())
             source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+        else
+            source = (unsigned short)m_source->to_nat_int_t();
 
         auto size = m_token.native_size ? sizeof(unsigned short) : 2;
         append_bytes((const char *)&source, size);
     }
 
     void IntegerHandler::pack_s() {
-        auto source = (signed short)m_source->to_nat_int_t();
+        signed short source;
         if (m_source->is_bignum())
             source = (m_source->integer().to_bigint() % ::pow(2, 8 * sizeof(signed int))).to_long_long();
+        else
+            source = (signed short)m_source->to_nat_int_t();
 
         auto size = m_token.native_size ? sizeof(signed short) : 2;
         append_bytes((const char *)&source, size);
