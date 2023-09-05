@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/big_int.hpp"
+#include "natalie/macros.hpp"
 #include "natalie/types.hpp"
 #include "tm/string.hpp"
 
@@ -121,8 +122,8 @@ public:
     nat_int_t to_nat_int_t() const {
         if (is_fixnum())
             return m_fixnum;
-        else // FIXME: this should probably panic since the number likely won't fit in a long long
-            return m_bignum->to_long_long();
+        else
+            NAT_UNREACHABLE();
     }
     double to_double() const;
     TM::String to_string() const;
