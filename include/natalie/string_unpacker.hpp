@@ -56,7 +56,6 @@ private:
                     m_unpacked->push(NilObject::the());
                 m_index++;
             } else {
-                // NATFIXME: this method of fixing endianness may not be efficient
                 // reverse a character buffer based on endianness
                 auto out = String();
                 for (size_t idx = 0; idx < sizeof(T); idx++) {

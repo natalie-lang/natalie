@@ -84,7 +84,6 @@ module Natalie
 
     attr_writer :load_path
 
-    # FIXME: this is only used for cpp right now
     def compile
       return write_file if write_obj_path
       check_build

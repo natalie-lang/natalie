@@ -284,7 +284,6 @@ class StringIO
     @mode[0] == 'a'
   end
 
-  # FIXME: Tidy this up..
   private def __set_closed
     if @mode[-1] == '+'
       @read_closed = false
