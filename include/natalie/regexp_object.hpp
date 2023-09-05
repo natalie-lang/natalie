@@ -193,8 +193,6 @@ public:
     }
 
 private:
-    // MatchDataObject needs to access the regex_t
-    // NATFIXME: Don't allow access to the private fields, construct a method instead
     friend MatchDataObject;
 
     regex_t *m_regex { nullptr };
