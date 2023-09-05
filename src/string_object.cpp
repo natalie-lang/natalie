@@ -652,7 +652,7 @@ Value StringObject::concat(Env *env, Args args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
-        } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
+        } else if (arg->is_integer() && arg->as_integer()->is_negative()) {
             env->raise("RangeError", "{} out of char range", arg->as_integer()->to_s(env)->as_string()->string());
         } else if (arg->is_integer()) {
             str_obj = arg.send(env, "chr"_s, { m_encoding })->as_string();
