@@ -186,7 +186,6 @@ class StringScanner
     return 0 if pattern == //
     start = @pos
     loop do
-      # FIXME: this is ugly because `break` is broken here :-(
       if check(pattern)
         found_at = @pos - start + 1
         @pos = start
