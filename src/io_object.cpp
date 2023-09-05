@@ -191,10 +191,10 @@ Value IoObject::read(Env *env, Value count_value) const {
             env->raise_errno();
         } else if (bytes_read == 0) {
             if (count == 0)
-                return new StringObject {};
+                return new StringObject { "", 0, EncodingObject::get(Encoding::ASCII_8BIT) };
             return NilObject::the();
         } else {
-            Value result = new StringObject { buf, static_cast<size_t>(bytes_read) };
+            Value result = new StringObject { buf, static_cast<size_t>(bytes_read), EncodingObject::get(Encoding::ASCII_8BIT) };
             return result;
         }
     }

@@ -607,13 +607,11 @@ describe :io_read_internal_encoding, shared: true do
 end
 
 describe :io_read_size_internal_encoding, shared: true do
-  # NATFIXME: Inconsistent behaviour between users of this test, unable to wrap in block
-  xit "reads bytes when passed a size" do
+  it "reads bytes when passed a size" do
     @io.read(2).should == [164, 162].pack('C*').force_encoding(Encoding::BINARY)
   end
 
-  # NATFIXME: Inconsistent behaviour between users of this test, unable to wrap in block
-  xit "returns a String in BINARY when passed a size" do
+  it "returns a String in BINARY when passed a size" do
     @io.read(4).encoding.should equal(Encoding::BINARY)
   end
 
