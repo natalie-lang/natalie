@@ -5,9 +5,6 @@ SKIP_CLASS_MEMBERS = {
   # NOTE: Args cannot be heap-allocated, so pointers inside are seen on the stack
   'Natalie::Args' => '*',
 
-  # NOTE: visited via ModuleObject
-  'Natalie::MethodInfo' => '*',
-
   # NOTE: each key is already visited via m_hashmap
   'Natalie::HashObject' => %w[m_key_list],
 

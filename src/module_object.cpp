@@ -845,8 +845,7 @@ void ModuleObject::visit_children(Visitor &visitor) {
     }
     for (auto pair : m_methods) {
         visitor.visit(pair.first);
-        if (pair.second.is_defined())
-            visitor.visit(pair.second.method());
+        pair.second.visit_children(visitor);
     }
     for (auto pair : m_class_vars) {
         visitor.visit(pair.first);
