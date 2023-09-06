@@ -295,7 +295,7 @@ class Runner
   end
 
   def parser
-    @parser ||= Natalie::Parser.new(code, source_path)
+    @parser ||= Natalie::Parser.new(code, source_path, old_parser: !!options[:write_obj_path])
   end
 
   def ast

@@ -13,12 +13,12 @@ task :build do
 end
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie parser_c_ext ctags] do
+task build_debug: %i[set_build_debug libnatalie parser_c_ext yarp_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie parser_c_ext] do
+task build_release: %i[set_build_release libnatalie parser_c_ext yarp_c_ext] do
   puts 'Build mode: release'
 end
 
@@ -36,6 +36,9 @@ task :clean do
   rm_rf 'build/libnatalie_parser.a'
   rm_rf "build/natalie_parser.#{SO_EXT}"
   rm_rf 'build/natalie_parser.bundle'
+  rm_rf 'build/yarp'
+  rm_rf "build/librubyparser.a"
+  rm_rf "build/librubyparser.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -98,6 +101,9 @@ task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for the Natalie Parser'
 task parser_c_ext: ["build/natalie_parser.#{SO_EXT}", "build/libnatalie_parser.#{SO_EXT}"]
+
+desc 'Build MRI C Extension for YARP'
+task yarp_c_ext: ["build/librubyparser.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -257,6 +263,8 @@ task libnatalie: [
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
   'build/libnatalie_parser.a',
+  "build/librubyparser.a",
+  "build/librubyparser.#{SO_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -415,6 +423,21 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
+file "build/librubyparser.a" do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/yarp', build_dir
+  sh <<-SH
+    cd #{build_dir} && \
+    bundle install && \
+    rake compile && \
+    cp #{build_dir}/build/librubyparser.a #{File.expand_path('build', __dir__)} && \
+    cp #{build_dir}/build/librubyparser.#{SO_EXT} #{File.expand_path('build', __dir__)}
+  SH
+end
+
+file "build/librubyparser.#{SO_EXT}" => ["build/librubyparser.a"]
+
 task :tidy_internal do
   sh "clang-tidy --warnings-as-errors='*' #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
 end
@@ -480,5 +503,6 @@ def include_paths
     File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/natalie_parser/include', __dir__),
+    File.expand_path('build/yarp/include', __dir__),
   ]
 end
