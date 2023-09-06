@@ -218,8 +218,7 @@ Value IoObject::read(Env *env, Value count_value) const {
 
 Value IoObject::append(Env *env, Value obj) {
     raise_if_closed(env);
-    if (!obj->is_string() && obj->respond_to(env, "to_str"_s))
-        obj = obj.send(env, "to_s"_s);
+    obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
     auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
     if (result == -1) env->raise_errno();
