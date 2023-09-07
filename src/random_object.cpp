@@ -31,9 +31,9 @@ Value RandomObject::bytes(Env *env, Value size) {
     if (isize < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");
 
-    const auto blocks = (static_cast<size_t>(isize) + sizeof(nat_int_t) - 1) / sizeof(nat_int_t);
+    const auto blocks = (static_cast<size_t>(isize) + sizeof(uint32_t) - 1) / sizeof(uint32_t);
     nat_int_t output[blocks];
-    std::uniform_int_distribution<nat_int_t> random_number {};
+    std::uniform_int_distribution<uint32_t> random_number {};
     for (size_t i = 0; i < blocks; i++)
         output[i] = random_number(*m_generator);
 

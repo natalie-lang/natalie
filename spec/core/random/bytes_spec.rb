@@ -9,9 +9,7 @@ describe "Random#bytes" do
     Random.new(33).bytes(2).should == Random.new(33).bytes(2)
   end
 
-  # Should double check this is official spec
-  #           where MRI return 44 and Natalie returns 54.
-  xit "returns the same numeric output for a given seed across all implementations and platforms" do
+  it "returns the same numeric output for a given seed across all implementations and platforms" do
     rnd = Random.new(33)
     rnd.bytes(2).should == "\x14\\"
     rnd.bytes(1000) # skip some
