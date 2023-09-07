@@ -184,9 +184,8 @@ Value IoObject::read(Env *env, Value count_value) const {
         int count = count_value->as_integer()->to_nat_int_t();
         if (count < 0)
             env->raise("ArgumentError", "negative length {} given", count);
-        char *buf = new char[count + 1];
-        auto buf_cleanup = Defer([&]() { delete[] buf; });
-        bytes_read = ::read(m_fileno, buf, count);
+        TM::String buf(count, '\0');
+        bytes_read = ::read(m_fileno, &buf[0], count);
         if (bytes_read < 0) {
             env->raise_errno();
         } else if (bytes_read == 0) {
@@ -194,7 +193,8 @@ Value IoObject::read(Env *env, Value count_value) const {
                 return new StringObject { "", 0, EncodingObject::get(Encoding::ASCII_8BIT) };
             return NilObject::the();
         } else {
-            return new StringObject { buf, static_cast<size_t>(bytes_read), EncodingObject::get(Encoding::ASCII_8BIT) };
+            buf.truncate(bytes_read);
+            return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
         }
     }
     char buf[NAT_READ_BYTES + 1];
