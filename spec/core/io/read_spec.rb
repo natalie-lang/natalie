@@ -497,9 +497,9 @@ describe "IO#read in binary mode" do
 
     NATFIXME 'Binary encoding (possible error in open)', exception: SpecFailedException do
       result.encoding.should == Encoding::BINARY
-      xE2 = [226].pack('C*')
-      result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
     end
+    xE2 = [226].pack('C*')
+    result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
   end
 end
 
