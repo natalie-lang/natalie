@@ -32,7 +32,7 @@ Value RandomObject::bytes(Env *env, Value size) {
         env->raise("ArgumentError", "negative string size (or size too big)");
 
     TM::String output(static_cast<size_t>(isize), '\0');
-    std::uniform_int_distribution<char> random_number {};
+    std::uniform_int_distribution<nat_int_t> random_number {};
     for (nat_int_t i = 0; i < isize; i++)
         output[i] = random_number(*m_generator);
 
