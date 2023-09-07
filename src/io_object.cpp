@@ -194,8 +194,7 @@ Value IoObject::read(Env *env, Value count_value) const {
                 return new StringObject { "", 0, EncodingObject::get(Encoding::ASCII_8BIT) };
             return NilObject::the();
         } else {
-            Value result = new StringObject { buf, static_cast<size_t>(bytes_read), EncodingObject::get(Encoding::ASCII_8BIT) };
-            return result;
+            return new StringObject { buf, static_cast<size_t>(bytes_read), EncodingObject::get(Encoding::ASCII_8BIT) };
         }
     }
     char buf[NAT_READ_BYTES + 1];
