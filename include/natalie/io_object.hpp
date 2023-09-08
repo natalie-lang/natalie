@@ -72,7 +72,7 @@ public:
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
-    Value read(Env *, Value) const;
+    Value read(Env *, Value, Value) const;
     static Value read_file(Env *, Value, Value = nullptr, Value = nullptr);
     Value readbyte(Env *);
     Value readline(Env *) const;

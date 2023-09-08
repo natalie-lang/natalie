@@ -287,11 +287,9 @@ describe "IO#read" do
 
     buf = 'non-empty string'
 
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read(10, buf).should == nil
+    @io.read(10, buf).should == nil
 
-      buf.should == ''
-    end
+    buf.should == ''
   end
 
   it "consumes zero bytes when reading zero bytes" do
@@ -314,71 +312,57 @@ describe "IO#read" do
 
   it "places the specified number of bytes in the buffer" do
     buf = ""
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read 5, buf
+    @io.read 5, buf
 
-      buf.should == "12345"
-    end
+    buf.should == "12345"
   end
 
   it "expands the buffer when too small" do
     buf = "ABCDE"
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read nil, buf
+    @io.read nil, buf
 
-      buf.should == @contents
-    end
+    buf.should == @contents
   end
 
   it "overwrites the buffer" do
     buf = "ABCDEFGHIJ"
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read nil, buf
+    @io.read nil, buf
 
-      buf.should == @contents
-    end
+    buf.should == @contents
   end
 
   it "truncates the buffer when too big" do
     buf = "ABCDEFGHIJKLMNO"
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read nil, buf
-      buf.should == @contents
+    @io.read nil, buf
+    buf.should == @contents
 
-      @io.rewind
+    @io.rewind
 
-      buf = "ABCDEFGHIJKLMNO"
-      @io.read 5, buf
-      buf.should == @contents[0..4]
-    end
+    buf = "ABCDEFGHIJKLMNO"
+    @io.read 5, buf
+    buf.should == @contents[0..4]
   end
 
   it "returns the given buffer" do
     buf = ""
 
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read(nil, buf).should equal buf
-    end
+    @io.read(nil, buf).should equal buf
   end
 
   it "returns the given buffer when there is nothing to read" do
     buf = ""
 
     @io.read
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read(nil, buf).should equal buf
-    end
+    @io.read(nil, buf).should equal buf
   end
 
   it "coerces the second argument to string and uses it as a buffer" do
     buf = "ABCDE"
     obj = mock("buff")
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      obj.should_receive(:to_str).any_number_of_times.and_return(buf)
+    obj.should_receive(:to_str).any_number_of_times.and_return(buf)
 
-      @io.read(15, obj).should_not equal obj
-      buf.should == @contents
-    end
+    @io.read(15, obj).should_not equal obj
+    buf.should == @contents
   end
 
   it "returns an empty string at end-of-file" do
@@ -497,9 +481,9 @@ describe "IO#read in binary mode" do
 
     NATFIXME 'Binary encoding (possible error in open)', exception: SpecFailedException do
       result.encoding.should == Encoding::BINARY
-      xE2 = [226].pack('C*')
-      result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
     end
+    xE2 = [226].pack('C*')
+    result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
   end
 end
 
@@ -589,17 +573,17 @@ describe :io_read_internal_encoding, shared: true do
 
   describe "when passed nil for limit" do
     it "sets the buffer to a transcoded String" do
-      NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-        result = @io.read(nil, buf = "")
-        buf.should equal(result)
+      result = @io.read(nil, buf = "")
+      buf.should equal(result)
+      NATFIXME 'Encoding', exception: SpecFailedException do
         buf.should == "ありがとう\n"
       end
     end
 
     it "sets the buffer's encoding to the internal encoding" do
       buf = "".force_encoding Encoding::ISO_8859_1
-      NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-        @io.read(nil, buf)
+      @io.read(nil, buf)
+      NATFIXME 'Encoding', exception: SpecFailedException do
         buf.encoding.should equal(Encoding::UTF_8)
       end
     end
@@ -617,22 +601,18 @@ describe :io_read_size_internal_encoding, shared: true do
 
   it "does not change the buffer's encoding when passed a limit" do
     buf = "".force_encoding Encoding::ISO_8859_1
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read(4, buf)
-      buf.should == [164, 162, 164, 234].pack('C*').force_encoding(Encoding::ISO_8859_1)
-      buf.encoding.should equal(Encoding::ISO_8859_1)
-    end
+    @io.read(4, buf)
+    buf.should == [164, 162, 164, 234].pack('C*').force_encoding(Encoding::ISO_8859_1)
+    buf.encoding.should equal(Encoding::ISO_8859_1)
   end
 
   it "truncates the buffer but does not change the buffer's encoding when no data remains" do
     buf = "abc".force_encoding Encoding::ISO_8859_1
     @io.read
 
-    NATFIXME 'Buffer argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.read(1, buf).should be_nil
-      buf.size.should == 0
-      buf.encoding.should equal(Encoding::ISO_8859_1)
-    end
+    @io.read(1, buf).should be_nil
+    buf.size.should == 0
+    buf.encoding.should equal(Encoding::ISO_8859_1)
   end
 end
 
