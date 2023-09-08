@@ -23,7 +23,7 @@ describe "BasicSocket#send" do
          client = @server.accept
          loop do
            got = client.recv(5)
-           break if got.empty?
+           break if got.nil? || got.empty?
            data << got
          end
          client.close
@@ -72,7 +72,7 @@ describe "BasicSocket#send" do
          client = @server.accept
          loop do
            got = client.recv(5)
-           break if got.empty?
+           break if got.nil? || got.empty?
            data << got
          end
          client.close

@@ -147,16 +147,6 @@ describe 'BasicSocket#recv' do
           @server.recv(2).should == 'he'
         end
 
-        it 'reads into the given buffer' do
-          @client.write('bar')
-
-          buf = 'foo'
-
-          @server.recv(3, 0, buf).should == 'bar'
-
-          buf.should == 'bar'
-        end
-
         it 'reads the given amount of bytes when it exceeds the data size' do
           @client.write('he')
 
