@@ -81,9 +81,9 @@ namespace fileutil {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->fetch(env, new IntegerObject { 0 }, new StringObject { "" }, nullptr)->as_string()->string();
-            auto extenc = flagsplit->ref(env, new IntegerObject { 1 }, nullptr);
-            auto intenc = flagsplit->ref(env, new IntegerObject { 2 }, nullptr);
+            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
             if (self) {
                 EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
                 EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
