@@ -8,14 +8,20 @@
 
 namespace Natalie {
 
-static inline bool is_readable(const int fd) {
-    const int flags = fcntl(fd, F_GETFL);
+static inline bool flags_is_readable(const int flags) {
     return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_WRONLY;
 }
 
-static inline bool is_writable(const int fd) {
-    const int flags = fcntl(fd, F_GETFL);
+static inline bool flags_is_writable(const int flags) {
     return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_RDONLY;
+}
+
+static inline bool is_readable(const int fd) {
+    return flags_is_readable(fcntl(fd, F_GETFL));
+}
+
+static inline bool is_writable(const int fd) {
+    return flags_is_writable(fcntl(fd, F_GETFL));
 }
 
 static void throw_unless_readable(Env *env, const IoObject *const self) {
@@ -36,11 +42,19 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
     env->raise_errno();
 }
 
-Value IoObject::initialize(Env *env, Value file_number, Value) {
+Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
-    if (::fcntl(fileno, F_GETFL) < 0)
+    const auto actual_flags = ::fcntl(fileno, F_GETFL);
+    if (actual_flags < 0)
         env->raise_errno();
+    if (flags_obj != nullptr && !flags_obj->is_nil()) {
+        const auto wanted_flags = fileutil::flags_obj_to_flags(env, this, flags_obj);
+        if ((flags_is_readable(wanted_flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags) && !flags_is_writable(actual_flags))) {
+            errno = EINVAL;
+            env->raise_errno();
+        }
+    }
     set_fileno(fileno);
     return this;
 }

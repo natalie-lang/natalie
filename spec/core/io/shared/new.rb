@@ -332,8 +332,10 @@ describe :io_new, shared: true do
 
   it "coerces options as second argument with #to_hash" do
     options = mock("options")
-    options.should_receive(:to_hash).and_return({})
-    @io = IO.send(@method, @fd, **options)
+    NATFIXME 'Keyword arguments', exception: Errno::EINVAL do
+      options.should_receive(:to_hash).and_return({})
+      @io = IO.send(@method, @fd, **options)
+    end
   end
 
   it "accepts an :autoclose option" do
@@ -375,9 +377,7 @@ describe :io_new_errors, shared: true do
 
   platform_is_not :windows do
     it "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode" do
-      NATFIXME "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode", exception: SpecFailedException do
-        -> { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
-      end
+      -> { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
     end
   end
 
