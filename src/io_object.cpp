@@ -412,6 +412,35 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     return Value::integer(0);
 }
 
+Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
+    if ((int_enc == nullptr || int_enc->is_nil()) && ext_enc != nullptr && (ext_enc->is_string() || ext_enc->respond_to(env, "to_str"_s))) {
+        ext_enc = ext_enc->to_str(env);
+        if (ext_enc->as_string()->include(":")) {
+            auto colon = new StringObject { ":" };
+            auto encsplit = ext_enc->to_str(env)->split(env, colon, nullptr)->as_array();
+            ext_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
+            int_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+        }
+    }
+
+    if (ext_enc != nullptr && !ext_enc->is_nil()) {
+        if (ext_enc->is_encoding()) {
+            m_external_encoding = ext_enc->as_encoding();
+        } else {
+            m_external_encoding = EncodingObject::find_encoding(env, ext_enc->to_str(env));
+        }
+    }
+    if (int_enc != nullptr && !int_enc->is_nil()) {
+        if (int_enc->is_encoding()) {
+            m_internal_encoding = int_enc->as_encoding();
+        } else {
+            m_internal_encoding = EncodingObject::find_encoding(env, int_enc->to_str(env));
+        }
+    }
+
+    return this;
+}
+
 Value IoObject::stat(Env *env) const {
     struct stat sb;
     auto file_desc = fileno(env); // current file descriptor

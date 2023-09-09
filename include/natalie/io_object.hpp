@@ -72,6 +72,7 @@ public:
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
     Value seek(Env *, Value, Value) const;
+    Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
@@ -80,12 +81,6 @@ public:
     Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);
-    void set_external_encoding(Env *env, EncodingObject *enc) {
-        m_external_encoding = enc;
-    }
-    void set_internal_encoding(Env *env, EncodingObject *enc) {
-        m_internal_encoding = enc;
-    }
     int set_pos(Env *, Value);
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);

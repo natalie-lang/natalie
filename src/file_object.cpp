@@ -84,12 +84,8 @@ namespace fileutil {
             auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
             auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
             auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
-            if (self) {
-                EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
-                EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
-                self->set_external_encoding(env, ext_e);
-                self->set_internal_encoding(env, int_e);
-            }
+            if (self)
+                self->set_encoding(env, extenc, intenc);
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -107,7 +103,7 @@ namespace fileutil {
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
             if (binary_text_mode == 'b' && self && extenc->is_nil()) {
-                self->set_external_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+                self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
             }
 
             if (main_mode == 'r' && !read_write_mode)
