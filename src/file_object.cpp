@@ -81,7 +81,7 @@ namespace fileutil {
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->first()->as_string()->string();
+            auto flags_str = flagsplit->fetch(env, new IntegerObject { 0 }, new StringObject { "" }, nullptr)->as_string()->string();
             auto extenc = flagsplit->ref(env, new IntegerObject { 1 }, nullptr);
             auto intenc = flagsplit->ref(env, new IntegerObject { 2 }, nullptr);
             if (self) {

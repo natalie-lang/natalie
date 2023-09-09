@@ -375,8 +375,7 @@ describe :io_new_errors, shared: true do
     end
   end
 
-  # NATFIXME: src/object.cpp:411: Natalie::StringObject* Natalie::Object::as_string(): Assertion `is_string()' failed.
-  xit "raises ArgumentError if passed an empty mode string" do
+  it "raises ArgumentError if passed an empty mode string" do
     -> { IO.send(@method, @fd, "") }.should raise_error(ArgumentError)
   end
 
