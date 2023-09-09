@@ -140,6 +140,11 @@ Value IoObject::getbyte(Env *env) {
     return Value::integer(buffer);
 }
 
+Value IoObject::inspect() const {
+    const auto details = m_closed ? TM::String("(closed)") : TM::String::format("fd {}", m_fileno);
+    return StringObject::format("#<{}:{}>", klass()->inspect_str(), details);
+}
+
 bool IoObject::is_eof(Env *env) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))

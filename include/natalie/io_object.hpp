@@ -59,6 +59,7 @@ public:
     Value getbyte(Env *);
     Value gets(Env *) const;
     Value initialize(Env *, Value);
+    Value inspect() const;
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
     bool isatty(Env *) const;
