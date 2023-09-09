@@ -58,7 +58,7 @@ public:
     int fsync(Env *);
     Value getbyte(Env *);
     Value gets(Env *) const;
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Value, Value = nullptr);
     Value inspect() const;
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
