@@ -106,6 +106,10 @@ namespace fileutil {
             if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
+            if (binary_text_mode == 'b' && self && extenc->is_nil()) {
+                self->set_external_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+            }
+
             if (main_mode == 'r' && !read_write_mode)
                 flags = O_RDONLY;
             else if (main_mode == 'r' && read_write_mode == '+')

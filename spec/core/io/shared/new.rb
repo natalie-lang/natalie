@@ -215,9 +215,7 @@ describe :io_new, shared: true do
 
   it "sets external encoding to binary with binmode in mode string" do
     @io = IO.send(@method, @fd, 'wb')
-    NATFIXME 'Implement IO#external_encoding', exception: SpecFailedException do
-      @io.external_encoding.should == Encoding::BINARY
-    end
+    @io.external_encoding.should == Encoding::BINARY
   end
 
   # #5917

@@ -198,9 +198,7 @@ describe "IO#external_encoding" do
   describe "with 'rb' mode" do
     it "returns Encoding::BINARY" do
       @io = new_io @name, "rb"
-      NATFIXME 'returns Encoding::BINARY', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::BINARY)
-      end
+      @io.external_encoding.should equal(Encoding::BINARY)
     end
 
     it "returns the external encoding specified by the mode argument" do
@@ -220,9 +218,7 @@ describe "IO#external_encoding" do
   describe "with 'wb' mode" do
     it "returns Encoding::BINARY" do
       @io = new_io @name, "wb"
-      NATFIXME 'returns Encoding::BINARY', exception: SpecFailedException do
-        @io.external_encoding.should equal(Encoding::BINARY)
-      end
+      @io.external_encoding.should equal(Encoding::BINARY)
     end
 
     it "returns the external encoding specified by the mode argument" do
