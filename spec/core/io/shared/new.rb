@@ -366,9 +366,7 @@ describe :io_new_errors, shared: true do
   end
 
   it "raises an Errno::EBADF if the file descriptor is not valid" do
-    NATFIXME 'raises an Errno::EBADF if the file descriptor is not valid', exception: SpecFailedException do
-      -> { IO.send(@method, -1, "w") }.should raise_error(Errno::EBADF)
-    end
+    -> { IO.send(@method, -1, "w") }.should raise_error(Errno::EBADF)
   end
 
   it "raises an IOError if passed a closed stream" do
