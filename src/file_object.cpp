@@ -67,6 +67,14 @@ namespace fileutil {
         if (!flags_obj || flags_obj->is_nil())
             return flags;
 
+        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
+            if (flags_obj->respond_to(env, "to_str"_s)) {
+                flags_obj = flags_obj->to_str(env);
+            } else if (flags_obj->respond_to(env, "to_int"_s)) {
+                flags_obj = flags_obj->to_int(env);
+            }
+        }
+
         switch (flags_obj->type()) {
         case Object::Type::Integer:
             return flags_obj->as_integer()->to_nat_int_t();

@@ -270,18 +270,14 @@ describe :io_new, shared: true do
 
   it "coerces mode with #to_str" do
     mode = mock("mode")
-    NATFIXME 'Argument conversion', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      mode.should_receive(:to_str).and_return('w')
-      @io = IO.send(@method, @fd, mode)
-    end
+    mode.should_receive(:to_str).and_return('w')
+    @io = IO.send(@method, @fd, mode)
   end
 
   it "coerces mode with #to_int" do
     mode = mock("mode")
-    NATFIXME 'Argument conversion', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      mode.should_receive(:to_int).and_return(File::WRONLY)
-      @io = IO.send(@method, @fd, mode)
-    end
+    mode.should_receive(:to_int).and_return(File::WRONLY)
+    @io = IO.send(@method, @fd, mode)
   end
 
   it "coerces mode with #to_str when passed in options" do
@@ -332,10 +328,8 @@ describe :io_new, shared: true do
 
   it "coerces options as second argument with #to_hash" do
     options = mock("options")
-    NATFIXME 'Keyword arguments', exception: Errno::EINVAL do
-      options.should_receive(:to_hash).and_return({})
-      @io = IO.send(@method, @fd, **options)
-    end
+    options.should_receive(:to_hash).and_return({})
+    @io = IO.send(@method, @fd, **options)
   end
 
   it "accepts an :autoclose option" do
