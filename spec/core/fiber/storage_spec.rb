@@ -87,6 +87,20 @@ describe "Fiber.[]" do
     Fiber.new { Fiber[:life] }.resume.should be_nil
   end
 
+  ruby_version_is "3.2.3" do
+    it "can use dynamically defined keys" do
+      key = :"#{self.class.name}#.#{self.object_id}"
+      Fiber.new { Fiber[key] = 42; Fiber[key] }.resume.should == 42
+    end
+
+    it "can't use invalid keys" do
+      invalid_keys = [Object.new, "Foo", 12]
+      invalid_keys.each do |key|
+        -> { Fiber[key] }.should raise_error(TypeError)
+      end
+    end
+  end
+
   it "can access the storage of the parent fiber" do
     f = Fiber.new(storage: {life: 42}) do
       Fiber.new { Fiber[:life] }.resume
@@ -127,7 +141,10 @@ describe "Fiber.[]=" do
 
   ruby_version_is "3.3" do
     it "deletes the fiber storage key when assigning nil" do
-      Fiber.new(storage: {life: 42}) { Fiber[:life] = nil; Fiber.current.storage }.resume.should == {}
+      Fiber.new(storage: {life: 42}) {
+        Fiber[:life] = nil
+        Fiber.current.storage
+      }.resume.should == {}
     end
   end
 end

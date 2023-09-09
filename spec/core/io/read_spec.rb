@@ -133,6 +133,15 @@ describe "IO.read" do
     IO.read(@fname, 1, 10).should == nil
   end
 
+  it "returns an empty string when reading zero bytes" do
+    IO.read(@fname, 0).should == ''
+  end
+
+  it "returns a String in BINARY when passed a size" do
+    IO.read(@fname, 1).encoding.should == Encoding::BINARY
+    IO.read(@fname, 0).encoding.should == Encoding::BINARY
+  end
+
   it "raises an Errno::ENOENT when the requested file does not exist" do
     rm_r @fname
     -> { IO.read @fname }.should raise_error(Errno::ENOENT)
@@ -190,14 +199,20 @@ describe "IO.read from a pipe" do
       cmd = "|cmd.exe /C echo hello"
     end
     NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
-      IO.read(cmd).should == "hello\n"
+      suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+        IO.read(cmd).should == "hello\n"
+      end
     end
   end
 
   platform_is_not :windows do
     it "opens a pipe to a fork if the rest is -" do
       NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
-        str = IO.read("|-")
+        str = nil
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          str = IO.read("|-")
+        end
+
         if str # parent
           str.should == "hello from child\n"
         else #child
@@ -214,7 +229,9 @@ describe "IO.read from a pipe" do
       cmd = "|cmd.exe /C echo hello"
     end
     NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
-      IO.read(cmd, 1).should == "h"
+      suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+        IO.read(cmd, 1).should == "h"
+      end
     end
   end
 
@@ -222,7 +239,9 @@ describe "IO.read from a pipe" do
     it "raises Errno::ESPIPE if passed an offset" do
       NATFIXME 'Implement pipe in IO.read', exception: SpecFailedException do
         -> {
-          IO.read("|sh -c 'echo hello'", 1, 1)
+          suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+            IO.read("|sh -c 'echo hello'", 1, 1)
+          end
         }.should raise_error(Errno::ESPIPE)
       end
     end
@@ -234,11 +253,23 @@ quarantine! do # The process tried to write to a nonexistent pipe.
     # once https://bugs.ruby-lang.org/issues/12230 is fixed.
     it "raises Errno::EINVAL if passed an offset" do
       -> {
-        IO.read("|cmd.exe /C echo hello", 1, 1)
+        suppress_warning do # https://bugs.ruby-lang.org/issues/19630
+          IO.read("|cmd.exe /C echo hello", 1, 1)
+        end
       }.should raise_error(Errno::EINVAL)
     end
   end
 end
+
+  ruby_version_is "3.3" do
+    # https://bugs.ruby-lang.org/issues/19630
+    it "warns about deprecation given a path with a pipe" do
+      cmd = "|echo ok"
+      -> {
+        IO.read(cmd)
+      }.should complain(/IO process creation with a leading '\|'/)
+    end
+  end
 end
 
 describe "IO.read on an empty file" do
@@ -280,6 +311,14 @@ describe "IO#read" do
     @io.read(2).should == '23'
     @io.read(3).should == '456'
     @io.read(4).should == '7890'
+  end
+
+  it "treats first nil argument as no length limit" do
+    @io.read(nil).should == @contents
+  end
+
+  it "raises an ArgumentError when not passed a valid length" do
+    -> { @io.read(-1) }.should raise_error(ArgumentError)
   end
 
   it "clears the output buffer if there is nothing to read" do
@@ -597,6 +636,7 @@ describe :io_read_size_internal_encoding, shared: true do
 
   it "returns a String in BINARY when passed a size" do
     @io.read(4).encoding.should equal(Encoding::BINARY)
+    @io.read(0).encoding.should equal(Encoding::BINARY)
   end
 
   it "does not change the buffer's encoding when passed a limit" do
