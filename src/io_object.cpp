@@ -95,6 +95,17 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     return NilObject::the();
 }
 
+Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
+    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
+    file->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+    auto data = file->read(env, length, nullptr);
+    file->close(env);
+    return data;
+}
+
 Value IoObject::each_byte(Env *env, Block *block) {
     if (block == nullptr)
         return send(env, "enum_for"_s, { "each_byte"_s });
@@ -237,6 +248,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
     StringObject *str = nullptr;
     if (buffer != nullptr) {
         str = buffer->as_string();
+    } else if (m_external_encoding != nullptr) {
+        str = new StringObject { "", m_external_encoding };
     } else {
         str = new StringObject {};
     }

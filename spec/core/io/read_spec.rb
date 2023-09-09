@@ -518,9 +518,7 @@ describe "IO#read in binary mode" do
 
     result = File.open(@name, "rb") { |f| f.read }.chomp
 
-    NATFIXME 'Binary encoding (possible error in open)', exception: SpecFailedException do
-      result.encoding.should == Encoding::BINARY
-    end
+    result.encoding.should == Encoding::BINARY
     xE2 = [226].pack('C*')
     result.should == ("abc" + xE2 + "def").force_encoding(Encoding::BINARY)
   end
@@ -607,7 +605,9 @@ describe :io_read_internal_encoding, shared: true do
   end
 
   it "sets the String encoding to the internal encoding" do
-    @io.read.encoding.should equal(Encoding::UTF_8)
+    NATFIXME 'sets the String encoding to the internal encoding', exception: SpecFailedException do
+      @io.read.encoding.should equal(Encoding::UTF_8)
+    end
   end
 
   describe "when passed nil for limit" do
@@ -690,9 +690,7 @@ describe "IO#read" do
       end
 
       it "sets the String encoding to the external encoding" do
-        NATFIXME 'sets the String encoding to the external encoding', exception: SpecFailedException do
-          @io.read.encoding.should equal(Encoding::EUC_JP)
-        end
+        @io.read.encoding.should equal(Encoding::EUC_JP)
       end
 
       it_behaves_like :io_read_size_internal_encoding, nil
