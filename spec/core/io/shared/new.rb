@@ -59,11 +59,9 @@ describe :io_new, shared: true do
 
   it "calls #to_int on an object to convert to an Integer" do
     obj = mock("file descriptor")
-    NATFIXME 'Argument conversion', exception: TypeError, message: 'no implicit conversion of MockObject into Integer' do
-      obj.should_receive(:to_int).and_return(@fd)
-      @io = IO.send(@method, obj, "w")
-      @io.should be_an_instance_of(IO)
-    end
+    obj.should_receive(:to_int).and_return(@fd)
+    @io = IO.send(@method, obj, "w")
+    @io.should be_an_instance_of(IO)
   end
 
   it "accepts options as keyword arguments" do

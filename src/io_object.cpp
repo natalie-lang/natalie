@@ -37,8 +37,7 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
 }
 
 Value IoObject::initialize(Env *env, Value file_number, Value) {
-    file_number->assert_type(env, Object::Type::Integer, "Integer");
-    nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
+    nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     set_fileno(fileno);
     return this;
