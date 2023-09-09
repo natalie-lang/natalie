@@ -98,19 +98,13 @@ describe :io_new, shared: true do
 
   it "uses the external encoding specified in the mode argument" do
     @io = IO.send(@method, @fd, 'w:utf-8')
-    NATFIXME 'Implement IO#external_encoding', exception: NoMethodError, message: "undefined method `external_encoding'" do
-      @io.external_encoding.to_s.should == 'UTF-8'
-    end
+    @io.external_encoding.to_s.should == 'UTF-8'
   end
 
   it "uses the external and the internal encoding specified in the mode argument" do
-      @io = IO.send(@method, @fd, 'w:utf-8:ISO-8859-1')
-    NATFIXME 'Implement IO#external_encoding', exception: NoMethodError, message: "undefined method `external_encoding'" do
-      @io.external_encoding.to_s.should == 'UTF-8'
-    end
-    NATFIXME 'Implement IO#internal_encoding', exception: NoMethodError, message: "undefined method `internal_encoding'" do
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'w:utf-8:ISO-8859-1')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "uses the external encoding specified via the :external_encoding option" do
@@ -221,7 +215,7 @@ describe :io_new, shared: true do
 
   it "sets external encoding to binary with binmode in mode string" do
     @io = IO.send(@method, @fd, 'wb')
-    NATFIXME 'Implement IO#external_encoding', exception: NoMethodError, message: "undefined method `external_encoding'" do
+    NATFIXME 'Implement IO#external_encoding', exception: SpecFailedException do
       @io.external_encoding.should == Encoding::BINARY
     end
   end
@@ -236,9 +230,7 @@ describe :io_new, shared: true do
 
   it "does not use binary encoding when mode encoding is specified" do
     @io = IO.send(@method, @fd, 'wb:iso-8859-1')
-    NATFIXME 'Implement IO#external_encoding', exception: NoMethodError, message: "undefined method `external_encoding'" do
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "does not use binary encoding when :encoding option is specified" do

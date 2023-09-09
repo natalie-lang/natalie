@@ -51,6 +51,7 @@ public:
     Value append(Env *, Value);
     Value close(Env *);
     Value each_byte(Env *, Block *);
+    Value external_encoding() const { return m_external_encoding; }
     Value fcntl(Env *, Value, Value = nullptr);
     int fdatasync(Env *);
     int fileno() const;
@@ -60,6 +61,7 @@ public:
     Value gets(Env *) const;
     Value initialize(Env *, Value, Value = nullptr);
     Value inspect() const;
+    Value internal_encoding() const { return m_internal_encoding; }
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
     bool isatty(Env *) const;
