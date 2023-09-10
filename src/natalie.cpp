@@ -105,6 +105,9 @@ Env *build_top_env() {
     Math->const_set("E"_s, new FloatObject { M_E });
     Math->const_set("PI"_s, new FloatObject { M_PI });
 
+    ModuleObject *Signal = new ModuleObject { "Signal" };
+    Object->const_set("Signal"_s, Signal);
+
     ClassObject *String = Object->subclass(env, "String", Object::Type::String);
     global_env->set_String(String);
     Object->const_set("String"_s, String);

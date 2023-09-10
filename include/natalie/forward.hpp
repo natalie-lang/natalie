@@ -43,6 +43,7 @@ class RandomObject;
 class RangeObject;
 class RationalObject;
 class RegexpObject;
+class SignalModule;
 class StringObject;
 class SymbolObject;
 class TimeObject;
