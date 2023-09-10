@@ -187,16 +187,12 @@ describe :io_new, shared: true do
 
   it "sets binmode from mode string" do
     @io = IO.send(@method, @fd, 'wb')
-    NATFIXME 'Implement IO#binmode?', exception: NoMethodError, message: "undefined method `binmode?'" do
-      @io.should.binmode?
-    end
+    @io.should.binmode?
   end
 
   it "does not set binmode without being asked" do
     @io = IO.send(@method, @fd, 'w')
-    NATFIXME 'Implement IO#binmode?', exception: NoMethodError, message: "undefined method `binmode?'" do
-      @io.should_not.binmode?
-    end
+    @io.should_not.binmode?
   end
 
   it "sets binmode from :binmode option" do

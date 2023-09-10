@@ -996,6 +996,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     if (fd == -1)
         env->raise_errno();
     self->as_io()->initialize(env, Value::integer(fd));
+    self->as_io()->binmode(env);
 
     auto Socket = find_top_level_const(env, "Socket"_s);
 

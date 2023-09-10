@@ -50,6 +50,7 @@ public:
     Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
     static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
+    Value binmode(Env *);
     Value close(Env *);
     Value each_byte(Env *, Block *);
     Value external_encoding() const { return m_external_encoding; }
@@ -63,6 +64,7 @@ public:
     Value initialize(Env *, Value, Value = nullptr);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
+    bool is_binmode(Env *) const;
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
     bool isatty(Env *) const;

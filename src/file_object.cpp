@@ -104,6 +104,8 @@ namespace fileutil {
 
             if (binary_text_mode == 'b' && self && extenc->is_nil()) {
                 self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+            } else if (binary_text_mode == 't' && self && extenc->is_nil()) {
+                self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
             }
 
             if (main_mode == 'r' && !read_write_mode)
