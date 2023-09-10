@@ -382,14 +382,8 @@ class SexpVisitor < ::YARP::BasicVisitor
   def visit_parameters_node(node)
     return Sexp.new(:args) unless node
 
-    # NOTE: Possible bug in YARP: https://github.com/ruby/yarp/issues/1436
-    in_order = node.requireds +
-               [node.rest].compact +
-               node.optionals +
-               node.posts +
-               [node.block].compact +
-               node.keywords +
-               [node.keyword_rest].compact
+    # NOTE: More info about sorted parameters: https://github.com/ruby/yarp/issues/1436
+    in_order = node.child_nodes.compact.sort_by { |n| n.location.start_offset }
 
     s(:args,
       *in_order.map { |n| visit(n) }.compact,
