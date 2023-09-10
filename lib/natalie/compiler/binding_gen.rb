@@ -616,7 +616,7 @@ gen.static_binding('FileTest', 'blockdev?', 'FileObject', 'is_blockdev', argc: 1
 gen.static_binding('FileTest', 'chardev?', 'FileObject', 'is_chardev', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'directory?', 'FileObject', 'is_directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'executable?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.static_binding('FileTest', 'executable_real?', 'FileObject', 'is_executable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('FileTest', 'executable_real?', 'FileObject', 'is_executable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'exist?', 'FileObject', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'file?', 'FileObject', 'is_file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('FileTest', 'identical?', 'FileObject', 'is_identical', argc: 2, pass_env: true, pass_block: false, return_type: :bool)
