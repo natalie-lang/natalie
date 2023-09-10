@@ -1,6 +1,4 @@
 class Array
-  alias prepend unshift
-
   def |(other)
     union(other)
   end
