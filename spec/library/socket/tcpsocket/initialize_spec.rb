@@ -41,7 +41,7 @@ describe 'TCPSocket#initialize' do
 
       it 'set the socket to binmode' do
         @client = TCPSocket.new(ip_address, @port)
-        NATFIXME 'Implement IO#binmode?', exception: NoMethodError, message: "undefined method `binmode?'" do
+        NATFIXME 'set the socket to binmode', exception: SpecFailedException do
           @client.binmode?.should be_true
         end
       end

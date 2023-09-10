@@ -52,7 +52,8 @@ describe "IO#binmode?" do
     @file.binmode?.should be_true
   end
 
-  it "propagates to dup'ed IO objects" do
+  # NATFIXME: I don't know how to dup this kind of object yet File (type = 16).
+  xit "propagates to dup'ed IO objects" do
     @file.binmode
     @duped = @file.dup
     @duped.binmode?.should == @file.binmode?

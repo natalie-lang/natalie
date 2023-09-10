@@ -171,6 +171,11 @@ Value IoObject::inspect() const {
     return StringObject::format("#<{}:{}>", klass()->inspect_str(), details);
 }
 
+bool IoObject::is_binmode(Env *env) const {
+    raise_if_closed(env);
+    return m_external_encoding == EncodingObject::get(Encoding::ASCII_8BIT);
+}
+
 bool IoObject::is_eof(Env *env) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
@@ -277,6 +282,13 @@ Value IoObject::append(Env *env, Value obj) {
     obj->assert_type(env, Object::Type::String, "String");
     auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
     if (result == -1) env->raise_errno();
+    return this;
+}
+
+Value IoObject::binmode(Env *env) {
+    raise_if_closed(env);
+    m_external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+    m_internal_encoding = nullptr;
     return this;
 }
 
