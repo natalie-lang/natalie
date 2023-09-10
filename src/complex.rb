@@ -32,7 +32,7 @@ class Complex
     if real.respond_to?(:nan?) && real.nan?
       s << "NaN"
     else
-      s << real.to_s
+      s << real.inspect
     end
 
     if ! imaginary.negative? && ! imaginary.to_s.include?("-")
@@ -44,15 +44,19 @@ class Complex
         s << '-'
       end
 
-      s << "NaN*"
+      s << "NaN"
     elsif ! imaginary.finite?
       if imaginary.negative?
         s << '-'
       end
 
-      s << "Infinity*"
+      s << "Infinity"
     else
-      s << imaginary.to_s
+      s << imaginary.inspect
+    end
+
+    unless ('0'..'9').cover?(s[-1])
+      s << '*'
     end
 
     s << "i"
