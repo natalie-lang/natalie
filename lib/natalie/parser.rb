@@ -8,6 +8,7 @@ require 'natalie_parser'
 
 class SexpVisitor < ::YARP::BasicVisitor
   def initialize(path)
+    super()
     @path = path
   end
 
@@ -92,10 +93,10 @@ class SexpVisitor < ::YARP::BasicVisitor
 
     arguments = node.arguments&.child_nodes || []
     call = s(sexp_type,
-            visit(node.child_nodes.first),
-            node.name.to_sym,
-            *arguments.map { |n| visit(n) },
-            location: node.location)
+             visit(node.child_nodes.first),
+             node.name.to_sym,
+             *arguments.map { |n| visit(n) },
+             location: node.location)
 
     if node.block
       s(:iter,
@@ -203,7 +204,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_hash_node(node)
-    h = s(:hash,
+    s(:hash,
       *flatten(node.child_nodes.map { |n| visit(n) }),
       location: node.location)
   end
@@ -381,10 +382,17 @@ class SexpVisitor < ::YARP::BasicVisitor
   def visit_parameters_node(node)
     return Sexp.new(:args) unless node
 
-    binding.irb
+    # NOTE: Possible bug in YARP: https://github.com/ruby/yarp/issues/1436
+    in_order = node.requireds +
+               [node.rest].compact +
+               node.optionals +
+               node.posts +
+               [node.block].compact +
+               node.keywords +
+               [node.keyword_rest].compact
 
     s(:args,
-      *node.child_nodes.map { |n| visit(n) }.compact,
+      *in_order.map { |n| visit(n) }.compact,
       location: node.location)
   end
 
@@ -432,7 +440,7 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_return_or_next_or_break_node(node, sexp_type:)
     args = node.arguments&.child_nodes || []
-    if args.size == 0
+    if args.empty?
       s(sexp_type, nil, location: node.location)
     elsif args.size == 1
       s(sexp_type, visit(args.first), location: node.location)
@@ -468,10 +476,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     left = visit(node.left)
     right = visit(node.right)
     case [left.sexp_type, right.sexp_type]
-    when [:str, :str]
+    when %i[str str]
       left[1] << right[1]
       left
-    when [:dstr, :dstr]
+    when %i[dstr dstr]
       right[1..].each do |segment|
         left << if segment.is_a?(String)
                   s(:str, segment, location: node.right.location)
