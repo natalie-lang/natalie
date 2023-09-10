@@ -2,6 +2,10 @@ $LOAD_PATH << File.expand_path('../../build/yarp/lib', __dir__)
 $LOAD_PATH << File.expand_path('../../build/yarp/ext', __dir__)
 require 'yarp'
 
+$LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
+$LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
+require 'natalie_parser'
+
 class SexpVisitor < ::YARP::BasicVisitor
   def initialize(path)
     @path = path
@@ -19,21 +23,80 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:array, *node.child_nodes.map { |n| visit(n) }, location: node.location)
   end
 
+  def visit_assoc_node(node)
+    [visit(node.key), visit(node.value)]
+  end
+
+  def visit_assoc_splat_node(node)
+    s(:kwsplat, visit(node.value), location: node.location)
+  end
+
+  def visit_begin_node(node)
+    if node.ensure_clause && !node.rescue_clause && !node.else_clause
+      s(:ensure,
+        visit(node.statements),
+        visit(node.ensure_clause.statements),
+        location: node.location)
+    else
+      ary = s(:array,
+              *node.rescue_clause.exceptions.map { |n| visit(n) },
+              location: node.rescue_clause.location)
+      ref = visit(node.rescue_clause.reference)
+      if ref
+        ref << s(:gvar, :$!, location: node.rescue_clause.location)
+        ary << ref
+      end
+      res = s(:rescue,
+              visit(node.statements),
+              s(:resbody,
+                ary,
+                visit(node.rescue_clause.statements),
+                location: node.location),
+              location: node.location)
+      res << visit(node.else_clause) if node.else_clause
+      if node.ensure_clause
+        s(:ensure,
+          res,
+          visit(node.ensure_clause.statements),
+          location: node.location)
+      else
+        res
+      end
+    end
+  end
+
   def visit_block_argument_node(node)
     s(:block_pass, visit(node.expression), location: node.location)
+  end
+
+  def visit_block_parameter_node(node)
+    "&#{node.name}".to_sym
   end
 
   def visit_block_parameters_node(node)
     visit_parameters_node(node.parameters)
   end
 
+  def visit_break_node(node)
+    visit_return_or_next_or_break_node(node, sexp_type: :break)
+  end
+
   def visit_call_node(node)
+    return visit_match_node(node) if %w[=~ !~].include?(node.name)
+
+    sexp_type = if node.safe_navigation?
+                  :safe_call
+                else
+                  :call
+                end
+
     arguments = node.arguments&.child_nodes || []
-    call = s(:call,
+    call = s(sexp_type,
             visit(node.child_nodes.first),
             node.name.to_sym,
             *arguments.map { |n| visit(n) },
             location: node.location)
+
     if node.block
       s(:iter,
         call,
@@ -45,12 +108,43 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_match_node(node)
+    match = if node.receiver.is_a?(YARP::RegularExpressionNode)
+              s(:match2,
+                visit(node.receiver),
+                visit(node.arguments.child_nodes.first),
+                location: node.location)
+            else
+              s(:match3,
+                visit(node.arguments.child_nodes.first),
+                visit(node.receiver),
+                location: node.location)
+            end
+    if node.name == '!~'
+      s(:not, match, location: node.location)
+    else
+      match
+    end
+  end
+
+  def visit_case_node(node)
+    s(:case,
+      visit(node.predicate),
+      *node.conditions.map { |n| visit(n) },
+      visit(node.consequent),
+      location: node.location)
+  end
+
   def visit_class_node(node)
     s(:class,
       node.name.to_sym,
       visit(node.superclass),
-      visit(node.child_nodes[2]),
+      visit(node.body),
       location: node.location)
+  end
+
+  def visit_constant_path_node(node)
+    s(:colon2, visit(node.parent), node.child.slice, location: node.location)
   end
 
   def visit_constant_read_node(node)
@@ -63,12 +157,25 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_def_node(node)
-    _unknown, parameters_node, statements_node = node.child_nodes
-    s(:defn,
-      node.name,
-      visit(parameters_node) || Sexp.new(:args),
-      visit(statements_node),
-      location: node.location)
+    if node.receiver
+      receiver = visit(node.receiver)
+      if receiver.sexp_type == :call
+        # NOTE: possible bug? https://github.com/ruby/yarp/issues/1435
+        receiver = s(:lvar, receiver.last, location: node.receiver.location)
+      end
+      s(:defs,
+        receiver,
+        node.name.to_sym,
+        visit(node.parameters) || s(:args, location: node.location),
+        visit(node.body) || s(:nil, location: node.location),
+        location: node.location)
+    else
+      s(:defn,
+        node.name.to_sym,
+        visit(node.parameters) || s(:args, location: node.location),
+        visit(node.body) || s(:nil, location: node.location),
+        location: node.location)
+    end
   end
 
   def visit_else_node(node)
@@ -79,23 +186,70 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:false, location: node.location)
   end
 
+  def visit_float_node(node)
+    s(:lit, node.value, location: node.location)
+  end
+
   def visit_global_variable_read_node(node)
     s(:gvar, node.name, location: node.location)
   end
 
+  def visit_global_variable_target_node(node)
+    s(:gasgn, node.name, location: node.location)
+  end
+
+  def visit_global_variable_write_node(node)
+    s(:gasgn, node.name, visit(node.value), location: node.location)
+  end
+
   def visit_hash_node(node)
-    s(:hash,
-      *node.child_nodes.flat_map { |n| [visit(n.key), visit(n.value)] },
+    h = s(:hash,
+      *flatten(node.child_nodes.map { |n| visit(n) }),
       location: node.location)
   end
 
   def visit_if_node(node)
-    condition, true_body, false_body = node.child_nodes
-    s(:if, visit(condition), visit(true_body), visit(false_body), location: node.location)
+    s(:if,
+      visit(node.predicate),
+      visit(node.statements),
+      visit(node.consequent),
+      location: node.location)
+  end
+
+  def visit_call_operator_or_write_node(node)
+    args = node.target.arguments&.child_nodes || []
+    s(:op_asgn1,
+      visit(node.target.receiver),
+      s(:arglist, *args.map { |n| visit(n) }, location: node.location),
+      node.operator.tr('=', '').to_sym,
+      visit(node.value),
+      location: node.location)
+  end
+
+  def visit_instance_variable_operator_write_node(node)
+    s(:iasgn,
+      node.name,
+      s(:call,
+        s(:ivar, node.name, location: node.location),
+        node.operator,
+        visit(node.value),
+        location: node.location),
+      location: node.location)
+  end
+
+  def visit_instance_variable_or_write_node(node)
+    s(:op_asgn_or,
+      s(:ivar, node.name, location: node.location),
+      s(:iasgn, node.name, visit(node.value), location: node.location),
+      location: node.location)
   end
 
   def visit_instance_variable_read_node(node)
     s(:ivar, node.name, location: node.location)
+  end
+
+  def visit_instance_variable_target_node(node)
+    s(:iasgn, node.name, location: node.location)
   end
 
   def visit_instance_variable_write_node(node)
@@ -107,18 +261,74 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_interpolated_string_node(node)
-    s(:dstr,
-      '',
-      *node.child_nodes.map do |n|
-        case n
-        when YARP::StringNode
-          s(:str, n.content, location: n.location)
-        when YARP::EmbeddedStatementsNode
-          s(:evstr, visit(n.statements), location: n.location)
-        else
-          raise "unknown interpolated string segment: #{n.inspect}"
-        end
-      end,
+    visit_interpolated_stringish_node(node, sexp_type: :dstr)
+  end
+
+  def visit_interpolated_stringish_node(node, sexp_type:)
+    segments = node.child_nodes.map do |n|
+                 case n
+                 when YARP::StringNode
+                   s(:str, n.content, location: n.location)
+                 when YARP::EmbeddedStatementsNode
+                   s(:evstr, visit(n.statements), location: n.location)
+                 else
+                   raise "unknown interpolated string segment: #{n.inspect}"
+                 end
+               end
+    if segments.size == 1 && segments.first.sexp_type == :str
+      segments.first
+    else
+      s(sexp_type, '', *segments, location: node.location)
+    end
+  end
+
+  def visit_interpolated_x_string_node(node)
+    visit_interpolated_stringish_node(node, sexp_type: :dxstr)
+  end
+
+  def visit_keyword_hash_node(node)
+    s(:bare_hash,
+      *flatten(node.child_nodes.map { |n| visit(n) }),
+      location: node.location)
+  end
+
+  def visit_keyword_parameter_node(node)
+    exp = s(:kwarg, node.name.tr(':', '').to_sym, location: node.location)
+    exp << visit(node.value) if node.value
+    exp
+  end
+
+  def visit_keyword_rest_parameter_node(node)
+    "**#{node.name}".to_sym
+  end
+
+  def visit_lambda_node(node)
+    s(:iter,
+      s(:lambda, location: node.location),
+      visit(node.parameters) || 0,
+      visit(node.body),
+      location: node.location)
+  end
+
+  def visit_local_variable_operator_write_node(node)
+    s(:lasgn,
+      node.name,
+      s(:call,
+        s(:lvar, node.name, location: node.location),
+        node.operator,
+        visit(node.value),
+        location: node.location),
+      location: node.location)
+  end
+
+  def visit_local_variable_or_write_node(node)
+    s(:lasgn,
+      node.name,
+      s(:call,
+        s(:lvar, node.name, location: node.location),
+        node.operator,
+        visit(node.value),
+        location: node.location),
       location: node.location)
   end
 
@@ -134,6 +344,13 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:lasgn, node.name, visit(node.value), location: node.location)
   end
 
+  def visit_module_node(node)
+    s(:module,
+      node.name.to_sym,
+      visit(node.body),
+      location: node.location)
+  end
+
   def visit_multi_write_node(node)
     value = visit(node.value)
     unless value.sexp_type == :array
@@ -146,25 +363,53 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_next_node(node)
-    visit_return_or_next_node(node, sexp_type: :next)
+    visit_return_or_next_or_break_node(node, sexp_type: :next)
+  end
+
+  def visit_nil_node(node)
+    s(:nil, location: node.location)
+  end
+
+  def visit_optional_parameter_node(node)
+    s(:lasgn, node.name, visit(node.value), location: node.location)
+  end
+
+  def visit_or_node(node)
+    s(:or, visit(node.left), visit(node.right), location: node.location)
   end
 
   def visit_parameters_node(node)
     return Sexp.new(:args) unless node
+
+    binding.irb
 
     s(:args,
       *node.child_nodes.map { |n| visit(n) }.compact,
       location: node.location)
   end
 
+  def visit_parentheses_node(node)
+    visit(node.body)
+  end
+
   def visit_range_node(node)
-    left = visit(node.left)
-    right = visit(node.right)
-    if node.exclude_end?
-      s(:lit, left...right, location: node.location)
+    if node.left.is_a?(YARP::IntegerNode) && node.right.is_a?(YARP::IntegerNode)
+      left = node.left.value
+      right = node.right.value
+      if node.exclude_end?
+        s(:lit, left...right, location: node.location)
+      else
+        s(:lit, left..right, location: node.location)
+      end
+    elsif node.exclude_end?
+      s(:dot3, visit(node.left), visit(node.right), location: node.location)
     else
-      s(:lit, left..right, location: node.location)
+      s(:dot2, visit(node.left), visit(node.right), location: node.location)
     end
+  end
+
+  def visit_regular_expression_node(node)
+    s(:lit, Regexp.new(node.content, node.flags), location: node.location)
   end
 
   def visit_required_destructured_parameter_node(node)
@@ -177,11 +422,15 @@ class SexpVisitor < ::YARP::BasicVisitor
     node.name.to_sym
   end
 
-  def visit_return_node(node)
-    visit_return_or_next_node(node, sexp_type: :return)
+  def visit_rest_parameter_node(node)
+    "*#{node.name}".to_sym
   end
 
-  def visit_return_or_next_node(node, sexp_type:)
+  def visit_return_node(node)
+    visit_return_or_next_or_break_node(node, sexp_type: :return)
+  end
+
+  def visit_return_or_next_or_break_node(node, sexp_type:)
     args = node.arguments&.child_nodes || []
     if args.size == 0
       s(sexp_type, nil, location: node.location)
@@ -192,6 +441,14 @@ class SexpVisitor < ::YARP::BasicVisitor
         s(:array, *args.map { |n| visit(n) }, location: node.location),
         location: node.location)
     end
+  end
+
+  def visit_self_node(node)
+    s(:self, location: node.location)
+  end
+
+  def visit_singleton_class_node(node)
+    s(:sclass, visit(node.expression), visit(node.body), location: node.location)
   end
 
   def visit_splat_node(node)
@@ -207,8 +464,34 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
   alias visit_program_node visit_statements_node
 
+  def visit_string_concat_node(node)
+    left = visit(node.left)
+    right = visit(node.right)
+    case [left.sexp_type, right.sexp_type]
+    when [:str, :str]
+      left[1] << right[1]
+      left
+    when [:dstr, :dstr]
+      right[1..].each do |segment|
+        left << if segment.is_a?(String)
+                  s(:str, segment, location: node.right.location)
+                else
+                  segment
+                end
+      end
+      left
+    else
+      debug node
+    end
+  end
+
   def visit_string_node(node)
     s(:str, node.content, location: node.location)
+  end
+
+  def visit_super_node(node)
+    args = node.arguments&.child_nodes || []
+    s(:super, *args.map { |n| visit(n) }, location: node.location)
   end
 
   def visit_symbol_node(node)
@@ -219,15 +502,84 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:true, location: node.location)
   end
 
+  def visit_unless_node(node)
+    s(:if,
+      visit(node.predicate),
+      visit(node.consequent),
+      visit(node.statements),
+      location: node.location)
+  end
+
+  def visit_until_node(node)
+    s(:until,
+      visit(node.predicate),
+      visit(node.statements),
+      location: node.location)
+  end
+
+  def visit_when_node(node)
+    s(:when,
+      s(:array,
+        *node.conditions.map { |n| visit(n) },
+        location: node.location),
+      visit(node.statements),
+      location: node.location)
+  end
+
+  def visit_while_node(node)
+    s(:while,
+      visit(node.predicate),
+      visit(node.statements),
+      location: node.location)
+  end
+
   def visit_yield_node(node)
     arguments = node.arguments&.child_nodes || []
     s(:yield, *arguments.map { |n| visit(n) }, location: node.location)
   end
 
+  def visit_x_string_node(node)
+    s(:xstr, node.content, location: node.location)
+  end
+
+  def method_missing(meth, *args)
+    if meth =~ /^visit_/
+      puts '---------------------------'
+      puts meth
+      puts '---------------------------'
+      debug(args.first)
+    end
+    raise NoMethodError, meth
+  end
+
   private
+
+  def debug(node)
+    begin
+      pp NatalieParser.parse(node.slice)
+    rescue SyntaxError
+    end
+    puts @path
+    p node.location.start_line
+    binding.irb
+  end
 
   def s(*items, location:)
     Sexp.new(*items, location:, file: @path)
+  end
+
+  def flatten(ary)
+    ary2 = []
+    ary.map do |item|
+      if item.instance_of?(Array)
+        item.each do |i|
+          ary2 << i
+        end
+      else
+        ary2 << item
+      end
+    end
+    ary2
   end
 end
 
@@ -259,11 +611,16 @@ class Sexp < Array
   end
 
   def new(*parts)
-    Sexp.new(*self).tap do |sexp|
+    Sexp.new(*parts).tap do |sexp|
       sexp.file = file
       sexp.line = line
       sexp.column = column
     end
+  end
+
+  def strip_trailing_nils
+    pop while last.nil?
+    self
   end
 end
 
@@ -282,9 +639,6 @@ module Natalie
 
     def ast
       if @old_parser
-        $LOAD_PATH << File.expand_path('../../build/natalie_parser/lib', __dir__)
-        $LOAD_PATH << File.expand_path('../../build/natalie_parser/ext', __dir__)
-        require 'natalie_parser'
         begin
           result = NatalieParser.parse(@code_str, @path)
           if result.is_a?(Sexp) && result.sexp_type == :block

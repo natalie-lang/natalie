@@ -45,6 +45,9 @@ module Natalie
               arg = arg.new(:masgn, *array[1..-1])
             end
             transform_destructured_arg(arg)
+          when :splat
+            clean_up_keyword_args
+            transform_splat_arg(arg[1])
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
@@ -127,7 +130,7 @@ module Natalie
       end
 
       def transform_splat_arg(arg)
-        name = arg[1..-1]
+        name = arg.to_s.tr('*', '').to_sym
         if name.empty?
           :noop
         else
