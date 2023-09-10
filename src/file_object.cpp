@@ -67,21 +67,25 @@ namespace fileutil {
         if (!flags_obj || flags_obj->is_nil())
             return flags;
 
+        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
+            if (flags_obj->respond_to(env, "to_str"_s)) {
+                flags_obj = flags_obj->to_str(env);
+            } else if (flags_obj->respond_to(env, "to_int"_s)) {
+                flags_obj = flags_obj->to_int(env);
+            }
+        }
+
         switch (flags_obj->type()) {
         case Object::Type::Integer:
             return flags_obj->as_integer()->to_nat_int_t();
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->first()->as_string()->string();
-            auto extenc = flagsplit->ref(env, new IntegerObject { 1 }, nullptr);
-            auto intenc = flagsplit->ref(env, new IntegerObject { 2 }, nullptr);
-            if (self) {
-                EncodingObject *ext_e = extenc->is_string() ? EncodingObject::find_encoding(env, extenc->as_string()) : EncodingObject::default_external();
-                EncodingObject *int_e = intenc->is_string() ? EncodingObject::find_encoding(env, intenc->as_string()) : EncodingObject::default_internal();
-                self->set_external_encoding(env, ext_e);
-                self->set_internal_encoding(env, int_e);
-            }
+            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
+            if (self)
+                self->set_encoding(env, extenc, intenc);
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -97,6 +101,10 @@ namespace fileutil {
 
             if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
+
+            if (binary_text_mode == 'b' && self && extenc->is_nil()) {
+                self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+            }
 
             if (main_mode == 'r' && !read_write_mode)
                 flags = O_RDONLY;

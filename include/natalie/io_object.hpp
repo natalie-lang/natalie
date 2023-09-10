@@ -49,8 +49,10 @@ public:
 
     Value advise(Env *, Value, Value, Value);
     Value append(Env *, Value);
+    static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
     Value close(Env *);
     Value each_byte(Env *, Block *);
+    Value external_encoding() const { return m_external_encoding; }
     Value fcntl(Env *, Value, Value = nullptr);
     int fdatasync(Env *);
     int fileno() const;
@@ -58,8 +60,9 @@ public:
     int fsync(Env *);
     Value getbyte(Env *);
     Value gets(Env *) const;
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Value, Value = nullptr);
     Value inspect() const;
+    Value internal_encoding() const { return m_internal_encoding; }
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
     bool isatty(Env *) const;
@@ -70,6 +73,7 @@ public:
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
     Value seek(Env *, Value, Value) const;
+    Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
@@ -78,12 +82,6 @@ public:
     Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);
-    void set_external_encoding(Env *env, EncodingObject *enc) {
-        m_external_encoding = enc;
-    }
-    void set_internal_encoding(Env *env, EncodingObject *enc) {
-        m_internal_encoding = enc;
-    }
     int set_pos(Env *, Value);
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);

@@ -8,14 +8,20 @@
 
 namespace Natalie {
 
-static inline bool is_readable(const int fd) {
-    const int flags = fcntl(fd, F_GETFL);
+static inline bool flags_is_readable(const int flags) {
     return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_WRONLY;
 }
 
-static inline bool is_writable(const int fd) {
-    const int flags = fcntl(fd, F_GETFL);
+static inline bool flags_is_writable(const int flags) {
     return (flags & (O_RDONLY | O_WRONLY | O_RDWR)) != O_RDONLY;
+}
+
+static inline bool is_readable(const int fd) {
+    return flags_is_readable(fcntl(fd, F_GETFL));
+}
+
+static inline bool is_writable(const int fd) {
+    return flags_is_writable(fcntl(fd, F_GETFL));
 }
 
 static void throw_unless_readable(Env *env, const IoObject *const self) {
@@ -36,10 +42,19 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
     env->raise_errno();
 }
 
-Value IoObject::initialize(Env *env, Value file_number) {
-    file_number->assert_type(env, Object::Type::Integer, "Integer");
-    nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
+Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
+    nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
+    const auto actual_flags = ::fcntl(fileno, F_GETFL);
+    if (actual_flags < 0)
+        env->raise_errno();
+    if (flags_obj != nullptr && !flags_obj->is_nil()) {
+        const auto wanted_flags = fileutil::flags_obj_to_flags(env, this, flags_obj);
+        if ((flags_is_readable(wanted_flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags) && !flags_is_writable(actual_flags))) {
+            errno = EINVAL;
+            env->raise_errno();
+        }
+    }
     set_fileno(fileno);
     return this;
 }
@@ -78,6 +93,17 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
     }
 #endif
     return NilObject::the();
+}
+
+Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
+    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
+    file->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+    auto data = file->read(env, length, nullptr);
+    file->close(env);
+    return data;
 }
 
 Value IoObject::each_byte(Env *env, Block *block) {
@@ -222,6 +248,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
     StringObject *str = nullptr;
     if (buffer != nullptr) {
         str = buffer->as_string();
+    } else if (m_external_encoding != nullptr) {
+        str = new StringObject { "", m_external_encoding };
     } else {
         str = new StringObject {};
     }
@@ -395,6 +423,35 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     if (result == -1)
         env->raise_errno();
     return Value::integer(0);
+}
+
+Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
+    if ((int_enc == nullptr || int_enc->is_nil()) && ext_enc != nullptr && (ext_enc->is_string() || ext_enc->respond_to(env, "to_str"_s))) {
+        ext_enc = ext_enc->to_str(env);
+        if (ext_enc->as_string()->include(":")) {
+            auto colon = new StringObject { ":" };
+            auto encsplit = ext_enc->to_str(env)->split(env, colon, nullptr)->as_array();
+            ext_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
+            int_enc = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+        }
+    }
+
+    if (ext_enc != nullptr && !ext_enc->is_nil()) {
+        if (ext_enc->is_encoding()) {
+            m_external_encoding = ext_enc->as_encoding();
+        } else {
+            m_external_encoding = EncodingObject::find_encoding(env, ext_enc->to_str(env));
+        }
+    }
+    if (int_enc != nullptr && !int_enc->is_nil()) {
+        if (int_enc->is_encoding()) {
+            m_internal_encoding = int_enc->as_encoding();
+        } else {
+            m_internal_encoding = EncodingObject::find_encoding(env, int_enc->to_str(env));
+        }
+    }
+
+    return this;
 }
 
 Value IoObject::stat(Env *env) const {
