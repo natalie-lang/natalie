@@ -41,11 +41,11 @@ module Natalie
           when :splat
             _, name = arg
             transform_splat_arg(name)
-          when :attrasgn
+          when :attrasgn, :call
             _, receiver, message, *args = arg
             transform_attr_assign_arg(receiver, message, args)
           else
-            raise "I don't yet know how to compile #{arg.inspect}"
+            raise "I don't yet know how to compile #{arg.inspect} #{arg.file}##{arg.line}"
           end
         else
           raise "I don't yet know how to compile #{arg.inspect}"
