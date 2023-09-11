@@ -101,6 +101,11 @@ class SexpVisitor < ::YARP::BasicVisitor
              *arguments.map { |n| visit(n) },
              location: node.location)
 
+    if call[2] == :!~
+      call[2] = :=~
+      call = s(:not, call, location: node.location)
+    end
+
     if node.block
       s(:iter,
         call,
@@ -109,25 +114,6 @@ class SexpVisitor < ::YARP::BasicVisitor
         location: node.location)
     else
       call
-    end
-  end
-
-  def visit_match_node(node)
-    match = if node.receiver.is_a?(YARP::RegularExpressionNode)
-              s(:match2,
-                visit(node.receiver),
-                visit(node.arguments.child_nodes.first),
-                location: node.location)
-            else
-              s(:match3,
-                visit(node.arguments.child_nodes.first),
-                visit(node.receiver),
-                location: node.location)
-            end
-    if node.name == '!~'
-      s(:not, match, location: node.location)
-    else
-      match
     end
   end
 
@@ -179,6 +165,21 @@ class SexpVisitor < ::YARP::BasicVisitor
       visit(node.superclass),
       visit(node.body),
       location: node.location)
+  end
+
+  def visit_class_variable_read_node(node)
+    s(:cvar, node.name, location: node.location)
+  end
+
+  def visit_class_variable_or_write_node(node)
+    s(:op_asgn_or,
+      s(:cvar, node.name, location: node.location),
+      s(:cvdecl, node.name, visit(node.value), location: node.location),
+      location: node.location)
+  end
+
+  def visit_class_variable_write_node(node)
+    s(:cvdecl, node.name, visit(node.value), location: node.location)
   end
 
   def visit_constant_path_node(node)
@@ -465,6 +466,25 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_local_variable_write_node(node)
     s(:lasgn, node.name, visit(node.value), location: node.location)
+  end
+
+  def visit_match_node(node)
+    match = if node.receiver.is_a?(YARP::RegularExpressionNode)
+              s(:match2,
+                visit(node.receiver),
+                visit(node.arguments.child_nodes.first),
+                location: node.location)
+            else
+              s(:match3,
+                visit(node.arguments.child_nodes.first),
+                visit(node.receiver),
+                location: node.location)
+            end
+    if node.name == '!~'
+      s(:not, match, location: node.location)
+    else
+      match
+    end
   end
 
   def visit_module_node(node)
