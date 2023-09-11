@@ -171,6 +171,11 @@ Value IoObject::inspect() const {
     return StringObject::format("#<{}:{}>", klass()->inspect_str(), details);
 }
 
+bool IoObject::is_autoclose(Env *env) const {
+    raise_if_closed(env);
+    return m_autoclose;
+}
+
 bool IoObject::is_binmode(Env *env) const {
     raise_if_closed(env);
     return m_external_encoding == EncodingObject::get(Encoding::ASCII_8BIT);
@@ -283,6 +288,12 @@ Value IoObject::append(Env *env, Value obj) {
     auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
     if (result == -1) env->raise_errno();
     return this;
+}
+
+Value IoObject::autoclose(Env *env, Value value) {
+    raise_if_closed(env);
+    m_autoclose = value->is_truthy();
+    return value;
 }
 
 Value IoObject::binmode(Env *env) {

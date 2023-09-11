@@ -63,7 +63,7 @@ describe :dir_open, shared: true do
 
   platform_is_not :windows do
     it 'sets the close-on-exec flag for the directory file descriptor' do
-      NATFIXME "Pending implementation of IO#autoclose=", exception: NoMethodError, message: /undefined method `autoclose='/ do
+      NATFIXME "Pending implementation of IO#close_on_exec?", exception: NoMethodError, message: "undefined method `close_on_exec?'" do
       Dir.send(@method, DirSpecs.mock_dir) do |dir|
         io = IO.for_fd(dir.fileno)
         io.autoclose = false
