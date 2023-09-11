@@ -60,9 +60,11 @@ Value SignalModule::list(Env *env) {
                                      IntegerObject::create(static_cast<nat_int_t>(SIGCONT)),
                                      new StringObject { "CHLD" },
                                      IntegerObject::create(static_cast<nat_int_t>(SIGCHLD)),
-#ifdef SIGCLD
                                      new StringObject { "CLD" },
+#ifdef SIGCLD
                                      IntegerObject::create(static_cast<nat_int_t>(SIGCLD)),
+#else
+                                     IntegerObject::create(static_cast<nat_int_t>(SIGCHLD)),
 #endif
                                      new StringObject { "TTIN" },
                                      IntegerObject::create(static_cast<nat_int_t>(SIGTTIN)),
