@@ -64,7 +64,7 @@ module Kernel
 
   class SprintfFormatter
     def initialize(format_string, arguments)
-      @format_string = format_string
+      @format_string = format_string.to_str
       @arguments = arguments
       @arguments_index = 0
       @positional_argument_used = nil

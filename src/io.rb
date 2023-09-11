@@ -15,6 +15,10 @@ class IO
     end
   end
 
+  def printf(format_string, *arguments)
+    print(Kernel.sprintf(format_string, *arguments))
+  end
+
   # The following are used in IO.select
 
   module WaitReadable; end
