@@ -5,7 +5,9 @@ describe "IO#printf" do
   before :each do
     @name = tmp("io_printf.txt")
     @io = new_io @name
-    @io.sync = true
+    NATFIXME 'Implement IO#sync=', exception: NoMethodError, message: "undefined method `sync='" do
+      @io.sync = true
+    end
   end
 
   after :each do
@@ -15,10 +17,12 @@ describe "IO#printf" do
 
   it "calls #to_str to convert the format object to a String" do
     obj = mock("printf format")
-    obj.should_receive(:to_str).and_return("%s")
+    NATFIXME '#to_str calls should probably be done in Kernel.sprintf', exception: NoMethodError, message: "undefined method `chars'" do
+      obj.should_receive(:to_str).and_return("%s")
 
-    @io.printf obj, "printf"
-    File.read(@name).should == "printf"
+      @io.printf obj, "printf"
+      File.read(@name).should == "printf"
+    end
   end
 
   it "writes the #sprintf formatted string" do
