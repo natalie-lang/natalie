@@ -101,6 +101,7 @@
 #include "natalie/range_object.hpp"
 #include "natalie/rational_object.hpp"
 #include "natalie/regexp_object.hpp"
+#include "natalie/signal_module.hpp"
 #include "natalie/string_object.hpp"
 #include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"

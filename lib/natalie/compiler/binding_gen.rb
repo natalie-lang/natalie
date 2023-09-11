@@ -1134,6 +1134,9 @@ gen.binding('Regexp', 'options', 'RegexpObject', 'options', argc: 0, pass_env: t
 gen.binding('Regexp', 'source', 'RegexpObject', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'to_s', 'RegexpObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.module_function_binding('Signal', 'list', 'SignalModule', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Signal', 'signame', 'SignalModule', 'signame', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+
 gen.binding('String', '*', 'StringObject', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '+', 'StringObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', '+@', 'StringObject', 'uplus', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
