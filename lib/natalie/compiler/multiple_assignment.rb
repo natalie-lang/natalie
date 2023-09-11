@@ -95,7 +95,7 @@ module Natalie
           _, name = arg
           @instructions << variable_set(name)
           @instructions << VariableGetInstruction.new(name)
-        when :attrasgn
+        when :attrasgn, :call
           _, receiver, message = arg
           @instructions << @pass.transform_expression(receiver, used: true)
           @instructions << SwapInstruction.new
