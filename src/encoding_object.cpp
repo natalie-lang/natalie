@@ -99,6 +99,7 @@ EncodingObject *EncodingObject::set_default_external(Env *env, Value arg) {
         auto name = arg->to_str(env);
         s_default_external = find(env, name)->as_encoding();
     }
+    s_filesystem = s_default_external;
     return default_external();
 }
 EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {

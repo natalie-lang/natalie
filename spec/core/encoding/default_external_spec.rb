@@ -43,9 +43,7 @@ describe "Encoding.default_external=" do
   platform_is_not :windows do
     it "also sets the filesystem encoding" do
       Encoding.default_external = Encoding::SHIFT_JIS
-      NATFIXME 'update filesystem encoding', exception: SpecFailedException do
-        Encoding.find('filesystem').should == Encoding::SHIFT_JIS
-      end
+      Encoding.find('filesystem').should == Encoding::SHIFT_JIS
     end
   end
 
