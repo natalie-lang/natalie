@@ -78,14 +78,14 @@ HashObject *EncodingObject::aliases(Env *env) {
     auto aliases = new HashObject();
     for (auto encoding : *list(env)) {
         auto enc = encoding->as_encoding();
-        const auto &names = enc->m_names;
+        const auto names = enc->names(env);
 
-        if (names.size() < 2)
+        if (names->size() < 2)
             continue;
 
-        auto original = new StringObject { names[0] };
-        for (size_t i = 1; i < names.size(); ++i)
-            aliases->put(env, new StringObject { names[i] }, original);
+        auto original = (*names)[0]->dup(env);
+        for (size_t i = 1; i < names->size(); ++i)
+            aliases->put(env, (*names)[i]->dup(env), original);
     }
     return aliases;
 }
@@ -121,7 +121,7 @@ Value EncodingObject::find(Env *env, Value name) {
         return name;
     if (!name->is_string())
         name = name->to_str(env);
-    auto string = name->as_string()->string();
+    auto string = name->as_string()->string().lowercase();
     if (string == "internal") {
         auto intenc = EncodingObject::default_internal();
         if (!intenc) return NilObject::the();
