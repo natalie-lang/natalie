@@ -423,7 +423,7 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
-file "build/librubyparser.a" do
+file "build/librubyparser.a" => Rake::FileList['ext/yarp/**/*.{h,c}'] do
   build_dir = File.expand_path('build/yarp', __dir__)
   rm_rf build_dir
   cp_r 'ext/yarp', build_dir
