@@ -149,6 +149,31 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_call_or_write_node(node)
+    if node.read_name.to_sym == :[]
+      args = node.arguments&.child_nodes || []
+      s(:op_asgn1,
+        visit(node.receiver),
+        s(:arglist, *args.map { |n| visit(n) }, location: node.location),
+        node.operator.tr('=', '').to_sym,
+        visit(node.value),
+        location: node.location)
+    else
+      receiver = visit(node.receiver)
+      s(:op_asgn_or,
+        s(:call,
+          receiver,
+          node.read_name.to_sym,
+          location: node.receiver.location),
+        s(:attrasgn,
+          receiver,
+          node.write_name.to_sym,
+          visit(node.value),
+          location: node.value.location),
+        location: node.location)
+    end
+  end
+
   def visit_case_node(node)
     s(:case,
       visit(node.predicate),
@@ -214,18 +239,18 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_call_operator_write_node(node)
-    if node.target.name.to_sym == :[]=
-      args = node.target.arguments&.child_nodes || []
+    if node.write_name.to_sym == :[]=
+      args = node.arguments&.child_nodes || []
       s(:op_asgn1,
-        visit(node.target.receiver),
+        visit(node.receiver),
         s(:arglist, *args.map { |n| visit(n) }, location: node.location),
         node.operator,
         visit(node.value),
         location: node.location)
     else
       s(:op_asgn2,
-        visit(node.target.receiver),
-        node.target.name.to_sym,
+        visit(node.receiver),
+        node.write_name.to_sym,
         node.operator,
         visit(node.value),
         location: node.location)
@@ -331,7 +356,7 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_interpolated_regular_expression_node(node)
     dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx)
-    dregx << fix_flags(node.flags)
+    dregx << node.options
     dregx
   end
 
@@ -409,7 +434,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_keyword_parameter_node(node)
-    exp = s(:kwarg, node.name.tr(':', '').to_sym, location: node.location)
+    exp = s(:kwarg, node.name, location: node.location)
     exp << visit(node.value) if node.value
     exp
   end
@@ -494,6 +519,14 @@ class SexpVisitor < ::YARP::BasicVisitor
       location: node.location)
   end
 
+  def visit_multi_target_node(node)
+    return visit(node.targets.first) if node.targets.size == 1
+
+    s(:masgn,
+      s(:array, *node.targets.map { |n| visit(n) }, location: node.location),
+      location: node.location)
+  end
+
   def visit_multi_write_node(node)
     return visit(node.targets.first) if node.targets.size == 1 && !node.value
 
@@ -567,7 +600,7 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_regular_expression_node(node)
     s(:lit,
-      Regexp.new(node.content, fix_flags(node.flags)),
+      Regexp.new(node.content, node.options),
       location: node.location)
   end
 
@@ -742,15 +775,6 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def s(*items, location:)
     Sexp.new(*items, location:, file: @path)
-  end
-
-  # This can be removed once https://github.com/ruby/yarp/pull/1437 is merged.
-  def fix_flags(flags)
-    real_flags = 0
-    real_flags |= 1 if flags & 1 > 0
-    real_flags |= 2 if flags & 4 > 0
-    real_flags |= 4 if flags & 2 > 0
-    real_flags
   end
 
   def flatten(ary)
