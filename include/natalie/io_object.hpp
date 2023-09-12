@@ -15,6 +15,14 @@
 
 namespace Natalie {
 
+namespace ioutil {
+    // Utility Functions Common to File, Dir and Io
+    StringObject *convert_using_to_path(Env *env, Value path);
+    int object_stat(Env *env, Value io, struct stat *sb);
+    int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj);
+    mode_t perm_to_mode(Env *env, Value perm);
+}
+
 class IoObject : public Object {
 public:
     IoObject()

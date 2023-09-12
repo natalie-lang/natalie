@@ -33,114 +33,10 @@ int effective_uid_access(const char *path_name, int type) {
 #endif
 }
 
-namespace fileutil {
-    // If the `path` is not a string, but has #to_path, then
-    // execute #to_path.  Otherwise if it has #to_str, then
-    // execute #to_str.  Make sure the path or to_path result is a String
-    // before continuing.
-    // This is common to many functions in FileObject and DirObject
-    StringObject *convert_using_to_path(Env *env, Value path) {
-        if (!path->is_string() && path->respond_to(env, "to_path"_s))
-            path = path->send(env, "to_path"_s);
-        if (!path->is_string() && path->respond_to(env, "to_str"_s))
-            path = path->send(env, "to_str"_s);
-        path->assert_type(env, Object::Type::String, "String");
-        return path->as_string();
-    }
-    // accepts io or io-like object for fstat
-    // accepts path or string like object for stat
-    int object_stat(Env *env, Value file, struct stat *sb) {
-        if (file->is_io() || file->respond_to(env, "to_io"_s)) {
-            if (!file->is_io()) {
-                file = file->send(env, "to_io"_s);
-            }
-            auto file_desc = file->as_io()->fileno();
-            return ::fstat(file_desc, sb);
-        }
-
-        file = convert_using_to_path(env, file);
-        return ::stat(file->as_string()->c_str(), sb);
-    }
-
-    int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
-        int flags = O_RDONLY;
-        if (!flags_obj || flags_obj->is_nil())
-            return flags;
-
-        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
-            if (flags_obj->respond_to(env, "to_str"_s)) {
-                flags_obj = flags_obj->to_str(env);
-            } else if (flags_obj->respond_to(env, "to_int"_s)) {
-                flags_obj = flags_obj->to_int(env);
-            }
-        }
-
-        switch (flags_obj->type()) {
-        case Object::Type::Integer:
-            return flags_obj->as_integer()->to_nat_int_t();
-        case Object::Type::String: {
-            auto colon = new StringObject { ":" };
-            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
-            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
-            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
-            if (self)
-                self->set_encoding(env, extenc, intenc);
-
-            if (flags_str.length() < 1 || flags_str.length() > 3)
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-            // rb+ => 'r', 'b', '+'
-            auto main_mode = flags_str.at(0);
-            auto read_write_mode = flags_str.length() > 1 ? flags_str.at(1) : 0;
-            auto binary_text_mode = flags_str.length() > 2 ? flags_str.at(2) : 0;
-
-            // rb+ => r+b
-            if (read_write_mode == 'b' || read_write_mode == 't')
-                std::swap(read_write_mode, binary_text_mode);
-
-            if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-            if (binary_text_mode == 'b' && self && extenc->is_nil()) {
-                self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
-            } else if (binary_text_mode == 't' && self && extenc->is_nil()) {
-                self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
-            }
-
-            if (main_mode == 'r' && !read_write_mode)
-                flags = O_RDONLY;
-            else if (main_mode == 'r' && read_write_mode == '+')
-                flags = O_RDWR;
-            else if (main_mode == 'w' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_TRUNC;
-            else if (main_mode == 'w' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_TRUNC;
-            else if (main_mode == 'a' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_APPEND;
-            else if (main_mode == 'a' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_APPEND;
-            else
-                env->raise("ArgumentError", "invalid access mode {}", flags_str);
-            return flags;
-        }
-        default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
-        }
-    }
-
-    mode_t perm_to_mode(Env *env, Value perm) {
-        if (perm && !perm->is_nil())
-            return IntegerObject::convert_to_int(env, perm);
-        else
-            return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
-    }
-}
-
 // NATFIXME : block form is not used, option-hash arg not implemented.
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    const auto flags = fileutil::flags_obj_to_flags(env, this, flags_obj);
-    const auto modenum = fileutil::perm_to_mode(env, perm);
+    const auto flags = ioutil::flags_obj_to_flags(env, this, flags_obj);
+    const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename->is_integer()) { // passing in a number uses fd number
         int fileno = IntegerObject::convert_to_int(env, filename);
@@ -154,7 +50,7 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
         set_fileno(fileno);
         return this;
     } else {
-        filename = fileutil::convert_using_to_path(env, filename);
+        filename = ioutil::convert_using_to_path(env, filename);
         int fileno = ::open(filename->as_string()->c_str(), flags, modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
@@ -217,7 +113,7 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
 }
 
 void FileObject::unlink(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     int result = ::unlink(path->as_string()->c_str());
     if (result != 0)
         env->raise_errno();
@@ -270,13 +166,13 @@ void FileObject::build_constants(Env *env, ModuleObject *fcmodule) {
 
 bool FileObject::exist(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     return ::stat(path->as_string()->c_str(), &sb) != -1;
 }
 
 bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISREG(sb.st_mode);
@@ -284,14 +180,14 @@ bool FileObject::is_file(Env *env, Value path) {
 
 bool FileObject::is_directory(Env *env, Value path) {
     struct stat sb;
-    if (fileutil::object_stat(env, path, &sb) == -1)
+    if (ioutil::object_stat(env, path, &sb) == -1)
         return false;
     return S_ISDIR(sb.st_mode);
 }
 
 bool FileObject::is_identical(Env *env, Value file1, Value file2) {
-    file1 = fileutil::convert_using_to_path(env, file1);
-    file2 = fileutil::convert_using_to_path(env, file2);
+    file1 = ioutil::convert_using_to_path(env, file1);
+    file2 = ioutil::convert_using_to_path(env, file2);
     struct stat stat1;
     struct stat stat2;
     auto result1 = ::stat(file1->as_string()->c_str(), &stat1);
@@ -304,7 +200,7 @@ bool FileObject::is_identical(Env *env, Value file1, Value file2) {
 }
 
 bool FileObject::is_sticky(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     std::error_code ec;
     auto st = std::filesystem::status(path->as_string()->c_str(), ec);
     if (ec)
@@ -315,7 +211,7 @@ bool FileObject::is_sticky(Env *env, Value path) {
 
 bool FileObject::is_setgid(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISGID);
@@ -323,7 +219,7 @@ bool FileObject::is_setgid(Env *env, Value path) {
 
 bool FileObject::is_setuid(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_mode & S_ISUID);
@@ -331,7 +227,7 @@ bool FileObject::is_setuid(Env *env, Value path) {
 
 bool FileObject::is_symlink(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::lstat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISLNK(sb.st_mode);
@@ -339,7 +235,7 @@ bool FileObject::is_symlink(Env *env, Value path) {
 
 bool FileObject::is_blockdev(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISBLK(sb.st_mode);
@@ -347,7 +243,7 @@ bool FileObject::is_blockdev(Env *env, Value path) {
 
 bool FileObject::is_chardev(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return S_ISCHR(sb.st_mode);
@@ -370,14 +266,14 @@ bool FileObject::is_socket(Env *env, Value path) {
 }
 
 bool FileObject::is_readable(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (access(path->as_string()->c_str(), R_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_readable_real(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (effective_uid_access(path->as_string()->c_str(), R_OK) == -1)
         return false;
     return true;
@@ -385,7 +281,7 @@ bool FileObject::is_readable_real(Env *env, Value path) {
 
 Value FileObject::world_readable(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IROTH)) == S_IROTH) {
@@ -397,7 +293,7 @@ Value FileObject::world_readable(Env *env, Value path) {
 
 Value FileObject::world_writable(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return NilObject::the();
     if ((sb.st_mode & (S_IWOTH)) == S_IWOTH) {
@@ -408,28 +304,28 @@ Value FileObject::world_writable(Env *env, Value path) {
 }
 
 bool FileObject::is_writable(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (access(path->as_string()->c_str(), W_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_writable_real(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (effective_uid_access(path->as_string()->c_str(), W_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_executable(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (access(path->as_string()->c_str(), X_OK) == -1)
         return false;
     return true;
 }
 
 bool FileObject::is_executable_real(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (effective_uid_access(path->as_string()->c_str(), X_OK) == -1)
         return false;
     return true;
@@ -437,7 +333,7 @@ bool FileObject::is_executable_real(Env *env, Value path) {
 
 bool FileObject::is_owned(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_uid == ::geteuid());
@@ -445,7 +341,7 @@ bool FileObject::is_owned(Env *env, Value path) {
 
 bool FileObject::is_zero(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     if (::stat(path->as_string()->c_str(), &sb) == -1)
         return false;
     return (sb.st_size == 0);
@@ -454,7 +350,7 @@ bool FileObject::is_zero(Env *env, Value path) {
 // oddball function that is ends in '?' but is not a boolean return.
 Value FileObject::is_size(Env *env, Value path) {
     struct stat sb;
-    if (fileutil::object_stat(env, path, &sb) == -1)
+    if (ioutil::object_stat(env, path, &sb) == -1)
         return NilObject::the();
     if (sb.st_size == 0) // returns nil when file size is zero.
         return NilObject::the();
@@ -463,30 +359,30 @@ Value FileObject::is_size(Env *env, Value path) {
 
 Value FileObject::size(Env *env, Value path) {
     struct stat sb;
-    if (fileutil::object_stat(env, path, &sb) == -1)
+    if (ioutil::object_stat(env, path, &sb) == -1)
         env->raise_errno();
     return IntegerObject::create((nat_int_t)(sb.st_size));
 }
 
 nat_int_t FileObject::symlink(Env *env, Value from, Value to) {
-    from = fileutil::convert_using_to_path(env, from);
-    to = fileutil::convert_using_to_path(env, to);
+    from = ioutil::convert_using_to_path(env, from);
+    to = ioutil::convert_using_to_path(env, to);
     int result = ::symlink(from->as_string()->c_str(), to->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
 }
 
 nat_int_t FileObject::rename(Env *env, Value from, Value to) {
-    from = fileutil::convert_using_to_path(env, from);
-    to = fileutil::convert_using_to_path(env, to);
+    from = ioutil::convert_using_to_path(env, from);
+    to = ioutil::convert_using_to_path(env, to);
     int result = ::rename(from->as_string()->c_str(), to->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
 }
 
 nat_int_t FileObject::link(Env *env, Value from, Value to) {
-    from = fileutil::convert_using_to_path(env, from);
-    to = fileutil::convert_using_to_path(env, to);
+    from = ioutil::convert_using_to_path(env, from);
+    to = ioutil::convert_using_to_path(env, to);
     int result = ::link(from->as_string()->c_str(), to->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return 0;
@@ -498,7 +394,7 @@ nat_int_t FileObject::mkfifo(Env *env, Value path, Value mode) {
         mode->assert_type(env, Object::Type::Integer, "Integer");
         octmode = (mode_t)(mode->as_integer()->to_nat_int_t());
     }
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     int result = ::mkfifo(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     return 0;
@@ -510,7 +406,7 @@ Value FileObject::chmod(Env *env, Args args) {
     auto mode = args[0];
     mode_t modenum = IntegerObject::convert_to_int(env, mode);
     for (size_t i = 1; i < args.size(); ++i) {
-        auto path = fileutil::convert_using_to_path(env, args[i]);
+        auto path = ioutil::convert_using_to_path(env, args[i]);
         int result = ::chmod(path->as_string()->c_str(), modenum);
         if (result < 0) env->raise_errno();
     }
@@ -526,7 +422,7 @@ Value FileObject::chown(Env *env, Args args) {
     uid_t uidnum = IntegerObject::convert_to_uid(env, uid);
     gid_t gidnum = IntegerObject::convert_to_gid(env, gid);
     for (size_t i = 2; i < args.size(); ++i) {
-        auto path = fileutil::convert_using_to_path(env, args[i]);
+        auto path = ioutil::convert_using_to_path(env, args[i]);
         int result = ::chown(path->as_string()->c_str(), uidnum, gidnum);
         if (result < 0) env->raise_errno();
     }
@@ -554,7 +450,7 @@ Value FileObject::chown(Env *env, Value uid, Value gid) {
 }
 
 Value FileObject::ftype(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     std::error_code ec;
     // use symlink_status instead of status bc we do not want to follow symlinks
     auto st = std::filesystem::symlink_status(path->as_string()->c_str(), ec);
@@ -595,14 +491,14 @@ Value FileObject::umask(Env *env, Value mask) {
 
 // class method
 StringObject *FileObject::path(Env *env, Value pathname) {
-    return fileutil::convert_using_to_path(env, pathname);
+    return ioutil::convert_using_to_path(env, pathname);
 }
 
 Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
-    pathname = fileutil::convert_using_to_path(env, pathname);
+    pathname = ioutil::convert_using_to_path(env, pathname);
     if (__dir_string != nullptr) {
         pathname->as_string()->prepend_char(env, '/');
-        pathname->as_string()->prepend(env, { fileutil::convert_using_to_path(env, __dir_string) });
+        pathname->as_string()->prepend(env, { ioutil::convert_using_to_path(env, __dir_string) });
     }
     char *resolved_filepath = nullptr;
     resolved_filepath = ::realpath(pathname->as_string()->c_str(), nullptr);
@@ -616,7 +512,7 @@ Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
 // class method
 Value FileObject::lstat(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     int result = ::lstat(path->as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path->as_string());
     return new FileStatObject { sb };
@@ -631,7 +527,7 @@ Value FileObject::lstat(Env *env) const {
 }
 
 int FileObject::truncate(Env *env, Value path, Value size) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     off_t len = IntegerObject::convert_to_int(env, size);
     if (::truncate(path->as_string()->c_str(), len) == -1) {
         env->raise_errno();
@@ -649,7 +545,7 @@ int FileObject::truncate(Env *env, Value size) const { // instance method
 // class method
 Value FileObject::stat(Env *env, Value path) {
     struct stat sb;
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     int result = ::stat(path->as_string()->c_str(), &sb);
     if (result < 0) env->raise_errno(path->as_string());
     return new FileStatObject { sb };
@@ -661,7 +557,7 @@ Value FileObject::atime(Env *env, Value path) {
     if (path->is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
-        path = fileutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path);
         statobj = stat(env, path)->as_file_stat();
     }
     return statobj->atime(env);
@@ -671,7 +567,7 @@ Value FileObject::ctime(Env *env, Value path) {
     if (path->is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
-        path = fileutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path);
         statobj = stat(env, path)->as_file_stat();
     }
     return statobj->ctime(env);
@@ -682,7 +578,7 @@ Value FileObject::mtime(Env *env, Value path) {
     if (path->is_io()) { // using file-descriptor
         statobj = path->as_io()->stat(env)->as_file_stat();
     } else {
-        path = fileutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path);
         statobj = stat(env, path)->as_file_stat();
     }
     return statobj->mtime(env);
@@ -717,7 +613,7 @@ Value FileObject::utime(Env *env, Args args) {
 
     for (size_t i = 2; i < args.size(); ++i) {
         Value path = args[i];
-        path = fileutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path);
         if (::utimes(path->as_string()->c_str(), ubufp) != 0) {
             env->raise_errno();
         }

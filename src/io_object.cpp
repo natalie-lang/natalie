@@ -42,6 +42,111 @@ static void throw_unless_writable(Env *env, const IoObject *const self) {
     env->raise_errno();
 }
 
+namespace ioutil {
+    // If the `path` is not a string, but has #to_path, then
+    // execute #to_path.  Otherwise if it has #to_str, then
+    // execute #to_str.  Make sure the path or to_path result is a String
+    // before continuing.
+    // This is common to many functions in FileObject and DirObject
+    StringObject *convert_using_to_path(Env *env, Value path) {
+        if (!path->is_string() && path->respond_to(env, "to_path"_s))
+            path = path->send(env, "to_path"_s);
+        if (!path->is_string() && path->respond_to(env, "to_str"_s))
+            path = path->send(env, "to_str"_s);
+        path->assert_type(env, Object::Type::String, "String");
+        return path->as_string();
+    }
+
+    // accepts io or io-like object for fstat
+    // accepts path or string like object for stat
+    int object_stat(Env *env, Value io, struct stat *sb) {
+        if (io->is_io() || io->respond_to(env, "to_io"_s)) {
+            if (!io->is_io()) {
+                io = io->send(env, "to_io"_s);
+            }
+            auto file_desc = io->as_io()->fileno();
+            return ::fstat(file_desc, sb);
+        }
+
+        io = convert_using_to_path(env, io);
+        return ::stat(io->as_string()->c_str(), sb);
+    }
+
+    int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
+        int flags = O_RDONLY;
+        if (!flags_obj || flags_obj->is_nil())
+            return flags;
+
+        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
+            if (flags_obj->respond_to(env, "to_str"_s)) {
+                flags_obj = flags_obj->to_str(env);
+            } else if (flags_obj->respond_to(env, "to_int"_s)) {
+                flags_obj = flags_obj->to_int(env);
+            }
+        }
+
+        switch (flags_obj->type()) {
+        case Object::Type::Integer:
+            return flags_obj->as_integer()->to_nat_int_t();
+        case Object::Type::String: {
+            auto colon = new StringObject { ":" };
+            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
+            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
+            if (self)
+                self->set_encoding(env, extenc, intenc);
+
+            if (flags_str.length() < 1 || flags_str.length() > 3)
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+
+            // rb+ => 'r', 'b', '+'
+            auto main_mode = flags_str.at(0);
+            auto read_write_mode = flags_str.length() > 1 ? flags_str.at(1) : 0;
+            auto binary_text_mode = flags_str.length() > 2 ? flags_str.at(2) : 0;
+
+            // rb+ => r+b
+            if (read_write_mode == 'b' || read_write_mode == 't')
+                std::swap(read_write_mode, binary_text_mode);
+
+            if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+
+            if (binary_text_mode == 'b' && self && extenc->is_nil()) {
+                self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+            } else if (binary_text_mode == 't' && self && extenc->is_nil()) {
+                self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
+            }
+
+            if (main_mode == 'r' && !read_write_mode)
+                flags = O_RDONLY;
+            else if (main_mode == 'r' && read_write_mode == '+')
+                flags = O_RDWR;
+            else if (main_mode == 'w' && !read_write_mode)
+                flags = O_WRONLY | O_CREAT | O_TRUNC;
+            else if (main_mode == 'w' && read_write_mode == '+')
+                flags = O_RDWR | O_CREAT | O_TRUNC;
+            else if (main_mode == 'a' && !read_write_mode)
+                flags = O_WRONLY | O_CREAT | O_APPEND;
+            else if (main_mode == 'a' && read_write_mode == '+')
+                flags = O_RDWR | O_CREAT | O_APPEND;
+            else
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+            return flags;
+        }
+        default:
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
+        }
+    }
+
+    mode_t perm_to_mode(Env *env, Value perm) {
+        if (perm && !perm->is_nil())
+            return IntegerObject::convert_to_int(env, perm);
+        else
+            return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; // 0660 default
+    }
+}
+
 Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
@@ -49,7 +154,7 @@ Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     if (actual_flags < 0)
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
-        const auto wanted_flags = fileutil::flags_obj_to_flags(env, this, flags_obj);
+        const auto wanted_flags = ioutil::flags_obj_to_flags(env, this, flags_obj);
         if ((flags_is_readable(wanted_flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
@@ -486,10 +591,10 @@ Value IoObject::stat(Env *env) const {
 }
 
 Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
-    const auto flags = fileutil::flags_obj_to_flags(env, nullptr, flags_obj);
-    const auto modenum = fileutil::perm_to_mode(env, perm);
+    const auto flags = ioutil::flags_obj_to_flags(env, nullptr, flags_obj);
+    const auto modenum = ioutil::perm_to_mode(env, perm);
 
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     const auto fd = ::open(path->as_string()->c_str(), flags, modenum);
     return IntegerObject::create(fd);
 }
