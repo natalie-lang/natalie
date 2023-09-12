@@ -778,7 +778,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def s(*items, location:)
-    Sexp.new(*items, location:, file: @path)
+    Sexp.new(*items, location: location, file: @path)
   end
 
   def flatten(ary)
