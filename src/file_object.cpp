@@ -13,7 +13,7 @@ namespace Natalie {
 
 // wrapper to implement euidaccess() for certain systems which
 // do not have it.
-int effective_uid_access(const char *path_name, int type) {
+static int effective_uid_access(const char *path_name, int type) {
 #if defined(__OpenBSD__) or defined(__APPLE__)
     uid_t real_uid = ::getuid();
     uid_t effective_uid = ::geteuid();
