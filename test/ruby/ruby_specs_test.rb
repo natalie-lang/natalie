@@ -14,7 +14,6 @@ describe 'ruby/spec' do
     code = File.read(path, encoding: 'utf-8')
     describe path do
       it 'passes all specs' do
-        skip if code =~ /# skip-test/
         out_nat =
           Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") { `#{NAT_BINARY} #{path} 2>&1` }
         puts out_nat unless $?.success?
