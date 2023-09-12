@@ -207,6 +207,7 @@ ArrayObject *EncodingObject::names(Env *env) const {
     auto array = new ArrayObject { m_names.size() };
     for (const auto &name : m_names)
         array->push(new StringObject { name });
+    if (this == s_filesystem) array->push(new StringObject { "filesystem" });
     return array;
 }
 
