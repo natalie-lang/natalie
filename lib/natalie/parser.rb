@@ -774,7 +774,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   def debug(node)
     puts @path
     p node.location.start_line
-    binding.irb if ENV['DEBUG_PARSER']
+    binding.irb
   end
 
   def s(*items, location:)
