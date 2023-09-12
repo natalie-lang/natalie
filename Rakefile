@@ -37,7 +37,7 @@ task :clean do
   rm_rf "build/natalie_parser.#{SO_EXT}"
   rm_rf 'build/natalie_parser.bundle'
   rm_rf 'build/yarp'
-  rm_rf "build/librubyparser.a"
+  rm_rf 'build/librubyparser.a'
   rm_rf "build/librubyparser.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
 end
@@ -139,6 +139,38 @@ task tidy: %i[build tidy_internal]
 
 desc 'Lint GC visiting code'
 task gc_lint: %i[build gc_lint_internal]
+
+YARP_TEMPLATED_SOURCES = [
+  'ext/yarp/api_node.c',
+  'src/token_type.c',
+  'src/serialize.c',
+  'src/node.c',
+  'src/prettyprint.c',
+  'lib/yarp/node.rb',
+  'lib/yarp/serialize.rb',
+  'lib/yarp/mutation_visitor.rb',
+  'include/yarp/ast.h',
+].freeze
+
+desc 'Generate YARP sources from templates (do this when updating YARP)'
+task :yarp_templated_sources do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/yarp', build_dir
+  sh <<-END
+    cd #{build_dir} && \
+    bundle install && \
+    rake templates
+  END
+  gen_dir = File.join(__dir__, 'ext/yarp-generated')
+  rm_rf gen_dir
+  YARP_TEMPLATED_SOURCES.each do |src|
+    full_dest = File.join(gen_dir, src)
+    dir = File.split(full_dest).first
+    mkdir_p dir unless File.exist?(dir)
+    cp File.join(build_dir, src), full_dest
+  end
+end
 
 # # # # Docker Tasks (used for CI) # # # #
 
@@ -263,7 +295,7 @@ task libnatalie: [
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
   'build/libnatalie_parser.a',
-  "build/librubyparser.a",
+  'build/librubyparser.a',
   "build/librubyparser.#{SO_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
@@ -423,14 +455,18 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
-file "build/librubyparser.a" => Rake::FileList['ext/yarp/**/*.{h,c}'] do
+file 'build/librubyparser.a' => Rake::FileList['ext/yarp/**/*.{h,c}'] do
   build_dir = File.expand_path('build/yarp', __dir__)
   rm_rf build_dir
   cp_r 'ext/yarp', build_dir
+  sh "cp -r -T ext/yarp-generated #{build_dir}"
+  File.write(File.join(build_dir, 'rakelib/test.rake'), '') # disable this task since it tries to load ruby_memcheck
   sh <<-SH
     cd #{build_dir} && \
-    bundle install && \
-    rake compile && \
+    make && \
+    cd ext/yarp && \
+    ruby extconf.rb && \
+    make && \
     cp #{build_dir}/build/librubyparser.a #{File.expand_path('build', __dir__)} && \
     cp #{build_dir}/build/librubyparser.#{SO_EXT} #{File.expand_path('build', __dir__)}
   SH
