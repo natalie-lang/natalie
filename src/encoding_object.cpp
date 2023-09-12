@@ -210,6 +210,7 @@ ArrayObject *EncodingObject::names(Env *env) const {
     if (this == s_locale) array->push(new StringObject { "locale" });
     if (this == s_default_external) array->push(new StringObject { "external" });
     if (this == s_filesystem) array->push(new StringObject { "filesystem" });
+    if (this == s_default_internal) array->push(new StringObject { "internal" });
     return array;
 }
 
