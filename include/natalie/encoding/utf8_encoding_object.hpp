@@ -13,7 +13,7 @@ using namespace TM;
 class Utf8EncodingObject : public EncodingObject {
 public:
     Utf8EncodingObject()
-        : EncodingObject { Encoding::UTF_8, { "UTF-8", "CP65001", "locale", "external" } } { }
+        : EncodingObject { Encoding::UTF_8, { "UTF-8", "CP65001", "locale" } } { }
 
     virtual bool valid_codepoint(nat_int_t codepoint) const override {
         // from RFC3629: 0x0..0x10FFFF are valid, with exception of 0xD800-0xDFFF
