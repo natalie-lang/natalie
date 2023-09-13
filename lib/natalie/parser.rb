@@ -728,6 +728,7 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:until,
       visit(node.predicate),
       visit(node.statements),
+      !node.begin_modifier?,
       location: node.location)
   end
 
@@ -744,6 +745,7 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:while,
       visit(node.predicate),
       visit(node.statements),
+      !node.begin_modifier?,
       location: node.location)
   end
 
