@@ -21,7 +21,7 @@ Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
 }
 
 Value DirObject::initialize(Env *env, Value path, Value encoding) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     m_dir = ::opendir(path->as_string()->c_str());
     if (!m_dir) env->raise_errno();
     if (encoding && !encoding->is_nil()) {
@@ -105,7 +105,7 @@ Value DirObject::chdir(Env *env, Value path, Block *block) {
 
         path = new StringObject { path_str };
     } else {
-        path = fileutil::convert_using_to_path(env, path);
+        path = ioutil::convert_using_to_path(env, path);
     }
 
     std::error_code ec;
@@ -226,7 +226,7 @@ Value DirObject::foreach (Env *env, Value path, Value encoding, Block * block) {
 }
 
 Value DirObject::chroot(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     auto result = ::chroot(path->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);
@@ -237,7 +237,7 @@ Value DirObject::mkdir(Env *env, Value path, Value mode) {
     if (mode) {
         octmode = IntegerObject::convert_to_int(env, mode);
     }
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     auto result = ::mkdir(path->as_string()->c_str(), octmode);
     if (result < 0) env->raise_errno();
     // need to check dir exists and return nil if mkdir was unsuccessful.
@@ -249,7 +249,7 @@ Value DirObject::pwd(Env *env) {
 }
 
 Value DirObject::rmdir(Env *env, Value path) {
-    path = fileutil::convert_using_to_path(env, path);
+    path = ioutil::convert_using_to_path(env, path);
     auto result = ::rmdir(path->as_string()->c_str());
     if (result < 0) env->raise_errno();
     return Value::integer(0);
