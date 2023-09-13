@@ -709,7 +709,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_symbol_node(node)
-    s(:lit, node.value.to_sym, location: node.location)
+    s(:lit, node.unescaped.to_sym, location: node.location)
   end
 
   def visit_true_node(node)
