@@ -279,6 +279,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_defined_node(node)
+    s(:defined, visit(node.value), location: node.location)
+  end
+
   def visit_else_node(node)
     visit(node.child_nodes.first)
   end
@@ -764,18 +768,11 @@ class SexpVisitor < ::YARP::BasicVisitor
       puts '    binding.irb'
       puts '  end'
       puts '---------------------------'
-      debug(args.first)
     end
     raise NoMethodError, meth
   end
 
   private
-
-  def debug(node)
-    puts @path
-    p node.location.start_line
-    binding.irb
-  end
 
   def s(*items, location:)
     Sexp.new(*items, location: location, file: @path)
