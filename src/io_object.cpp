@@ -344,6 +344,32 @@ Value IoObject::get_path() const {
     return new StringObject { *m_path };
 }
 
+Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    const auto count_int = count->to_int(env)->to_nat_int_t();
+    if (count_int < 0)
+        env->raise("ArgumentError", "negative string size (or size too big)");
+    const auto offset_int = offset->to_int(env)->to_nat_int_t();
+    TM::String buf(count_int, '\0');
+    const auto bytes_read = ::pread(m_fileno, &buf[0], count_int, offset_int);
+    if (bytes_read < 0)
+        env->raise_errno();
+    if (bytes_read == 0) {
+        if (count_int == 0)
+            return new StringObject { std::move(buf) };
+        env->raise("EOFError", "end of file reached");
+    }
+    buf.truncate(bytes_read);
+    if (out_string != nullptr && !out_string->is_nil()) {
+        out_string->assert_type(env, Object::Type::String, "String");
+        out_string->as_string()->set_str(buf.c_str(), buf.size());
+        return out_string;
+    }
+    return new StringObject { std::move(buf) };
+}
+
 void IoObject::putstr(Env *env, StringObject *str) {
     String sstr = str->string();
     this->send(env, "write"_s, Args({ str }));

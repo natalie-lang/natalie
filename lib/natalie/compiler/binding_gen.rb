@@ -868,6 +868,7 @@ gen.binding('IO', 'internal_encoding', 'IoObject', 'internal_encoding', argc: 0,
 gen.binding('IO', 'isatty', 'IoObject', 'isatty', argc: 0, pass_env: true, pass_block: false, aliases: ['tty?'], return_type: :bool)
 gen.binding('IO', 'path', 'IoObject', 'get_path', argc: 0, pass_env: false, pass_block: false, aliases: ['to_path'], return_type: :Object)
 gen.binding('IO', 'pos=', 'IoObject', 'set_pos', argc: 1, pass_env: true, pass_block: false, return_type: :int)
+gen.binding('IO', 'pread', 'IoObject', 'pread', argc: 2..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'print', 'IoObject', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'puts', 'IoObject', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'read', 'IoObject', 'read', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)

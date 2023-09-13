@@ -71,6 +71,7 @@ public:
     bool is_eof(Env *);
     bool isatty(Env *) const;
     int pos(Env *);
+    Value pread(Env *, Value, Value, Value = nullptr);
     Value puts(Env *, Args);
     void puts(Env *, Value);
     void putstr(Env *, StringObject *);
