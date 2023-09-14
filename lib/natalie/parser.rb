@@ -688,6 +688,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:sclass, visit(node.expression), visit(node.body), location: node.location)
   end
 
+  def visit_source_line_node(node)
+    s(:lit, node.location.start_line, location: node.location)
+  end
+
   def visit_splat_node(node)
     s(:splat, visit(node.expression), location: node.location)
   end
