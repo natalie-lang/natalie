@@ -805,8 +805,10 @@ class RaiseErrorExpectation
     if @klass
       begin
         subject.call
-      rescue @klass
-        raise SpecFailedException, subject.inspect + ' should not have raised ' + @klass.inspect
+      rescue @klass => e
+        message = subject.inspect + ' should not have raised ' + @klass.inspect
+        message << " (was #{e.class}: #{e.message})" if e.class != @klass
+        raise SpecFailedException, message
       end
     else
       begin
