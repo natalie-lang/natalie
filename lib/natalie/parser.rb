@@ -448,6 +448,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_interpolated_symbol_node(node)
+    visit_interpolated_stringish_node(node, sexp_type: :dsym)
+  end
+
   def visit_interpolated_x_string_node(node)
     visit_interpolated_stringish_node(node, sexp_type: :dxstr)
   end
