@@ -432,12 +432,28 @@ class SexpVisitor < ::YARP::BasicVisitor
                    raise "unknown interpolated string segment: #{n.inspect}"
                  end
                end
-    if segments.size == 1
-      s = segments.first
-      return s if s.sexp_type == :str
-      return s[1] if s.sexp_type == :evstr && s[1].is_a?(Sexp) && s[1].sexp_type == :str
+    if (simpler = extract_single_segment_from_interpolated_node(segments, node: node, sexp_type: sexp_type))
+      return simpler
     end
     s(sexp_type, '', *segments, location: node.location)
+  end
+
+  def extract_single_segment_from_interpolated_node(segments, node:, sexp_type:)
+    return unless segments.size == 1
+
+    segment = segments.first
+    segment = if segment.sexp_type == :str
+                segment
+              elsif segment.sexp_type == :evstr && segment[1].is_a?(Sexp) && segment[1].sexp_type == :str
+                segment[1]
+              end
+    return unless segment
+
+    if sexp_type == :dstr
+      segment
+    else
+      s(sexp_type, segment[1], location: node.location)
+    end
   end
 
   def visit_interpolated_symbol_node(node)
