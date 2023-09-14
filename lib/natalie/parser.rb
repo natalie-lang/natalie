@@ -70,6 +70,14 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:block_pass, visit(node.expression), location: node.location)
   end
 
+  def visit_block_node(node, call:)
+    s(:iter,
+      call,
+      visit(node.parameters) || 0,
+      visit(node.body),
+      location: node.location)
+  end
+
   def visit_block_parameter_node(node)
     "&#{node.name}".to_sym
   end
@@ -107,11 +115,7 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
 
     if node.block
-      s(:iter,
-        call,
-        visit(node.block.parameters) || 0,
-        visit(node.block.body),
-        location: node.location)
+      visit_block_node(node.block, call: call)
     else
       call
     end
@@ -312,7 +316,12 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_forwarding_super_node(node)
-    s(:zsuper, location: node.location)
+    call = s(:zsuper, location: node.location)
+    if node.block
+      visit_block_node(node.block, call: call)
+    else
+      call
+    end
   end
 
   def visit_global_variable_and_write_node(node)
@@ -460,11 +469,10 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_lambda_node(node)
-    s(:iter,
-      s(:lambda, location: node.location),
-      visit(node.parameters) || 0,
-      visit(node.body),
-      location: node.location)
+    visit_block_node(
+      node,
+      call: s(:lambda, location: node.location)
+    )
   end
 
   def visit_local_variable_and_write_node(node)
@@ -721,7 +729,12 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_super_node(node)
     args = node.arguments&.child_nodes || []
-    s(:super, *args.map { |n| visit(n) }, location: node.location)
+    call = s(:super, *args.map { |n| visit(n) }, location: node.location)
+    if node.block
+      visit_block_node(node.block, call: call)
+    else
+      call
+    end
   end
 
   def visit_symbol_node(node)
