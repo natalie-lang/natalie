@@ -751,6 +751,16 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:true, location: node.location)
   end
 
+  def visit_undef_node(node)
+    if node.names.size == 1
+      s(:undef, visit(node.names.first), location: node.location)
+    else
+      s(:block,
+        *node.names.map { |n| s(:undef, visit(n), location: n.location) },
+        location: node.location)
+    end
+  end
+
   def visit_unless_node(node)
     s(:if,
       visit(node.predicate),
