@@ -36,9 +36,6 @@ task :clean do
   rm_rf 'build/libnatalie_parser.a'
   rm_rf "build/natalie_parser.#{SO_EXT}"
   rm_rf 'build/natalie_parser.bundle'
-  rm_rf 'build/yarp'
-  rm_rf 'build/librubyparser.a'
-  rm_rf "build/librubyparser.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -103,7 +100,7 @@ desc 'Build MRI C Extension for the Natalie Parser'
 task parser_c_ext: ["build/natalie_parser.#{SO_EXT}", "build/libnatalie_parser.#{SO_EXT}"]
 
 desc 'Build MRI C Extension for YARP'
-task yarp_c_ext: ["build/librubyparser.#{SO_EXT}"]
+task yarp_c_ext: ["build/librubyparser.#{SO_EXT}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -455,7 +452,15 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
-file 'build/librubyparser.a' => Rake::FileList['ext/yarp/**/*.{h,c}'] do
+file "build/librubyparser.#{SO_EXT}" => ['build/librubyparser.a']
+
+file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{SO_EXT}"] do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/librubyparser.#{SO_EXT}", File.expand_path('build', __dir__)
+end
+
+file "build/yarp/ext/yarp/yarp.#{SO_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
   build_dir = File.expand_path('build/yarp', __dir__)
   rm_rf build_dir
   cp_r 'ext/yarp', build_dir
@@ -466,13 +471,9 @@ file 'build/librubyparser.a' => Rake::FileList['ext/yarp/**/*.{h,c}'] do
     make && \
     cd ext/yarp && \
     ruby extconf.rb && \
-    make && \
-    cp #{build_dir}/build/librubyparser.a #{File.expand_path('build', __dir__)} && \
-    cp #{build_dir}/build/librubyparser.#{SO_EXT} #{File.expand_path('build', __dir__)}
+    make
   SH
 end
-
-file "build/librubyparser.#{SO_EXT}" => ["build/librubyparser.a"]
 
 task :tidy_internal do
   sh "clang-tidy --warnings-as-errors='*' #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
