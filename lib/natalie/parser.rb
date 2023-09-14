@@ -426,16 +426,18 @@ class SexpVisitor < ::YARP::BasicVisitor
                  when YARP::StringNode
                    s(:str, n.unescaped, location: n.location)
                  when YARP::EmbeddedStatementsNode
-                   s(:evstr, visit(n.statements), location: n.location)
+                   raise 'unexpected evstr size' if n.statements.body.size != 1
+                   s(:evstr, visit(n.statements.body.first), location: n.location)
                  else
                    raise "unknown interpolated string segment: #{n.inspect}"
                  end
                end
-    if segments.size == 1 && segments.first.sexp_type == :str
-      segments.first
-    else
-      s(sexp_type, '', *segments, location: node.location)
+    if segments.size == 1
+      s = segments.first
+      return s if s.sexp_type == :str
+      return s[1] if s.sexp_type == :evstr && s[1].is_a?(Sexp) && s[1].sexp_type == :str
     end
+    s(sexp_type, '', *segments, location: node.location)
   end
 
   def visit_interpolated_symbol_node(node)
