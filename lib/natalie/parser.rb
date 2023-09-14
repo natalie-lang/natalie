@@ -523,6 +523,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_missing_node(_)
+    raise SyntaxError, 'missing node (FIXME: better error?)'
+  end
+
   def visit_module_node(node)
     s(:module,
       node.name.to_sym,
