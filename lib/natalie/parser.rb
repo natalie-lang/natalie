@@ -295,6 +295,14 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:lit, node.value, location: node.location)
   end
 
+  def visit_for_node(node)
+    s(:for,
+      visit(node.collection),
+      visit(node.index),
+      visit(node.statements),
+      location: node.location)
+  end
+
   def visit_forwarding_arguments_node(node)
     s(:forward_args, location: node.location)
   end
@@ -604,6 +612,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     else
       s(:dot2, visit(node.left), visit(node.right), location: node.location)
     end
+  end
+
+  def visit_redo_node(node)
+    s(:redo, location: node.location)
   end
 
   def visit_regular_expression_node(node)
