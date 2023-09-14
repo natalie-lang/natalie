@@ -614,6 +614,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_rational_node(node)
+    s(:lit, node.value, location: node.location)
+  end
+
   def visit_redo_node(node)
     s(:redo, location: node.location)
   end
