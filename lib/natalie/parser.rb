@@ -211,6 +211,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     s(:cvdecl, node.name, visit(node.value), location: node.location)
   end
 
+  def visit_class_variable_operator_write_node(node)
+    visit_operator_write_node(node, read_sexp_type: :cvar, write_sexp_type: :cvdecl)
+  end
+
   def visit_constant_path_node(node)
     if node.parent
       s(:colon2,
@@ -332,14 +336,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_global_variable_operator_write_node(node)
-    s(:gasgn,
-      node.name,
-      s(:call,
-        s(:gvar, node.name, location: node.location),
-        node.operator,
-        visit(node.value),
-        location: node.location),
-      location: node.location)
+    visit_operator_write_node(node, read_sexp_type: :gvar, write_sexp_type: :gasgn)
   end
 
   def visit_global_variable_or_write_node(node)
@@ -393,14 +390,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_instance_variable_operator_write_node(node)
-    s(:iasgn,
-      node.name,
-      s(:call,
-        s(:ivar, node.name, location: node.location),
-        node.operator,
-        visit(node.value),
-        location: node.location),
-      location: node.location)
+    visit_operator_write_node(node, read_sexp_type: :ivar, write_sexp_type: :iasgn)
   end
 
   def visit_instance_variable_or_write_node(node)
@@ -492,14 +482,7 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_local_variable_operator_write_node(node)
-    s(:lasgn,
-      node.name,
-      s(:call,
-        s(:lvar, node.name, location: node.location),
-        node.operator,
-        visit(node.value),
-        location: node.location),
-      location: node.location)
+    visit_operator_write_node(node, read_sexp_type: :lvar, write_sexp_type: :lasgn)
   end
 
   def visit_local_variable_or_write_node(node)
@@ -581,6 +564,17 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_numbered_reference_read_node(node)
     s(:nth_ref, node.number, location: node.location)
+  end
+
+  def visit_operator_write_node(node, read_sexp_type:, write_sexp_type:)
+    s(write_sexp_type,
+      node.name,
+      s(:call,
+        s(read_sexp_type, node.name, location: node.location),
+        node.operator,
+        visit(node.value),
+        location: node.location),
+      location: node.location)
   end
 
   def visit_optional_parameter_node(node)
