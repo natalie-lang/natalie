@@ -12,7 +12,7 @@ class SexpVisitor < ::YARP::BasicVisitor
     @path = path
   end
 
-  def visit_alias_node(node)
+  def visit_alias_method_node(node)
     s(:alias, visit(node.new_name), visit(node.old_name), location: node.location)
   end
 
