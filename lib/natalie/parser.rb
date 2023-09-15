@@ -671,6 +671,16 @@ class SexpVisitor < ::YARP::BasicVisitor
     node.name.to_sym
   end
 
+  def visit_rescue_modifier_node(node)
+    s(:rescue,
+      visit(node.expression),
+      s(:resbody,
+        s(:array, location: node.rescue_expression.location),
+        visit(node.rescue_expression),
+        location: node.rescue_expression.location),
+      location: node.location)
+  end
+
   def visit_rescue_node(node)
     ary = s(:array,
       *node.exceptions.map { |n| visit(n) },
