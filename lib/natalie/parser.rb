@@ -553,6 +553,12 @@ class SexpVisitor < ::YARP::BasicVisitor
     end
   end
 
+  def visit_match_write_node(node)
+    # FIXME: Should set a variable
+    # /(?<foo>bar)/ should set a variable called `foo` to "bar" (if there's a match)
+    visit(node.call)
+  end
+
   def visit_missing_node(_)
     raise SyntaxError, 'missing node (FIXME: better error?)'
   end
