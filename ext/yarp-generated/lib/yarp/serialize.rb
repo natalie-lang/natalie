@@ -201,281 +201,285 @@ module YARP
 
         case type
         when 1 then
-          AliasNode.new(load_node, load_node, load_location, location)
+          AliasGlobalVariableNode.new(load_node, load_node, load_location, location)
         when 2 then
-          AlternationPatternNode.new(load_node, load_node, load_location, location)
+          AliasMethodNode.new(load_node, load_node, load_location, location)
         when 3 then
-          AndNode.new(load_node, load_node, load_location, location)
+          AlternationPatternNode.new(load_node, load_node, load_location, location)
         when 4 then
-          ArgumentsNode.new(Array.new(load_varint) { load_node }, location)
+          AndNode.new(load_node, load_node, load_location, location)
         when 5 then
-          ArrayNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
+          ArgumentsNode.new(Array.new(load_varint) { load_node }, location)
         when 6 then
-          ArrayPatternNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
+          ArrayNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
         when 7 then
-          AssocNode.new(load_node, load_optional_node, load_optional_location, location)
+          ArrayPatternNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
         when 8 then
-          AssocSplatNode.new(load_optional_node, load_location, location)
+          AssocNode.new(load_node, load_optional_node, load_optional_location, location)
         when 9 then
-          BackReferenceReadNode.new(location)
+          AssocSplatNode.new(load_optional_node, load_location, location)
         when 10 then
-          BeginNode.new(load_optional_location, load_optional_node, load_optional_node, load_optional_node, load_optional_node, load_optional_location, location)
+          BackReferenceReadNode.new(location)
         when 11 then
-          BlockArgumentNode.new(load_optional_node, load_location, location)
+          BeginNode.new(load_optional_location, load_optional_node, load_optional_node, load_optional_node, load_optional_node, load_optional_location, location)
         when 12 then
-          BlockLocalVariableNode.new(load_required_constant, location)
+          BlockArgumentNode.new(load_optional_node, load_location, location)
         when 13 then
-          BlockNode.new(Array.new(load_varint) { load_required_constant }, load_optional_node, load_optional_node, load_location, load_location, location)
+          BlockLocalVariableNode.new(load_required_constant, location)
         when 14 then
-          BlockParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
+          BlockNode.new(Array.new(load_varint) { load_required_constant }, load_optional_node, load_optional_node, load_location, load_location, location)
         when 15 then
-          BlockParametersNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
+          BlockParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
         when 16 then
-          BreakNode.new(load_optional_node, load_location, location)
+          BlockParametersNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
         when 17 then
-          CallAndWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_location, load_node, location)
+          BreakNode.new(load_optional_node, load_location, location)
         when 18 then
-          CallNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node, load_varint, load_string, location)
+          CallAndWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_location, load_node, location)
         when 19 then
-          CallOperatorWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_required_constant, load_location, load_node, location)
+          CallNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node, load_varint, load_string, location)
         when 20 then
-          CallOrWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_location, load_node, location)
+          CallOperatorWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_required_constant, load_location, load_node, location)
         when 21 then
-          CapturePatternNode.new(load_node, load_node, load_location, location)
+          CallOrWriteNode.new(load_optional_node, load_optional_location, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_varint, load_string, load_string, load_location, load_node, location)
         when 22 then
-          CaseNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, load_location, load_location, location)
+          CapturePatternNode.new(load_node, load_node, load_location, location)
         when 23 then
-          ClassNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_location, load_required_constant, location)
+          CaseNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, load_location, load_location, location)
         when 24 then
-          ClassVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          ClassNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_location, load_required_constant, location)
         when 25 then
-          ClassVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
+          ClassVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 26 then
-          ClassVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          ClassVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
         when 27 then
-          ClassVariableReadNode.new(load_required_constant, location)
+          ClassVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 28 then
-          ClassVariableTargetNode.new(load_required_constant, location)
+          ClassVariableReadNode.new(load_required_constant, location)
         when 29 then
-          ClassVariableWriteNode.new(load_required_constant, load_location, load_node, load_optional_location, location)
+          ClassVariableTargetNode.new(load_required_constant, location)
         when 30 then
-          ConstantAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          ClassVariableWriteNode.new(load_required_constant, load_location, load_node, load_optional_location, location)
         when 31 then
-          ConstantOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
+          ConstantAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 32 then
-          ConstantOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          ConstantOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
         when 33 then
-          ConstantPathAndWriteNode.new(load_node, load_location, load_node, location)
+          ConstantOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 34 then
-          ConstantPathNode.new(load_optional_node, load_node, load_location, location)
+          ConstantPathAndWriteNode.new(load_node, load_location, load_node, location)
         when 35 then
-          ConstantPathOperatorWriteNode.new(load_node, load_location, load_node, load_required_constant, location)
+          ConstantPathNode.new(load_optional_node, load_node, load_location, location)
         when 36 then
-          ConstantPathOrWriteNode.new(load_node, load_location, load_node, location)
+          ConstantPathOperatorWriteNode.new(load_node, load_location, load_node, load_required_constant, location)
         when 37 then
-          ConstantPathTargetNode.new(load_optional_node, load_node, load_location, location)
+          ConstantPathOrWriteNode.new(load_node, load_location, load_node, location)
         when 38 then
-          ConstantPathWriteNode.new(load_node, load_location, load_node, location)
+          ConstantPathTargetNode.new(load_optional_node, load_node, load_location, location)
         when 39 then
-          ConstantReadNode.new(load_required_constant, location)
+          ConstantPathWriteNode.new(load_node, load_location, load_node, location)
         when 40 then
-          ConstantTargetNode.new(load_required_constant, location)
+          ConstantReadNode.new(load_required_constant, location)
         when 41 then
-          ConstantWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
+          ConstantTargetNode.new(load_required_constant, location)
         when 42 then
+          ConstantWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
+        when 43 then
           load_serialized_length
           DefNode.new(load_required_constant, load_location, load_optional_node, load_optional_node, load_optional_node, Array.new(load_varint) { load_required_constant }, load_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location, location)
-        when 43 then
-          DefinedNode.new(load_optional_location, load_node, load_optional_location, load_location, location)
         when 44 then
-          ElseNode.new(load_location, load_optional_node, load_optional_location, location)
+          DefinedNode.new(load_optional_location, load_node, load_optional_location, load_location, location)
         when 45 then
-          EmbeddedStatementsNode.new(load_location, load_optional_node, load_location, location)
+          ElseNode.new(load_location, load_optional_node, load_optional_location, location)
         when 46 then
-          EmbeddedVariableNode.new(load_location, load_node, location)
+          EmbeddedStatementsNode.new(load_location, load_optional_node, load_location, location)
         when 47 then
-          EnsureNode.new(load_location, load_optional_node, load_location, location)
+          EmbeddedVariableNode.new(load_location, load_node, location)
         when 48 then
-          FalseNode.new(location)
+          EnsureNode.new(load_location, load_optional_node, load_location, location)
         when 49 then
-          FindPatternNode.new(load_optional_node, load_node, Array.new(load_varint) { load_node }, load_node, load_optional_location, load_optional_location, location)
+          FalseNode.new(location)
         when 50 then
-          FlipFlopNode.new(load_optional_node, load_optional_node, load_location, load_varint, location)
+          FindPatternNode.new(load_optional_node, load_node, Array.new(load_varint) { load_node }, load_node, load_optional_location, load_optional_location, location)
         when 51 then
-          FloatNode.new(location)
+          FlipFlopNode.new(load_optional_node, load_optional_node, load_location, load_varint, location)
         when 52 then
-          ForNode.new(load_node, load_node, load_optional_node, load_location, load_location, load_optional_location, load_location, location)
+          FloatNode.new(location)
         when 53 then
-          ForwardingArgumentsNode.new(location)
+          ForNode.new(load_node, load_node, load_optional_node, load_location, load_location, load_optional_location, load_location, location)
         when 54 then
-          ForwardingParameterNode.new(location)
+          ForwardingArgumentsNode.new(location)
         when 55 then
-          ForwardingSuperNode.new(load_optional_node, location)
+          ForwardingParameterNode.new(location)
         when 56 then
-          GlobalVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          ForwardingSuperNode.new(load_optional_node, location)
         when 57 then
-          GlobalVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
+          GlobalVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 58 then
-          GlobalVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          GlobalVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
         when 59 then
-          GlobalVariableReadNode.new(load_required_constant, location)
+          GlobalVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 60 then
-          GlobalVariableTargetNode.new(load_required_constant, location)
+          GlobalVariableReadNode.new(load_required_constant, location)
         when 61 then
-          GlobalVariableWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
+          GlobalVariableTargetNode.new(load_required_constant, location)
         when 62 then
-          HashNode.new(load_location, Array.new(load_varint) { load_node }, load_location, location)
+          GlobalVariableWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
         when 63 then
-          HashPatternNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, load_optional_location, load_optional_location, location)
+          HashNode.new(load_location, Array.new(load_varint) { load_node }, load_location, location)
         when 64 then
-          IfNode.new(load_optional_location, load_node, load_optional_node, load_optional_node, load_optional_location, location)
+          HashPatternNode.new(load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, load_optional_location, load_optional_location, location)
         when 65 then
-          ImaginaryNode.new(load_node, location)
+          IfNode.new(load_optional_location, load_node, load_optional_node, load_optional_node, load_optional_location, location)
         when 66 then
-          InNode.new(load_node, load_optional_node, load_location, load_optional_location, location)
+          ImaginaryNode.new(load_node, location)
         when 67 then
-          InstanceVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          InNode.new(load_node, load_optional_node, load_location, load_optional_location, location)
         when 68 then
-          InstanceVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
+          InstanceVariableAndWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 69 then
-          InstanceVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
+          InstanceVariableOperatorWriteNode.new(load_required_constant, load_location, load_location, load_node, load_required_constant, location)
         when 70 then
-          InstanceVariableReadNode.new(load_required_constant, location)
+          InstanceVariableOrWriteNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 71 then
-          InstanceVariableTargetNode.new(load_required_constant, location)
+          InstanceVariableReadNode.new(load_required_constant, location)
         when 72 then
-          InstanceVariableWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
+          InstanceVariableTargetNode.new(load_required_constant, location)
         when 73 then
-          IntegerNode.new(load_varint, location)
+          InstanceVariableWriteNode.new(load_required_constant, load_location, load_node, load_location, location)
         when 74 then
-          InterpolatedMatchLastLineNode.new(load_location, Array.new(load_varint) { load_node }, load_location, load_varint, location)
+          IntegerNode.new(load_varint, location)
         when 75 then
-          InterpolatedRegularExpressionNode.new(load_location, Array.new(load_varint) { load_node }, load_location, load_varint, location)
+          InterpolatedMatchLastLineNode.new(load_location, Array.new(load_varint) { load_node }, load_location, load_varint, location)
         when 76 then
-          InterpolatedStringNode.new(load_optional_location, Array.new(load_varint) { load_node }, load_optional_location, location)
+          InterpolatedRegularExpressionNode.new(load_location, Array.new(load_varint) { load_node }, load_location, load_varint, location)
         when 77 then
-          InterpolatedSymbolNode.new(load_optional_location, Array.new(load_varint) { load_node }, load_optional_location, location)
+          InterpolatedStringNode.new(load_optional_location, Array.new(load_varint) { load_node }, load_optional_location, location)
         when 78 then
-          InterpolatedXStringNode.new(load_location, Array.new(load_varint) { load_node }, load_location, location)
+          InterpolatedSymbolNode.new(load_optional_location, Array.new(load_varint) { load_node }, load_optional_location, location)
         when 79 then
-          KeywordHashNode.new(Array.new(load_varint) { load_node }, location)
+          InterpolatedXStringNode.new(load_location, Array.new(load_varint) { load_node }, load_location, location)
         when 80 then
-          KeywordParameterNode.new(load_required_constant, load_location, load_optional_node, location)
+          KeywordHashNode.new(Array.new(load_varint) { load_node }, location)
         when 81 then
-          KeywordRestParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
+          KeywordParameterNode.new(load_required_constant, load_location, load_optional_node, location)
         when 82 then
-          LambdaNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_location, load_location, load_optional_node, load_optional_node, location)
+          KeywordRestParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
         when 83 then
-          LocalVariableAndWriteNode.new(load_location, load_location, load_node, load_required_constant, load_varint, location)
+          LambdaNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_location, load_location, load_optional_node, load_optional_node, location)
         when 84 then
-          LocalVariableOperatorWriteNode.new(load_location, load_location, load_node, load_required_constant, load_required_constant, load_varint, location)
+          LocalVariableAndWriteNode.new(load_location, load_location, load_node, load_required_constant, load_varint, location)
         when 85 then
-          LocalVariableOrWriteNode.new(load_location, load_location, load_node, load_required_constant, load_varint, location)
+          LocalVariableOperatorWriteNode.new(load_location, load_location, load_node, load_required_constant, load_required_constant, load_varint, location)
         when 86 then
-          LocalVariableReadNode.new(load_required_constant, load_varint, location)
+          LocalVariableOrWriteNode.new(load_location, load_location, load_node, load_required_constant, load_varint, location)
         when 87 then
-          LocalVariableTargetNode.new(load_required_constant, load_varint, location)
+          LocalVariableReadNode.new(load_required_constant, load_varint, location)
         when 88 then
-          LocalVariableWriteNode.new(load_required_constant, load_varint, load_location, load_node, load_location, location)
+          LocalVariableTargetNode.new(load_required_constant, load_varint, location)
         when 89 then
-          MatchLastLineNode.new(load_location, load_location, load_location, load_string, load_varint, location)
+          LocalVariableWriteNode.new(load_required_constant, load_varint, load_location, load_node, load_location, location)
         when 90 then
-          MatchPredicateNode.new(load_node, load_node, load_location, location)
+          MatchLastLineNode.new(load_location, load_location, load_location, load_string, load_varint, location)
         when 91 then
-          MatchRequiredNode.new(load_node, load_node, load_location, location)
+          MatchPredicateNode.new(load_node, load_node, load_location, location)
         when 92 then
-          MissingNode.new(location)
+          MatchRequiredNode.new(load_node, load_node, load_location, location)
         when 93 then
-          ModuleNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_node, load_optional_node, load_location, load_required_constant, location)
+          MatchWriteNode.new(load_node, Array.new(load_varint) { load_required_constant }, location)
         when 94 then
-          MultiTargetNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
+          MissingNode.new(location)
         when 95 then
-          MultiWriteNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, load_location, load_node, location)
+          ModuleNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_node, load_optional_node, load_location, load_required_constant, location)
         when 96 then
-          NextNode.new(load_optional_node, load_location, location)
+          MultiTargetNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, location)
         when 97 then
-          NilNode.new(location)
+          MultiWriteNode.new(Array.new(load_varint) { load_node }, load_optional_location, load_optional_location, load_location, load_node, location)
         when 98 then
-          NoKeywordsParameterNode.new(load_location, load_location, location)
+          NextNode.new(load_optional_node, load_location, location)
         when 99 then
-          NumberedReferenceReadNode.new(load_varint, location)
+          NilNode.new(location)
         when 100 then
-          OptionalParameterNode.new(load_required_constant, load_location, load_location, load_node, location)
+          NoKeywordsParameterNode.new(load_location, load_location, location)
         when 101 then
-          OrNode.new(load_node, load_node, load_location, location)
+          NumberedReferenceReadNode.new(load_varint, location)
         when 102 then
-          ParametersNode.new(Array.new(load_varint) { load_node }, Array.new(load_varint) { load_node }, Array.new(load_varint) { load_node }, load_optional_node, Array.new(load_varint) { load_node }, load_optional_node, load_optional_node, location)
+          OptionalParameterNode.new(load_required_constant, load_location, load_location, load_node, location)
         when 103 then
-          ParenthesesNode.new(load_optional_node, load_location, load_location, location)
+          OrNode.new(load_node, load_node, load_location, location)
         when 104 then
-          PinnedExpressionNode.new(load_node, load_location, load_location, load_location, location)
+          ParametersNode.new(Array.new(load_varint) { load_node }, Array.new(load_varint) { load_node }, load_optional_node, Array.new(load_varint) { load_node }, Array.new(load_varint) { load_node }, load_optional_node, load_optional_node, location)
         when 105 then
-          PinnedVariableNode.new(load_node, load_location, location)
+          ParenthesesNode.new(load_optional_node, load_location, load_location, location)
         when 106 then
-          PostExecutionNode.new(load_optional_node, load_location, load_location, load_location, location)
+          PinnedExpressionNode.new(load_node, load_location, load_location, load_location, location)
         when 107 then
-          PreExecutionNode.new(load_optional_node, load_location, load_location, load_location, location)
+          PinnedVariableNode.new(load_node, load_location, location)
         when 108 then
-          ProgramNode.new(Array.new(load_varint) { load_required_constant }, load_node, location)
+          PostExecutionNode.new(load_optional_node, load_location, load_location, load_location, location)
         when 109 then
-          RangeNode.new(load_optional_node, load_optional_node, load_location, load_varint, location)
+          PreExecutionNode.new(load_optional_node, load_location, load_location, load_location, location)
         when 110 then
-          RationalNode.new(load_node, location)
+          ProgramNode.new(Array.new(load_varint) { load_required_constant }, load_node, location)
         when 111 then
-          RedoNode.new(location)
+          RangeNode.new(load_optional_node, load_optional_node, load_location, load_varint, location)
         when 112 then
-          RegularExpressionNode.new(load_location, load_location, load_location, load_string, load_varint, location)
+          RationalNode.new(load_node, location)
         when 113 then
-          RequiredDestructuredParameterNode.new(Array.new(load_varint) { load_node }, load_location, load_location, location)
+          RedoNode.new(location)
         when 114 then
-          RequiredParameterNode.new(load_required_constant, location)
+          RegularExpressionNode.new(load_location, load_location, load_location, load_string, load_varint, location)
         when 115 then
-          RescueModifierNode.new(load_node, load_location, load_node, location)
+          RequiredDestructuredParameterNode.new(Array.new(load_varint) { load_node }, load_location, load_location, location)
         when 116 then
-          RescueNode.new(load_location, Array.new(load_varint) { load_node }, load_optional_location, load_optional_node, load_optional_node, load_optional_node, location)
+          RequiredParameterNode.new(load_required_constant, location)
         when 117 then
-          RestParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
+          RescueModifierNode.new(load_node, load_location, load_node, location)
         when 118 then
-          RetryNode.new(location)
+          RescueNode.new(load_location, Array.new(load_varint) { load_node }, load_optional_location, load_optional_node, load_optional_node, load_optional_node, location)
         when 119 then
-          ReturnNode.new(load_location, load_optional_node, location)
+          RestParameterNode.new(load_optional_constant, load_optional_location, load_location, location)
         when 120 then
-          SelfNode.new(location)
+          RetryNode.new(location)
         when 121 then
-          SingletonClassNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_location, load_node, load_optional_node, load_location, location)
+          ReturnNode.new(load_location, load_optional_node, location)
         when 122 then
-          SourceEncodingNode.new(location)
+          SelfNode.new(location)
         when 123 then
-          SourceFileNode.new(load_string, location)
+          SingletonClassNode.new(Array.new(load_varint) { load_required_constant }, load_location, load_location, load_node, load_optional_node, load_location, location)
         when 124 then
-          SourceLineNode.new(location)
+          SourceEncodingNode.new(location)
         when 125 then
-          SplatNode.new(load_location, load_optional_node, location)
+          SourceFileNode.new(load_string, location)
         when 126 then
-          StatementsNode.new(Array.new(load_varint) { load_node }, location)
+          SourceLineNode.new(location)
         when 127 then
-          StringConcatNode.new(load_node, load_node, location)
+          SplatNode.new(load_location, load_optional_node, location)
         when 128 then
-          StringNode.new(load_optional_location, load_location, load_optional_location, load_string, location)
+          StatementsNode.new(Array.new(load_varint) { load_node }, location)
         when 129 then
-          SuperNode.new(load_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node, location)
+          StringConcatNode.new(load_node, load_node, location)
         when 130 then
-          SymbolNode.new(load_optional_location, load_optional_location, load_optional_location, load_string, location)
+          StringNode.new(load_varint, load_optional_location, load_location, load_optional_location, load_string, location)
         when 131 then
-          TrueNode.new(location)
+          SuperNode.new(load_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node, location)
         when 132 then
-          UndefNode.new(Array.new(load_varint) { load_node }, load_location, location)
+          SymbolNode.new(load_optional_location, load_optional_location, load_optional_location, load_string, location)
         when 133 then
-          UnlessNode.new(load_location, load_node, load_optional_node, load_optional_node, load_optional_location, location)
+          TrueNode.new(location)
         when 134 then
-          UntilNode.new(load_location, load_optional_location, load_node, load_optional_node, load_varint, location)
+          UndefNode.new(Array.new(load_varint) { load_node }, load_location, location)
         when 135 then
-          WhenNode.new(load_location, Array.new(load_varint) { load_node }, load_optional_node, location)
+          UnlessNode.new(load_location, load_node, load_optional_node, load_optional_node, load_optional_location, location)
         when 136 then
-          WhileNode.new(load_location, load_optional_location, load_node, load_optional_node, load_varint, location)
+          UntilNode.new(load_location, load_optional_location, load_node, load_optional_node, load_varint, location)
         when 137 then
-          XStringNode.new(load_location, load_location, load_location, load_string, location)
+          WhenNode.new(load_location, Array.new(load_varint) { load_node }, load_optional_node, location)
         when 138 then
+          WhileNode.new(load_location, load_optional_location, load_node, load_optional_node, load_varint, location)
+        when 139 then
+          XStringNode.new(load_location, load_location, load_location, load_string, location)
+        when 140 then
           YieldNode.new(load_location, load_optional_location, load_optional_node, load_optional_location, location)
         end
       end

@@ -60,8 +60,15 @@ YP_EXPORTED_FUNCTION void
 yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
     switch (YP_NODE_TYPE(node)) {
 #line 57 "node.c.erb"
-        case YP_ALIAS_NODE: {
-            yp_alias_node_t *cast = (yp_alias_node_t *) node;
+        case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+            yp_alias_global_variable_node_t *cast = (yp_alias_global_variable_node_t *) node;
+            yp_node_destroy(parser, (yp_node_t *)cast->new_name);
+            yp_node_destroy(parser, (yp_node_t *)cast->old_name);
+            break;
+        }
+#line 57 "node.c.erb"
+        case YP_ALIAS_METHOD_NODE: {
+            yp_alias_method_node_t *cast = (yp_alias_method_node_t *) node;
             yp_node_destroy(parser, (yp_node_t *)cast->new_name);
             yp_node_destroy(parser, (yp_node_t *)cast->old_name);
             break;
@@ -720,6 +727,13 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             break;
         }
 #line 57 "node.c.erb"
+        case YP_MATCH_WRITE_NODE: {
+            yp_match_write_node_t *cast = (yp_match_write_node_t *) node;
+            yp_node_destroy(parser, (yp_node_t *)cast->call);
+            yp_constant_id_list_free(&cast->locals);
+            break;
+        }
+#line 57 "node.c.erb"
         case YP_MISSING_NODE: {
             break;
         }
@@ -784,10 +798,10 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             yp_parameters_node_t *cast = (yp_parameters_node_t *) node;
             yp_node_list_free(parser, &cast->requireds);
             yp_node_list_free(parser, &cast->optionals);
-            yp_node_list_free(parser, &cast->posts);
             if (cast->rest != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)cast->rest);
             }
+            yp_node_list_free(parser, &cast->posts);
             yp_node_list_free(parser, &cast->keywords);
             if (cast->keyword_rest != NULL) {
                 yp_node_destroy(parser, (yp_node_t *)cast->keyword_rest);
@@ -1068,8 +1082,16 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_SCOPE_NODE:
             return;
 #line 102 "node.c.erb"
-        case YP_ALIAS_NODE: {
-            yp_alias_node_t *cast = (yp_alias_node_t *) node;
+        case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+            yp_alias_global_variable_node_t *cast = (yp_alias_global_variable_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            yp_node_memsize_node((yp_node_t *)cast->new_name, memsize);
+            yp_node_memsize_node((yp_node_t *)cast->old_name, memsize);
+            break;
+        }
+#line 102 "node.c.erb"
+        case YP_ALIAS_METHOD_NODE: {
+            yp_alias_method_node_t *cast = (yp_alias_method_node_t *) node;
             memsize->memsize += sizeof(*cast);
             yp_node_memsize_node((yp_node_t *)cast->new_name, memsize);
             yp_node_memsize_node((yp_node_t *)cast->old_name, memsize);
@@ -1838,6 +1860,14 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             break;
         }
 #line 102 "node.c.erb"
+        case YP_MATCH_WRITE_NODE: {
+            yp_match_write_node_t *cast = (yp_match_write_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            yp_node_memsize_node((yp_node_t *)cast->call, memsize);
+            memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
+            break;
+        }
+#line 102 "node.c.erb"
         case YP_MISSING_NODE: {
             yp_missing_node_t *cast = (yp_missing_node_t *) node;
             memsize->memsize += sizeof(*cast);
@@ -1917,10 +1947,10 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             memsize->memsize += sizeof(*cast);
             yp_node_list_memsize(&cast->requireds, memsize);
             yp_node_list_memsize(&cast->optionals, memsize);
-            yp_node_list_memsize(&cast->posts, memsize);
             if (cast->rest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->rest, memsize);
             }
+            yp_node_list_memsize(&cast->posts, memsize);
             yp_node_list_memsize(&cast->keywords, memsize);
             if (cast->keyword_rest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->keyword_rest, memsize);
@@ -2243,8 +2273,10 @@ YP_EXPORTED_FUNCTION const char *
 yp_node_type_to_str(yp_node_type_t node_type)
 {
     switch (node_type) {
-        case YP_ALIAS_NODE:
-            return "YP_ALIAS_NODE";
+        case YP_ALIAS_GLOBAL_VARIABLE_NODE:
+            return "YP_ALIAS_GLOBAL_VARIABLE_NODE";
+        case YP_ALIAS_METHOD_NODE:
+            return "YP_ALIAS_METHOD_NODE";
         case YP_ALTERNATION_PATTERN_NODE:
             return "YP_ALTERNATION_PATTERN_NODE";
         case YP_AND_NODE:
@@ -2425,6 +2457,8 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_MATCH_PREDICATE_NODE";
         case YP_MATCH_REQUIRED_NODE:
             return "YP_MATCH_REQUIRED_NODE";
+        case YP_MATCH_WRITE_NODE:
+            return "YP_MATCH_WRITE_NODE";
         case YP_MISSING_NODE:
             return "YP_MISSING_NODE";
         case YP_MODULE_NODE:

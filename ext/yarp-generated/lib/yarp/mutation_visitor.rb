@@ -10,8 +10,13 @@ module YARP
   # visited. This is useful for consumers that want to mutate the tree, as you
   # can change subtrees in place without effecting the rest of the tree.
   class MutationVisitor < BasicVisitor
-    # Copy a AliasNode node
-    def visit_alias_node(node)
+    # Copy a AliasGlobalVariableNode node
+    def visit_alias_global_variable_node(node)
+      node.copy(new_name: visit(node.new_name), old_name: visit(node.old_name))
+    end
+
+    # Copy a AliasMethodNode node
+    def visit_alias_method_node(node)
       node.copy(new_name: visit(node.new_name), old_name: visit(node.old_name))
     end
 
@@ -465,6 +470,11 @@ module YARP
       node.copy(value: visit(node.value), pattern: visit(node.pattern))
     end
 
+    # Copy a MatchWriteNode node
+    def visit_match_write_node(node)
+      node.copy(call: visit(node.call))
+    end
+
     # Copy a MissingNode node
     def visit_missing_node(node)
       node.copy
@@ -517,7 +527,7 @@ module YARP
 
     # Copy a ParametersNode node
     def visit_parameters_node(node)
-      node.copy(requireds: visit_all(node.requireds), optionals: visit_all(node.optionals), posts: visit_all(node.posts), rest: visit(node.rest), keywords: visit_all(node.keywords), keyword_rest: visit(node.keyword_rest), block: visit(node.block))
+      node.copy(requireds: visit_all(node.requireds), optionals: visit_all(node.optionals), rest: visit(node.rest), posts: visit_all(node.posts), keywords: visit_all(node.keywords), keyword_rest: visit(node.keyword_rest), block: visit(node.block))
     end
 
     # Copy a ParenthesesNode node

@@ -14,7 +14,8 @@ extern VALUE rb_cYARPSource;
 extern VALUE rb_cYARPToken;
 extern VALUE rb_cYARPLocation;
 
-static VALUE rb_cYARPAliasNode;
+static VALUE rb_cYARPAliasGlobalVariableNode;
+static VALUE rb_cYARPAliasMethodNode;
 static VALUE rb_cYARPAlternationPatternNode;
 static VALUE rb_cYARPAndNode;
 static VALUE rb_cYARPArgumentsNode;
@@ -105,6 +106,7 @@ static VALUE rb_cYARPLocalVariableWriteNode;
 static VALUE rb_cYARPMatchLastLineNode;
 static VALUE rb_cYARPMatchPredicateNode;
 static VALUE rb_cYARPMatchRequiredNode;
+static VALUE rb_cYARPMatchWriteNode;
 static VALUE rb_cYARPMissingNode;
 static VALUE rb_cYARPModuleNode;
 static VALUE rb_cYARPMultiTargetNode;
@@ -248,8 +250,15 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
             switch (YP_NODE_TYPE(node)) {
 #line 111 "api_node.c.erb"
-                case YP_ALIAS_NODE: {
-                    yp_alias_node_t *cast = (yp_alias_node_t *) node;
+                case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+                    yp_alias_global_variable_node_t *cast = (yp_alias_global_variable_node_t *) node;
+                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->new_name);
+                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->old_name);
+                    break;
+                }
+#line 111 "api_node.c.erb"
+                case YP_ALIAS_METHOD_NODE: {
+                    yp_alias_method_node_t *cast = (yp_alias_method_node_t *) node;
                     yp_node_stack_push(&node_stack, (yp_node_t *) cast->new_name);
                     yp_node_stack_push(&node_stack, (yp_node_t *) cast->old_name);
                     break;
@@ -751,6 +760,12 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                     break;
                 }
 #line 111 "api_node.c.erb"
+                case YP_MATCH_WRITE_NODE: {
+                    yp_match_write_node_t *cast = (yp_match_write_node_t *) node;
+                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->call);
+                    break;
+                }
+#line 111 "api_node.c.erb"
                 case YP_MODULE_NODE: {
                     yp_module_node_t *cast = (yp_module_node_t *) node;
                     yp_node_stack_push(&node_stack, (yp_node_t *) cast->constant_path);
@@ -802,10 +817,10 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                     for (size_t index = 0; index < cast->optionals.size; index++) {
                         yp_node_stack_push(&node_stack, (yp_node_t *) cast->optionals.nodes[index]);
                     }
+                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->rest);
                     for (size_t index = 0; index < cast->posts.size; index++) {
                         yp_node_stack_push(&node_stack, (yp_node_t *) cast->posts.nodes[index]);
                     }
-                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->rest);
                     for (size_t index = 0; index < cast->keywords.size; index++) {
                         yp_node_stack_push(&node_stack, (yp_node_t *) cast->keywords.nodes[index]);
                     }
@@ -983,8 +998,8 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
             switch (YP_NODE_TYPE(node)) {
 #line 137 "api_node.c.erb"
-                case YP_ALIAS_NODE: {
-                    yp_alias_node_t *cast = (yp_alias_node_t *) node;
+                case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+                    yp_alias_global_variable_node_t *cast = (yp_alias_global_variable_node_t *) node;
                     VALUE argv[4];
 
                     // new_name
@@ -1002,7 +1017,30 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                     // location
                     argv[3] = yp_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cYARPAliasNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cYARPAliasGlobalVariableNode));
+                    break;
+                }
+#line 137 "api_node.c.erb"
+                case YP_ALIAS_METHOD_NODE: {
+                    yp_alias_method_node_t *cast = (yp_alias_method_node_t *) node;
+                    VALUE argv[4];
+
+                    // new_name
+#line 148 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // old_name
+#line 148 "api_node.c.erb"
+                    argv[1] = rb_ary_pop(value_stack);
+
+                    // keyword_loc
+#line 173 "api_node.c.erb"
+                    argv[2] = yp_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
+
+                    // location
+                    argv[3] = yp_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cYARPAliasMethodNode));
                     break;
                 }
 #line 137 "api_node.c.erb"
@@ -1395,7 +1433,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 1);
+                    argv[6] = ULONG2NUM(node->flags >> 2);
 
                     // read_name
 #line 157 "api_node.c.erb"
@@ -1454,7 +1492,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[7] = ULONG2NUM(node->flags >> 1);
+                    argv[7] = ULONG2NUM(node->flags >> 2);
 
                     // name
 #line 157 "api_node.c.erb"
@@ -1497,7 +1535,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 1);
+                    argv[6] = ULONG2NUM(node->flags >> 2);
 
                     // read_name
 #line 157 "api_node.c.erb"
@@ -1557,7 +1595,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 1);
+                    argv[6] = ULONG2NUM(node->flags >> 2);
 
                     // read_name
 #line 157 "api_node.c.erb"
@@ -2373,7 +2411,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 1);
+                    argv[3] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[4] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -2900,7 +2938,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[0] = ULONG2NUM(node->flags >> 1);
+                    argv[0] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[1] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -2930,7 +2968,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 1);
+                    argv[3] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[4] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -2960,7 +2998,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 1);
+                    argv[3] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[4] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -3345,7 +3383,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 1);
+                    argv[4] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[5] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -3397,6 +3435,29 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                     argv[3] = yp_location_new(parser, node->location.start, node->location.end, source);
 
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cYARPMatchRequiredNode));
+                    break;
+                }
+#line 137 "api_node.c.erb"
+                case YP_MATCH_WRITE_NODE: {
+                    yp_match_write_node_t *cast = (yp_match_write_node_t *) node;
+                    VALUE argv[3];
+
+                    // call
+#line 148 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // locals
+#line 166 "api_node.c.erb"
+                    argv[1] = rb_ary_new_capa(cast->locals.size);
+                    for (size_t index = 0; index < cast->locals.size; index++) {
+                        assert(cast->locals.ids[index] != 0);
+                        rb_ary_push(argv[1], rb_id2sym(constants[cast->locals.ids[index] - 1]));
+                    }
+
+                    // location
+                    argv[2] = yp_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cYARPMatchWriteNode));
                     break;
                 }
 #line 137 "api_node.c.erb"
@@ -3642,16 +3703,16 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
-                    // posts
-#line 151 "api_node.c.erb"
-                    argv[2] = rb_ary_new_capa(cast->posts.size);
-                    for (size_t index = 0; index < cast->posts.size; index++) {
-                        rb_ary_push(argv[2], rb_ary_pop(value_stack));
-                    }
-
                     // rest
 #line 148 "api_node.c.erb"
-                    argv[3] = rb_ary_pop(value_stack);
+                    argv[2] = rb_ary_pop(value_stack);
+
+                    // posts
+#line 151 "api_node.c.erb"
+                    argv[3] = rb_ary_new_capa(cast->posts.size);
+                    for (size_t index = 0; index < cast->posts.size; index++) {
+                        rb_ary_push(argv[3], rb_ary_pop(value_stack));
+                    }
 
                     // keywords
 #line 151 "api_node.c.erb"
@@ -3839,7 +3900,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 1);
+                    argv[3] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[4] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -3894,7 +3955,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 1);
+                    argv[4] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[5] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -4198,28 +4259,32 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 #line 137 "api_node.c.erb"
                 case YP_STRING_NODE: {
                     yp_string_node_t *cast = (yp_string_node_t *) node;
-                    VALUE argv[5];
+                    VALUE argv[6];
+
+                    // flags
+#line 182 "api_node.c.erb"
+                    argv[0] = ULONG2NUM(node->flags >> 2);
 
                     // opening_loc
 #line 176 "api_node.c.erb"
-                    argv[0] = cast->opening_loc.start == NULL ? Qnil : yp_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
+                    argv[1] = cast->opening_loc.start == NULL ? Qnil : yp_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // content_loc
 #line 173 "api_node.c.erb"
-                    argv[1] = yp_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
+                    argv[2] = yp_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
 
                     // closing_loc
 #line 176 "api_node.c.erb"
-                    argv[2] = cast->closing_loc.start == NULL ? Qnil : yp_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
+                    argv[3] = cast->closing_loc.start == NULL ? Qnil : yp_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
 #line 157 "api_node.c.erb"
-                    argv[3] = yp_string_new(&cast->unescaped, encoding);
+                    argv[4] = yp_string_new(&cast->unescaped, encoding);
 
                     // location
-                    argv[4] = yp_location_new(parser, node->location.start, node->location.end, source);
+                    argv[5] = yp_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cYARPStringNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cYARPStringNode));
                     break;
                 }
 #line 137 "api_node.c.erb"
@@ -4366,7 +4431,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 1);
+                    argv[4] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[5] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -4423,7 +4488,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
                     // flags
 #line 182 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 1);
+                    argv[4] = ULONG2NUM(node->flags >> 2);
 
                     // location
                     argv[5] = yp_location_new(parser, node->location.start, node->location.end, source);
@@ -4498,7 +4563,8 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
 
 void
 Init_yarp_api_node(void) {
-    rb_cYARPAliasNode = rb_define_class_under(rb_cYARP, "AliasNode", rb_cYARPNode);
+    rb_cYARPAliasGlobalVariableNode = rb_define_class_under(rb_cYARP, "AliasGlobalVariableNode", rb_cYARPNode);
+    rb_cYARPAliasMethodNode = rb_define_class_under(rb_cYARP, "AliasMethodNode", rb_cYARPNode);
     rb_cYARPAlternationPatternNode = rb_define_class_under(rb_cYARP, "AlternationPatternNode", rb_cYARPNode);
     rb_cYARPAndNode = rb_define_class_under(rb_cYARP, "AndNode", rb_cYARPNode);
     rb_cYARPArgumentsNode = rb_define_class_under(rb_cYARP, "ArgumentsNode", rb_cYARPNode);
@@ -4589,6 +4655,7 @@ Init_yarp_api_node(void) {
     rb_cYARPMatchLastLineNode = rb_define_class_under(rb_cYARP, "MatchLastLineNode", rb_cYARPNode);
     rb_cYARPMatchPredicateNode = rb_define_class_under(rb_cYARP, "MatchPredicateNode", rb_cYARPNode);
     rb_cYARPMatchRequiredNode = rb_define_class_under(rb_cYARP, "MatchRequiredNode", rb_cYARPNode);
+    rb_cYARPMatchWriteNode = rb_define_class_under(rb_cYARP, "MatchWriteNode", rb_cYARPNode);
     rb_cYARPMissingNode = rb_define_class_under(rb_cYARP, "MissingNode", rb_cYARPNode);
     rb_cYARPModuleNode = rb_define_class_under(rb_cYARP, "ModuleNode", rb_cYARPNode);
     rb_cYARPMultiTargetNode = rb_define_class_under(rb_cYARP, "MultiTargetNode", rb_cYARPNode);

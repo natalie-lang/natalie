@@ -6,11 +6,11 @@ if you are looking to modify the template
 =end
 
 module YARP
-  # Represents the use of the `alias` keyword.
+  # Represents the use of the `alias` keyword to alias a global variable.
   #
-  #     alias foo bar
-  #     ^^^^^^^^^^^^^
-  class AliasNode < Node
+  #     alias $foo $bar
+  #     ^^^^^^^^^^^^^^^
+  class AliasGlobalVariableNode < Node
     # attr_reader new_name: Node
     attr_reader :new_name
 
@@ -30,7 +30,7 @@ module YARP
 
     # def accept: (visitor: Visitor) -> void
     def accept(visitor)
-      visitor.visit_alias_node(self)
+      visitor.visit_alias_global_variable_node(self)
     end
 
     # def child_nodes: () -> Array[nil | Node]
@@ -43,9 +43,80 @@ module YARP
       [new_name, old_name, keyword_loc]
     end
 
-    # def copy: (**params) -> AliasNode
+    # def copy: (**params) -> AliasGlobalVariableNode
     def copy(**params)
-      AliasNode.new(
+      AliasGlobalVariableNode.new(
+        params.fetch(:new_name) { new_name },
+        params.fetch(:old_name) { old_name },
+        params.fetch(:keyword_loc) { keyword_loc },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { new_name: new_name, old_name: old_name, keyword_loc: keyword_loc, location: location }
+    end
+
+    # def keyword: () -> String
+    def keyword
+      keyword_loc.slice
+    end
+
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      inspector << "├── new_name:\n"
+      inspector << inspector.child_node(new_name, "│   ")
+      inspector << "├── old_name:\n"
+      inspector << inspector.child_node(old_name, "│   ")
+      inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
+      inspector.to_str
+    end
+  end
+
+  # Represents the use of the `alias` keyword to alias a method.
+  #
+  #     alias foo bar
+  #     ^^^^^^^^^^^^^
+  class AliasMethodNode < Node
+    # attr_reader new_name: Node
+    attr_reader :new_name
+
+    # attr_reader old_name: Node
+    attr_reader :old_name
+
+    # attr_reader keyword_loc: Location
+    attr_reader :keyword_loc
+
+    # def initialize: (new_name: Node, old_name: Node, keyword_loc: Location, location: Location) -> void
+    def initialize(new_name, old_name, keyword_loc, location)
+      @new_name = new_name
+      @old_name = old_name
+      @keyword_loc = keyword_loc
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_alias_method_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [new_name, old_name]
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [new_name, old_name, keyword_loc]
+    end
+
+    # def copy: (**params) -> AliasMethodNode
+    def copy(**params)
+      AliasMethodNode.new(
         params.fetch(:new_name) { new_name },
         params.fetch(:old_name) { old_name },
         params.fetch(:keyword_loc) { keyword_loc },
@@ -1358,7 +1429,8 @@ module YARP
         inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      inspector << "├── flags: #{[("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact.join(", ")}\n"
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
       inspector << "├── write_name: #{write_name.inspect}\n"
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -1522,7 +1594,8 @@ module YARP
         inspector << "├── block:\n"
         inspector << block.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
-      inspector << "├── flags: #{[("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact.join(", ")}\n"
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
@@ -1676,7 +1749,8 @@ module YARP
         inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      inspector << "├── flags: #{[("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact.join(", ")}\n"
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
       inspector << "├── write_name: #{write_name.inspect}\n"
       inspector << "├── operator: #{operator.inspect}\n"
@@ -1835,7 +1909,8 @@ module YARP
         inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      inspector << "├── flags: #{[("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact.join(", ")}\n"
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
       inspector << "├── write_name: #{write_name.inspect}\n"
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -4184,7 +4259,8 @@ module YARP
         inspector << right.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
-      inspector << "└── flags: #{[("exclude_end" if exclude_end?)].compact.join(", ")}\n"
+      flags = [("exclude_end" if exclude_end?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -5803,7 +5879,8 @@ module YARP
 
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "└── flags: #{[("binary" if binary?), ("octal" if octal?), ("decimal" if decimal?), ("hexadecimal" if hexadecimal?)].compact.join(", ")}\n"
+      flags = [("binary" if binary?), ("octal" if octal?), ("decimal" if decimal?), ("hexadecimal" if hexadecimal?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -5930,7 +6007,8 @@ module YARP
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── parts: #{inspector.list("#{inspector.prefix}│   ", parts)}"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      inspector << "└── flags: #{[("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact.join(", ")}\n"
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -6055,7 +6133,8 @@ module YARP
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── parts: #{inspector.list("#{inspector.prefix}│   ", parts)}"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      inspector << "└── flags: #{[("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact.join(", ")}\n"
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -7175,7 +7254,8 @@ module YARP
       inspector << "├── content_loc: #{inspector.location(content_loc)}\n"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector << "├── unescaped: #{unescaped.inspect}\n"
-      inspector << "└── flags: #{[("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact.join(", ")}\n"
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -7318,6 +7398,66 @@ module YARP
       inspector << "├── pattern:\n"
       inspector << inspector.child_node(pattern, "│   ")
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
+      inspector.to_str
+    end
+  end
+
+  # Represents writing local variables using a regular expression match with
+  # named capture groups.
+  #
+  #     /(?<foo>bar)/ =~ baz
+  #     ^^^^^^^^^^^^^^^^^^^^
+  class MatchWriteNode < Node
+    # attr_reader call: CallNode
+    attr_reader :call
+
+    # attr_reader locals: Array[Symbol]
+    attr_reader :locals
+
+    # def initialize: (call: CallNode, locals: Array[Symbol], location: Location) -> void
+    def initialize(call, locals, location)
+      @call = call
+      @locals = locals
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_match_write_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [call]
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [call]
+    end
+
+    # def copy: (**params) -> MatchWriteNode
+    def copy(**params)
+      MatchWriteNode.new(
+        params.fetch(:call) { call },
+        params.fetch(:locals) { locals },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { call: call, locals: locals, location: location }
+    end
+
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      inspector << "├── call:\n"
+      inspector << inspector.child_node(call, "│   ")
+      inspector << "└── locals: #{locals.inspect}\n"
       inspector.to_str
     end
   end
@@ -8025,11 +8165,11 @@ module YARP
     # attr_reader optionals: Array[Node]
     attr_reader :optionals
 
-    # attr_reader posts: Array[Node]
-    attr_reader :posts
-
     # attr_reader rest: RestParameterNode?
     attr_reader :rest
+
+    # attr_reader posts: Array[Node]
+    attr_reader :posts
 
     # attr_reader keywords: Array[Node]
     attr_reader :keywords
@@ -8040,12 +8180,12 @@ module YARP
     # attr_reader block: BlockParameterNode?
     attr_reader :block
 
-    # def initialize: (requireds: Array[Node], optionals: Array[Node], posts: Array[Node], rest: RestParameterNode?, keywords: Array[Node], keyword_rest: Node?, block: BlockParameterNode?, location: Location) -> void
-    def initialize(requireds, optionals, posts, rest, keywords, keyword_rest, block, location)
+    # def initialize: (requireds: Array[Node], optionals: Array[Node], rest: RestParameterNode?, posts: Array[Node], keywords: Array[Node], keyword_rest: Node?, block: BlockParameterNode?, location: Location) -> void
+    def initialize(requireds, optionals, rest, posts, keywords, keyword_rest, block, location)
       @requireds = requireds
       @optionals = optionals
-      @posts = posts
       @rest = rest
+      @posts = posts
       @keywords = keywords
       @keyword_rest = keyword_rest
       @block = block
@@ -8059,12 +8199,12 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [*requireds, *optionals, *posts, rest, *keywords, keyword_rest, block]
+      [*requireds, *optionals, rest, *posts, *keywords, keyword_rest, block]
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*requireds, *optionals, *posts, *rest, *keywords, *keyword_rest, *block]
+      [*requireds, *optionals, *rest, *posts, *keywords, *keyword_rest, *block]
     end
 
     # def copy: (**params) -> ParametersNode
@@ -8072,8 +8212,8 @@ module YARP
       ParametersNode.new(
         params.fetch(:requireds) { requireds },
         params.fetch(:optionals) { optionals },
-        params.fetch(:posts) { posts },
         params.fetch(:rest) { rest },
+        params.fetch(:posts) { posts },
         params.fetch(:keywords) { keywords },
         params.fetch(:keyword_rest) { keyword_rest },
         params.fetch(:block) { block },
@@ -8086,20 +8226,20 @@ module YARP
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { requireds: requireds, optionals: optionals, posts: posts, rest: rest, keywords: keywords, keyword_rest: keyword_rest, block: block, location: location }
+      { requireds: requireds, optionals: optionals, rest: rest, posts: posts, keywords: keywords, keyword_rest: keyword_rest, block: block, location: location }
     end
 
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── requireds: #{inspector.list("#{inspector.prefix}│   ", requireds)}"
       inspector << "├── optionals: #{inspector.list("#{inspector.prefix}│   ", optionals)}"
-      inspector << "├── posts: #{inspector.list("#{inspector.prefix}│   ", posts)}"
       if (rest = self.rest).nil?
         inspector << "├── rest: ∅\n"
       else
         inspector << "├── rest:\n"
         inspector << rest.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
+      inspector << "├── posts: #{inspector.list("#{inspector.prefix}│   ", posts)}"
       inspector << "├── keywords: #{inspector.list("#{inspector.prefix}│   ", keywords)}"
       if (keyword_rest = self.keyword_rest).nil?
         inspector << "├── keyword_rest: ∅\n"
@@ -8676,7 +8816,8 @@ module YARP
         inspector << right.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
-      inspector << "└── flags: #{[("exclude_end" if exclude_end?)].compact.join(", ")}\n"
+      flags = [("exclude_end" if exclude_end?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -8906,7 +9047,8 @@ module YARP
       inspector << "├── content_loc: #{inspector.location(content_loc)}\n"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector << "├── unescaped: #{unescaped.inspect}\n"
-      inspector << "└── flags: #{[("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact.join(", ")}\n"
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -9896,6 +10038,9 @@ module YARP
   #     "foo #{bar} baz"
   #      ^^^^      ^^^^
   class StringNode < Node
+    # attr_reader flags: Integer
+    private attr_reader :flags
+
     # attr_reader opening_loc: Location?
     attr_reader :opening_loc
 
@@ -9908,8 +10053,9 @@ module YARP
     # attr_reader unescaped: String
     attr_reader :unescaped
 
-    # def initialize: (opening_loc: Location?, content_loc: Location, closing_loc: Location?, unescaped: String, location: Location) -> void
-    def initialize(opening_loc, content_loc, closing_loc, unescaped, location)
+    # def initialize: (flags: Integer, opening_loc: Location?, content_loc: Location, closing_loc: Location?, unescaped: String, location: Location) -> void
+    def initialize(flags, opening_loc, content_loc, closing_loc, unescaped, location)
+      @flags = flags
       @opening_loc = opening_loc
       @content_loc = content_loc
       @closing_loc = closing_loc
@@ -9935,6 +10081,7 @@ module YARP
     # def copy: (**params) -> StringNode
     def copy(**params)
       StringNode.new(
+        params.fetch(:flags) { flags },
         params.fetch(:opening_loc) { opening_loc },
         params.fetch(:content_loc) { content_loc },
         params.fetch(:closing_loc) { closing_loc },
@@ -9948,7 +10095,12 @@ module YARP
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { opening_loc: opening_loc, content_loc: content_loc, closing_loc: closing_loc, unescaped: unescaped, location: location }
+      { flags: flags, opening_loc: opening_loc, content_loc: content_loc, closing_loc: closing_loc, unescaped: unescaped, location: location }
+    end
+
+    # def frozen?: () -> bool
+    def frozen?
+      flags.anybits?(StringFlags::FROZEN)
     end
 
     # def opening: () -> String?
@@ -9968,6 +10120,8 @@ module YARP
 
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
+      flags = [("frozen" if frozen?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── content_loc: #{inspector.location(content_loc)}\n"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
@@ -10480,7 +10634,8 @@ module YARP
         inspector << "├── statements:\n"
         inspector << statements.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
-      inspector << "└── flags: #{[("begin_modifier" if begin_modifier?)].compact.join(", ")}\n"
+      flags = [("begin_modifier" if begin_modifier?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -10660,7 +10815,8 @@ module YARP
         inspector << "├── statements:\n"
         inspector << statements.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
-      inspector << "└── flags: #{[("begin_modifier" if begin_modifier?)].compact.join(", ")}\n"
+      flags = [("begin_modifier" if begin_modifier?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
   end
@@ -10898,9 +11054,17 @@ module YARP
     ONCE = 1 << 7
   end
 
+  module StringFlags
+    # frozen by virtue of a frozen_string_literal comment
+    FROZEN = 1 << 0
+  end
+
   class Visitor < BasicVisitor
-    # Visit a AliasNode node
-    alias visit_alias_node visit_child_nodes
+    # Visit a AliasGlobalVariableNode node
+    alias visit_alias_global_variable_node visit_child_nodes
+
+    # Visit a AliasMethodNode node
+    alias visit_alias_method_node visit_child_nodes
 
     # Visit a AlternationPatternNode node
     alias visit_alternation_pattern_node visit_child_nodes
@@ -11172,6 +11336,9 @@ module YARP
     # Visit a MatchRequiredNode node
     alias visit_match_required_node visit_child_nodes
 
+    # Visit a MatchWriteNode node
+    alias visit_match_write_node visit_child_nodes
+
     # Visit a MissingNode node
     alias visit_missing_node visit_child_nodes
 
@@ -11322,9 +11489,14 @@ module YARP
       Location.new(source, start_offset, length)
     end
 
-    # Create a new AliasNode node
-    def AliasNode(new_name, old_name, keyword_loc, location = Location())
-      AliasNode.new(new_name, old_name, keyword_loc, location)
+    # Create a new AliasGlobalVariableNode node
+    def AliasGlobalVariableNode(new_name, old_name, keyword_loc, location = Location())
+      AliasGlobalVariableNode.new(new_name, old_name, keyword_loc, location)
+    end
+
+    # Create a new AliasMethodNode node
+    def AliasMethodNode(new_name, old_name, keyword_loc, location = Location())
+      AliasMethodNode.new(new_name, old_name, keyword_loc, location)
     end
 
     # Create a new AlternationPatternNode node
@@ -11777,6 +11949,11 @@ module YARP
       MatchRequiredNode.new(value, pattern, operator_loc, location)
     end
 
+    # Create a new MatchWriteNode node
+    def MatchWriteNode(call, locals, location = Location())
+      MatchWriteNode.new(call, locals, location)
+    end
+
     # Create a new MissingNode node
     def MissingNode(location = Location())
       MissingNode.new(location)
@@ -11828,8 +12005,8 @@ module YARP
     end
 
     # Create a new ParametersNode node
-    def ParametersNode(requireds, optionals, posts, rest, keywords, keyword_rest, block, location = Location())
-      ParametersNode.new(requireds, optionals, posts, rest, keywords, keyword_rest, block, location)
+    def ParametersNode(requireds, optionals, rest, posts, keywords, keyword_rest, block, location = Location())
+      ParametersNode.new(requireds, optionals, rest, posts, keywords, keyword_rest, block, location)
     end
 
     # Create a new ParenthesesNode node
@@ -11958,8 +12135,8 @@ module YARP
     end
 
     # Create a new StringNode node
-    def StringNode(opening_loc, content_loc, closing_loc, unescaped, location = Location())
-      StringNode.new(opening_loc, content_loc, closing_loc, unescaped, location)
+    def StringNode(flags, opening_loc, content_loc, closing_loc, unescaped, location = Location())
+      StringNode.new(flags, opening_loc, content_loc, closing_loc, unescaped, location)
     end
 
     # Create a new SuperNode node

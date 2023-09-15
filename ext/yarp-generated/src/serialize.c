@@ -67,10 +67,16 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
         // it is not part of the AST
         case YP_SCOPE_NODE:
             return;
-        case YP_ALIAS_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_node_t *)node)->new_name, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_node_t *)node)->old_name, buffer);
-            yp_serialize_location(parser, &((yp_alias_node_t *)node)->keyword_loc, buffer);
+        case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
+            yp_serialize_node(parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->new_name, buffer);
+            yp_serialize_node(parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->old_name, buffer);
+            yp_serialize_location(parser, &((yp_alias_global_variable_node_t *)node)->keyword_loc, buffer);
+            break;
+        }
+        case YP_ALIAS_METHOD_NODE: {
+            yp_serialize_node(parser, (yp_node_t *)((yp_alias_method_node_t *)node)->new_name, buffer);
+            yp_serialize_node(parser, (yp_node_t *)((yp_alias_method_node_t *)node)->old_name, buffer);
+            yp_serialize_location(parser, &((yp_alias_method_node_t *)node)->keyword_loc, buffer);
             break;
         }
         case YP_ALTERNATION_PATTERN_NODE: {
@@ -323,7 +329,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_buffer_append_u8(buffer, 1);
                 yp_serialize_location(parser, &((yp_call_and_write_node_t *)node)->closing_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             yp_serialize_string(parser, &((yp_call_and_write_node_t *)node)->read_name, buffer);
             yp_serialize_string(parser, &((yp_call_and_write_node_t *)node)->write_name, buffer);
             yp_serialize_location(parser, &((yp_call_and_write_node_t *)node)->operator_loc, buffer);
@@ -370,7 +376,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             } else {
                 yp_serialize_node(parser, (yp_node_t *)((yp_call_node_t *)node)->block, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             yp_serialize_string(parser, &((yp_call_node_t *)node)->name, buffer);
             break;
         }
@@ -409,7 +415,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_buffer_append_u8(buffer, 1);
                 yp_serialize_location(parser, &((yp_call_operator_write_node_t *)node)->closing_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             yp_serialize_string(parser, &((yp_call_operator_write_node_t *)node)->read_name, buffer);
             yp_serialize_string(parser, &((yp_call_operator_write_node_t *)node)->write_name, buffer);
             yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_call_operator_write_node_t *)node)->operator));
@@ -452,7 +458,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_buffer_append_u8(buffer, 1);
                 yp_serialize_location(parser, &((yp_call_or_write_node_t *)node)->closing_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             yp_serialize_string(parser, &((yp_call_or_write_node_t *)node)->read_name, buffer);
             yp_serialize_string(parser, &((yp_call_or_write_node_t *)node)->write_name, buffer);
             yp_serialize_location(parser, &((yp_call_or_write_node_t *)node)->operator_loc, buffer);
@@ -799,7 +805,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_serialize_node(parser, (yp_node_t *)((yp_flip_flop_node_t *)node)->right, buffer);
             }
             yp_serialize_location(parser, &((yp_flip_flop_node_t *)node)->operator_loc, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_FLOAT_NODE: {
@@ -999,7 +1005,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             break;
         }
         case YP_INTEGER_NODE: {
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_INTERPOLATED_MATCH_LAST_LINE_NODE: {
@@ -1010,7 +1016,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_match_last_line_node_t *)node)->parts.nodes[index], buffer);
             }
             yp_serialize_location(parser, &((yp_interpolated_match_last_line_node_t *)node)->closing_loc, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
@@ -1021,7 +1027,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_regular_expression_node_t *)node)->parts.nodes[index], buffer);
             }
             yp_serialize_location(parser, &((yp_interpolated_regular_expression_node_t *)node)->closing_loc, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_INTERPOLATED_STRING_NODE: {
@@ -1172,7 +1178,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             yp_serialize_location(parser, &((yp_match_last_line_node_t *)node)->content_loc, buffer);
             yp_serialize_location(parser, &((yp_match_last_line_node_t *)node)->closing_loc, buffer);
             yp_serialize_string(parser, &((yp_match_last_line_node_t *)node)->unescaped, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_MATCH_PREDICATE_NODE: {
@@ -1185,6 +1191,15 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             yp_serialize_node(parser, (yp_node_t *)((yp_match_required_node_t *)node)->value, buffer);
             yp_serialize_node(parser, (yp_node_t *)((yp_match_required_node_t *)node)->pattern, buffer);
             yp_serialize_location(parser, &((yp_match_required_node_t *)node)->operator_loc, buffer);
+            break;
+        }
+        case YP_MATCH_WRITE_NODE: {
+            yp_serialize_node(parser, (yp_node_t *)((yp_match_write_node_t *)node)->call, buffer);
+            uint32_t locals_size = yp_sizet_to_u32(((yp_match_write_node_t *)node)->locals.size);
+            yp_buffer_append_u32(buffer, locals_size);
+            for (uint32_t index = 0; index < locals_size; index++) {
+                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_match_write_node_t *)node)->locals.ids[index]));
+            }
             break;
         }
         case YP_MISSING_NODE: {
@@ -1294,15 +1309,15 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             for (uint32_t index = 0; index < optionals_size; index++) {
                 yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->optionals.nodes[index], buffer);
             }
-            uint32_t posts_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->posts.size);
-            yp_buffer_append_u32(buffer, posts_size);
-            for (uint32_t index = 0; index < posts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->posts.nodes[index], buffer);
-            }
             if (((yp_parameters_node_t *)node)->rest == NULL) {
                 yp_buffer_append_u8(buffer, 0);
             } else {
                 yp_serialize_node(parser, (yp_node_t *)((yp_parameters_node_t *)node)->rest, buffer);
+            }
+            uint32_t posts_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->posts.size);
+            yp_buffer_append_u32(buffer, posts_size);
+            for (uint32_t index = 0; index < posts_size; index++) {
+                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->posts.nodes[index], buffer);
             }
             uint32_t keywords_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->keywords.size);
             yp_buffer_append_u32(buffer, keywords_size);
@@ -1386,7 +1401,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
                 yp_serialize_node(parser, (yp_node_t *)((yp_range_node_t *)node)->right, buffer);
             }
             yp_serialize_location(parser, &((yp_range_node_t *)node)->operator_loc, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_RATIONAL_NODE: {
@@ -1401,7 +1416,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             yp_serialize_location(parser, &((yp_regular_expression_node_t *)node)->content_loc, buffer);
             yp_serialize_location(parser, &((yp_regular_expression_node_t *)node)->closing_loc, buffer);
             yp_serialize_string(parser, &((yp_regular_expression_node_t *)node)->unescaped, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
@@ -1530,6 +1545,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             break;
         }
         case YP_STRING_NODE: {
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             if (((yp_string_node_t *)node)->opening_loc.start == NULL) {
                 yp_buffer_append_u8(buffer, 0);
             } else {
@@ -1641,7 +1657,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             } else {
                 yp_serialize_node(parser, (yp_node_t *)((yp_until_node_t *)node)->statements, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_WHEN_NODE: {
@@ -1672,7 +1688,7 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             } else {
                 yp_serialize_node(parser, (yp_node_t *)((yp_while_node_t *)node)->statements, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 1);
+            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
         case YP_X_STRING_NODE: {
