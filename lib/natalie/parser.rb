@@ -34,8 +34,9 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_back_reference_read_node(node)
     name = node.slice[1..].to_sym
-    if name == :"'"
-      s(:gvar, :"$'", location: node.location)
+    case name
+    when :"'", :`
+      s(:gvar, :"$#{name}", location: node.location)
     else
       s(:back_ref, name, location: node.location)
     end
