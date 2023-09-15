@@ -632,7 +632,11 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_parentheses_node(node)
-    visit(node.body)
+    if node.body
+      visit(node.body)
+    else
+      s(:nil, location: node.location)
+    end
   end
 
   def visit_program_node(node)
