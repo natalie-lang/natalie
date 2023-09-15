@@ -551,8 +551,10 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_module_node(node)
+    name = visit(node.constant_path)
+    name = name[1] if name.sexp_type == :const
     s(:module,
-      node.name.to_sym,
+      name,
       visit(node.body),
       location: node.location)
   end
