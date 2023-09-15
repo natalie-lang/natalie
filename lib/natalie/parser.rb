@@ -382,8 +382,8 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_interpolated_regular_expression_node(node)
-    dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx)
-    dregx << node.options
+    dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx, unescaped: false)
+    dregx << node.options if node.options != 0
     dregx
   end
 
@@ -425,11 +425,11 @@ class SexpVisitor < ::YARP::BasicVisitor
     visit_interpolated_stringish_node(node, sexp_type: :dstr)
   end
 
-  def visit_interpolated_stringish_node(node, sexp_type:)
-    segments = node.child_nodes.map do |n|
+  def visit_interpolated_stringish_node(node, sexp_type:, unescaped: true)
+    segments = node.parts.map do |n|
                  case n
                  when YARP::StringNode
-                   s(:str, n.unescaped, location: n.location)
+                   s(:str, unescaped ? n.unescaped : n.content, location: n.location)
                  when YARP::EmbeddedStatementsNode
                    raise 'unexpected evstr size' if n.statements.body.size != 1
                    s(:evstr, visit(n.statements.body.first), location: n.location)
@@ -440,7 +440,12 @@ class SexpVisitor < ::YARP::BasicVisitor
     if (simpler = extract_single_segment_from_interpolated_node(segments, node: node, sexp_type: sexp_type))
       return simpler
     end
-    s(sexp_type, '', *segments, location: node.location)
+    start = if segments.first.sexp_type == :str
+              segments.shift[1]
+            else
+              ''
+            end
+    s(sexp_type, start, *segments, location: node.location)
   end
 
   def extract_single_segment_from_interpolated_node(segments, node:, sexp_type:)
