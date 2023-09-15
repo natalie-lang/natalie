@@ -719,6 +719,10 @@ class SexpVisitor < ::YARP::BasicVisitor
     "*#{node.name}".to_sym
   end
 
+  def visit_retry_node(node)
+    s(:retry, location: node.location)
+  end
+
   def visit_return_node(node)
     visit_return_or_next_or_break_node(node, sexp_type: :return)
   end
