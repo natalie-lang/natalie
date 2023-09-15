@@ -4,6 +4,7 @@ task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
 SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+SO_EXT2 = RUBY_PLATFORM =~ /darwin/ ? 'dylib' : 'so'
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
@@ -100,7 +101,7 @@ desc 'Build MRI C Extension for the Natalie Parser'
 task parser_c_ext: ["build/natalie_parser.#{SO_EXT}", "build/libnatalie_parser.#{SO_EXT}"]
 
 desc 'Build MRI C Extension for YARP'
-task yarp_c_ext: ["build/librubyparser.#{SO_EXT}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
+task yarp_c_ext: ["build/librubyparser.#{SO_EXT2}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -293,7 +294,7 @@ task libnatalie: [
   'build/onigmo/lib/libonigmo.a',
   'build/libnatalie_parser.a',
   'build/librubyparser.a',
-  "build/librubyparser.#{SO_EXT}",
+  "build/librubyparser.#{SO_EXT2}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -452,19 +453,22 @@ file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do 
   sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
 end
 
-file "build/librubyparser.#{SO_EXT}" => ['build/librubyparser.a']
+file "build/librubyparser.#{SO_EXT2}" => ['build/librubyparser.a']
 
 file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{SO_EXT}"] do
   build_dir = File.expand_path('build/yarp', __dir__)
   cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
-  cp "#{build_dir}/build/librubyparser.#{SO_EXT}", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/librubyparser.#{SO_EXT2}", File.expand_path('build', __dir__)
 end
 
 file "build/yarp/ext/yarp/yarp.#{SO_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
   build_dir = File.expand_path('build/yarp', __dir__)
   rm_rf build_dir
   cp_r 'ext/yarp', build_dir
-  sh "cp -r -T ext/yarp-generated #{build_dir}"
+  Rake::FileList['ext/yarp-generated/**/*.{rb,c,h}'].each do |path|
+    dest = File.join(build_dir, path.sub(%r{^ext/yarp-generated}, ''))
+    cp path, dest
+  end
   File.write(File.join(build_dir, 'rakelib/test.rake'), '') # disable this task since it tries to load ruby_memcheck
   sh <<-SH
     cd #{build_dir} && \
