@@ -80,6 +80,7 @@ static VALUE rb_cYARPHashNode;
 static VALUE rb_cYARPHashPatternNode;
 static VALUE rb_cYARPIfNode;
 static VALUE rb_cYARPImaginaryNode;
+static VALUE rb_cYARPImplicitNode;
 static VALUE rb_cYARPInNode;
 static VALUE rb_cYARPInstanceVariableAndWriteNode;
 static VALUE rb_cYARPInstanceVariableOperatorWriteNode;
@@ -225,7 +226,7 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
     VALUE source = yp_source_new(parser, encoding);
     ID *constants = calloc(parser->constant_pool.size, sizeof(ID));
 
-    for (size_t index = 0; index < parser->constant_pool.capacity; index++) {
+    for (uint32_t index = 0; index < parser->constant_pool.capacity; index++) {
         yp_constant_t constant = parser->constant_pool.constants[index];
 
         if (constant.id != 0) {
@@ -627,6 +628,12 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                 case YP_IMAGINARY_NODE: {
                     yp_imaginary_node_t *cast = (yp_imaginary_node_t *) node;
                     yp_node_stack_push(&node_stack, (yp_node_t *) cast->numeric);
+                    break;
+                }
+#line 111 "api_node.c.erb"
+                case YP_IMPLICIT_NODE: {
+                    yp_implicit_node_t *cast = (yp_implicit_node_t *) node;
+                    yp_node_stack_push(&node_stack, (yp_node_t *) cast->value);
                     break;
                 }
 #line 111 "api_node.c.erb"
@@ -2757,6 +2764,20 @@ yp_ast_new(yp_parser_t *parser, yp_node_t *node, rb_encoding *encoding) {
                     break;
                 }
 #line 137 "api_node.c.erb"
+                case YP_IMPLICIT_NODE: {
+                    VALUE argv[2];
+
+                    // value
+#line 148 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[1] = yp_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cYARPImplicitNode));
+                    break;
+                }
+#line 137 "api_node.c.erb"
                 case YP_IN_NODE: {
                     yp_in_node_t *cast = (yp_in_node_t *) node;
                     VALUE argv[5];
@@ -4629,6 +4650,7 @@ Init_yarp_api_node(void) {
     rb_cYARPHashPatternNode = rb_define_class_under(rb_cYARP, "HashPatternNode", rb_cYARPNode);
     rb_cYARPIfNode = rb_define_class_under(rb_cYARP, "IfNode", rb_cYARPNode);
     rb_cYARPImaginaryNode = rb_define_class_under(rb_cYARP, "ImaginaryNode", rb_cYARPNode);
+    rb_cYARPImplicitNode = rb_define_class_under(rb_cYARP, "ImplicitNode", rb_cYARPNode);
     rb_cYARPInNode = rb_define_class_under(rb_cYARP, "InNode", rb_cYARPNode);
     rb_cYARPInstanceVariableAndWriteNode = rb_define_class_under(rb_cYARP, "InstanceVariableAndWriteNode", rb_cYARPNode);
     rb_cYARPInstanceVariableOperatorWriteNode = rb_define_class_under(rb_cYARP, "InstanceVariableOperatorWriteNode", rb_cYARPNode);

@@ -38,6 +38,11 @@ module YARP
       [new_name, old_name]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [new_name, old_name]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [new_name, old_name, keyword_loc]
@@ -75,6 +80,13 @@ module YARP
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :alias_global_variable_node
+    end
   end
 
   # Represents the use of the `alias` keyword to alias a method.
@@ -106,6 +118,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [new_name, old_name]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [new_name, old_name]
     end
 
@@ -146,6 +163,13 @@ module YARP
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :alias_method_node
+    end
   end
 
   # Represents an alternation pattern in pattern matching.
@@ -177,6 +201,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [left, right]
     end
 
@@ -217,6 +246,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :alternation_pattern_node
+    end
   end
 
   # Represents the use of the `&&` operator or the `and` keyword.
@@ -248,6 +284,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [left, right]
     end
 
@@ -288,6 +329,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :and_node
+    end
   end
 
   # Represents a set of arguments to a method or a keyword.
@@ -311,6 +359,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*arguments]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*arguments]
     end
 
@@ -339,6 +392,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── arguments: #{inspector.list("#{inspector.prefix}    ", arguments)}"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :arguments_node
     end
   end
 
@@ -372,6 +432,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*elements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*elements]
     end
 
@@ -414,6 +479,13 @@ module YARP
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :array_node
     end
   end
 
@@ -473,6 +545,16 @@ module YARP
       [constant, *requireds, rest, *posts]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << constant if constant
+      compact.concat(requireds)
+      compact << rest if rest
+      compact.concat(posts)
+      compact
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [*constant, *requireds, *rest, *posts, *opening_loc, *closing_loc]
@@ -529,6 +611,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :array_pattern_node
+    end
   end
 
   # Represents a hash key/value pair.
@@ -561,6 +650,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [key, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << key
+      compact << value if value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -604,6 +701,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :assoc_node
+    end
   end
 
   # Represents a splat in a hash literal.
@@ -632,6 +736,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << value if value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -672,6 +783,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :assoc_splat_node
+    end
   end
 
   # Represents reading a reference to a field in the previous match.
@@ -691,6 +809,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -717,6 +840,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :back_reference_read_node
     end
   end
 
@@ -768,6 +898,16 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements, rescue_clause, else_clause, ensure_clause]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact << rescue_clause if rescue_clause
+      compact << else_clause if else_clause
+      compact << ensure_clause if ensure_clause
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -836,6 +976,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :begin_node
+    end
   end
 
   # Represents block method arguments.
@@ -864,6 +1011,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [expression]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << expression if expression
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -904,6 +1058,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :block_argument_node
+    end
   end
 
   # Represents a block local variable.
@@ -927,6 +1088,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -955,6 +1121,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :block_local_variable_node
     end
   end
 
@@ -996,6 +1169,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [parameters, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << parameters if parameters
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1052,6 +1233,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :block_node
+    end
   end
 
   # Represents a block parameter to a method, block, or lambda definition.
@@ -1084,6 +1272,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -1121,6 +1314,13 @@ module YARP
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :block_parameter_node
     end
   end
 
@@ -1162,6 +1362,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [parameters, *locals]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << parameters if parameters
+      compact.concat(locals)
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1211,6 +1419,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :block_parameters_node
+    end
   end
 
   # Represents the use of the `break` keyword.
@@ -1239,6 +1454,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [arguments]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << arguments if arguments
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1278,6 +1500,13 @@ module YARP
       end
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :break_node
     end
   end
 
@@ -1343,6 +1572,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [receiver, arguments, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1438,6 +1676,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :call_and_write_node
+    end
   end
 
   # Represents a method call, in all of the various forms that can take.
@@ -1478,7 +1723,7 @@ module YARP
     # attr_reader closing_loc: Location?
     attr_reader :closing_loc
 
-    # attr_reader block: BlockNode?
+    # attr_reader block: Node?
     attr_reader :block
 
     # attr_reader flags: Integer
@@ -1487,7 +1732,7 @@ module YARP
     # attr_reader name: String
     attr_reader :name
 
-    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, opening_loc: Location?, arguments: ArgumentsNode?, closing_loc: Location?, block: BlockNode?, flags: Integer, name: String, location: Location) -> void
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, opening_loc: Location?, arguments: ArgumentsNode?, closing_loc: Location?, block: Node?, flags: Integer, name: String, location: Location) -> void
     def initialize(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, block, flags, name, location)
       @receiver = receiver
       @call_operator_loc = call_operator_loc
@@ -1509,6 +1754,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [receiver, arguments, block]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << block if block
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1599,6 +1853,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :call_node
+    end
   end
 
   # Represents the use of an assignment operator on a call.
@@ -1667,6 +1928,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [receiver, arguments, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1759,6 +2029,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :call_operator_write_node
+    end
   end
 
   # Represents the use of the `||=` operator on a call.
@@ -1823,6 +2100,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [receiver, arguments, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -1918,6 +2204,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :call_or_write_node
+    end
   end
 
   # Represents assigning to a local variable in pattern matching.
@@ -1949,6 +2242,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value, target]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value, target]
     end
 
@@ -1988,6 +2286,13 @@ module YARP
       inspector << inspector.child_node(target, "│   ")
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :capture_pattern_node
     end
   end
 
@@ -2031,6 +2336,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [predicate, *conditions, consequent]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << predicate if predicate
+      compact.concat(conditions)
+      compact << consequent if consequent
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -2087,6 +2401,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :case_node
+    end
   end
 
   # Represents a class declaration involving the `class` keyword.
@@ -2139,6 +2460,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [constant_path, superclass, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << constant_path
+      compact << superclass if superclass
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -2207,6 +2537,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to a class variable.
@@ -2242,6 +2579,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -2282,6 +2624,13 @@ module YARP
       inspector << "└── value:\n"
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_and_write_node
     end
   end
 
@@ -2325,6 +2674,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -2359,6 +2713,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator: #{operator.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_operator_write_node
     end
   end
 
@@ -2395,6 +2756,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -2436,6 +2802,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_or_write_node
+    end
   end
 
   # Represents referencing a class variable.
@@ -2459,6 +2832,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -2488,6 +2866,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_read_node
+    end
   end
 
   # Represents writing to a class variable in a context that doesn't have an explicit value.
@@ -2511,6 +2896,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -2539,6 +2929,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_target_node
     end
   end
 
@@ -2575,6 +2972,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -2616,6 +3018,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :class_variable_write_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to a constant.
@@ -2651,6 +3060,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -2691,6 +3105,13 @@ module YARP
       inspector << "└── value:\n"
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_and_write_node
     end
   end
 
@@ -2734,6 +3155,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -2768,6 +3194,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator: #{operator.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_operator_write_node
     end
   end
 
@@ -2804,6 +3237,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -2845,6 +3283,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_or_write_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to a constant path.
@@ -2876,6 +3321,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [target, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [target, value]
     end
 
@@ -2916,6 +3366,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_and_write_node
+    end
   end
 
   # Represents accessing a constant through a path of `::` operators.
@@ -2948,6 +3405,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [parent, child]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << parent if parent
+      compact << child
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -2991,6 +3456,13 @@ module YARP
       inspector << "└── delimiter_loc: #{inspector.location(delimiter_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_node
+    end
   end
 
   # Represents assigning to a constant path using an operator that isn't `=`.
@@ -3029,6 +3501,11 @@ module YARP
       [target, value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [target, value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [target, operator_loc, value]
@@ -3063,6 +3540,13 @@ module YARP
       inspector << "└── operator: #{operator.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_operator_write_node
+    end
   end
 
   # Represents the use of the `||=` operator for assignment to a constant path.
@@ -3094,6 +3578,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [target, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [target, value]
     end
 
@@ -3134,6 +3623,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_or_write_node
+    end
   end
 
   # Represents writing to a constant path in a context that doesn't have an explicit value.
@@ -3166,6 +3662,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [parent, child]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << parent if parent
+      compact << child
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -3209,6 +3713,13 @@ module YARP
       inspector << "└── delimiter_loc: #{inspector.location(delimiter_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_target_node
+    end
   end
 
   # Represents writing to a constant path.
@@ -3249,6 +3760,11 @@ module YARP
       [target, value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [target, value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [target, operator_loc, value]
@@ -3286,6 +3802,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_path_write_node
+    end
   end
 
   # Represents referencing a constant.
@@ -3309,6 +3832,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -3338,6 +3866,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_read_node
+    end
   end
 
   # Represents writing to a constant in a context that doesn't have an explicit value.
@@ -3361,6 +3896,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -3389,6 +3929,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_target_node
     end
   end
 
@@ -3425,6 +3972,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -3465,6 +4017,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :constant_write_node
     end
   end
 
@@ -3535,6 +4094,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [receiver, parameters, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << parameters if parameters
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -3630,6 +4198,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :def_node
+    end
   end
 
   # Represents the use of the `defined?` keyword.
@@ -3665,6 +4240,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -3716,6 +4296,13 @@ module YARP
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :defined_node
+    end
   end
 
   # Represents an `else` clause in a `case`, `if`, or `unless` statement.
@@ -3748,6 +4335,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -3795,6 +4389,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :else_node
+    end
   end
 
   # Represents an interpolated set of statements.
@@ -3827,6 +4428,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -3874,6 +4482,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :embedded_statements_node
+    end
   end
 
   # Represents an interpolated variable.
@@ -3901,6 +4516,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [variable]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [variable]
     end
 
@@ -3938,6 +4558,13 @@ module YARP
       inspector << inspector.child_node(variable, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :embedded_variable_node
+    end
   end
 
   # Represents an `ensure` clause in a `begin` statement.
@@ -3974,6 +4601,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -4021,6 +4655,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :ensure_node
+    end
   end
 
   # Represents the use of the literal `false` keyword.
@@ -4040,6 +4681,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4066,6 +4712,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :false_node
     end
   end
 
@@ -4117,6 +4770,16 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [constant, left, *requireds, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << constant if constant
+      compact << left
+      compact.concat(requireds)
+      compact << right
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -4172,6 +4835,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :find_pattern_node
+    end
   end
 
   # Represents the use of the `..` or `...` operators to create flip flops.
@@ -4208,6 +4878,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << left if left
+      compact << right if right
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -4263,6 +4941,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :flip_flop_node
+    end
   end
 
   # Represents a floating point number literal.
@@ -4282,6 +4967,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4308,6 +4998,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :float_node
     end
   end
 
@@ -4357,6 +5054,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [index, collection, statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << index
+      compact << collection
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -4424,6 +5130,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :for_node
+    end
   end
 
   # Represents forwarding all arguments to this method to another method.
@@ -4445,6 +5158,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4472,6 +5190,13 @@ module YARP
       inspector << inspector.header(self)
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :forwarding_arguments_node
+    end
   end
 
   # Represents the use of the forwarding parameter in a method, block, or lambda declaration.
@@ -4492,6 +5217,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4519,6 +5249,13 @@ module YARP
       inspector << inspector.header(self)
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :forwarding_parameter_node
+    end
   end
 
   # Represents the use of the `super` keyword without parentheses or arguments.
@@ -4543,6 +5280,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [block]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << block if block
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -4575,6 +5319,13 @@ module YARP
         inspector << block.inspect(inspector.child_inspector("    ")).delete_prefix(inspector.prefix)
       end
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :forwarding_super_node
     end
   end
 
@@ -4611,6 +5362,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -4651,6 +5407,13 @@ module YARP
       inspector << "└── value:\n"
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_and_write_node
     end
   end
 
@@ -4694,6 +5457,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -4728,6 +5496,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator: #{operator.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_operator_write_node
     end
   end
 
@@ -4764,6 +5539,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -4805,6 +5585,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_or_write_node
+    end
   end
 
   # Represents referencing a global variable.
@@ -4828,6 +5615,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4857,6 +5649,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_read_node
+    end
   end
 
   # Represents writing to a global variable in a context that doesn't have an explicit value.
@@ -4880,6 +5679,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -4908,6 +5712,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_target_node
     end
   end
 
@@ -4944,6 +5755,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -4985,6 +5801,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :global_variable_write_node
+    end
   end
 
   # Represents a hash literal.
@@ -5016,6 +5839,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*elements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*elements]
     end
 
@@ -5058,6 +5886,13 @@ module YARP
       inspector << "├── elements: #{inspector.list("#{inspector.prefix}│   ", elements)}"
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :hash_node
     end
   end
 
@@ -5102,6 +5937,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [constant, *assocs, kwrest]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << constant if constant
+      compact.concat(assocs)
+      compact << kwrest if kwrest
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -5158,6 +6002,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :hash_pattern_node
+    end
   end
 
   # Represents the use of the `if` keyword, either in the block form or the modifier form.
@@ -5205,6 +6056,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [predicate, statements, consequent]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << predicate
+      compact << statements if statements
+      compact << consequent if consequent
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -5262,6 +6122,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :if_node
+    end
   end
 
   # Represents an imaginary number literal.
@@ -5285,6 +6152,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [numeric]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [numeric]
     end
 
@@ -5314,6 +6186,82 @@ module YARP
       inspector << "└── numeric:\n"
       inspector << inspector.child_node(numeric, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :imaginary_node
+    end
+  end
+
+  # Represents a node that is implicitly being added to the tree but doesn't
+  # correspond directly to a node in the source.
+  #
+  #     { foo: }
+  #       ^^^^
+  #
+  #     { Foo: }
+  #       ^^^^
+  class ImplicitNode < Node
+    # attr_reader value: Node
+    attr_reader :value
+
+    # def initialize: (value: Node, location: Location) -> void
+    def initialize(value, location)
+      @value = value
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_implicit_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [value]
+    end
+
+    # def copy: (**params) -> ImplicitNode
+    def copy(**params)
+      ImplicitNode.new(
+        params.fetch(:value) { value },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { value: value, location: location }
+    end
+
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      inspector << "└── value:\n"
+      inspector << inspector.child_node(value, "    ")
+      inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :implicit_node
     end
   end
 
@@ -5351,6 +6299,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [pattern, statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << pattern
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -5401,6 +6357,13 @@ module YARP
       inspector << "└── then_loc: #{inspector.location(then_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :in_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to an instance variable.
@@ -5436,6 +6399,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -5476,6 +6444,13 @@ module YARP
       inspector << "└── value:\n"
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_and_write_node
     end
   end
 
@@ -5519,6 +6494,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -5553,6 +6533,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator: #{operator.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_operator_write_node
     end
   end
 
@@ -5589,6 +6576,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -5630,6 +6622,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_or_write_node
+    end
   end
 
   # Represents referencing an instance variable.
@@ -5653,6 +6652,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -5682,6 +6686,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_read_node
+    end
   end
 
   # Represents writing to an instance variable in a context that doesn't have an explicit value.
@@ -5705,6 +6716,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -5733,6 +6749,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_target_node
     end
   end
 
@@ -5769,6 +6792,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -5810,6 +6838,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :instance_variable_write_node
+    end
   end
 
   # Represents an integer number literal.
@@ -5833,6 +6868,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -5883,6 +6923,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :integer_node
+    end
   end
 
   # Represents a regular expression literal that contains interpolation that
@@ -5925,6 +6972,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parts]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parts]
     end
 
@@ -6011,6 +7063,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :interpolated_match_last_line_node
+    end
   end
 
   # Represents a regular expression literal that contains interpolation.
@@ -6051,6 +7110,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parts]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parts]
     end
 
@@ -6137,6 +7201,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :interpolated_regular_expression_node
+    end
   end
 
   # Represents a string literal that contains interpolation.
@@ -6173,6 +7244,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parts]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parts]
     end
 
@@ -6216,6 +7292,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :interpolated_string_node
+    end
   end
 
   # Represents a symbol literal that contains interpolation.
@@ -6252,6 +7335,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parts]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parts]
     end
 
@@ -6295,6 +7383,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :interpolated_symbol_node
+    end
   end
 
   # Represents an xstring literal that contains interpolation.
@@ -6331,6 +7426,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parts]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parts]
     end
 
@@ -6374,6 +7474,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :interpolated_x_string_node
+    end
   end
 
   # Represents a hash literal without opening and closing braces.
@@ -6397,6 +7504,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*elements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*elements]
     end
 
@@ -6425,6 +7537,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── elements: #{inspector.list("#{inspector.prefix}    ", elements)}"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :keyword_hash_node
     end
   end
 
@@ -6465,6 +7584,13 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << value if value
+      compact
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, *value]
@@ -6500,6 +7626,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :keyword_parameter_node
+    end
   end
 
   # Represents a keyword rest parameter to a method, block, or lambda definition.
@@ -6532,6 +7665,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -6569,6 +7707,13 @@ module YARP
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :keyword_rest_parameter_node
     end
   end
 
@@ -6614,6 +7759,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [parameters, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << parameters if parameters
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -6677,6 +7830,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :lambda_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to a local variable.
@@ -6719,6 +7879,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -6758,6 +7923,13 @@ module YARP
       inspector << "├── name: #{name.inspect}\n"
       inspector << "└── depth: #{depth.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_and_write_node
     end
   end
 
@@ -6805,6 +7977,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -6841,6 +8018,13 @@ module YARP
       inspector << "├── operator: #{operator.inspect}\n"
       inspector << "└── depth: #{depth.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_operator_write_node
     end
   end
 
@@ -6884,6 +8068,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, operator_loc, value]
@@ -6924,6 +8113,13 @@ module YARP
       inspector << "└── depth: #{depth.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_or_write_node
+    end
   end
 
   # Represents reading a local variable. Note that this requires that a local
@@ -6956,6 +8152,11 @@ module YARP
       []
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      []
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       []
@@ -6983,6 +8184,13 @@ module YARP
       inspector << "├── name: #{name.inspect}\n"
       inspector << "└── depth: #{depth.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_read_node
     end
   end
 
@@ -7014,6 +8222,11 @@ module YARP
       []
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      []
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       []
@@ -7041,6 +8254,13 @@ module YARP
       inspector << "├── name: #{name.inspect}\n"
       inspector << "└── depth: #{depth.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_target_node
     end
   end
 
@@ -7084,6 +8304,11 @@ module YARP
       [value]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [name_loc, value, operator_loc]
@@ -7123,6 +8348,13 @@ module YARP
       inspector << inspector.child_node(value, "│   ")
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :local_variable_write_node
     end
   end
 
@@ -7165,6 +8397,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -7258,6 +8495,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :match_last_line_node
+    end
   end
 
   # Represents the use of the modifier `in` operator.
@@ -7289,6 +8533,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value, pattern]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value, pattern]
     end
 
@@ -7329,6 +8578,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :match_predicate_node
+    end
   end
 
   # Represents the use of the `=>` operator.
@@ -7360,6 +8616,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value, pattern]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value, pattern]
     end
 
@@ -7400,6 +8661,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :match_required_node
+    end
   end
 
   # Represents writing local variables using a regular expression match with
@@ -7428,6 +8696,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [call]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [call]
     end
 
@@ -7460,6 +8733,13 @@ module YARP
       inspector << "└── locals: #{locals.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :match_write_node
+    end
   end
 
   # Represents a node that is missing from the source and results in a syntax
@@ -7477,6 +8757,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -7503,6 +8788,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :missing_node
     end
   end
 
@@ -7548,6 +8840,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [constant_path, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << constant_path
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -7602,6 +8902,13 @@ module YARP
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :module_node
+    end
   end
 
   # Represents a multi-target expression.
@@ -7633,6 +8940,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*targets]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*targets]
     end
 
@@ -7676,6 +8988,13 @@ module YARP
       inspector << "└── rparen_loc: #{inspector.location(rparen_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :multi_target_node
+    end
   end
 
   # Represents a write to a multi-target expression.
@@ -7715,6 +9034,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*targets, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*targets, value]
     end
 
@@ -7768,6 +9092,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :multi_write_node
+    end
   end
 
   # Represents the use of the `next` keyword.
@@ -7796,6 +9127,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [arguments]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << arguments if arguments
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -7836,6 +9174,13 @@ module YARP
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :next_node
+    end
   end
 
   # Represents the use of the `nil` keyword.
@@ -7855,6 +9200,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -7881,6 +9231,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :nil_node
     end
   end
 
@@ -7910,6 +9267,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -7951,6 +9313,13 @@ module YARP
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :no_keywords_parameter_node
+    end
   end
 
   # Represents reading a numbered reference to a capture in the previous match.
@@ -7974,6 +9343,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -8002,6 +9376,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── number: #{number.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :numbered_reference_read_node
     end
   end
 
@@ -8039,6 +9420,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [value]
     end
 
@@ -8080,6 +9466,13 @@ module YARP
       inspector << inspector.child_node(value, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :optional_parameter_node
+    end
   end
 
   # Represents the use of the `||` operator or the `or` keyword.
@@ -8111,6 +9504,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [left, right]
     end
 
@@ -8150,6 +9548,13 @@ module YARP
       inspector << inspector.child_node(right, "│   ")
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :or_node
     end
   end
 
@@ -8200,6 +9605,19 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [*requireds, *optionals, rest, *posts, *keywords, keyword_rest, block]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact.concat(requireds)
+      compact.concat(optionals)
+      compact << rest if rest
+      compact.concat(posts)
+      compact.concat(keywords)
+      compact << keyword_rest if keyword_rest
+      compact << block if block
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -8255,6 +9673,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :parameters_node
+    end
   end
 
   # Represents a parenthesized expression
@@ -8291,6 +9716,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -8338,6 +9770,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :parentheses_node
+    end
   end
 
   # Represents the use of the `^` operator for pinning an expression in a
@@ -8374,6 +9813,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [expression]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [expression]
     end
 
@@ -8425,6 +9869,13 @@ module YARP
       inspector << "└── rparen_loc: #{inspector.location(rparen_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :pinned_expression_node
+    end
   end
 
   # Represents the use of the `^` operator for pinning a variable in a pattern
@@ -8453,6 +9904,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [variable]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [variable]
     end
 
@@ -8490,6 +9946,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :pinned_variable_node
+    end
   end
 
   # Represents the use of the `END` keyword.
@@ -8526,6 +9989,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -8580,6 +10050,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :post_execution_node
+    end
   end
 
   # Represents the use of the `BEGIN` keyword.
@@ -8616,6 +10093,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -8670,6 +10154,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :pre_execution_node
+    end
   end
 
   # The top level node of any parse tree.
@@ -8694,6 +10185,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [statements]
     end
 
@@ -8725,6 +10221,13 @@ module YARP
       inspector << "└── statements:\n"
       inspector << inspector.child_node(statements, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :program_node
     end
   end
 
@@ -8765,6 +10268,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << left if left
+      compact << right if right
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -8820,6 +10331,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :range_node
+    end
   end
 
   # Represents a rational number literal.
@@ -8843,6 +10361,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [numeric]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [numeric]
     end
 
@@ -8873,6 +10396,13 @@ module YARP
       inspector << inspector.child_node(numeric, "    ")
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :rational_node
+    end
   end
 
   # Represents the use of the `redo` keyword.
@@ -8892,6 +10422,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -8918,6 +10453,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :redo_node
     end
   end
 
@@ -8958,6 +10500,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9051,6 +10598,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :regular_expression_node
+    end
   end
 
   # Represents a destructured required parameter node.
@@ -9083,6 +10637,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*parameters]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*parameters]
     end
 
@@ -9126,6 +10685,13 @@ module YARP
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :required_destructured_parameter_node
+    end
   end
 
   # Represents a required parameter to a method, block, or lambda definition.
@@ -9150,6 +10716,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9178,6 +10749,13 @@ module YARP
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :required_parameter_node
     end
   end
 
@@ -9217,6 +10795,11 @@ module YARP
       [expression, rescue_expression]
     end
 
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [expression, rescue_expression]
+    end
+
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
       [expression, keyword_loc, rescue_expression]
@@ -9253,6 +10836,13 @@ module YARP
       inspector << "└── rescue_expression:\n"
       inspector << inspector.child_node(rescue_expression, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :rescue_modifier_node
     end
   end
 
@@ -9304,6 +10894,16 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [*exceptions, reference, statements, consequent]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact.concat(exceptions)
+      compact << reference if reference
+      compact << statements if statements
+      compact << consequent if consequent
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -9367,6 +10967,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :rescue_node
+    end
   end
 
   # Represents a rest parameter to a method, block, or lambda definition.
@@ -9399,6 +11006,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9437,6 +11049,13 @@ module YARP
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :rest_parameter_node
+    end
   end
 
   # Represents the use of the `retry` keyword.
@@ -9456,6 +11075,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9482,6 +11106,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :retry_node
     end
   end
 
@@ -9511,6 +11142,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [arguments]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << arguments if arguments
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -9551,6 +11189,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :return_node
+    end
   end
 
   # Represents the `self` keyword.
@@ -9570,6 +11215,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9596,6 +11246,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :self_node
     end
   end
 
@@ -9641,6 +11298,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [expression, body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << expression
+      compact << body if body
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -9700,6 +11365,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :singleton_class_node
+    end
   end
 
   # Represents the use of the `__ENCODING__` keyword.
@@ -9719,6 +11391,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9746,6 +11423,13 @@ module YARP
       inspector << inspector.header(self)
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :source_encoding_node
+    end
   end
 
   # Represents the use of the `__FILE__` keyword.
@@ -9769,6 +11453,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9798,6 +11487,13 @@ module YARP
       inspector << "└── filepath: #{filepath.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :source_file_node
+    end
   end
 
   # Represents the use of the `__LINE__` keyword.
@@ -9817,6 +11513,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -9843,6 +11544,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :source_line_node
     end
   end
 
@@ -9872,6 +11580,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [expression]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << expression if expression
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -9912,6 +11627,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :splat_node
+    end
   end
 
   # Represents a set of statements contained within some scope.
@@ -9935,6 +11657,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*body]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*body]
     end
 
@@ -9964,6 +11691,13 @@ module YARP
       inspector << "└── body: #{inspector.list("#{inspector.prefix}    ", body)}"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :statements_node
+    end
   end
 
   # Represents the use of compile-time string concatenation.
@@ -9991,6 +11725,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [left, right]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [left, right]
     end
 
@@ -10023,6 +11762,13 @@ module YARP
       inspector << "└── right:\n"
       inspector << inspector.child_node(right, "    ")
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :string_concat_node
     end
   end
 
@@ -10070,6 +11816,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -10128,6 +11879,13 @@ module YARP
       inspector << "└── unescaped: #{unescaped.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :string_node
+    end
   end
 
   # Represents the use of the `super` keyword with parentheses or arguments.
@@ -10150,10 +11908,10 @@ module YARP
     # attr_reader rparen_loc: Location?
     attr_reader :rparen_loc
 
-    # attr_reader block: BlockNode?
+    # attr_reader block: Node?
     attr_reader :block
 
-    # def initialize: (keyword_loc: Location, lparen_loc: Location?, arguments: ArgumentsNode?, rparen_loc: Location?, block: BlockNode?, location: Location) -> void
+    # def initialize: (keyword_loc: Location, lparen_loc: Location?, arguments: ArgumentsNode?, rparen_loc: Location?, block: Node?, location: Location) -> void
     def initialize(keyword_loc, lparen_loc, arguments, rparen_loc, block, location)
       @keyword_loc = keyword_loc
       @lparen_loc = lparen_loc
@@ -10171,6 +11929,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [arguments, block]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << arguments if arguments
+      compact << block if block
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10232,6 +11998,13 @@ module YARP
       end
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :super_node
+    end
   end
 
   # Represents a symbol literal or a symbol contained within a `%i` list.
@@ -10270,6 +12043,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -10320,6 +12098,13 @@ module YARP
       inspector << "└── unescaped: #{unescaped.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :symbol_node
+    end
   end
 
   # Represents the use of the literal `true` keyword.
@@ -10339,6 +12124,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -10365,6 +12155,13 @@ module YARP
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :true_node
     end
   end
 
@@ -10393,6 +12190,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      [*names]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       [*names]
     end
 
@@ -10428,6 +12230,13 @@ module YARP
       inspector << "├── names: #{inspector.list("#{inspector.prefix}│   ", names)}"
       inspector << "└── keyword_loc: #{inspector.location(keyword_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :undef_node
     end
   end
 
@@ -10476,6 +12285,15 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [predicate, statements, consequent]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << predicate
+      compact << statements if statements
+      compact << consequent if consequent
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10533,6 +12351,13 @@ module YARP
       inspector << "└── end_keyword_loc: #{inspector.location(end_keyword_loc)}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :unless_node
+    end
   end
 
   # Represents the use of the `until` keyword, either in the block form or the modifier form.
@@ -10580,6 +12405,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [predicate, statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << predicate
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10638,6 +12471,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :until_node
+    end
   end
 
   # Represents the use of the `when` keyword within a case statement.
@@ -10672,6 +12512,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [*conditions, statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact.concat(conditions)
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10713,6 +12561,13 @@ module YARP
         inspector << statements.inspect(inspector.child_inspector("    ")).delete_prefix(inspector.prefix)
       end
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :when_node
     end
   end
 
@@ -10761,6 +12616,14 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [predicate, statements]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << predicate
+      compact << statements if statements
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10819,6 +12682,13 @@ module YARP
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :while_node
+    end
   end
 
   # Represents an xstring literal with no interpolation.
@@ -10854,6 +12724,11 @@ module YARP
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
+      []
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
       []
     end
 
@@ -10904,6 +12779,13 @@ module YARP
       inspector << "└── unescaped: #{unescaped.inspect}\n"
       inspector.to_str
     end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :x_string_node
+    end
   end
 
   # Represents the use of the `yield` keyword.
@@ -10940,6 +12822,13 @@ module YARP
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
       [arguments]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << arguments if arguments
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
@@ -10993,6 +12882,13 @@ module YARP
       end
       inspector << "└── rparen_loc: #{inspector.location(rparen_loc)}\n"
       inspector.to_str
+    end
+
+    # Returns a symbol representation of the type of node.
+    #
+    # def human: () -> Symbol
+    def human
+      :yield_node
     end
   end
 
@@ -11258,6 +13154,9 @@ module YARP
     # Visit a ImaginaryNode node
     alias visit_imaginary_node visit_child_nodes
 
+    # Visit a ImplicitNode node
+    alias visit_implicit_node visit_child_nodes
+
     # Visit a InNode node
     alias visit_in_node visit_child_nodes
 
@@ -11479,6 +13378,1031 @@ module YARP
 
     # Visit a YieldNode node
     alias visit_yield_node visit_child_nodes
+  end
+
+  # The dispatcher class fires events for nodes that are found while walking an AST to all registered listeners. It's
+  # useful for performing different types of analysis on the AST without having to repeat the same visits multiple times
+  class Dispatcher
+    # attr_reader listeners: Hash[Symbol, Array[Listener]]
+    attr_reader :listeners
+
+    def initialize
+      @listeners = {}
+    end
+
+    # Register a listener for one or more events
+    #
+    # def register: (Listener, *Symbol) -> void
+    def register(listener, *events)
+      events.each { |event| (listeners[event] ||= []) << listener }
+    end
+
+    # Walks `root` dispatching events to all registered listeners
+    #
+    # def dispatch: (Node) -> void
+    def dispatch(root)
+      queue = [root]
+
+      while (node = queue.shift)
+        case node.human
+        when :alias_global_variable_node
+          listeners[:alias_global_variable_node_enter]&.each { |listener| listener.alias_global_variable_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:alias_global_variable_node_leave]&.each { |listener| listener.alias_global_variable_node_leave(node) }
+        when :alias_method_node
+          listeners[:alias_method_node_enter]&.each { |listener| listener.alias_method_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:alias_method_node_leave]&.each { |listener| listener.alias_method_node_leave(node) }
+        when :alternation_pattern_node
+          listeners[:alternation_pattern_node_enter]&.each { |listener| listener.alternation_pattern_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:alternation_pattern_node_leave]&.each { |listener| listener.alternation_pattern_node_leave(node) }
+        when :and_node
+          listeners[:and_node_enter]&.each { |listener| listener.and_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:and_node_leave]&.each { |listener| listener.and_node_leave(node) }
+        when :arguments_node
+          listeners[:arguments_node_enter]&.each { |listener| listener.arguments_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:arguments_node_leave]&.each { |listener| listener.arguments_node_leave(node) }
+        when :array_node
+          listeners[:array_node_enter]&.each { |listener| listener.array_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:array_node_leave]&.each { |listener| listener.array_node_leave(node) }
+        when :array_pattern_node
+          listeners[:array_pattern_node_enter]&.each { |listener| listener.array_pattern_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:array_pattern_node_leave]&.each { |listener| listener.array_pattern_node_leave(node) }
+        when :assoc_node
+          listeners[:assoc_node_enter]&.each { |listener| listener.assoc_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:assoc_node_leave]&.each { |listener| listener.assoc_node_leave(node) }
+        when :assoc_splat_node
+          listeners[:assoc_splat_node_enter]&.each { |listener| listener.assoc_splat_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:assoc_splat_node_leave]&.each { |listener| listener.assoc_splat_node_leave(node) }
+        when :back_reference_read_node
+          listeners[:back_reference_read_node_enter]&.each { |listener| listener.back_reference_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:back_reference_read_node_leave]&.each { |listener| listener.back_reference_read_node_leave(node) }
+        when :begin_node
+          listeners[:begin_node_enter]&.each { |listener| listener.begin_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:begin_node_leave]&.each { |listener| listener.begin_node_leave(node) }
+        when :block_argument_node
+          listeners[:block_argument_node_enter]&.each { |listener| listener.block_argument_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:block_argument_node_leave]&.each { |listener| listener.block_argument_node_leave(node) }
+        when :block_local_variable_node
+          listeners[:block_local_variable_node_enter]&.each { |listener| listener.block_local_variable_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:block_local_variable_node_leave]&.each { |listener| listener.block_local_variable_node_leave(node) }
+        when :block_node
+          listeners[:block_node_enter]&.each { |listener| listener.block_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:block_node_leave]&.each { |listener| listener.block_node_leave(node) }
+        when :block_parameter_node
+          listeners[:block_parameter_node_enter]&.each { |listener| listener.block_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:block_parameter_node_leave]&.each { |listener| listener.block_parameter_node_leave(node) }
+        when :block_parameters_node
+          listeners[:block_parameters_node_enter]&.each { |listener| listener.block_parameters_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:block_parameters_node_leave]&.each { |listener| listener.block_parameters_node_leave(node) }
+        when :break_node
+          listeners[:break_node_enter]&.each { |listener| listener.break_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:break_node_leave]&.each { |listener| listener.break_node_leave(node) }
+        when :call_and_write_node
+          listeners[:call_and_write_node_enter]&.each { |listener| listener.call_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:call_and_write_node_leave]&.each { |listener| listener.call_and_write_node_leave(node) }
+        when :call_node
+          listeners[:call_node_enter]&.each { |listener| listener.call_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:call_node_leave]&.each { |listener| listener.call_node_leave(node) }
+        when :call_operator_write_node
+          listeners[:call_operator_write_node_enter]&.each { |listener| listener.call_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:call_operator_write_node_leave]&.each { |listener| listener.call_operator_write_node_leave(node) }
+        when :call_or_write_node
+          listeners[:call_or_write_node_enter]&.each { |listener| listener.call_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:call_or_write_node_leave]&.each { |listener| listener.call_or_write_node_leave(node) }
+        when :capture_pattern_node
+          listeners[:capture_pattern_node_enter]&.each { |listener| listener.capture_pattern_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:capture_pattern_node_leave]&.each { |listener| listener.capture_pattern_node_leave(node) }
+        when :case_node
+          listeners[:case_node_enter]&.each { |listener| listener.case_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:case_node_leave]&.each { |listener| listener.case_node_leave(node) }
+        when :class_node
+          listeners[:class_node_enter]&.each { |listener| listener.class_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_node_leave]&.each { |listener| listener.class_node_leave(node) }
+        when :class_variable_and_write_node
+          listeners[:class_variable_and_write_node_enter]&.each { |listener| listener.class_variable_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_and_write_node_leave]&.each { |listener| listener.class_variable_and_write_node_leave(node) }
+        when :class_variable_operator_write_node
+          listeners[:class_variable_operator_write_node_enter]&.each { |listener| listener.class_variable_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_operator_write_node_leave]&.each { |listener| listener.class_variable_operator_write_node_leave(node) }
+        when :class_variable_or_write_node
+          listeners[:class_variable_or_write_node_enter]&.each { |listener| listener.class_variable_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_or_write_node_leave]&.each { |listener| listener.class_variable_or_write_node_leave(node) }
+        when :class_variable_read_node
+          listeners[:class_variable_read_node_enter]&.each { |listener| listener.class_variable_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_read_node_leave]&.each { |listener| listener.class_variable_read_node_leave(node) }
+        when :class_variable_target_node
+          listeners[:class_variable_target_node_enter]&.each { |listener| listener.class_variable_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_target_node_leave]&.each { |listener| listener.class_variable_target_node_leave(node) }
+        when :class_variable_write_node
+          listeners[:class_variable_write_node_enter]&.each { |listener| listener.class_variable_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:class_variable_write_node_leave]&.each { |listener| listener.class_variable_write_node_leave(node) }
+        when :constant_and_write_node
+          listeners[:constant_and_write_node_enter]&.each { |listener| listener.constant_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_and_write_node_leave]&.each { |listener| listener.constant_and_write_node_leave(node) }
+        when :constant_operator_write_node
+          listeners[:constant_operator_write_node_enter]&.each { |listener| listener.constant_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_operator_write_node_leave]&.each { |listener| listener.constant_operator_write_node_leave(node) }
+        when :constant_or_write_node
+          listeners[:constant_or_write_node_enter]&.each { |listener| listener.constant_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_or_write_node_leave]&.each { |listener| listener.constant_or_write_node_leave(node) }
+        when :constant_path_and_write_node
+          listeners[:constant_path_and_write_node_enter]&.each { |listener| listener.constant_path_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_and_write_node_leave]&.each { |listener| listener.constant_path_and_write_node_leave(node) }
+        when :constant_path_node
+          listeners[:constant_path_node_enter]&.each { |listener| listener.constant_path_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_node_leave]&.each { |listener| listener.constant_path_node_leave(node) }
+        when :constant_path_operator_write_node
+          listeners[:constant_path_operator_write_node_enter]&.each { |listener| listener.constant_path_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_operator_write_node_leave]&.each { |listener| listener.constant_path_operator_write_node_leave(node) }
+        when :constant_path_or_write_node
+          listeners[:constant_path_or_write_node_enter]&.each { |listener| listener.constant_path_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_or_write_node_leave]&.each { |listener| listener.constant_path_or_write_node_leave(node) }
+        when :constant_path_target_node
+          listeners[:constant_path_target_node_enter]&.each { |listener| listener.constant_path_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_target_node_leave]&.each { |listener| listener.constant_path_target_node_leave(node) }
+        when :constant_path_write_node
+          listeners[:constant_path_write_node_enter]&.each { |listener| listener.constant_path_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_path_write_node_leave]&.each { |listener| listener.constant_path_write_node_leave(node) }
+        when :constant_read_node
+          listeners[:constant_read_node_enter]&.each { |listener| listener.constant_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_read_node_leave]&.each { |listener| listener.constant_read_node_leave(node) }
+        when :constant_target_node
+          listeners[:constant_target_node_enter]&.each { |listener| listener.constant_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_target_node_leave]&.each { |listener| listener.constant_target_node_leave(node) }
+        when :constant_write_node
+          listeners[:constant_write_node_enter]&.each { |listener| listener.constant_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:constant_write_node_leave]&.each { |listener| listener.constant_write_node_leave(node) }
+        when :def_node
+          listeners[:def_node_enter]&.each { |listener| listener.def_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:def_node_leave]&.each { |listener| listener.def_node_leave(node) }
+        when :defined_node
+          listeners[:defined_node_enter]&.each { |listener| listener.defined_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:defined_node_leave]&.each { |listener| listener.defined_node_leave(node) }
+        when :else_node
+          listeners[:else_node_enter]&.each { |listener| listener.else_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:else_node_leave]&.each { |listener| listener.else_node_leave(node) }
+        when :embedded_statements_node
+          listeners[:embedded_statements_node_enter]&.each { |listener| listener.embedded_statements_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:embedded_statements_node_leave]&.each { |listener| listener.embedded_statements_node_leave(node) }
+        when :embedded_variable_node
+          listeners[:embedded_variable_node_enter]&.each { |listener| listener.embedded_variable_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:embedded_variable_node_leave]&.each { |listener| listener.embedded_variable_node_leave(node) }
+        when :ensure_node
+          listeners[:ensure_node_enter]&.each { |listener| listener.ensure_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:ensure_node_leave]&.each { |listener| listener.ensure_node_leave(node) }
+        when :false_node
+          listeners[:false_node_enter]&.each { |listener| listener.false_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:false_node_leave]&.each { |listener| listener.false_node_leave(node) }
+        when :find_pattern_node
+          listeners[:find_pattern_node_enter]&.each { |listener| listener.find_pattern_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:find_pattern_node_leave]&.each { |listener| listener.find_pattern_node_leave(node) }
+        when :flip_flop_node
+          listeners[:flip_flop_node_enter]&.each { |listener| listener.flip_flop_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:flip_flop_node_leave]&.each { |listener| listener.flip_flop_node_leave(node) }
+        when :float_node
+          listeners[:float_node_enter]&.each { |listener| listener.float_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:float_node_leave]&.each { |listener| listener.float_node_leave(node) }
+        when :for_node
+          listeners[:for_node_enter]&.each { |listener| listener.for_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:for_node_leave]&.each { |listener| listener.for_node_leave(node) }
+        when :forwarding_arguments_node
+          listeners[:forwarding_arguments_node_enter]&.each { |listener| listener.forwarding_arguments_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:forwarding_arguments_node_leave]&.each { |listener| listener.forwarding_arguments_node_leave(node) }
+        when :forwarding_parameter_node
+          listeners[:forwarding_parameter_node_enter]&.each { |listener| listener.forwarding_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:forwarding_parameter_node_leave]&.each { |listener| listener.forwarding_parameter_node_leave(node) }
+        when :forwarding_super_node
+          listeners[:forwarding_super_node_enter]&.each { |listener| listener.forwarding_super_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:forwarding_super_node_leave]&.each { |listener| listener.forwarding_super_node_leave(node) }
+        when :global_variable_and_write_node
+          listeners[:global_variable_and_write_node_enter]&.each { |listener| listener.global_variable_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_and_write_node_leave]&.each { |listener| listener.global_variable_and_write_node_leave(node) }
+        when :global_variable_operator_write_node
+          listeners[:global_variable_operator_write_node_enter]&.each { |listener| listener.global_variable_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_operator_write_node_leave]&.each { |listener| listener.global_variable_operator_write_node_leave(node) }
+        when :global_variable_or_write_node
+          listeners[:global_variable_or_write_node_enter]&.each { |listener| listener.global_variable_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_or_write_node_leave]&.each { |listener| listener.global_variable_or_write_node_leave(node) }
+        when :global_variable_read_node
+          listeners[:global_variable_read_node_enter]&.each { |listener| listener.global_variable_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_read_node_leave]&.each { |listener| listener.global_variable_read_node_leave(node) }
+        when :global_variable_target_node
+          listeners[:global_variable_target_node_enter]&.each { |listener| listener.global_variable_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_target_node_leave]&.each { |listener| listener.global_variable_target_node_leave(node) }
+        when :global_variable_write_node
+          listeners[:global_variable_write_node_enter]&.each { |listener| listener.global_variable_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:global_variable_write_node_leave]&.each { |listener| listener.global_variable_write_node_leave(node) }
+        when :hash_node
+          listeners[:hash_node_enter]&.each { |listener| listener.hash_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:hash_node_leave]&.each { |listener| listener.hash_node_leave(node) }
+        when :hash_pattern_node
+          listeners[:hash_pattern_node_enter]&.each { |listener| listener.hash_pattern_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:hash_pattern_node_leave]&.each { |listener| listener.hash_pattern_node_leave(node) }
+        when :if_node
+          listeners[:if_node_enter]&.each { |listener| listener.if_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:if_node_leave]&.each { |listener| listener.if_node_leave(node) }
+        when :imaginary_node
+          listeners[:imaginary_node_enter]&.each { |listener| listener.imaginary_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:imaginary_node_leave]&.each { |listener| listener.imaginary_node_leave(node) }
+        when :implicit_node
+          listeners[:implicit_node_enter]&.each { |listener| listener.implicit_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:implicit_node_leave]&.each { |listener| listener.implicit_node_leave(node) }
+        when :in_node
+          listeners[:in_node_enter]&.each { |listener| listener.in_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:in_node_leave]&.each { |listener| listener.in_node_leave(node) }
+        when :instance_variable_and_write_node
+          listeners[:instance_variable_and_write_node_enter]&.each { |listener| listener.instance_variable_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_and_write_node_leave]&.each { |listener| listener.instance_variable_and_write_node_leave(node) }
+        when :instance_variable_operator_write_node
+          listeners[:instance_variable_operator_write_node_enter]&.each { |listener| listener.instance_variable_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_operator_write_node_leave]&.each { |listener| listener.instance_variable_operator_write_node_leave(node) }
+        when :instance_variable_or_write_node
+          listeners[:instance_variable_or_write_node_enter]&.each { |listener| listener.instance_variable_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_or_write_node_leave]&.each { |listener| listener.instance_variable_or_write_node_leave(node) }
+        when :instance_variable_read_node
+          listeners[:instance_variable_read_node_enter]&.each { |listener| listener.instance_variable_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_read_node_leave]&.each { |listener| listener.instance_variable_read_node_leave(node) }
+        when :instance_variable_target_node
+          listeners[:instance_variable_target_node_enter]&.each { |listener| listener.instance_variable_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_target_node_leave]&.each { |listener| listener.instance_variable_target_node_leave(node) }
+        when :instance_variable_write_node
+          listeners[:instance_variable_write_node_enter]&.each { |listener| listener.instance_variable_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:instance_variable_write_node_leave]&.each { |listener| listener.instance_variable_write_node_leave(node) }
+        when :integer_node
+          listeners[:integer_node_enter]&.each { |listener| listener.integer_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:integer_node_leave]&.each { |listener| listener.integer_node_leave(node) }
+        when :interpolated_match_last_line_node
+          listeners[:interpolated_match_last_line_node_enter]&.each { |listener| listener.interpolated_match_last_line_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:interpolated_match_last_line_node_leave]&.each { |listener| listener.interpolated_match_last_line_node_leave(node) }
+        when :interpolated_regular_expression_node
+          listeners[:interpolated_regular_expression_node_enter]&.each { |listener| listener.interpolated_regular_expression_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:interpolated_regular_expression_node_leave]&.each { |listener| listener.interpolated_regular_expression_node_leave(node) }
+        when :interpolated_string_node
+          listeners[:interpolated_string_node_enter]&.each { |listener| listener.interpolated_string_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:interpolated_string_node_leave]&.each { |listener| listener.interpolated_string_node_leave(node) }
+        when :interpolated_symbol_node
+          listeners[:interpolated_symbol_node_enter]&.each { |listener| listener.interpolated_symbol_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:interpolated_symbol_node_leave]&.each { |listener| listener.interpolated_symbol_node_leave(node) }
+        when :interpolated_x_string_node
+          listeners[:interpolated_x_string_node_enter]&.each { |listener| listener.interpolated_x_string_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:interpolated_x_string_node_leave]&.each { |listener| listener.interpolated_x_string_node_leave(node) }
+        when :keyword_hash_node
+          listeners[:keyword_hash_node_enter]&.each { |listener| listener.keyword_hash_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:keyword_hash_node_leave]&.each { |listener| listener.keyword_hash_node_leave(node) }
+        when :keyword_parameter_node
+          listeners[:keyword_parameter_node_enter]&.each { |listener| listener.keyword_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:keyword_parameter_node_leave]&.each { |listener| listener.keyword_parameter_node_leave(node) }
+        when :keyword_rest_parameter_node
+          listeners[:keyword_rest_parameter_node_enter]&.each { |listener| listener.keyword_rest_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:keyword_rest_parameter_node_leave]&.each { |listener| listener.keyword_rest_parameter_node_leave(node) }
+        when :lambda_node
+          listeners[:lambda_node_enter]&.each { |listener| listener.lambda_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:lambda_node_leave]&.each { |listener| listener.lambda_node_leave(node) }
+        when :local_variable_and_write_node
+          listeners[:local_variable_and_write_node_enter]&.each { |listener| listener.local_variable_and_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_and_write_node_leave]&.each { |listener| listener.local_variable_and_write_node_leave(node) }
+        when :local_variable_operator_write_node
+          listeners[:local_variable_operator_write_node_enter]&.each { |listener| listener.local_variable_operator_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_operator_write_node_leave]&.each { |listener| listener.local_variable_operator_write_node_leave(node) }
+        when :local_variable_or_write_node
+          listeners[:local_variable_or_write_node_enter]&.each { |listener| listener.local_variable_or_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_or_write_node_leave]&.each { |listener| listener.local_variable_or_write_node_leave(node) }
+        when :local_variable_read_node
+          listeners[:local_variable_read_node_enter]&.each { |listener| listener.local_variable_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_read_node_leave]&.each { |listener| listener.local_variable_read_node_leave(node) }
+        when :local_variable_target_node
+          listeners[:local_variable_target_node_enter]&.each { |listener| listener.local_variable_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_target_node_leave]&.each { |listener| listener.local_variable_target_node_leave(node) }
+        when :local_variable_write_node
+          listeners[:local_variable_write_node_enter]&.each { |listener| listener.local_variable_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:local_variable_write_node_leave]&.each { |listener| listener.local_variable_write_node_leave(node) }
+        when :match_last_line_node
+          listeners[:match_last_line_node_enter]&.each { |listener| listener.match_last_line_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:match_last_line_node_leave]&.each { |listener| listener.match_last_line_node_leave(node) }
+        when :match_predicate_node
+          listeners[:match_predicate_node_enter]&.each { |listener| listener.match_predicate_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:match_predicate_node_leave]&.each { |listener| listener.match_predicate_node_leave(node) }
+        when :match_required_node
+          listeners[:match_required_node_enter]&.each { |listener| listener.match_required_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:match_required_node_leave]&.each { |listener| listener.match_required_node_leave(node) }
+        when :match_write_node
+          listeners[:match_write_node_enter]&.each { |listener| listener.match_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:match_write_node_leave]&.each { |listener| listener.match_write_node_leave(node) }
+        when :missing_node
+          listeners[:missing_node_enter]&.each { |listener| listener.missing_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:missing_node_leave]&.each { |listener| listener.missing_node_leave(node) }
+        when :module_node
+          listeners[:module_node_enter]&.each { |listener| listener.module_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:module_node_leave]&.each { |listener| listener.module_node_leave(node) }
+        when :multi_target_node
+          listeners[:multi_target_node_enter]&.each { |listener| listener.multi_target_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:multi_target_node_leave]&.each { |listener| listener.multi_target_node_leave(node) }
+        when :multi_write_node
+          listeners[:multi_write_node_enter]&.each { |listener| listener.multi_write_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:multi_write_node_leave]&.each { |listener| listener.multi_write_node_leave(node) }
+        when :next_node
+          listeners[:next_node_enter]&.each { |listener| listener.next_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:next_node_leave]&.each { |listener| listener.next_node_leave(node) }
+        when :nil_node
+          listeners[:nil_node_enter]&.each { |listener| listener.nil_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:nil_node_leave]&.each { |listener| listener.nil_node_leave(node) }
+        when :no_keywords_parameter_node
+          listeners[:no_keywords_parameter_node_enter]&.each { |listener| listener.no_keywords_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:no_keywords_parameter_node_leave]&.each { |listener| listener.no_keywords_parameter_node_leave(node) }
+        when :numbered_reference_read_node
+          listeners[:numbered_reference_read_node_enter]&.each { |listener| listener.numbered_reference_read_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:numbered_reference_read_node_leave]&.each { |listener| listener.numbered_reference_read_node_leave(node) }
+        when :optional_parameter_node
+          listeners[:optional_parameter_node_enter]&.each { |listener| listener.optional_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:optional_parameter_node_leave]&.each { |listener| listener.optional_parameter_node_leave(node) }
+        when :or_node
+          listeners[:or_node_enter]&.each { |listener| listener.or_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:or_node_leave]&.each { |listener| listener.or_node_leave(node) }
+        when :parameters_node
+          listeners[:parameters_node_enter]&.each { |listener| listener.parameters_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:parameters_node_leave]&.each { |listener| listener.parameters_node_leave(node) }
+        when :parentheses_node
+          listeners[:parentheses_node_enter]&.each { |listener| listener.parentheses_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:parentheses_node_leave]&.each { |listener| listener.parentheses_node_leave(node) }
+        when :pinned_expression_node
+          listeners[:pinned_expression_node_enter]&.each { |listener| listener.pinned_expression_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:pinned_expression_node_leave]&.each { |listener| listener.pinned_expression_node_leave(node) }
+        when :pinned_variable_node
+          listeners[:pinned_variable_node_enter]&.each { |listener| listener.pinned_variable_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:pinned_variable_node_leave]&.each { |listener| listener.pinned_variable_node_leave(node) }
+        when :post_execution_node
+          listeners[:post_execution_node_enter]&.each { |listener| listener.post_execution_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:post_execution_node_leave]&.each { |listener| listener.post_execution_node_leave(node) }
+        when :pre_execution_node
+          listeners[:pre_execution_node_enter]&.each { |listener| listener.pre_execution_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:pre_execution_node_leave]&.each { |listener| listener.pre_execution_node_leave(node) }
+        when :program_node
+          listeners[:program_node_enter]&.each { |listener| listener.program_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:program_node_leave]&.each { |listener| listener.program_node_leave(node) }
+        when :range_node
+          listeners[:range_node_enter]&.each { |listener| listener.range_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:range_node_leave]&.each { |listener| listener.range_node_leave(node) }
+        when :rational_node
+          listeners[:rational_node_enter]&.each { |listener| listener.rational_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:rational_node_leave]&.each { |listener| listener.rational_node_leave(node) }
+        when :redo_node
+          listeners[:redo_node_enter]&.each { |listener| listener.redo_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:redo_node_leave]&.each { |listener| listener.redo_node_leave(node) }
+        when :regular_expression_node
+          listeners[:regular_expression_node_enter]&.each { |listener| listener.regular_expression_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:regular_expression_node_leave]&.each { |listener| listener.regular_expression_node_leave(node) }
+        when :required_destructured_parameter_node
+          listeners[:required_destructured_parameter_node_enter]&.each { |listener| listener.required_destructured_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:required_destructured_parameter_node_leave]&.each { |listener| listener.required_destructured_parameter_node_leave(node) }
+        when :required_parameter_node
+          listeners[:required_parameter_node_enter]&.each { |listener| listener.required_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:required_parameter_node_leave]&.each { |listener| listener.required_parameter_node_leave(node) }
+        when :rescue_modifier_node
+          listeners[:rescue_modifier_node_enter]&.each { |listener| listener.rescue_modifier_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:rescue_modifier_node_leave]&.each { |listener| listener.rescue_modifier_node_leave(node) }
+        when :rescue_node
+          listeners[:rescue_node_enter]&.each { |listener| listener.rescue_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:rescue_node_leave]&.each { |listener| listener.rescue_node_leave(node) }
+        when :rest_parameter_node
+          listeners[:rest_parameter_node_enter]&.each { |listener| listener.rest_parameter_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:rest_parameter_node_leave]&.each { |listener| listener.rest_parameter_node_leave(node) }
+        when :retry_node
+          listeners[:retry_node_enter]&.each { |listener| listener.retry_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:retry_node_leave]&.each { |listener| listener.retry_node_leave(node) }
+        when :return_node
+          listeners[:return_node_enter]&.each { |listener| listener.return_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:return_node_leave]&.each { |listener| listener.return_node_leave(node) }
+        when :self_node
+          listeners[:self_node_enter]&.each { |listener| listener.self_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:self_node_leave]&.each { |listener| listener.self_node_leave(node) }
+        when :singleton_class_node
+          listeners[:singleton_class_node_enter]&.each { |listener| listener.singleton_class_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:singleton_class_node_leave]&.each { |listener| listener.singleton_class_node_leave(node) }
+        when :source_encoding_node
+          listeners[:source_encoding_node_enter]&.each { |listener| listener.source_encoding_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:source_encoding_node_leave]&.each { |listener| listener.source_encoding_node_leave(node) }
+        when :source_file_node
+          listeners[:source_file_node_enter]&.each { |listener| listener.source_file_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:source_file_node_leave]&.each { |listener| listener.source_file_node_leave(node) }
+        when :source_line_node
+          listeners[:source_line_node_enter]&.each { |listener| listener.source_line_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:source_line_node_leave]&.each { |listener| listener.source_line_node_leave(node) }
+        when :splat_node
+          listeners[:splat_node_enter]&.each { |listener| listener.splat_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:splat_node_leave]&.each { |listener| listener.splat_node_leave(node) }
+        when :statements_node
+          listeners[:statements_node_enter]&.each { |listener| listener.statements_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:statements_node_leave]&.each { |listener| listener.statements_node_leave(node) }
+        when :string_concat_node
+          listeners[:string_concat_node_enter]&.each { |listener| listener.string_concat_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:string_concat_node_leave]&.each { |listener| listener.string_concat_node_leave(node) }
+        when :string_node
+          listeners[:string_node_enter]&.each { |listener| listener.string_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:string_node_leave]&.each { |listener| listener.string_node_leave(node) }
+        when :super_node
+          listeners[:super_node_enter]&.each { |listener| listener.super_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:super_node_leave]&.each { |listener| listener.super_node_leave(node) }
+        when :symbol_node
+          listeners[:symbol_node_enter]&.each { |listener| listener.symbol_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:symbol_node_leave]&.each { |listener| listener.symbol_node_leave(node) }
+        when :true_node
+          listeners[:true_node_enter]&.each { |listener| listener.true_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:true_node_leave]&.each { |listener| listener.true_node_leave(node) }
+        when :undef_node
+          listeners[:undef_node_enter]&.each { |listener| listener.undef_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:undef_node_leave]&.each { |listener| listener.undef_node_leave(node) }
+        when :unless_node
+          listeners[:unless_node_enter]&.each { |listener| listener.unless_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:unless_node_leave]&.each { |listener| listener.unless_node_leave(node) }
+        when :until_node
+          listeners[:until_node_enter]&.each { |listener| listener.until_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:until_node_leave]&.each { |listener| listener.until_node_leave(node) }
+        when :when_node
+          listeners[:when_node_enter]&.each { |listener| listener.when_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:when_node_leave]&.each { |listener| listener.when_node_leave(node) }
+        when :while_node
+          listeners[:while_node_enter]&.each { |listener| listener.while_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:while_node_leave]&.each { |listener| listener.while_node_leave(node) }
+        when :x_string_node
+          listeners[:x_string_node_enter]&.each { |listener| listener.x_string_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:x_string_node_leave]&.each { |listener| listener.x_string_node_leave(node) }
+        when :yield_node
+          listeners[:yield_node_enter]&.each { |listener| listener.yield_node_enter(node) }
+          queue = node.compact_child_nodes.concat(queue)
+          listeners[:yield_node_leave]&.each { |listener| listener.yield_node_leave(node) }
+        end
+      end
+    end
+
+    # Dispatches a single event for `node` to all registered listeners
+    #
+    # def dispatch_once: (Node) -> void
+    def dispatch_once(node)
+      case node.human
+      when :alias_global_variable_node
+        listeners[:alias_global_variable_node_enter]&.each { |listener| listener.alias_global_variable_node_enter(node) }
+        listeners[:alias_global_variable_node_leave]&.each { |listener| listener.alias_global_variable_node_leave(node) }
+      when :alias_method_node
+        listeners[:alias_method_node_enter]&.each { |listener| listener.alias_method_node_enter(node) }
+        listeners[:alias_method_node_leave]&.each { |listener| listener.alias_method_node_leave(node) }
+      when :alternation_pattern_node
+        listeners[:alternation_pattern_node_enter]&.each { |listener| listener.alternation_pattern_node_enter(node) }
+        listeners[:alternation_pattern_node_leave]&.each { |listener| listener.alternation_pattern_node_leave(node) }
+      when :and_node
+        listeners[:and_node_enter]&.each { |listener| listener.and_node_enter(node) }
+        listeners[:and_node_leave]&.each { |listener| listener.and_node_leave(node) }
+      when :arguments_node
+        listeners[:arguments_node_enter]&.each { |listener| listener.arguments_node_enter(node) }
+        listeners[:arguments_node_leave]&.each { |listener| listener.arguments_node_leave(node) }
+      when :array_node
+        listeners[:array_node_enter]&.each { |listener| listener.array_node_enter(node) }
+        listeners[:array_node_leave]&.each { |listener| listener.array_node_leave(node) }
+      when :array_pattern_node
+        listeners[:array_pattern_node_enter]&.each { |listener| listener.array_pattern_node_enter(node) }
+        listeners[:array_pattern_node_leave]&.each { |listener| listener.array_pattern_node_leave(node) }
+      when :assoc_node
+        listeners[:assoc_node_enter]&.each { |listener| listener.assoc_node_enter(node) }
+        listeners[:assoc_node_leave]&.each { |listener| listener.assoc_node_leave(node) }
+      when :assoc_splat_node
+        listeners[:assoc_splat_node_enter]&.each { |listener| listener.assoc_splat_node_enter(node) }
+        listeners[:assoc_splat_node_leave]&.each { |listener| listener.assoc_splat_node_leave(node) }
+      when :back_reference_read_node
+        listeners[:back_reference_read_node_enter]&.each { |listener| listener.back_reference_read_node_enter(node) }
+        listeners[:back_reference_read_node_leave]&.each { |listener| listener.back_reference_read_node_leave(node) }
+      when :begin_node
+        listeners[:begin_node_enter]&.each { |listener| listener.begin_node_enter(node) }
+        listeners[:begin_node_leave]&.each { |listener| listener.begin_node_leave(node) }
+      when :block_argument_node
+        listeners[:block_argument_node_enter]&.each { |listener| listener.block_argument_node_enter(node) }
+        listeners[:block_argument_node_leave]&.each { |listener| listener.block_argument_node_leave(node) }
+      when :block_local_variable_node
+        listeners[:block_local_variable_node_enter]&.each { |listener| listener.block_local_variable_node_enter(node) }
+        listeners[:block_local_variable_node_leave]&.each { |listener| listener.block_local_variable_node_leave(node) }
+      when :block_node
+        listeners[:block_node_enter]&.each { |listener| listener.block_node_enter(node) }
+        listeners[:block_node_leave]&.each { |listener| listener.block_node_leave(node) }
+      when :block_parameter_node
+        listeners[:block_parameter_node_enter]&.each { |listener| listener.block_parameter_node_enter(node) }
+        listeners[:block_parameter_node_leave]&.each { |listener| listener.block_parameter_node_leave(node) }
+      when :block_parameters_node
+        listeners[:block_parameters_node_enter]&.each { |listener| listener.block_parameters_node_enter(node) }
+        listeners[:block_parameters_node_leave]&.each { |listener| listener.block_parameters_node_leave(node) }
+      when :break_node
+        listeners[:break_node_enter]&.each { |listener| listener.break_node_enter(node) }
+        listeners[:break_node_leave]&.each { |listener| listener.break_node_leave(node) }
+      when :call_and_write_node
+        listeners[:call_and_write_node_enter]&.each { |listener| listener.call_and_write_node_enter(node) }
+        listeners[:call_and_write_node_leave]&.each { |listener| listener.call_and_write_node_leave(node) }
+      when :call_node
+        listeners[:call_node_enter]&.each { |listener| listener.call_node_enter(node) }
+        listeners[:call_node_leave]&.each { |listener| listener.call_node_leave(node) }
+      when :call_operator_write_node
+        listeners[:call_operator_write_node_enter]&.each { |listener| listener.call_operator_write_node_enter(node) }
+        listeners[:call_operator_write_node_leave]&.each { |listener| listener.call_operator_write_node_leave(node) }
+      when :call_or_write_node
+        listeners[:call_or_write_node_enter]&.each { |listener| listener.call_or_write_node_enter(node) }
+        listeners[:call_or_write_node_leave]&.each { |listener| listener.call_or_write_node_leave(node) }
+      when :capture_pattern_node
+        listeners[:capture_pattern_node_enter]&.each { |listener| listener.capture_pattern_node_enter(node) }
+        listeners[:capture_pattern_node_leave]&.each { |listener| listener.capture_pattern_node_leave(node) }
+      when :case_node
+        listeners[:case_node_enter]&.each { |listener| listener.case_node_enter(node) }
+        listeners[:case_node_leave]&.each { |listener| listener.case_node_leave(node) }
+      when :class_node
+        listeners[:class_node_enter]&.each { |listener| listener.class_node_enter(node) }
+        listeners[:class_node_leave]&.each { |listener| listener.class_node_leave(node) }
+      when :class_variable_and_write_node
+        listeners[:class_variable_and_write_node_enter]&.each { |listener| listener.class_variable_and_write_node_enter(node) }
+        listeners[:class_variable_and_write_node_leave]&.each { |listener| listener.class_variable_and_write_node_leave(node) }
+      when :class_variable_operator_write_node
+        listeners[:class_variable_operator_write_node_enter]&.each { |listener| listener.class_variable_operator_write_node_enter(node) }
+        listeners[:class_variable_operator_write_node_leave]&.each { |listener| listener.class_variable_operator_write_node_leave(node) }
+      when :class_variable_or_write_node
+        listeners[:class_variable_or_write_node_enter]&.each { |listener| listener.class_variable_or_write_node_enter(node) }
+        listeners[:class_variable_or_write_node_leave]&.each { |listener| listener.class_variable_or_write_node_leave(node) }
+      when :class_variable_read_node
+        listeners[:class_variable_read_node_enter]&.each { |listener| listener.class_variable_read_node_enter(node) }
+        listeners[:class_variable_read_node_leave]&.each { |listener| listener.class_variable_read_node_leave(node) }
+      when :class_variable_target_node
+        listeners[:class_variable_target_node_enter]&.each { |listener| listener.class_variable_target_node_enter(node) }
+        listeners[:class_variable_target_node_leave]&.each { |listener| listener.class_variable_target_node_leave(node) }
+      when :class_variable_write_node
+        listeners[:class_variable_write_node_enter]&.each { |listener| listener.class_variable_write_node_enter(node) }
+        listeners[:class_variable_write_node_leave]&.each { |listener| listener.class_variable_write_node_leave(node) }
+      when :constant_and_write_node
+        listeners[:constant_and_write_node_enter]&.each { |listener| listener.constant_and_write_node_enter(node) }
+        listeners[:constant_and_write_node_leave]&.each { |listener| listener.constant_and_write_node_leave(node) }
+      when :constant_operator_write_node
+        listeners[:constant_operator_write_node_enter]&.each { |listener| listener.constant_operator_write_node_enter(node) }
+        listeners[:constant_operator_write_node_leave]&.each { |listener| listener.constant_operator_write_node_leave(node) }
+      when :constant_or_write_node
+        listeners[:constant_or_write_node_enter]&.each { |listener| listener.constant_or_write_node_enter(node) }
+        listeners[:constant_or_write_node_leave]&.each { |listener| listener.constant_or_write_node_leave(node) }
+      when :constant_path_and_write_node
+        listeners[:constant_path_and_write_node_enter]&.each { |listener| listener.constant_path_and_write_node_enter(node) }
+        listeners[:constant_path_and_write_node_leave]&.each { |listener| listener.constant_path_and_write_node_leave(node) }
+      when :constant_path_node
+        listeners[:constant_path_node_enter]&.each { |listener| listener.constant_path_node_enter(node) }
+        listeners[:constant_path_node_leave]&.each { |listener| listener.constant_path_node_leave(node) }
+      when :constant_path_operator_write_node
+        listeners[:constant_path_operator_write_node_enter]&.each { |listener| listener.constant_path_operator_write_node_enter(node) }
+        listeners[:constant_path_operator_write_node_leave]&.each { |listener| listener.constant_path_operator_write_node_leave(node) }
+      when :constant_path_or_write_node
+        listeners[:constant_path_or_write_node_enter]&.each { |listener| listener.constant_path_or_write_node_enter(node) }
+        listeners[:constant_path_or_write_node_leave]&.each { |listener| listener.constant_path_or_write_node_leave(node) }
+      when :constant_path_target_node
+        listeners[:constant_path_target_node_enter]&.each { |listener| listener.constant_path_target_node_enter(node) }
+        listeners[:constant_path_target_node_leave]&.each { |listener| listener.constant_path_target_node_leave(node) }
+      when :constant_path_write_node
+        listeners[:constant_path_write_node_enter]&.each { |listener| listener.constant_path_write_node_enter(node) }
+        listeners[:constant_path_write_node_leave]&.each { |listener| listener.constant_path_write_node_leave(node) }
+      when :constant_read_node
+        listeners[:constant_read_node_enter]&.each { |listener| listener.constant_read_node_enter(node) }
+        listeners[:constant_read_node_leave]&.each { |listener| listener.constant_read_node_leave(node) }
+      when :constant_target_node
+        listeners[:constant_target_node_enter]&.each { |listener| listener.constant_target_node_enter(node) }
+        listeners[:constant_target_node_leave]&.each { |listener| listener.constant_target_node_leave(node) }
+      when :constant_write_node
+        listeners[:constant_write_node_enter]&.each { |listener| listener.constant_write_node_enter(node) }
+        listeners[:constant_write_node_leave]&.each { |listener| listener.constant_write_node_leave(node) }
+      when :def_node
+        listeners[:def_node_enter]&.each { |listener| listener.def_node_enter(node) }
+        listeners[:def_node_leave]&.each { |listener| listener.def_node_leave(node) }
+      when :defined_node
+        listeners[:defined_node_enter]&.each { |listener| listener.defined_node_enter(node) }
+        listeners[:defined_node_leave]&.each { |listener| listener.defined_node_leave(node) }
+      when :else_node
+        listeners[:else_node_enter]&.each { |listener| listener.else_node_enter(node) }
+        listeners[:else_node_leave]&.each { |listener| listener.else_node_leave(node) }
+      when :embedded_statements_node
+        listeners[:embedded_statements_node_enter]&.each { |listener| listener.embedded_statements_node_enter(node) }
+        listeners[:embedded_statements_node_leave]&.each { |listener| listener.embedded_statements_node_leave(node) }
+      when :embedded_variable_node
+        listeners[:embedded_variable_node_enter]&.each { |listener| listener.embedded_variable_node_enter(node) }
+        listeners[:embedded_variable_node_leave]&.each { |listener| listener.embedded_variable_node_leave(node) }
+      when :ensure_node
+        listeners[:ensure_node_enter]&.each { |listener| listener.ensure_node_enter(node) }
+        listeners[:ensure_node_leave]&.each { |listener| listener.ensure_node_leave(node) }
+      when :false_node
+        listeners[:false_node_enter]&.each { |listener| listener.false_node_enter(node) }
+        listeners[:false_node_leave]&.each { |listener| listener.false_node_leave(node) }
+      when :find_pattern_node
+        listeners[:find_pattern_node_enter]&.each { |listener| listener.find_pattern_node_enter(node) }
+        listeners[:find_pattern_node_leave]&.each { |listener| listener.find_pattern_node_leave(node) }
+      when :flip_flop_node
+        listeners[:flip_flop_node_enter]&.each { |listener| listener.flip_flop_node_enter(node) }
+        listeners[:flip_flop_node_leave]&.each { |listener| listener.flip_flop_node_leave(node) }
+      when :float_node
+        listeners[:float_node_enter]&.each { |listener| listener.float_node_enter(node) }
+        listeners[:float_node_leave]&.each { |listener| listener.float_node_leave(node) }
+      when :for_node
+        listeners[:for_node_enter]&.each { |listener| listener.for_node_enter(node) }
+        listeners[:for_node_leave]&.each { |listener| listener.for_node_leave(node) }
+      when :forwarding_arguments_node
+        listeners[:forwarding_arguments_node_enter]&.each { |listener| listener.forwarding_arguments_node_enter(node) }
+        listeners[:forwarding_arguments_node_leave]&.each { |listener| listener.forwarding_arguments_node_leave(node) }
+      when :forwarding_parameter_node
+        listeners[:forwarding_parameter_node_enter]&.each { |listener| listener.forwarding_parameter_node_enter(node) }
+        listeners[:forwarding_parameter_node_leave]&.each { |listener| listener.forwarding_parameter_node_leave(node) }
+      when :forwarding_super_node
+        listeners[:forwarding_super_node_enter]&.each { |listener| listener.forwarding_super_node_enter(node) }
+        listeners[:forwarding_super_node_leave]&.each { |listener| listener.forwarding_super_node_leave(node) }
+      when :global_variable_and_write_node
+        listeners[:global_variable_and_write_node_enter]&.each { |listener| listener.global_variable_and_write_node_enter(node) }
+        listeners[:global_variable_and_write_node_leave]&.each { |listener| listener.global_variable_and_write_node_leave(node) }
+      when :global_variable_operator_write_node
+        listeners[:global_variable_operator_write_node_enter]&.each { |listener| listener.global_variable_operator_write_node_enter(node) }
+        listeners[:global_variable_operator_write_node_leave]&.each { |listener| listener.global_variable_operator_write_node_leave(node) }
+      when :global_variable_or_write_node
+        listeners[:global_variable_or_write_node_enter]&.each { |listener| listener.global_variable_or_write_node_enter(node) }
+        listeners[:global_variable_or_write_node_leave]&.each { |listener| listener.global_variable_or_write_node_leave(node) }
+      when :global_variable_read_node
+        listeners[:global_variable_read_node_enter]&.each { |listener| listener.global_variable_read_node_enter(node) }
+        listeners[:global_variable_read_node_leave]&.each { |listener| listener.global_variable_read_node_leave(node) }
+      when :global_variable_target_node
+        listeners[:global_variable_target_node_enter]&.each { |listener| listener.global_variable_target_node_enter(node) }
+        listeners[:global_variable_target_node_leave]&.each { |listener| listener.global_variable_target_node_leave(node) }
+      when :global_variable_write_node
+        listeners[:global_variable_write_node_enter]&.each { |listener| listener.global_variable_write_node_enter(node) }
+        listeners[:global_variable_write_node_leave]&.each { |listener| listener.global_variable_write_node_leave(node) }
+      when :hash_node
+        listeners[:hash_node_enter]&.each { |listener| listener.hash_node_enter(node) }
+        listeners[:hash_node_leave]&.each { |listener| listener.hash_node_leave(node) }
+      when :hash_pattern_node
+        listeners[:hash_pattern_node_enter]&.each { |listener| listener.hash_pattern_node_enter(node) }
+        listeners[:hash_pattern_node_leave]&.each { |listener| listener.hash_pattern_node_leave(node) }
+      when :if_node
+        listeners[:if_node_enter]&.each { |listener| listener.if_node_enter(node) }
+        listeners[:if_node_leave]&.each { |listener| listener.if_node_leave(node) }
+      when :imaginary_node
+        listeners[:imaginary_node_enter]&.each { |listener| listener.imaginary_node_enter(node) }
+        listeners[:imaginary_node_leave]&.each { |listener| listener.imaginary_node_leave(node) }
+      when :implicit_node
+        listeners[:implicit_node_enter]&.each { |listener| listener.implicit_node_enter(node) }
+        listeners[:implicit_node_leave]&.each { |listener| listener.implicit_node_leave(node) }
+      when :in_node
+        listeners[:in_node_enter]&.each { |listener| listener.in_node_enter(node) }
+        listeners[:in_node_leave]&.each { |listener| listener.in_node_leave(node) }
+      when :instance_variable_and_write_node
+        listeners[:instance_variable_and_write_node_enter]&.each { |listener| listener.instance_variable_and_write_node_enter(node) }
+        listeners[:instance_variable_and_write_node_leave]&.each { |listener| listener.instance_variable_and_write_node_leave(node) }
+      when :instance_variable_operator_write_node
+        listeners[:instance_variable_operator_write_node_enter]&.each { |listener| listener.instance_variable_operator_write_node_enter(node) }
+        listeners[:instance_variable_operator_write_node_leave]&.each { |listener| listener.instance_variable_operator_write_node_leave(node) }
+      when :instance_variable_or_write_node
+        listeners[:instance_variable_or_write_node_enter]&.each { |listener| listener.instance_variable_or_write_node_enter(node) }
+        listeners[:instance_variable_or_write_node_leave]&.each { |listener| listener.instance_variable_or_write_node_leave(node) }
+      when :instance_variable_read_node
+        listeners[:instance_variable_read_node_enter]&.each { |listener| listener.instance_variable_read_node_enter(node) }
+        listeners[:instance_variable_read_node_leave]&.each { |listener| listener.instance_variable_read_node_leave(node) }
+      when :instance_variable_target_node
+        listeners[:instance_variable_target_node_enter]&.each { |listener| listener.instance_variable_target_node_enter(node) }
+        listeners[:instance_variable_target_node_leave]&.each { |listener| listener.instance_variable_target_node_leave(node) }
+      when :instance_variable_write_node
+        listeners[:instance_variable_write_node_enter]&.each { |listener| listener.instance_variable_write_node_enter(node) }
+        listeners[:instance_variable_write_node_leave]&.each { |listener| listener.instance_variable_write_node_leave(node) }
+      when :integer_node
+        listeners[:integer_node_enter]&.each { |listener| listener.integer_node_enter(node) }
+        listeners[:integer_node_leave]&.each { |listener| listener.integer_node_leave(node) }
+      when :interpolated_match_last_line_node
+        listeners[:interpolated_match_last_line_node_enter]&.each { |listener| listener.interpolated_match_last_line_node_enter(node) }
+        listeners[:interpolated_match_last_line_node_leave]&.each { |listener| listener.interpolated_match_last_line_node_leave(node) }
+      when :interpolated_regular_expression_node
+        listeners[:interpolated_regular_expression_node_enter]&.each { |listener| listener.interpolated_regular_expression_node_enter(node) }
+        listeners[:interpolated_regular_expression_node_leave]&.each { |listener| listener.interpolated_regular_expression_node_leave(node) }
+      when :interpolated_string_node
+        listeners[:interpolated_string_node_enter]&.each { |listener| listener.interpolated_string_node_enter(node) }
+        listeners[:interpolated_string_node_leave]&.each { |listener| listener.interpolated_string_node_leave(node) }
+      when :interpolated_symbol_node
+        listeners[:interpolated_symbol_node_enter]&.each { |listener| listener.interpolated_symbol_node_enter(node) }
+        listeners[:interpolated_symbol_node_leave]&.each { |listener| listener.interpolated_symbol_node_leave(node) }
+      when :interpolated_x_string_node
+        listeners[:interpolated_x_string_node_enter]&.each { |listener| listener.interpolated_x_string_node_enter(node) }
+        listeners[:interpolated_x_string_node_leave]&.each { |listener| listener.interpolated_x_string_node_leave(node) }
+      when :keyword_hash_node
+        listeners[:keyword_hash_node_enter]&.each { |listener| listener.keyword_hash_node_enter(node) }
+        listeners[:keyword_hash_node_leave]&.each { |listener| listener.keyword_hash_node_leave(node) }
+      when :keyword_parameter_node
+        listeners[:keyword_parameter_node_enter]&.each { |listener| listener.keyword_parameter_node_enter(node) }
+        listeners[:keyword_parameter_node_leave]&.each { |listener| listener.keyword_parameter_node_leave(node) }
+      when :keyword_rest_parameter_node
+        listeners[:keyword_rest_parameter_node_enter]&.each { |listener| listener.keyword_rest_parameter_node_enter(node) }
+        listeners[:keyword_rest_parameter_node_leave]&.each { |listener| listener.keyword_rest_parameter_node_leave(node) }
+      when :lambda_node
+        listeners[:lambda_node_enter]&.each { |listener| listener.lambda_node_enter(node) }
+        listeners[:lambda_node_leave]&.each { |listener| listener.lambda_node_leave(node) }
+      when :local_variable_and_write_node
+        listeners[:local_variable_and_write_node_enter]&.each { |listener| listener.local_variable_and_write_node_enter(node) }
+        listeners[:local_variable_and_write_node_leave]&.each { |listener| listener.local_variable_and_write_node_leave(node) }
+      when :local_variable_operator_write_node
+        listeners[:local_variable_operator_write_node_enter]&.each { |listener| listener.local_variable_operator_write_node_enter(node) }
+        listeners[:local_variable_operator_write_node_leave]&.each { |listener| listener.local_variable_operator_write_node_leave(node) }
+      when :local_variable_or_write_node
+        listeners[:local_variable_or_write_node_enter]&.each { |listener| listener.local_variable_or_write_node_enter(node) }
+        listeners[:local_variable_or_write_node_leave]&.each { |listener| listener.local_variable_or_write_node_leave(node) }
+      when :local_variable_read_node
+        listeners[:local_variable_read_node_enter]&.each { |listener| listener.local_variable_read_node_enter(node) }
+        listeners[:local_variable_read_node_leave]&.each { |listener| listener.local_variable_read_node_leave(node) }
+      when :local_variable_target_node
+        listeners[:local_variable_target_node_enter]&.each { |listener| listener.local_variable_target_node_enter(node) }
+        listeners[:local_variable_target_node_leave]&.each { |listener| listener.local_variable_target_node_leave(node) }
+      when :local_variable_write_node
+        listeners[:local_variable_write_node_enter]&.each { |listener| listener.local_variable_write_node_enter(node) }
+        listeners[:local_variable_write_node_leave]&.each { |listener| listener.local_variable_write_node_leave(node) }
+      when :match_last_line_node
+        listeners[:match_last_line_node_enter]&.each { |listener| listener.match_last_line_node_enter(node) }
+        listeners[:match_last_line_node_leave]&.each { |listener| listener.match_last_line_node_leave(node) }
+      when :match_predicate_node
+        listeners[:match_predicate_node_enter]&.each { |listener| listener.match_predicate_node_enter(node) }
+        listeners[:match_predicate_node_leave]&.each { |listener| listener.match_predicate_node_leave(node) }
+      when :match_required_node
+        listeners[:match_required_node_enter]&.each { |listener| listener.match_required_node_enter(node) }
+        listeners[:match_required_node_leave]&.each { |listener| listener.match_required_node_leave(node) }
+      when :match_write_node
+        listeners[:match_write_node_enter]&.each { |listener| listener.match_write_node_enter(node) }
+        listeners[:match_write_node_leave]&.each { |listener| listener.match_write_node_leave(node) }
+      when :missing_node
+        listeners[:missing_node_enter]&.each { |listener| listener.missing_node_enter(node) }
+        listeners[:missing_node_leave]&.each { |listener| listener.missing_node_leave(node) }
+      when :module_node
+        listeners[:module_node_enter]&.each { |listener| listener.module_node_enter(node) }
+        listeners[:module_node_leave]&.each { |listener| listener.module_node_leave(node) }
+      when :multi_target_node
+        listeners[:multi_target_node_enter]&.each { |listener| listener.multi_target_node_enter(node) }
+        listeners[:multi_target_node_leave]&.each { |listener| listener.multi_target_node_leave(node) }
+      when :multi_write_node
+        listeners[:multi_write_node_enter]&.each { |listener| listener.multi_write_node_enter(node) }
+        listeners[:multi_write_node_leave]&.each { |listener| listener.multi_write_node_leave(node) }
+      when :next_node
+        listeners[:next_node_enter]&.each { |listener| listener.next_node_enter(node) }
+        listeners[:next_node_leave]&.each { |listener| listener.next_node_leave(node) }
+      when :nil_node
+        listeners[:nil_node_enter]&.each { |listener| listener.nil_node_enter(node) }
+        listeners[:nil_node_leave]&.each { |listener| listener.nil_node_leave(node) }
+      when :no_keywords_parameter_node
+        listeners[:no_keywords_parameter_node_enter]&.each { |listener| listener.no_keywords_parameter_node_enter(node) }
+        listeners[:no_keywords_parameter_node_leave]&.each { |listener| listener.no_keywords_parameter_node_leave(node) }
+      when :numbered_reference_read_node
+        listeners[:numbered_reference_read_node_enter]&.each { |listener| listener.numbered_reference_read_node_enter(node) }
+        listeners[:numbered_reference_read_node_leave]&.each { |listener| listener.numbered_reference_read_node_leave(node) }
+      when :optional_parameter_node
+        listeners[:optional_parameter_node_enter]&.each { |listener| listener.optional_parameter_node_enter(node) }
+        listeners[:optional_parameter_node_leave]&.each { |listener| listener.optional_parameter_node_leave(node) }
+      when :or_node
+        listeners[:or_node_enter]&.each { |listener| listener.or_node_enter(node) }
+        listeners[:or_node_leave]&.each { |listener| listener.or_node_leave(node) }
+      when :parameters_node
+        listeners[:parameters_node_enter]&.each { |listener| listener.parameters_node_enter(node) }
+        listeners[:parameters_node_leave]&.each { |listener| listener.parameters_node_leave(node) }
+      when :parentheses_node
+        listeners[:parentheses_node_enter]&.each { |listener| listener.parentheses_node_enter(node) }
+        listeners[:parentheses_node_leave]&.each { |listener| listener.parentheses_node_leave(node) }
+      when :pinned_expression_node
+        listeners[:pinned_expression_node_enter]&.each { |listener| listener.pinned_expression_node_enter(node) }
+        listeners[:pinned_expression_node_leave]&.each { |listener| listener.pinned_expression_node_leave(node) }
+      when :pinned_variable_node
+        listeners[:pinned_variable_node_enter]&.each { |listener| listener.pinned_variable_node_enter(node) }
+        listeners[:pinned_variable_node_leave]&.each { |listener| listener.pinned_variable_node_leave(node) }
+      when :post_execution_node
+        listeners[:post_execution_node_enter]&.each { |listener| listener.post_execution_node_enter(node) }
+        listeners[:post_execution_node_leave]&.each { |listener| listener.post_execution_node_leave(node) }
+      when :pre_execution_node
+        listeners[:pre_execution_node_enter]&.each { |listener| listener.pre_execution_node_enter(node) }
+        listeners[:pre_execution_node_leave]&.each { |listener| listener.pre_execution_node_leave(node) }
+      when :program_node
+        listeners[:program_node_enter]&.each { |listener| listener.program_node_enter(node) }
+        listeners[:program_node_leave]&.each { |listener| listener.program_node_leave(node) }
+      when :range_node
+        listeners[:range_node_enter]&.each { |listener| listener.range_node_enter(node) }
+        listeners[:range_node_leave]&.each { |listener| listener.range_node_leave(node) }
+      when :rational_node
+        listeners[:rational_node_enter]&.each { |listener| listener.rational_node_enter(node) }
+        listeners[:rational_node_leave]&.each { |listener| listener.rational_node_leave(node) }
+      when :redo_node
+        listeners[:redo_node_enter]&.each { |listener| listener.redo_node_enter(node) }
+        listeners[:redo_node_leave]&.each { |listener| listener.redo_node_leave(node) }
+      when :regular_expression_node
+        listeners[:regular_expression_node_enter]&.each { |listener| listener.regular_expression_node_enter(node) }
+        listeners[:regular_expression_node_leave]&.each { |listener| listener.regular_expression_node_leave(node) }
+      when :required_destructured_parameter_node
+        listeners[:required_destructured_parameter_node_enter]&.each { |listener| listener.required_destructured_parameter_node_enter(node) }
+        listeners[:required_destructured_parameter_node_leave]&.each { |listener| listener.required_destructured_parameter_node_leave(node) }
+      when :required_parameter_node
+        listeners[:required_parameter_node_enter]&.each { |listener| listener.required_parameter_node_enter(node) }
+        listeners[:required_parameter_node_leave]&.each { |listener| listener.required_parameter_node_leave(node) }
+      when :rescue_modifier_node
+        listeners[:rescue_modifier_node_enter]&.each { |listener| listener.rescue_modifier_node_enter(node) }
+        listeners[:rescue_modifier_node_leave]&.each { |listener| listener.rescue_modifier_node_leave(node) }
+      when :rescue_node
+        listeners[:rescue_node_enter]&.each { |listener| listener.rescue_node_enter(node) }
+        listeners[:rescue_node_leave]&.each { |listener| listener.rescue_node_leave(node) }
+      when :rest_parameter_node
+        listeners[:rest_parameter_node_enter]&.each { |listener| listener.rest_parameter_node_enter(node) }
+        listeners[:rest_parameter_node_leave]&.each { |listener| listener.rest_parameter_node_leave(node) }
+      when :retry_node
+        listeners[:retry_node_enter]&.each { |listener| listener.retry_node_enter(node) }
+        listeners[:retry_node_leave]&.each { |listener| listener.retry_node_leave(node) }
+      when :return_node
+        listeners[:return_node_enter]&.each { |listener| listener.return_node_enter(node) }
+        listeners[:return_node_leave]&.each { |listener| listener.return_node_leave(node) }
+      when :self_node
+        listeners[:self_node_enter]&.each { |listener| listener.self_node_enter(node) }
+        listeners[:self_node_leave]&.each { |listener| listener.self_node_leave(node) }
+      when :singleton_class_node
+        listeners[:singleton_class_node_enter]&.each { |listener| listener.singleton_class_node_enter(node) }
+        listeners[:singleton_class_node_leave]&.each { |listener| listener.singleton_class_node_leave(node) }
+      when :source_encoding_node
+        listeners[:source_encoding_node_enter]&.each { |listener| listener.source_encoding_node_enter(node) }
+        listeners[:source_encoding_node_leave]&.each { |listener| listener.source_encoding_node_leave(node) }
+      when :source_file_node
+        listeners[:source_file_node_enter]&.each { |listener| listener.source_file_node_enter(node) }
+        listeners[:source_file_node_leave]&.each { |listener| listener.source_file_node_leave(node) }
+      when :source_line_node
+        listeners[:source_line_node_enter]&.each { |listener| listener.source_line_node_enter(node) }
+        listeners[:source_line_node_leave]&.each { |listener| listener.source_line_node_leave(node) }
+      when :splat_node
+        listeners[:splat_node_enter]&.each { |listener| listener.splat_node_enter(node) }
+        listeners[:splat_node_leave]&.each { |listener| listener.splat_node_leave(node) }
+      when :statements_node
+        listeners[:statements_node_enter]&.each { |listener| listener.statements_node_enter(node) }
+        listeners[:statements_node_leave]&.each { |listener| listener.statements_node_leave(node) }
+      when :string_concat_node
+        listeners[:string_concat_node_enter]&.each { |listener| listener.string_concat_node_enter(node) }
+        listeners[:string_concat_node_leave]&.each { |listener| listener.string_concat_node_leave(node) }
+      when :string_node
+        listeners[:string_node_enter]&.each { |listener| listener.string_node_enter(node) }
+        listeners[:string_node_leave]&.each { |listener| listener.string_node_leave(node) }
+      when :super_node
+        listeners[:super_node_enter]&.each { |listener| listener.super_node_enter(node) }
+        listeners[:super_node_leave]&.each { |listener| listener.super_node_leave(node) }
+      when :symbol_node
+        listeners[:symbol_node_enter]&.each { |listener| listener.symbol_node_enter(node) }
+        listeners[:symbol_node_leave]&.each { |listener| listener.symbol_node_leave(node) }
+      when :true_node
+        listeners[:true_node_enter]&.each { |listener| listener.true_node_enter(node) }
+        listeners[:true_node_leave]&.each { |listener| listener.true_node_leave(node) }
+      when :undef_node
+        listeners[:undef_node_enter]&.each { |listener| listener.undef_node_enter(node) }
+        listeners[:undef_node_leave]&.each { |listener| listener.undef_node_leave(node) }
+      when :unless_node
+        listeners[:unless_node_enter]&.each { |listener| listener.unless_node_enter(node) }
+        listeners[:unless_node_leave]&.each { |listener| listener.unless_node_leave(node) }
+      when :until_node
+        listeners[:until_node_enter]&.each { |listener| listener.until_node_enter(node) }
+        listeners[:until_node_leave]&.each { |listener| listener.until_node_leave(node) }
+      when :when_node
+        listeners[:when_node_enter]&.each { |listener| listener.when_node_enter(node) }
+        listeners[:when_node_leave]&.each { |listener| listener.when_node_leave(node) }
+      when :while_node
+        listeners[:while_node_enter]&.each { |listener| listener.while_node_enter(node) }
+        listeners[:while_node_leave]&.each { |listener| listener.while_node_leave(node) }
+      when :x_string_node
+        listeners[:x_string_node_enter]&.each { |listener| listener.x_string_node_enter(node) }
+        listeners[:x_string_node_leave]&.each { |listener| listener.x_string_node_leave(node) }
+      when :yield_node
+        listeners[:yield_node_enter]&.each { |listener| listener.yield_node_enter(node) }
+        listeners[:yield_node_leave]&.each { |listener| listener.yield_node_leave(node) }
+      end
+    end
   end
 
   module DSL
@@ -11817,6 +14741,11 @@ module YARP
     # Create a new ImaginaryNode node
     def ImaginaryNode(numeric, location = Location())
       ImaginaryNode.new(numeric, location)
+    end
+
+    # Create a new ImplicitNode node
+    def ImplicitNode(value, location = Location())
+      ImplicitNode.new(value, location)
     end
 
     # Create a new InNode node

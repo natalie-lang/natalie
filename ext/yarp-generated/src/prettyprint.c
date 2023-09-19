@@ -1093,6 +1093,12 @@ prettyprint_node(yp_buffer_t *buffer, yp_parser_t *parser, yp_node_t *node) {
             yp_buffer_append_str(buffer, ")", 1);
             break;
         }
+        case YP_IMPLICIT_NODE: {
+            yp_buffer_append_str(buffer, "ImplicitNode(", 13);
+                        prettyprint_node(buffer, parser, (yp_node_t *)((yp_implicit_node_t *)node)->value);
+            yp_buffer_append_str(buffer, ")", 1);
+            break;
+        }
         case YP_IN_NODE: {
             yp_buffer_append_str(buffer, "InNode(", 7);
                         prettyprint_node(buffer, parser, (yp_node_t *)((yp_in_node_t *)node)->pattern);

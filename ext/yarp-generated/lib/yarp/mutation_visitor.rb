@@ -340,6 +340,11 @@ module YARP
       node.copy(numeric: visit(node.numeric))
     end
 
+    # Copy a ImplicitNode node
+    def visit_implicit_node(node)
+      node.copy(value: visit(node.value))
+    end
+
     # Copy a InNode node
     def visit_in_node(node)
       node.copy(pattern: visit(node.pattern), statements: visit(node.statements))

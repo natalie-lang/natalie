@@ -570,6 +570,12 @@ yp_node_destroy(yp_parser_t *parser, yp_node_t *node) {
             break;
         }
 #line 57 "node.c.erb"
+        case YP_IMPLICIT_NODE: {
+            yp_implicit_node_t *cast = (yp_implicit_node_t *) node;
+            yp_node_destroy(parser, (yp_node_t *)cast->value);
+            break;
+        }
+#line 57 "node.c.erb"
         case YP_IN_NODE: {
             yp_in_node_t *cast = (yp_in_node_t *) node;
             yp_node_destroy(parser, (yp_node_t *)cast->pattern);
@@ -1117,28 +1123,34 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_ARGUMENTS_NODE: {
             yp_arguments_node_t *cast = (yp_arguments_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->arguments, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->arguments, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_ARRAY_NODE: {
             yp_array_node_t *cast = (yp_array_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->elements, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->elements, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_ARRAY_PATTERN_NODE: {
             yp_array_pattern_node_t *cast = (yp_array_pattern_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 2;
             if (cast->constant != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->constant, memsize);
             }
-            yp_node_list_memsize(&cast->requireds, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->requireds, memsize);
             if (cast->rest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->rest, memsize);
             }
-            yp_node_list_memsize(&cast->posts, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->posts, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -1203,6 +1215,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_BLOCK_NODE: {
             yp_block_node_t *cast = (yp_block_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             if (cast->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->parameters, memsize);
@@ -1222,10 +1236,12 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_BLOCK_PARAMETERS_NODE: {
             yp_block_parameters_node_t *cast = (yp_block_parameters_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
             if (cast->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->parameters, memsize);
             }
-            yp_node_list_memsize(&cast->locals, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->locals, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -1310,10 +1326,12 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_CASE_NODE: {
             yp_case_node_t *cast = (yp_case_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
             if (cast->predicate != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->predicate, memsize);
             }
-            yp_node_list_memsize(&cast->conditions, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->conditions, memsize);
             if (cast->consequent != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->consequent, memsize);
             }
@@ -1323,6 +1341,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_CLASS_NODE: {
             yp_class_node_t *cast = (yp_class_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             yp_node_memsize_node((yp_node_t *)cast->constant_path, memsize);
             if (cast->superclass != NULL) {
@@ -1469,6 +1489,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_DEF_NODE: {
             yp_def_node_t *cast = (yp_def_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             if (cast->receiver != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->receiver, memsize);
             }
@@ -1532,11 +1554,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_FIND_PATTERN_NODE: {
             yp_find_pattern_node_t *cast = (yp_find_pattern_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
             if (cast->constant != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->constant, memsize);
             }
             yp_node_memsize_node((yp_node_t *)cast->left, memsize);
-            yp_node_list_memsize(&cast->requireds, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->requireds, memsize);
             yp_node_memsize_node((yp_node_t *)cast->right, memsize);
             break;
         }
@@ -1634,17 +1658,21 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_HASH_NODE: {
             yp_hash_node_t *cast = (yp_hash_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->elements, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->elements, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_HASH_PATTERN_NODE: {
             yp_hash_pattern_node_t *cast = (yp_hash_pattern_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
             if (cast->constant != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->constant, memsize);
             }
-            yp_node_list_memsize(&cast->assocs, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->assocs, memsize);
             if (cast->kwrest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->kwrest, memsize);
             }
@@ -1668,6 +1696,13 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             yp_imaginary_node_t *cast = (yp_imaginary_node_t *) node;
             memsize->memsize += sizeof(*cast);
             yp_node_memsize_node((yp_node_t *)cast->numeric, memsize);
+            break;
+        }
+#line 102 "node.c.erb"
+        case YP_IMPLICIT_NODE: {
+            yp_implicit_node_t *cast = (yp_implicit_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            yp_node_memsize_node((yp_node_t *)cast->value, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -1730,42 +1765,54 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_INTERPOLATED_MATCH_LAST_LINE_NODE: {
             yp_interpolated_match_last_line_node_t *cast = (yp_interpolated_match_last_line_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parts, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parts, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
             yp_interpolated_regular_expression_node_t *cast = (yp_interpolated_regular_expression_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parts, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parts, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_INTERPOLATED_STRING_NODE: {
             yp_interpolated_string_node_t *cast = (yp_interpolated_string_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parts, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parts, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_INTERPOLATED_SYMBOL_NODE: {
             yp_interpolated_symbol_node_t *cast = (yp_interpolated_symbol_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parts, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parts, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_INTERPOLATED_X_STRING_NODE: {
             yp_interpolated_x_string_node_t *cast = (yp_interpolated_x_string_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parts, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parts, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_KEYWORD_HASH_NODE: {
             yp_keyword_hash_node_t *cast = (yp_keyword_hash_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->elements, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->elements, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -1787,6 +1834,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_LAMBDA_NODE: {
             yp_lambda_node_t *cast = (yp_lambda_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             if (cast->parameters != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->parameters, memsize);
@@ -1863,6 +1912,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_MATCH_WRITE_NODE: {
             yp_match_write_node_t *cast = (yp_match_write_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             yp_node_memsize_node((yp_node_t *)cast->call, memsize);
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             break;
@@ -1877,6 +1928,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_MODULE_NODE: {
             yp_module_node_t *cast = (yp_module_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             yp_node_memsize_node((yp_node_t *)cast->constant_path, memsize);
             if (cast->body != NULL) {
@@ -1888,14 +1941,18 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_MULTI_TARGET_NODE: {
             yp_multi_target_node_t *cast = (yp_multi_target_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->targets, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->targets, memsize);
             break;
         }
 #line 102 "node.c.erb"
         case YP_MULTI_WRITE_NODE: {
             yp_multi_write_node_t *cast = (yp_multi_write_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->targets, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->targets, memsize);
             yp_node_memsize_node((yp_node_t *)cast->value, memsize);
             break;
         }
@@ -1945,13 +2002,15 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_PARAMETERS_NODE: {
             yp_parameters_node_t *cast = (yp_parameters_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->requireds, memsize);
-            yp_node_list_memsize(&cast->optionals, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 4;
+            memsize->memsize += yp_node_list_memsize(&cast->requireds, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->optionals, memsize);
             if (cast->rest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->rest, memsize);
             }
-            yp_node_list_memsize(&cast->posts, memsize);
-            yp_node_list_memsize(&cast->keywords, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->posts, memsize);
+            memsize->memsize += yp_node_list_memsize(&cast->keywords, memsize);
             if (cast->keyword_rest != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->keyword_rest, memsize);
             }
@@ -2005,6 +2064,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_PROGRAM_NODE: {
             yp_program_node_t *cast = (yp_program_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             yp_node_memsize_node((yp_node_t *)cast->statements, memsize);
             break;
@@ -2045,7 +2106,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
             yp_required_destructured_parameter_node_t *cast = (yp_required_destructured_parameter_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->parameters, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->parameters, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -2066,7 +2129,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_RESCUE_NODE: {
             yp_rescue_node_t *cast = (yp_rescue_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->exceptions, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->exceptions, memsize);
             if (cast->reference != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->reference, memsize);
             }
@@ -2109,6 +2174,8 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_SINGLETON_CLASS_NODE: {
             yp_singleton_class_node_t *cast = (yp_singleton_class_node_t *) node;
             memsize->memsize += sizeof(*cast);
+            // Constant id lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_constant_id_list_t) * 1;
             memsize->memsize += yp_constant_id_list_memsize(&cast->locals);
             yp_node_memsize_node((yp_node_t *)cast->expression, memsize);
             if (cast->body != NULL) {
@@ -2148,7 +2215,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_STATEMENTS_NODE: {
             yp_statements_node_t *cast = (yp_statements_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->body, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->body, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -2195,7 +2264,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_UNDEF_NODE: {
             yp_undef_node_t *cast = (yp_undef_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->names, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->names, memsize);
             break;
         }
 #line 102 "node.c.erb"
@@ -2225,7 +2296,9 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
         case YP_WHEN_NODE: {
             yp_when_node_t *cast = (yp_when_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            yp_node_list_memsize(&cast->conditions, memsize);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(yp_node_list_t) * 1;
+            memsize->memsize += yp_node_list_memsize(&cast->conditions, memsize);
             if (cast->statements != NULL) {
                 yp_node_memsize_node((yp_node_t *)cast->statements, memsize);
             }
@@ -2257,7 +2330,7 @@ yp_node_memsize_node(yp_node_t *node, yp_memsize_t *memsize) {
             }
             break;
         }
-#line 128 "node.c.erb"
+#line 136 "node.c.erb"
     }
 }
 
@@ -2405,6 +2478,8 @@ yp_node_type_to_str(yp_node_type_t node_type)
             return "YP_IF_NODE";
         case YP_IMAGINARY_NODE:
             return "YP_IMAGINARY_NODE";
+        case YP_IMPLICIT_NODE:
+            return "YP_IMPLICIT_NODE";
         case YP_IN_NODE:
             return "YP_IN_NODE";
         case YP_INSTANCE_VARIABLE_AND_WRITE_NODE:

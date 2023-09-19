@@ -951,6 +951,10 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
             yp_serialize_node(parser, (yp_node_t *)((yp_imaginary_node_t *)node)->numeric, buffer);
             break;
         }
+        case YP_IMPLICIT_NODE: {
+            yp_serialize_node(parser, (yp_node_t *)((yp_implicit_node_t *)node)->value, buffer);
+            break;
+        }
         case YP_IN_NODE: {
             yp_serialize_node(parser, (yp_node_t *)((yp_in_node_t *)node)->pattern, buffer);
             if (((yp_in_node_t *)node)->statements == NULL) {
@@ -1771,7 +1775,7 @@ yp_serialize_encoding(yp_encoding_t *encoding, yp_buffer_t *buffer) {
     yp_buffer_append_str(buffer, encoding->name, encoding_length);
 }
 
-#line 175 "serialize.c.erb"
+#line 179 "serialize.c.erb"
 void
 yp_serialize_content(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
     yp_serialize_encoding(&parser->encoding, buffer);
@@ -1785,7 +1789,7 @@ yp_serialize_content(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) 
     yp_buffer_append_zeroes(buffer, 4);
 
     // Next, encode the length of the constant pool.
-    yp_buffer_append_u32(buffer, yp_sizet_to_u32(parser->constant_pool.size));
+    yp_buffer_append_u32(buffer, parser->constant_pool.size);
 
     // Now we're going to serialize the content of the node.
     yp_serialize_node(parser, node, buffer);
@@ -1800,7 +1804,7 @@ yp_serialize_content(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) 
     yp_buffer_append_zeroes(buffer, parser->constant_pool.size * 8);
 
     yp_constant_t *constant;
-    for (size_t index = 0; index < parser->constant_pool.capacity; index++) {
+    for (uint32_t index = 0; index < parser->constant_pool.capacity; index++) {
         constant = &parser->constant_pool.constants[index];
 
         // If we find a constant at this index, serialize it at the correct
