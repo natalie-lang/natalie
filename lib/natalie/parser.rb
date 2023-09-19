@@ -384,8 +384,7 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_interpolated_regular_expression_node(node)
     dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx, unescaped: false)
-    options = regexp_options(node)
-    dregx << options if options != 0
+    dregx << node.options if node.options != 0
     dregx
   end
 
@@ -676,7 +675,7 @@ class SexpVisitor < ::YARP::BasicVisitor
 
   def visit_regular_expression_node(node)
     s(:lit,
-      Regexp.new(node.content, regexp_options(node)),
+      Regexp.new(node.content, node.options),
       location: node.location)
   end
 
@@ -893,15 +892,6 @@ class SexpVisitor < ::YARP::BasicVisitor
       end
     end
     ary2
-  end
-
-  # FIXME: This shouldn't be needed after https://github.com/ruby/yarp/pull/1517 is merged
-  def regexp_options(node)
-    flags = node.send(:flags)
-    o = node.options
-    o |= Regexp::FIXEDENCODING if flags.anybits?(YARP::RegularExpressionFlags::EUC_JP | YARP::RegularExpressionFlags::WINDOWS_31J | YARP::RegularExpressionFlags::UTF_8)
-    o |= Regexp::NOENCODING if flags.anybits?(YARP::RegularExpressionFlags::ASCII_8BIT)
-    o
   end
 end
 
