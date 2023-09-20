@@ -3,11 +3,14 @@ require_relative '../../spec_helper'
 describe "Process.groups" do
   platform_is_not :windows do
     it "gets an Array of the gids of groups in the supplemental group access list" do
-      groups = `id -G`.scan(/\d+/).map { |i| i.to_i }
+      NATFIXME 'Implement String#scan', exception: NoMethodError, message: "undefined method `scan'" do
+        groups = `id -G`.scan(/\d+/).map { |i| i.to_i }
+      end
+      groups = `id -G`.chomp.split(/\s+/).map { |i| i.to_i }
       # Include the standard `id` command output.  On macOS, GNU
       # coreutils `id` is limited to NGROUPS_MAX groups, because of
       # the backward compatibility of getgroups(2).
-      (groups |= `/usr/bin/id -G`.scan(/\d+/).map { |i| i.to_i }) rescue nil
+      (groups |= `/usr/bin/id -G`.chomp.split(/\s+/).map { |i| i.to_i }) rescue nil
       gid = Process.gid
 
       expected = (groups.sort - [gid]).uniq.sort
@@ -21,11 +24,13 @@ describe "Process.groups=" do
   platform_is_not :windows, :android do
     as_superuser do
       it "sets the list of gids of groups in the supplemental group access list" do
-        groups = Process.groups
-        Process.groups = []
-        Process.groups.should == []
-        Process.groups = groups
-        Process.groups.sort.should == groups.sort
+        NATFIXME 'Implement Process#groups=', exception: NoMethodError, message: "undefined method `groups='" do
+          groups = Process.groups
+          Process.groups = []
+          Process.groups.should == []
+          Process.groups = groups
+          Process.groups.sort.should == groups.sort
+        end
       end
     end
 
@@ -57,9 +62,11 @@ describe "Process.groups=" do
 
       platform_is_not :aix do
         it "raises Errno::EPERM" do
-          -> {
-            Process.groups = [0]
-          }.should raise_error(Errno::EPERM)
+          NATFIXME 'Implement Process#groups=', exception: SpecFailedException do
+            -> {
+              Process.groups = [0]
+            }.should raise_error(Errno::EPERM)
+          end
         end
       end
     end
