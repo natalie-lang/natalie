@@ -77,6 +77,8 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_block_node(node, call:)
+    raise "unexpected node: #{node.inspect}" unless node.is_a?(YARP::BlockNode) || node.is_a?(YARP::LambdaNode)
+
     s(:iter,
       call,
       visit(node.parameters) || 0,
@@ -108,11 +110,12 @@ class SexpVisitor < ::YARP::BasicVisitor
                   :call
                 end
 
-    arguments = node.arguments&.child_nodes || []
+    args, block = node_arguments_and_block(node)
+
     call = s(sexp_type,
              visit(node.child_nodes.first),
              node.name.to_sym,
-             *arguments.map { |n| visit(n) },
+             *args,
              location: node.location)
 
     if call[2] == :!~
@@ -120,8 +123,8 @@ class SexpVisitor < ::YARP::BasicVisitor
       call = s(:not, call, location: node.location)
     end
 
-    if node.block
-      visit_block_node(node.block, call: call)
+    if block
+      visit_block_node(block, call: call)
     else
       call
     end
@@ -789,9 +792,9 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_super_node(node)
-    args = node.arguments&.child_nodes || []
-    call = s(:super, *args.map { |n| visit(n) }, location: node.location)
-    if node.block
+    args, block = node_arguments_and_block(node)
+    call = s(:super, *args, location: node.location)
+    if block
       visit_block_node(node.block, call: call)
     else
       call
@@ -892,6 +895,17 @@ class SexpVisitor < ::YARP::BasicVisitor
       end
     end
     ary2
+  end
+
+  def node_arguments_and_block(node)
+    args = node.arguments&.arguments || []
+    block = node.block
+    if block.is_a?(YARP::BlockArgumentNode)
+      args << block
+      block = nil
+    end
+    args.map! { |n| visit(n) }
+    [args, block]
   end
 end
 
