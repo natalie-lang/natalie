@@ -188,6 +188,8 @@ class SexpVisitor < ::YARP::BasicVisitor
   end
 
   def visit_case_node(node)
+    raise SyntaxError, 'expected at least one when clause for case' if node.conditions.empty?
+
     s(:case,
       visit(node.predicate),
       *node.conditions.map { |n| visit(n) },
