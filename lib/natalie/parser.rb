@@ -785,8 +785,14 @@ module Natalie
                     end
           end
           left
+        when %i[str dstr]
+          right[1] = left[1] + right[1]
+          right
+        when %i[dstr str]
+          left << right
+          left
         else
-          debug node
+          raise SyntaxError, "Unexpected nodes for StringConcatNode: #{left.inspect} and #{right.inspect}"
         end
       end
 
