@@ -110,4 +110,17 @@ describe 'block' do
       lambda { |a, x: 0, y: 0| }.arity.should == -2
     end
   end
+
+  describe 'safe call' do
+    class Foo
+      def bar
+        yield 1
+      end
+    end
+
+    it 'works' do
+      foo = Foo.new
+      foo&.bar { |i| i + 1 }.should == 2
+    end
+  end
 end
