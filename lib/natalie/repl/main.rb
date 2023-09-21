@@ -59,5 +59,9 @@ module Natalie
         Natalie::NonTTYRepl
       end
     end
+
+    def s(*items)
+      Natalie::Parser::Sexp.new(*items)
+    end
   end
 end

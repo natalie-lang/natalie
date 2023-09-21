@@ -1478,8 +1478,6 @@ module Natalie
       # and variable lookup. Both cases look like this: `s(:call, nil, :foo)`.
       # But we know which variables are defined in the REPL, so we can convert the :call
       # back to an :lvar as needed.
-      # TODO: A better alternative would be to pass the variable names into NatalieParser
-      # so that it can know which variables are defined already and return s(:lvar, :foo).
       def fix_repl_var_that_looks_like_call(exp)
         unless exp.size == 3 && exp[..1] == [:call, nil]
           return false

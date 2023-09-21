@@ -1010,9 +1010,6 @@ gen.binding('Module', 'remove_method', 'ModuleObject', 'remove_method', argc: :a
 gen.binding('Module', 'to_s', 'ModuleObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 gen.binding('Module', 'undef_method', 'ModuleObject', 'undef_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 
-gen.singleton_binding('NatalieParser', 'parse', 'ParserObject', 'parse', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-gen.singleton_binding('NatalieParser', 'tokens', 'ParserObject', 'tokens', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
-
 gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', '&', 'NilObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('NilClass', '|', 'NilObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

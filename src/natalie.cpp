@@ -402,9 +402,6 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "NatalieParser");
-    Object->const_set("NatalieParser"_s, Parser);
-
     Value RUBY_VERSION = new StringObject { "3.1.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 

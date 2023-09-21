@@ -249,7 +249,7 @@ describe "The alias keyword" do
 end
 
 describe "The alias keyword" do
-  # NATFIXME: Parser error, https://github.com/natalie-lang/natalie_parser/issues/60
+  # NATFIXME: Parse global variable aliases
   xit "can create a new global variable, synonym of the original" do
     code = '$a = 1; alias $b $a; p [$a, $b]; $b = 2; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n[2, 2]\n"
