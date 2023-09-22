@@ -762,18 +762,12 @@ class RaiseErrorExpectation
     if @block
       # given a block, we rescue everything!
 
-      # FIXME: There is a bug here with rescue + else. See #1201.
-      caught = false
-
       begin
         subject.call
       rescue Exception => e
-        caught = true
         @block.call(e)
       else
-        unless caught
-          raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
-        end
+        raise SpecFailedException, "#{subject.inspect} should have raised an error, but instead raised nothing"
       end
       return
     end
@@ -805,8 +799,10 @@ class RaiseErrorExpectation
     if @klass
       begin
         subject.call
-      rescue @klass
-        raise SpecFailedException, subject.inspect + ' should not have raised ' + @klass.inspect
+      rescue @klass => e
+        message = subject.inspect + ' should not have raised ' + @klass.inspect
+        message << " (was #{e.class}: #{e.message})" if e.class != @klass
+        raise SpecFailedException, message
       end
     else
       begin

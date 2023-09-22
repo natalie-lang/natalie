@@ -1,12 +1,12 @@
 [submodule "ext/onigmo"]
 	path = ext/onigmo
 	url = https://github.com/k-takata/Onigmo.git
-[submodule "ext/natalie_parser"]
-	path = ext/natalie_parser
-	url = https://github.com/natalie-lang/natalie_parser
 [submodule "ext/tm"]
 	path = ext/tm
 	url = https://github.com/seven1m/tm
 [submodule "ext/zlib"]
 	path = ext/zlib
 	url = https://github.com/madler/zlib
+[submodule "ext/yarp"]
+	path = ext/yarp
+	url = https://github.com/ruby/yarp

@@ -4,6 +4,7 @@ task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
 SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+SO_EXT2 = RUBY_PLATFORM =~ /darwin/ ? 'dylib' : 'so'
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
@@ -13,12 +14,12 @@ task :build do
 end
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie parser_c_ext ctags] do
+task build_debug: %i[set_build_debug libnatalie yarp_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie parser_c_ext] do
+task build_release: %i[set_build_release libnatalie yarp_c_ext] do
   puts 'Build mode: release'
 end
 
@@ -32,10 +33,6 @@ task :clean do
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{SO_EXT}"
-  rm_rf 'build/natalie_parser'
-  rm_rf 'build/libnatalie_parser.a'
-  rm_rf "build/natalie_parser.#{SO_EXT}"
-  rm_rf 'build/natalie_parser.bundle'
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -96,8 +93,8 @@ end
 desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
-desc 'Build MRI C Extension for the Natalie Parser'
-task parser_c_ext: ["build/natalie_parser.#{SO_EXT}", "build/libnatalie_parser.#{SO_EXT}"]
+desc 'Build MRI C Extension for YARP'
+task yarp_c_ext: ["build/librubyparser.#{SO_EXT2}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -133,6 +130,38 @@ task tidy: %i[build tidy_internal]
 
 desc 'Lint GC visiting code'
 task gc_lint: %i[build gc_lint_internal]
+
+YARP_TEMPLATED_SOURCES = [
+  'ext/yarp/api_node.c',
+  'src/token_type.c',
+  'src/serialize.c',
+  'src/node.c',
+  'src/prettyprint.c',
+  'lib/yarp/node.rb',
+  'lib/yarp/serialize.rb',
+  'lib/yarp/mutation_visitor.rb',
+  'include/yarp/ast.h',
+].freeze
+
+desc 'Generate YARP sources from templates (do this when updating YARP)'
+task :yarp_templated_sources do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/yarp', build_dir
+  sh <<-END
+    cd #{build_dir} && \
+    bundle install && \
+    rake templates
+  END
+  gen_dir = File.join(__dir__, 'ext/yarp-generated')
+  rm_rf gen_dir
+  YARP_TEMPLATED_SOURCES.each do |src|
+    full_dest = File.join(gen_dir, src)
+    dir = File.split(full_dest).first
+    mkdir_p dir unless File.exist?(dir)
+    cp File.join(build_dir, src), full_dest
+  end
+end
 
 # # # # Docker Tasks (used for CI) # # # #
 
@@ -256,7 +285,8 @@ task libnatalie: [
   :build_dir,
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
-  'build/libnatalie_parser.a',
+  'build/librubyparser.a',
+  "build/librubyparser.#{SO_EXT2}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -275,7 +305,6 @@ multitask ruby_objects: RUBY_OBJECT_FILES
 multitask special_objects: SPECIAL_OBJECT_FILES
 
 file 'build/libnatalie.a' => %w[
-  build/libnatalie_parser.a
   build/libnatalie_base.a
   build/onigmo/lib/libonigmo.a
 ] do |t|
@@ -319,17 +348,6 @@ file 'build/zlib/libz.a' do
     cd #{build_dir} && \
     ./configure && \
     make -j 4
-  SH
-end
-
-file 'build/libnatalie_parser.a' => Rake::FileList['ext/natalie_parser/**/*.{hpp,cpp}'] do
-  build_dir = File.expand_path('build/natalie_parser', __dir__)
-  rm_rf build_dir
-  cp_r 'ext/natalie_parser', build_dir
-  sh <<-SH
-    cd #{build_dir} && \
-    BUILD=release rake library && \
-    cp #{build_dir}/build/libnatalie_parser.a #{File.expand_path('build', __dir__)}
   SH
 end
 
@@ -380,10 +398,6 @@ rule '.c.o' => 'src/%n' do |t|
   sh "#{cc} -g -fPIC -c -o #{t.name} #{t.source}"
 end
 
-rule %r{natalie_parser/.*\.cpp\.o$} => ['src/natalie_parser/%n'] + HEADERS do |t|
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
-end
-
 rule '.cpp.o' => ['src/%{build/,}X'] + HEADERS do |t|
   subdir = File.split(t.name).first
   mkdir_p subdir unless File.exist?(subdir)
@@ -394,25 +408,36 @@ rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.cpp' => ['src/%{build\/generated/,}X', "build/natalie_parser.#{SO_EXT}"] do |t|
+rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
   subdir = File.split(t.name).first
   mkdir_p subdir unless File.exist?(subdir)
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/natalie_parser.#{SO_EXT}" => 'build/libnatalie_parser.a' do
-  build_dir = File.expand_path('build/natalie_parser', __dir__)
-  sh <<-SH
-    cd #{build_dir} && \
-    rake parser_c_ext && \
-    cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}
-  SH
+file "build/librubyparser.#{SO_EXT2}" => ['build/librubyparser.a']
+
+file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{SO_EXT}"] do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/librubyparser.#{SO_EXT2}", File.expand_path('build', __dir__)
 end
 
-# FIXME: should we rename to libnatalie_parser in the NatalieParser project?
-file "build/libnatalie_parser.#{SO_EXT}" => "build/natalie_parser.#{SO_EXT}" do |t|
-  build_dir = File.expand_path('build/natalie_parser', __dir__)
-  sh "cp #{build_dir}/ext/natalie_parser/natalie_parser.#{SO_EXT} #{File.expand_path('build', __dir__)}/libnatalie_parser.#{SO_EXT}"
+file "build/yarp/ext/yarp/yarp.#{SO_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
+  build_dir = File.expand_path('build/yarp', __dir__)
+  rm_rf build_dir
+  cp_r 'ext/yarp', build_dir
+  Rake::FileList['ext/yarp-generated/**/*.{rb,c,h}'].each do |path|
+    dest = File.join(build_dir, path.sub(%r{^ext/yarp-generated}, ''))
+    cp path, dest
+  end
+  File.write(File.join(build_dir, 'rakelib/test.rake'), '') # disable this task since it tries to load ruby_memcheck
+  sh <<-SH
+    cd #{build_dir} && \
+    make && \
+    cd ext/yarp && \
+    ruby extconf.rb && \
+    make
+  SH
 end
 
 task :tidy_internal do
@@ -479,6 +504,6 @@ def include_paths
     File.expand_path('ext/tm/include', __dir__),
     File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
-    File.expand_path('build/natalie_parser/include', __dir__),
+    File.expand_path('build/yarp/include', __dir__),
   ]
 end

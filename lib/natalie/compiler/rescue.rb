@@ -24,7 +24,7 @@ module Natalie
 
         [
           try_instruction,
-          transform_body(body),
+          transform_body(body || exp.new(:nil)),
           CatchInstruction.new,
           transform_catch_body(rescue_exprs, retry_id: retry_id),
           EndInstruction.new(:try),
@@ -69,7 +69,10 @@ module Natalie
           end
         end
 
-        catch_body << @pass.transform_expression(s(:call, nil, :raise), used: true)
+        catch_body << @pass.transform_expression(
+          rescue_exprs.first.new(:call, nil, :raise),
+          used: true
+        )
 
         ends = [EndInstruction.new(:if)] * rescue_exprs.size
 
@@ -77,7 +80,8 @@ module Natalie
       end
 
       def transform_body(body)
-        body ||= s(:nil)
+        raise 'expected a body' unless body
+
         @pass.transform_expression(body, used: true)
       end
 
@@ -121,10 +125,10 @@ module Natalie
 
         # empty array, so let's rescue StandardError
         if items.none?
-          items = [s(:const, :StandardError)]
+          items = [array.new(:const, :StandardError)]
         end
 
-        [variable_set, s(:array, *items)]
+        [variable_set, array.new(:array, *items)]
       end
     end
   end

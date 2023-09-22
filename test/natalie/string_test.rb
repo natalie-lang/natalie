@@ -758,4 +758,19 @@ describe 'string' do
       "a\nb\nc".each_line(chomp: true).to_a.should == %w[a b c]
     end
   end
+
+  describe 'line continuation' do
+    s = 'foo' \
+        'bar'
+    s.should == 'foobar'
+    s = 'foo' \
+        "bar#{1 + 1}"
+    s.should == 'foobar2'
+    s = "foo#{1 + 1}" \
+        "bar#{1 + 1}"
+    s.should == 'foo2bar2'
+    s = "foo#{1 + 1}" \
+        'bar'
+    s.should == 'foo2bar'
+  end
 end

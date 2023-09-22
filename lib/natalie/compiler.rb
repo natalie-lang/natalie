@@ -1,4 +1,5 @@
 require 'tempfile'
+require_relative './parser'
 require_relative './compiler/flags'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
@@ -13,6 +14,8 @@ module Natalie
   class Compiler
     include Flags
 
+    Sexp = Natalie::Parser::Sexp
+
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
@@ -21,7 +24,6 @@ module Natalie
       File.join(ROOT_DIR, 'ext/tm/include'),
       File.join(BUILD_DIR),
       File.join(BUILD_DIR, 'onigmo/include'),
-      File.join(BUILD_DIR, 'natalie_parser/include'),
     ]
     LIB_PATHS = [
       BUILD_DIR,
@@ -43,7 +45,6 @@ module Natalie
     # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
     LIBRARIES_FOR_DYNAMIC_LINKING = %w[
       -lnatalie_base
-      -lnatalie_parser
       -lonigmo
     ] + CRYPT_LIBRARIES
 

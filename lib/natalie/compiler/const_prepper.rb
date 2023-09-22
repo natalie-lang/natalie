@@ -12,7 +12,7 @@ module Natalie
           _, @name = name
           @namespace = PushObjectClassInstruction.new
         else
-          raise "Unknown constant name type #{name.sexp_type.inspect}"
+          raise "Unknown constant name type #{name.inspect} #{name.file}##{name.line}"
         end
       end
 

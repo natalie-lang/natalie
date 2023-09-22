@@ -190,7 +190,6 @@ end
 paths = (Dir['include/natalie/**/*.hpp'] + Dir['src/**/*.cpp']).to_a
 paths.each_with_index do |path, index|
   puts "processing file #{index + 1} of #{paths.size} : #{path}"
-  next if path =~ /natalie_parser/
   get_class_details_for_path(path)
 end
 
