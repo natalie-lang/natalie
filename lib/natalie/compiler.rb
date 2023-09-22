@@ -38,7 +38,7 @@ module Natalie
         LIB_PATHS << openssl_lib_path.sub(/^\-L/, '')
       end
     end
-    SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
+    SO_EXT = RbConfig::CONFIG['SOEXT']
 
     CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
 

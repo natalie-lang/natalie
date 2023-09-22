@@ -3,8 +3,8 @@ require_relative './lib/natalie/compiler/flags'
 task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
-SO_EXT = RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'
-SO_EXT2 = RUBY_PLATFORM =~ /darwin/ ? 'dylib' : 'so'
+SO_EXT = RbConfig::CONFIG['SOEXT']
+DL_EXT = RbConfig::CONFIG['DLEXT']
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
@@ -94,7 +94,7 @@ desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for YARP'
-task yarp_c_ext: ["build/librubyparser.#{SO_EXT2}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
+task yarp_c_ext: ["build/librubyparser.#{DL_EXT}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -286,7 +286,7 @@ task libnatalie: [
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
   'build/librubyparser.a',
-  "build/librubyparser.#{SO_EXT2}",
+  "build/librubyparser.#{DL_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -414,12 +414,12 @@ rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/librubyparser.#{SO_EXT2}" => ['build/librubyparser.a']
+file "build/librubyparser.#{DL_EXT}" => ['build/librubyparser.a']
 
 file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{SO_EXT}"] do
   build_dir = File.expand_path('build/yarp', __dir__)
   cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
-  cp "#{build_dir}/build/librubyparser.#{SO_EXT2}", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/librubyparser.#{DL_EXT}", File.expand_path('build', __dir__)
 end
 
 file "build/yarp/ext/yarp/yarp.#{SO_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
