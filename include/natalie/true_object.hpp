@@ -15,10 +15,12 @@ class TrueObject : public Object {
 public:
     static TrueObject *the() {
         if (s_instance) {
-            assert(s_instance->flags() == 0);
+            // make sure we aren't accidentally changing flags
+            assert(s_instance->flags() == Flag::Frozen);
             return s_instance;
         }
         s_instance = new TrueObject();
+        s_instance->freeze();
         return s_instance;
     }
 
