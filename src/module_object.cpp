@@ -543,22 +543,22 @@ Value ModuleObject::name(Env *env) {
     }
 }
 
-Value ModuleObject::attr_reader(Env *env, Args args) {
+ArrayObject *ModuleObject::attr_reader(Env *env, Args args) {
+    auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
-        Value name_obj = args[i];
-        if (name_obj->type() == Object::Type::Symbol) {
-            // we're good!
-        } else if (name_obj->type() == Object::Type::String) {
-            name_obj = SymbolObject::intern(name_obj->as_string()->string());
-        } else {
-            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
-        }
-        auto block_env = new Env {};
-        block_env->var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleObject::attr_reader_block_fn, 0 };
-        define_method(env, name_obj->as_symbol(), attr_block);
+        auto name = attr_reader(env, args[i]);
+        ary->push(name);
     }
-    return NilObject::the();
+    return ary;
+}
+
+SymbolObject *ModuleObject::attr_reader(Env *env, Value obj) {
+    auto name = obj->to_symbol(env, Conversion::Strict);
+    auto block_env = new Env {};
+    block_env->var_set("name", 0, true, name);
+    Block *attr_block = new Block { block_env, this, ModuleObject::attr_reader_block_fn, 0 };
+    define_method(env, name->as_symbol(), attr_block);
+    return name;
 }
 
 Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args, Block *block) {
@@ -569,23 +569,23 @@ Value ModuleObject::attr_reader_block_fn(Env *env, Value self, Args args, Block 
     return self->ivar_get(env, ivar_name);
 }
 
-Value ModuleObject::attr_writer(Env *env, Args args) {
+ArrayObject *ModuleObject::attr_writer(Env *env, Args args) {
+    auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
-        Value name_obj = args[i];
-        if (name_obj->type() == Object::Type::Symbol) {
-            // we're good!
-        } else if (name_obj->type() == Object::Type::String) {
-            name_obj = SymbolObject::intern(name_obj->as_string()->string());
-        } else {
-            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
-        }
-        TM::String method_name = TM::String::format("{}=", name_obj->as_symbol()->string());
-        auto block_env = new Env {};
-        block_env->var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 1 };
-        define_method(env, SymbolObject::intern(method_name), attr_block);
+        auto name = attr_writer(env, args[i]);
+        ary->push(name);
     }
-    return NilObject::the();
+    return ary;
+}
+
+SymbolObject *ModuleObject::attr_writer(Env *env, Value obj) {
+    auto name = obj->to_symbol(env, Conversion::Strict);
+    auto method_name = SymbolObject::intern(TM::String::format("{}=", name->string()));
+    auto block_env = new Env {};
+    block_env->var_set("name", 0, true, name);
+    Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 1 };
+    define_method(env, method_name, attr_block);
+    return method_name;
 }
 
 Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args args, Block *block) {
@@ -598,10 +598,13 @@ Value ModuleObject::attr_writer_block_fn(Env *env, Value self, Args args, Block 
     return val;
 }
 
-Value ModuleObject::attr_accessor(Env *env, Args args) {
-    attr_reader(env, args);
-    attr_writer(env, args);
-    return NilObject::the();
+ArrayObject *ModuleObject::attr_accessor(Env *env, Args args) {
+    auto ary = new ArrayObject {};
+    for (size_t i = 0; i < args.size(); i++) {
+        ary->push(attr_reader(env, args[i]));
+        ary->push(attr_writer(env, args[i]));
+    }
+    return ary;
 }
 
 void ModuleObject::included_modules(Env *env, ArrayObject *modules) {

@@ -114,9 +114,11 @@ public:
     String dbg_inspect() const override;
     Value name(Env *);
     Optional<String> name() { return m_class_name; }
-    Value attr_reader(Env *, Args);
-    Value attr_writer(Env *, Args);
-    Value attr_accessor(Env *, Args);
+    ArrayObject *attr_reader(Env *, Args);
+    SymbolObject *attr_reader(Env *, Value);
+    ArrayObject *attr_writer(Env *, Args);
+    SymbolObject *attr_writer(Env *, Value);
+    ArrayObject *attr_accessor(Env *, Args);
 
     static Value attr_reader_block_fn(Env *, Value, Args, Block *);
     static Value attr_writer_block_fn(Env *, Value, Args, Block *);
