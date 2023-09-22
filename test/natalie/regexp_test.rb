@@ -250,4 +250,27 @@ describe 'regexp' do
       'tim'.sub(/t(i)m/, "0\\90").should == '00'
     end
   end
+
+  describe 'named capture' do
+    it 'sets variables when there is a match' do
+      /(?<name>\w+) is (?'age'\d+) years/ =~ 'Joe is 21 years old'
+      name.should == 'Joe'
+      age.should == '21'
+    end
+
+    it 'sets variables to nil when there is no match' do
+      /(?<name>\w+) is (?'age'\d+) years/ =~ 'Joe is not yet 21 years old'
+      name.should == nil
+      age.should == nil
+    end
+
+    it 'does affect outer scope' do
+      name = 'before'
+      nil.tap do
+        /(?<name>\w+)/ =~ 'Joe'
+        name.should == 'Joe'
+      end
+      name.should == 'Joe'
+    end
+  end
 end

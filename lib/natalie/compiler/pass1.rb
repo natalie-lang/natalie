@@ -951,6 +951,49 @@ module Natalie
         transform_call(exp.new(:call, regexp, :=~, string), used: used)
       end
 
+      def transform_match_write(exp, used:)
+        _, call, *locals = exp
+        instructions = []
+        instructions << transform_expression(call, used: used)
+        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << IfInstruction.new
+
+        # if match
+        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << PushArgcInstruction.new(0)
+        instructions << SendInstruction.new(
+          :named_captures,
+          receiver_is_self: false,
+          with_block: false,
+          file: exp.file,
+          line: exp.line,
+        )
+        locals.each do |name|
+          instructions << DupInstruction.new
+          instructions << PushStringInstruction.new(name.to_s)
+          instructions << PushArgcInstruction.new(1)
+          instructions << SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: exp.file,
+            line: exp.line,
+          )
+          instructions << VariableSetInstruction.new(name)
+        end
+        instructions << PopInstruction.new # get rid of named captures
+
+        # if no match
+        instructions << ElseInstruction.new(:if)
+        locals.each do |name|
+          instructions << PushNilInstruction.new
+          instructions << VariableSetInstruction.new(name)
+        end
+        instructions << EndInstruction.new(:if)
+
+        instructions
+      end
+
       def transform_module(exp, used:)
         _, name, *body = exp
         instructions = []
