@@ -838,6 +838,8 @@ module Natalie
           instructions << transform_call(call, used: used, with_block: true)
         when :lambda
           instructions << transform_lambda(call, used: used)
+        when :safe_call
+          instructions << transform_safe_call(call, used: used, with_block: true)
         when :super
           instructions << transform_super(call, used: used, with_block: true)
         when :zsuper
@@ -1243,7 +1245,7 @@ module Natalie
         instructions << ReturnInstruction.new
       end
 
-      def transform_safe_call(exp, used:)
+      def transform_safe_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
 
         instructions = []
@@ -1262,7 +1264,7 @@ module Natalie
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           receiver_is_self: false,
-          with_block: call_args.fetch(:with_block_pass),
+          with_block: with_block || call_args.fetch(:with_block_pass),
           file: exp.file,
           line: exp.line,
         )
