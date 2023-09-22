@@ -559,9 +559,7 @@ module Natalie
       end
 
       def visit_match_write_node(node)
-        # FIXME: Should set a variable
-        # /(?<foo>bar)/ should set a variable called `foo` to "bar" (if there's a match)
-        visit(node.call)
+        s(:match_write, visit(node.call), *node.locals, location: node.location)
       end
 
       def visit_missing_node(_)
