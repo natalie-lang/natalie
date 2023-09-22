@@ -38,7 +38,7 @@ module Natalie
         LIB_PATHS << openssl_lib_path.sub(/^\-L/, '')
       end
     end
-    SO_EXT = RbConfig::CONFIG['SOEXT']
+    DL_EXT = RbConfig::CONFIG['DLEXT']
 
     CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
 
@@ -102,7 +102,7 @@ module Natalie
     end
 
     def check_build
-      unless File.file?(File.join(BUILD_DIR, "libnatalie_base.#{SO_EXT}"))
+      unless File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
         puts 'please run: rake'
         exit 1
       end

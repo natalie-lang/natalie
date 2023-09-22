@@ -3,8 +3,8 @@ require_relative './lib/natalie/compiler/flags'
 task default: :build
 
 DEFAULT_BUILD_TYPE = 'debug'.freeze
-SO_EXT = RbConfig::CONFIG['SOEXT']
 DL_EXT = RbConfig::CONFIG['DLEXT']
+SO_EXT = RbConfig::CONFIG['SOEXT']
 SRC_DIRECTORIES = Dir.new('src').children.select { |p| File.directory?(File.join('src', p)) }
 
 desc 'Build Natalie'
@@ -32,7 +32,7 @@ task :clean do
   rm_rf 'build/build.log'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
-  rm_rf "build/libnatalie_base.#{SO_EXT}"
+  rm_rf "build/libnatalie_base.#{DL_EXT}"
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -94,7 +94,7 @@ desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for YARP'
-task yarp_c_ext: ["build/librubyparser.#{DL_EXT}", "build/yarp/ext/yarp/yarp.#{SO_EXT}"]
+task yarp_c_ext: ["build/librubyparser.#{SO_EXT}", "build/yarp/ext/yarp/yarp.#{DL_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -286,13 +286,13 @@ task libnatalie: [
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
   'build/librubyparser.a',
-  "build/librubyparser.#{DL_EXT}",
+  "build/librubyparser.#{SO_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
   :special_objects,
   'build/libnatalie.a',
-  "build/libnatalie_base.#{SO_EXT}",
+  "build/libnatalie_base.#{DL_EXT}",
   :write_compile_database,
 ]
 
@@ -323,7 +323,7 @@ file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
   sh "ar rcs #{t.name} #{OBJECT_FILES}"
 end
 
-file "build/libnatalie_base.#{SO_EXT}" => OBJECT_FILES + HEADERS do |t|
+file "build/libnatalie_base.#{DL_EXT}" => OBJECT_FILES + HEADERS do |t|
   sh "#{cxx} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{OBJECT_FILES}"
 end
 
@@ -414,15 +414,15 @@ rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/librubyparser.#{DL_EXT}" => ['build/librubyparser.a']
+file "build/librubyparser.#{SO_EXT}" => ['build/librubyparser.a']
 
-file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{SO_EXT}"] do
+file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{DL_EXT}"] do
   build_dir = File.expand_path('build/yarp', __dir__)
   cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
-  cp "#{build_dir}/build/librubyparser.#{DL_EXT}", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/librubyparser.#{SO_EXT}", File.expand_path('build', __dir__)
 end
 
-file "build/yarp/ext/yarp/yarp.#{SO_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
+file "build/yarp/ext/yarp/yarp.#{DL_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
   build_dir = File.expand_path('build/yarp', __dir__)
   rm_rf build_dir
   cp_r 'ext/yarp', build_dir
