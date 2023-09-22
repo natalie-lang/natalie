@@ -543,6 +543,20 @@ Value ModuleObject::name(Env *env) {
     }
 }
 
+ArrayObject *ModuleObject::attr(Env *env, Args args) {
+    bool accessor = false;
+    auto size = args.size();
+    if (args.size() > 1 && args[size - 1]->is_boolean()) {
+        accessor = args[size - 1]->is_truthy();
+        size--;
+    }
+    if (accessor) {
+        return attr_accessor(env, Args(size, args.data()));
+    } else {
+        return attr_reader(env, Args(size, args.data()));
+    }
+}
+
 ArrayObject *ModuleObject::attr_reader(Env *env, Args args) {
     auto ary = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
