@@ -93,8 +93,10 @@ OptionParser.new do |opts|
     options[:require] << library
   end
 
-  opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |p|
-    options[:load_path].unshift(p)
+  opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |value|
+    value.split(':').each do |p|
+      options[:load_path].unshift(p)
+    end
   end
 
   opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it (experimental)') do
