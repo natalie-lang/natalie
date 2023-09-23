@@ -494,6 +494,7 @@ def cxx_flags
       Natalie::Compiler::Flags::DEBUG_FLAGS
     end
   base_flags += ['-fPIC'] # needed for repl
+  base_flags += ['-D_DARWIN_C_SOURCE'] if RUBY_PLATFORM =~ /darwin/ # needed for Process.groups to return more than 16 groups on macOS
   user_flags = Array(ENV['NAT_CXX_FLAGS'])
   base_flags + user_flags + include_paths.map { |path| "-I #{path}" }
 end
