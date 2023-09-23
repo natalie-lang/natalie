@@ -151,6 +151,13 @@ namespace ioutil {
             parse_flags_obj(env, self, mode);
         }
 
+        void parse_flags(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto flags = kwargs->remove(env, "flags"_s);
+            if (!flags || flags->is_nil()) return;
+            self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
+        }
+
         void parse_autoclose(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
             auto autoclose = kwargs->remove(env, "autoclose"_s);
@@ -167,6 +174,7 @@ namespace ioutil {
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
+        parse_flags(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
         parse_path(env, this, kwargs);
         env->ensure_no_extra_keywords(kwargs);

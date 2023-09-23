@@ -65,10 +65,8 @@ describe :io_new, shared: true do
   end
 
   it "accepts options as keyword arguments" do
-    NATFIXME 'Flag keyword argument', exception: ArgumentError, message: 'unknown keyword: :flags' do
-      @io = IO.send(@method, @fd, "w", flags: File::CREAT)
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, "w", flags: File::CREAT)
+    @io.write("foo").should == 3
 
     -> {
       IO.send(@method, @fd, "w", {flags: File::CREAT})
