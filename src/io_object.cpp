@@ -72,10 +72,9 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
-    flags_struct flags_obj_to_flags(Env *env, Value flags_obj) {
-        flags_struct flags;
+    flags_struct::flags_struct(Env *env, Value flags_obj) {
         if (!flags_obj || flags_obj->is_nil())
-            return flags;
+            return;
 
         if (!flags_obj->is_integer() && !flags_obj->is_string()) {
             if (flags_obj->respond_to(env, "to_str"_s)) {
@@ -87,16 +86,16 @@ namespace ioutil {
 
         switch (flags_obj->type()) {
         case Object::Type::Integer:
-            flags.flags = flags_obj->as_integer()->to_nat_int_t();
-            return flags;
+            flags = flags_obj->as_integer()->to_nat_int_t();
+            break;
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
             auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
             auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
             auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
-            if (!extenc->is_nil()) flags.external_encoding = EncodingObject::find_encoding(env, extenc);
-            if (!intenc->is_nil()) flags.internal_encoding = EncodingObject::find_encoding(env, intenc);
+            if (!extenc->is_nil()) external_encoding = EncodingObject::find_encoding(env, extenc);
+            if (!intenc->is_nil()) internal_encoding = EncodingObject::find_encoding(env, intenc);
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -113,27 +112,27 @@ namespace ioutil {
             if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
-            if (binary_text_mode == 'b' && !flags.external_encoding) {
-                flags.external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-            } else if (binary_text_mode == 't' && !flags.external_encoding) {
-                flags.external_encoding = EncodingObject::get(Encoding::UTF_8);
+            if (binary_text_mode == 'b' && !external_encoding) {
+                external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+            } else if (binary_text_mode == 't' && !external_encoding) {
+                external_encoding = EncodingObject::get(Encoding::UTF_8);
             }
 
             if (main_mode == 'r' && !read_write_mode)
-                flags.flags = O_RDONLY;
+                flags = O_RDONLY;
             else if (main_mode == 'r' && read_write_mode == '+')
-                flags.flags = O_RDWR;
+                flags = O_RDWR;
             else if (main_mode == 'w' && !read_write_mode)
-                flags.flags = O_WRONLY | O_CREAT | O_TRUNC;
+                flags = O_WRONLY | O_CREAT | O_TRUNC;
             else if (main_mode == 'w' && read_write_mode == '+')
-                flags.flags = O_RDWR | O_CREAT | O_TRUNC;
+                flags = O_RDWR | O_CREAT | O_TRUNC;
             else if (main_mode == 'a' && !read_write_mode)
-                flags.flags = O_WRONLY | O_CREAT | O_APPEND;
+                flags = O_WRONLY | O_CREAT | O_APPEND;
             else if (main_mode == 'a' && read_write_mode == '+')
-                flags.flags = O_RDWR | O_CREAT | O_APPEND;
+                flags = O_RDWR | O_CREAT | O_APPEND;
             else
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
-            return flags;
+            break;
         }
         default:
             env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
@@ -155,7 +154,7 @@ Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     if (actual_flags < 0)
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
-        const auto wanted_flags = ioutil::flags_obj_to_flags(env, flags_obj);
+        const ioutil::flags_struct wanted_flags { env, flags_obj };
         if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
@@ -619,7 +618,7 @@ Value IoObject::stat(Env *env) const {
 }
 
 Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
-    const auto flags = ioutil::flags_obj_to_flags(env, flags_obj);
+    const ioutil::flags_struct flags { env, flags_obj };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     path = ioutil::convert_using_to_path(env, path);
