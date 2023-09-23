@@ -72,7 +72,7 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
-    flags_struct::flags_struct(Env *env, Value flags_obj) {
+    flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         if (!flags_obj || flags_obj->is_nil())
             return;
 
@@ -152,6 +152,7 @@ Value IoObject::initialize(Env *env, Args args) {
     args.ensure_argc_between(env, 1, 2);
     Value file_number = args.at(0);
     Value flags_obj = args.at(1, nullptr);
+    const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
     env->ensure_no_extra_keywords(kwargs);
     nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
@@ -159,7 +160,6 @@ Value IoObject::initialize(Env *env, Args args) {
     if (actual_flags < 0)
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
-        const ioutil::flags_struct wanted_flags { env, flags_obj };
         if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
@@ -623,7 +623,7 @@ Value IoObject::stat(Env *env) const {
 }
 
 Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
-    const ioutil::flags_struct flags { env, flags_obj };
+    const ioutil::flags_struct flags { env, flags_obj, nullptr };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     path = ioutil::convert_using_to_path(env, path);

@@ -24,7 +24,7 @@ namespace ioutil {
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
 
-        flags_struct(Env *env, Value flags_obj);
+        flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
     };
     mode_t perm_to_mode(Env *env, Value perm);
 }

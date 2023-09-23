@@ -35,7 +35,7 @@ static int effective_uid_access(const char *path_name, int type) {
 
 // NATFIXME : block form is not used, option-hash arg not implemented.
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    const ioutil::flags_struct flags { env, flags_obj };
+    const ioutil::flags_struct flags { env, flags_obj, nullptr };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename->is_integer()) { // passing in a number uses fd number
