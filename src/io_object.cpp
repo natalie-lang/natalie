@@ -141,10 +141,20 @@ namespace ioutil {
                 env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
             }
         }
+
+        void parse_mode(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto mode = kwargs->remove(env, "mode"_s);
+            if (!mode || mode->is_nil()) return;
+            if (self->has_mode)
+                env->raise("ArgumentError", "mode specified twice");
+            parse_flags_obj(env, self, mode);
+        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         parse_flags_obj(env, this, flags_obj);
+        parse_mode(env, this, kwargs);
         env->ensure_no_extra_keywords(kwargs);
     }
 

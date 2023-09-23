@@ -76,24 +76,18 @@ describe :io_new, shared: true do
   end
 
   it "accepts a :mode option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      @io = IO.send(@method, @fd, mode: "w")
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, mode: "w")
+    @io.write("foo").should == 3
   end
 
   it "accepts a mode argument set to nil with a valid :mode option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      @io = IO.send(@method, @fd, nil, mode: "w")
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, nil, mode: "w")
+    @io.write("foo").should == 3
   end
 
   it "accepts a mode argument with a :mode option set to nil" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      @io = IO.send(@method, @fd, "w", mode: nil)
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, "w", mode: nil)
+    @io.write("foo").should == 3
   end
 
   it "uses the external encoding specified in the mode argument" do
@@ -162,11 +156,9 @@ describe :io_new, shared: true do
   end
 
   it "uses the encoding specified via the :mode option hash" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      @io = IO.send(@method, @fd, mode: 'w:utf-8:ISO-8859-1')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, mode: 'w:utf-8:ISO-8859-1')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "ignores the :internal_encoding option when the same as the external encoding" do
@@ -268,18 +260,14 @@ describe :io_new, shared: true do
 
   it "coerces mode with #to_str when passed in options" do
     mode = mock("mode")
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      mode.should_receive(:to_str).and_return('w')
-      @io = IO.send(@method, @fd, mode: mode)
-    end
+    mode.should_receive(:to_str).and_return('w')
+    @io = IO.send(@method, @fd, mode: mode)
   end
 
   it "coerces mode with #to_int when passed in options" do
     mode = mock("mode")
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'unknown keyword: :mode' do
-      mode.should_receive(:to_int).and_return(File::WRONLY)
-      @io = IO.send(@method, @fd, mode: mode)
-    end
+    mode.should_receive(:to_int).and_return(File::WRONLY)
+    @io = IO.send(@method, @fd, mode: mode)
   end
 
   it "coerces :encoding option with #to_str" do
