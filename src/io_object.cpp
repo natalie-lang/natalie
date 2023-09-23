@@ -157,12 +157,18 @@ namespace ioutil {
             if (!autoclose) return;
             self->autoclose = autoclose->is_truthy();
         }
+
+        void parse_path(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            kwargs->remove(env, "path"_s);
+        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
+        parse_path(env, this, kwargs);
         env->ensure_no_extra_keywords(kwargs);
     }
 
