@@ -43,147 +43,160 @@ namespace {
 
 ArrayObject *StringUnpacker::unpack(Env *env) {
     for (auto token : *m_directives) {
-        if (token.error)
-            env->raise("ArgumentError", *token.error);
-
-        switch (token.directive) {
-        case 'A':
-            unpack_A(token);
-            break;
-        case 'a':
-            unpack_a(token);
-            break;
-        case 'B':
-            unpack_B(token);
-            break;
-        case 'b':
-            unpack_b(token);
-            break;
-        case 'C':
-            unpack_C(token);
-            break;
-        case 'c':
-            unpack_c(token);
-            break;
-        case 'D':
-        case 'd':
-            unpack_float<double>(token, system_is_little_endian());
-            break;
-        case 'E':
-            unpack_float<double>(token, true);
-            break;
-        case 'e':
-            unpack_float<float>(token, true);
-            break;
-        case 'F':
-        case 'f':
-            unpack_float<float>(token, system_is_little_endian());
-            break;
-        case 'G':
-            unpack_float<double>(token, false);
-            break;
-        case 'g':
-            unpack_float<float>(token, false);
-            break;
-        case 'H':
-            unpack_H(token);
-            break;
-        case 'h':
-            unpack_h(token);
-            break;
-        case 'I':
-            unpack_int<unsigned int>(token);
-            break;
-        case 'i':
-            unpack_int<signed int>(token);
-            break;
-        case 'J':
-            unpack_int<uintptr_t>(token);
-            break;
-        case 'j':
-            unpack_int<intptr_t>(token);
-            break;
-        case 'L':
-            if (token.native_size) {
-                unpack_int<unsigned long>(token);
-            } else {
-                unpack_int<uint32_t>(token);
-            }
-            break;
-        case 'l':
-            if (token.native_size) {
-                unpack_int<signed long>(token);
-            } else {
-                unpack_int<int32_t>(token);
-            }
-            break;
-        case 'M':
-            unpack_M(env, token);
-            break;
-        case 'm':
-            unpack_m(env, token);
-            break;
-        case 'N':
-            unpack_int<uint32_t>(token, false);
-            break;
-        case 'n':
-            unpack_int<uint16_t>(token, false);
-            break;
-        case 'P':
-            unpack_P(token);
-            break;
-        case 'p':
-            unpack_p();
-            break;
-        case 'Q':
-            unpack_int<uint64_t>(token);
-            break;
-        case 'q':
-            unpack_int<int64_t>(token);
-            break;
-        case 'S':
-            unpack_int<uint16_t>(token);
-            break;
-        case 's':
-            unpack_int<int16_t>(token);
-            break;
-        case 'U':
-            unpack_U(env, token);
-            break;
-        case 'u':
-            unpack_u(token);
-            break;
-        case 'V':
-            unpack_int<uint32_t>(token, true);
-            break;
-        case 'v':
-            unpack_int<uint16_t>(token, true);
-            break;
-        case 'w':
-            unpack_w(env, token);
-            break;
-        case 'X':
-            unpack_X(env, token);
-            break;
-        case 'x':
-            unpack_x(env, token);
-            break;
-        case 'Z':
-            unpack_Z(token);
-            break;
-        case '@':
-            unpack_at(env, token);
-            break;
-        default:
-            env->raise("ArgumentError", "{} is not supported", token.directive);
-        }
+        unpack_token(env, token);
     }
-    return m_unpacked;
+    return unpacked_array();
+}
+
+Value StringUnpacker::unpack1(Env *env) {
+    for (auto token : *m_directives) {
+        unpack_token(env, token);
+        if (m_unpacked_value)
+            return m_unpacked_value;
+    }
+    return NilObject::the();
+}
+
+void StringUnpacker::unpack_token(Env *env, Token &token) {
+    if (token.error)
+        env->raise("ArgumentError", *token.error);
+
+    switch (token.directive) {
+    case 'A':
+        unpack_A(token);
+        break;
+    case 'a':
+        unpack_a(token);
+        break;
+    case 'B':
+        unpack_B(token);
+        break;
+    case 'b':
+        unpack_b(token);
+        break;
+    case 'C':
+        unpack_C(token);
+        break;
+    case 'c':
+        unpack_c(token);
+        break;
+    case 'D':
+    case 'd':
+        unpack_float<double>(token, system_is_little_endian());
+        break;
+    case 'E':
+        unpack_float<double>(token, true);
+        break;
+    case 'e':
+        unpack_float<float>(token, true);
+        break;
+    case 'F':
+    case 'f':
+        unpack_float<float>(token, system_is_little_endian());
+        break;
+    case 'G':
+        unpack_float<double>(token, false);
+        break;
+    case 'g':
+        unpack_float<float>(token, false);
+        break;
+    case 'H':
+        unpack_H(token);
+        break;
+    case 'h':
+        unpack_h(token);
+        break;
+    case 'I':
+        unpack_int<unsigned int>(token);
+        break;
+    case 'i':
+        unpack_int<signed int>(token);
+        break;
+    case 'J':
+        unpack_int<uintptr_t>(token);
+        break;
+    case 'j':
+        unpack_int<intptr_t>(token);
+        break;
+    case 'L':
+        if (token.native_size) {
+            unpack_int<unsigned long>(token);
+        } else {
+            unpack_int<uint32_t>(token);
+        }
+        break;
+    case 'l':
+        if (token.native_size) {
+            unpack_int<signed long>(token);
+        } else {
+            unpack_int<int32_t>(token);
+        }
+        break;
+    case 'M':
+        unpack_M(env, token);
+        break;
+    case 'm':
+        unpack_m(env, token);
+        break;
+    case 'N':
+        unpack_int<uint32_t>(token, false);
+        break;
+    case 'n':
+        unpack_int<uint16_t>(token, false);
+        break;
+    case 'P':
+        unpack_P(token);
+        break;
+    case 'p':
+        unpack_p();
+        break;
+    case 'Q':
+        unpack_int<uint64_t>(token);
+        break;
+    case 'q':
+        unpack_int<int64_t>(token);
+        break;
+    case 'S':
+        unpack_int<uint16_t>(token);
+        break;
+    case 's':
+        unpack_int<int16_t>(token);
+        break;
+    case 'U':
+        unpack_U(env, token);
+        break;
+    case 'u':
+        unpack_u(token);
+        break;
+    case 'V':
+        unpack_int<uint32_t>(token, true);
+        break;
+    case 'v':
+        unpack_int<uint16_t>(token, true);
+        break;
+    case 'w':
+        unpack_w(env, token);
+        break;
+    case 'X':
+        unpack_X(env, token);
+        break;
+    case 'x':
+        unpack_x(env, token);
+        break;
+    case 'Z':
+        unpack_Z(token);
+        break;
+    case '@':
+        unpack_at(env, token);
+        break;
+    default:
+        env->raise("ArgumentError", "{} is not supported", token.directive);
+    }
 }
 
 void StringUnpacker::unpack_A(Token &token) {
     if (at_end()) {
-        m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
+        append(new StringObject("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -205,12 +218,12 @@ void StringUnpacker::unpack_A(Token &token) {
         }
     }
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_a(Token &token) {
     if (at_end()) {
-        m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
+        append(new StringObject("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -221,7 +234,7 @@ void StringUnpacker::unpack_a(Token &token) {
         return true;
     });
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_B(Token &token) {
@@ -235,7 +248,7 @@ void StringUnpacker::unpack_B(Token &token) {
         return c << 1;
     });
 
-    m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    append(new StringObject { out, Encoding::US_ASCII });
 }
 
 void StringUnpacker::unpack_C(Token &token) {
@@ -243,10 +256,10 @@ void StringUnpacker::unpack_C(Token &token) {
     if (token.count == -1) token.count = 1;
     while (token.star ? !at_end() : consumed < token.count) {
         if (at_end()) {
-            m_unpacked->push(NilObject::the());
+            append(NilObject::the());
         } else {
             unsigned char c = pointer()[0];
-            m_unpacked->push(Value::integer((unsigned int)c));
+            append(Value::integer((unsigned int)c));
             m_index++;
         }
         consumed++;
@@ -258,10 +271,10 @@ void StringUnpacker::unpack_c(Token &token) {
     if (token.count == -1) token.count = 1;
     while (token.star ? !at_end() : consumed < token.count) {
         if (at_end()) {
-            m_unpacked->push(NilObject::the());
+            append(NilObject::the());
         } else {
             signed char c = pointer()[0];
-            m_unpacked->push(Value::integer((signed int)c));
+            append(Value::integer((signed int)c));
             m_index++;
         }
         consumed++;
@@ -279,7 +292,7 @@ void StringUnpacker::unpack_b(Token &token) {
         return c >> 1;
     });
 
-    m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    append(new StringObject { out, Encoding::US_ASCII });
 }
 
 void StringUnpacker::unpack_H(Token &token) {
@@ -291,7 +304,7 @@ void StringUnpacker::unpack_H(Token &token) {
             out.append_sprintf("%x", c & 0x0F);
     });
 
-    m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    append(new StringObject { out, Encoding::US_ASCII });
 }
 
 void StringUnpacker::unpack_h(Token &token) {
@@ -303,7 +316,7 @@ void StringUnpacker::unpack_h(Token &token) {
             out.append_sprintf("%x", c >> 4);
     });
 
-    m_unpacked->push(new StringObject { out, Encoding::US_ASCII });
+    append(new StringObject { out, Encoding::US_ASCII });
 }
 
 void StringUnpacker::unpack_M(Env *env, Token &token) {
@@ -354,7 +367,7 @@ void StringUnpacker::unpack_M(Env *env, Token &token) {
         out.append_char(c);
     }
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_m(Env *env, Token &token) {
@@ -420,28 +433,28 @@ void StringUnpacker::unpack_m(Env *env, Token &token) {
             env->raise("ArgumentError", "invalid base64");
     }
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_P(Token &token) {
     if (m_index + sizeof(uintptr_t) > m_source->length()) {
-        m_unpacked->push(NilObject::the());
+        append(NilObject::the());
         return;
     }
 
     const char *p = *(const char **)pointer();
     const size_t size = std::min(static_cast<size_t>(token.count), strlen(p));
-    m_unpacked->push(new StringObject(p, size));
+    append(new StringObject(p, size));
     m_index += sizeof(uintptr_t);
 }
 
 void StringUnpacker::unpack_p() {
     if (m_index + sizeof(uintptr_t) > m_source->length()) {
-        m_unpacked->push(NilObject::the());
+        append(NilObject::the());
         return;
     }
 
-    m_unpacked->push(new StringObject(*(const char **)pointer()));
+    append(new StringObject(*(const char **)pointer()));
     m_index += sizeof(uintptr_t);
 }
 
@@ -453,7 +466,7 @@ void StringUnpacker::unpack_U(Env *env, Token &token) {
         if (!pair.first)
             env->raise("ArgumentError", "malformed UTF-8 character");
         auto value = m_source->encoding()->decode_codepoint(pair.second);
-        m_unpacked->push(Value::integer(value));
+        append(Value::integer(value));
         consumed++;
     }
 }
@@ -519,7 +532,7 @@ void StringUnpacker::unpack_u(Token &token) {
             continue;
     }
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_w(Env *env, Token &token) {
@@ -550,7 +563,7 @@ void StringUnpacker::unpack_w(Env *env, Token &token) {
         if (shift > 0) {
             result = (result << shift) | temp_result;
         }
-        m_unpacked->push(new IntegerObject(std::move(result)));
+        append(new IntegerObject(std::move(result)));
 
         return !at_end();
     });
@@ -591,7 +604,7 @@ void StringUnpacker::unpack_x(Env *env, Token &token) {
 
 void StringUnpacker::unpack_Z(Token &token) {
     if (at_end()) {
-        m_unpacked->push(new StringObject("", Encoding::ASCII_8BIT));
+        append(new StringObject("", Encoding::ASCII_8BIT));
         return;
     }
 
@@ -607,7 +620,7 @@ void StringUnpacker::unpack_Z(Token &token) {
     if (token.count > 0 && (ssize_t)consumed < token.count)
         m_index += (token.count - consumed);
 
-    m_unpacked->push(new StringObject(out, Encoding::ASCII_8BIT));
+    append(new StringObject(out, Encoding::ASCII_8BIT));
 }
 
 void StringUnpacker::unpack_at(Env *env, Token &token) {

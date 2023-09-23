@@ -19,13 +19,17 @@ public:
     ~StringUnpacker() { delete m_directives; }
 
     ArrayObject *unpack(Env *env);
+    Value unpack1(Env *env);
 
     virtual void visit_children(Visitor &visitor) override {
         visitor.visit(m_source);
-        visitor.visit(m_unpacked);
+        visitor.visit(m_unpacked_value);
+        visitor.visit(m_unpacked_array);
     }
 
 private:
+    void unpack_token(Env *env, Token &);
+
     void unpack_A(Token &token);
     void unpack_a(Token &token);
     void unpack_B(Token &token);
@@ -53,7 +57,7 @@ private:
         while (token.star ? !at_end() : consumed < token.count) {
             if ((m_index + sizeof(T)) > m_source->length()) {
                 if (!token.star)
-                    m_unpacked->push(NilObject::the());
+                    append(NilObject::the());
                 m_index++;
             } else {
                 // reverse a character buffer based on endianness
@@ -65,7 +69,7 @@ private:
                 m_index += sizeof(T);
                 double double_val = double(*(T *)out.c_str());
                 auto fltobj = new FloatObject { double_val };
-                m_unpacked->push(fltobj);
+                append(fltobj);
             }
             consumed++;
         }
@@ -84,7 +88,7 @@ private:
         while (token.star ? !at_end() : consumed < token.count) {
             if ((m_index + sizeof(T)) > m_source->length()) {
                 if (!token.star)
-                    m_unpacked->push(NilObject::the());
+                    append(NilObject::the());
                 m_index++;
             } else {
                 // NATFIXME: this method of fixing endianness may not be efficient
@@ -98,7 +102,7 @@ private:
                 // Previosly had pushed Value::integer() values, but for large unsigned values
                 // it produced incorrect results.
                 auto bigint = BigInt(*(T *)out.c_str());
-                m_unpacked->push(IntegerObject::create(Integer(std::move(bigint))));
+                append(IntegerObject::create(Integer(std::move(bigint))));
             }
             consumed++;
         }
@@ -186,9 +190,31 @@ private:
         return *((char *)&i) == 1;
     }
 
+    void append(Value value) {
+        // Avoid building an array for the String#unpack1 case.
+        if (!m_unpacked_value) {
+            m_unpacked_value = value;
+        } else {
+            if (!m_unpacked_array) {
+                m_unpacked_array = new ArrayObject {};
+                m_unpacked_array->push(m_unpacked_value);
+            }
+            m_unpacked_array->push(value);
+        }
+    }
+
+    ArrayObject *unpacked_array() {
+        if (m_unpacked_array)
+            return m_unpacked_array;
+        else if (m_unpacked_value)
+            return new ArrayObject { m_unpacked_value };
+        return new ArrayObject {};
+    }
+
     const StringObject *m_source;
     TM::Vector<Token> *m_directives;
-    ArrayObject *m_unpacked { new ArrayObject };
+    Value m_unpacked_value { nullptr };
+    ArrayObject *m_unpacked_array { nullptr };
     size_t m_index { 0 };
 };
 }
