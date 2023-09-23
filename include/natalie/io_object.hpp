@@ -104,7 +104,7 @@ public:
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value) const;
-    static Value read_file(Env *, Value, Value = nullptr, Value = nullptr);
+    static Value read_file(Env *, Args);
     Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);

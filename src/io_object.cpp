@@ -442,9 +442,18 @@ bool IoObject::isatty(Env *env) const {
     return ::isatty(m_fileno) == 1;
 }
 
-Value IoObject::read_file(Env *env, Value filename, Value length, Value offset) {
+Value IoObject::read_file(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 1, 3);
+    auto filename = args.at(0);
+    auto length = args.at(1, nullptr);
+    auto offset = args.at(2, nullptr);
+    const ioutil::flags_struct flags { env, nullptr, kwargs };
+    if (flags.flags != O_RDONLY && flags.flags != O_RDWR && flags.flags != (O_RDWR | O_CREAT | O_APPEND))
+        env->raise("IOError", "not opened for reading");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
+    file->set_encoding(env, flags.external_encoding, flags.internal_encoding);
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
     auto data = file->read(env, length, nullptr);
