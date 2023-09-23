@@ -76,6 +76,8 @@ namespace ioutil {
         if (!flags_obj || flags_obj->is_nil())
             return;
 
+        has_mode = true;
+
         if (!flags_obj->is_integer() && !flags_obj->is_string()) {
             if (flags_obj->respond_to(env, "to_str"_s)) {
                 flags_obj = flags_obj->to_str(env);
@@ -159,13 +161,13 @@ Value IoObject::initialize(Env *env, Args args) {
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
     if (actual_flags < 0)
         env->raise_errno();
-    if (flags_obj != nullptr && !flags_obj->is_nil()) {
+    if (wanted_flags.has_mode) {
         if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
         }
-        set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     }
+    set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     set_fileno(fileno);
     return this;
 }

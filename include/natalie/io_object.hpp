@@ -20,6 +20,7 @@ namespace ioutil {
     StringObject *convert_using_to_path(Env *env, Value path);
     int object_stat(Env *env, Value io, struct stat *sb);
     struct flags_struct {
+        bool has_mode { false };
         int flags { O_RDONLY };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
