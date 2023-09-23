@@ -72,7 +72,7 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
-    flags_struct flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
+    flags_struct flags_obj_to_flags(Env *env, Value flags_obj) {
         flags_struct flags;
         if (!flags_obj || flags_obj->is_nil())
             return flags;
@@ -97,8 +97,6 @@ namespace ioutil {
             auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
             if (!extenc->is_nil()) flags.external_encoding = EncodingObject::find_encoding(env, extenc);
             if (!intenc->is_nil()) flags.internal_encoding = EncodingObject::find_encoding(env, intenc);
-            if (self)
-                self->set_encoding(env, extenc, intenc);
 
             if (flags_str.length() < 1 || flags_str.length() > 3)
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -117,10 +115,8 @@ namespace ioutil {
 
             if (binary_text_mode == 'b' && !flags.external_encoding) {
                 flags.external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-                if (self) self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
             } else if (binary_text_mode == 't' && !flags.external_encoding) {
                 flags.external_encoding = EncodingObject::get(Encoding::UTF_8);
-                if (self) self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
             }
 
             if (main_mode == 'r' && !read_write_mode)
@@ -159,7 +155,7 @@ Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     if (actual_flags < 0)
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
-        const auto wanted_flags = ioutil::flags_obj_to_flags(env, nullptr, flags_obj);
+        const auto wanted_flags = ioutil::flags_obj_to_flags(env, flags_obj);
         if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
@@ -623,7 +619,7 @@ Value IoObject::stat(Env *env) const {
 }
 
 Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
-    const auto flags = ioutil::flags_obj_to_flags(env, nullptr, flags_obj);
+    const auto flags = ioutil::flags_obj_to_flags(env, flags_obj);
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     path = ioutil::convert_using_to_path(env, path);
