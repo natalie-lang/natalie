@@ -307,18 +307,14 @@ describe :io_new, shared: true do
   end
 
   it "accepts an :autoclose option" do
-    NATFIXME 'Autoclose keyword argument', exception: ArgumentError, message: 'unknown keyword: :autoclose' do
-      @io = IO.send(@method, @fd, 'w', autoclose: false)
-      @io.should_not.autoclose?
-      @io.autoclose = true
-    end
+    @io = IO.send(@method, @fd, 'w', autoclose: false)
+    @io.should_not.autoclose?
+    @io.autoclose = true
   end
 
   it "accepts any truthy option :autoclose" do
-    NATFIXME 'Autoclose keyword argument', exception: ArgumentError, message: 'unknown keyword: :autoclose' do
-      @io = IO.send(@method, @fd, 'w', autoclose: 42)
-      @io.should.autoclose?
-    end
+    @io = IO.send(@method, @fd, 'w', autoclose: 42)
+    @io.should.autoclose?
   end
 end
 

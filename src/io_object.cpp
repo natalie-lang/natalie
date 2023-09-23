@@ -150,11 +150,19 @@ namespace ioutil {
                 env->raise("ArgumentError", "mode specified twice");
             parse_flags_obj(env, self, mode);
         }
+
+        void parse_autoclose(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto autoclose = kwargs->remove(env, "autoclose"_s);
+            if (!autoclose) return;
+            self->autoclose = autoclose->is_truthy();
+        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
+        parse_autoclose(env, this, kwargs);
         env->ensure_no_extra_keywords(kwargs);
     }
 
@@ -183,8 +191,9 @@ Value IoObject::initialize(Env *env, Args args) {
             env->raise_errno();
         }
     }
-    set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     set_fileno(fileno);
+    set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
+    m_autoclose = wanted_flags.autoclose;
     return this;
 }
 

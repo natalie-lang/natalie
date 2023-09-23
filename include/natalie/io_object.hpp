@@ -24,6 +24,7 @@ namespace ioutil {
         int flags { O_RDONLY };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
+        bool autoclose { false };
 
         flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
     };
