@@ -331,6 +331,26 @@ bool FileObject::is_executable_real(Env *env, Value path) {
     return true;
 }
 
+bool FileObject::is_grpowned(Env *env, Value path) {
+    struct stat sb;
+    path = ioutil::convert_using_to_path(env, path);
+    if (::stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    auto size = getgroups(0, nullptr);
+    if (size < 0)
+        env->raise_errno();
+    gid_t list[size];
+    size = getgroups(size, list);
+    if (size < 0)
+        env->raise_errno();
+    const auto egid = ::getegid();
+    for (size_t i = 0; i < static_cast<size_t>(size); i++) {
+        if (list[i] == egid)
+            return true;
+    }
+    return false;
+}
+
 bool FileObject::is_owned(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);

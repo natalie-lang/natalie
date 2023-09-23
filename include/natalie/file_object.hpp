@@ -36,6 +36,7 @@ public:
     static bool is_executable(Env *env, Value path);
     static bool is_executable_real(Env *env, Value path);
     static bool is_file(Env *env, Value path);
+    static bool is_grpowned(Env *env, Value path);
     static bool is_owned(Env *env, Value path);
     static bool is_pipe(Env *env, Value path);
     static bool is_readable(Env *env, Value path);
