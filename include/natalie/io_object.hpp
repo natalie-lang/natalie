@@ -21,6 +21,8 @@ namespace ioutil {
     int object_stat(Env *env, Value io, struct stat *sb);
     struct flags_struct {
         int flags { O_RDONLY };
+        EncodingObject *external_encoding { nullptr };
+        EncodingObject *internal_encoding { nullptr };
     };
     flags_struct flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj);
     mode_t perm_to_mode(Env *env, Value perm);

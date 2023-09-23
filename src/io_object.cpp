@@ -95,6 +95,8 @@ namespace ioutil {
             auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
             auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
             auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
+            if (!extenc->is_nil()) flags.external_encoding = EncodingObject::find_encoding(env, extenc);
+            if (!intenc->is_nil()) flags.internal_encoding = EncodingObject::find_encoding(env, intenc);
             if (self)
                 self->set_encoding(env, extenc, intenc);
 
@@ -113,9 +115,11 @@ namespace ioutil {
             if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
-            if (binary_text_mode == 'b' && self && extenc->is_nil()) {
+            if (binary_text_mode == 'b' && self && !flags.external_encoding) {
+                flags.external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
                 self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
-            } else if (binary_text_mode == 't' && self && extenc->is_nil()) {
+            } else if (binary_text_mode == 't' && self && !flags.external_encoding) {
+                flags.external_encoding = EncodingObject::get(Encoding::UTF_8);
                 self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
             }
 
