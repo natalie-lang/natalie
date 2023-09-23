@@ -159,11 +159,12 @@ Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
     if (actual_flags < 0)
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
-        const auto wanted_flags = ioutil::flags_obj_to_flags(env, this, flags_obj);
+        const auto wanted_flags = ioutil::flags_obj_to_flags(env, nullptr, flags_obj);
         if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
         }
+        set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     }
     set_fileno(fileno);
     return this;
