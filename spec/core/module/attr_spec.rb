@@ -137,11 +137,9 @@ describe "Module#attr" do
   end
 
   it "with a boolean argument emits a warning when $VERBOSE is true" do
-    NATFIXME 'Warnings', exception: SpecFailedException do
-      -> {
-        Class.new { attr :foo, true }
-      }.should complain(/boolean argument is obsoleted/, verbose: true)
-    end
+    -> {
+      Class.new { attr :foo, true }
+    }.should complain(/boolean argument is obsoleted/, verbose: true)
   end
 
   it "is a public method" do
