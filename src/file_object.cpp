@@ -51,7 +51,7 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
         return this;
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
-        int fileno = ::open(filename->as_string()->c_str(), flags, modenum);
+        int fileno = ::open(filename->as_string()->c_str(), flags.flags, modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
         set_path(filename->as_string());

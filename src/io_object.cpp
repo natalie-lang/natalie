@@ -72,8 +72,8 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
-    int flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
-        int flags = O_RDONLY;
+    flags_struct flags_obj_to_flags(Env *env, IoObject *self, Value flags_obj) {
+        flags_struct flags;
         if (!flags_obj || flags_obj->is_nil())
             return flags;
 
@@ -87,7 +87,8 @@ namespace ioutil {
 
         switch (flags_obj->type()) {
         case Object::Type::Integer:
-            return flags_obj->as_integer()->to_nat_int_t();
+            flags.flags = flags_obj->as_integer()->to_nat_int_t();
+            return flags;
         case Object::Type::String: {
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
@@ -119,17 +120,17 @@ namespace ioutil {
             }
 
             if (main_mode == 'r' && !read_write_mode)
-                flags = O_RDONLY;
+                flags.flags = O_RDONLY;
             else if (main_mode == 'r' && read_write_mode == '+')
-                flags = O_RDWR;
+                flags.flags = O_RDWR;
             else if (main_mode == 'w' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_TRUNC;
+                flags.flags = O_WRONLY | O_CREAT | O_TRUNC;
             else if (main_mode == 'w' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_TRUNC;
+                flags.flags = O_RDWR | O_CREAT | O_TRUNC;
             else if (main_mode == 'a' && !read_write_mode)
-                flags = O_WRONLY | O_CREAT | O_APPEND;
+                flags.flags = O_WRONLY | O_CREAT | O_APPEND;
             else if (main_mode == 'a' && read_write_mode == '+')
-                flags = O_RDWR | O_CREAT | O_APPEND;
+                flags.flags = O_RDWR | O_CREAT | O_APPEND;
             else
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
             return flags;
@@ -155,7 +156,7 @@ Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
         env->raise_errno();
     if (flags_obj != nullptr && !flags_obj->is_nil()) {
         const auto wanted_flags = ioutil::flags_obj_to_flags(env, this, flags_obj);
-        if ((flags_is_readable(wanted_flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags) && !flags_is_writable(actual_flags))) {
+        if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
         }
@@ -621,7 +622,7 @@ Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     path = ioutil::convert_using_to_path(env, path);
-    const auto fd = ::open(path->as_string()->c_str(), flags, modenum);
+    const auto fd = ::open(path->as_string()->c_str(), flags.flags, modenum);
     return IntegerObject::create(fd);
 }
 
