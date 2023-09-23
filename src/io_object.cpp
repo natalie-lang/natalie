@@ -147,7 +147,10 @@ namespace ioutil {
     }
 }
 
-Value IoObject::initialize(Env *env, Value file_number, Value flags_obj) {
+Value IoObject::initialize(Env *env, Args args) {
+    args.ensure_argc_between(env, 1, 2);
+    Value file_number = args.at(0);
+    Value flags_obj = args.at(1, nullptr);
     nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     const auto actual_flags = ::fcntl(fileno, F_GETFL);

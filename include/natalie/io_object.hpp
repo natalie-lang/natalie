@@ -76,7 +76,7 @@ public:
     int fsync(Env *);
     Value getbyte(Env *);
     Value gets(Env *) const;
-    Value initialize(Env *, Value, Value = nullptr);
+    Value initialize(Env *, Args);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
     bool is_autoclose(Env *) const;
