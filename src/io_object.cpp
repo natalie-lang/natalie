@@ -115,12 +115,12 @@ namespace ioutil {
             if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                 env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
-            if (binary_text_mode == 'b' && self && !flags.external_encoding) {
+            if (binary_text_mode == 'b' && !flags.external_encoding) {
                 flags.external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-                self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
-            } else if (binary_text_mode == 't' && self && !flags.external_encoding) {
+                if (self) self->set_encoding(env, EncodingObject::get(Encoding::ASCII_8BIT));
+            } else if (binary_text_mode == 't' && !flags.external_encoding) {
                 flags.external_encoding = EncodingObject::get(Encoding::UTF_8);
-                self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
+                if (self) self->set_encoding(env, EncodingObject::get(Encoding::UTF_8));
             }
 
             if (main_mode == 'r' && !read_write_mode)
