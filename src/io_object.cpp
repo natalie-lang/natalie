@@ -145,6 +145,7 @@ namespace ioutil {
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
         parse_flags_obj(env, this, flags_obj);
+        env->ensure_no_extra_keywords(kwargs);
     }
 
     mode_t perm_to_mode(Env *env, Value perm) {
@@ -161,7 +162,6 @@ Value IoObject::initialize(Env *env, Args args) {
     Value file_number = args.at(0);
     Value flags_obj = args.at(1, nullptr);
     const ioutil::flags_struct wanted_flags { env, flags_obj, kwargs };
-    env->ensure_no_extra_keywords(kwargs);
     nat_int_t fileno = file_number->to_int(env)->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
