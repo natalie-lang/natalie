@@ -826,7 +826,17 @@ Value IoObject::open(Env *env, Args args, Block *block, ClassObject *klass) {
         return obj;
 
     auto value = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { obj }, nullptr);
-    obj->send(env, "close"_s);
+    try {
+        obj->public_send(env, "close"_s);
+        GlobalEnv::the()->set_rescued(false);
+    } catch (ExceptionObject *exception) {
+        auto exception_was = env->exception();
+        env->set_exception(exception);
+        if (!exception->is_a(env, find_top_level_const(env, "IOError"_s)->as_class()) || exception->to_s(env)->string() != "closed stream") {
+            env->raise_exception(exception);
+        }
+        GlobalEnv::the()->set_rescued(true);
+    }
     return value;
 }
 
