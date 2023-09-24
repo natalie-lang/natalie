@@ -1973,7 +1973,6 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
 // NATFIXME: Does not support:
 // + blocks
 // + special case single-space splitter
-// + trimming empty str's off the end
 // + proper handling of negative max-count-values
 
 Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
@@ -2002,13 +2001,14 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         return ary;
     } else if (max_count == 1 || splitter->is_nil()) {
         ary->push(dup(env));
-        return ary;
     } else if (splitter->is_regexp()) {
         // special empty-split-regexp case, just return characters
-        if (splitter->as_regexp()->pattern() == "")
-            return this->chars(env);
-        // split using regexp
-        return split(env, splitter->as_regexp(), max_count);
+        if (splitter->as_regexp()->pattern() == "") {
+            ary = this->chars(env)->as_array();
+        } else {
+            // split using regexp
+            ary = split(env, splitter->as_regexp(), max_count)->as_array();
+        }
     } else {
         // string case or object-coercible to string case
         if (!splitter->is_string() && splitter->respond_to(env, "to_str"_s))
@@ -2021,11 +2021,19 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
             env->raise("ArgumentError", "invalid byte sequence in {}", splitstr->m_encoding->name()->as_string()->string());
 
         // special empty-split-string case, just return characters
-        if (splitstr->is_empty())
-            return this->chars(env);
-        // split using substring
-        return split(env, splitstr, max_count);
+        if (splitstr->is_empty()) {
+            ary = this->chars(env)->as_array();
+        } else {
+            // split using substring
+            ary = split(env, splitstr, max_count)->as_array();
+        }
     }
+    if (max_count == 0) {
+        // Strip empty trailing strings
+        while (!ary->is_empty() && ary->last()->as_string()->is_empty())
+            ary->pop();
+    }
+    return ary;
 }
 
 bool StringObject::include(Env *env, Value arg) {
