@@ -21,7 +21,6 @@ public:
 
     Value initialize(Env *, Value, Value, Value, Block *);
 
-    static Value open(Env *env, Args args, Block *block, ClassObject *klass);
     static Value expand_path(Env *env, Value path, Value root);
     static void unlink(Env *env, Value path);
     static Value unlink(Env *env, Args args);

@@ -820,6 +820,16 @@ int IoObject::pos(Env *env) {
     return result;
 }
 
+Value IoObject::open(Env *env, Args args, Block *block, ClassObject *klass) {
+    auto obj = _new(env, klass, std::move(args), nullptr);
+    if (!block)
+        return obj;
+
+    auto value = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { obj }, nullptr);
+    obj->send(env, "close"_s);
+    return value;
+}
+
 // This is a variant of getbyte that raises EOFError
 Value IoObject::readbyte(Env *env) {
     auto result = getbyte(env);

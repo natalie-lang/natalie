@@ -64,23 +64,27 @@ describe "IO.open" do
   end
 
   it "does not propagate an IOError with 'closed stream' message raised by #close" do
-    IO.open(@fd, "w") do |io|
-      IOSpecs.io_mock(io, :close) do
-        super()
-        ScratchPad.record :called
-        raise IOError, 'closed stream'
+    NATFIXME "Catch IOError with 'closed stream' raised by #close", exception: IOError, message: 'closed stream' do
+      IO.open(@fd, "w") do |io|
+        IOSpecs.io_mock(io, :close) do
+          super()
+          ScratchPad.record :called
+          raise IOError, 'closed stream'
+        end
       end
+      ScratchPad.recorded.should == :called
     end
-    ScratchPad.recorded.should == :called
   end
 
   it "does not set last error when an IOError with 'closed stream' raised by #close" do
-    IO.open(@fd, "w") do |io|
-      IOSpecs.io_mock(io, :close) do
-        super()
-        raise IOError, 'closed stream'
+    NATFIXME "Catch IOError with 'closed stream' raised by #close", exception: IOError, message: 'closed stream' do
+      IO.open(@fd, "w") do |io|
+        IOSpecs.io_mock(io, :close) do
+          super()
+          raise IOError, 'closed stream'
+        end
       end
+      $!.should == nil
     end
-    $!.should == nil
   end
 end
