@@ -6,7 +6,7 @@ module Natalie
       @instructions = instructions
       @stack = []
       @call_stack = [{ scope: { vars: {} } }]
-      @self = build_main
+      @self = @main = build_main
       @method_visibility = :public
       @path = path
       @global_variables = {
@@ -18,7 +18,7 @@ module Natalie
 
     attr_accessor :self, :method_visibility, :global_variables, :rescued
 
-    attr_reader :stack
+    attr_reader :stack, :main
 
     def ip
       @instructions.ip

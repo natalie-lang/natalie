@@ -1425,6 +1425,18 @@ module Natalie
         instructions
       end
 
+      def transform_with_main(exp, used:)
+        _, *body = exp
+        instructions = [
+          PushMainInstruction.new,
+          WithSelfInstruction.new,
+          transform_body(body, used: true),
+          EndInstruction.new(:with_self),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_xstr(exp, used:)
         _, command = exp
         instructions = [

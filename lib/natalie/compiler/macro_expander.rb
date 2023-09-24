@@ -205,7 +205,8 @@ module Natalie
           code = File.read(path)
           file_ast = Natalie::Parser.new(code, path).ast
           s(:block,
-            expand_macros(file_ast, path),
+            s(:with_main,
+              expand_macros(file_ast, path)),
             s(:true))
         end
       end

@@ -12,17 +12,19 @@ module Natalie
       end
 
       def generate(transform)
-        body = transform.fetch_block_of_instructions(expected_label: :with_self)
-        fn = transform.temp('with_self_fn')
-        transform.with_new_scope(body) do |t|
-          fn_code = []
-          fn_code << "Value #{fn}(Env *env, Value self) {"
-          fn_code << t.transform('return')
-          fn_code << '}'
-          transform.top(fn_code)
-        end
         new_self = transform.pop
-        transform.exec_and_push(:result_of_with_self, "#{new_self}->as_module()->eval_body(env, #{fn})")
+        body = transform.fetch_block_of_instructions(expected_label: :with_self)
+        old_self = transform.temp('old_self')
+        result = transform.temp('with_self_result')
+        code = []
+        transform.with_same_scope(body) do |t|
+          code << "auto #{old_self} = self"
+          code << "self = #{new_self}"
+          code << t.transform("auto #{result} = ")
+          code << "self = #{old_self}"
+        end
+        transform.exec(code)
+        transform.push(result)
       end
 
       def execute(vm)
