@@ -634,9 +634,14 @@ Value IoObject::try_convert(Env *env, Value val) {
     if (val->is_io()) {
         return val;
     } else if (val->respond_to(env, "to_io"_s)) {
-        val = val->send(env, "to_io"_s);
-        val->assert_type(env, Object::Type::Io, "IO");
-        return val;
+        auto io = val->send(env, "to_io"_s);
+        if (!io->is_io())
+            env->raise(
+                "TypeError", "can't convert {} to IO ({}#to_io gives {})",
+                val->klass()->inspect_str(),
+                val->klass()->inspect_str(),
+                io->klass()->inspect_str());
+        return io;
     }
     return NilObject::the();
 }
