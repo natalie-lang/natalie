@@ -186,17 +186,13 @@ describe :io_new, shared: true do
   end
 
   it "sets binmode from :binmode option" do
-    NATFIXME 'Binmode keyword argument', exception: ArgumentError, message: 'unknown keyword: :binmode' do
-      @io = IO.send(@method, @fd, 'w', binmode: true)
-      @io.should.binmode?
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: true)
+    @io.should.binmode?
   end
 
   it "does not set binmode from false :binmode" do
-    NATFIXME 'Binmode keyword argument', exception: ArgumentError, message: 'unknown keyword: :binmode' do
-      @io = IO.send(@method, @fd, 'w', binmode: false)
-      @io.should_not.binmode?
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: false)
+    @io.should_not.binmode?
   end
 
   it "sets external encoding to binary with binmode in mode string" do
@@ -206,10 +202,8 @@ describe :io_new, shared: true do
 
   # #5917
   it "sets external encoding to binary with :binmode option" do
-    NATFIXME 'Binmode keyword argument', exception: ArgumentError, message: 'unknown keyword: :binmode' do
-      @io = IO.send(@method, @fd, 'w', binmode: true)
-      @io.external_encoding.should == Encoding::BINARY
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: true)
+    @io.external_encoding.should == Encoding::BINARY
   end
 
   it "does not use binary encoding when mode encoding is specified" do

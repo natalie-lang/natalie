@@ -20,7 +20,9 @@ namespace ioutil {
     StringObject *convert_using_to_path(Env *env, Value path);
     int object_stat(Env *env, Value io, struct stat *sb);
     struct flags_struct {
-        enum class read_mode { none, text, binary };
+        enum class read_mode { none,
+            text,
+            binary };
 
         bool has_mode { false };
         int flags { O_RDONLY };

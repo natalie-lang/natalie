@@ -158,6 +158,32 @@ namespace ioutil {
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
+        void parse_textmode(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto textmode = kwargs->remove(env, "textmode"_s);
+            if (!textmode || textmode->is_nil()) return;
+            if (self->read_mode == flags_struct::read_mode::binary) {
+                env->raise("ArgumentError", "both textmode and binmode specified");
+            } else if (self->read_mode == flags_struct::read_mode::text) {
+                env->raise("ArgumentError", "textmode specified twice");
+            }
+            if (textmode->is_truthy())
+                self->read_mode = flags_struct::read_mode::text;
+        }
+
+        void parse_binmode(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto binmode = kwargs->remove(env, "binmode"_s);
+            if (!binmode || binmode->is_nil()) return;
+            if (self->read_mode == flags_struct::read_mode::binary) {
+                env->raise("ArgumentError", "binmode specified twice");
+            } else if (self->read_mode == flags_struct::read_mode::text) {
+                env->raise("ArgumentError", "both textmode and binmode specified");
+            }
+            if (binmode->is_truthy())
+                self->read_mode = flags_struct::read_mode::binary;
+        }
+
         void parse_autoclose(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
             auto autoclose = kwargs->remove(env, "autoclose"_s);
@@ -175,6 +201,8 @@ namespace ioutil {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
         parse_flags(env, this, kwargs);
+        parse_textmode(env, this, kwargs);
+        parse_binmode(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
         parse_path(env, this, kwargs);
         if (!external_encoding) {
