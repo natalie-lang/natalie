@@ -65,10 +65,8 @@ describe :io_new, shared: true do
   end
 
   it "accepts options as keyword arguments" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, "w", flags: File::CREAT)
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, "w", flags: File::CREAT)
+    @io.write("foo").should == 3
 
     -> {
       IO.send(@method, @fd, "w", {flags: File::CREAT})
@@ -76,24 +74,18 @@ describe :io_new, shared: true do
   end
 
   it "accepts a :mode option" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      @io = IO.send(@method, @fd, mode: "w")
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, mode: "w")
+    @io.write("foo").should == 3
   end
 
   it "accepts a mode argument set to nil with a valid :mode option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, nil, mode: "w")
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, nil, mode: "w")
+    @io.write("foo").should == 3
   end
 
   it "accepts a mode argument with a :mode option set to nil" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, "w", mode: nil)
-      @io.write("foo").should == 3
-    end
+    @io = IO.send(@method, @fd, "w", mode: nil)
+    @io.write("foo").should == 3
   end
 
   it "uses the external encoding specified in the mode argument" do
@@ -108,81 +100,61 @@ describe :io_new, shared: true do
   end
 
   it "uses the external encoding specified via the :external_encoding option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8')
-      @io.external_encoding.to_s.should == 'UTF-8'
-    end
+    @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8')
+    @io.external_encoding.to_s.should == 'UTF-8'
   end
 
   it "uses the internal encoding specified via the :internal_encoding option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866')
-      @io.internal_encoding.to_s.should == 'IBM866'
-    end
+    @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866')
+    @io.internal_encoding.to_s.should == 'IBM866'
   end
 
   it "uses the colon-separated encodings specified via the :encoding option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', encoding: 'utf-8:ISO-8859-1')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: 'utf-8:ISO-8859-1')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "uses the :encoding option as the external encoding when only one is given" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', encoding: 'ISO-8859-1')
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: 'ISO-8859-1')
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "uses the :encoding options as the external encoding when it's an Encoding object" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', encoding: Encoding::ISO_8859_1)
-      @io.external_encoding.should == Encoding::ISO_8859_1
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: Encoding::ISO_8859_1)
+    @io.external_encoding.should == Encoding::ISO_8859_1
   end
 
   it "ignores the :encoding option when the :external_encoding option is present" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      -> {
-        @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', encoding: 'iso-8859-1:iso-8859-1')
-      }.should complain(/Ignoring encoding parameter/)
-      @io.external_encoding.to_s.should == 'UTF-8'
-    end
+    -> {
+      @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', encoding: 'iso-8859-1:iso-8859-1')
+    }.should complain(/Ignoring encoding parameter/)
+    @io.external_encoding.to_s.should == 'UTF-8'
   end
 
   it "ignores the :encoding option when the :internal_encoding option is present" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      -> {
-        @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866', encoding: 'iso-8859-1:iso-8859-1')
-      }.should complain(/Ignoring encoding parameter/)
-      @io.internal_encoding.to_s.should == 'IBM866'
-    end
+    -> {
+      @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866', encoding: 'iso-8859-1:iso-8859-1')
+    }.should complain(/Ignoring encoding parameter/)
+    @io.internal_encoding.to_s.should == 'IBM866'
   end
 
   it "uses the encoding specified via the :mode option hash" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      @io = IO.send(@method, @fd, mode: 'w:utf-8:ISO-8859-1')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, mode: 'w:utf-8:ISO-8859-1')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "ignores the :internal_encoding option when the same as the external encoding" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', internal_encoding: 'utf-8')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == ''
-    end
+    @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', internal_encoding: 'utf-8')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == ''
   end
 
   it "sets internal encoding to nil when passed '-'" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', internal_encoding: '-')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == ''
-    end
+    @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', internal_encoding: '-')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == ''
   end
 
   it "sets binmode from mode string" do
@@ -196,17 +168,13 @@ describe :io_new, shared: true do
   end
 
   it "sets binmode from :binmode option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', binmode: true)
-      @io.should.binmode?
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: true)
+    @io.should.binmode?
   end
 
   it "does not set binmode from false :binmode" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', binmode: false)
-      @io.should_not.binmode?
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: false)
+    @io.should_not.binmode?
   end
 
   it "sets external encoding to binary with binmode in mode string" do
@@ -216,10 +184,8 @@ describe :io_new, shared: true do
 
   # #5917
   it "sets external encoding to binary with :binmode option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', binmode: true)
-      @io.external_encoding.should == Encoding::BINARY
-    end
+    @io = IO.send(@method, @fd, 'w', binmode: true)
+    @io.external_encoding.should == Encoding::BINARY
   end
 
   it "does not use binary encoding when mode encoding is specified" do
@@ -228,24 +194,18 @@ describe :io_new, shared: true do
   end
 
   it "does not use binary encoding when :encoding option is specified" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'wb', encoding: "iso-8859-1")
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'wb', encoding: "iso-8859-1")
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "does not use binary encoding when :external_encoding option is specified" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'wb', external_encoding: "iso-8859-1")
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'wb', external_encoding: "iso-8859-1")
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "does not use binary encoding when :internal_encoding option is specified" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'wb', internal_encoding: "ibm866")
-      @io.internal_encoding.to_s.should == 'IBM866'
-    end
+    @io = IO.send(@method, @fd, 'wb', internal_encoding: "ibm866")
+    @io.internal_encoding.to_s.should == 'IBM866'
   end
 
   it "raises ArgumentError for nil options" do
@@ -268,42 +228,32 @@ describe :io_new, shared: true do
 
   it "coerces mode with #to_str when passed in options" do
     mode = mock("mode")
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      mode.should_receive(:to_str).and_return('w')
-      @io = IO.send(@method, @fd, mode: mode)
-    end
+    mode.should_receive(:to_str).and_return('w')
+    @io = IO.send(@method, @fd, mode: mode)
   end
 
   it "coerces mode with #to_int when passed in options" do
     mode = mock("mode")
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      mode.should_receive(:to_int).and_return(File::WRONLY)
-      @io = IO.send(@method, @fd, mode: mode)
-    end
+    mode.should_receive(:to_int).and_return(File::WRONLY)
+    @io = IO.send(@method, @fd, mode: mode)
   end
 
   it "coerces :encoding option with #to_str" do
     encoding = mock("encoding")
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      encoding.should_receive(:to_str).and_return('utf-8')
-      @io = IO.send(@method, @fd, 'w', encoding: encoding)
-    end
+    encoding.should_receive(:to_str).and_return('utf-8')
+    @io = IO.send(@method, @fd, 'w', encoding: encoding)
   end
 
   it "coerces :external_encoding option with #to_str" do
     encoding = mock("encoding")
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      encoding.should_receive(:to_str).and_return('utf-8')
-      @io = IO.send(@method, @fd, 'w', external_encoding: encoding)
-    end
+    encoding.should_receive(:to_str).and_return('utf-8')
+    @io = IO.send(@method, @fd, 'w', external_encoding: encoding)
   end
 
   it "coerces :internal_encoding option with #to_str" do
     encoding = mock("encoding")
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      encoding.should_receive(:to_str).at_least(:once).and_return('utf-8')
-      @io = IO.send(@method, @fd, 'w', internal_encoding: encoding)
-    end
+    encoding.should_receive(:to_str).at_least(:once).and_return('utf-8')
+    @io = IO.send(@method, @fd, 'w', internal_encoding: encoding)
   end
 
   it "coerces options as third argument with #to_hash" do
@@ -319,18 +269,14 @@ describe :io_new, shared: true do
   end
 
   it "accepts an :autoclose option" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', autoclose: false)
-      @io.should_not.autoclose?
-      @io.autoclose = true
-    end
+    @io = IO.send(@method, @fd, 'w', autoclose: false)
+    @io.should_not.autoclose?
+    @io.autoclose = true
   end
 
   it "accepts any truthy option :autoclose" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io = IO.send(@method, @fd, 'w', autoclose: 42)
-      @io.should.autoclose?
-    end
+    @io = IO.send(@method, @fd, 'w', autoclose: 42)
+    @io.should.autoclose?
   end
 end
 

@@ -291,7 +291,7 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *) {
     auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
 
     auto sock = BasicSocket.send(env, "new"_s);
-    sock->as_io()->initialize(env, fd);
+    sock->as_io()->initialize(env, { fd });
 
     return self;
 }
@@ -563,7 +563,7 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     if (fd == -1)
         env->raise_errno();
 
-    self->as_io()->initialize(env, Value::integer(fd));
+    self->as_io()->initialize(env, { Value::integer(fd) });
 
     return self;
 }
@@ -995,7 +995,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     auto fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
         env->raise_errno();
-    self->as_io()->initialize(env, Value::integer(fd));
+    self->as_io()->initialize(env, { Value::integer(fd) });
     self->as_io()->binmode(env);
 
     auto Socket = find_top_level_const(env, "Socket"_s);
@@ -1034,7 +1034,7 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *) {
     auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
         env->raise_errno();
-    self->as_io()->initialize(env, Value::integer(fd));
+    self->as_io()->initialize(env, { Value::integer(fd) });
 
     self.send(env, "setsockopt"_s, { "SOCKET"_s, "REUSEADDR"_s, TrueObject::the() });
 

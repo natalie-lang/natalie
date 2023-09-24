@@ -20,11 +20,18 @@ namespace ioutil {
     StringObject *convert_using_to_path(Env *env, Value path);
     int object_stat(Env *env, Value io, struct stat *sb);
     struct flags_struct {
+        enum class read_mode { none,
+            text,
+            binary };
+
+        bool has_mode { false };
         int flags { O_RDONLY };
+        read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
+        bool autoclose { false };
 
-        flags_struct(Env *env, Value flags_obj);
+        flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
     };
     mode_t perm_to_mode(Env *env, Value perm);
 }
@@ -76,7 +83,7 @@ public:
     int fsync(Env *);
     Value getbyte(Env *);
     Value gets(Env *) const;
-    Value initialize(Env *, Value, Value = nullptr);
+    Value initialize(Env *, Args);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
     bool is_autoclose(Env *) const;
@@ -97,7 +104,7 @@ public:
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value) const;
-    static Value read_file(Env *, Value, Value = nullptr, Value = nullptr);
+    static Value read_file(Env *, Args);
     Value readbyte(Env *);
     Value readline(Env *) const;
     int rewind(Env *);

@@ -25,9 +25,7 @@ describe "IO.read" do
 
   # https://bugs.ruby-lang.org/issues/19354
   it "accepts options as keyword arguments" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
-      IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
-    end
+    IO.read(@fname, 3, 0, mode: "r+").should == @contents[0, 3]
 
     -> {
       IO.read(@fname, 3, 0, {mode: "r+"})
@@ -47,39 +45,29 @@ describe "IO.read" do
   end
 
   it "raises an IOError if the options Hash specifies write mode" do
-    NATFIXME 'Keyword arguments', exception: SpecFailedException do
-      -> { IO.read(@fname, 3, 0, mode: "w") }.should raise_error(IOError)
-    end
+    -> { IO.read(@fname, 3, 0, mode: "w") }.should raise_error(IOError)
   end
 
   it "raises an IOError if the options Hash specifies append only mode" do
-    NATFIXME 'Keyword arguments', exception: SpecFailedException do
-      -> { IO.read(@fname, mode: "a") }.should raise_error(IOError)
-    end
+    -> { IO.read(@fname, mode: "a") }.should raise_error(IOError)
   end
 
   it "reads the file if the options Hash includes read mode" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
-      IO.read(@fname, mode: "r").should == @contents
-    end
+    IO.read(@fname, mode: "r").should == @contents
   end
 
   it "reads the file if the options Hash includes read/write mode" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
-      IO.read(@fname, mode: "r+").should == @contents
-    end
+    IO.read(@fname, mode: "r+").should == @contents
   end
 
   it "reads the file if the options Hash includes read/write append mode" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
-      IO.read(@fname, mode: "a+").should == @contents
-    end
+    IO.read(@fname, mode: "a+").should == @contents
   end
 
   platform_is_not :windows do
     ruby_version_is ""..."3.3" do
       it "uses an :open_args option" do
-        NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
+        NATFIXME 'open-args keyword arguments', exception: ArgumentError, message: 'unknown keyword: :open_args' do
           string = IO.read(@fname, nil, 0, open_args: ["r", nil, {encoding: Encoding::US_ASCII}])
           string.encoding.should == Encoding::US_ASCII
 
@@ -91,21 +79,21 @@ describe "IO.read" do
   end
 
   it "disregards other options if :open_args is given" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'open_args keyword argument', exception: ArgumentError, message: 'unknown keyword: :open_args' do
       string = IO.read(@fname,mode: "w", encoding: Encoding::UTF_32LE, open_args: ["r", encoding: Encoding::UTF_8])
       string.encoding.should == Encoding::UTF_8
     end
   end
 
   it "doesn't require mode to be specified in :open_args" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
+    NATFIXME 'open_args keyword argument', exception: ArgumentError, message: 'unknown keyword: :open_args' do
       string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII}])
       string.encoding.should == Encoding::US_ASCII
     end
   end
 
   it "doesn't require mode to be specified in :open_args even if flags option passed" do
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
+    NATFIXME 'open_args keyword argument', exception: ArgumentError, message: 'unknown keyword: :open_args' do
       string = IO.read(@fname, nil, 0, open_args: [{encoding: Encoding::US_ASCII, flags: File::CREAT}])
       string.encoding.should == Encoding::US_ASCII
     end
@@ -170,17 +158,13 @@ describe "IO.read" do
   end
 
   it "uses the external encoding specified via the :external_encoding option" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
-      str = IO.read(@fname, external_encoding: Encoding::ISO_8859_1)
-      str.encoding.should == Encoding::ISO_8859_1
-    end
+    str = IO.read(@fname, external_encoding: Encoding::ISO_8859_1)
+    str.encoding.should == Encoding::ISO_8859_1
   end
 
   it "uses the external encoding specified via the :encoding option" do
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
-      str = IO.read(@fname, encoding: Encoding::ISO_8859_1)
-      str.encoding.should == Encoding::ISO_8859_1
-    end
+    str = IO.read(@fname, encoding: Encoding::ISO_8859_1)
+    str.encoding.should == Encoding::ISO_8859_1
   end
 
   platform_is :windows do
@@ -550,7 +534,7 @@ end
 describe "IO.read with BOM" do
   it "reads a file without a bom" do
     name = fixture __FILE__, "no_bom_UTF-8.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "UTF-8\n"
     end
@@ -558,7 +542,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-8 bom" do
     name = fixture __FILE__, "bom_UTF-8.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-16 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-16le"' do
       result = File.read(name, mode: "rb:BOM|utf-16le")
       result.force_encoding("binary").should == "UTF-8\n"
     end
@@ -566,7 +550,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-16le bom" do
     name = fixture __FILE__, "bom_UTF-16LE.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "U\x00T\x00F\x00-\x001\x006\x00L\x00E\x00\n\x00"
     end
@@ -574,7 +558,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-16be bom" do
     name = fixture __FILE__, "bom_UTF-16BE.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "\x00U\x00T\x00F\x00-\x001\x006\x00B\x00E\x00\n"
     end
@@ -582,7 +566,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-32le bom" do
     name = fixture __FILE__, "bom_UTF-32LE.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00L\x00\x00\x00E\x00\x00\x00\n\x00\x00\x00"
     end
@@ -590,7 +574,7 @@ describe "IO.read with BOM" do
 
   it "reads a file with a utf-32be bom" do
     name = fixture __FILE__, "bom_UTF-32BE.txt"
-    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|utf-8"' do
       result = File.read(name, mode: "rb:BOM|utf-8")
       result.force_encoding("binary").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
     end

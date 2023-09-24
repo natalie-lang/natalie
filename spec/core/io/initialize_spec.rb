@@ -30,10 +30,8 @@ describe "IO#initialize" do
   it "accepts options as keyword arguments" do
     fd = new_fd @name, "w:utf-8"
 
-    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 1..2)' do
-      @io.send(:initialize, fd, "w", flags: File::CREAT)
-      @io.fileno.should == fd
-    end
+    @io.send(:initialize, fd, "w", flags: File::CREAT)
+    @io.fileno.should == fd
 
     -> {
       @io.send(:initialize, fd, "w", {flags: File::CREAT})
