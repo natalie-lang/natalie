@@ -306,9 +306,9 @@ class Runner
     if system('which bat 2>&1 >/dev/null')
       system('bat', path, '-lcpp')
     else
-      puts File.read(compiler.c_path)
+      puts File.read(path)
       puts '-' * 80
-      puts compiler.c_path
+      puts path
     end
   end
 end
