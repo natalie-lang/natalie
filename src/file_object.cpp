@@ -7,6 +7,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include <utime.h>
 
 namespace Natalie {
@@ -512,6 +513,19 @@ Value FileObject::umask(Env *env, Value mask) {
 // class method
 StringObject *FileObject::path(Env *env, Value pathname) {
     return ioutil::convert_using_to_path(env, pathname);
+}
+
+Value FileObject::readlink(Env *env, Value filename) {
+    filename = ioutil::convert_using_to_path(env, filename);
+    TM::String buf(128, '\0');
+    while (true) {
+        const auto size = ::readlink(filename->as_string()->c_str(), &buf[0], buf.size());
+        if (size < 0)
+            env->raise_errno();
+        if (static_cast<size_t>(size) < buf.size())
+            return new StringObject { buf.c_str(), static_cast<size_t>(size) };
+        buf = TM::String(buf.size() * 2, '\0');
+    }
 }
 
 Value FileObject::realpath(Env *env, Value pathname, Value __dir_string) {
