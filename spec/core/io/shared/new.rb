@@ -110,43 +110,33 @@ describe :io_new, shared: true do
   end
 
   it "uses the colon-separated encodings specified via the :encoding option" do
-    NATFIXME 'Encoding keyword argument', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      @io = IO.send(@method, @fd, 'w', encoding: 'utf-8:ISO-8859-1')
-      @io.external_encoding.to_s.should == 'UTF-8'
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: 'utf-8:ISO-8859-1')
+    @io.external_encoding.to_s.should == 'UTF-8'
+    @io.internal_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "uses the :encoding option as the external encoding when only one is given" do
-    NATFIXME 'Encoding keyword argument', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      @io = IO.send(@method, @fd, 'w', encoding: 'ISO-8859-1')
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: 'ISO-8859-1')
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "uses the :encoding options as the external encoding when it's an Encoding object" do
-    NATFIXME 'Encoding keyword argument', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      @io = IO.send(@method, @fd, 'w', encoding: Encoding::ISO_8859_1)
-      @io.external_encoding.should == Encoding::ISO_8859_1
-    end
+    @io = IO.send(@method, @fd, 'w', encoding: Encoding::ISO_8859_1)
+    @io.external_encoding.should == Encoding::ISO_8859_1
   end
 
   it "ignores the :encoding option when the :external_encoding option is present" do
-    NATFIXME 'Encoding keyword arguments', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      -> {
-        @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', encoding: 'iso-8859-1:iso-8859-1')
-      }.should complain(/Ignoring encoding parameter/)
-      @io.external_encoding.to_s.should == 'UTF-8'
-    end
+    -> {
+      @io = IO.send(@method, @fd, 'w', external_encoding: 'utf-8', encoding: 'iso-8859-1:iso-8859-1')
+    }.should complain(/Ignoring encoding parameter/)
+    @io.external_encoding.to_s.should == 'UTF-8'
   end
 
   it "ignores the :encoding option when the :internal_encoding option is present" do
-    NATFIXME 'Encoding keyword arguments', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      -> {
-        @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866', encoding: 'iso-8859-1:iso-8859-1')
-      }.should complain(/Ignoring encoding parameter/)
-      @io.internal_encoding.to_s.should == 'IBM866'
-    end
+    -> {
+      @io = IO.send(@method, @fd, 'w', internal_encoding: 'ibm866', encoding: 'iso-8859-1:iso-8859-1')
+    }.should complain(/Ignoring encoding parameter/)
+    @io.internal_encoding.to_s.should == 'IBM866'
   end
 
   it "uses the encoding specified via the :mode option hash" do
@@ -204,10 +194,8 @@ describe :io_new, shared: true do
   end
 
   it "does not use binary encoding when :encoding option is specified" do
-    NATFIXME 'Encoding keyword argument', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      @io = IO.send(@method, @fd, 'wb', encoding: "iso-8859-1")
-      @io.external_encoding.to_s.should == 'ISO-8859-1'
-    end
+    @io = IO.send(@method, @fd, 'wb', encoding: "iso-8859-1")
+    @io.external_encoding.to_s.should == 'ISO-8859-1'
   end
 
   it "does not use binary encoding when :external_encoding option is specified" do
@@ -252,10 +240,8 @@ describe :io_new, shared: true do
 
   it "coerces :encoding option with #to_str" do
     encoding = mock("encoding")
-    NATFIXME 'Encoding keyword argument', exception: ArgumentError, message: 'unknown keyword: :encoding' do
-      encoding.should_receive(:to_str).and_return('utf-8')
-      @io = IO.send(@method, @fd, 'w', encoding: encoding)
-    end
+    encoding.should_receive(:to_str).and_return('utf-8')
+    @io = IO.send(@method, @fd, 'w', encoding: encoding)
   end
 
   it "coerces :external_encoding option with #to_str" do

@@ -158,6 +158,31 @@ namespace ioutil {
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
+        void parse_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto encoding = kwargs->remove(env, "encoding"_s);
+            if (!encoding || encoding->is_nil()) return;
+            if (self->external_encoding) {
+                env->raise("ArgumentError", "encoding specified twice");
+            } else if (kwargs->has_key(env, "external_encoding"_s)) {
+                env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
+            } else if (kwargs->has_key(env, "internal_encoding"_s)) {
+                env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
+            } else if (encoding->is_encoding()) {
+                self->external_encoding = encoding->as_encoding();
+            } else {
+                encoding = encoding->to_str(env);
+                if (encoding->as_string()->include(":")) {
+                    auto colon = new StringObject { ":" };
+                    auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
+                    encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
+                    auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+                    self->internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
+                }
+                self->external_encoding = EncodingObject::find_encoding(env, encoding);
+            }
+        }
+
         void parse_external_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
             auto external_encoding = kwargs->remove(env, "external_encoding"_s);
@@ -232,6 +257,7 @@ namespace ioutil {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
         parse_flags(env, this, kwargs);
+        parse_encoding(env, this, kwargs);
         parse_external_encoding(env, this, kwargs);
         parse_internal_encoding(env, this, kwargs);
         parse_textmode(env, this, kwargs);
