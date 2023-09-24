@@ -35,7 +35,7 @@ static int effective_uid_access(const char *path_name, int type) {
 
 // NATFIXME : block form is not used, option-hash arg not implemented.
 Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    const auto flags = ioutil::flags_obj_to_flags(env, this, flags_obj);
+    const ioutil::flags_struct flags { env, flags_obj };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename->is_integer()) { // passing in a number uses fd number
@@ -48,15 +48,15 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
         FILE *fptr = ::fdopen(fileno, flags_str.c_str());
         if (fptr == nullptr) env->raise_errno();
         set_fileno(fileno);
-        return this;
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
-        int fileno = ::open(filename->as_string()->c_str(), flags, modenum);
+        int fileno = ::open(filename->as_string()->c_str(), flags.flags, modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
         set_path(filename->as_string());
-        return this;
     }
+    set_encoding(env, flags.external_encoding, flags.internal_encoding);
+    return this;
 }
 
 Value FileObject::open(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
