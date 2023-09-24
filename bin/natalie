@@ -162,9 +162,7 @@ class Runner
         puts compiler.instructions.map(&:to_s)
       else
         compiler.write_file
-        puts File.read(compiler.c_path)
-        puts '-' * 80
-        puts compiler.c_path
+        print_cpp_source(compiler.c_path)
       end
     elsif options[:debug] == 'S'
       show_assembly
@@ -302,6 +300,16 @@ class Runner
 
   def ast
     @ast ||= parser.ast
+  end
+
+  def print_cpp_source(path)
+    if system('which bat 2>&1 >/dev/null')
+      system('bat', path, '-lcpp')
+    else
+      puts File.read(compiler.c_path)
+      puts '-' * 80
+      puts compiler.c_path
+    end
   end
 end
 
