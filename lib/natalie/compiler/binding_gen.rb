@@ -580,6 +580,7 @@ gen.static_binding('File', 'path', 'FileObject', 'path', argc: 1, pass_env: true
 gen.static_binding('File', 'pipe?', 'FileObject', 'is_pipe', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'readable?', 'FileObject', 'is_readable', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'readable_real?', 'FileObject', 'is_readable_real', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('File', 'readlink', 'FileObject', 'readlink', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 # NATFIXME: realdirpath is subtly different from realpath and should bind to a unique function
 gen.static_binding('File', 'realdirpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('File', 'realpath', 'FileObject', 'realpath', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
