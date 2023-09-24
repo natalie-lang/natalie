@@ -158,6 +158,19 @@ namespace ioutil {
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
+        void parse_external_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto external_encoding = kwargs->remove(env, "external_encoding"_s);
+            if (!external_encoding || external_encoding->is_nil()) return;
+            if (self->external_encoding)
+                env->raise("ArgumentError", "encoding specified twice");
+            if (external_encoding->is_encoding()) {
+                self->external_encoding = external_encoding->as_encoding();
+            } else {
+                self->external_encoding = EncodingObject::find_encoding(env, external_encoding->to_str(env));
+            }
+        }
+
         void parse_textmode(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
             auto textmode = kwargs->remove(env, "textmode"_s);
@@ -201,6 +214,7 @@ namespace ioutil {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
         parse_flags(env, this, kwargs);
+        parse_external_encoding(env, this, kwargs);
         parse_textmode(env, this, kwargs);
         parse_binmode(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
