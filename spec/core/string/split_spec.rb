@@ -24,17 +24,15 @@ describe "String#split with String" do
   end
 
   it "suppresses trailing empty fields when limit isn't given or 0" do
-    NATFIXME "suppresses trailing empty fields when limit isn't given or 0", exception: SpecFailedException do
-      "1,2,,3,4,,".split(',').should == ["1", "2", "", "3", "4"]
-      "1,2,,3,4,,".split(',', 0).should == ["1", "2", "", "3", "4"]
-      "  a  b  c\nd  ".split("  ").should == ["", "a", "b", "c\nd"]
-      "  a  あ  c\nd  ".split("  ").should == ["", "a", "あ", "c\nd"]
-      "hai".split("hai").should == []
-      ",".split(",").should == []
-      ",".split(",", 0).should == []
-      "あ".split("あ").should == []
-      "あ".split("あ", 0).should == []
-    end
+    "1,2,,3,4,,".split(',').should == ["1", "2", "", "3", "4"]
+    "1,2,,3,4,,".split(',', 0).should == ["1", "2", "", "3", "4"]
+    "  a  b  c\nd  ".split("  ").should == ["", "a", "b", "c\nd"]
+    "  a  あ  c\nd  ".split("  ").should == ["", "a", "あ", "c\nd"]
+    "hai".split("hai").should == []
+    ",".split(",").should == []
+    ",".split(",", 0).should == []
+    "あ".split("あ").should == []
+    "あ".split("あ", 0).should == []
   end
 
   it "does not suppress trailing empty fields when a positive limit is given" do
@@ -248,9 +246,7 @@ describe "String#split with Regexp" do
 
   it "divides self on regexp matches" do
     " now's  the time".split(/ /).should == ["", "now's", "", "the", "time"]
-    NATFIXME 'divides self on regexp matches', exception: SpecFailedException do
-      " x\ny ".split(/ /).should == ["", "x\ny"]
-    end
+    " x\ny ".split(/ /).should == ["", "x\ny"]
     "1, 2.34,56, 7".split(/,\s*/).should == ["1", "2.34", "56", "7"]
     "1x2X3".split(/x/i).should == ["1", "2", "3"]
   end
@@ -260,14 +256,12 @@ describe "String#split with Regexp" do
   end
 
   it "suppresses trailing empty fields when limit isn't given or 0" do
-    NATFIXME "suppresses trailing empty fields when limit isn't given or 0", exception: SpecFailedException do
-      "1,2,,3,4,,".split(/,/).should == ["1", "2", "", "3", "4"]
-      "1,2,,3,4,,".split(/,/, 0).should == ["1", "2", "", "3", "4"]
-      "  a  b  c\nd  ".split(/\s+/).should == ["", "a", "b", "c", "d"]
-      "hai".split(/hai/).should == []
-      ",".split(/,/).should == []
-      ",".split(/,/, 0).should == []
-    end
+    "1,2,,3,4,,".split(/,/).should == ["1", "2", "", "3", "4"]
+    "1,2,,3,4,,".split(/,/, 0).should == ["1", "2", "", "3", "4"]
+    "  a  b  c\nd  ".split(/\s+/).should == ["", "a", "b", "c", "d"]
+    "hai".split(/hai/).should == []
+    ",".split(/,/).should == []
+    ",".split(/,/, 0).should == []
   end
 
   it "returns an array with one entry if limit is 1: the original string" do

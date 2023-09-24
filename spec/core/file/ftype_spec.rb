@@ -57,9 +57,7 @@ describe "File.ftype" do
   platform_is_not :windows do
     it "returns 'characterSpecial' when the file is a char"  do
       FileSpecs.character_device do |char|
-        NATFIXME 'character device', exception: Errno::ENOENT do
-          File.ftype(char).should == 'characterSpecial'
-        end
+        File.ftype(char).should == 'characterSpecial'
       end
     end
 

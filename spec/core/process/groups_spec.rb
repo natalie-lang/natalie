@@ -6,11 +6,11 @@ describe "Process.groups" do
       NATFIXME 'Implement String#scan', exception: NoMethodError, message: "undefined method `scan'" do
         groups = `id -G`.scan(/\d+/).map { |i| i.to_i }
       end
-      groups = `id -G`.chomp.split(/\s+/).map { |i| i.to_i }
+      groups = `id -G`.split(/\s+/).map { |i| i.to_i }
       # Include the standard `id` command output.  On macOS, GNU
       # coreutils `id` is limited to NGROUPS_MAX groups, because of
       # the backward compatibility of getgroups(2).
-      (groups |= `/usr/bin/id -G`.chomp.split(/\s+/).map { |i| i.to_i }) rescue nil
+      (groups |= `/usr/bin/id -G`.split(/\s+/).map { |i| i.to_i }) rescue nil
       gid = Process.gid
 
       expected = (groups.sort - [gid]).uniq.sort
