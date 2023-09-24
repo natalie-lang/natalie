@@ -20,8 +20,11 @@ namespace ioutil {
     StringObject *convert_using_to_path(Env *env, Value path);
     int object_stat(Env *env, Value io, struct stat *sb);
     struct flags_struct {
+        enum class read_mode { none, text, binary };
+
         bool has_mode { false };
         int flags { O_RDONLY };
+        read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
         bool autoclose { false };

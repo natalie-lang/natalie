@@ -115,10 +115,10 @@ namespace ioutil {
                 if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
                     env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
-                if (binary_text_mode == 'b' && !self->external_encoding) {
-                    self->external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-                } else if (binary_text_mode == 't' && !self->external_encoding) {
-                    self->external_encoding = EncodingObject::get(Encoding::UTF_8);
+                if (binary_text_mode == 'b') {
+                    self->read_mode = flags_struct::read_mode::binary;
+                } else if (binary_text_mode == 't') {
+                    self->read_mode = flags_struct::read_mode::text;
                 }
 
                 if (main_mode == 'r' && !read_write_mode)
@@ -177,6 +177,13 @@ namespace ioutil {
         parse_flags(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
         parse_path(env, this, kwargs);
+        if (!external_encoding) {
+            if (read_mode == read_mode::binary) {
+                external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
+            } else if (read_mode == read_mode::text) {
+                external_encoding = EncodingObject::get(Encoding::UTF_8);
+            }
+        }
         env->ensure_no_extra_keywords(kwargs);
     }
 
