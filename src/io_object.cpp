@@ -171,6 +171,24 @@ namespace ioutil {
             }
         }
 
+        void parse_internal_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
+            if (!kwargs) return;
+            auto internal_encoding = kwargs->remove(env, "internal_encoding"_s);
+            if (!internal_encoding || internal_encoding->is_nil()) return;
+            if (self->internal_encoding)
+                env->raise("ArgumentError", "encoding specified twice");
+            if (internal_encoding->is_encoding()) {
+                self->internal_encoding = internal_encoding->as_encoding();
+            } else {
+                internal_encoding = internal_encoding->to_str(env);
+                if (internal_encoding->as_string()->string() != "-") {
+                    self->internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
+                    if (self->external_encoding == self->internal_encoding)
+                        self->internal_encoding = nullptr;
+                }
+            }
+        }
+
         void parse_textmode(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
             auto textmode = kwargs->remove(env, "textmode"_s);
@@ -215,6 +233,7 @@ namespace ioutil {
         parse_mode(env, this, kwargs);
         parse_flags(env, this, kwargs);
         parse_external_encoding(env, this, kwargs);
+        parse_internal_encoding(env, this, kwargs);
         parse_textmode(env, this, kwargs);
         parse_binmode(env, this, kwargs);
         parse_autoclose(env, this, kwargs);
