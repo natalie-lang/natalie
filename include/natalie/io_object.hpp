@@ -91,7 +91,6 @@ public:
     bool is_closed() const { return m_closed; }
     bool is_eof(Env *);
     bool isatty(Env *) const;
-    static Value open(Env *env, Args args, Block *block, ClassObject *klass);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
     Value puts(Env *, Args);

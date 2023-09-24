@@ -1,6 +1,21 @@
 class IO
   class << self
     alias for_fd new
+
+    def open(*args, **kwargs)
+      obj = new(*args, **kwargs)
+      return obj unless block_given?
+
+      begin
+        yield(obj)
+      ensure
+        begin
+          obj.close
+        rescue IOError => e
+          raise unless e.message == 'closed stream'
+        end
+      end
+    end
   end
 
   SEEK_SET = 0

@@ -843,7 +843,6 @@ gen.binding('Integer', '|', 'IntegerObject', 'bitwise_or', argc: 1, pass_env: tr
 gen.binding('Integer', 'zero?', 'IntegerObject', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool, optimized: true)
 
 gen.static_binding('IO', 'binread', 'IoObject', 'binread', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
-gen.static_binding('IO', 'open', 'IoObject', 'open', argc: :any, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
 gen.static_binding('IO', 'read', 'IoObject', 'read_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'sysopen', 'IoObject', 'sysopen', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
