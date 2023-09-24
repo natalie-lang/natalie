@@ -60,13 +60,8 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value pe
     return this;
 }
 
-Value FileObject::open(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    Vector<Value> args { filename };
-    if (flags_obj)
-        args.push(flags_obj);
-    if (perm)
-        args.push(perm);
-    auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), std::move(args), nullptr);
+Value FileObject::open(Env *env, Args args, Block *block, ClassObject *klass) {
+    auto obj = _new(env, klass, std::move(args), nullptr);
     if (block) {
         Defer close_file([&]() {
             obj->as_file()->close(env);
