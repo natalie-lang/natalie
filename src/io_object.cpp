@@ -812,6 +812,14 @@ int IoObject::set_pos(Env *env, Value position) {
     return result;
 }
 
+Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
+    Value pipes = new ArrayObject { NilObject::the(), NilObject::the() };
+    if (!block)
+        return pipes;
+
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { pipes }, nullptr);
+}
+
 int IoObject::pos(Env *env) {
     raise_if_closed(env);
     errno = 0;
