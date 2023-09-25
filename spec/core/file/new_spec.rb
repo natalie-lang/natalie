@@ -88,13 +88,11 @@ describe "File.new" do
   end
 
   it "returns a new read-only File when mode is not specified but flags option is present" do
-    NATFIXME 'Keyword options', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      @fh = File.new(@file, flags: File::CREAT)
+    @fh = File.new(@file, flags: File::CREAT)
 
-      -> { @fh.puts("test") }.should raise_error(IOError)
-      @fh.read.should == ""
-      File.should.exist?(@file)
-    end
+    -> { @fh.puts("test") }.should raise_error(IOError)
+    @fh.read.should == ""
+    File.should.exist?(@file)
   end
 
   it "creates a new file when use File::EXCL mode" do
@@ -172,27 +170,23 @@ describe "File.new" do
   end
 
   it "accepts options as a keyword argument" do
-    NATFIXME 'Keyword options', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
-      @fh = File.new(@file, 'w', 0755, flags: @flags)
-      @fh.should be_kind_of(File)
-      @fh.close
+    @fh = File.new(@file, 'w', 0755, flags: @flags)
+    @fh.should be_kind_of(File)
+    @fh.close
 
-      -> {
-        @fh = File.new(@file, 'w', 0755, {flags: @flags})
-      }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 1..3)")
-    end
+    -> {
+      @fh = File.new(@file, 'w', 0755, {flags: @flags})
+    }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 1..3)")
   end
 
   it "bitwise-ORs mode and flags option" do
-    NATFIXME 'Keyword options', exception: SpecFailedException do
-      -> {
-        @fh = File.new(@file, 'w', flags: File::EXCL)
-      }.should raise_error(Errno::EEXIST, /File exists/)
+    -> {
+      @fh = File.new(@file, 'w', flags: File::EXCL)
+    }.should raise_error(Errno::EEXIST, /File exists/)
 
-      -> {
-        @fh = File.new(@file, mode: 'w', flags: File::EXCL)
-      }.should raise_error(Errno::EEXIST, /File exists/)
-    end
+    -> {
+      @fh = File.new(@file, mode: 'w', flags: File::EXCL)
+    }.should raise_error(Errno::EEXIST, /File exists/)
   end
 
   it "raises a TypeError if the first parameter can't be coerced to a string" do
@@ -211,7 +205,7 @@ describe "File.new" do
   platform_is_not :windows do
     it "can't alter mode or permissions when opening a file" do
       @fh = File.new(@file)
-      NATFIXME "Autoclose and fd+flags not implemented" do
+      NATFIXME "Numeric flags when given a file descriptor" do
         -> {
           f = File.new(@fh.fileno, @flags)
           f.autoclose = false
