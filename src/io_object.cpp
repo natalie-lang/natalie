@@ -813,7 +813,7 @@ int IoObject::set_pos(Env *env, Value position) {
 }
 
 Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
-    auto kwargs = args.pop_keyword_hash();
+    /* auto kwargs = */ args.pop_keyword_hash();
     args.ensure_argc_between(env, 0, 2);
 
     int pipefd[2];
