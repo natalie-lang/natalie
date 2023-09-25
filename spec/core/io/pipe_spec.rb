@@ -52,28 +52,24 @@ describe "IO.pipe" do
     end
 
     it "closes both IO objects" do
-      NATFIXME 'Close file descriptors in block', exception: SpecFailedException do
-        r, w = IO.pipe do |_r, _w|
-          [_r, _w]
-        end
-        r.should.closed?
-        w.should.closed?
+      r, w = IO.pipe do |_r, _w|
+        [_r, _w]
       end
+      r.should.closed?
+      w.should.closed?
     end
 
     it "closes both IO objects when the block raises" do
-      NATFIXME 'Close file descriptors in block', exception: SpecFailedException do
-        r = w = nil
-        -> do
-          IO.pipe do |_r, _w|
-            r = _r
-            w = _w
-            raise RuntimeError
-          end
-        end.should raise_error(RuntimeError)
-        r.should.closed?
-        w.should.closed?
-      end
+      r = w = nil
+      -> do
+        IO.pipe do |_r, _w|
+          r = _r
+          w = _w
+          raise RuntimeError
+        end
+      end.should raise_error(RuntimeError)
+      r.should.closed?
+      w.should.closed?
     end
 
     it "allows IO objects to be closed within the block" do

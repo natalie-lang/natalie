@@ -820,13 +820,17 @@ Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
 
-    auto pipes = new ArrayObject { 2 };
-    pipes->push(_new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr));
-    pipes->push(_new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr));
+    auto io_read = _new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr);
+    auto io_write = _new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr);
+    auto pipes = new ArrayObject { io_read, io_write };
 
     if (!block)
         return pipes;
 
+    Defer close_pipes([&]() {
+        io_read->public_send(env, "close"_s);
+        io_write->public_send(env, "close"_s);
+    });
     return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { pipes }, nullptr);
 }
 
