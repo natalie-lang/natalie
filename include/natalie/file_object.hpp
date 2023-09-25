@@ -19,7 +19,7 @@ public:
     FileObject()
         : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
 
-    Value initialize(Env *, Value, Value, Value, Block *);
+    Value initialize(Env *, Args, Block *);
 
     static Value expand_path(Env *env, Value path, Value root);
     static void unlink(Env *env, Value path);

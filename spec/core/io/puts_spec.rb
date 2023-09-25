@@ -118,7 +118,7 @@ describe "IO#puts" do
   end
 
   it "writes crlf when IO is opened with newline: :crlf" do
-    NATFIXME "File.open newline arg unsupported", exception: TypeError, message: "Hash into Integer" do
+    NATFIXME "File.open newline arg unsupported", exception: ArgumentError, message: 'unknown keyword: :newline' do
       File.open(@name, 'wt', newline: :crlf) do |file|
         file.puts
       end
@@ -127,7 +127,7 @@ describe "IO#puts" do
   end
 
   it "writes cr when IO is opened with newline: :cr" do
-    NATFIXME "File.open newline arg unsupported", exception: TypeError, message: "Hash into Integer" do
+    NATFIXME "File.open newline arg unsupported", exception: ArgumentError, message: 'unknown keyword: :newline' do
       File.open(@name, 'wt', newline: :cr) do |file|
         file.puts
       end
@@ -137,7 +137,7 @@ describe "IO#puts" do
   
   platform_is_not :windows do # https://bugs.ruby-lang.org/issues/12436
     it "writes lf when IO is opened with newline: :lf" do
-      NATFIXME "File.open newline arg unsupported", exception: TypeError, message: "Hash into Integer" do
+      NATFIXME "File.open newline arg unsupported", exception: ArgumentError, message: 'unknown keyword: :newline' do
         File.open(@name, 'wt', newline: :lf) do |file|
           file.puts
         end

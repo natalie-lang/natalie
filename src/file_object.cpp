@@ -34,9 +34,14 @@ static int effective_uid_access(const char *path_name, int type) {
 #endif
 }
 
-// NATFIXME : block form is not used, option-hash arg not implemented.
-Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Value perm, Block *block) {
-    const ioutil::flags_struct flags { env, flags_obj, nullptr };
+// NATFIXME : block form is not used
+Value FileObject::initialize(Env *env, Args args, Block *block) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 1, 3);
+    auto filename = args.at(0);
+    auto flags_obj = args.at(1, nullptr);
+    auto perm = args.at(2, nullptr);
+    const ioutil::flags_struct flags { env, flags_obj, kwargs };
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     if (filename->is_integer()) { // passing in a number uses fd number
