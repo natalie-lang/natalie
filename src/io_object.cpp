@@ -813,7 +813,17 @@ int IoObject::set_pos(Env *env, Value position) {
 }
 
 Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
-    Value pipes = new ArrayObject { NilObject::the(), NilObject::the() };
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 0, 2);
+
+    int pipefd[2];
+    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+
+    auto pipes = new ArrayObject { 2 };
+    pipes->push(_new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr));
+    pipes->push(_new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr));
+
     if (!block)
         return pipes;
 
