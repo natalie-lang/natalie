@@ -427,7 +427,7 @@ describe "IO#read" do
 
   platform_is_not :windows do
     it "raises IOError when stream is closed by another thread" do
-      NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
+      NATFIXME 'Thread', exception: NameError, message: 'uninitialized constant Thread' do
         r, w = IO.pipe
         t = Thread.new do
           begin

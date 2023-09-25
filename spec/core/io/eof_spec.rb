@@ -98,22 +98,18 @@ describe "IO#eof?" do
   end
 
   it "returns true on receiving side of Pipe when writing side is closed" do
-    NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
-      @r, @w = IO.pipe
-      @w.close
-      @r.should.eof?
-    end
+    @r, @w = IO.pipe
+    @w.close
+    @r.should.eof?
   end
 
   it "returns false on receiving side of Pipe when writing side wrote some data" do
-    NATFIXME 'Implement IO.pipe', exception: NoMethodError, message: "undefined method `pipe' for IO:Class" do
-      @r, @w = IO.pipe
-      @w.puts "hello"
-      @r.should_not.eof?
-      @w.close
-      @r.should_not.eof?
-      @r.read
-      @r.should.eof?
-    end
+    @r, @w = IO.pipe
+    @w.puts "hello"
+    @r.should_not.eof?
+    @w.close
+    @r.should_not.eof?
+    @r.read
+    @r.should.eof?
   end
 end
