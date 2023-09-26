@@ -148,6 +148,11 @@ class StringIO
     @index = new_index
   end
 
+  def printf(format_str, *args)
+    write(Kernel.sprintf(format_str, *args))
+    nil
+  end
+
   def read(length = nil, out_string = nil)
     __assert_not_read_closed
 
