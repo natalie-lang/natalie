@@ -33,7 +33,7 @@ module Natalie
         transform.exec(
           "if (!#{receiver}->respond_to(env, #{transform.intern(@message)})) throw new ExceptionObject"
         )
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def execute(vm)

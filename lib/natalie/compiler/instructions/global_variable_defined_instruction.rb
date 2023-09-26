@@ -15,7 +15,7 @@ module Natalie
 
       def generate(transform)
         transform.exec("if (!env->global_defined(#{transform.intern(@name)})) throw new ExceptionObject")
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def execute(vm)
