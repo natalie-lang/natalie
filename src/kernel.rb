@@ -818,8 +818,14 @@ module Kernel
   end
 
   # NATFIXME: the ... syntax doesnt appear to pass the block
-  def open(*a, **kw, &blk)
-    File.open(*a, **kw, &blk)
+  def open(filename, *a, **kw, &blk)
+    if !filename.respond_to?(:to_path) && !filename.is_a?(String) && filename.respond_to?(:to_str)
+      filename = filename.to_str
+    end
+    if filename.is_a?(String) && filename.to_str.start_with?('|')
+      raise NotImplementedError, 'no support for pipe in Kernel#open'
+    end
+    File.open(filename, *a, **kw, &blk)
   end
 
   alias format sprintf

@@ -33,7 +33,7 @@ describe "Kernel#open" do
 
   platform_is_not :windows, :wasi do
     it "opens an io when path starts with a pipe" do
-      NATFIXME 'Pipes in open', exception: Errno::ENOENT, message: 'No such file or directory' do
+      NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
         suppress_warning do # https://bugs.ruby-lang.org/issues/19630
           @io = open("|date")
         end
@@ -47,7 +47,7 @@ describe "Kernel#open" do
     end
 
     it "opens an io when called with a block" do
-      NATFIXME 'Pipes in open', exception: Errno::ENOENT, message: 'No such file or directory' do
+      NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
         suppress_warning do # https://bugs.ruby-lang.org/issues/19630
           @output = open("|date") { |f| f.read }
         end
@@ -56,7 +56,7 @@ describe "Kernel#open" do
     end
 
     it "opens an io for writing" do
-      NATFIXME 'Pipes in open', exception: SpecFailedException do
+      NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
         suppress_warning do # https://bugs.ruby-lang.org/issues/19630
           -> {
             bytes = open("|cat", "w") { |io| io.write(".") }
