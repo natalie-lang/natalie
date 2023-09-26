@@ -15,25 +15,30 @@ extern "C" Env *build_top_env() {
     return env;
 }
 
-Value eval(Env *env, Value self, Args args = {}, Block *block = nullptr) {
-    /*NAT_EVAL_INIT*/
-    /*NAT_EVAL_BODY*/
-    return NilObject::the();
-}
-
 extern "C" Object *EVAL(Env *env) {
+    /*NAT_EVAL_INIT*/
+
     [[maybe_unused]] Value self = GlobalEnv::the()->main_obj();
     volatile bool run_exit_handlers = true;
-    Value result;
+
+    // kinda hacky, but needed for top-level begin/rescue
+    Args args;
+    Block *block = nullptr;
+
     try {
-        result = eval(env, self);
+        // FIXME: top-level `return` in a Ruby script should probably be changed to `exit`.
+        // For now, this lambda lets us return a Value from generated code without breaking the C linkage.
+        auto result = [&]() -> Value {
+            /*NAT_EVAL_BODY*/
+            return NilObject::the();
+        }();
         run_exit_handlers = false;
         run_at_exit_handlers(env);
+        return result.object();
     } catch (ExceptionObject *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
         return nullptr;
     }
-    return result.object();
 }
 
 int main(int argc, char *argv[]) {
