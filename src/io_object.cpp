@@ -812,12 +812,7 @@ int IoObject::set_pos(Env *env, Value position) {
     return result;
 }
 
-Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
-    /* auto kwargs = */ args.pop_keyword_hash();
-    args.ensure_argc_between(env, 0, 2);
-    auto external_encoding = args.at(0, nullptr);
-    auto internal_encoding = args.at(1, nullptr);
-
+Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {
     int pipefd[2];
 #ifdef __APPLE__
     // No pipe2, use pipe and set permissions afterwards

@@ -184,7 +184,7 @@ describe "IO.pipe" do
   end
 
   it "accepts an options Hash with one String encoding argument" do
-    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
+    NATFIXME 'keyword arguments', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8:ISO-8859-1"' do
       IO.pipe("BOM|UTF-8:ISO-8859-1", invalid: :replace) do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1
@@ -193,16 +193,20 @@ describe "IO.pipe" do
   end
 
   it "accepts an options Hash with two String encoding arguments" do
-    IO.pipe("UTF-8", "ISO-8859-1", invalid: :replace) do |r, w|
-      r.external_encoding.should == Encoding::UTF_8
-      r.internal_encoding.should == Encoding::ISO_8859_1
+    NATFIXME 'keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 0..2)' do
+      IO.pipe("UTF-8", "ISO-8859-1", invalid: :replace) do |r, w|
+        r.external_encoding.should == Encoding::UTF_8
+        r.internal_encoding.should == Encoding::ISO_8859_1
+      end
     end
   end
 
   it "calls #to_hash to convert an options argument" do
-    options = mock("io pipe encoding options")
-    options.should_receive(:to_hash).and_return({ invalid: :replace })
-    IO.pipe("UTF-8", "ISO-8859-1", **options) { |r, w| }
+    NATFIXME 'keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 0..2)' do
+      options = mock("io pipe encoding options")
+      options.should_receive(:to_hash).and_return({ invalid: :replace })
+      IO.pipe("UTF-8", "ISO-8859-1", **options) { |r, w| }
+    end
   end
 
   it "calls #to_str to convert the first argument to a String" do
