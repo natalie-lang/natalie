@@ -56,9 +56,8 @@ module Kernel
     Random::DEFAULT.rand(*args)
   end
 
-  # NATFIXME: Implement Warning class, check class for severity level
-  def warn(*warnings, **)
-    warnings.each { |warning| $stderr.puts(warning) }
+  def warn(*msgs, category: nil)
+    msgs.each { |message| Warning.warn(message + "\n", category: category&.to_sym) }
     nil
   end
 
