@@ -758,6 +758,12 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
     return this;
 }
 
+Value IoObject::set_sync(Env *env, Value value) {
+    raise_if_closed(env);
+    m_sync = value->is_truthy();
+    return value;
+}
+
 Value IoObject::stat(Env *env) const {
     struct stat sb;
     auto file_desc = fileno(env); // current file descriptor
@@ -810,6 +816,11 @@ int IoObject::set_pos(Env *env, Value position) {
     auto result = ::lseek(m_fileno, offset, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
     return result;
+}
+
+bool IoObject::sync(Env *env) const {
+    raise_if_closed(env);
+    return m_sync;
 }
 
 Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {

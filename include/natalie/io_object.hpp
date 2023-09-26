@@ -102,6 +102,7 @@ public:
     Value seek(Env *, Value, Value) const;
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
+    Value set_sync(Env *, Value);
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value) const;
@@ -110,6 +111,7 @@ public:
     Value readline(Env *) const;
     int rewind(Env *);
     int set_pos(Env *, Value);
+    bool sync(Env *) const;
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);
 
@@ -130,6 +132,7 @@ private:
     int m_fileno { -1 };
     bool m_closed { false };
     bool m_autoclose { false };
+    bool m_sync { false };
     StringObject *m_path { nullptr };
 };
 

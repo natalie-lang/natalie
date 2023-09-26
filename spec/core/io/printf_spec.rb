@@ -5,9 +5,7 @@ describe "IO#printf" do
   before :each do
     @name = tmp("io_printf.txt")
     @io = new_io @name
-    NATFIXME 'Implement IO#sync=', exception: NoMethodError, message: "undefined method `sync='" do
-      @io.sync = true
-    end
+    @io.sync = true
   end
 
   after :each do
