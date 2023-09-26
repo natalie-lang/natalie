@@ -60,9 +60,7 @@ describe "IO#close_on_exec?" do
 
   guard -> { platform_is_not :windows } do
     it "returns true by default" do
-      NATFIXME 'Set close_on_exec as default', exception: SpecFailedException do
-        @io.should.close_on_exec?
-      end
+      @io.should.close_on_exec?
     end
 
     it "returns true if set" do

@@ -257,6 +257,7 @@ namespace ioutil {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this, kwargs);
         parse_flags(env, this, kwargs);
+        flags |= O_CLOEXEC;
         parse_encoding(env, this, kwargs);
         parse_external_encoding(env, this, kwargs);
         parse_internal_encoding(env, this, kwargs);
@@ -457,7 +458,7 @@ Value IoObject::read_file(Env *env, Args args) {
     auto length = args.at(1, nullptr);
     auto offset = args.at(2, nullptr);
     const ioutil::flags_struct flags { env, nullptr, kwargs };
-    if (flags.flags != O_RDONLY && flags.flags != O_RDWR && flags.flags != (O_RDWR | O_CREAT | O_APPEND))
+    if (!flags_is_readable(flags.flags))
         env->raise("IOError", "not opened for reading");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();

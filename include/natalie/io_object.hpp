@@ -25,7 +25,7 @@ namespace ioutil {
             binary };
 
         bool has_mode { false };
-        int flags { O_RDONLY };
+        int flags { O_RDONLY | O_CLOEXEC };
         read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
