@@ -542,6 +542,7 @@ Value IoObject::append(Env *env, Value obj) {
     obj->assert_type(env, Object::Type::String, "String");
     auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
     if (result == -1) env->raise_errno();
+    if (m_sync) ::fsync(m_fileno);
     return this;
 }
 
@@ -564,6 +565,7 @@ int IoObject::write(Env *env, Value obj) const {
     obj->assert_type(env, Object::Type::String, "String");
     int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
     if (result == -1) throw_unless_writable(env, this);
+    if (m_sync) ::fsync(m_fileno);
     return result;
 }
 
