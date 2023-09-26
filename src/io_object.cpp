@@ -812,6 +812,44 @@ int IoObject::set_pos(Env *env, Value position) {
     return result;
 }
 
+Value IoObject::pipe(Env *env, Args args, Block *block, ClassObject *klass) {
+    /* auto kwargs = */ args.pop_keyword_hash();
+    args.ensure_argc_between(env, 0, 2);
+
+    int pipefd[2];
+#ifdef __APPLE__
+    // No pipe2, use pipe and set permissions afterwards
+    if (::pipe(pipefd) < 0)
+        env->raise_errno();
+    const auto read_flags = ::fcntl(pipefd[0], F_GETFD);
+    if (read_flags < 0)
+        env->raise_errno();
+    if (::fcntl(pipefd[0], F_SETFD, read_flags | O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+    const auto write_flags = ::fcntl(pipefd[1], F_GETFD);
+    if (write_flags < 0)
+        env->raise_errno();
+    if (::fcntl(pipefd[1], F_SETFD, write_flags | O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+#else
+    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+#endif
+
+    auto io_read = _new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr);
+    auto io_write = _new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr);
+    auto pipes = new ArrayObject { io_read, io_write };
+
+    if (!block)
+        return pipes;
+
+    Defer close_pipes([&]() {
+        io_read->public_send(env, "close"_s);
+        io_write->public_send(env, "close"_s);
+    });
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { pipes }, nullptr);
+}
+
 int IoObject::pos(Env *env) {
     raise_if_closed(env);
     errno = 0;
