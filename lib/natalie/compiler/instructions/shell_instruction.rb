@@ -9,7 +9,7 @@ module Natalie
 
       def generate(transform)
         command = transform.pop
-        transform.exec_and_push('shell', "shell_backticks(env, #{command})")
+        transform.exec_and_push(:shell, "shell_backticks(env, #{command})")
       end
 
       def execute(vm)
