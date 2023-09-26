@@ -46,7 +46,8 @@ public:
 
     IoObject(int fileno)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
-        , m_fileno { fileno } { }
+        , m_fileno { fileno }
+        , m_sync { fileno == STDERR_FILENO } { }
 
     virtual ~IoObject() override {
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)

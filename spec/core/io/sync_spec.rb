@@ -59,8 +59,6 @@ describe "IO#sync" do
   end
 
   it "is true by default for STDERR" do
-    NATFIXME 'is true by default for STDERR', exception: SpecFailedException do
-      STDERR.sync.should == true
-    end
+    STDERR.sync.should == true
   end
 end
