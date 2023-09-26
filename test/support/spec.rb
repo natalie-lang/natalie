@@ -907,7 +907,7 @@ class StubRegistry
   def reset
     @stubs.values.each do |stubs|
       stub = stubs.first
-      stub.subject.singleton_class.undef_method(stub.message)
+      stub.subject.singleton_class.remove_method(stub.message)
     end
 
     @stubs.clear
