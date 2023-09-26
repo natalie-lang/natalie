@@ -35,11 +35,9 @@ describe "IO#close_on_exec=" do
     end
 
     it "ensures the IO's file descriptor is closed in exec'ed processes" do
-      NATFIXME "Add 'fcntl' module", exception: LoadError, message: 'cannot load such file fcntl' do
-        require 'fcntl'
-        @io.close_on_exec = true
-        (@io.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC).should == Fcntl::FD_CLOEXEC
-      end
+      require 'fcntl'
+      @io.close_on_exec = true
+      (@io.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC).should == Fcntl::FD_CLOEXEC
     end
 
     it "raises IOError if called on a closed IO" do
