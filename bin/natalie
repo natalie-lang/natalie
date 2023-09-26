@@ -115,6 +115,10 @@ OptionParser.new do |opts|
     options[:print_objects] = true
   end
 
+  opts.on('-w', 'Turn on verbose mode / warnings') do
+    options[:warnings] = true
+  end
+
   opts.on_path do |path|
     ARGV.unshift(path)
     opts.stop_parsing!
@@ -276,6 +280,9 @@ class Runner
     else
       @repl = true
       @source_path = '.'
+    end
+    if options[:warnings] && !@code.nil?
+      @code = '$VERBOSE = true' + "\n" + @code
     end
   end
 
