@@ -858,6 +858,7 @@ gen.binding('IO', 'close', 'IoObject', 'close', argc: 0, pass_env: true, pass_bl
 gen.binding('IO', 'closed?', 'IoObject', 'is_closed', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO', 'close_on_exec?', 'IoObject', 'is_close_on_exec', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'close_on_exec=', 'IoObject', 'set_close_on_exec', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'dup', 'IoObject', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'each_byte', 'IoObject', 'each_byte', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('IO', 'eof?', 'IoObject', 'is_eof', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'external_encoding', 'IoObject', 'external_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)

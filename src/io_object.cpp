@@ -353,6 +353,11 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
+Value IoObject::dup(Env *env) const {
+    fprintf(stderr, "Stub implementation for IO#dup\n");
+    return NilObject::the();
+}
+
 Value IoObject::each_byte(Env *env, Block *block) {
     if (block == nullptr)
         return send(env, "enum_for"_s, { "each_byte"_s });
