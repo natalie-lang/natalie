@@ -24,6 +24,10 @@ class Complex
   end
 
   def to_s
+    _to_s(:to_s)
+  end
+
+  def _to_s(method_name)
     real = self.real
     imaginary = self.imaginary
 
@@ -32,7 +36,7 @@ class Complex
     if real.respond_to?(:nan?) && real.nan?
       s << "NaN"
     else
-      s << real.inspect
+      s << real.send(method_name)
     end
 
     if ! imaginary.negative? && ! imaginary.to_s.include?("-")
@@ -52,7 +56,7 @@ class Complex
 
       s << "Infinity"
     else
-      s << imaginary.inspect
+      s << imaginary.send(method_name)
     end
 
     unless ('0'..'9').cover?(s[-1])
@@ -62,6 +66,7 @@ class Complex
     s << "i"
     s
   end
+  private :_to_s
 
   def finite?
     self.real.finite? && self.imaginary.finite?
@@ -289,7 +294,7 @@ class Complex
   end
 
   def inspect
-    "(#{self.to_s})"
+    "(#{_to_s(:inspect)})"
   end
 
   def coerce(other)
