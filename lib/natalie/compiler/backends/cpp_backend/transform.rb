@@ -31,7 +31,7 @@ module Natalie
             instruction.generate(self)
           end
           @code << @stack.pop
-          consume(@code, result_prefix)
+          stringify_code(@code, result_prefix)
         end
 
         def semicolon(line)
@@ -39,12 +39,18 @@ module Natalie
         end
 
         def exec(code)
-          @code << consume(code)
+          @code << stringify_code(code)
+        end
+
+        def exec_and_push(name, code)
+          result = memoize(name, code)
+          push(result)
+          result
         end
 
         def memoize(name, code)
           result = temp(name)
-          @code << consume(code, "auto #{result} = ")
+          @code << stringify_code(code, "auto #{result} = ")
           result
         end
 
@@ -53,13 +59,7 @@ module Natalie
         end
 
         def push_nil
-          @stack << 'NilObject::the()'
-        end
-
-        def exec_and_push(name, code)
-          result = memoize(name, code)
-          push(result)
-          result
+          @stack << 'Value(NilObject::the())'
         end
 
         def pop
@@ -140,22 +140,6 @@ module Natalie
           @stack_sizes = nil
         end
 
-        def consume(lines, result_prefix = nil)
-          lines = Array(lines).compact
-          out = []
-          while lines.any?
-            line = lines.shift
-            next if line.nil?
-            next if result_prefix.nil? && !value_has_side_effects?(line)
-            if lines.empty? && line !~ /^\s*env->raise|^\s*break;?$/
-              out << "#{result_prefix} #{semicolon(line)}"
-            else
-              out << semicolon(line)
-            end
-          end
-          out.join("\n")
-        end
-
         def top(code)
           @top << Array(code).join("\n")
         end
@@ -164,14 +148,6 @@ module Natalie
           index = @symbols[symbol] ||= @symbols.size
           comment = "/*:#{symbol.to_s.gsub(%r{\*/|\\}, '?')}*/"
           "#{symbols_var_name}[#{index}]#{comment}"
-        end
-
-        def value_has_side_effects?(value)
-          value !~ /^Value\((False|Nil|True)Object::the\(\)\)$/
-        end
-
-        def symbols_var_name
-          "#{@compiler_context[:var_prefix]}symbols"
         end
 
         def set_file(file)
@@ -197,6 +173,33 @@ module Natalie
         def inspect
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end
+
+        private
+
+        def value_has_side_effects?(value)
+          value !~ /^Value\((False|Nil|True)Object::the\(\)\)$/
+        end
+
+        def symbols_var_name
+          "#{@compiler_context[:var_prefix]}symbols"
+        end
+
+        def stringify_code(lines, result_prefix = nil)
+          lines = Array(lines).compact
+          out = []
+          while lines.any?
+            line = lines.shift
+            next if line.nil?
+            next if result_prefix.nil? && !value_has_side_effects?(line)
+            if lines.empty? && line !~ /^\s*env->raise|^\s*break;?$/
+              out << "#{result_prefix} #{semicolon(line)}"
+            else
+              out << semicolon(line)
+            end
+          end
+          out.join("\n")
+        end
+
       end
     end
   end
