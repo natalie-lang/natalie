@@ -427,6 +427,14 @@ bool IoObject::is_binmode(Env *env) const {
     return m_external_encoding == EncodingObject::get(Encoding::ASCII_8BIT);
 }
 
+bool IoObject::is_close_on_exec(Env *env) const {
+    raise_if_closed(env);
+    int flags = ::fcntl(m_fileno, F_GETFD);
+    if (flags < 0)
+        env->raise_errno();
+    return flags & FD_CLOEXEC;
+}
+
 bool IoObject::is_eof(Env *env) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
@@ -727,6 +735,21 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     if (result == -1)
         env->raise_errno();
     return Value::integer(0);
+}
+
+Value IoObject::set_close_on_exec(Env *env, Value value) {
+    raise_if_closed(env);
+    int flags = ::fcntl(m_fileno, F_GETFD);
+    if (flags < 0)
+        env->raise_errno();
+    if (value->is_truthy()) {
+        flags |= FD_CLOEXEC;
+    } else {
+        flags &= ~FD_CLOEXEC;
+    }
+    if (::fcntl(m_fileno, F_SETFD, flags) < 0)
+        env->raise_errno();
+    return value;
 }
 
 Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {

@@ -35,9 +35,11 @@ describe "IO#close_on_exec=" do
     end
 
     it "ensures the IO's file descriptor is closed in exec'ed processes" do
-      require 'fcntl'
-      @io.close_on_exec = true
-      (@io.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC).should == Fcntl::FD_CLOEXEC
+      NATFIXME "Add 'fcntl' module", exception: LoadError, message: 'cannot load such file fcntl' do
+        require 'fcntl'
+        @io.close_on_exec = true
+        (@io.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC).should == Fcntl::FD_CLOEXEC
+      end
     end
 
     it "raises IOError if called on a closed IO" do
@@ -60,7 +62,9 @@ describe "IO#close_on_exec?" do
 
   guard -> { platform_is_not :windows } do
     it "returns true by default" do
-      @io.should.close_on_exec?
+      NATFIXME 'Set close_on_exec as default', exception: SpecFailedException do
+        @io.should.close_on_exec?
+      end
     end
 
     it "returns true if set" do
