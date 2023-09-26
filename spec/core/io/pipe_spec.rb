@@ -131,34 +131,28 @@ describe "IO.pipe" do
   end
 
   it "sets the external encoding of the read end when passed an Encoding argument" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe(Encoding::UTF_8) do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should be_nil
-      end
+    IO.pipe(Encoding::UTF_8) do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should be_nil
     end
   end
 
   it "sets the external and internal encodings of the read end when passed two Encoding arguments" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe(Encoding::UTF_8, Encoding::UTF_16BE) do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::UTF_16BE
-      end
+    IO.pipe(Encoding::UTF_8, Encoding::UTF_16BE) do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::UTF_16BE
     end
   end
 
   it "sets the external encoding of the read end when passed the name of an Encoding" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe("UTF-8") do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should be_nil
-      end
+    IO.pipe("UTF-8") do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should be_nil
     end
   end
 
   it "accepts 'bom|' prefix for external encoding" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
       IO.pipe("BOM|UTF-8") do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should be_nil
@@ -167,16 +161,14 @@ describe "IO.pipe" do
   end
 
   it "sets the external and internal encodings specified as a String and separated with a colon" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe("UTF-8:ISO-8859-1") do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::ISO_8859_1
-      end
+    IO.pipe("UTF-8:ISO-8859-1") do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::ISO_8859_1
     end
   end
 
   it "accepts 'bom|' prefix for external encoding when specifying 'external:internal'" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
       IO.pipe("BOM|UTF-8:ISO-8859-1") do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1
@@ -185,16 +177,14 @@ describe "IO.pipe" do
   end
 
   it "sets the external and internal encoding when passed two String arguments" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe("UTF-8", "UTF-16BE") do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::UTF_16BE
-      end
+    IO.pipe("UTF-8", "UTF-16BE") do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::UTF_16BE
     end
   end
 
   it "accepts an options Hash with one String encoding argument" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
+    NATFIXME 'BOM UTF-8 encoding', exception: ArgumentError, message: 'unknown encoding name - "BOM|UTF-8"' do
       IO.pipe("BOM|UTF-8:ISO-8859-1", invalid: :replace) do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1
@@ -203,11 +193,9 @@ describe "IO.pipe" do
   end
 
   it "accepts an options Hash with two String encoding arguments" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      IO.pipe("UTF-8", "ISO-8859-1", invalid: :replace) do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::ISO_8859_1
-      end
+    IO.pipe("UTF-8", "ISO-8859-1", invalid: :replace) do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::ISO_8859_1
     end
   end
 
@@ -218,24 +206,20 @@ describe "IO.pipe" do
   end
 
   it "calls #to_str to convert the first argument to a String" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      obj = mock("io_pipe_encoding")
-      obj.should_receive(:to_str).and_return("UTF-8:UTF-16BE")
-      IO.pipe(obj) do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::UTF_16BE
-      end
+    obj = mock("io_pipe_encoding")
+    obj.should_receive(:to_str).and_return("UTF-8:UTF-16BE")
+    IO.pipe(obj) do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::UTF_16BE
     end
   end
 
   it "calls #to_str to convert the second argument to a String" do
-    NATFIXME 'Encoding arguments', exception: SpecFailedException do
-      obj = mock("io_pipe_encoding")
-      obj.should_receive(:to_str).at_least(1).times.and_return("UTF-16BE")
-      IO.pipe(Encoding::UTF_8, obj) do |r, w|
-        r.external_encoding.should == Encoding::UTF_8
-        r.internal_encoding.should == Encoding::UTF_16BE
-      end
+    obj = mock("io_pipe_encoding")
+    obj.should_receive(:to_str).at_least(1).times.and_return("UTF-16BE")
+    IO.pipe(Encoding::UTF_8, obj) do |r, w|
+      r.external_encoding.should == Encoding::UTF_8
+      r.internal_encoding.should == Encoding::UTF_16BE
     end
   end
 
