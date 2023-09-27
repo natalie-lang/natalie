@@ -7,6 +7,7 @@ require 'concurrent'
 require 'yaml'
 require 'json'
 require 'io/wait'
+require 'tempfile'
 require 'uri'
 require 'net/http'
 
@@ -58,15 +59,19 @@ Dir[specs].each do |path|
       error_messages: []
     )
 
-    unless system("bin/natalie -c #{binary_name} #{path} 2> /dev/null")
+    stderr = Tempfile.new('stderr')
+    stderr.close
+
+    unless system("bin/natalie -c #{binary_name} #{path} 2> #{stderr.path}")
       compile_errors += 1
+      current[:error_messages] = File.readlines(stderr.path)
       puts "Spec #{path} could not be compiled"
       return
     end
 
     current[:compiled] = true
 
-    IO.popen(["./#{binary_name}", "-f", "yaml"], err: '/dev/null') { |f|
+    IO.popen(["./#{binary_name}", "-f", "yaml"], err: stderr.path) { |f|
       if f.wait_readable(WAIT_TIMEOUT)
         yaml = YAML.safe_load(f.read) || {}
         # If one of those is not given there is something wrong... (probably crashed)
@@ -100,9 +105,11 @@ Dir[specs].each do |path|
     if !status.success? && !current[:timeouted]
       puts "Spec #{path} crashed"
       current[:crashed] = true
+      current[:error_messages] = File.readlines(stderr.path)
       crashed_count += 1
     end
 
+    stderr.unlink
   }
 end
 pool.shutdown
