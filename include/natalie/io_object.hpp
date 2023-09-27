@@ -25,7 +25,7 @@ namespace ioutil {
             binary };
 
         bool has_mode { false };
-        int flags { O_RDONLY };
+        int flags { O_RDONLY | O_CLOEXEC };
         read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
@@ -89,6 +89,7 @@ public:
     bool is_autoclose(Env *) const;
     bool is_binmode(Env *) const;
     bool is_closed() const { return m_closed; }
+    bool is_close_on_exec(Env *) const;
     bool is_eof(Env *);
     bool isatty(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
@@ -100,6 +101,7 @@ public:
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
     Value seek(Env *, Value, Value) const;
+    Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value stat(Env *) const;
