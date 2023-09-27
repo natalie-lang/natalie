@@ -1320,10 +1320,9 @@ module Natalie
         _, owner, *body = exp
         instructions = [
           transform_expression(owner, used: true),
-          SingletonClassInstruction.new,
-          WithSelfInstruction.new,
+          WithSingletonInstruction.new,
           transform_body(body, used: true),
-          EndInstruction.new(:with_self),
+          EndInstruction.new(:with_singleton),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -1420,6 +1419,18 @@ module Natalie
           WhileBodyInstruction.new,
           transform_expression(body, used: true),
           EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_with_main(exp, used:)
+        _, *body = exp
+        instructions = [
+          PushMainInstruction.new,
+          WithSelfInstruction.new,
+          transform_body(body, used: true),
+          EndInstruction.new(:with_self),
         ]
         instructions << PopInstruction.new unless used
         instructions

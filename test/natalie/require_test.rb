@@ -20,6 +20,7 @@ describe 'require' do
   it 'works' do
     foo1.should == 'foo1'
     Bar1.new.bar1.should == 'bar1'
+    Bar1::Baz.new.baz.should == 'baz'
     foo2.should == 'foo2'
     Bar2.new.bar2.should == 'bar2'
     foo3.should == 'foo3'
