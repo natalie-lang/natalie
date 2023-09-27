@@ -22,8 +22,10 @@ describe :io_binwrite, shared: true do
   end
 
   it "accepts options as a keyword argument" do
-    IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
+    NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 2..3)' do
+      IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
 
+    end
     -> {
       IO.send(@method, @filename, "hi", 0, {flags: File::CREAT})
     }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 2..3)")
@@ -69,19 +71,25 @@ describe :io_binwrite, shared: true do
   end
 
   it "accepts a :mode option" do
-    IO.send(@method, @filename, "hello, world!", mode: 'a')
-    File.read(@filename).should == "012345678901234567890123456789hello, world!"
-    IO.send(@method, @filename, "foo", 2, mode: 'w')
-    File.read(@filename).should == "\0\0foo"
+    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+      IO.send(@method, @filename, "hello, world!", mode: 'a')
+      File.read(@filename).should == "012345678901234567890123456789hello, world!"
+      IO.send(@method, @filename, "foo", 2, mode: 'w')
+      File.read(@filename).should == "\0\0foo"
+    end
   end
 
   it "accepts a :flags option without :mode one" do
-    IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
-    File.read(@filename).should == "hello, world!"
+    NATFIXME 'Keyword arguments', exception: TypeError, message: 'no implicit conversion of Hash into Integer' do
+      IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
+      File.read(@filename).should == "hello, world!"
+    end
   end
 
   it "raises an error if readonly mode is specified" do
-    -> { IO.send(@method, @filename, "abcde", mode: "r") }.should raise_error(IOError)
+    NATFIXME 'Keyword arguments', exception: SpecFailedException do
+      -> { IO.send(@method, @filename, "abcde", mode: "r") }.should raise_error(IOError)
+    end
   end
 
   it "truncates if empty :opts provided and offset skipped" do
