@@ -639,6 +639,8 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     }
     buf.truncate(bytes_read);
     if (out_string != nullptr && !out_string->is_nil()) {
+        if (!out_string->is_string())
+            out_string = out_string->to_str(env);
         out_string->assert_type(env, Object::Type::String, "String");
         out_string->as_string()->set_str(buf.c_str(), buf.size());
         return out_string;
