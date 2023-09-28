@@ -75,6 +75,7 @@ public:
     static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
     Value binmode(Env *);
     Value close(Env *);
+    Value dup(Env *) const;
     Value each_byte(Env *, Block *);
     Value external_encoding() const { return m_external_encoding; }
     Value fcntl(Env *, Value, Value = nullptr);

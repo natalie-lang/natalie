@@ -353,6 +353,16 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
+Value IoObject::dup(Env *env) const {
+    auto dup_fd = ::dup(fileno(env));
+    if (dup_fd < 0)
+        env->raise_errno();
+    auto dup_obj = _new(env, m_klass, { IntegerObject::create(dup_fd) }, nullptr)->as_io();
+    dup_obj->set_close_on_exec(env, TrueObject::the());
+    dup_obj->autoclose(env, TrueObject::the());
+    return dup_obj;
+}
+
 Value IoObject::each_byte(Env *env, Block *block) {
     if (block == nullptr)
         return send(env, "enum_for"_s, { "each_byte"_s });

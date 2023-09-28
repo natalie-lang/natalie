@@ -52,11 +52,12 @@ describe "IO#binmode?" do
     @file.binmode?.should be_true
   end
 
-  # NATFIXME: I don't know how to dup this kind of object yet File (type = 16).
-  xit "propagates to dup'ed IO objects" do
+  it "propagates to dup'ed IO objects" do
     @file.binmode
-    @duped = @file.dup
-    @duped.binmode?.should == @file.binmode?
+    NATFIXME 'Exception in File#dup', exception: Errno::EINVAL, message: 'Invalid argument' do
+      @duped = @file.dup
+      @duped.binmode?.should == @file.binmode?
+    end
   end
 
   it "raises an IOError on closed stream" do
