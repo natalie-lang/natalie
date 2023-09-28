@@ -17,13 +17,13 @@ module Natalie
       attr_reader :ast, :path, :load_path
 
       MACROS = %i[
+        eval
+        include_str!
+        load
+        nat_ignore_require
+        nat_ignore_require_relative
         require
         require_relative
-        load
-        eval
-        nat_ignore_require_relative
-        nat_ignore_require
-        include_str!
       ].freeze
 
       def expand
