@@ -1,6 +1,8 @@
 module Natalie
   class Compiler
     class MacroExpander
+      include ComptimeValues
+
       def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false, loaded_paths: {})
         @ast = ast
         @path = path
@@ -91,11 +93,9 @@ module Natalie
         s(:block)
       end
 
-      def macro_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
+      def macro_require(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        name = node[1]
+        name = comptime_string(args.first)
         return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
           @inline_cpp_enabled[current_path] = true
@@ -106,28 +106,24 @@ module Natalie
             return load_file(full_path, require_once: true)
           end
         end
-        drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
       def macro_require_relative(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        name = node[1]
+        name = comptime_string(args.first)
         base = File.dirname(current_path)
         ['.rb', '.cpp', ''].each do |extension|
           if (full_path = find_full_path(name + extension, base: base, search: false))
             return load_file(full_path, require_once: true)
           end
         end
-        drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
       def macro_load(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        path = node.last
+        path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false) if full_path
         drop_load_error "cannot load such file -- #{path}"
@@ -159,9 +155,7 @@ module Natalie
 
       def macro_include_str!(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
-        name = node[1]
+        name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           s(:str, File.read(full_path))
         else

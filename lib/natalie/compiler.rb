@@ -1,5 +1,6 @@
 require 'tempfile'
 require_relative './parser'
+require_relative './compiler/comptime_values'
 require_relative './compiler/flags'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
