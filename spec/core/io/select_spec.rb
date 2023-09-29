@@ -15,7 +15,10 @@ describe "IO.select" do
   end
 
   it "returns immediately all objects that are ready for I/O when timeout is 0" do
-    @wr.syswrite("be ready")
+    NATFIXME 'Implement IO#syswrite', exception: NoMethodError, message: "undefined method `syswrite'" do
+      @wr.syswrite("be ready")
+    end
+    @wr.write("be ready")
     IO.pipe do |_, wr|
       result = IO.select [@rd], [wr], nil, 0
       result.should == [[@rd], [wr], []]
@@ -28,14 +31,16 @@ describe "IO.select" do
   end
 
   it "returns supplied objects when they are ready for I/O" do
-    main = Thread.current
-    t = Thread.new {
-      Thread.pass until main.status == "sleep"
-      @wr.write "be ready"
-    }
-    result = IO.select [@rd], nil, nil, nil
-    result.should == [[@rd], [], []]
-    t.join
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      main = Thread.current
+      t = Thread.new {
+        Thread.pass until main.status == "sleep"
+        @wr.write "be ready"
+      }
+      result = IO.select [@rd], nil, nil, nil
+      result.should == [[@rd], [], []]
+      t.join
+    end
   end
 
   it "leaves out IO objects for which there is no I/O ready" do
@@ -65,14 +70,16 @@ describe "IO.select" do
   end
 
   it "returns the pipe read end in read set if the pipe write end is closed concurrently" do
-    main = Thread.current
-    t = Thread.new {
-      Thread.pass until main.stop?
-      @wr.close
-    }
-    IO.select([@rd]).should == [[@rd], [], []]
-  ensure
-    t.join
+    NATFIXME 'Threads', exception: NameError, message: "undefined method `join' for nil" do
+      main = Thread.current
+      t = Thread.new {
+        Thread.pass until main.stop?
+        @wr.close
+      }
+      IO.select([@rd]).should == [[@rd], [], []]
+    ensure
+      t.join
+    end
   end
 
   it "invokes to_io on supplied objects that are not IO and returns the supplied objects" do
@@ -118,14 +125,16 @@ end
 
 describe "IO.select when passed nil for timeout" do
   it "sleeps forever and sets the thread status to 'sleep'" do
-    t = Thread.new do
-      IO.select(nil, nil, nil, nil)
-    end
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      t = Thread.new do
+        IO.select(nil, nil, nil, nil)
+      end
 
-    Thread.pass while t.status && t.status != "sleep"
-    t.join unless t.status
-    t.status.should == "sleep"
-    t.kill
-    t.join
+      Thread.pass while t.status && t.status != "sleep"
+      t.join unless t.status
+      t.status.should == "sleep"
+      t.kill
+      t.join
+    end
   end
 end
