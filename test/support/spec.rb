@@ -832,8 +832,12 @@ class ComplainExpectation
         raise SpecFailedException,
               "#{subject.inspect} should have printed a warning #{@message.inspect}, but the output was #{out.inspect}"
       end
+    when String
+      unless out == @message
+        raise SpecFailedException,
+              "#{subject.inspect} should have printed a warning #{@message.inspect}, but the output was #{out.inspect}"
+      end
     else
-      # TODO: might need to implement String matching
       puts "Expected a Regexp to complain but got #{@message.inspect}"
     end
   end
@@ -847,8 +851,11 @@ class ComplainExpectation
       if out =~ @message
         raise SpecFailedException, "#{subject.inspect} should not have printed a warning #{out.inspect}"
       end
+    when String
+      if out == @message
+        raise SpecFailedException, "#{subject.inspect} should not have printed a warning #{out.inspect}"
+      end
     else
-      # TODO: might need to implement String matching
       puts "Expected a Regexp to complain but got #{@message.inspect}"
     end
   end
@@ -907,7 +914,7 @@ class StubRegistry
   def reset
     @stubs.values.each do |stubs|
       stub = stubs.first
-      stub.subject.singleton_class.undef_method(stub.message)
+      stub.subject.singleton_class.remove_method(stub.message)
     end
 
     @stubs.clear

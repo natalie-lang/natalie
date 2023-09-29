@@ -40,7 +40,7 @@ describe "Module#deprecate_constant" do
     it "does not warn if Warning[:deprecated] is false" do
       @module.deprecate_constant :PUBLIC1
 
-      NATFIXME 'Support Warning', exception: NameError, message: 'uninitialized constant Warning' do
+      NATFIXME 'Implement warning', exception: SpecFailedException do
         deprecated = Warning[:deprecated]
         begin
           Warning[:deprecated] = false
