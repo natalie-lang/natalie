@@ -1252,6 +1252,26 @@ ArrayObject *Object::to_ary(Env *env) {
         val->klass()->inspect_str());
 }
 
+IoObject *Object::to_io(Env *env) {
+    if (is_io()) return as_io();
+
+    auto to_io = "to_io"_s;
+    if (!respond_to(env, to_io)) {
+        assert_type(env, Type::Io, "IO");
+    }
+
+    auto result = send(env, to_io);
+
+    if (result->is_io())
+        return result->as_io();
+
+    env->raise(
+        "TypeError", "can't convert {} to IO ({}#to_io gives {})",
+        klass()->inspect_str(),
+        klass()->inspect_str(),
+        result->klass()->inspect_str());
+}
+
 IntegerObject *Object::to_int(Env *env) {
     if (is_integer()) return as_integer();
 

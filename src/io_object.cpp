@@ -61,10 +61,7 @@ namespace ioutil {
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
         if (io->is_io() || io->respond_to(env, "to_io"_s)) {
-            if (!io->is_io()) {
-                io = io->send(env, "to_io"_s);
-            }
-            auto file_desc = io->as_io()->fileno();
+            auto file_desc = io->to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
 
