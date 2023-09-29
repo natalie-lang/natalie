@@ -14,7 +14,7 @@ module Natalie
       def generate(transform)
         transform.exec("#{retry_name} = true")
         transform.exec('continue')
-        transform.push('Value(NilObject::the())')
+        transform.push_nil
       end
 
       def execute(vm)

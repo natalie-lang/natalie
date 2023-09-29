@@ -129,7 +129,7 @@ module Natalie
         transform.exec("#ifdef #{name}")
         transform.exec(code)
         transform.exec('#endif')
-        transform.push('NilObject::the()')
+        transform.push_nil
       end
 
       def generate_define_method(transform, name, args, body = nil)

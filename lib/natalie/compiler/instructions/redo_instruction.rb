@@ -11,7 +11,7 @@ module Natalie
         value = transform.memoize(:nil_with_redo_flag, 'Value(NilObject::the())')
         transform.exec("#{value}->add_redo_flag()")
         transform.exec("return #{value}")
-        transform.push('Value(NilObject::the())')
+        transform.push_nil
       end
 
       def execute(vm)

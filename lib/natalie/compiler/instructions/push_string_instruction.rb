@@ -17,9 +17,9 @@ module Natalie
 
       def generate(transform)
         if @string.empty?
-          transform.exec_and_push('string', "Value(new StringObject)")
+          transform.exec_and_push(:string, "Value(new StringObject)")
         else
-          transform.exec_and_push('string', "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}))")
+          transform.exec_and_push(:string, "Value(new StringObject(#{string_to_cpp(@string)}, (size_t)#{@bytesize}))")
         end
       end
 

@@ -12,7 +12,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push('regexp', "Value(RegexpObject::literal(env, #{@regexp.source.inspect}, #{@regexp.options}))")
+        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{@regexp.source.inspect}, #{@regexp.options}))")
       end
 
       def execute(vm)
