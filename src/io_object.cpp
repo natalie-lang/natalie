@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <math.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 namespace Natalie {
@@ -61,10 +62,7 @@ namespace ioutil {
     // accepts path or string like object for stat
     int object_stat(Env *env, Value io, struct stat *sb) {
         if (io->is_io() || io->respond_to(env, "to_io"_s)) {
-            if (!io->is_io()) {
-                io = io->send(env, "to_io"_s);
-            }
-            auto file_desc = io->as_io()->fileno();
+            auto file_desc = io->to_io(env)->fileno();
             return ::fstat(file_desc, sb);
         }
 
@@ -873,6 +871,58 @@ int IoObject::set_pos(Env *env, Value position) {
 bool IoObject::sync(Env *env) const {
     raise_if_closed(env);
     return m_sync;
+}
+Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
+    int nfds = 0;
+    timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
+
+    auto create_fd_set = [&](Value ios) {
+        fd_set result;
+        FD_ZERO(&result);
+        if (ios && !ios->is_nil()) {
+            for (Value io : *ios->to_ary(env)) {
+                const auto fd = io->to_io(env)->fileno();
+                FD_SET(fd, &result);
+                nfds = std::max(nfds, fd + 1);
+            }
+        }
+        return result;
+    };
+
+    auto read_fds = create_fd_set(read_ios);
+    auto write_fds = create_fd_set(write_ios);
+    auto error_fds = create_fd_set(error_ios);
+
+    if (timeout && !timeout->is_nil()) {
+        const auto timeout_f = timeout->to_f(env)->to_double();
+        if (timeout_f < 0)
+            env->raise("ArgumentError", "time interval must not be negative");
+        timeout_tv.tv_sec = static_cast<int>(timeout_f);
+        timeout_tv.tv_usec = (timeout_f - timeout_tv.tv_sec) * 1000000;
+        timeout_ptr = &timeout_tv;
+    }
+
+    const auto result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
+    if (result < 0)
+        env->raise_errno();
+    if (result == 0)
+        return NilObject::the();
+
+    auto create_output_fds = [&](fd_set *fds, Value ios) {
+        auto result = new ArrayObject {};
+        if (ios && !ios->is_nil()) {
+            for (auto io : *ios->to_ary(env)) {
+                if (FD_ISSET(io->to_io(env)->fileno(), fds))
+                    result->push(io);
+            }
+        }
+        return result;
+    };
+
+    auto readable_ios = create_output_fds(&read_fds, read_ios);
+    auto writeable_ios = create_output_fds(&write_fds, write_ios);
+    auto errorable_ios = create_output_fds(&error_fds, error_ios);
+    return new ArrayObject { readable_ios, writeable_ios, errorable_ios };
 }
 
 Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {

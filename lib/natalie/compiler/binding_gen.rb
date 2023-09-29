@@ -846,6 +846,7 @@ gen.static_binding('IO', 'binread', 'IoObject', 'binread', argc: 1..3, pass_env:
 gen.static_binding('IO', 'binwrite', 'IoObject', 'binwrite', argc: 2..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'pipe', 'IoObject', 'pipe', argc: 0..2, pass_env: true, pass_block: true, pass_klass: true, return_type: :Object)
 gen.static_binding('IO', 'read', 'IoObject', 'read_file', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.static_binding('IO', 'select', 'IoObject', 'select', argc: 1..4, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'sysopen', 'IoObject', 'sysopen', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'try_convert', 'IoObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('IO', 'write', 'IoObject', 'write_file', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
