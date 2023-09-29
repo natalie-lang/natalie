@@ -100,7 +100,12 @@ module Natalie
         args = expr[3..]
         const_node, path_node = args
         const = comptime_symbol(const_node)
-        path = comptime_string(path_node)
+        begin
+          path = comptime_string(path_node)
+        rescue ArgumentError
+          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.file}##{expr.line}"
+        end
+
         full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
           find_full_path(path + ext, base: Dir.pwd, search: true)
         end.first
