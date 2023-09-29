@@ -145,6 +145,17 @@ module Natalie
         transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
+      def transform_autoload_const(exp, used:)
+        _, name, path, *body = exp
+        instructions = [
+          AutoloadConstInstruction.new(name),
+          transform_body(body, used: true),
+          EndInstruction.new(:autoload_const),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_back_ref(exp, used:)
         return [] unless used
         _, name = exp

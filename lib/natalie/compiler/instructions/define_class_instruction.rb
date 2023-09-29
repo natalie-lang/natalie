@@ -32,7 +32,7 @@ module Natalie
         namespace = transform.pop
         superclass = transform.pop
         code = []
-        code << "auto #{klass} = #{namespace}->const_get(#{transform.intern(@name)})"
+        code << "auto #{klass} = #{namespace}->const_find_with_autoload(env, self, #{transform.intern(@name)}, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null)"
         code << "if (!#{klass}) {"
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"

@@ -54,3 +54,17 @@ describe 'require' do
     Socket.should be_an_instance_of(Class)
   end
 end
+
+describe 'autoload' do
+  it 'loads the file when the constant is referenced' do
+    $require_sub7_loaded.should == nil
+    Bar1::Baz1.should be_an_instance_of(Class)
+    $require_sub7_loaded.should == true
+  end
+
+  it 'raises an error when the file does not define the constant' do
+    $require_sub8_loaded.should == nil
+    -> { Bar1::Baz2 }.should raise_error(NameError, 'uninitialized constant Bar1::Baz2')
+    $require_sub8_loaded.should == true
+  end
+end

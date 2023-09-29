@@ -93,7 +93,7 @@ Value ModuleObject::const_fetch(SymbolObject *name) {
     return constant;
 }
 
-Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject **found_in_module, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleObject *search_parent = nullptr;
     Constant *constant = nullptr;
 
@@ -119,11 +119,12 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
             if (!search_parent || search_parent == GlobalEnv::the()->Object())
                 break;
             constant = search_parent->m_constants.get(name);
+            *found_in_module = search_parent;
             search_parent = search_parent->owner();
         } while (!constant);
         if (constant) {
             check_valid(constant);
-            return constant->value();
+            return constant;
         }
     }
 
@@ -136,8 +137,10 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     for (size_t i = 0; i < modules_to_search.size(); ++i) {
         auto module = modules_to_search.at(i);
         constant = module->m_constants.get(name);
-        if (constant)
+        if (constant) {
+            *found_in_module = module;
             break;
+        }
         for (ModuleObject *m : module->m_included_modules) {
             if (m != module && m != this)
                 modules_to_search.push(m);
@@ -146,30 +149,35 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 
     if (constant) {
         check_valid(constant);
-        return constant->value();
+        return constant;
     }
 
     // search in superclass hierarchy
     search_parent = this;
     do {
         constant = search_parent->m_constants.get(name);
-        if (constant) break;
+        if (constant) {
+            *found_in_module = search_parent;
+            break;
+        }
         search_parent = search_parent->m_superclass;
     } while (search_parent && search_parent != GlobalEnv::the()->Object());
 
     if (constant) {
         check_valid(constant);
-        return constant->value();
+        return constant;
     }
 
     if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
-        constant = GlobalEnv::the()->Object()->m_constants.get(name);
+        ModuleObject *object = GlobalEnv::the()->Object();
+        *found_in_module = object;
+        constant = object->m_constants.get(name);
     }
 
     if (constant) {
         check_valid(constant);
-        return constant->value();
+        return constant;
     }
 
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
@@ -179,6 +187,26 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     } else {
         env->raise_name_error(name, "uninitialized constant {}", name->string());
     }
+}
+
+Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    ModuleObject *module = nullptr;
+    auto constant = find_constant(env, name, &module, search_mode, failure_mode);
+    if (!constant)
+        return nullptr;
+    if (constant->needs_load()) {
+        module->const_remove(name);
+        constant->autoload(env, self);
+    }
+    return const_find(env, name, search_mode, failure_mode);
+}
+
+Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    ModuleObject *module = nullptr;
+    auto constant = find_constant(env, name, &module, search_mode, failure_mode);
+    if (!constant)
+        return nullptr;
+    return constant->value();
 }
 
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
@@ -204,11 +232,20 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
     return val;
 }
 
+Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn) {
+    m_constants.put(name, new Constant { name, autoload_fn });
+    return NilObject::the();
+}
+
 Value ModuleObject::const_set(Env *env, Value name, Value val) {
     auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
     if (!name_as_sym->is_constant_name())
         env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
     return const_set(name_as_sym, val);
+}
+
+void ModuleObject::const_remove(SymbolObject *name) {
+    m_constants.remove(name);
 }
 
 Value ModuleObject::constants(Env *env, Value inherit) const {

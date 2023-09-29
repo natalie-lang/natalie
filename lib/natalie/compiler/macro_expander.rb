@@ -17,6 +17,7 @@ module Natalie
       attr_reader :ast, :path, :load_path
 
       MACROS = %i[
+        autoload
         eval
         include_str!
         load
@@ -93,6 +94,25 @@ module Natalie
         s(:block)
       end
 
+      EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
+
+      def macro_autoload(expr:, current_path:)
+        args = expr[3..]
+        const_node, path_node = args
+        const = comptime_symbol(const_node)
+        path = comptime_string(path_node)
+        full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
+          find_full_path(path + ext, base: Dir.pwd, search: true)
+        end.first
+
+        unless full_path
+          return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
+        end
+
+        body = load_file(full_path, require_once: true)
+        expr.new(:autoload_const, const, full_path, body)
+      end
+
       def macro_require(expr:, current_path:)
         args = expr[3..]
         name = comptime_string(args.first)
@@ -101,7 +121,7 @@ module Natalie
           @inline_cpp_enabled[current_path] = true
           return s(:block)
         end
-        ['.rb', '.cpp', ''].each do |extension|
+        EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: Dir.pwd, search: true))
             return load_file(full_path, require_once: true)
           end
@@ -113,7 +133,7 @@ module Natalie
         args = expr[3..]
         name = comptime_string(args.first)
         base = File.dirname(current_path)
-        ['.rb', '.cpp', ''].each do |extension|
+        EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: base, search: false))
             return load_file(full_path, require_once: true)
           end

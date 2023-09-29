@@ -19,7 +19,7 @@ module Natalie
       def generate(transform)
         namespace = transform.pop
         search_mode = @strict ? 'Strict' : 'NotStrict'
-        transform.push("#{namespace}->const_find(env, #{transform.intern(name)}, Object::ConstLookupSearchMode::#{search_mode})")
+        transform.push("#{namespace}->const_find_with_autoload(env, self, #{transform.intern(name)}, Object::ConstLookupSearchMode::#{search_mode})")
       end
 
       def execute(vm)

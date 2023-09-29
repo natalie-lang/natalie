@@ -30,7 +30,7 @@ module Natalie
         mod = transform.temp('module')
         namespace = transform.pop
         code = []
-        code << "auto #{mod} = #{namespace}->const_get(#{transform.intern(@name)})"
+        code << "auto #{mod} = #{namespace}->const_find_with_autoload(env, self, #{transform.intern(@name)}, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null)"
         code << "if (!#{mod}) {"
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{mod})"
