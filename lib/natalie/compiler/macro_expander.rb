@@ -3,7 +3,7 @@ module Natalie
     class MacroExpander
       include ComptimeValues
 
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false, loaded_paths: {})
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:)
         @ast = ast
         @path = path
         @load_path = load_path
@@ -53,6 +53,7 @@ module Natalie
           load_path: load_path,
           interpret: interpret?,
           compiler_context: @compiler_context,
+          log_load_error: @log_load_error,
           loaded_paths: @loaded_paths,
         )
         expander.expand
@@ -250,7 +251,7 @@ module Natalie
       end
 
       def drop_load_error(msg)
-        STDERR.puts load_error_msg if @log_load_error
+        STDERR.puts(msg) if @log_load_error
         s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
       end
 

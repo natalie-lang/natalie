@@ -306,6 +306,7 @@ module Natalie
         interpret: interpret?,
         log_load_error: options[:log_load_error],
         compiler_context: @context,
+        loaded_paths: {},
       )
       expander.expand
     end
