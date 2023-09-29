@@ -353,6 +353,20 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
+Value IoObject::binwrite(Env *env, Value filename, Value string, Value offset) {
+    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    auto mode = O_WRONLY | O_CREAT | O_CLOEXEC;
+    if (!offset || offset->is_nil())
+        mode |= O_TRUNC;
+    auto kwargs = new HashObject { env, { "mode"_s, IntegerObject::create(mode), "binmode"_s, TrueObject::the() } };
+    FileObject *file = _new(env, File, Args({ filename, kwargs }, true), nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
+    auto result = file->write(env, string);
+    file->close(env);
+    return IntegerObject::create(result);
+}
+
 Value IoObject::dup(Env *env) const {
     auto dup_fd = ::dup(fileno(env));
     if (dup_fd < 0)
