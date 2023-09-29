@@ -64,7 +64,7 @@ describe 'autoload' do
 
   it 'raises an error when the file does not define the constant' do
     $require_sub8_loaded.should == nil
-    -> { Bar1::Baz2 }.should raise_error(NameError, 'uninitialized constant Bar1::Baz2')
+    -> { Bar1::Baz2 }.should raise_error(NameError, /uninitialized constant Bar1::Baz2/)
     $require_sub8_loaded.should == true
   end
 end
