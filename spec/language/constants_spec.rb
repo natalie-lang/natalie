@@ -223,9 +223,7 @@ describe "Literal (A::X) constant resolution" do
   end
 
   it "sends #const_missing to the original class or module scope" do
-    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant ConstantSpecs::ClassA::CS_CONSTX' do
-      ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
-    end
+    ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
   end
 
   it "evaluates the qualifier" do
@@ -446,10 +444,8 @@ describe "Constant resolution within methods" do
   end
 
   it "sends #const_missing to the original class or module scope" do
-    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant CS_CONSTX' do
-      ConstantSpecs::ClassA.constx.should == :CS_CONSTX
-      ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
-    end
+    ConstantSpecs::ClassA.constx.should == :CS_CONSTX
+    ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
   end
 end
 
