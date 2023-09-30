@@ -31,28 +31,16 @@ module OpenSSL
       digest(data).unpack1('H*')
     end
 
-    class SHA1 < Digest
-      def initialize(*args)
-        super('SHA1', *args)
+    def self.const_missing(name)
+      normalized_name = new(name.to_s).name
+      raise if name.to_s != normalized_name
+      klass = Class.new(self) do
+        define_method(:initialize) { |*args| super(normalized_name, *args) }
       end
-    end
-
-    class SHA256 < Digest
-      def initialize(*args)
-        super('SHA256', *args)
-      end
-    end
-
-    class SHA384 < Digest
-      def initialize(*args)
-        super('SHA384', *args)
-      end
-    end
-
-    class SHA512 < Digest
-      def initialize(*args)
-        super('SHA512', *args)
-      end
+      const_set(name, klass)
+      klass
+    rescue
+      super
     end
   end
 end
