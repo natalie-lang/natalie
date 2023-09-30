@@ -172,7 +172,10 @@ class StringScanner
     @matched = c
   end
 
-  alias getbyte get_byte
+  def getbyte
+    warn("warning: StringScanner#getbyte is obsolete; use #get_byte instead") if $VERBOSE
+    get_byte
+  end
 
   def [](index)
     return nil unless @match
