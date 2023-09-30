@@ -397,22 +397,22 @@ module ModuleSpecs
     class Child < Parent
     end
 
-    NATFIXME 'Implement autoload', exception: NoMethodError, message: "undefined method `autoload'" do
-      module FromThread
-        module A
-          autoload :B, fixture(__FILE__, "autoload_empty.rb")
+    module FromThread
+      module A
+        #autoload :B, fixture(__FILE__, "autoload_empty.rb")
+        autoload :B, './spec/core/module/fixtures/autoload_empty.rb'
 
-          class B
-            autoload :C, fixture(__FILE__, "autoload_abc.rb")
+        class B
+          #autoload :C, fixture(__FILE__, "autoload_abc.rb")
+          autoload :C, './spec/core/module/fixtures/autoload_abc.rb'
 
-            def self.foo
-              C.foo
-            end
+          def self.foo
+            C.foo
           end
         end
-
-        class D < A::B; end
       end
+
+      class D < A::B; end
     end
   end
 
