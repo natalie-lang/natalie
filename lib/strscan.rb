@@ -260,7 +260,10 @@ class StringScanner
     @pos = @string.size
   end
 
-  alias clear terminate
+  def clear
+    warn("warning: StringScanner#clear is obsolete; use #terminate instead") if $VERBOSE
+    terminate
+  end
 
   def self.must_C_version # rubocop:disable Naming/MethodName
     self

@@ -7,11 +7,9 @@ describe "StringScanner#clear" do
 
   it "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
-    NATFIXME 'Add warnings', exception: SpecFailedException do
-      -> {
-        s.clear
-      }.should complain(/clear.*obsolete.*terminate/, verbose: true)
-    end
+    -> {
+      s.clear
+    }.should complain(/clear.*obsolete.*terminate/, verbose: true)
 
     -> {
       s.clear
