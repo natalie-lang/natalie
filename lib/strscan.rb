@@ -148,7 +148,10 @@ class StringScanner
     @string.bytes[@pos...(@pos + length)].map(&:chr).join
   end
 
-  alias peep peek
+  def peep(length)
+    warn("warning: StringScanner#peep is obsolete; use #peek instead") if $VERBOSE
+    peek(length)
+  end
 
   def scan_full(pattern, advance_pointer_p, return_string_p)
     raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
