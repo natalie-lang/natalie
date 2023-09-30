@@ -97,7 +97,7 @@ public:
     Value left_shift(Env *, Value);
     Value right_shift(Env *, Value);
     Value pred(Env *);
-    Value size(Env *);
+    Value size(Env *) const;
     Value succ(Env *);
     Value ceil(Env *, Value);
     Value coerce(Env *, Value);

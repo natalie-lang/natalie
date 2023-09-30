@@ -488,7 +488,7 @@ Value IntegerObject::pred(Env *env) {
     return sub(env, Value::integer(1));
 }
 
-Value IntegerObject::size(Env *env) {
+Value IntegerObject::size(Env *env) const {
     if (is_bignum()) {
         const nat_int_t bitstring_size = to_s(env, Value::integer(2))->as_string()->bytesize();
         return Value::integer((bitstring_size + 7) / 8);
