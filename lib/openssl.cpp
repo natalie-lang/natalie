@@ -37,6 +37,7 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
 }
 
 Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int block_size = EVP_MD_CTX_block_size(mdctx);
     return IntegerObject::create(block_size);
@@ -68,6 +69,13 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
 }
 
+Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
+    const int digest_length = EVP_MD_CTX_size(mdctx);
+    return IntegerObject::create(digest_length);
+}
+
 Value init(Env *env, Value self) {
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     if (!OpenSSL) {
@@ -92,6 +100,7 @@ Value init(Env *env, Value self) {
     Digest->define_method(env, "initialize"_s, OpenSSL_Digest_initialize, 1);
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, 1);
+    Digest->define_method(env, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
 
     return NilObject::the();
 }

@@ -8,53 +8,37 @@ require 'openssl'
 describe "OpenSSL::Digest#digest_length" do
   describe "digest_length of OpenSSL::Digest.new(name)" do
     it "returns a SHA1 block length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest.new('sha1').digest_length.should == SHA1Constants::DigestLength
-      end
+      OpenSSL::Digest.new('sha1').digest_length.should == SHA1Constants::DigestLength
     end
 
     it "returns a SHA256 block length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest.new('sha256').digest_length.should == SHA256Constants::DigestLength
-      end
+      OpenSSL::Digest.new('sha256').digest_length.should == SHA256Constants::DigestLength
     end
 
     it "returns a SHA384 digest_length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest.new('sha384').digest_length.should == SHA384Constants::DigestLength
-      end
+      OpenSSL::Digest.new('sha384').digest_length.should == SHA384Constants::DigestLength
     end
 
     it "returns a SHA512 digest_length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest.new('sha512').digest_length.should == SHA512Constants::DigestLength
-      end
+      OpenSSL::Digest.new('sha512').digest_length.should == SHA512Constants::DigestLength
     end
   end
 
   describe "digest_length of subclasses" do
     it "returns a SHA1 block length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest::SHA1.new.digest_length.should == SHA1Constants::DigestLength
-      end
+      OpenSSL::Digest::SHA1.new.digest_length.should == SHA1Constants::DigestLength
     end
 
     it "returns a SHA256 block length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest::SHA256.new.digest_length.should == SHA256Constants::DigestLength
-      end
+      OpenSSL::Digest::SHA256.new.digest_length.should == SHA256Constants::DigestLength
     end
 
     it "returns a SHA384 digest_length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest::SHA384.new.digest_length.should == SHA384Constants::DigestLength
-      end
+      OpenSSL::Digest::SHA384.new.digest_length.should == SHA384Constants::DigestLength
     end
 
     it "returns a SHA512 digest_length" do
-      NATFIXME 'Implement OpenSSL::Digest#digest_length', exception: NoMethodError, message: "undefined method `digest_length'" do
-        OpenSSL::Digest::SHA512.new.digest_length.should == SHA512Constants::DigestLength
-      end
+      OpenSSL::Digest::SHA512.new.digest_length.should == SHA512Constants::DigestLength
     end
   end
 end
