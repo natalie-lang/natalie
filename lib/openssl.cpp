@@ -2,8 +2,6 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#include "tm/defer.hpp"
-
 #include "natalie.hpp"
 
 using namespace Natalie;
@@ -44,21 +42,11 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
 }
 
 Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
-    auto name = self->send(env, "name"_s);
-    name->assert_type(env, Object::Type::String, "String");
-
     args.ensure_argc_is(env, 1);
     Value data = args[0];
     data->assert_type(env, Object::Type::String, "String");
 
-    const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
-    if (!md)
-        env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name);
-
-    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-    auto mdctx_destructor = TM::Defer([&]() { EVP_MD_CTX_free(mdctx); });
-    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
-        env->raise("RuntimeError", "Internal OpenSSL error");
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
         env->raise("RuntimeError", "Internal OpenSSL error");
     unsigned char buf[EVP_MAX_MD_SIZE];
