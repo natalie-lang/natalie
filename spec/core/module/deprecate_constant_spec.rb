@@ -7,10 +7,6 @@ describe "Module#deprecate_constant" do
     @module::PUBLIC1 = @value
     @module::PUBLIC2 = @value
     @module::PRIVATE = @value
-    @module.const_set(:PUBLIC1, @value)
-    @module.const_set(:PUBLIC2, @value)
-    @module.const_set(:PRIVATE, @value)
-
     @module.private_constant :PRIVATE
     @module.deprecate_constant :PRIVATE
   end
@@ -40,14 +36,12 @@ describe "Module#deprecate_constant" do
     it "does not warn if Warning[:deprecated] is false" do
       @module.deprecate_constant :PUBLIC1
 
-      NATFIXME 'Implement warning', exception: SpecFailedException do
-        deprecated = Warning[:deprecated]
-        begin
-          Warning[:deprecated] = false
-          -> { @module::PUBLIC1 }.should_not complain
-        ensure
-          Warning[:deprecated] = deprecated
-        end
+      deprecated = Warning[:deprecated]
+      begin
+        Warning[:deprecated] = false
+        -> { @module::PUBLIC1 }.should_not complain
+      ensure
+        Warning[:deprecated] = deprecated
       end
     end
   end

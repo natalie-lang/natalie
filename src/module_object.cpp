@@ -105,6 +105,8 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
                 env->raise_name_error(name, "private constant ::{} referenced", name->string());
         }
         if (constant->is_deprecated()) {
+            const auto warn_deprecated = GlobalEnv::the()->Object()->const_get("Warning"_s)->send(env, "[]"_s, { "deprecated"_s })->is_truthy();
+            if (!warn_deprecated) return;
             if (search_parent && search_parent != GlobalEnv::the()->Object())
                 env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->string());
             else
