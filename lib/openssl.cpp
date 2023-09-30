@@ -11,6 +11,19 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     EVP_MD_CTX_free(mdctx);
 }
 
+Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
+
+    Value data = args[0];
+    data->assert_type(env, Object::Type::String, "String");
+
+    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+
+    return self;
+}
+
 Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
@@ -28,16 +41,11 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
     if (!EVP_DigestInit_ex(mdctx, md, nullptr))
         env->raise("RuntimeError", "Internal OpenSSL error");
 
-    if (args.size() == 2) {
-        Value data = args[1];
-        data->assert_type(env, Object::Type::String, "String");
-
-        if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
-            env->raise("RuntimeError", "Internal OpenSSL error");
-    }
-
     self->ivar_set(env, "@name"_s, name->as_string()->upcase(env, nullptr, nullptr));
     self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
+
+    if (args.size() == 2)
+        OpenSSL_Digest_update(env, self, { args[1] }, nullptr);
 
     return self;
 }
@@ -66,13 +74,9 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
-    if (args.size() == 1) {
-        Value data = args[0];
-        data->assert_type(env, Object::Type::String, "String");
+    if (args.size() == 1)
+        OpenSSL_Digest_update(env, self, { args[0] }, nullptr);
 
-        if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
-            env->raise("RuntimeError", "Internal OpenSSL error");
-    }
     unsigned char buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
     if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
@@ -87,19 +91,6 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int digest_length = EVP_MD_CTX_size(mdctx);
     return IntegerObject::create(digest_length);
-}
-
-Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
-    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
-
-    Value data = args[0];
-    data->assert_type(env, Object::Type::String, "String");
-
-    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
-        env->raise("RuntimeError", "Internal OpenSSL error");
-
-    return self;
 }
 
 Value init(Env *env, Value self) {
