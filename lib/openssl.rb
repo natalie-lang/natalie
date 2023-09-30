@@ -23,16 +23,6 @@ module OpenSSL
       new(name).hexdigest(data)
     end
 
-    def initialize(name)
-      name = name.name if name.is_a?(self.class)
-      raise TypeError, "wrong argument type #{name.class} (expected OpenSSL/Digest)" unless name.is_a?(String)
-      klass = self.class.const_get(name.upcase.to_sym)
-      raise NameError unless klass.ancestors[1] == self.class
-      @name = name.upcase
-    rescue NameError
-      raise "Unsupported digest algorithm (#{name}).: unknown object name"
-    end
-
     def base64digest(data)
       [digest(data)].pack('m0')
     end

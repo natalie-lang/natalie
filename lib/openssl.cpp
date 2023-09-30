@@ -8,6 +8,24 @@
 
 using namespace Natalie;
 
+Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto name = args.at(0);
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    if (name->is_a(env, digest_klass))
+        name = name->send(env, "name"_s);
+    if (!name->is_string())
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/Digest)", name->klass()->inspect_str());
+
+    const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
+    if (!md)
+        env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name->as_string()->string());
+
+    self->ivar_set(env, "@name"_s, name->as_string()->upcase(env, nullptr, nullptr));
+
+    return self;
+}
+
 Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
     auto name = self->send(env, "name"_s);
     name->assert_type(env, Object::Type::String, "String");
@@ -73,6 +91,7 @@ Value init(Env *env, Value self) {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
         OpenSSL->const_set("Digest"_s, Digest);
     }
+    Digest->define_method(env, "initialize"_s, OpenSSL_Digest_initialize, 1);
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, 1);
 
