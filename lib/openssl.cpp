@@ -12,7 +12,7 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
 }
 
 Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
+    args.ensure_argc_between(env, 1, 2);
     auto name = args.at(0);
     auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
     if (name->is_a(env, digest_klass))
@@ -27,6 +27,14 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!EVP_DigestInit_ex(mdctx, md, nullptr))
         env->raise("RuntimeError", "Internal OpenSSL error");
+
+    if (args.size() == 2) {
+        Value data = args[1];
+        data->assert_type(env, Object::Type::String, "String");
+
+        if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
+            env->raise("RuntimeError", "Internal OpenSSL error");
+    }
 
     self->ivar_set(env, "@name"_s, name->as_string()->upcase(env, nullptr, nullptr));
     self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
@@ -88,7 +96,7 @@ Value init(Env *env, Value self) {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
         OpenSSL->const_set("Digest"_s, Digest);
     }
-    Digest->define_method(env, "initialize"_s, OpenSSL_Digest_initialize, 1);
+    Digest->define_method(env, "initialize"_s, OpenSSL_Digest_initialize, -1);
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, -1);
     Digest->define_method(env, "digest_length"_s, OpenSSL_Digest_digest_length, 0);

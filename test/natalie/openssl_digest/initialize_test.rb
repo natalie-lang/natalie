@@ -60,10 +60,8 @@ describe "OpenSSL::Digest initialization" do
     end
 
     it "ignores the state of the name object" do
-      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        sha1 = OpenSSL::Digest.new('sha1', SHA1Constants::Contents)
-        OpenSSL::Digest.new(sha1).digest.should == SHA1Constants::BlankDigest
-      end
+      sha1 = OpenSSL::Digest.new('sha1', SHA1Constants::Contents)
+      OpenSSL::Digest.new(sha1).digest.should == SHA1Constants::BlankDigest
     end
   end
 
@@ -87,27 +85,19 @@ describe "OpenSSL::Digest initialization" do
 
   describe "can be called with a digest name and data" do
     it "returns a SHA1 digest" do
-      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        OpenSSL::Digest.new("sha1", SHA1Constants::Contents).digest.should == SHA1Constants::Digest
-      end
+      OpenSSL::Digest.new("sha1", SHA1Constants::Contents).digest.should == SHA1Constants::Digest
     end
 
     it "returns a SHA256 digest" do
-      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        OpenSSL::Digest.new("sha256", SHA256Constants::Contents).digest.should == SHA256Constants::Digest
-      end
+      OpenSSL::Digest.new("sha256", SHA256Constants::Contents).digest.should == SHA256Constants::Digest
     end
 
     it "returns a SHA384 digest" do
-      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        OpenSSL::Digest.new("sha384", SHA384Constants::Contents).digest.should == SHA384Constants::Digest
-      end
+      OpenSSL::Digest.new("sha384", SHA384Constants::Contents).digest.should == SHA384Constants::Digest
     end
 
     it "returns a SHA512 digest" do
-      NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        OpenSSL::Digest.new("sha512", SHA512Constants::Contents).digest.should == SHA512Constants::Digest
-      end
+      OpenSSL::Digest.new("sha512", SHA512Constants::Contents).digest.should == SHA512Constants::Digest
     end
   end
 
