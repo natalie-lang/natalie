@@ -145,6 +145,17 @@ module Natalie
         transform_call(exp.new(:call, receiver, message, *args), used: used)
       end
 
+      def transform_autoload_const(exp, used:)
+        _, name, path, *body = exp
+        instructions = [
+          AutoloadConstInstruction.new(name),
+          transform_body(body, used: true),
+          EndInstruction.new(:autoload_const),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_back_ref(exp, used:)
         return [] unless used
         _, name = exp
@@ -396,7 +407,8 @@ module Natalie
       def transform_cdecl(exp, used:)
         _, name, value = exp
         instructions = [transform_expression(value, used: true)]
-        name, prep_instruction = constant_name(name)
+        name, is_private, prep_instruction = constant_name(name)
+        # TODO: is_private shouldn't be ignored I think
         instructions << prep_instruction
         instructions << ConstSetInstruction.new(name)
         if used
@@ -414,9 +426,9 @@ module Natalie
         else
           instructions << PushObjectClassInstruction.new
         end
-        name, prep_instruction = constant_name(name)
+        name, is_private, prep_instruction = constant_name(name)
         instructions << prep_instruction
-        instructions << DefineClassInstruction.new(name: name)
+        instructions << DefineClassInstruction.new(name: name, is_private: is_private)
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
@@ -997,9 +1009,9 @@ module Natalie
       def transform_module(exp, used:)
         _, name, *body = exp
         instructions = []
-        name, prep_instruction = constant_name(name)
+        name, is_private, prep_instruction = constant_name(name)
         instructions << prep_instruction
-        instructions << DefineModuleInstruction.new(name: name)
+        instructions << DefineModuleInstruction.new(name: name, is_private: is_private)
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
@@ -1471,11 +1483,11 @@ module Natalie
 
       # HELPERS = = = = = = = = = = = = =
 
-      # returns a pair of [name, prep_instruction]
+      # returns a set of [name, is_private, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
       def constant_name(name)
         prepper = ConstPrepper.new(name, pass: self)
-        [prepper.name, prepper.namespace]
+        [prepper.name, prepper.private?, prepper.namespace]
       end
 
       def is_lambda_call?(exp)

@@ -1,5 +1,6 @@
 require 'tempfile'
 require_relative './parser'
+require_relative './compiler/comptime_values'
 require_relative './compiler/flags'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
@@ -305,6 +306,7 @@ module Natalie
         interpret: interpret?,
         log_load_error: options[:log_load_error],
         compiler_context: @context,
+        loaded_paths: {},
       )
       expander.expand
     end

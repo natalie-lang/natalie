@@ -533,19 +533,15 @@ describe "Module#private_constant marked constants" do
     end
 
     it "cannot be reopened as a module from scope where constant would be private" do
-      NATFIXME 'cannot be reopened as a module from scope where constant would be private', exception: SpecFailedException do
-        -> do
-          module ConstantVisibility::ModuleContainer::PrivateModule; end
-        end.should raise_error(NameError)
-      end
+      -> do
+        module ConstantVisibility::ModuleContainer::PrivateModule; end
+      end.should raise_error(NameError)
     end
 
     it "cannot be reopened as a class from scope where constant would be private" do
-      NATFIXME 'cannot be reopened as a class from scope where constant would be private', exception: SpecFailedException do
-        -> do
-          class ConstantVisibility::ModuleContainer::PrivateClass; end
-        end.should raise_error(NameError)
-      end
+      -> do
+        class ConstantVisibility::ModuleContainer::PrivateClass; end
+      end.should raise_error(NameError)
     end
 
     it "can be reopened as a module where constant is not private" do
@@ -618,19 +614,15 @@ describe "Module#private_constant marked constants" do
     end
 
     it "cannot be reopened as a module" do
-      NATFIXME 'cannot be reopened as a module', exception: SpecFailedException do
-        -> do
-          module ConstantVisibility::ClassContainer::PrivateModule; end
-        end.should raise_error(NameError)
-      end
+      -> do
+        module ConstantVisibility::ClassContainer::PrivateModule; end
+      end.should raise_error(NameError)
     end
 
     it "cannot be reopened as a class" do
-      NATFIXME 'cannot be reopened as a class', exception: SpecFailedException do
-        -> do
-          class ConstantVisibility::ClassContainer::PrivateClass; end
-        end.should raise_error(NameError)
-      end
+      -> do
+        class ConstantVisibility::ClassContainer::PrivateClass; end
+      end.should raise_error(NameError)
     end
 
     it "can be reopened as a module where constant is not private" do

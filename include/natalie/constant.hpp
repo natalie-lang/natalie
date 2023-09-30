@@ -9,19 +9,36 @@ public:
         : m_name(name)
         , m_value(value) {};
 
+    Constant(SymbolObject *name, MethodFnPtr autoload_fn)
+        : m_name(name)
+        , m_autoload_fn(autoload_fn) {};
+
     SymbolObject *name() const { return m_name; }
-    Value value() const { return m_value; }
+
+    Value value() const {
+        assert(m_value);
+        return m_value;
+    }
+
     bool is_private() const { return m_private; }
     void set_private(bool is_private) { this->m_private = is_private; }
+
     bool is_deprecated() const { return m_deprecated; }
     void set_deprecated(bool is_deprecated) { this->m_deprecated = is_deprecated; }
+
+    MethodFnPtr autoload_fn() const { return m_autoload_fn; }
+    void set_autoload_fn(MethodFnPtr fn) { m_autoload_fn = fn; }
+
+    bool needs_load() const { return !m_value && m_autoload_fn; }
+    void autoload(Env *, Value);
 
     void visit_children(Visitor &visitor);
 
 private:
     SymbolObject *m_name;
-    Value m_value;
-    bool m_private = false;
-    bool m_deprecated = false;
+    Value m_value { nullptr };
+    bool m_private { false };
+    bool m_deprecated { false };
+    MethodFnPtr m_autoload_fn { nullptr };
 };
 }

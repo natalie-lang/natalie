@@ -50,6 +50,7 @@ public:
     enum class ConstLookupSearchMode {
         NotStrict,
         Strict,
+        StrictPrivate,
     };
 
     enum class ConstLookupFailureMode {
@@ -231,9 +232,11 @@ public:
     void extend_once(Env *, ModuleObject *);
 
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
+    virtual Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
     virtual Value const_get(SymbolObject *) const;
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
+    virtual Value const_set(SymbolObject *, MethodFnPtr);
 
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);

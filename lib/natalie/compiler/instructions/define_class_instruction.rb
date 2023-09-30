@@ -3,9 +3,10 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineClassInstruction < BaseInstruction
-      def initialize(name:)
+      def initialize(name:, is_private:)
         super()
         @name = name.to_sym
+        @is_private = is_private
       end
 
       def has_body?
@@ -14,8 +15,14 @@ module Natalie
 
       attr_reader :name
 
+      def private?
+        @is_private
+      end
+
       def to_s
-        "define_class #{@name}"
+        s = "define_class #{@name}"
+        s << ' (private)' if @is_private
+        s
       end
 
       def generate(transform)
@@ -32,7 +39,10 @@ module Natalie
         namespace = transform.pop
         superclass = transform.pop
         code = []
-        code << "auto #{klass} = #{namespace}->const_get(#{transform.intern(@name)})"
+        search_mode = private? ? 'StrictPrivate' : 'Strict'
+        code << "auto #{klass} = #{namespace}->const_find_with_autoload(env, self, " \
+                "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
+                'Object::ConstLookupFailureMode::Null)'
         code << "if (!#{klass}) {"
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"

@@ -36,24 +36,38 @@ module Natalie
       def merge_cpp_with_template(string_of_cpp)
         @compiler_context[:template]
           .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
-          .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
+          .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
           .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
           .sub('/*' + 'NAT_EVAL_BODY' + '*/') { string_of_cpp }
       end
 
       def declarations
-        [obj_declarations, declare_symbols, @top.join("\n")].join("\n\n")
+        [
+          object_file_declarations,
+          symbols_declaration,
+          @top.join("\n")
+        ].join("\n\n")
       end
 
       def init_matter
         [
           init_symbols.join("\n"),
-          set_dollar_zero_global_in_main_to_c,
+          init_dollar_zero_global,
         ].compact.join("\n\n")
       end
 
-      def declare_symbols
+      def object_file_declarations
+        object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
+      end
+
+      def symbols_declaration
         "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def init_object_files
+        object_files.map do |name|
+          "init_#{name.tr('/', '_')}(env, self);"
+        end
       end
 
       def init_symbols
@@ -62,31 +76,28 @@ module Natalie
         end
       end
 
-      def set_dollar_zero_global_in_main_to_c
+      def init_dollar_zero_global
         return if @compiler_context[:is_obj]
 
         "env->global_set(\"$0\"_s, new StringObject { #{@compiler_context[:source_path].inspect} });"
       end
 
-
       def symbols_var_name
-        "#{@compiler_context[:var_prefix]}symbols"
+        static_var_name('symbols')
       end
 
-      def obj_files
-        rb_files = Dir[File.expand_path('../../../../src/**/*.rb', __dir__)].map { |path| path.sub(%r{^.*/src/}, '') }.grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
+      def static_var_name(suffix)
+        "#{@compiler_context[:var_prefix]}#{suffix}"
+      end
+
+      def object_files
+        rb_files = Dir[File.expand_path('../../../../src/**/*.rb', __dir__)].map do |path|
+          path.sub(%r{^.*/src/}, '')
+        end.grep(%r{^([a-z0-9_]+/)?[a-z0-9_]+\.rb$})
         list = rb_files.sort.map { |name| name.split('.').first }
         ['exception'] + # must come first
           (list - ['exception']) +
           @compiler_context[:required_cpp_files].values
-      end
-
-      def obj_declarations
-        obj_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
-      end
-
-      def obj_init_lines
-        obj_files.map { |name| "init_#{name.tr('/', '_')}(env, self);" }
       end
 
       def reindent(code)

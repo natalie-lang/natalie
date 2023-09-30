@@ -1,7 +1,9 @@
 module Natalie
   class Compiler
     class MacroExpander
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error: false, loaded_paths: {})
+      include ComptimeValues
+
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:)
         @ast = ast
         @path = path
         @load_path = load_path
@@ -15,13 +17,14 @@ module Natalie
       attr_reader :ast, :path, :load_path
 
       MACROS = %i[
+        autoload
+        eval
+        include_str!
+        load
+        nat_ignore_require
+        nat_ignore_require_relative
         require
         require_relative
-        load
-        eval
-        nat_ignore_require_relative
-        nat_ignore_require
-        include_str!
       ].freeze
 
       def expand
@@ -50,6 +53,7 @@ module Natalie
           load_path: load_path,
           interpret: interpret?,
           compiler_context: @compiler_context,
+          log_load_error: @log_load_error,
           loaded_paths: @loaded_paths,
         )
         expander.expand
@@ -91,43 +95,61 @@ module Natalie
         s(:block)
       end
 
-      def macro_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
+      EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
+
+      def macro_autoload(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        name = node[1]
+        const_node, path_node = args
+        const = comptime_symbol(const_node)
+        begin
+          path = comptime_string(path_node)
+        rescue ArgumentError
+          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.file}##{expr.line}"
+        end
+
+        full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
+          find_full_path(path + ext, base: Dir.pwd, search: true)
+        end.first
+
+        unless full_path
+          return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
+        end
+
+        body = load_file(full_path, require_once: true)
+        expr.new(:autoload_const, const, full_path, body)
+      end
+
+      def macro_require(expr:, current_path:)
+        args = expr[3..]
+        name = comptime_string(args.first)
         return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
           @inline_cpp_enabled[current_path] = true
           return s(:block)
         end
-        ['.rb', '.cpp', ''].each do |extension|
+        EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: Dir.pwd, search: true))
             return load_file(full_path, require_once: true)
           end
         end
-        drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
       def macro_require_relative(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        name = node[1]
+        name = comptime_string(args.first)
         base = File.dirname(current_path)
-        ['.rb', '.cpp', ''].each do |extension|
+        EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: base, search: false))
             return load_file(full_path, require_once: true)
           end
         end
-        drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
       def macro_load(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect} at #{node.file}##{node.line}" unless node.sexp_type == :str
-        path = node.last
+        path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false) if full_path
         drop_load_error "cannot load such file -- #{path}"
@@ -159,9 +181,7 @@ module Natalie
 
       def macro_include_str!(expr:, current_path:)
         args = expr[3..]
-        node = args.first
-        raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
-        name = node[1]
+        name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           s(:str, File.read(full_path))
         else
@@ -231,7 +251,7 @@ module Natalie
       end
 
       def drop_load_error(msg)
-        STDERR.puts load_error_msg if @log_load_error
+        STDERR.puts(msg) if @log_load_error
         s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
       end
 
