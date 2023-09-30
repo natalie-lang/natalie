@@ -8,11 +8,9 @@ describe "StringScanner#getbyte" do
 
   it "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
-    NATFIXME 'Warnings', exception: SpecFailedException do
-      -> {
-        s.getbyte
-      }.should complain(/getbyte.*obsolete.*get_byte/, verbose: true)
-    end
+    -> {
+      s.getbyte
+    }.should complain(/getbyte.*obsolete.*get_byte/, verbose: true)
 
     -> {
       s.getbyte

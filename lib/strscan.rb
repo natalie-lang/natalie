@@ -45,7 +45,10 @@ class StringScanner
     @pos >= @string.size
   end
 
-  alias empty? eos?
+  def empty?
+    warn("warning: StringScanner#empty? is obsolete; use #eos? instead") if $VERBOSE
+    eos?
+  end
 
   def captures
     @match.captures if @matched
@@ -145,7 +148,10 @@ class StringScanner
     @string.bytes[@pos...(@pos + length)].map(&:chr).join
   end
 
-  alias peep peek
+  def peep(length)
+    warn("warning: StringScanner#peep is obsolete; use #peek instead") if $VERBOSE
+    peek(length)
+  end
 
   def scan_full(pattern, advance_pointer_p, return_string_p)
     raise TypeError, "wrong argument type #{pattern.class.name} (expected Regexp)" unless pattern.is_a?(Regexp)
@@ -169,7 +175,10 @@ class StringScanner
     @matched = c
   end
 
-  alias getbyte get_byte
+  def getbyte
+    warn("warning: StringScanner#getbyte is obsolete; use #get_byte instead") if $VERBOSE
+    get_byte
+  end
 
   def [](index)
     return nil unless @match
@@ -240,7 +249,10 @@ class StringScanner
     rest.size
   end
 
-  alias restsize rest_size
+  def restsize
+    warn("warning: StringScanner#restsize is obsolete; use #rest_size instead") if $VERBOSE
+    rest_size
+  end
 
   def rest?
     @pos < @string.size
@@ -260,7 +272,10 @@ class StringScanner
     @pos = @string.size
   end
 
-  alias clear terminate
+  def clear
+    warn("warning: StringScanner#clear is obsolete; use #terminate instead") if $VERBOSE
+    terminate
+  end
 
   def self.must_C_version # rubocop:disable Naming/MethodName
     self

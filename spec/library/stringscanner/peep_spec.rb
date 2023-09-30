@@ -7,11 +7,9 @@ describe "StringScanner#peep" do
 
   it "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
-    NATFIXME 'Warnings', exception: SpecFailedException do
-      -> {
-        s.peep(1)
-      }.should complain(/peep.*obsolete.*peek/, verbose: true)
-    end
+    -> {
+      s.peep(1)
+    }.should complain(/peep.*obsolete.*peek/, verbose: true)
 
     -> {
       s.peep(1)
