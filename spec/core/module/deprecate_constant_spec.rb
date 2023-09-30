@@ -7,10 +7,6 @@ describe "Module#deprecate_constant" do
     @module::PUBLIC1 = @value
     @module::PUBLIC2 = @value
     @module::PRIVATE = @value
-    @module.const_set(:PUBLIC1, @value)
-    @module.const_set(:PUBLIC2, @value)
-    @module.const_set(:PRIVATE, @value)
-
     @module.private_constant :PRIVATE
     @module.deprecate_constant :PRIVATE
   end
