@@ -29,7 +29,6 @@ describe "Integer#|" do
       (-1 | 2**64).should == -1
     end
 
-    # NATFIXME: Upstream bug (https://github.com/ruby/spec/pull/1011)
     it "coerces the rhs and calls #coerce" do
       obj = mock("fixnum bit or")
       obj.should_receive(:coerce).with(6).and_return([6, 3])
