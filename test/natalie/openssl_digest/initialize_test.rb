@@ -69,27 +69,19 @@ describe "OpenSSL::Digest initialization" do
 
   describe "ititialization with an empty string" do
     it "returns a SHA1 digest" do
-      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-        OpenSSL::Digest.new("sha1").digest.should == SHA1Constants::BlankDigest
-      end
+      OpenSSL::Digest.new("sha1").digest.should == SHA1Constants::BlankDigest
     end
 
     it "returns a SHA256 digest" do
-      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-        OpenSSL::Digest.new("sha256").digest.should == SHA256Constants::BlankDigest
-      end
+      OpenSSL::Digest.new("sha256").digest.should == SHA256Constants::BlankDigest
     end
 
     it "returns a SHA384 digest" do
-      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-        OpenSSL::Digest.new("sha384").digest.should == SHA384Constants::BlankDigest
-      end
+      OpenSSL::Digest.new("sha384").digest.should == SHA384Constants::BlankDigest
     end
 
     it "returns a SHA512 digest" do
-      NATFIXME 'Fix empty string of OpenSSL::Digest#digest', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-        OpenSSL::Digest.new("sha512").digest.should == SHA512Constants::BlankDigest
-      end
+      OpenSSL::Digest.new("sha512").digest.should == SHA512Constants::BlankDigest
     end
   end
 
@@ -122,27 +114,19 @@ describe "OpenSSL::Digest initialization" do
   context "can be called on subclasses" do
     describe "can be called without data on subclasses" do
       it "returns a SHA1 digest" do
-        NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-          OpenSSL::Digest::SHA1.new.digest.should == SHA1Constants::BlankDigest
-        end
+        OpenSSL::Digest::SHA1.new.digest.should == SHA1Constants::BlankDigest
       end
 
       it "returns a SHA256 digest" do
-        NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-          OpenSSL::Digest::SHA256.new.digest.should == SHA256Constants::BlankDigest
-        end
+        OpenSSL::Digest::SHA256.new.digest.should == SHA256Constants::BlankDigest
       end
 
       it "returns a SHA384 digest" do
-        NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-          OpenSSL::Digest::SHA384.new.digest.should == SHA384Constants::BlankDigest
-        end
+        OpenSSL::Digest::SHA384.new.digest.should == SHA384Constants::BlankDigest
       end
 
       it "returns a SHA512 digest" do
-        NATFIXME 'Enable constructors', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-          OpenSSL::Digest::SHA512.new.digest.should == SHA512Constants::BlankDigest
-        end
+        OpenSSL::Digest::SHA512.new.digest.should == SHA512Constants::BlankDigest
       end
     end
 
