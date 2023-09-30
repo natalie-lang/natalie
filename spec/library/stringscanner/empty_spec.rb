@@ -7,11 +7,9 @@ describe "StringScanner#empty?" do
 
   it "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
-    NATFIXME 'Warnings', exception: SpecFailedException do
-      -> {
-        s.empty?
-      }.should complain(/empty?.*obsolete.*eos?/, verbose: true)
-    end
+    -> {
+      s.empty?
+    }.should complain(/empty?.*obsolete.*eos?/, verbose: true)
 
     -> {
       s.empty?

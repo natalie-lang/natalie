@@ -45,7 +45,10 @@ class StringScanner
     @pos >= @string.size
   end
 
-  alias empty? eos?
+  def empty?
+    warn("warning: StringScanner#empty? is obsolete; use #eos? instead") if $VERBOSE
+    eos?
+  end
 
   def captures
     @match.captures if @matched
