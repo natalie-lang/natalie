@@ -27,27 +27,27 @@ describe "Literal (A::X) constant resolution" do
     end
 
     it "searches a module included in the superclass" do
-      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST12' do
+      NATFIXME 'searches a module included in the superclass', exception: NameError do
         ConstantSpecs::ContainerA::ChildA::CS_CONST12.should == :const12_1
       end
     end
 
     it "searches the superclass chain" do
-      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST13' do
+      NATFIXME 'searches the superclass chain', exception: NameError do
         ConstantSpecs::ContainerA::ChildA::CS_CONST13.should == :const13
       end
     end
 
     it "searches Object if no class or module qualifier is given" do
       CS_CONST1.should == :const1
-      NATFIXME 'searches Object if no class or module qualifier is given', exception: NameError, message: 'uninitialized constant CS_CONST10' do
+      NATFIXME 'searches Object if no class or module qualifier is given', exception: NameError do
         CS_CONST10.should == :const10_1
       end
     end
 
     it "searches Object after searching other scopes" do
       module ConstantSpecs::SpecAdded1
-        NATFIXME 'searches Object after searching other scopes', exception: NameError, message: 'uninitialized constant CS_CONST10' do
+        NATFIXME 'searches Object after searching other scopes', exception: NameError do
           CS_CONST10.should == :const10_1
         end
       end
@@ -55,7 +55,7 @@ describe "Literal (A::X) constant resolution" do
 
     it "searches Object if a toplevel qualifier (::X) is given" do
       ::CS_CONST1.should == :const1
-      NATFIXME 'searches Object if a toplevel qualifier (::X) is given', exception: NameError, message: 'uninitialized constant Object::CS_CONST10' do
+      NATFIXME 'searches Object if a toplevel qualifier (::X) is given', exception: NameError do
         ::CS_CONST10.should == :const10_1
       end
     end
@@ -101,14 +101,14 @@ describe "Literal (A::X) constant resolution" do
     it "searches a module included in the superclass" do
       ConstantSpecs::ModuleA::CS_CONST104 = :const104_1
       ConstantSpecs::ModuleE::CS_CONST104 = :const104_2
-      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerB::ChildB::CS_CONST104' do
+      NATFIXME 'searches a module included in the superclass', exception: NameError do
         ConstantSpecs::ContainerB::ChildB::CS_CONST104.should == :const104_2
       end
     end
 
     it "searches the superclass chain" do
       ConstantSpecs::ModuleA::CS_CONST105 = :const105
-      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerB::ChildB::CS_CONST105' do
+      NATFIXME 'searches the superclass chain', exception: NameError do
         ConstantSpecs::ContainerB::ChildB::CS_CONST105.should == :const105
       end
     end
@@ -223,9 +223,7 @@ describe "Literal (A::X) constant resolution" do
   end
 
   it "sends #const_missing to the original class or module scope" do
-    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant ConstantSpecs::ClassA::CS_CONSTX' do
-      ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
-    end
+    ConstantSpecs::ClassA::CS_CONSTX.should == :CS_CONSTX
   end
 
   it "evaluates the qualifier" do
@@ -266,14 +264,14 @@ describe "Constant resolution within methods" do
     end
 
     it "searches a module included in the superclass" do
-      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant CS_CONST12' do
+      NATFIXME 'searches a module included in the superclass', exception: NameError do
         ConstantSpecs::ContainerA::ChildA.const12.should == :const12_1
         ConstantSpecs::ContainerA::ChildA.new.const12.should == :const12_1
       end
     end
 
     it "searches the superclass chain" do
-      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant CS_CONST13' do
+      NATFIXME 'searches the superclass chain', exception: NameError do
         ConstantSpecs::ContainerA::ChildA.const13.should == :const13
         ConstantSpecs::ContainerA::ChildA.new.const13.should == :const13
       end
@@ -354,7 +352,7 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ModuleA::CS_CONST204 = :const204_2
       ConstantSpecs::ModuleE::CS_CONST204 = :const204_1
 
-      NATFIXME 'searches a module included in the superclass', exception: NameError, message: 'uninitialized constant CS_CONST204' do
+      NATFIXME 'searches a module included in the superclass', exception: NameError do
         ConstantSpecs::ContainerB::ChildB.const204.should == :const204_1
         ConstantSpecs::ContainerB::ChildB.new.const204.should == :const204_1
       end
@@ -363,7 +361,7 @@ describe "Constant resolution within methods" do
     it "searches the superclass chain" do
       ConstantSpecs::ModuleA::CS_CONST205 = :const205
 
-      NATFIXME 'searches the superclass chain', exception: NameError, message: 'uninitialized constant CS_CONST205' do
+      NATFIXME 'searches the superclass chain', exception: NameError do
         ConstantSpecs::ContainerB::ChildB.const205.should == :const205
         ConstantSpecs::ContainerB::ChildB.new.const205.should == :const205
       end
@@ -446,22 +444,20 @@ describe "Constant resolution within methods" do
   end
 
   it "sends #const_missing to the original class or module scope" do
-    NATFIXME 'sends #const_missing to the original class or module scope', exception: NameError, message: 'uninitialized constant CS_CONSTX' do
-      ConstantSpecs::ClassA.constx.should == :CS_CONSTX
-      ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
-    end
+    ConstantSpecs::ClassA.constx.should == :CS_CONSTX
+    ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
   end
 end
 
 describe "Constant resolution within a singleton class (class << obj)" do
   it "works like normal classes or modules" do
-    NATFIXME 'works like normal classes or modules', exception: NameError, message: 'uninitialized constant CONST' do
+    NATFIXME 'works like normal classes or modules', exception: NameError do
       ConstantSpecs::CS_SINGLETON1.foo.should == 1
     end
   end
 
   it "uses its own namespace for each object" do
-    NATFIXME 'uses its own namespace for each object', exception: NameError, message: 'uninitialized constant CONST' do
+    NATFIXME 'uses its own namespace for each object', exception: NameError do
       a = ConstantSpecs::CS_SINGLETON2[0].foo
       b = ConstantSpecs::CS_SINGLETON2[1].foo
       [a, b].should == [1, 2]
@@ -469,7 +465,7 @@ describe "Constant resolution within a singleton class (class << obj)" do
   end
 
   it "uses its own namespace for nested modules" do
-    NATFIXME 'uses its own namespace for nested modules', exception: NameError, message: 'uninitialized constant X' do
+    NATFIXME 'uses its own namespace for nested modules', exception: NameError do
       a = ConstantSpecs::CS_SINGLETON3[0].x
       b = ConstantSpecs::CS_SINGLETON3[1].x
       a.should_not equal(b)

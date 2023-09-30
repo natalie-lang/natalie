@@ -53,10 +53,11 @@ public:
     virtual Value const_set(SymbolObject *, Value) override;
     virtual Value const_set(SymbolObject *, MethodFnPtr) override;
 
-    Value const_get(Env *, Value) const;
+    Value const_get(Env *, Value);
     Value const_set(Env *, Value, Value);
     void const_remove(SymbolObject *);
     Value constants(Env *, Value) const;
+    Value const_missing(Env *, Value);
 
     void make_alias(Env *, SymbolObject *, SymbolObject *);
     virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
@@ -164,7 +165,7 @@ public:
     }
 
 protected:
-    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
+    Constant *find_constant(Env *, SymbolObject *, ModuleObject **, ConstLookupSearchMode = ConstLookupSearchMode::Strict);
 
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Constant *> m_constants {};
