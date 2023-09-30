@@ -51,18 +51,14 @@ describe "StringScanner#scan" do
   end
 
   it "treats String as the pattern itself" do
-    NATFIXME 'Support String pattern', exception: NoMethodError, message: "undefined method `source'" do
-      @s.scan("this").should be_nil
-      @s.scan("This").should == "This"
-    end
+    @s.scan("this").should be_nil
+    @s.scan("This").should == "This"
   end
 
   it "raises a TypeError if pattern isn't a Regexp nor String" do
-    NATFIXME 'validate pattern type', exception: SpecFailedException do
-      -> { @s.scan(5)         }.should raise_error(TypeError)
-      -> { @s.scan(:test)     }.should raise_error(TypeError)
-      -> { @s.scan(mock('x')) }.should raise_error(TypeError)
-    end
+    -> { @s.scan(5)         }.should raise_error(TypeError)
+    -> { @s.scan(:test)     }.should raise_error(TypeError)
+    -> { @s.scan(mock('x')) }.should raise_error(TypeError)
   end
 end
 

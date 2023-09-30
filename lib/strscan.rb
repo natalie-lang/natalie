@@ -81,6 +81,11 @@ class StringScanner
   end
 
   def scan(pattern)
+    unless pattern.is_a?(Regexp)
+      pattern = pattern.to_str if !pattern.is_a?(String) && pattern.respond_to?(:to_str)
+      raise TypeError, "no implicit conversion of #{pattern.class} into String" unless pattern.is_a?(String)
+      pattern = Regexp.new(Regexp.quote(pattern))
+    end
     anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
@@ -182,12 +187,7 @@ class StringScanner
 
   def [](index)
     return nil unless @match
-    if index.is_a?(Integer) || index.is_a?(String)
-      return nil unless index.is_a?(Integer) # FIXME
-      @match[index]
-    else
-      raise TypeError, "Bad index: #{index.inspect}"
-    end
+    @match[index]
   end
 
   def exist?(pattern)
