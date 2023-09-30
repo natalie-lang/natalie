@@ -173,12 +173,7 @@ class StringScanner
 
   def [](index)
     return nil unless @match
-    if index.is_a?(Integer) || index.is_a?(String)
-      return nil unless index.is_a?(Integer) # FIXME
-      @match[index]
-    else
-      raise TypeError, "Bad index: #{index.inspect}"
-    end
+    @match[index]
   end
 
   def exist?(pattern)

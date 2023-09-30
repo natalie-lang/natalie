@@ -29,9 +29,7 @@ describe "StringScanner#[]" do
 
   it "calls to_int on the given index" do
     @s.scan(/(\w+) (\w+) (\d+) /)
-    NATFIXME 'Support float index', exception: TypeError, message: 'Bad index: 0.5' do
-      @s[0.5].should == "Fri Jun 13 "
-    end
+    @s[0.5].should == "Fri Jun 13 "
   end
 
   it "raises a TypeError if the given index is nil" do
@@ -46,23 +44,17 @@ describe "StringScanner#[]" do
 
   it "raises a IndexError when there's no named capture" do
     @s.scan(/(\w+) (\w+) (\d+) /)
-    NATFIXME 'Raise IndexError instead of returning nil', exception: SpecFailedException do
-      -> { @s["wday"]}.should raise_error(IndexError)
-    end
-    NATFIXME 'Raise IndexError instead of TypeError', exception: SpecFailedException do
-      -> { @s[:wday]}.should raise_error(IndexError)
-    end
+    -> { @s["wday"]}.should raise_error(IndexError)
+    -> { @s[:wday]}.should raise_error(IndexError)
   end
 
   it "returns named capture" do
     @s.scan(/(?<wday>\w+) (?<month>\w+) (?<day>\d+) /)
-    NATFIXME 'Support named captures', exception: SpecFailedException do
-      @s["wday"].should == "Fri"
-      @s["month"].should == "Jun"
-      @s["day"].should == "13"
-      @s[:wday].should == "Fri"
-      @s[:month].should == "Jun"
-      @s[:day].should == "13"
-    end
+    @s["wday"].should == "Fri"
+    @s["month"].should == "Jun"
+    @s["day"].should == "13"
+    @s[:wday].should == "Fri"
+    @s[:month].should == "Jun"
+    @s[:day].should == "13"
   end
 end
