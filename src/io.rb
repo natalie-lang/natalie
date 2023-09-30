@@ -10,6 +10,7 @@ class IO
         yield(obj)
       ensure
         begin
+          obj.fsync unless obj.tty?
           obj.close
         rescue IOError => e
           raise unless e.message == 'closed stream'
