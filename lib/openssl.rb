@@ -45,4 +45,8 @@ module OpenSSL
       super
     end
   end
+
+  module KDF
+    class KDFError < OpenSSLError; end
+  end
 end
