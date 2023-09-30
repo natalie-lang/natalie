@@ -3,8 +3,9 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineModuleInstruction < BaseInstruction
-      def initialize(name:)
+      def initialize(name:, is_private:)
         @name = name
+        @is_private = is_private
       end
 
       def has_body?
@@ -13,8 +14,14 @@ module Natalie
 
       attr_reader :name
 
+      def private?
+        @is_private
+      end
+
       def to_s
-        "define_module #{@name}"
+        s = "define_module #{@name}"
+        s << ' (private)' if @is_private
+        s
       end
 
       def generate(transform)
@@ -30,7 +37,10 @@ module Natalie
         mod = transform.temp('module')
         namespace = transform.pop
         code = []
-        code << "auto #{mod} = #{namespace}->const_find_with_autoload(env, self, #{transform.intern(@name)}, Object::ConstLookupSearchMode::Strict, Object::ConstLookupFailureMode::Null)"
+        search_mode = private? ? 'StrictPrivate' : 'Strict'
+        code << "auto #{mod} = #{namespace}->const_find_with_autoload(env, self, " \
+                "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
+                'Object::ConstLookupFailureMode::Null)'
         code << "if (!#{mod}) {"
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{mod})"

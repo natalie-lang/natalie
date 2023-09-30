@@ -182,7 +182,7 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
 
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
-    if (search_mode == ConstLookupSearchMode::Strict) {
+    if (search_mode == ConstLookupSearchMode::Strict || search_mode == ConstLookupSearchMode::StrictPrivate) {
         env->raise_name_error(name, "uninitialized constant {}::{}", this->inspect_str(), name->string());
     } else {
         env->raise_name_error(name, "uninitialized constant {}", name->string());

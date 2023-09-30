@@ -50,6 +50,7 @@ public:
     enum class ConstLookupSearchMode {
         NotStrict,
         Strict,
+        StrictPrivate,
     };
 
     enum class ConstLookupFailureMode {
