@@ -49,9 +49,21 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
     return IntegerObject::create(block_size);
 }
 
+Value OpenSSL_Digest_reset(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    const EVP_MD *md = EVP_get_digestbyname(self->send(env, "name"_s)->as_string()->c_str());
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
+
+    if (!EVP_MD_CTX_reset(mdctx))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+
+    return self;
+}
+
 Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
-    const EVP_MD *md = EVP_get_digestbyname(self->send(env, "name"_s)->as_string()->c_str());
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
     if (args.size() == 1) {
@@ -65,8 +77,7 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     unsigned int md_len;
     if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
         env->raise("RuntimeError", "Internal OpenSSL error");
-    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
-        env->raise("RuntimeError", "Internal OpenSSL error");
+    OpenSSL_Digest_reset(env, self, {}, nullptr);
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
 }
@@ -116,6 +127,7 @@ Value init(Env *env, Value self) {
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, -1);
     Digest->define_method(env, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
+    Digest->define_method(env, "reset"_s, OpenSSL_Digest_reset, 0);
     Digest->define_method(env, "update"_s, OpenSSL_Digest_update, 1);
     Digest->define_method(env, "<<"_s, OpenSSL_Digest_update, 1);
 
