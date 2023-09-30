@@ -8,6 +8,11 @@
 
 using namespace Natalie;
 
+static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->void_ptr());
+    EVP_MD_CTX_free(mdctx);
+}
+
 Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto name = args.at(0);
@@ -21,25 +26,18 @@ Value OpenSSL_Digest_initialize(Env *env, Value self, Args args, Block *) {
     if (!md)
         env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name->as_string()->string());
 
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+
     self->ivar_set(env, "@name"_s, name->as_string()->upcase(env, nullptr, nullptr));
+    self->ivar_set(env, "@mdctx"_s, new VoidPObject { mdctx, OpenSSL_MD_CTX_cleanup });
 
     return self;
 }
 
 Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
-    auto name = self->send(env, "name"_s);
-    name->assert_type(env, Object::Type::String, "String");
-
-    args.ensure_argc_is(env, 0);
-    const EVP_MD *md = EVP_get_digestbyname(name->as_string()->c_str());
-    if (!md)
-        env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", name);
-
-    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-    auto mdctx_destructor = TM::Defer([&]() { EVP_MD_CTX_free(mdctx); });
-    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
-        env->raise("RuntimeError", "Internal OpenSSL error");
-
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int block_size = EVP_MD_CTX_block_size(mdctx);
     return IntegerObject::create(block_size);
 }

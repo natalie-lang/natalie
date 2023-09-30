@@ -33,25 +33,25 @@ module OpenSSL
 
     class SHA1 < Digest
       def initialize()
-        @name = 'SHA1'
+        super('SHA1')
       end
     end
 
     class SHA256 < Digest
       def initialize()
-        @name = 'SHA256'
+        super('SHA256')
       end
     end
 
     class SHA384 < Digest
       def initialize()
-        @name = 'SHA384'
+        super('SHA384')
       end
     end
 
     class SHA512 < Digest
       def initialize()
-        @name = 'SHA512'
+        super('SHA512')
       end
     end
   end
