@@ -8,68 +8,52 @@ describe :openssl_digest_update, shared: true do
   context "it supports full data chunks" do
     it "returns a SHA1 digest" do
       digest = OpenSSL::Digest.new('sha1')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        digest.send(@method, SHA1Constants::Contents)
-        digest.digest.should == SHA1Constants::Digest
-      end
+      digest.send(@method, SHA1Constants::Contents)
+      digest.digest.should == SHA1Constants::Digest
     end
 
     it "returns a SHA256 digest" do
       digest = OpenSSL::Digest.new('sha256')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        digest.send(@method, SHA256Constants::Contents)
-        digest.digest.should == SHA256Constants::Digest
-      end
+      digest.send(@method, SHA256Constants::Contents)
+      digest.digest.should == SHA256Constants::Digest
     end
 
     it "returns a SHA384 digest" do
       digest = OpenSSL::Digest.new('sha384')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        digest.send(@method, SHA384Constants::Contents)
-        digest.digest.should == SHA384Constants::Digest
-      end
+      digest.send(@method, SHA384Constants::Contents)
+      digest.digest.should == SHA384Constants::Digest
     end
 
     it "returns a SHA512 digest" do
       digest = OpenSSL::Digest.new('sha512')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        digest.send(@method, SHA512Constants::Contents)
-        digest.digest.should == SHA512Constants::Digest
-      end
+      digest.send(@method, SHA512Constants::Contents)
+      digest.digest.should == SHA512Constants::Digest
     end
   end
 
   context "it support smaller chunks" do
     it "returns a SHA1 digest" do
       digest = OpenSSL::Digest.new('sha1')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        SHA1Constants::Contents.each_char { |b| digest.send(@method, b) }
-        digest.digest.should == SHA1Constants::Digest
-      end
+      SHA1Constants::Contents.each_char { |b| digest.send(@method, b) }
+      digest.digest.should == SHA1Constants::Digest
     end
 
     it "returns a SHA256 digest" do
       digest = OpenSSL::Digest.new('sha256')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        SHA256Constants::Contents.each_char { |b| digest.send(@method, b) }
-        digest.digest.should == SHA256Constants::Digest
-      end
+      SHA256Constants::Contents.each_char { |b| digest.send(@method, b) }
+      digest.digest.should == SHA256Constants::Digest
     end
 
     it "returns a SHA384 digest" do
       digest = OpenSSL::Digest.new('sha384')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        SHA384Constants::Contents.each_char { |b| digest.send(@method, b) }
-        digest.digest.should == SHA384Constants::Digest
-      end
+      SHA384Constants::Contents.each_char { |b| digest.send(@method, b) }
+      digest.digest.should == SHA384Constants::Digest
     end
 
     it "returns a SHA512 digest" do
       digest = OpenSSL::Digest.new('sha512')
-      NATFIXME 'Implement OpenSSL::Digest#<< and OpenSSL::Digest#update', exception: NoMethodError, message: "undefined method `#{@method}'" do
-        SHA512Constants::Contents.each_char { |b| digest.send(@method, b) }
-        digest.digest.should == SHA512Constants::Digest
-      end
+      SHA512Constants::Contents.each_char { |b| digest.send(@method, b) }
+      digest.digest.should == SHA512Constants::Digest
     end
   end
 end

@@ -51,6 +51,7 @@ Value OpenSSL_Digest_block_length(Env *env, Value self, Args args, Block *) {
 
 Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
+    const EVP_MD *md = EVP_get_digestbyname(self->send(env, "name"_s)->as_string()->c_str());
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
     if (args.size() == 1) {
@@ -64,6 +65,8 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     unsigned int md_len;
     if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
         env->raise("RuntimeError", "Internal OpenSSL error");
+    if (!EVP_DigestInit_ex(mdctx, md, nullptr))
+        env->raise("RuntimeError", "Internal OpenSSL error");
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len };
 }
@@ -73,6 +76,19 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int digest_length = EVP_MD_CTX_size(mdctx);
     return IntegerObject::create(digest_length);
+}
+
+Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
+
+    Value data = args[0];
+    data->assert_type(env, Object::Type::String, "String");
+
+    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
+        env->raise("RuntimeError", "Internal OpenSSL error");
+
+    return self;
 }
 
 Value init(Env *env, Value self) {
@@ -100,6 +116,8 @@ Value init(Env *env, Value self) {
     Digest->define_method(env, "block_length"_s, OpenSSL_Digest_block_length, 0);
     Digest->define_method(env, "digest"_s, OpenSSL_Digest_digest, -1);
     Digest->define_method(env, "digest_length"_s, OpenSSL_Digest_digest_length, 0);
+    Digest->define_method(env, "update"_s, OpenSSL_Digest_update, 1);
+    Digest->define_method(env, "<<"_s, OpenSSL_Digest_update, 1);
 
     return NilObject::the();
 }
