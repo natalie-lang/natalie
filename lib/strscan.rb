@@ -249,7 +249,10 @@ class StringScanner
     rest.size
   end
 
-  alias restsize rest_size
+  def restsize
+    warn("warning: StringScanner#restsize is obsolete; use #rest_size instead") if $VERBOSE
+    rest_size
+  end
 
   def rest?
     @pos < @string.size
