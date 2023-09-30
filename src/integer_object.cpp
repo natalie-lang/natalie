@@ -489,7 +489,10 @@ Value IntegerObject::pred(Env *env) {
 }
 
 Value IntegerObject::size(Env *env) {
-    // NATFIXME: add Bignum support.
+    if (is_bignum()) {
+        const nat_int_t bitstring_size = to_s(env, Value::integer(2))->as_string()->bytesize();
+        return Value::integer((bitstring_size + 7) / 8);
+    }
     return Value::integer(sizeof(nat_int_t));
 }
 
