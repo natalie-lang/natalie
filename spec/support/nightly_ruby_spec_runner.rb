@@ -107,7 +107,9 @@ Dir[specs].each do |path|
     if !status.success? && !current[:timeouted]
       puts "Spec #{path} crashed"
       current[:crashed] = true
-      current[:error_messages] = File.readlines(stderr.path)
+      lines = File.readlines(stderr.path).map(&:chomp)
+      error_message = lines.last.split(':', 4).last
+      current[:error_messages] = ["#{error_message}\n" + lines.inspect]
       crashed_count += 1
     end
 
