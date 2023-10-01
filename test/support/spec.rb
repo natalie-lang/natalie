@@ -232,16 +232,17 @@ def min_long
   -(2**(0.size * 8 - 1))
 end
 
-def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0)
+def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0, env: {})
+  env = env.map { |key, value| "#{key}=#{value} " }.join
   binary = ENV['NAT_BINARY'] || 'bin/natalie'
   if code.nil?
     return binary if args.nil?
 
-    return `#{binary} #{options} #{args}`
+    return `#{env}#{binary} #{options} #{args}`
   end
 
   output = if !escape
-             `#{binary} #{options} -e #{code.inspect} #{args}`
+             `#{env}#{binary} #{options} -e #{code.inspect} #{args}`
            elsif File.readable?(code)
              `#{binary} #{options} #{code} #{args}`
            else
@@ -249,7 +250,7 @@ def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0)
                file.write(code)
                file.rewind
 
-               `#{binary} #{options} #{file.path} #{args}`
+               `#{env}#{binary} #{options} #{file.path} #{args}`
              end
            end
 
