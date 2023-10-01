@@ -870,7 +870,7 @@ gen.binding('IO', 'fileno', 'IoObject', 'fileno', argc: 0, pass_env: true, pass_
 gen.binding('IO', 'fsync', 'IoObject', 'fsync', argc: 0, pass_env: true, pass_block: false, return_type: :int)
 gen.binding('IO', 'getbyte', 'IoObject', 'getbyte', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'gets', 'IoObject', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('IO', 'initialize', 'IoObject', 'initialize', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'initialize', 'IoObject', 'initialize', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('IO', 'inspect', 'IoObject', 'inspect', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('IO', 'internal_encoding', 'IoObject', 'internal_encoding', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('IO', 'isatty', 'IoObject', 'isatty', argc: 0, pass_env: true, pass_block: false, aliases: ['tty?'], return_type: :bool)
