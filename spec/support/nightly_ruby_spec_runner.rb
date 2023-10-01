@@ -64,7 +64,9 @@ Dir[specs].each do |path|
 
     unless system("bin/natalie -c #{binary_name} #{path} 2> #{stderr.path}")
       compile_errors += 1
-      current[:error_messages] = File.readlines(stderr.path)
+      lines = File.readlines(stderr.path).map(&:chomp)
+      error_message = lines.reject(&:empty?).first.split(':', 4).last.strip
+      current[:error_messages] = ["#{error_message}\n" + lines.inspect]
       puts "Spec #{path} could not be compiled"
       return
     end
@@ -105,7 +107,9 @@ Dir[specs].each do |path|
     if !status.success? && !current[:timeouted]
       puts "Spec #{path} crashed"
       current[:crashed] = true
-      current[:error_messages] = File.readlines(stderr.path)
+      lines = File.readlines(stderr.path).map(&:chomp)
+      error_message = lines.last.split(':', 4).last
+      current[:error_messages] = ["#{error_message}\n" + lines.inspect]
       crashed_count += 1
     end
 
