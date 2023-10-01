@@ -302,7 +302,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
     set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     m_autoclose = wanted_flags.autoclose;
     if (block)
-        env->warn("IO::new() does not take block; use IO::open() instead");
+        env->warn("{}::new() does not take block; use {}::open() instead", m_klass->inspect_str(), m_klass->inspect_str());
     return this;
 }
 
