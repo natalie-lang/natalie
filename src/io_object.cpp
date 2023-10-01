@@ -281,7 +281,7 @@ namespace ioutil {
     }
 }
 
-Value IoObject::initialize(Env *env, Args args) {
+Value IoObject::initialize(Env *env, Args args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 2);
     Value file_number = args.at(0);
@@ -301,6 +301,8 @@ Value IoObject::initialize(Env *env, Args args) {
     set_fileno(fileno);
     set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     m_autoclose = wanted_flags.autoclose;
+    if (block)
+        env->warn("{}::new() does not take block; use {}::open() instead", m_klass->inspect_str(), m_klass->inspect_str());
     return this;
 }
 

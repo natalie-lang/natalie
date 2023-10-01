@@ -27,6 +27,8 @@ class StringIO
     if !closed_write? && string.frozen?
       raise Errno::EACCES, 'Permission denied'
     end
+
+    warn('warning: StringIO::new() does not take block; use StringIO::open() instead') if block_given?
   end
 
   def close

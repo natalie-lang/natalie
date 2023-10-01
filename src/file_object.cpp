@@ -34,7 +34,6 @@ static int effective_uid_access(const char *path_name, int type) {
 #endif
 }
 
-// NATFIXME : block form is not used
 Value FileObject::initialize(Env *env, Args args, Block *block) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
@@ -62,6 +61,8 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
         set_path(filename->as_string());
     }
     set_encoding(env, flags.external_encoding, flags.internal_encoding);
+    if (block)
+        env->warn("File::new() does not take block; use File::open() instead");
     return this;
 }
 
