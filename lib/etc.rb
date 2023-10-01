@@ -16,7 +16,7 @@ module Etc
   __bind_static_method__ :getpwnam, :Etc_getpwnam
   __bind_static_method__ :getpwuid, :Etc_getpwuid
   #__bind_static_method__ :group, :Etc_group
-  #__bind_static_method__ :nprocessors, :Etc_nprocessors
+  __bind_static_method__ :nprocessors, :Etc_nprocessors
   #__bind_static_method__ :passwd, :Etc_passwd
   __bind_static_method__ :setgrent, :Etc_setgrent
   __bind_static_method__ :setpwent, :Etc_setpwent

@@ -146,6 +146,13 @@ Value Etc_getpwuid(Env *env, Value self, Args args, Block *_block) {
     return passwd_to_struct(env, self, pwd);
 }
 
+Value Etc_nprocessors(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    const auto result = sysconf(_SC_NPROCESSORS_ONLN);
+    if (result < 0) env->raise_errno();
+    return IntegerObject::create(result);
+}
+
 Value Etc_setgrent(Env *env, Value self, Args args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::setgrent();
