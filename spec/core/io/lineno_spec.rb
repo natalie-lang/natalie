@@ -26,9 +26,11 @@ describe "IO#lineno" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    IO.popen('cat', 'r+') do |p|
-      p.close_read
-      -> { p.lineno }.should raise_error(IOError)
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+      IO.popen('cat', 'r+') do |p|
+        p.close_read
+        -> { p.lineno }.should raise_error(IOError)
+      end
     end
   end
 
@@ -70,9 +72,11 @@ describe "IO#lineno=" do
   end
 
   it "raises an IOError on a duplexed stream with the read side closed" do
-    IO.popen('cat', 'r+') do |p|
-      p.close_read
-      -> { p.lineno = 0 }.should raise_error(IOError)
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+      IO.popen('cat', 'r+') do |p|
+        p.close_read
+        -> { p.lineno = 0 }.should raise_error(IOError)
+      end
     end
   end
 
@@ -129,8 +133,10 @@ describe "IO#lineno=" do
     @io.lineno = count = 500
     $..should == 0
 
-    while @io.gets
-      $..should == count += 1
+    NATFIXME 'Implement $.', exception: SpecFailedException do
+      while @io.gets
+        $..should == count += 1
+      end
     end
   end
 end
