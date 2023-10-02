@@ -322,6 +322,7 @@ describe "IO#read" do
     NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
       @io.getc.chr.should == '1'
     end
+    @io.getbyte.chr.should == '1'
   end
 
   it "is at end-of-file when everything has been read" do
@@ -689,8 +690,7 @@ describe "IO#read" do
       it_behaves_like :io_read_size_internal_encoding, nil
     end
 
-    # NATFIXME: Support keyword arguments
-    xdescribe "specified by mode: option" do
+    describe "specified by mode: option" do
       before :each do
         @io = IOSpecs.io_fixture "read_euc_jp.txt", mode: "r:euc-jp:utf-8"
       end
@@ -699,8 +699,7 @@ describe "IO#read" do
       it_behaves_like :io_read_size_internal_encoding, nil
     end
 
-    # NATFIXME: Support keyword arguments
-    xdescribe "specified by internal_encoding: option" do
+    describe "specified by internal_encoding: option" do
       before :each do
         options = { mode: "r",
                     internal_encoding: "utf-8",
@@ -712,8 +711,7 @@ describe "IO#read" do
       it_behaves_like :io_read_size_internal_encoding, nil
     end
 
-    # NATFIXME: Support keyword arguments
-    xdescribe "specified by encoding: option" do
+    describe "specified by encoding: option" do
       before :each do
         options = { mode: "r", encoding: "euc-jp:utf-8" }
         @io = IOSpecs.io_fixture "read_euc_jp.txt", options
