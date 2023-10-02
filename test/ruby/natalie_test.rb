@@ -10,7 +10,7 @@ describe 'Natalie tests' do
   parallelize_me!
 
   Dir.chdir File.expand_path('../..', __dir__)
-  Dir['test/natalie/*_test.rb'].each do |path|
+  Dir['test/natalie/**/*_test.rb'].each do |path|
     code = File.read(path, encoding: 'utf-8')
     describe path do
       if code =~ /# skip-ruby/
