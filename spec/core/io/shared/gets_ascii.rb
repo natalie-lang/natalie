@@ -5,7 +5,9 @@ describe :io_gets_ascii, shared: true do
       @name = tmp("gets_specs.txt")
       touch(@name, "wb") { |f| f.print "this is a test\xFFtesty\ntestier" }
 
-      File.open(@name, "rb") { |f| @data = f.send(@method, "\xFF") }
+      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+        File.open(@name, "rb") { |f| @data = f.send(@method, "\xFF") }
+      end
     end
 
     after :each do
@@ -13,7 +15,9 @@ describe :io_gets_ascii, shared: true do
     end
 
     it "returns the separator's character representation" do
-      @data.should == "this is a test\xFF"
+      NATFIXME 'Broken setup', exception: SpecFailedException do
+        @data.should == "this is a test\xFF"
+      end
     end
   end
 end
