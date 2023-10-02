@@ -475,6 +475,10 @@ bool IoObject::isatty(Env *env) const {
     return ::isatty(m_fileno) == 1;
 }
 
+int IoObject::lineno(Env *env) const {
+    return m_lineno;
+}
+
 Value IoObject::read_file(Env *env, Args args) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
@@ -808,6 +812,11 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
     }
 
     return this;
+}
+
+Value IoObject::set_lineno(Env *env, Value lineno) {
+    m_lineno = lineno->to_int(env)->to_nat_int_t();
+    return lineno;
 }
 
 Value IoObject::set_sync(Env *env, Value value) {

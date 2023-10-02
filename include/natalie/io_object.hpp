@@ -95,6 +95,7 @@ public:
     bool is_close_on_exec(Env *) const;
     bool is_eof(Env *);
     bool isatty(Env *) const;
+    int lineno(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
@@ -107,6 +108,7 @@ public:
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
+    Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
@@ -136,6 +138,7 @@ private:
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
+    int m_lineno { 0 };
     bool m_closed { false };
     bool m_autoclose { false };
     bool m_sync { false };
