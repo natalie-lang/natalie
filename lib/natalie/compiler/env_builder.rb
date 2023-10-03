@@ -65,8 +65,8 @@ module Natalie
       def process_while(i) @env = i.env || { vars: {}, outer: @env, hoist: true, while: true } end
       def process_end_while(_) @env = @env.fetch(:outer) end
 
-      def process_with_self(i) @env = i.env || { vars: {}, outer: @env } end
-      def process_end_with_self(_) @env = @env.fetch(:outer) end
+      def process_with_main(i) @env = i.env || { vars: {}, outer: @env, main: true } end
+      def process_end_with_main(_) @env = @env.fetch(:outer) end
     end
   end
 end
