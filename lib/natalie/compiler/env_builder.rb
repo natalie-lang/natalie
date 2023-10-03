@@ -22,7 +22,9 @@ module Natalie
           @instruction_stack << instruction if instruction.has_body?
 
           if instruction.is_a?(EndInstruction)
-            instruction.matching_instruction = @instruction_stack.pop
+            unless (instruction.matching_instruction = @instruction_stack.pop)
+              raise 'not enough stack'
+            end
             instruction.env = @env
           end
 
