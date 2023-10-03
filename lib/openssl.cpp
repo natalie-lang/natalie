@@ -11,6 +11,12 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     EVP_MD_CTX_free(mdctx);
 }
 
+static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
+    static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
+    if (!klass) klass = OpenSSLError;
+    env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
+}
+
 Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
@@ -137,10 +143,8 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
         env->raise("ArgumentError", "negative string size (or size too big)");
 
     unsigned char buf[num];
-    if (RAND_bytes(buf, num) != 1) {
-        auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
-        env->raise(OpenSSLError, "RAND_bytes: {}", ERR_reason_error_string(ERR_get_error()));
-    }
+    if (RAND_bytes(buf, num) != 1)
+        OpenSSL_raise_error(env, "RAND_bytes");
 
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
