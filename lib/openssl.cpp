@@ -138,10 +138,8 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
 
     unsigned char buf[num];
     if (RAND_bytes(buf, num) != 1) {
-        const auto err = ERR_get_error();
-        char err_buf[256];
-        ERR_error_string_n(err, err_buf, 256);
-        env->raise("RuntimeError", err_buf);
+        auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
+        env->raise(OpenSSLError, "RAND_bytes: {}", ERR_reason_error_string(ERR_get_error()));
     }
 
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
