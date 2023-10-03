@@ -85,7 +85,7 @@ public:
     int fileno(Env *) const;
     int fsync(Env *);
     Value getbyte(Env *);
-    Value gets(Env *) const;
+    Value gets(Env *);
     Value initialize(Env *, Args, Block * = nullptr);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
@@ -95,6 +95,7 @@ public:
     bool is_close_on_exec(Env *) const;
     bool is_eof(Env *);
     bool isatty(Env *) const;
+    int lineno(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
@@ -107,13 +108,14 @@ public:
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
+    Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value) const;
     static Value read_file(Env *, Args);
     Value readbyte(Env *);
-    Value readline(Env *) const;
+    Value readline(Env *);
     int rewind(Env *);
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
@@ -136,6 +138,7 @@ private:
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
+    int m_lineno { 0 };
     bool m_closed { false };
     bool m_autoclose { false };
     bool m_sync { false };

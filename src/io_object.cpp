@@ -475,6 +475,13 @@ bool IoObject::isatty(Env *env) const {
     return ::isatty(m_fileno) == 1;
 }
 
+int IoObject::lineno(Env *env) const {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    return m_lineno;
+}
+
 Value IoObject::read_file(Env *env, Args args) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 3);
@@ -612,7 +619,7 @@ Value IoObject::write(Env *env, Args args) const {
 }
 
 // NATFIXME: Make this spec compliant and maybe more performant?
-Value IoObject::gets(Env *env) const {
+Value IoObject::gets(Env *env) {
     raise_if_closed(env);
     char buffer[NAT_READ_BYTES + 1];
     size_t index;
@@ -625,6 +632,7 @@ Value IoObject::gets(Env *env) const {
     }
     auto line = new StringObject { buffer, index + 1 };
     env->set_last_line(line);
+    m_lineno++;
     return line;
 }
 
@@ -810,6 +818,14 @@ Value IoObject::set_encoding(Env *env, Value ext_enc, Value int_enc) {
     return this;
 }
 
+Value IoObject::set_lineno(Env *env, Value lineno) {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    m_lineno = IntegerObject::convert_to_int(env, lineno);
+    return lineno;
+}
+
 Value IoObject::set_sync(Env *env, Value value) {
     raise_if_closed(env);
     m_sync = value->is_truthy();
@@ -858,6 +874,7 @@ int IoObject::rewind(Env *env) {
     errno = 0;
     auto result = ::lseek(m_fileno, 0, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
+    m_lineno = 0;
     return 0;
 }
 
@@ -982,7 +999,7 @@ Value IoObject::readbyte(Env *env) {
 // This is a variant of gets that raises EOFError
 // NATFIXME: Add arguments and chomp kwarg when those features are
 //  added to IOObject::gets()
-Value IoObject::readline(Env *env) const {
+Value IoObject::readline(Env *env) {
     auto result = gets(env);
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
