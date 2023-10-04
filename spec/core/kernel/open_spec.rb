@@ -26,9 +26,7 @@ describe "Kernel#open" do
   end
 
   it "opens a file when called with a block" do
-    NATFIXME 'opens a file when called with a block', exception: SpecFailedException do
-      open(@name, "r") { |f| f.gets }.should == @content
-    end
+    open(@name, "r") { |f| f.gets }.should == @content
   end
 
   platform_is_not :windows, :wasi do
@@ -121,18 +119,14 @@ describe "Kernel#open" do
       obj.should_receive(:to_path).at_least(1).times.and_return(@name)
       obj.should_not_receive(:to_str)
 
-      NATFIXME 'calls #to_path to covert the argument to a String before calling #to_str', exception: SpecFailedException do
-        open(obj, "r") { |f| f.gets }.should == @content
-      end
+      open(obj, "r") { |f| f.gets }.should == @content
     end
 
     it "calls #to_str to convert the argument to a String" do
       obj = mock("open to_str")
       obj.should_receive(:to_str).at_least(1).times.and_return(@name)
 
-      NATFIXME 'calls #to_str to convert the argument to a String', exception: SpecFailedException do
-        open(obj, "r") { |f| f.gets }.should == @content
-      end
+      open(obj, "r") { |f| f.gets }.should == @content
     end
 
     it "calls #to_open on argument" do
@@ -202,9 +196,7 @@ describe "Kernel#open" do
   end
 
   it "accepts nil for mode and permission" do
-    NATFIXME 'accepts nil for mode and permission', exception: SpecFailedException do
-      open(@name, nil, nil) { |f| f.gets }.should == @content
-    end
+    open(@name, nil, nil) { |f| f.gets }.should == @content
   end
 
   it "is not redefined by open-uri" do

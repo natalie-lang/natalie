@@ -359,15 +359,13 @@ describe "IO#gets" do
 
   it "uses the default external encoding" do
     @io = new_io @name, 'r'
-    NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
-      @io.gets.encoding.should == Encoding::UTF_8
-    end
+    @io.gets.encoding.should == Encoding::UTF_8
   end
 
   it "uses the IO object's external encoding, when set" do
     @io = new_io @name, 'r'
     @io.set_encoding Encoding::US_ASCII
-    NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
+    NATFIXME 'Transcoding', exception: SpecFailedException do
       @io.gets.encoding.should == Encoding::US_ASCII
     end
   end
@@ -375,7 +373,7 @@ describe "IO#gets" do
   it "transcodes into the default internal encoding" do
     Encoding.default_internal = Encoding::US_ASCII
     @io = new_io @name, 'r'
-    NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
+    NATFIXME 'Transcoding', exception: SpecFailedException do
       @io.gets.encoding.should == Encoding::US_ASCII
     end
   end
@@ -394,16 +392,14 @@ describe "IO#gets" do
     Encoding.default_internal = Encoding::UTF_8
     @io = new_io @name, 'r'
     @io.set_encoding Encoding::IBM866
-    NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
-      @io.gets.encoding.should == Encoding::UTF_8
-    end
+    @io.gets.encoding.should == Encoding::UTF_8
   end
 
   it "ignores the internal encoding if the default external encoding is BINARY" do
     Encoding.default_external = Encoding::BINARY
     Encoding.default_internal = Encoding::UTF_8
     @io = new_io @name, 'r'
-    NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
+    NATFIXME 'Transcoding', exception: SpecFailedException do
       @io.gets.encoding.should == Encoding::BINARY
     end
   end
@@ -414,9 +410,7 @@ describe "IO#gets" do
       Encoding.default_internal = Encoding::UTF_8
       @io = new_io @name, 'r'
       @io.set_encoding Encoding::BINARY, Encoding::UTF_8
-      NATFIXME 'Transcoding', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
-        @io.gets.encoding.should == Encoding::UTF_8
-      end
+      @io.gets.encoding.should == Encoding::UTF_8
     end
   end
 
