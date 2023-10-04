@@ -48,3 +48,24 @@ describe "IO#autoclose" do
     -> { @io.autoclose = false }.should raise_error(IOError, /closed stream/)
   end
 end
+
+describe "IO#gets" do
+  before :each do
+    @name = tmp("io_gets")
+    File.open(@name, 'w') do |fh|
+      fh.write('.' * 2050 + "\n")
+      fh.write(':' * 2500 + "\n")
+    end
+    @io = File.open(@name)
+  end
+
+  after :each do
+    rm_r @name
+  end
+
+  it "can read lines larger than our block size (1024)" do
+    @io.gets.should == '.' * 2050 + "\n"
+    @io.gets.should == ':' * 2500 + "\n"
+    @io.gets.should be_nil
+  end
+end
