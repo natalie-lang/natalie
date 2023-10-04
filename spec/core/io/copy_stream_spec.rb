@@ -292,21 +292,23 @@ describe "IO.copy_stream" do
     end
 
     it "calls #write repeatedly on the destination Object" do
-      @from_in.write "1234"
-      @from_in.close
+      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+        @from_in.write "1234"
+        @from_in.close
 
-      th = Thread.new do
-        IO.copy_stream(@from_out, @to_in)
+        th = Thread.new do
+          IO.copy_stream(@from_out, @to_in)
+        end
+
+        copied = ""
+        4.times do
+          copied += @to_out.read(1)
+        end
+
+        th.join
+
+        copied.should == "1234"
       end
-
-      copied = ""
-      4.times do
-        copied += @to_out.read(1)
-      end
-
-      th.join
-
-      copied.should == "1234"
     end
 
   end
@@ -314,9 +316,11 @@ end
 
 describe "IO.copy_stream" do
   it "does not use buffering when writing to STDOUT" do
-    IO.popen([*ruby_exe, fixture(__FILE__ , "copy_in_out.rb")], "r+") do |io|
-      io.write("bar")
-      io.read(3).should == "bar"
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+      IO.popen([*ruby_exe, fixture(__FILE__ , "copy_in_out.rb")], "r+") do |io|
+        io.write("bar")
+        io.read(3).should == "bar"
+      end
     end
   end
 end
