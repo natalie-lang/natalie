@@ -39,8 +39,8 @@ Value Env::output_record_separator() {
 
 // Return the last line `$_` or nil
 Value Env::last_line() {
-    Value fsep = global_get("$_"_s);
-    if (fsep) return fsep;
+    Value last_line = global_get("$_"_s);
+    if (last_line) return last_line;
     return NilObject::the();
 }
 
