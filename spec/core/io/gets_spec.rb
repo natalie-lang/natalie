@@ -170,17 +170,15 @@ describe "IO#gets" do
 
   describe "when passed chomp" do
     it "returns the first line without a trailing newline character" do
-      NATFIXME 'Support keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        @io.gets(chomp: true).should == IOSpecs.lines_without_newline_characters[0]
-      end
+      @io.gets(chomp: true).should == IOSpecs.lines_without_newline_characters[0]
     end
 
     it "raises exception when options passed as Hash" do
-      NATFIXME 'Support keyword arguments', exception: SpecFailedException do
+      NATFIXME 'Support arguments', exception: SpecFailedException do
         -> { @io.gets({ chomp: true }) }.should raise_error(TypeError)
       end
 
-      NATFIXME 'Support keyword arguments', exception: SpecFailedException do
+      NATFIXME 'Support arguments', exception: SpecFailedException do
         -> {
           @io.gets("\n", 1, { chomp: true })
         }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 0..2)")

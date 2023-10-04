@@ -619,7 +619,7 @@ Value IoObject::write(Env *env, Args args) const {
 }
 
 // NATFIXME: Make this spec compliant and maybe more performant?
-Value IoObject::gets(Env *env) {
+Value IoObject::gets(Env *env, Value chomp) {
     raise_if_closed(env);
     char buffer[NAT_READ_BYTES + 1];
     size_t index;
@@ -631,6 +631,8 @@ Value IoObject::gets(Env *env) {
             break;
     }
     auto line = new StringObject { buffer, index + 1 };
+    if (chomp && chomp->is_truthy())
+        line->chomp_in_place(env, nullptr);
     env->set_last_line(line);
     m_lineno++;
     return line;
