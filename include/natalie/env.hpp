@@ -159,6 +159,7 @@ public:
     Value output_record_separator();
     Value last_line();
     Value set_last_line(Value);
+    Value set_last_lineno(Value);
 
 private:
     ManagedVector<Value> *m_vars { nullptr };

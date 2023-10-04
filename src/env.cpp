@@ -48,6 +48,10 @@ Value Env::set_last_line(Value val) {
     return global_set("$_"_s, val);
 }
 
+Value Env::set_last_lineno(Value val) {
+    return global_set("$."_s, val);
+}
+
 const Method *Env::current_method() {
     Env *env = this;
     while (!env->method() && env->outer()) {

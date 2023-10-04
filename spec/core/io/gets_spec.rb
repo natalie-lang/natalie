@@ -46,9 +46,7 @@ describe "IO#gets" do
 
     it "updates $. with each invocation" do
       while @io.gets
-        NATFIXME 'Implement $.', exception: SpecFailedException do
-          $..should == @count += 1
-        end
+        $..should == @count += 1
       end
     end
   end

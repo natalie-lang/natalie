@@ -633,8 +633,9 @@ Value IoObject::gets(Env *env, Value chomp) {
     auto line = new StringObject { buffer, index + 1 };
     if (chomp && chomp->is_truthy())
         line->chomp_in_place(env, nullptr);
-    env->set_last_line(line);
     m_lineno++;
+    env->set_last_line(line);
+    env->set_last_lineno(IntegerObject::create(m_lineno));
     return line;
 }
 
