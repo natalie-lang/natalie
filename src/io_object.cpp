@@ -999,10 +999,10 @@ Value IoObject::readbyte(Env *env) {
 }
 
 // This is a variant of gets that raises EOFError
-// NATFIXME: Add arguments and chomp kwarg when those features are
+// NATFIXME: Add arguments when those features are
 //  added to IOObject::gets()
-Value IoObject::readline(Env *env) {
-    auto result = gets(env);
+Value IoObject::readline(Env *env, Value chomp) {
+    auto result = gets(env, chomp);
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
     return result;

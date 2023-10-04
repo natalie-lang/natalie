@@ -115,7 +115,7 @@ public:
     Value read(Env *, Value, Value) const;
     static Value read_file(Env *, Args);
     Value readbyte(Env *);
-    Value readline(Env *);
+    Value readline(Env *, Value = nullptr);
     int rewind(Env *);
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
