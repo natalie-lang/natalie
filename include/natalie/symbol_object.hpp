@@ -89,6 +89,12 @@ public:
         return false;
     }
 
+    static void visit_all_symbols(Visitor &visitor) {
+        for (auto pair : s_symbols) {
+            visitor.visit(pair.second);
+        }
+    }
+
 private:
     inline static TM::Hashmap<const TM::String, SymbolObject *> s_symbols { TM::HashType::TMString, 1000 };
     inline static regex_t *s_inspect_quote_regex { nullptr };
