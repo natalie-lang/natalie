@@ -624,8 +624,10 @@ Value IoObject::gets(Env *env, Value chomp) {
     char buffer[NAT_READ_BYTES + 1];
     size_t index;
     for (index = 0; index < NAT_READ_BYTES; ++index) {
-        if (::read(m_fileno, &buffer[index], 1) == 0)
+        if (::read(m_fileno, &buffer[index], 1) == 0) {
+            env->set_last_line(NilObject::the());
             return NilObject::the();
+        }
 
         if (buffer[index] == '\n')
             break;
