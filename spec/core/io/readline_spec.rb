@@ -78,13 +78,11 @@ describe "IO#readline" do
 
   describe "when passed chomp" do
     it "returns the first line without a trailing newline character" do
-      NATFIXME 'Support keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        @io.readline(chomp: true).should == IOSpecs.lines_without_newline_characters[0]
-      end
+      @io.readline(chomp: true).should == IOSpecs.lines_without_newline_characters[0]
     end
 
     it "raises exception when options passed as Hash" do
-      NATFIXME 'Support keyword arguments', exception: SpecFailedException do
+      NATFIXME 'Support arguments', exception: SpecFailedException do
         -> { @io.readline({ chomp: true }) }.should raise_error(TypeError)
 
         -> {
