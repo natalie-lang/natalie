@@ -113,6 +113,29 @@ module Natalie
       # INDIVIDUAL PRISM NODES = = = = =
       # (in alphabetical order)
 
+      def transform_imaginary_node(node, used:)
+        return [] unless used
+
+        value = node.value.imaginary
+        instruction =
+          case value
+          when Integer
+            PushIntInstruction.new(value)
+          when Float
+            PushFloatInstruction.new(value)
+          when Rational
+            PushRationalInstruction.new(value)
+          else
+            raise "Unexpected imaginary value: \"#{value.inspect}\""
+          end
+
+        [
+          PushIntInstruction.new(0),
+          instruction,
+          PushComplexInstruction.new,
+        ]
+      end
+
       def transform_integer_node(node, used:)
         return [] unless used
         [PushIntInstruction.new(node.value)]
@@ -121,9 +144,10 @@ module Natalie
       def transform_rational_node(node, used:)
         return [] unless used
 
+        value = node.value
         [
-          PushIntInstruction.new(node.value.numerator),
-          PushIntInstruction.new(node.value.denominator),
+          PushIntInstruction.new(value.numerator),
+          PushIntInstruction.new(value.denominator),
           PushRationalInstruction.new,
         ]
       end

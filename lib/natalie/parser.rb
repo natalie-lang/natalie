@@ -390,9 +390,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_imaginary_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_imaginary_node visit_passthrough
 
       def visit_interpolated_regular_expression_node(node)
         dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx, unescaped: false)
