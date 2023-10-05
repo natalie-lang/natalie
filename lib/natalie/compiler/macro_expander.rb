@@ -88,7 +88,7 @@ module Natalie
       # "Hidden macros" are just regular-looking Ruby code we intercept at compile-time.
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
-        if node[0..2] == s(:call, s(:gvar, :$LOAD_PATH), :<<)
+        if node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
           :append_load_path
         end
       end
@@ -208,7 +208,8 @@ module Natalie
       # $LOAD_PATH << some_expression
       def macro_append_load_path(expr:, current_path:)
         if @depth > 0
-          return drop_error(:LoadError, "Cannot manipulate $LOAD_PATH at runtime")
+          name = expr[1][1]
+          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime")
         end
 
         _, _, _, body = expr
@@ -284,7 +285,7 @@ module Natalie
       end
 
       def drop_error(exception_class, message)
-        warn("#{exception_class}: #{message}")
+        warn(message)
         s(:call,
           nil,
           :raise,

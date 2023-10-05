@@ -1,2 +1,0 @@
-class LoadPathWorks
-end
