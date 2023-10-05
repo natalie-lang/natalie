@@ -3,7 +3,10 @@ module Natalie
     class MacroExpander
       include ComptimeValues
 
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:)
+      class MacroError < StandardError; end
+      class LoadPathMacroError < MacroError; end
+
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:, depth: 0)
         @ast = ast
         @path = path
         @load_path = load_path
@@ -12,9 +15,10 @@ module Natalie
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
         @loaded_paths = loaded_paths
+        @depth = depth
       end
 
-      attr_reader :ast, :path, :load_path
+      attr_reader :ast, :path, :load_path, :depth
 
       MACROS = %i[
         autoload
@@ -31,7 +35,7 @@ module Natalie
         ast.each_with_index do |node, i|
           next unless node.is_a?(Sexp)
           expanded =
-            if (macro_name = macro?(node))
+            if (macro_name = get_macro_name(node))
               run_macro(macro_name, node, path)
             elsif node.size > 1
               s(node[0], *expand_macros(node[1..-1], path))
@@ -46,6 +50,7 @@ module Natalie
 
       private
 
+      # FIXME: why do we instantitate this so much? Can we not stay within our own instance and just use method recursion?
       def expand_macros(ast, path)
         expander = MacroExpander.new(
           ast: ast,
@@ -55,11 +60,12 @@ module Natalie
           compiler_context: @compiler_context,
           log_load_error: @log_load_error,
           loaded_paths: @loaded_paths,
+          depth: @depth + 1,
         )
         expander.expand
       end
 
-      def macro?(node)
+      def get_macro_name(node)
         return false unless node.is_a?(Sexp)
         if node[0..1] == s(:call, nil)
           _, _, name = node
@@ -73,7 +79,17 @@ module Natalie
             end
           end
         elsif node.sexp_type == :iter
-          macro?(node[1])
+          get_macro_name(node[1])
+        else
+          get_hidden_macro_name(node)
+        end
+      end
+
+      # "Hidden macros" are just regular-looking Ruby code we intercept at compile-time.
+      # We will try to support common Ruby idioms here that cannot be done at runtime.
+      def get_hidden_macro_name(node)
+        if node[0..2] == s(:call, s(:gvar, :$LOAD_PATH), :<<)
+          :append_load_path
         end
       end
 
@@ -189,6 +205,23 @@ module Natalie
         end
       end
 
+      # $LOAD_PATH << some_expression
+      def macro_append_load_path(expr:, current_path:)
+        if @depth > 0
+          return drop_error(:LoadError, "Cannot maniuplate $LOAD_PATH at runtime")
+        end
+
+        _, _, _, body = expr
+        path_to_add = VM.compile_and_run(body.new(:block, body), path: current_path)
+
+        unless path_to_add.is_a?(String) && File.directory?(path_to_add)
+          raise LoadPathMacroError, "#{path_to_add.inspect} is not a directory"
+        end
+
+        load_path << path_to_add
+        s(:nil)
+      end
+
       def interpret?
         !!@interpret
       end
@@ -250,7 +283,17 @@ module Natalie
           s(:true))
       end
 
+      def drop_error(exception_class, message)
+        warn("#{exception_class}: #{message}")
+        s(:call,
+          nil,
+          :raise,
+          s(:const, exception_class),
+          s(:str, message))
+      end
+
       def drop_load_error(msg)
+        # TODO: delegate to drop_error above
         STDERR.puts(msg) if @log_load_error
         s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
       end
