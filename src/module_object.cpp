@@ -290,6 +290,7 @@ void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_nam
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
     Env body_env { m_env };
     body_env.set_caller(env);
+    body_env.set_module(this);
     Value result = fn(&body_env, this);
     m_method_visibility = MethodVisibility::Public;
     m_module_function = false;
@@ -589,6 +590,12 @@ Value ModuleObject::name(Env *env) const {
     } else {
         return NilObject::the();
     }
+}
+
+String ModuleObject::backtrace_name() const {
+    if (!m_class_name)
+        return inspect_str();
+    return String::format("<module:{}>", m_class_name.value());
 }
 
 ArrayObject *ModuleObject::attr(Env *env, Args args) {

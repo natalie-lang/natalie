@@ -63,8 +63,12 @@ const Method *Env::current_method() {
 String Env::build_code_location_name() {
     if (is_main())
         return "<main>";
+
     if (method())
         return method()->name();
+
+    if (module())
+        return module()->backtrace_name();
 
     // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
     if (outer()) {

@@ -118,6 +118,8 @@ public:
     String dbg_inspect() const override;
     Value name(Env *) const;
     Optional<String> name() { return m_class_name; }
+    virtual String backtrace_name() const;
+
     ArrayObject *attr(Env *, Args);
     ArrayObject *attr_reader(Env *, Args);
     SymbolObject *attr_reader(Env *, Value);

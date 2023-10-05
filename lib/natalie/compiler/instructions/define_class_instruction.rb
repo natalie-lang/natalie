@@ -3,17 +3,21 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineClassInstruction < BaseInstruction
-      def initialize(name:, is_private:)
+      def initialize(name:, is_private:, file:, line:)
         super()
         @name = name.to_sym
         @is_private = is_private
+
+        # source location info
+        @file = file
+        @line = line
       end
 
       def has_body?
         true
       end
 
-      attr_reader :name
+      attr_reader :name, :file, :line
 
       def private?
         @is_private
@@ -26,7 +30,11 @@ module Natalie
       end
 
       def generate(transform)
+        transform.set_file(@file)
+        transform.set_line(@line)
+
         body = transform.fetch_block_of_instructions(expected_label: :define_class)
+
         fn = transform.temp("class_#{@name}")
         transform.with_new_scope(body) do |t|
           fn_code = []
@@ -35,11 +43,13 @@ module Natalie
           fn_code << '}'
           transform.top(fn_code)
         end
+
         klass = transform.temp('class')
         namespace = transform.pop
         superclass = transform.pop
-        code = []
         search_mode = private? ? 'StrictPrivate' : 'Strict'
+
+        code = []
         code << "auto #{klass} = #{namespace}->const_find_with_autoload(env, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
                 'Object::ConstLookupFailureMode::Null)'
@@ -48,6 +58,7 @@ module Natalie
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"
         code << '}'
         code << "#{klass}->as_class()->eval_body(env, #{fn})"
+
         transform.exec_and_push(:result_of_define_class, code)
       end
 
