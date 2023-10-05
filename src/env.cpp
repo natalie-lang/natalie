@@ -339,6 +339,7 @@ void Env::visit_children(Visitor &visitor) {
     visitor.visit(m_this_block);
     visitor.visit(m_caller);
     visitor.visit(m_method);
+    visitor.visit(m_module);
     visitor.visit(m_match);
     visitor.visit(m_exception);
 }
