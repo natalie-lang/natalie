@@ -114,7 +114,18 @@ module Natalie
       # (in alphabetical order)
 
       def transform_integer_node(node, used:)
-        used ? [PushIntInstruction.new(node.value)] : []
+        return [] unless used
+        [PushIntInstruction.new(node.value)]
+      end
+
+      def transform_rational_node(node, used:)
+        return [] unless used
+
+        [
+          PushIntInstruction.new(node.value.numerator),
+          PushIntInstruction.new(node.value.denominator),
+          PushRationalInstruction.new,
+        ]
       end
 
       # INDIVIDUAL EXPRESSIONS = = = = =
