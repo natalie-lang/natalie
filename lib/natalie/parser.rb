@@ -907,10 +907,10 @@ module Natalie
         super(parts.size)
         parts.each_with_index do |part, index|
           self[index] = part
-          self.file = file
-          self.line = location&.start_line
-          self.column = location&.start_column
         end
+        self.file = file
+        self.line = location&.start_line
+        self.column = location&.start_column
       end
 
       attr_accessor :file, :line, :column
