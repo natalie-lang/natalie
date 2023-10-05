@@ -99,6 +99,72 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
     return IntegerObject::create(digest_length);
 }
 
+Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_is(env, 1);
+    auto pass = args.at(0)->to_str(env);
+    if (!kwargs) kwargs = new HashObject {};
+    TM::Vector<TM::String> missing_keywords {};
+    auto salt = kwargs->remove(env, "salt"_s);
+    if (!salt) {
+        missing_keywords.push("salt");
+    } else {
+        salt = salt->to_str(env);
+    }
+    auto iterations = kwargs->remove(env, "iterations"_s);
+    if (!iterations) {
+        missing_keywords.push("iterations");
+    } else {
+        iterations = iterations->to_int(env);
+    }
+    auto length = kwargs->remove(env, "length"_s);
+    if (!length) {
+        missing_keywords.push("length");
+    } else {
+        length = length->to_int(env);
+    }
+    auto hash = kwargs->remove(env, "hash"_s);
+    if (!hash) {
+        missing_keywords.push("hash");
+    } else {
+        auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+        if (!hash->is_a(env, digest_klass))
+            hash = Object::_new(env, digest_klass, { hash }, nullptr);
+        hash = hash->send(env, "name"_s);
+    }
+    env->ensure_no_extra_keywords(kwargs);
+    if (!missing_keywords.is_empty()) {
+        TM::String message { "missing keyword" };
+        if (missing_keywords.size() > 1) message.append('s');
+        message.append(": :");
+        message.append(missing_keywords.pop_front());
+        for (const auto &missing : missing_keywords) {
+            message.append(", :");
+            message.append(missing);
+        }
+        env->raise("ArgumentError", message);
+    }
+
+    const EVP_MD *md = EVP_get_digestbyname(hash->as_string()->c_str());
+    if (!md)
+        env->raise("RuntimeError", "Unsupported digest algorithm ({}).: unknown object name", hash->as_string()->string());
+    const size_t out_size = length->as_integer()->to_nat_int_t();
+    unsigned char out[out_size];
+    int result = PKCS5_PBKDF2_HMAC(pass->as_string()->c_str(), pass->as_string()->bytesize(),
+        reinterpret_cast<const unsigned char *>(salt->as_string()->c_str()), salt->as_string()->bytesize(),
+        iterations->as_integer()->to_nat_int_t(),
+        md,
+        out_size, out);
+    if (!result) {
+        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+        auto KDF = OpenSSL->const_get("KDF"_s);
+        auto KDFError = KDF->const_get("KDFError"_s);
+        OpenSSL_raise_error(env, "PKCS5_PBKDF2_HMAC", KDFError->as_class());
+    }
+
+    return new StringObject { reinterpret_cast<char *>(out), out_size, EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
 Value init(Env *env, Value self) {
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     if (!OpenSSL) {
@@ -127,6 +193,13 @@ Value init(Env *env, Value self) {
     Digest->define_method(env, "reset"_s, OpenSSL_Digest_reset, 0);
     Digest->define_method(env, "update"_s, OpenSSL_Digest_update, 1);
     Digest->define_method(env, "<<"_s, OpenSSL_Digest_update, 1);
+
+    auto KDF = OpenSSL->const_get("KDF"_s);
+    if (!KDF) {
+        KDF = new ModuleObject { "KDF" };
+        OpenSSL->const_set("KDF"_s, KDF);
+    }
+    KDF->define_singleton_method(env, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
 
     return NilObject::the();
 }
