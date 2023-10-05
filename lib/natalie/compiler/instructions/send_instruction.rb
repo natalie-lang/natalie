@@ -105,6 +105,12 @@ module Natalie
           return
         end
 
+        # TODO: put these special intercepts somewhere else?
+        if %i[__dir__].include?(@message)
+          vm.push(vm.main.__dir__)
+          return
+        end
+
         vm.with_self(receiver) do
           block = vm.pop if @with_block
           result = receiver.send(method, @message, *args, &block)
