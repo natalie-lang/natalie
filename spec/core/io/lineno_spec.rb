@@ -133,10 +133,8 @@ describe "IO#lineno=" do
     @io.lineno = count = 500
     $..should == 0
 
-    NATFIXME 'Implement $.', exception: SpecFailedException do
-      while @io.gets
-        $..should == count += 1
-      end
+    while @io.gets
+      $..should == count += 1
     end
   end
 end

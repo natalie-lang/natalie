@@ -39,13 +39,17 @@ Value Env::output_record_separator() {
 
 // Return the last line `$_` or nil
 Value Env::last_line() {
-    Value fsep = global_get("$_"_s);
-    if (fsep) return fsep;
+    Value last_line = global_get("$_"_s);
+    if (last_line) return last_line;
     return NilObject::the();
 }
 
 Value Env::set_last_line(Value val) {
     return global_set("$_"_s, val);
+}
+
+Value Env::set_last_lineno(Value val) {
+    return global_set("$."_s, val);
 }
 
 const Method *Env::current_method() {
