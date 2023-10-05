@@ -6,9 +6,7 @@ describe "Kernel#sleep" do
   end
 
   it "returns an Integer" do
-    NATFIXME 'Fix return value', exception: SpecFailedException do
-      sleep(0.001).should be_kind_of(Integer)
-    end
+    sleep(0.001).should be_kind_of(Integer)
   end
 
   it "accepts a Float" do

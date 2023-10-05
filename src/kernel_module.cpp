@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <time.h>
 
 extern char **environ;
 
@@ -601,8 +602,15 @@ Value KernelModule::sleep(Env *env, Value length) {
         env->raise("ArgumentError", "time interval must not be negative");
     ts.tv_sec = ::floor(secs);
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
+    timespec t_begin, t_end;
+    if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
+        env->raise_errno();
     nanosleep(&ts, nullptr);
-    return new FloatObject { secs };
+    if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+        env->raise_errno();
+    int elapsed = t_end.tv_sec - t_begin.tv_sec;
+    if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
+    return IntegerObject::create(elapsed);
 }
 
 Value KernelModule::spawn(Env *env, Args args) {
