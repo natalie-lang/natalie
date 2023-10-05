@@ -290,6 +290,7 @@ void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_nam
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
     Env body_env { m_env };
     body_env.set_caller(env);
+    body_env.set_module(this);
     Value result = fn(&body_env, this);
     m_method_visibility = MethodVisibility::Public;
     m_module_function = false;
@@ -548,7 +549,7 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     return !!find_method(env, name);
 }
 
-String ModuleObject::inspect_str() {
+String ModuleObject::inspect_str() const {
     if (m_class_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
             return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
@@ -564,7 +565,7 @@ String ModuleObject::inspect_str() {
     }
 }
 
-Value ModuleObject::inspect(Env *env) {
+Value ModuleObject::inspect(Env *env) const {
     return new StringObject { inspect_str() };
 }
 
@@ -574,7 +575,7 @@ String ModuleObject::dbg_inspect() const {
     return Object::dbg_inspect();
 }
 
-Value ModuleObject::name(Env *env) {
+Value ModuleObject::name(Env *env) const {
     if (m_class_name) {
         String name = m_class_name.value();
         auto the_owner = owner();
@@ -589,6 +590,12 @@ Value ModuleObject::name(Env *env) {
     } else {
         return NilObject::the();
     }
+}
+
+String ModuleObject::backtrace_name() const {
+    if (!m_class_name)
+        return inspect_str();
+    return String::format("<module:{}>", m_class_name.value());
 }
 
 ArrayObject *ModuleObject::attr(Env *env, Args args) {

@@ -29,7 +29,8 @@ public:
         , m_caller { nullptr }
         , m_file { other.m_file }
         , m_line { other.m_line }
-        , m_method { other.m_method } { }
+        , m_method { other.m_method }
+        , m_module { other.m_module } { }
 
     Env &operator=(Env &other) = delete;
 
@@ -136,6 +137,9 @@ public:
     const Method *method() { return m_method; }
     void set_method(const Method *method) { m_method = method; }
 
+    const ModuleObject *module() { return m_module; }
+    void set_module(const ModuleObject *module) { m_module = module; }
+
     Value match() { return m_match; }
     void set_match(Value match) { m_match = match; }
     void clear_match() { m_match = nullptr; }
@@ -170,6 +174,7 @@ private:
     const char *m_file { nullptr };
     size_t m_line { 0 };
     const Method *m_method { nullptr };
+    const ModuleObject *m_module { nullptr };
     Value m_match { nullptr };
     ExceptionObject *m_exception { nullptr };
 };

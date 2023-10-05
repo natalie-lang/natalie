@@ -71,4 +71,10 @@ ClassObject *ClassObject::bootstrap_basic_object(Env *env, ClassObject *Class) {
     return BasicObject;
 }
 
+String ClassObject::backtrace_name() const {
+    if (!m_class_name)
+        return inspect_str();
+    return String::format("<class:{}>", m_class_name.value());
+}
+
 }

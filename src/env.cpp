@@ -63,8 +63,12 @@ const Method *Env::current_method() {
 String Env::build_code_location_name() {
     if (is_main())
         return "<main>";
+
     if (method())
         return method()->name();
+
+    if (module())
+        return module()->backtrace_name();
 
     // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
     if (outer()) {
@@ -335,6 +339,7 @@ void Env::visit_children(Visitor &visitor) {
     visitor.visit(m_this_block);
     visitor.visit(m_caller);
     visitor.visit(m_method);
+    visitor.visit(m_module);
     visitor.visit(m_match);
     visitor.visit(m_exception);
 }

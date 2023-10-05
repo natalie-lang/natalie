@@ -428,7 +428,12 @@ module Natalie
         end
         name, is_private, prep_instruction = constant_name(name)
         instructions << prep_instruction
-        instructions << DefineClassInstruction.new(name: name, is_private: is_private)
+        instructions << DefineClassInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: exp.file,
+          line: exp.line,
+        )
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
@@ -1011,7 +1016,12 @@ module Natalie
         instructions = []
         name, is_private, prep_instruction = constant_name(name)
         instructions << prep_instruction
-        instructions << DefineModuleInstruction.new(name: name, is_private: is_private)
+        instructions << DefineModuleInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: exp.file,
+          line: exp.line,
+        )
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used

@@ -64,7 +64,7 @@ public:
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
-    Optional<String> class_name() {
+    Optional<String> class_name() const {
         return m_class_name;
     }
 
@@ -113,11 +113,13 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
-    String inspect_str();
-    Value inspect(Env *);
+    String inspect_str() const;
+    Value inspect(Env *) const;
     String dbg_inspect() const override;
-    Value name(Env *);
+    Value name(Env *) const;
     Optional<String> name() { return m_class_name; }
+    virtual String backtrace_name() const;
+
     ArrayObject *attr(Env *, Args);
     ArrayObject *attr_reader(Env *, Args);
     SymbolObject *attr_reader(Env *, Value);
