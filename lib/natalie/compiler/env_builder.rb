@@ -22,7 +22,9 @@ module Natalie
           @instruction_stack << instruction if instruction.has_body?
 
           if instruction.is_a?(EndInstruction)
-            instruction.matching_instruction = @instruction_stack.pop
+            unless (instruction.matching_instruction = @instruction_stack.pop)
+              raise 'not enough stack'
+            end
             instruction.env = @env
           end
 
@@ -63,8 +65,8 @@ module Natalie
       def process_while(i) @env = i.env || { vars: {}, outer: @env, hoist: true, while: true } end
       def process_end_while(_) @env = @env.fetch(:outer) end
 
-      def process_with_self(i) @env = i.env || { vars: {}, outer: @env } end
-      def process_end_with_self(_) @env = @env.fetch(:outer) end
+      def process_with_main(i) @env = i.env || { vars: {}, outer: @env, main: true } end
+      def process_end_with_main(_) @env = @env.fetch(:outer) end
     end
   end
 end

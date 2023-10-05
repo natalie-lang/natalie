@@ -36,6 +36,17 @@ class Fiddle
   end
 
   class Pointer
+    __define_method__ :to_s, <<-END
+      auto len = args.size() > 0 ? args[0] : nullptr;
+      if (len)
+        len->assert_type(env, Object::Type::Integer, "Integer");
+      auto ptr_obj = self->ivar_get(env, "@ptr"_s);
+      ptr_obj->assert_type(env, Object::Type::VoidP, "VoidP");
+      auto ptr = (const char *)ptr_obj->as_void_p()->void_ptr();
+      if (len)
+        return new StringObject { ptr, (size_t)len->as_integer()->to_nat_int_t() };
+      return new StringObject { ptr };
+    END
   end
 
   class Function

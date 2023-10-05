@@ -98,6 +98,9 @@ void Heap::collect() {
     visitor.visit(FiberObject::main());
     visitor.visit(FiberObject::current());
 
+    // We don't collect symbols, but they each can have associated objects we do collect.
+    SymbolObject::visit_all_symbols(visitor);
+
     if (is_profiled)
         mark_profiler_event->end_now();
 

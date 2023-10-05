@@ -1439,10 +1439,9 @@ module Natalie
       def transform_with_main(exp, used:)
         _, *body = exp
         instructions = [
-          PushMainInstruction.new,
-          WithSelfInstruction.new,
+          WithMainInstruction.new,
           transform_body(body, used: true),
-          EndInstruction.new(:with_self),
+          EndInstruction.new(:with_main),
         ]
         instructions << PopInstruction.new unless used
         instructions

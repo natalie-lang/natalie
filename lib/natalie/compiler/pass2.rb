@@ -10,13 +10,12 @@ module Natalie
       def initialize(instructions, compiler_context:)
         super()
         @compiler_context = compiler_context
-        @instructions = InstructionManager.new(
-          instructions,
-          env: {
-            vars: compiler_context[:vars],
-            outer: nil,
-          },
-        )
+        env = {
+          vars: compiler_context[:vars],
+          outer: nil,
+        }
+        @instructions = InstructionManager.new(instructions, env: env)
+        EnvBuilder.new(@instructions, env: env).process
       end
 
       def transform

@@ -171,7 +171,7 @@ module Natalie
         body = comptime_string(body)
         env = transform.env
         env = env.fetch(:outer) while env[:hoist]
-        if env[:outer].nil?
+        if env[:outer].nil? || env[:main]
           transform.top body
         else
           transform.exec body
