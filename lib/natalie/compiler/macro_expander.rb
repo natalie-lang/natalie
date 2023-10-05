@@ -251,9 +251,9 @@ module Natalie
 
         if @loaded_paths[path]
           if require_once
-            s(:false)
+            ::Prism::FalseNode.new(nil)
           else
-            s(:true)
+            ::Prism::TrueNode.new(nil)
           end
         else
           @loaded_paths[path] = true
@@ -262,7 +262,7 @@ module Natalie
           s(:block,
             s(:with_main,
               expand_macros(file_ast, path)),
-            s(:true))
+            ::Prism::TrueNode.new(nil))
         end
       end
 
@@ -282,7 +282,7 @@ module Natalie
         end
         s(:block,
           s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
-          s(:true))
+          ::Prism::TrueNode.new(nil))
       end
 
       def drop_error(exception_class, message)

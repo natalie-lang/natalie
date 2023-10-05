@@ -2,6 +2,53 @@ $LOAD_PATH << File.expand_path('../../build/prism/lib', __dir__)
 $LOAD_PATH << File.expand_path('../../build/prism/ext', __dir__)
 require 'prism'
 
+module Prism
+  class Node
+    # This is to maintain the same interface as Sexp instances. It doesn't
+    # provide the exact same thing, so as we migrate we'll need to update call
+    # sites to handle the "correct" type. The list of types that we need to
+    # handle are:
+    #
+    # * args
+    # * attrasgn
+    # * bare_hash
+    # * block
+    # * block_pass
+    # * cdecl
+    # * colon2
+    # * colon3
+    # * cvar
+    # * evstr
+    # * forward_args
+    # * gasgn
+    # * iasgn
+    # * kwarg
+    # * kwsplat
+    # * lasgn
+    # * lvar
+    # * masgn
+    # * resbody
+    # * safe_call
+    # * str
+    # * to_ary
+    # * zsuper
+    #
+    def sexp_type
+      type
+    end
+
+    # We need this to maintain the same interface as Sexp instances in the case
+    # of the repl.
+    def new(*parts)
+      Natalie::Parser::Sexp.new(*parts).tap do |sexp|
+        sexp.file = "<compiled>"
+        sexp.line = location.start_line
+        sexp.column = location.start_column
+      end
+    end
+  end
+end
+
 module Natalie
   class Parser
     class IncompleteExpression < StandardError
@@ -15,12 +62,16 @@ module Natalie
         @path = path
       end
 
+      def visit_passthrough(node)
+        node
+      end
+
       def visit_alias_method_node(node)
         s(:alias, visit(node.new_name), visit(node.old_name), location: node.location)
       end
 
       def visit_and_node(node)
-        s(:and, visit(node.left), visit(node.right), location: node.location)
+        node.copy(left: visit(node.left), right: visit(node.right))
       end
 
       def visit_array_node(node)
@@ -290,32 +341,28 @@ module Natalie
             receiver,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || s(:nil, location: node.location),
+            visit(node.body) || nil_node(node.location),
             location: node.location)
         else
           s(:defn,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || s(:nil, location: node.location),
+            visit(node.body) || nil_node(node.location),
             location: node.location)
         end
       end
 
       def visit_defined_node(node)
-        s(:defined, visit(node.value), location: node.location)
+        node.copy(value: visit(node.value))
       end
 
       def visit_else_node(node)
         visit(node.child_nodes.first)
       end
 
-      def visit_false_node(node)
-        s(:false, location: node.location)
-      end
+      alias visit_false_node visit_passthrough
 
-      def visit_float_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_float_node visit_passthrough
 
       def visit_for_node(node)
         s(:for,
@@ -386,9 +433,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_imaginary_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_imaginary_node visit_passthrough
 
       def visit_interpolated_regular_expression_node(node)
         dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx, unescaped: false)
@@ -426,9 +471,7 @@ module Natalie
         s(:iasgn, node.name, visit(node.value), location: node.location)
       end
 
-      def visit_integer_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_integer_node visit_passthrough
 
       def visit_interpolated_string_node(node)
         visit_interpolated_stringish_node(node, sexp_type: :dstr)
@@ -605,9 +648,7 @@ module Natalie
         visit_return_or_next_or_break_node(node, sexp_type: :next)
       end
 
-      def visit_nil_node(node)
-        s(:nil, location: node.location)
-      end
+      alias visit_nil_node visit_passthrough
 
       def visit_numbered_reference_read_node(node)
         s(:nth_ref, node.number, location: node.location)
@@ -629,7 +670,7 @@ module Natalie
       end
 
       def visit_or_node(node)
-        s(:or, visit(node.left), visit(node.right), location: node.location)
+        node.copy(left: visit(node.left), right: visit(node.right))
       end
 
       def visit_parameters_node(node)
@@ -647,7 +688,7 @@ module Natalie
         if node.body
           visit(node.body)
         else
-          s(:nil, location: node.location)
+          nil_node(node.location)
         end
       end
 
@@ -671,9 +712,7 @@ module Natalie
         end
       end
 
-      def visit_rational_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_rational_node visit_passthrough
 
       def visit_redo_node(node)
         s(:redo, location: node.location)
@@ -745,9 +784,7 @@ module Natalie
         end
       end
 
-      def visit_self_node(node)
-        s(:self, location: node.location)
-      end
+      alias visit_self_node visit_passthrough
 
       def visit_singleton_class_node(node)
         s(:sclass, visit(node.expression), visit(node.body), location: node.location)
@@ -814,9 +851,7 @@ module Natalie
         s(:lit, node.unescaped.to_sym, location: node.location)
       end
 
-      def visit_true_node(node)
-        s(:true, location: node.location)
-      end
+      alias visit_true_node visit_passthrough
 
       def visit_undef_node(node)
         if node.names.size == 1
@@ -874,6 +909,10 @@ module Natalie
 
       def s(*items, location:)
         Sexp.new(*items, location: location, file: @path)
+      end
+
+      def nil_node(location)
+        ::Prism::NilNode.new(location)
       end
 
       def flatten(ary)

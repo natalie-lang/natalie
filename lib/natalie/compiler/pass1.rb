@@ -49,6 +49,9 @@ module Natalie
         when Sexp
           method = "transform_#{exp.sexp_type}"
           Array(send(method, exp, used: used)).flatten
+        when ::Prism::Node
+          method = "transform_#{exp.type}"
+          Array(send(method, exp, used: used)).flatten
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
@@ -57,7 +60,7 @@ module Natalie
       def transform_body(body, used:)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
-        instructions << transform_expression(last || s(:nil), used: used)
+        instructions << transform_expression(last || nil_node, used: used)
         instructions
       end
 
@@ -70,6 +73,152 @@ module Natalie
 
       private
 
+      # INDIVIDUAL PRISM NODES = = = = =
+      # (in alphabetical order)
+
+      def transform_and_node(node, used:)
+        instructions = [
+          *transform_expression(node.left, used: true),
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          *transform_expression(node.right, used: true),
+          ElseInstruction.new(:if),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_defined_node(node, used:)
+        return [] unless used
+
+        body = transform_expression(node.value, used: true)
+        case body.last
+        when ConstFindInstruction
+          type = 'constant'
+        when CreateHashInstruction
+          # peculiarity that hashes always return 'expression'
+          type = 'expression'
+          return [PushStringInstruction.new(type)]
+        when GlobalVariableGetInstruction
+          type = 'global-variable'
+        when InstanceVariableGetInstruction
+          type = 'instance-variable'
+        when PushFalseInstruction
+          type = 'false'
+        when SendInstruction
+          if body.last.with_block
+            # peculiarity that send with a block always returns 'expression'
+            type = 'expression'
+            return [PushStringInstruction.new(type)]
+          else
+            type = 'method'
+          end
+        when PushNilInstruction
+          type = 'nil'
+        when PushTrueInstruction
+          type = 'true'
+        when VariableGetInstruction
+          type = 'local-variable'
+        else
+          type = 'expression'
+        end
+        body.each_with_index do |instruction, index|
+          case instruction
+          when GlobalVariableGetInstruction
+            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
+          when InstanceVariableGetInstruction
+            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
+          when SendInstruction
+            body[index] = instruction.to_method_defined_instruction
+          end
+        end
+        [
+          IsDefinedInstruction.new(type: type),
+          body,
+          EndInstruction.new(:is_defined),
+        ]
+      end
+
+      def transform_false_node(_, used:)
+        return [] unless used
+        [PushFalseInstruction.new]
+      end
+
+      def transform_float_node(node, used:)
+        return [] unless used
+        [PushFloatInstruction.new(node.value)]
+      end
+
+      def transform_imaginary_node(node, used:)
+        return [] unless used
+
+        value = node.value.imaginary
+        instruction =
+          case value
+          when Integer
+            PushIntInstruction.new(value)
+          when Float
+            PushFloatInstruction.new(value)
+          when Rational
+            PushRationalInstruction.new(value)
+          else
+            raise "Unexpected imaginary value: \"#{value.inspect}\""
+          end
+
+        [
+          PushIntInstruction.new(0),
+          instruction,
+          PushComplexInstruction.new,
+        ]
+      end
+
+      def transform_integer_node(node, used:)
+        return [] unless used
+        [PushIntInstruction.new(node.value)]
+      end
+
+      def transform_nil_node(_, used:)
+        return [] unless used
+        [PushNilInstruction.new]
+      end
+
+      def transform_or_node(node, used:)
+        instructions = [
+          *transform_expression(node.left, used: true),
+          DupInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          *transform_expression(node.right, used: true),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_rational_node(node, used:)
+        return [] unless used
+
+        value = node.value
+        [
+          PushIntInstruction.new(value.numerator),
+          PushIntInstruction.new(value.denominator),
+          PushRationalInstruction.new,
+        ]
+      end
+
+      def transform_self_node(_, used:)
+        return [] unless used
+        [PushSelfInstruction.new]
+      end
+
+      def transform_true_node(_, used:)
+        return [] unless used
+        [PushTrueInstruction.new]
+      end
+
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
@@ -79,23 +228,6 @@ module Natalie
         instructions << DupInstruction.new if used
         instructions << transform_expression(old_name, used: true)
         instructions << AliasInstruction.new
-      end
-
-      def transform_and(exp, used:)
-        _, lhs, rhs = exp
-        lhs_instructions = transform_expression(lhs, used: true)
-        rhs_instructions = transform_expression(rhs, used: true)
-        instructions = [
-          lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          PopInstruction.new,
-          rhs_instructions,
-          ElseInstruction.new(:if),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_array(exp, used:)
@@ -209,7 +341,7 @@ module Natalie
 
       def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= s(:nil)
+        value ||= nil_node
         [
           transform_expression(value, used: true),
           BreakInstruction.new,
@@ -385,7 +517,7 @@ module Natalie
             # s(:array, option1, option2, ...)
             # =>
             # s(:or, option1, s(:or, option2, ...))
-            options = options[2..].reduce(options[1]) { |prev, option| s(:or, prev, option) }
+            options = options[2..].reduce(options[1]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
             instructions << transform_body(body, used: true)
@@ -494,57 +626,6 @@ module Natalie
         instructions
       end
 
-      def transform_defined(exp, used:)
-        return [] unless used
-        _, name = exp
-        body = transform_expression(name, used: true)
-        case body.last
-        when ConstFindInstruction
-          type = 'constant'
-        when CreateHashInstruction
-          # peculiarity that hashes always return 'expression'
-          type = 'expression'
-          return [PushStringInstruction.new(type)]
-        when GlobalVariableGetInstruction
-          type = 'global-variable'
-        when InstanceVariableGetInstruction
-          type = 'instance-variable'
-        when PushFalseInstruction
-          type = 'false'
-        when SendInstruction
-          if body.last.with_block
-            # peculiarity that send with a block always returns 'expression'
-            type = 'expression'
-            return [PushStringInstruction.new(type)]
-          else
-            type = 'method'
-          end
-        when PushNilInstruction
-          type = 'nil'
-        when PushTrueInstruction
-          type = 'true'
-        when VariableGetInstruction
-          type = 'local-variable'
-        else
-          type = 'expression'
-        end
-        body.each_with_index do |instruction, index|
-          case instruction
-          when GlobalVariableGetInstruction
-            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
-          when InstanceVariableGetInstruction
-            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
-          when SendInstruction
-            body[index] = instruction.to_method_defined_instruction
-          end
-        end
-        [
-          IsDefinedInstruction.new(type: type),
-          body,
-          EndInstruction.new(:is_defined),
-        ]
-      end
-
       def transform_defn(exp, used:)
         [
           PushSelfInstruction.new,
@@ -631,8 +712,8 @@ module Natalie
       def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp
         instructions = [
-          transform_expression(ending || s(:nil), used: true),
-          transform_expression(beginning || s(:nil), used: true),
+          transform_expression(ending || nil_node, used: true),
+          transform_expression(beginning || nil_node, used: true),
           PushRangeInstruction.new(exclude_end),
         ]
         instructions << PopInstruction.new unless used
@@ -719,11 +800,6 @@ module Natalie
         instructions
       end
 
-      def transform_false(_, used:)
-        return [] unless used
-        PushFalseInstruction.new
-      end
-
       def transform_for_declare_args(args)
         instructions = []
         case args.sexp_type
@@ -742,7 +818,7 @@ module Natalie
 
       def transform_for(exp, used:)
         _, array, args, body = exp
-        body = s(:nil) if body.nil?
+        body = nil_node if body.nil?
         instructions = transform_for_declare_args(args)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(s(:args, args), used: true)
@@ -823,8 +899,8 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression || s(:nil), used: true)
-        false_instructions = transform_expression(false_expression || s(:nil), used: true)
+        true_instructions = transform_expression(true_expression || nil_node, used: true)
+        false_instructions = transform_expression(false_expression || nil_node, used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
@@ -848,7 +924,7 @@ module Natalie
         else
           instructions << transform_block_args(args, used: true)
         end
-        instructions << transform_expression(body || s(:nil), used: true)
+        instructions << transform_expression(body || nil_node, used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
         when :call
@@ -1030,16 +1106,11 @@ module Natalie
 
       def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= s(:nil)
+        value ||= nil_node
         [
           transform_expression(value, used: true),
           NextInstruction.new,
         ]
-      end
-
-      def transform_nil(_, used:)
-        return [] unless used
-        PushNilInstruction.new
       end
 
       def transform_not(exp, used:)
@@ -1270,23 +1341,6 @@ module Natalie
         end
       end
 
-      def transform_or(exp, used:)
-        _, lhs, rhs = exp
-        lhs_instructions = transform_expression(lhs, used: true)
-        rhs_instructions = transform_expression(rhs, used: true)
-        instructions = [
-          lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          rhs_instructions,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_redo(*)
         [RedoInstruction.new]
       end
@@ -1305,7 +1359,7 @@ module Natalie
 
       def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= s(:nil)
+        value ||= nil_node
         instructions = [transform_expression(value, used: true)]
         instructions << ReturnInstruction.new
       end
@@ -1348,11 +1402,6 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_self(_, used:)
-        return [] unless used
-        PushSelfInstruction.new
       end
 
       def transform_splat(exp, used:)
@@ -1411,11 +1460,6 @@ module Natalie
         instructions
       end
 
-      def transform_true(_, used:)
-        return [] unless used
-        PushTrueInstruction.new
-      end
-
       def transform_undef(exp, used:)
         _, name = exp
         name = name.last
@@ -1433,7 +1477,7 @@ module Natalie
 
       def transform_while(exp, used:)
         _, condition, body, pre = exp
-        body ||= s(:nil)
+        body ||= nil_node
 
         instructions = [
           WhileInstruction.new(pre: pre),
@@ -1572,6 +1616,10 @@ module Natalie
         sexp = Sexp.new
         items.each { |item| sexp << item }
         sexp
+      end
+
+      def nil_node
+        ::Prism::NilNode.new(nil)
       end
 
       class << self
