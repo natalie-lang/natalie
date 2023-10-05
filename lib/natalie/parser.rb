@@ -15,6 +15,10 @@ module Natalie
         @path = path
       end
 
+      def visit_passthrough(node)
+        node
+      end
+
       def visit_alias_method_node(node)
         s(:alias, visit(node.new_name), visit(node.old_name), location: node.location)
       end
@@ -426,9 +430,7 @@ module Natalie
         s(:iasgn, node.name, visit(node.value), location: node.location)
       end
 
-      def visit_integer_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_integer_node visit_passthrough
 
       def visit_interpolated_string_node(node)
         visit_interpolated_stringish_node(node, sexp_type: :dstr)
