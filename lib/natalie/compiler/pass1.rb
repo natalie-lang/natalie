@@ -113,6 +113,20 @@ module Natalie
       # INDIVIDUAL PRISM NODES = = = = =
       # (in alphabetical order)
 
+      def transform_and_node(node, used:)
+        instructions = [
+          *transform_expression(node.left, used: true),
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          *transform_expression(node.right, used: true),
+          ElseInstruction.new(:if),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_false_node(_, used:)
         return [] unless used
         [PushFalseInstruction.new]
@@ -186,23 +200,6 @@ module Natalie
         instructions << DupInstruction.new if used
         instructions << transform_expression(old_name, used: true)
         instructions << AliasInstruction.new
-      end
-
-      def transform_and(exp, used:)
-        _, lhs, rhs = exp
-        lhs_instructions = transform_expression(lhs, used: true)
-        rhs_instructions = transform_expression(rhs, used: true)
-        instructions = [
-          lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          PopInstruction.new,
-          rhs_instructions,
-          ElseInstruction.new(:if),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_array(exp, used:)

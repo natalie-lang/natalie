@@ -24,7 +24,7 @@ module Natalie
       end
 
       def visit_and_node(node)
-        s(:and, visit(node.left), visit(node.right), location: node.location)
+        node.copy(left: visit(node.left), right: visit(node.right))
       end
 
       def visit_array_node(node)
