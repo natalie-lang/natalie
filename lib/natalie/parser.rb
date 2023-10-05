@@ -306,7 +306,7 @@ module Natalie
       end
 
       def visit_defined_node(node)
-        s(:defined, visit(node.value), location: node.location)
+        node.copy(value: visit(node.value))
       end
 
       def visit_else_node(node)

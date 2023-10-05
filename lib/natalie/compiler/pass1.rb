@@ -127,6 +127,57 @@ module Natalie
         instructions
       end
 
+      def transform_defined_node(node, used:)
+        return [] unless used
+
+        body = transform_expression(node.value, used: true)
+        case body.last
+        when ConstFindInstruction
+          type = 'constant'
+        when CreateHashInstruction
+          # peculiarity that hashes always return 'expression'
+          type = 'expression'
+          return [PushStringInstruction.new(type)]
+        when GlobalVariableGetInstruction
+          type = 'global-variable'
+        when InstanceVariableGetInstruction
+          type = 'instance-variable'
+        when PushFalseInstruction
+          type = 'false'
+        when SendInstruction
+          if body.last.with_block
+            # peculiarity that send with a block always returns 'expression'
+            type = 'expression'
+            return [PushStringInstruction.new(type)]
+          else
+            type = 'method'
+          end
+        when PushNilInstruction
+          type = 'nil'
+        when PushTrueInstruction
+          type = 'true'
+        when VariableGetInstruction
+          type = 'local-variable'
+        else
+          type = 'expression'
+        end
+        body.each_with_index do |instruction, index|
+          case instruction
+          when GlobalVariableGetInstruction
+            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
+          when InstanceVariableGetInstruction
+            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
+          when SendInstruction
+            body[index] = instruction.to_method_defined_instruction
+          end
+        end
+        [
+          IsDefinedInstruction.new(type: type),
+          body,
+          EndInstruction.new(:is_defined),
+        ]
+      end
+
       def transform_false_node(_, used:)
         return [] unless used
         [PushFalseInstruction.new]
@@ -610,57 +661,6 @@ module Natalie
         ]
         instructions << PushSymbolInstruction.new(name) if used
         instructions
-      end
-
-      def transform_defined(exp, used:)
-        return [] unless used
-        _, name = exp
-        body = transform_expression(name, used: true)
-        case body.last
-        when ConstFindInstruction
-          type = 'constant'
-        when CreateHashInstruction
-          # peculiarity that hashes always return 'expression'
-          type = 'expression'
-          return [PushStringInstruction.new(type)]
-        when GlobalVariableGetInstruction
-          type = 'global-variable'
-        when InstanceVariableGetInstruction
-          type = 'instance-variable'
-        when PushFalseInstruction
-          type = 'false'
-        when SendInstruction
-          if body.last.with_block
-            # peculiarity that send with a block always returns 'expression'
-            type = 'expression'
-            return [PushStringInstruction.new(type)]
-          else
-            type = 'method'
-          end
-        when PushNilInstruction
-          type = 'nil'
-        when PushTrueInstruction
-          type = 'true'
-        when VariableGetInstruction
-          type = 'local-variable'
-        else
-          type = 'expression'
-        end
-        body.each_with_index do |instruction, index|
-          case instruction
-          when GlobalVariableGetInstruction
-            body[index] = GlobalVariableDefinedInstruction.new(instruction.name)
-          when InstanceVariableGetInstruction
-            body[index] = InstanceVariableDefinedInstruction.new(instruction.name)
-          when SendInstruction
-            body[index] = instruction.to_method_defined_instruction
-          end
-        end
-        [
-          IsDefinedInstruction.new(type: type),
-          body,
-          EndInstruction.new(:is_defined),
-        ]
       end
 
       def transform_defn(exp, used:)
