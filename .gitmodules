@@ -7,6 +7,6 @@
 [submodule "ext/zlib"]
 	path = ext/zlib
 	url = https://github.com/madler/zlib
-[submodule "ext/yarp"]
-	path = ext/yarp
-	url = https://github.com/ruby/yarp
+[submodule "ext/prism"]
+	path = ext/prism
+	url = https://github.com/ruby/prism

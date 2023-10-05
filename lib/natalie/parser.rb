@@ -1,13 +1,15 @@
-$LOAD_PATH << File.expand_path('../../build/yarp/lib', __dir__)
-$LOAD_PATH << File.expand_path('../../build/yarp/ext', __dir__)
-require 'yarp'
+$LOAD_PATH << File.expand_path('../../build/prism/lib', __dir__)
+$LOAD_PATH << File.expand_path('../../build/prism/ext', __dir__)
+require 'prism'
 
 module Natalie
   class Parser
     class IncompleteExpression < StandardError
     end
 
-    class SexpVisitor < ::YARP::BasicVisitor
+    # We use BasicVisitor here because it will give us a helpful error if one of the
+    # visit_* methods are not defined.
+    class SexpVisitor < ::Prism::BasicVisitor
       def initialize(path)
         super()
         @path = path
@@ -78,7 +80,7 @@ module Natalie
       end
 
       def visit_block_node(node, call:)
-        raise "unexpected node: #{node.inspect}" unless node.is_a?(YARP::BlockNode) || node.is_a?(YARP::LambdaNode)
+        raise "unexpected node: #{node.inspect}" unless node.is_a?(Prism::BlockNode) || node.is_a?(Prism::LambdaNode)
 
         s(:iter,
           call,
@@ -101,7 +103,7 @@ module Natalie
 
       def visit_call_node(node)
         if %w[=~ !~].include?(node.name) &&
-          [node.receiver, node.arguments&.child_nodes&.first].any? { |n| n.is_a?(YARP::RegularExpressionNode) }
+          [node.receiver, node.arguments&.child_nodes&.first].any? { |n| n.is_a?(Prism::RegularExpressionNode) }
           return visit_match_node(node)
         end
 
@@ -281,7 +283,7 @@ module Natalie
         if node.receiver
           receiver = visit(node.receiver)
           if receiver.sexp_type == :call
-            # NOTE: possible bug? https://github.com/ruby/yarp/issues/1435
+            # NOTE: possible bug? https://github.com/ruby/prism/issues/1435
             receiver = s(:lvar, receiver.last, location: node.receiver.location)
           end
           s(:defs,
@@ -435,9 +437,9 @@ module Natalie
       def visit_interpolated_stringish_node(node, sexp_type:, unescaped: true)
         segments = node.parts.map do |n|
                     case n
-                    when YARP::StringNode
+                    when Prism::StringNode
                       s(:str, unescaped ? n.unescaped : n.content, location: n.location)
-                    when YARP::EmbeddedStatementsNode
+                    when Prism::EmbeddedStatementsNode
                       raise 'unexpected evstr size' if n.statements.body.size != 1
                       s(:evstr, visit(n.statements.body.first), location: n.location)
                     else
@@ -540,7 +542,7 @@ module Natalie
       end
 
       def visit_match_node(node)
-        match = if node.receiver.is_a?(YARP::RegularExpressionNode)
+        match = if node.receiver.is_a?(Prism::RegularExpressionNode)
                   s(:match2,
                     visit(node.receiver),
                     visit(node.arguments.child_nodes.first),
@@ -633,7 +635,7 @@ module Natalie
       def visit_parameters_node(node)
         return Sexp.new(:args) unless node
 
-        # NOTE: More info about sorted parameters: https://github.com/ruby/yarp/issues/1436
+        # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
         in_order = node.child_nodes.compact.sort_by { |n| n.location.start_offset }
 
         s(:args,
@@ -654,7 +656,7 @@ module Natalie
       end
 
       def visit_range_node(node)
-        if node.left.is_a?(YARP::IntegerNode) && node.right.is_a?(YARP::IntegerNode)
+        if node.left.is_a?(Prism::IntegerNode) && node.right.is_a?(Prism::IntegerNode)
           left = node.left.value
           right = node.right.value
           if node.exclude_end?
@@ -891,7 +893,7 @@ module Natalie
       def node_arguments_and_block(node)
         args = node.arguments&.arguments || []
         block = node.block
-        if block.is_a?(YARP::BlockArgumentNode)
+        if block.is_a?(Prism::BlockArgumentNode)
           args << block
           block = nil
         end
@@ -949,7 +951,7 @@ module Natalie
     end
 
     def ast
-      YARP
+      Prism
         .parse(@code_str, @path)
         .value
         .accept(SexpVisitor.new(@path))

@@ -14,12 +14,12 @@ task :build do
 end
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: %i[set_build_debug libnatalie yarp_c_ext ctags] do
+task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: %i[set_build_release libnatalie yarp_c_ext] do
+task build_release: %i[set_build_release libnatalie prism_c_ext] do
   puts 'Build mode: release'
 end
 
@@ -93,8 +93,8 @@ end
 desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
-desc 'Build MRI C Extension for YARP'
-task yarp_c_ext: ["build/librubyparser.#{SO_EXT}", "build/yarp/ext/yarp/yarp.#{DL_EXT}"]
+desc 'Build MRI C Extension for Prism'
+task prism_c_ext: ["build/librubyparser.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -131,31 +131,24 @@ task tidy: %i[build tidy_internal]
 desc 'Lint GC visiting code'
 task gc_lint: %i[build gc_lint_internal]
 
-YARP_TEMPLATED_SOURCES = [
-  'ext/yarp/api_node.c',
-  'src/token_type.c',
-  'src/serialize.c',
-  'src/node.c',
-  'src/prettyprint.c',
-  'lib/yarp/node.rb',
-  'lib/yarp/serialize.rb',
-  'lib/yarp/mutation_visitor.rb',
-  'include/yarp/ast.h',
-].freeze
-
-desc 'Generate YARP sources from templates (do this when updating YARP)'
-task :yarp_templated_sources do
-  build_dir = File.expand_path('build/yarp', __dir__)
+desc 'Generate Prism sources from templates (do this when updating Prism)'
+task prism_templated_sources: :build_dir do
+  build_dir = File.expand_path('build/prism', __dir__)
   rm_rf build_dir
-  cp_r 'ext/yarp', build_dir
+  cp_r 'ext/prism', build_dir
   sh <<-END
     cd #{build_dir} && \
     bundle install && \
-    rake templates
+    find . -type f > /tmp/prism_before.txt && \
+    rake templates && \
+    find . -type f > /tmp/prism_after.txt
   END
-  gen_dir = File.join(__dir__, 'ext/yarp-generated')
+  gen_dir = File.join(__dir__, 'ext/prism-generated')
   rm_rf gen_dir
-  YARP_TEMPLATED_SOURCES.each do |src|
+  files = (
+    File.read('/tmp/prism_after.txt').split("\n") - File.read('/tmp/prism_before.txt').split("\n")
+  ).grep_v(/\.java/)
+  files.each do |src|
     full_dest = File.join(gen_dir, src)
     dir = File.split(full_dest).first
     mkdir_p dir unless File.exist?(dir)
@@ -416,25 +409,25 @@ end
 
 file "build/librubyparser.#{SO_EXT}" => ['build/librubyparser.a']
 
-file 'build/librubyparser.a' => ["build/yarp/ext/yarp/yarp.#{DL_EXT}"] do
-  build_dir = File.expand_path('build/yarp', __dir__)
+file 'build/librubyparser.a' => ["build/prism/ext/prism/prism.#{DL_EXT}"] do
+  build_dir = File.expand_path('build/prism', __dir__)
   cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
   cp "#{build_dir}/build/librubyparser.#{SO_EXT}", File.expand_path('build', __dir__)
 end
 
-file "build/yarp/ext/yarp/yarp.#{DL_EXT}" => Rake::FileList['ext/yarp/**/*.{h,c,rb}'] do
-  build_dir = File.expand_path('build/yarp', __dir__)
+file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{h,c,rb}'] do
+  build_dir = File.expand_path('build/prism', __dir__)
   rm_rf build_dir
-  cp_r 'ext/yarp', build_dir
-  Rake::FileList['ext/yarp-generated/**/*.{rb,c,h}'].each do |path|
-    dest = File.join(build_dir, path.sub(%r{^ext/yarp-generated}, ''))
+  cp_r 'ext/prism', build_dir
+  Rake::FileList['ext/prism-generated/**/*.{rb,c,h}'].each do |path|
+    dest = File.join(build_dir, path.sub(%r{^ext/prism-generated}, ''))
     cp path, dest
   end
   File.write(File.join(build_dir, 'rakelib/test.rake'), '') # disable this task since it tries to load ruby_memcheck
   sh <<-SH
     cd #{build_dir} && \
     make && \
-    cd ext/yarp && \
+    cd ext/prism && \
     ruby extconf.rb && \
     make
   SH
@@ -505,6 +498,6 @@ def include_paths
     File.expand_path('ext/tm/include', __dir__),
     File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
-    File.expand_path('build/yarp/include', __dir__),
+    File.expand_path('build/prism/include', __dir__),
   ]
 end
