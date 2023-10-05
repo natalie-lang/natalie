@@ -548,7 +548,7 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     return !!find_method(env, name);
 }
 
-String ModuleObject::inspect_str() {
+String ModuleObject::inspect_str() const {
     if (m_class_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
             return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
@@ -574,7 +574,7 @@ String ModuleObject::dbg_inspect() const {
     return Object::dbg_inspect();
 }
 
-Value ModuleObject::name(Env *env) {
+Value ModuleObject::name(Env *env) const {
     if (m_class_name) {
         String name = m_class_name.value();
         auto the_owner = owner();
