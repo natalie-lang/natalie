@@ -89,7 +89,7 @@ module Natalie
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
         if node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
-          :append_load_path
+          :update_load_path
         end
       end
 
@@ -206,7 +206,8 @@ module Natalie
       end
 
       # $LOAD_PATH << some_expression
-      def macro_append_load_path(expr:, current_path:)
+      # $LOAD_PATH.unshift(some_expression)
+      def macro_update_load_path(expr:, current_path:)
         if @depth > 0
           name = expr[1][1]
           return drop_error(:LoadError, "Cannot manipulate #{name} at runtime")
