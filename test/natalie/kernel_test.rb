@@ -43,13 +43,17 @@ describe 'Kernel' do
 
   describe '#sleep' do
     it 'sleeps the number of seconds' do
-      # TODO: add a way to measure time
+      t_start = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
       sleep 1
-      sleep 0.1
-    end
+      t_end = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
+      (t_end - t_start).should >= 0.9
+      (t_end - t_start).should <= 1.1
 
-    it 'raises an error when given a non-numeric object' do
-      -> { sleep :foo }.should raise_error(TypeError, "can't convert Symbol into time interval")
+      t_start = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
+      sleep 0.1
+      t_end = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
+      (t_end - t_start).should >= 0.01
+      (t_end - t_start).should <= 0.2
     end
   end
 

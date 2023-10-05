@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <time.h>
 
 extern char **environ;
 
@@ -582,23 +583,34 @@ Value KernelModule::sleep(Env *env, Value length) {
         }
         NAT_UNREACHABLE();
     }
+    timespec ts;
+    float secs;
     if (length->is_integer()) {
-        auto secs = length->as_integer()->to_nat_int_t();
-        if (secs < 0)
-            env->raise("ArgumentError", "time interval must not be negative");
-        ::sleep(length->as_integer()->to_nat_int_t());
+        secs = length->as_integer()->to_nat_int_t();
     } else if (length->is_float()) {
-        auto secs = length->as_float()->to_double();
-        if (secs < 0.0)
-            env->raise("ArgumentError", "time interval must not be negative");
-        struct timespec ts;
-        ts.tv_sec = ::floor(secs);
-        ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
-        nanosleep(&ts, nullptr);
+        secs = length->as_float()->to_double();
+    } else if (length->is_rational()) {
+        secs = length->as_rational()->to_f(env)->as_float()->to_double();
+    } else if (length->respond_to(env, "divmod"_s)) {
+        auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        secs = divmod->at(0)->to_f(env)->as_float()->to_double();
+        secs += divmod->at(1)->to_f(env)->as_float()->to_double();
     } else {
         env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
     }
-    return length;
+    if (secs < 0.0)
+        env->raise("ArgumentError", "time interval must not be negative");
+    ts.tv_sec = ::floor(secs);
+    ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
+    timespec t_begin, t_end;
+    if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
+        env->raise_errno();
+    nanosleep(&ts, nullptr);
+    if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+        env->raise_errno();
+    int elapsed = t_end.tv_sec - t_begin.tv_sec;
+    if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
+    return IntegerObject::create(elapsed);
 }
 
 Value KernelModule::spawn(Env *env, Args args) {
