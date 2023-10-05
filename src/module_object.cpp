@@ -565,7 +565,7 @@ String ModuleObject::inspect_str() const {
     }
 }
 
-Value ModuleObject::inspect(Env *env) {
+Value ModuleObject::inspect(Env *env) const {
     return new StringObject { inspect_str() };
 }
 
