@@ -6,7 +6,9 @@ describe "Kernel#sleep" do
   end
 
   it "returns an Integer" do
-    sleep(0.001).should be_kind_of(Integer)
+    NATFIXME 'Fix return value', exception: SpecFailedException do
+      sleep(0.001).should be_kind_of(Integer)
+    end
   end
 
   it "accepts a Float" do
@@ -18,13 +20,17 @@ describe "Kernel#sleep" do
   end
 
   it "accepts a Rational" do
-    sleep(Rational(1, 999)).should >= 0
+    NATFIXME 'Accept a rational', exception: TypeError, message: "can't convert Rational into time interval" do
+      sleep(Rational(1, 999)).should >= 0
+    end
   end
 
   it "accepts any Object that reponds to divmod" do
     o = Object.new
     def o.divmod(*); [0, 0.001]; end
-    sleep(o).should >= 0
+    NATFIXME 'Accept a #divmod', exception: TypeError, message: "can't convert Object into time interval" do
+      sleep(o).should >= 0
+    end
   end
 
   it "raises an ArgumentError when passed a negative duration" do
@@ -37,18 +43,20 @@ describe "Kernel#sleep" do
   end
 
   it "pauses execution indefinitely if not given a duration" do
-    running = false
-    t = Thread.new do
-      running = true
-      sleep
-      5
+    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      running = false
+      t = Thread.new do
+        running = true
+        sleep
+        5
+      end
+
+      Thread.pass until running
+      Thread.pass while t.status and t.status != "sleep"
+
+      t.wakeup
+      t.value.should == 5
     end
-
-    Thread.pass until running
-    Thread.pass while t.status and t.status != "sleep"
-
-    t.wakeup
-    t.value.should == 5
   end
 
   ruby_version_is ""..."3.3" do
