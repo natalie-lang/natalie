@@ -6,7 +6,7 @@ module Natalie
       class MacroError < StandardError; end
       class LoadPathMacroError < MacroError; end
 
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:, depth: 0)
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:)
         @ast = ast
         @path = path
         @load_path = load_path
@@ -15,7 +15,6 @@ module Natalie
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
         @loaded_paths = loaded_paths
-        @depth = depth
       end
 
       attr_reader :ast, :path, :load_path, :depth
@@ -32,13 +31,19 @@ module Natalie
       ].freeze
 
       def expand
+        expand_macros(@ast, path: @path, depth: 0)
+      end
+
+      private
+
+      def expand_macros(ast, path:, depth:)
         ast.each_with_index do |node, i|
           next unless node.is_a?(Sexp)
           expanded =
             if (macro_name = get_macro_name(node))
-              run_macro(macro_name, node, path)
+              run_macro(macro_name, node, current_path: path, depth: depth)
             elsif node.size > 1
-              s(node[0], *expand_macros(node[1..-1], path))
+              s(node[0], *expand_macros(node[1..-1], path: path, depth: depth + 1))
             else
               node
             end
@@ -46,23 +51,6 @@ module Natalie
           ast[i] = expanded
         end
         ast
-      end
-
-      private
-
-      # FIXME: why do we instantitate this so much? Can we not stay within our own instance and just use method recursion?
-      def expand_macros(ast, path)
-        expander = MacroExpander.new(
-          ast: ast,
-          path: path,
-          load_path: load_path,
-          interpret: interpret?,
-          compiler_context: @compiler_context,
-          log_load_error: @log_load_error,
-          loaded_paths: @loaded_paths,
-          depth: @depth + 1,
-        )
-        expander.expand
       end
 
       def get_macro_name(node)
@@ -93,15 +81,15 @@ module Natalie
         end
       end
 
-      def run_macro(macro_name, expr, current_path)
-        send("macro_#{macro_name}", expr: expr, current_path: current_path)
+      def run_macro(macro_name, expr, current_path:, depth:)
+        send("macro_#{macro_name}", expr: expr, current_path: current_path, depth: depth)
       end
 
       def macro_user_macro(expr:, current_path:)
         _, _, name = expr
         macro = @macros[name]
         new_ast = VM.compile_and_run(macro, path: 'macro')
-        expand_macros(new_ast, path: current_path)
+        expand_macros(new_ast, path: current_path, depth: depth + 1)
       end
 
       def macro_macro!(expr:, current_path:)
@@ -113,7 +101,7 @@ module Natalie
 
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
 
-      def macro_autoload(expr:, current_path:)
+      def macro_autoload(expr:, current_path:, depth:)
         args = expr[3..]
         const_node, path_node = args
         const = comptime_symbol(const_node)
@@ -135,7 +123,7 @@ module Natalie
         expr.new(:autoload_const, const, full_path, body)
       end
 
-      def macro_require(expr:, current_path:)
+      def macro_require(expr:, current_path:, depth:)
         args = expr[3..]
         name = comptime_string(args.first)
         return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
@@ -151,7 +139,7 @@ module Natalie
         drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
-      def macro_require_relative(expr:, current_path:)
+      def macro_require_relative(expr:, current_path:, depth:)
         args = expr[3..]
         name = comptime_string(args.first)
         base = File.dirname(current_path)
@@ -163,7 +151,7 @@ module Natalie
         drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
-      def macro_load(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
+      def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
         args = expr[3..]
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
@@ -171,7 +159,7 @@ module Natalie
         drop_load_error "cannot load such file -- #{path}"
       end
 
-      def macro_eval(expr:, current_path:)
+      def macro_eval(expr:, current_path:, depth:)
         args = expr[3..]
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
@@ -207,10 +195,10 @@ module Natalie
 
       # $LOAD_PATH << some_expression
       # $LOAD_PATH.unshift(some_expression)
-      def macro_update_load_path(expr:, current_path:)
-        if @depth > 0
+      def macro_update_load_path(expr:, current_path:, depth:)
+        if depth > 0
           name = expr[1][1]
-          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime")
+          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
         end
 
         _, _, _, body = expr
@@ -261,7 +249,7 @@ module Natalie
           file_ast = Natalie::Parser.new(code, path).ast
           s(:block,
             s(:with_main,
-              expand_macros(file_ast, path)),
+              expand_macros(file_ast, path: path, depth: 0)),
             ::Prism::TrueNode.new(nil))
         end
       end
