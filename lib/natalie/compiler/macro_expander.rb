@@ -208,7 +208,7 @@ module Natalie
       # $LOAD_PATH << some_expression
       def macro_append_load_path(expr:, current_path:)
         if @depth > 0
-          return drop_error(:LoadError, "Cannot maniuplate $LOAD_PATH at runtime")
+          return drop_error(:LoadError, "Cannot manipulate $LOAD_PATH at runtime")
         end
 
         _, _, _, body = expr

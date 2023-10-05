@@ -10,6 +10,6 @@ describe '$LOAD_PATH' do
   end
 
   it 'does not support conditional modification' do
-    -> { $LOAD_PATH << 'foo' }.should raise_error(LoadError, 'Cannot maniuplate $LOAD_PATH at runtime')
+    -> { $LOAD_PATH << 'foo' }.should raise_error(LoadError, 'Cannot manipulate $LOAD_PATH at runtime')
   end
 end
