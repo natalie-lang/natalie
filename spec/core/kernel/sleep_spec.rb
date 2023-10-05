@@ -20,9 +20,7 @@ describe "Kernel#sleep" do
   end
 
   it "accepts a Rational" do
-    NATFIXME 'Accept a rational', exception: TypeError, message: "can't convert Rational into time interval" do
-      sleep(Rational(1, 999)).should >= 0
-    end
+    sleep(Rational(1, 999)).should >= 0
   end
 
   it "accepts any Object that reponds to divmod" do
