@@ -145,7 +145,7 @@ to supplement the specs in `spec/`.
 
 ## Copyright & License
 
-Natalie is copyright 2021, Tim Morgan and contributors. Natalie is licensed
+Natalie is copyright 2023, Tim Morgan and contributors. Natalie is licensed
 under the MIT License; see the `LICENSE` file in this directory for the full text.
 
 Some parts of this program are copied from other sources, and the copyright

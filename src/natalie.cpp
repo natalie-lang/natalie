@@ -405,7 +405,7 @@ Env *build_top_env() {
     Value RUBY_VERSION = new StringObject { "3.1.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
-    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2021 Tim Morgan and contributors" };
+    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2023 Tim Morgan and contributors" };
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
     auto ruby_revision_short = TM::String(ruby_revision, 10);
