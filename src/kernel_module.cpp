@@ -601,6 +601,15 @@ Value KernelModule::sleep(Env *env, Value length) {
             env->raise("ArgumentError", "time interval must not be negative");
         ts.tv_sec = ::floor(secs);
         ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
+    } else if (length->respond_to(env, "divmod"_s)) {
+        auto divmod = length->send(env, "divmod"_s, { IntegerObject::create(1) })->as_array();
+        auto secs = divmod->at(0)->to_f(env)->as_float()->to_double();
+        secs += divmod->at(1)->to_f(env)->as_float()->to_double();
+        if (secs < 0.0)
+            env->raise("ArgumentError", "time interval must not be negative");
+        ts.tv_sec = ::floor(secs);
+        ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
+        length = new FloatObject { secs };
     } else {
         env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
     }

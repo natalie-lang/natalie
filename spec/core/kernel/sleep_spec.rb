@@ -26,9 +26,7 @@ describe "Kernel#sleep" do
   it "accepts any Object that reponds to divmod" do
     o = Object.new
     def o.divmod(*); [0, 0.001]; end
-    NATFIXME 'Accept a #divmod', exception: TypeError, message: "can't convert Object into time interval" do
-      sleep(o).should >= 0
-    end
+    sleep(o).should >= 0
   end
 
   it "raises an ArgumentError when passed a negative duration" do
