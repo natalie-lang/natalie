@@ -209,7 +209,7 @@ module Natalie
         end
 
         load_path << path_to_add
-        s(:nil)
+        ::Prism::NilNode.new(nil)
       end
 
       def interpret?
