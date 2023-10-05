@@ -170,6 +170,20 @@ module Natalie
         [PushNilInstruction.new]
       end
 
+      def transform_or_node(node, used:)
+        instructions = [
+          *transform_expression(node.left, used: true),
+          DupInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          *transform_expression(node.right, used: true),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_rational_node(node, used:)
         return [] unless used
 
@@ -489,7 +503,7 @@ module Natalie
             # s(:array, option1, option2, ...)
             # =>
             # s(:or, option1, s(:or, option2, ...))
-            options = options[2..].reduce(options[1]) { |prev, option| s(:or, prev, option) }
+            options = options[2..].reduce(options[1]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
             instructions << transform_body(body, used: true)
@@ -1362,23 +1376,6 @@ module Natalie
           instructions << PopInstruction.new unless used
           instructions
         end
-      end
-
-      def transform_or(exp, used:)
-        _, lhs, rhs = exp
-        lhs_instructions = transform_expression(lhs, used: true)
-        rhs_instructions = transform_expression(rhs, used: true)
-        instructions = [
-          lhs_instructions,
-          DupInstruction.new,
-          IfInstruction.new,
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          rhs_instructions,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_redo(*)

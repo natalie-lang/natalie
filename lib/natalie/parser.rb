@@ -623,7 +623,7 @@ module Natalie
       end
 
       def visit_or_node(node)
-        s(:or, visit(node.left), visit(node.right), location: node.location)
+        node.copy(left: visit(node.left), right: visit(node.right))
       end
 
       def visit_parameters_node(node)
