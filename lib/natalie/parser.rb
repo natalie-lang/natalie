@@ -317,9 +317,7 @@ module Natalie
         s(:false, location: node.location)
       end
 
-      def visit_float_node(node)
-        s(:lit, node.value, location: node.location)
-      end
+      alias visit_float_node visit_passthrough
 
       def visit_for_node(node)
         s(:for,

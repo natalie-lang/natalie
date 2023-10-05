@@ -113,6 +113,11 @@ module Natalie
       # INDIVIDUAL PRISM NODES = = = = =
       # (in alphabetical order)
 
+      def transform_float_node(node, used:)
+        return [] unless used
+        [PushFloatInstruction.new(node.value)]
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 
