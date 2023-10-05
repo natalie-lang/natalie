@@ -81,6 +81,13 @@ module Natalie
       # INDIVIDUAL PRISM NODES = = = = =
       # (in alphabetical order)
 
+      def transform_alias_method_node(node, used:)
+        instructions = [transform_expression(node.new_name, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << transform_expression(node.old_name, used: true)
+        instructions << AliasInstruction.new
+      end
+
       def transform_and_node(node, used:)
         instructions = [
           *transform_expression(node.left, used: true),

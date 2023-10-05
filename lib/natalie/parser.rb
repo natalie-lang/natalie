@@ -76,7 +76,7 @@ module Natalie
       end
 
       def visit_alias_method_node(node)
-        s(:alias, visit(node.new_name), visit(node.old_name), location: node.location)
+        node.copy(new_name: visit(node.new_name), old_name: visit(node.old_name))
       end
 
       def visit_and_node(node)
