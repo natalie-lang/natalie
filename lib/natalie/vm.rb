@@ -1,14 +1,12 @@
-require_relative 'vm/main_object'
-
 module Natalie
   class VM
     def initialize(instructions, path:)
       @instructions = instructions
       @stack = []
       @call_stack = [{ scope: { vars: {} } }]
+      @path = path
       @self = @main = build_main
       @method_visibility = :public
-      @path = path
       @global_variables = {
         "$0": @path,
         "$stderr": $stderr,
@@ -133,6 +131,9 @@ module Natalie
       def main.to_s; 'main'; end
       def main.inspect; 'main'; end
       def main.define_method(name, &block); Object.define_method(name, &block); end
+      main.instance_variable_set(:@path, @path)
+      def main.__dir__; File.split(File.expand_path(@path)).first; end
+      # FIXME: I don't think these 3 methods are used:
       def main.private(*args); Object.send(:private, *args); end
       def main.protected(*args); Object.send(:potected, *args); end
       def main.public(*args); Object.send(:public, *args); end

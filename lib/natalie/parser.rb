@@ -941,6 +941,22 @@ module Natalie
         pop while last.nil?
         self
       end
+
+      def match(pattern, node = self)
+        if node.is_a?(Sexp)
+          node.each_with_index.all? do |part, index|
+            pattern.nil? || match(pattern[index], part)
+          end
+        elsif pattern.instance_of?(Array)
+          pattern.include?(node)
+        elsif pattern.nil?
+          true
+        elsif node == pattern
+          true
+        else
+          false
+        end
+      end
     end
 
     def initialize(code_str, path)

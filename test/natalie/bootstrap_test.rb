@@ -389,6 +389,10 @@ class TestCompiler < TestCase
     assert_eq(:nested, Constants::Nested::CONSTANT)
   end
 
+  def test_dir
+    assert_eq(0, __dir__ =~ %r{^/.*/test/natalie$})
+  end
+
   def test_ensure
     # exception rescued
     result = []
