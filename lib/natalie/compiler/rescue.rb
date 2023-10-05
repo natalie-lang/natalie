@@ -24,7 +24,7 @@ module Natalie
 
         [
           try_instruction,
-          transform_body(body || exp.new(:nil)),
+          transform_body(body || ::Prism::NilNode.new(nil)),
           CatchInstruction.new,
           transform_catch_body(rescue_exprs, retry_id: retry_id),
           EndInstruction.new(:try),

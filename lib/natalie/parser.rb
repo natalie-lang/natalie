@@ -294,13 +294,13 @@ module Natalie
             receiver,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || s(:nil, location: node.location),
+            visit(node.body) || nil_node(node.location),
             location: node.location)
         else
           s(:defn,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || s(:nil, location: node.location),
+            visit(node.body) || nil_node(node.location),
             location: node.location)
         end
       end
@@ -313,9 +313,7 @@ module Natalie
         visit(node.child_nodes.first)
       end
 
-      def visit_false_node(node)
-        s(:false, location: node.location)
-      end
+      alias visit_false_node visit_passthrough
 
       alias visit_float_node visit_passthrough
 
@@ -603,9 +601,7 @@ module Natalie
         visit_return_or_next_or_break_node(node, sexp_type: :next)
       end
 
-      def visit_nil_node(node)
-        s(:nil, location: node.location)
-      end
+      alias visit_nil_node visit_passthrough
 
       def visit_numbered_reference_read_node(node)
         s(:nth_ref, node.number, location: node.location)
@@ -645,7 +641,7 @@ module Natalie
         if node.body
           visit(node.body)
         else
-          s(:nil, location: node.location)
+          nil_node(node.location)
         end
       end
 
@@ -741,9 +737,7 @@ module Natalie
         end
       end
 
-      def visit_self_node(node)
-        s(:self, location: node.location)
-      end
+      alias visit_self_node visit_passthrough
 
       def visit_singleton_class_node(node)
         s(:sclass, visit(node.expression), visit(node.body), location: node.location)
@@ -810,9 +804,7 @@ module Natalie
         s(:lit, node.unescaped.to_sym, location: node.location)
       end
 
-      def visit_true_node(node)
-        s(:true, location: node.location)
-      end
+      alias visit_true_node visit_passthrough
 
       def visit_undef_node(node)
         if node.names.size == 1
@@ -870,6 +862,10 @@ module Natalie
 
       def s(*items, location:)
         Sexp.new(*items, location: location, file: @path)
+      end
+
+      def nil_node(location)
+        ::Prism::NilNode.new(location)
       end
 
       def flatten(ary)
