@@ -2,6 +2,53 @@ $LOAD_PATH << File.expand_path('../../build/prism/lib', __dir__)
 $LOAD_PATH << File.expand_path('../../build/prism/ext', __dir__)
 require 'prism'
 
+module Prism
+  class Node
+    # This is to maintain the same interface as Sexp instances. It doesn't
+    # provide the exact same thing, so as we migrate we'll need to update call
+    # sites to handle the "correct" type. The list of types that we need to
+    # handle are:
+    #
+    # * args
+    # * attrasgn
+    # * bare_hash
+    # * block
+    # * block_pass
+    # * cdecl
+    # * colon2
+    # * colon3
+    # * cvar
+    # * evstr
+    # * forward_args
+    # * gasgn
+    # * iasgn
+    # * kwarg
+    # * kwsplat
+    # * lasgn
+    # * lvar
+    # * masgn
+    # * resbody
+    # * safe_call
+    # * str
+    # * to_ary
+    # * zsuper
+    #
+    def sexp_type
+      type
+    end
+
+    # We need this to maintain the same interface as Sexp instances in the case
+    # of the repl.
+    def new(*parts)
+      Natalie::Parser::Sexp.new(*parts).tap do |sexp|
+        sexp.file = "<compiled>"
+        sexp.line = location.start_line
+        sexp.column = location.start_column
+      end
+    end
+  end
+end
+
 module Natalie
   class Parser
     class IncompleteExpression < StandardError
