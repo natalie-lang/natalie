@@ -9,8 +9,10 @@ module Natalie
         # s(:rescue,
         #   s(:lit, 1),
         #   s(:resbody, s(:array, s(:const, :NoMethodError)),
+        #     nil,
         #     s(:lit, 2)),
         #   s(:resbody, s(:array, s(:const, :ArgumentError)),
+        #     nil,
         #     s(:lit, 3)))
 
         _, *rescue_exprs = exp
@@ -37,18 +39,22 @@ module Natalie
       def transform_catch_body(rescue_exprs, retry_id:)
         # [
         #   s(:resbody,
-        #     s(:array,
-        #       s(:const, :NoMethodError),
-        #       s(:lasgn, :e, s(:gvar, :$!))),
+        #     s(:array, s(:const, :NoMethodError)),
+        #     s(:lasgn, :e, s(:gvar, :$!)),
         #     s(:lit, 2)),
         #   s(:resbody, s(:array, s(:const, :ArgumentError)),
+        #     nil,
         #     s(:lit, 3))
         # ]
 
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
-            _, exceptions_array, *rescue_body = rescue_expr
-            variable_set, match_array = split_exceptions_array(exceptions_array)
+            _, match_array, variable_set, *rescue_body = rescue_expr
+
+            # empty array, so let's rescue StandardError
+            if match_array.elements.empty?
+              match_array = ::Prism::ArrayNode.new([match_array.new(:const, :StandardError)], nil, nil, nil)
+            end
 
             # Wrap in a retry_context so any RetryInstructions inside know
             # which rescue they are retrying.
@@ -113,22 +119,6 @@ module Natalie
         else
           nil
         end
-      end
-
-      def split_exceptions_array(array)
-        _, *items = array
-
-        # rescue => e
-        if items.any? && items.last.sexp_type == :lasgn
-          variable_set = items.pop
-        end
-
-        # empty array, so let's rescue StandardError
-        if items.none?
-          items = [array.new(:const, :StandardError)]
-        end
-
-        [variable_set, array.new(:array, *items)]
       end
     end
   end

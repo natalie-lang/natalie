@@ -102,6 +102,23 @@ module Natalie
         instructions
       end
 
+      def transform_array_node(node, used:)
+        elements = node.elements
+        instructions = []
+
+        if node.elements.any? { |a| a.sexp_type == :splat }
+          instructions += transform_array_with_splat(elements)
+        else
+          elements.each do |element|
+            instructions << transform_expression(element, used: true)
+          end
+          instructions << CreateArrayInstruction.new(count: elements.size)
+        end
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_defined_node(node, used:)
         return [] unless used
 
@@ -242,35 +259,20 @@ module Natalie
         instructions << AliasInstruction.new
       end
 
-      def transform_array(exp, used:)
-        _, *items = exp
-        instructions = []
-        if items.any? { |a| a.sexp_type == :splat }
-          instructions += transform_array_with_splat(items)
-        else
-          items.each do |item|
-            instructions << transform_expression(item, used: true)
-          end
-          instructions << CreateArrayInstruction.new(count: items.size)
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_array_with_splat(items)
-        items = items.dup
+      def transform_array_with_splat(elements)
+        elements = elements.dup
         instructions = []
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :splat
-          instructions << transform_expression(items.shift, used: true)
+        while elements.any? && elements.first.sexp_type != :splat
+          instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
         instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
 
         # now add to the array the first splat item and everything after
-        items.each do |arg|
+        elements.each do |arg|
           if arg.sexp_type == :splat
             _, value = arg
             instructions << transform_expression(value, used: true)
@@ -520,7 +522,9 @@ module Natalie
             # s(:array, option1, option2, ...)
             # =>
             # s(:or, option1, s(:or, option2, ...))
-            options = options[2..].reduce(options[1]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
+            options = options.elements
+            options = options[1..].reduce(options[0]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
+
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
             instructions << transform_body(body, used: true)
@@ -817,8 +821,7 @@ module Natalie
         when :lasgn
           instructions << VariableDeclareInstruction.new(args[1])
         when :masgn
-          _, (_, *array) = args
-          array.each do |arg|
+          args[1].elements.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
         else
@@ -1449,8 +1452,8 @@ module Natalie
         when :splat
           instructions << transform_expression(svalue, used: true)
           instructions << ArrayWrapInstruction.new
-        when :array
-          instructions << transform_array(svalue, used: true)
+        when :array_node
+          instructions << transform_array_node(svalue, used: true)
         else
           raise "unexpected svalue type: #{svalue.inspect}"
         end

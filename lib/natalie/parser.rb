@@ -27,7 +27,6 @@ module Prism
     # * lasgn
     # * lvar
     # * masgn
-    # * resbody
     # * safe_call
     # * str
     # * to_ary
@@ -84,7 +83,7 @@ module Natalie
       end
 
       def visit_array_node(node)
-        s(:array, *node.child_nodes.map { |n| visit(n) }, location: node.location)
+        node.copy(elements: node.elements.map { |element| visit(element) })
       end
 
       def visit_assoc_node(node)
@@ -632,7 +631,7 @@ module Natalie
         return visit(node.targets.first) if node.targets.size == 1
 
         s(:masgn,
-          s(:array, *node.targets.map { |n| visit(n) }, location: node.location),
+          ::Prism::ArrayNode.new(node.targets.map { |target| visit(target) }, nil, nil, node.location),
           location: node.location)
       end
 
@@ -736,25 +735,19 @@ module Natalie
         s(:rescue,
           visit(node.expression),
           s(:resbody,
-            s(:array, location: node.rescue_expression.location),
+            ::Prism::ArrayNode.new([], nil, nil, node.rescue_expression.location),
+            nil,
             visit(node.rescue_expression),
             location: node.rescue_expression.location),
           location: node.location)
       end
 
       def visit_rescue_node(node)
-        ary = s(:array,
-          *node.exceptions.map { |n| visit(n) },
-          location: node.location)
         ref = visit(node.reference)
-        if ref
-          ref << s(:gvar, :$!, location: node.location)
-          ary << ref
-        end
-        s(:resbody,
-          ary,
-          visit(node.statements),
-          location: node.location)
+        ref << s(:gvar, :$!, location: node.location) if ref
+
+        ary = ::Prism::ArrayNode.new(node.exceptions.map { |exception| visit(exception) }, nil, nil, node.location)
+        s(:resbody, ary, ref, visit(node.statements), location: node.location)
       end
 
       def visit_rest_parameter_node(node)
@@ -777,7 +770,7 @@ module Natalie
           s(sexp_type, visit(args.first), location: node.location)
         else
           s(sexp_type,
-            s(:array, *args.map { |n| visit(n) }, location: node.location),
+            ::Prism::ArrayNode.new(args.map { |arg| visit(arg) }, nil, nil, node.location),
             location: node.location)
         end
       end
@@ -880,9 +873,7 @@ module Natalie
 
       def visit_when_node(node)
         s(:when,
-          s(:array,
-            *node.conditions.map { |n| visit(n) },
-            location: node.location),
+          ::Prism::ArrayNode.new(node.conditions.map { |condition| visit(condition) }, nil, nil, node.location),
           visit(node.statements),
           location: node.location)
       end
@@ -959,7 +950,7 @@ module Natalie
 
       attr_accessor :file, :line, :column
 
-      def inspect(*)
+      def inspect(q = nil)
         "s(#{map(&:inspect).join(', ')})"
       end
 

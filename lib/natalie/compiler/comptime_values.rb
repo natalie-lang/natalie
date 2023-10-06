@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     module ComptimeValues
       def comptime_array_of_strings(node)
-        unless node.sexp_type == :array
+        unless node.is_a?(::Prism::ArrayNode)
           raise_comptime_value_error('array', node)
         end
         node[1..].map do |item|

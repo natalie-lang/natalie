@@ -39,10 +39,9 @@ module Natalie
             end
           when :masgn
             clean_up_keyword_args
-            if arg[1].is_a?(Sexp) && arg[1].sexp_type == :array
+            if arg[1].is_a?(::Prism::ArrayNode)
               # for-loop masgn looks like: s(:masgn, s(:array, ...))
-              _, array = arg
-              arg = arg.new(:masgn, *array[1..-1])
+              arg = arg.new(:masgn, *arg[1].elements)
             end
             transform_destructured_arg(arg)
           when :splat
