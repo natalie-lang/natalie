@@ -26,7 +26,7 @@ module Natalie
 
         [
           try_instruction,
-          transform_body(body || ::Prism::NilNode.new(nil)),
+          transform_body(body || Prism.nil_node),
           CatchInstruction.new,
           transform_catch_body(rescue_exprs, retry_id: retry_id),
           EndInstruction.new(:try),
@@ -53,7 +53,7 @@ module Natalie
 
             # empty array, so let's rescue StandardError
             if match_array.elements.empty?
-              match_array = ::Prism::ArrayNode.new([match_array.new(:const, :StandardError)], nil, nil, nil)
+              match_array = match_array.copy(elements: [match_array.new(:const, :StandardError)])
             end
 
             # Wrap in a retry_context so any RetryInstructions inside know

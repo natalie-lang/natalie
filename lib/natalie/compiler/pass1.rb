@@ -65,7 +65,7 @@ module Natalie
       def transform_body(body, used:)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
-        instructions << transform_expression(last || nil_node, used: used)
+        instructions << transform_expression(last || Prism.nil_node, used: used)
         instructions
       end
 
@@ -350,7 +350,7 @@ module Natalie
 
       def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         [
           transform_expression(value, used: true),
           BreakInstruction.new,
@@ -523,7 +523,7 @@ module Natalie
             # =>
             # s(:or, option1, s(:or, option2, ...))
             options = options.elements
-            options = options[1..].reduce(options[0]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
+            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
 
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
@@ -727,8 +727,8 @@ module Natalie
       def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp
         instructions = [
-          transform_expression(ending || nil_node, used: true),
-          transform_expression(beginning || nil_node, used: true),
+          transform_expression(ending || Prism.nil_node, used: true),
+          transform_expression(beginning || Prism.nil_node, used: true),
           PushRangeInstruction.new(exclude_end),
         ]
         instructions << PopInstruction.new unless used
@@ -832,7 +832,7 @@ module Natalie
 
       def transform_for(exp, used:)
         _, array, args, body = exp
-        body = nil_node if body.nil?
+        body = Prism.nil_node if body.nil?
         instructions = transform_for_declare_args(args)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(s(:args, args), used: true)
@@ -913,8 +913,8 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression || nil_node, used: true)
-        false_instructions = transform_expression(false_expression || nil_node, used: true)
+        true_instructions = transform_expression(true_expression || Prism.nil_node, used: true)
+        false_instructions = transform_expression(false_expression || Prism.nil_node, used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
@@ -938,7 +938,7 @@ module Natalie
         else
           instructions << transform_block_args(args, used: true)
         end
-        instructions << transform_expression(body || nil_node, used: true)
+        instructions << transform_expression(body || Prism.nil_node, used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
         when :call
@@ -1119,7 +1119,7 @@ module Natalie
 
       def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         [
           transform_expression(value, used: true),
           NextInstruction.new,
@@ -1372,7 +1372,7 @@ module Natalie
 
       def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         instructions = [transform_expression(value, used: true)]
         instructions << ReturnInstruction.new
       end
@@ -1494,7 +1494,7 @@ module Natalie
 
       def transform_while(exp, used:)
         _, condition, body, pre = exp
-        body ||= nil_node
+        body ||= Prism.nil_node
 
         instructions = [
           WhileInstruction.new(pre: pre),
@@ -1636,10 +1636,6 @@ module Natalie
         sexp = Sexp.new
         items.each { |item| sexp << item }
         sexp
-      end
-
-      def nil_node
-        ::Prism::NilNode.new(nil)
       end
 
       class << self

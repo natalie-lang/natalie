@@ -197,7 +197,7 @@ module Natalie
         end
 
         load_path << path_to_add
-        ::Prism::NilNode.new(nil)
+        Prism.nil_node
       end
 
       def interpret?
@@ -251,7 +251,7 @@ module Natalie
         ::Prism::StatementsNode.new(
           [
             s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
-            ::Prism::TrueNode.new(nil)
+            ::Prism.true_node
           ],
           location
         )

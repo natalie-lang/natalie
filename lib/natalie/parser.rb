@@ -54,6 +54,31 @@ module Prism
     # We need to store path information on each node.
     attr_accessor :path
   end
+
+  # Create an ArrayNode with the optionally given elements and location.
+  def self.array_node(elements: [], location: nil)
+    ArrayNode.new(elements, nil, nil, location)
+  end
+
+  # Create a FalseNode with the optionally given location.
+  def self.false_node(location: nil)
+    FalseNode.new(location)
+  end
+
+  # Create a NilNode with the optionally given location.
+  def self.nil_node(location: nil)
+    NilNode.new(location)
+  end
+
+  # Create an OrNode with the optionally given left, right, and location.
+  def self.or_node(left: nil, right: nil, location: nil)
+    OrNode.new(left, right, nil, location)
+  end
+
+  # Create a TrueNode with the optionally given location.
+  def self.true_node(location: nil)
+    TrueNode.new(location)
+  end
 end
 
 module Natalie
@@ -349,13 +374,13 @@ module Natalie
             receiver,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || nil_node(node.location),
+            visit(node.body) || Prism.nil_node(location: node.location),
             location: node.location)
         else
           s(:defn,
             node.name.to_sym,
             visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || nil_node(node.location),
+            visit(node.body) || Prism.nil_node(location: node.location),
             location: node.location)
         end
       end
@@ -631,7 +656,7 @@ module Natalie
         return visit(node.targets.first) if node.targets.size == 1
 
         s(:masgn,
-          ::Prism::ArrayNode.new(node.targets.map { |target| visit(target) }, nil, nil, node.location),
+          Prism.array_node(elements: node.targets.map { |target| visit(target) }, location: node.location),
           location: node.location)
       end
 
@@ -685,7 +710,7 @@ module Natalie
         if node.body
           visit(node.body)
         else
-          nil_node(node.location)
+          Prism.nil_node(location: node.location)
         end
       end
 
@@ -735,7 +760,7 @@ module Natalie
         s(:rescue,
           visit(node.expression),
           s(:resbody,
-            ::Prism::ArrayNode.new([], nil, nil, node.rescue_expression.location),
+            Prism.array_node(location: node.rescue_expression.location),
             nil,
             visit(node.rescue_expression),
             location: node.rescue_expression.location),
@@ -746,7 +771,7 @@ module Natalie
         ref = visit(node.reference)
         ref << s(:gvar, :$!, location: node.location) if ref
 
-        ary = ::Prism::ArrayNode.new(node.exceptions.map { |exception| visit(exception) }, nil, nil, node.location)
+        ary = Prism.array_node(elements: node.exceptions.map { |exception| visit(exception) }, location: node.location)
         s(:resbody, ary, ref, visit(node.statements), location: node.location)
       end
 
@@ -770,7 +795,7 @@ module Natalie
           s(sexp_type, visit(args.first), location: node.location)
         else
           s(sexp_type,
-            ::Prism::ArrayNode.new(args.map { |arg| visit(arg) }, nil, nil, node.location),
+            Prism.array_node(elements: args.map { |arg| visit(arg) }, location: node.location),
             location: node.location)
         end
       end
@@ -873,7 +898,7 @@ module Natalie
 
       def visit_when_node(node)
         s(:when,
-          ::Prism::ArrayNode.new(node.conditions.map { |condition| visit(condition) }, nil, nil, node.location),
+          Prism.array_node(elements: node.conditions.map { |condition| visit(condition) }, location: node.location),
           visit(node.statements),
           location: node.location)
       end
@@ -905,10 +930,6 @@ module Natalie
 
       def s(*items, location:)
         Sexp.new(*items, location: location, file: @path)
-      end
-
-      def nil_node(location)
-        ::Prism::NilNode.new(location)
       end
 
       def flatten(ary)
