@@ -7,6 +7,7 @@ module Foo
   autoload :UpALevel, 'autoload/up_a_level'
   autoload :Nested, 'autoload/nested'
   autoload :Missing, 'autoload/missing'
+  autoload :Query, 'autoload/query'
 end
 
 describe 'autoload' do
@@ -28,5 +29,22 @@ describe 'autoload' do
     $missing_loaded.should == nil
     -> { Foo::Missing }.should raise_error(NameError, /uninitialized constant Foo::Missing/)
     $missing_loaded.should == true
+  end
+end
+
+describe 'Module#autoload?' do
+  it 'returns the path when the constant name is yet to be autoload' do
+    Foo.autoload?(:Query).should == 'autoload/query'
+    Foo.autoload?('Query').should == 'autoload/query'
+    Foo::Query.should be_an_instance_of(Class)
+  end
+
+  it 'returns nil once the constant is loaded' do
+    Foo.autoload?(:Query).should == nil
+  end
+
+  it 'raises a TypeError for other kinds of arguments' do
+    -> { Foo.autoload?(1) }.should raise_error(TypeError, '1 is not a symbol nor a string')
+    -> { Foo.autoload?(nil) }.should raise_error(TypeError, 'nil is not a symbol nor a string')
   end
 end

@@ -12,6 +12,7 @@ void Constant::autoload(Env *env, Value self) {
 void Constant::visit_children(Visitor &visitor) {
     visitor.visit(m_name);
     visitor.visit(m_value);
+    visitor.visit(m_autoload_path);
 }
 
 }

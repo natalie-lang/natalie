@@ -9,9 +9,10 @@ public:
         : m_name(name)
         , m_value(value) {};
 
-    Constant(SymbolObject *name, MethodFnPtr autoload_fn)
+    Constant(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path)
         : m_name(name)
-        , m_autoload_fn(autoload_fn) {};
+        , m_autoload_fn(autoload_fn)
+        , m_autoload_path(autoload_path) {};
 
     SymbolObject *name() const { return m_name; }
 
@@ -30,6 +31,7 @@ public:
     void set_autoload_fn(MethodFnPtr fn) { m_autoload_fn = fn; }
 
     bool needs_load() const { return !m_value && m_autoload_fn; }
+    StringObject *autoload_path() const { return m_autoload_path; }
     void autoload(Env *, Value);
 
     void visit_children(Visitor &visitor);
@@ -40,5 +42,6 @@ private:
     bool m_private { false };
     bool m_deprecated { false };
     MethodFnPtr m_autoload_fn { nullptr };
+    StringObject *m_autoload_path { nullptr };
 };
 }

@@ -182,6 +182,17 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
     return constant;
 }
 
+Value ModuleObject::is_autoload(Env *env, Value name) const {
+    auto name_sym = name->to_symbol(env, Conversion::Strict);
+    auto constant = m_constants.get(name_sym);
+    if (constant && constant->needs_load()) {
+        auto path = constant->autoload_path();
+        assert(path);
+        return path;
+    }
+    return NilObject::the();
+}
+
 Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleObject *module = nullptr;
     auto constant = find_constant(env, name, &module, search_mode);
@@ -236,8 +247,8 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
     return val;
 }
 
-Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn) {
-    m_constants.put(name, new Constant { name, autoload_fn });
+Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
+    m_constants.put(name, new Constant { name, autoload_fn, autoload_path });
     return NilObject::the();
 }
 

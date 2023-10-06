@@ -3,8 +3,9 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class AutoloadConstInstruction < BaseInstruction
-      def initialize(name)
+      def initialize(name:, path:)
         @name = name
+        @path = path
       end
 
       def has_body?
@@ -12,7 +13,7 @@ module Natalie
       end
 
       def to_s
-        "autoload_const #{@name}"
+        "autoload_const #{@name}, #{@path.inspect}"
       end
 
       def generate(transform)
@@ -25,7 +26,7 @@ module Natalie
           fn_code << '}'
           transform.top(fn_code)
         end
-        transform.exec("self->const_set(#{transform.intern(@name)}, #{fn})")
+        transform.exec("self->const_set(#{transform.intern(@name)}, #{fn}, new StringObject(#{@path.inspect}))")
         transform.push_nil
       end
 

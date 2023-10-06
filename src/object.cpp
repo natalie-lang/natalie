@@ -626,8 +626,8 @@ Value Object::const_set(SymbolObject *name, Value val) {
     return m_klass->const_set(name, val);
 }
 
-Value Object::const_set(SymbolObject *name, MethodFnPtr autoload_fn) {
-    return m_klass->const_set(name, autoload_fn);
+Value Object::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
+    return m_klass->const_set(name, autoload_fn, autoload_path);
 }
 
 bool Object::ivar_defined(Env *env, SymbolObject *name) {

@@ -280,7 +280,7 @@ module Natalie
       def transform_autoload_const(exp, used:)
         _, name, path, *body = exp
         instructions = [
-          AutoloadConstInstruction.new(name),
+          AutoloadConstInstruction.new(name: name, path: path),
           transform_body(body, used: true),
           EndInstruction.new(:autoload_const),
         ]
