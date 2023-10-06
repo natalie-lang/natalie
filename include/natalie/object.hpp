@@ -236,7 +236,7 @@ public:
     virtual Value const_get(SymbolObject *) const;
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
-    virtual Value const_set(SymbolObject *, MethodFnPtr);
+    virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *);
 
     bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);

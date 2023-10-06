@@ -46,12 +46,14 @@ public:
     Value prepend(Env *, Args args);
     void prepend_once(Env *, ModuleObject *);
 
+    Value is_autoload(Env *, Value) const;
+
     virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
     virtual Value const_find_with_autoload(Env *, Value, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
     virtual Value const_get(SymbolObject *) const override;
     virtual Value const_fetch(SymbolObject *) override;
     virtual Value const_set(SymbolObject *, Value) override;
-    virtual Value const_set(SymbolObject *, MethodFnPtr) override;
+    virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *) override;
 
     Value const_get(Env *, Value);
     Value const_set(Env *, Value, Value);

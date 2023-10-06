@@ -120,7 +120,7 @@ module Natalie
         end
 
         body = load_file(full_path, require_once: true)
-        expr.new(:autoload_const, const, full_path, body)
+        expr.new(:autoload_const, const, path, body)
       end
 
       def macro_require(expr:, current_path:, depth:)
