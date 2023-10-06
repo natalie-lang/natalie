@@ -1,0 +1,3 @@
+def loaded
+  'loaded'
+end
