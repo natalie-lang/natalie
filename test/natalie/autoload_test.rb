@@ -8,6 +8,8 @@ module Foo
   autoload :Nested, 'autoload/nested'
   autoload :Missing, 'autoload/missing'
   autoload :Query, 'autoload/query'
+  autoload :SameFile1, 'autoload/same_file'
+  autoload :SameFile2, 'autoload/same_file'
 end
 
 describe 'autoload' do
@@ -23,6 +25,13 @@ describe 'autoload' do
     Foo::Nested::A.should be_an_instance_of(Class)
     Foo::Nested::A.superclass.should == Foo::UpALevel
     $foo_nested_loaded.should == true
+  end
+
+  it 'can load more than one constant from the same file' do
+    $same_file_loaded.should == nil
+    Foo::SameFile2.should be_an_instance_of(Class)
+    Foo::SameFile1.should be_an_instance_of(Class)
+    $same_file_loaded.should == true
   end
 
   it 'raises an error when the file does not define the constant' do

@@ -119,7 +119,7 @@ module Natalie
           return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
         end
 
-        body = load_file(full_path, require_once: true)
+        body = load_file(full_path, require_once: false)
         expr.new(:autoload_const, const, path, body)
       end
 
@@ -241,14 +241,17 @@ module Natalie
           if require_once
             ::Prism::FalseNode.new(nil)
           else
-            ::Prism::TrueNode.new(nil)
+            s(:block,
+              s(:with_filename, path),
+              ::Prism::TrueNode.new(nil))
           end
         else
           @loaded_paths[path] = true
           code = File.read(path)
           file_ast = Natalie::Parser.new(code, path).ast
           s(:block,
-            s(:with_main,
+            s(:with_filename,
+              path,
               expand_macros(file_ast, path: path, depth: 0)),
             ::Prism::TrueNode.new(nil))
         end

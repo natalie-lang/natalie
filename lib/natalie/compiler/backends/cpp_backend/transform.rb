@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     class CppBackend
       class Transform
-        def initialize(instructions, top:, compiler_context:, symbols:, inline_functions:, stack: [])
+        def initialize(instructions, top:, compiler_context:, symbols:, inline_functions:, stack: [], loaded_files: {})
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
@@ -15,13 +15,14 @@ module Natalie
           @symbols = symbols
           @inline_functions = inline_functions
           @stack = stack
+          @loaded_files = loaded_files
         end
 
         def ip
           @instructions.ip
         end
 
-        attr_reader :stack, :env
+        attr_reader :stack, :env, :loaded_files
 
         attr_accessor :inline_functions
 
@@ -112,6 +113,7 @@ module Natalie
             compiler_context: @compiler_context,
             symbols: @symbols,
             inline_functions: @inline_functions,
+            loaded_files: @loaded_files,
           )
           yield(t)
         end
@@ -125,6 +127,7 @@ module Natalie
             compiler_context: @compiler_context,
             symbols: @symbols,
             inline_functions: @inline_functions,
+            loaded_files: @loaded_files,
           )
           yield(t)
           @stack_sizes << stack.size if @stack_sizes
