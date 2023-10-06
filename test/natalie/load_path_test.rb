@@ -19,10 +19,20 @@ describe '$LOAD_PATH' do
     LoadPath::UnshiftWorks.should be_an_instance_of(Class)
   end
 
+  it 'works in a file loaded by the main script' do
+    LoadPath::FromAnotherFileWorks.should be_an_instance_of(Class)
+  end
+
   if RUBY_ENGINE == 'natalie'
     it 'does not support conditional modification' do
-      -> { $LOAD_PATH << 'foo' }.should raise_error(LoadError, 'Cannot manipulate $LOAD_PATH at runtime')
-      -> { $LOAD_PATH.unshift('foo') }.should raise_error(LoadError, 'Cannot manipulate $LOAD_PATH at runtime')
+      -> { $LOAD_PATH << 'foo' }.should raise_error(
+        LoadError,
+        %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test\.rb#\d+\)$}
+      )
+      -> { $LOAD_PATH.unshift('foo') }.should raise_error(
+        LoadError,
+        %r{^Cannot manipulate \$LOAD_PATH at runtime \(test/natalie/load_path_test.rb#\d+\)}
+      )
     end
   end
 end
@@ -34,8 +44,14 @@ describe '$:' do
 
   if RUBY_ENGINE == 'natalie'
     it 'does not support conditional modification' do
-      -> { $: << 'foo' }.should raise_error(LoadError, 'Cannot manipulate $: at runtime')
-      -> { $:.unshift('foo') }.should raise_error(LoadError, 'Cannot manipulate $: at runtime')
+      -> { $: << 'foo' }.should raise_error(
+        LoadError,
+        %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test\.rb#\d+\)$}
+      )
+      -> { $:.unshift('foo') }.should raise_error(
+        LoadError,
+        %r{^Cannot manipulate \$: at runtime \(test/natalie/load_path_test.rb#\d+\)}
+      )
     end
   end
 end
