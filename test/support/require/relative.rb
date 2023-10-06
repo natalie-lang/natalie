@@ -1,0 +1,3 @@
+def relative
+  'relative'
+end

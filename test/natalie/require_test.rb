@@ -1,70 +1,86 @@
 require_relative '../spec_helper'
 
-# all of these are in the support directory
-require 'require_sub1'
-load 'require_sub2.rb'
-require_relative '../support/require_sub3'
-require 'require_sub4.foo'
+# test/support/require
+# ├── cpp_file.cpp
+# ├── loaded.rb
+# ├── relative.rb
+# ├── simple
+# │   └── relative.rb
+# ├── simple_again.rb
+# ├── simple.rb
+# ├── with_fake_ext.ext
+# └── with_fake_ext.ext.rb
+
+$LOAD_PATH << File.expand_path('../support', __dir__)
+
+require 'require/simple'
+load 'require/loaded.rb'
+require_relative '../support/require/relative'
+require 'require/with_fake_ext.ext'
 begin
-  require 'require_sub5'
+  require 'require/cpp_file'
 rescue LoadError
   # expected in MRI since this is a cpp file
 end
 
 # this is here to test that order of requires goes top-to-bottom
-class Foo1 < Bar1
+class Foo1Child < Foo1
 end
-require 'require_sub1' # rubocop:disable Lint/DuplicateRequire
+require 'require/simple' # rubocop:disable Lint/DuplicateRequire
 
 describe 'require' do
-  it 'works' do
-    foo1.should == 'foo1'
-    Bar1.new.bar1.should == 'bar1'
-    Bar1::Baz.new.baz.should == 'baz'
-    foo2.should == 'foo2'
-    Bar2.new.bar2.should == 'bar2'
-    foo3.should == 'foo3'
-    Bar3.new.bar3.should == 'bar3'
-    foo4.should == 'foo4'
-    if RUBY_ENGINE == 'natalie'
-      foo5.should == 'foo5'
+  it 'requires a file from the load path' do
+    simple.should == 'simple'
+  end
+
+  it 'loads a file by full name' do
+    loaded.should == 'loaded'
+  end
+
+  it 'requires a relative file' do
+    relative.should == 'relative'
+  end
+
+  it 'requires a relative file from another file' do
+    simple_relative.should == 'simple_relative'
+    Foo1::Bar1.should be_an_instance_of(Class)
+  end
+
+  if RUBY_ENGINE == 'natalie'
+    it 'requires a cpp file' do
+      cpp_file.should == 'cpp_file'
     end
   end
 
   it 'raises an error when the path does not exist' do
-    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
-    `#{ruby} -e "require 'something_non_existent'" 2>&1`.should =~ /cannot load such file.*something_non_existent/
+    lambda do
+      require 'something_non_existent'
+    end.should raise_error(
+      LoadError,
+      /cannot load such file.*something_non_existent/
+    )
   end
 
   it 'raises an error when the path is a directory' do
-    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
-    File.directory?('./test').should be_true
-    `#{ruby} -e "require './test'" 2>&1`.should =~ /cannot load such file.*test/
+    lambda do
+      require_relative '../../test'
+    end.should raise_error(
+      LoadError,
+      /cannot load such file.*test/
+    )
   end
 
   it 'returns true when require loads a file and false when it\'s already loaded' do
-    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
-
-    `#{ruby} -e "p require 'tempfile'"`.should =~ /true/
-    `#{ruby} -e "require 'tempfile'; p require 'tempfile'"`.should =~ /false/
+    result1 = require 'require/simple_again'
+    result1.should == true
+    simple_again.should == 'simple_again'
+    result2 = require 'require/simple_again'
+    result2.should == false
+    simple_again.should == 'simple_again'
   end
 
   it 'works in the middle of a method' do
     require 'socket'
     Socket.should be_an_instance_of(Class)
-  end
-end
-
-describe 'autoload' do
-  it 'loads the file when the constant is referenced' do
-    $require_sub7_loaded.should == nil
-    Bar1::Baz1.should be_an_instance_of(Class)
-    $require_sub7_loaded.should == true
-  end
-
-  it 'raises an error when the file does not define the constant' do
-    $require_sub8_loaded.should == nil
-    -> { Bar1::Baz2 }.should raise_error(NameError, /uninitialized constant Bar1::Baz2/)
-    $require_sub8_loaded.should == true
   end
 end
