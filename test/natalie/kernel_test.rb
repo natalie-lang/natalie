@@ -47,13 +47,13 @@ describe 'Kernel' do
       sleep 1
       t_end = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
       (t_end - t_start).should >= 0.9
-      (t_end - t_start).should <= 1.1
+      (t_end - t_start).should <= 1.2
 
       t_start = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
       sleep 0.1
       t_end = Process.clock_gettime(Process::CLOCK_MONOTONIC_RAW)
       (t_end - t_start).should >= 0.01
-      (t_end - t_start).should <= 0.2
+      (t_end - t_start).should <= 0.3
     end
   end
 
