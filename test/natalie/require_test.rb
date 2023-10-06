@@ -46,8 +46,8 @@ describe 'require' do
     Foo1::Bar1.should be_an_instance_of(Class)
   end
 
-  if RUBY_ENGINE == 'natalie'
-    it 'requires a cpp file' do
+  it 'requires a cpp file' do
+    if RUBY_ENGINE == 'natalie'
       cpp_file.should == 'cpp_file'
     end
   end
