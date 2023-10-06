@@ -18,9 +18,7 @@ describe "The -e command line option" do
   end
 
   it "uses '-e' in $0" do
-    NATFIXME 'Implement Kernel.system', exception: NoMethodError, message: /undefined method `system'/ do
-      system(*ruby_exe, '-e', 'exit $0 == "-e"').should == true
-    end
+    system(*ruby_exe, '-e', 'exit $0 == "-e"').should == true
   end
 
   #needs to test return => LocalJumpError

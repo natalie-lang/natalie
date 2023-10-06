@@ -28,15 +28,15 @@ describe "File.setuid?" do
     it "returns true when the gid bit is set" do
       platform_is :solaris do
         # Solaris requires execute bit before setting suid
-        NATFIXME 'Implement Kernel#system', exception: NoMethodError, message: "undefined method `system'" do
-          system "chmod u+x #{@name}"
-        end
-        `chmod u+x #{@name}`
+        system "chmod u+x #{@name}"
+        # NATFIXME: Fix arguments for Kernel#system
+        system "chmod", "u+x", @name
       end
-      NATFIXME 'Implement Kernel#system', exception: NoMethodError, message: "undefined method `system'" do
+      NATFIXME 'Fix arguments for Kernel#system', exception: SpecFailedException do
         system "chmod u+s #{@name}"
+        File.setuid?(@name).should == true
       end
-      `chmod u+s #{@name}`
+      system "chmod", "u+s", @name
 
       File.setuid?(@name).should == true
     end
