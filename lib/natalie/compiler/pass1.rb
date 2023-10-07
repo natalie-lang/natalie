@@ -393,18 +393,6 @@ module Natalie
         call_args = transform_call_args(args, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
-        if call_args[:forward_args] && !with_block
-          instructions << PushBlockInstruction.new
-          instructions << PushSelfInstruction.new
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            to_array: false
-          )
-          with_block = true
-        end
-
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
@@ -423,6 +411,11 @@ module Natalie
         if args.last&.sexp_type == :block_pass
           _, block = args.pop
           instructions.unshift(transform_expression(block, used: true))
+        end
+
+        if args.size == 1 && args.first.sexp_type == :forward_args && !block
+          instructions.unshift(PushBlockInstruction.new)
+          block = true
         end
 
         if args.any? { |a| a.sexp_type == :splat }
@@ -445,7 +438,7 @@ module Natalie
           )
           return {
             instructions: instructions,
-            with_block_pass: false,
+            with_block_pass: !!block,
             args_array_on_stack: true,
             has_keyword_hash: false,
             forward_args: true,

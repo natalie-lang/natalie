@@ -81,7 +81,11 @@ describe 'forward args' do
   end
 
   def foo(...)
-    bar(...)
+    baz(bar(...))
+  end
+
+  def baz(a)
+    a
   end
 
   it 'passes all arguments as-is' do
