@@ -6,8 +6,7 @@ module Natalie
       class MacroError < StandardError; end
       class LoadPathMacroError < MacroError; end
 
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:)
-        @ast = ast
+      def initialize(path:, load_path:, interpret:, compiler_context:, log_load_error:)
         @path = path
         @load_path = load_path
         @interpret = interpret
@@ -17,7 +16,7 @@ module Natalie
         @parsed_files = {}
       end
 
-      attr_reader :ast, :path, :load_path, :depth
+      attr_reader :node, :path, :load_path, :depth
 
       MACROS = %i[
         autoload
@@ -30,28 +29,15 @@ module Natalie
         require_relative
       ].freeze
 
-      def expand
-        expand_macros(@ast, path: @path, depth: 0)
+      def expand(call_node, depth:)
+        if (macro_name = get_macro_name(call_node))
+          run_macro(macro_name, call_node, current_path: call_node.file, depth: depth)
+        else
+          call_node
+        end
       end
 
       private
-
-      def expand_macros(ast, path:, depth:)
-        ast.each_with_index do |node, i|
-          next unless node.is_a?(Sexp)
-          expanded =
-            if (macro_name = get_macro_name(node))
-              run_macro(macro_name, node, current_path: path, depth: depth)
-            elsif node.size > 1
-              s(node[0], *expand_macros(node[1..-1], path: path, depth: depth + 1))
-            else
-              node
-            end
-          next if expanded === node
-          ast[i] = expanded
-        end
-        ast
-      end
 
       def get_macro_name(node)
         return false unless node.is_a?(Sexp)
@@ -88,8 +74,7 @@ module Natalie
       def macro_user_macro(expr:, current_path:)
         _, _, name = expr
         macro = @macros[name]
-        new_ast = VM.compile_and_run(macro, path: 'macro')
-        expand_macros(new_ast, path: current_path, depth: depth + 1)
+        VM.compile_and_run(macro, path: 'macro')
       end
 
       def macro_macro!(expr:, current_path:)
@@ -176,11 +161,11 @@ module Natalie
       end
 
       def macro_nat_ignore_require(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        s(:false) # Script has not been loaded
+        false_node # Script has not been loaded
       end
 
       def macro_nat_ignore_require_relative(expr:, current_path:) # rubocop:disable Lint/UnusedMethodArgument
-        s(:false) # Script has not been loaded
+        false_node # Script has not been loaded
       end
 
       def macro_include_str!(expr:, current_path:)
@@ -196,7 +181,7 @@ module Natalie
       # $LOAD_PATH << some_expression
       # $LOAD_PATH.unshift(some_expression)
       def macro_update_load_path(expr:, current_path:, depth:)
-        if depth > 0
+        if depth > 1
           name = expr[1][1]
           return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
         end
@@ -239,8 +224,7 @@ module Natalie
 
         code = File.read(path)
         unless (ast = @parsed_files[path])
-          raw_ast = Natalie::Parser.new(code, path).ast
-          ast = expand_macros(raw_ast, path: path, depth: 0)
+          ast = Natalie::Parser.new(code, path).ast
           @parsed_files[path] = ast
         end
 
@@ -249,7 +233,7 @@ module Natalie
 
       def load_cpp_file(path, require_once:)
         name = File.split(path).last.split('.').first
-        return s(:false) if @compiler_context[:required_cpp_files][path]
+        return false_node if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
         init_function = "Value init(Env *env, Value self)"
@@ -285,6 +269,10 @@ module Natalie
         sexp = Sexp.new
         items.each { |item| sexp << item }
         sexp
+      end
+
+      def false_node
+        ::Prism::FalseNode.new(nil)
       end
     end
   end

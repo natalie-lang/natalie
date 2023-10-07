@@ -46,6 +46,10 @@ module Prism
         sexp.column = location.start_column
       end
     end
+
+    def location
+      @location || Prism::Location.new(Source.new('unknown'), 0, 0)
+    end
   end
 end
 
@@ -954,7 +958,7 @@ module Natalie
 
       attr_accessor :file, :line, :column
 
-      def inspect
+      def inspect(*)
         "s(#{map(&:inspect).join(', ')})"
       end
 

@@ -11,10 +11,11 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:)
+      def initialize(ast, compiler_context:, macro_expander:)
         super()
         @ast = ast
         @compiler_context = compiler_context
+        @macro_expander = macro_expander
 
         # If any user code has required 'natalie/inline', then we enable
         # magical extra features. :-)
@@ -24,6 +25,10 @@ module Natalie
         # belongs to. Using a stack of object ids seems to work ok.
         # See the Rescue class for how it's used.
         @retry_context = []
+
+        # We need to know if we're at the top level (left-most indent)
+        # of a file, which enables certain macros.
+        @depth = 0
       end
 
       INLINE_CPP_MACROS = %i[
@@ -46,12 +51,12 @@ module Natalie
 
       def transform_expression(exp, used:)
         case exp
-        when Sexp
+        when Sexp, ::Prism::Node
+          @depth += 1 unless exp.sexp_type == :block
           method = "transform_#{exp.sexp_type}"
-          Array(send(method, exp, used: used)).flatten
-        when ::Prism::Node
-          method = "transform_#{exp.type}"
-          Array(send(method, exp, used: used)).flatten
+          result = send(method, exp, used: used)
+          @depth -= 1 unless exp.sexp_type == :block
+          Array(result).flatten
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
@@ -349,6 +354,9 @@ module Natalie
       end
 
       def transform_call(exp, used:, with_block: false)
+        exp = @macro_expander.expand(exp, depth: @depth)
+        return transform_expression(exp, used: used) unless %i[require_cpp_file call].include?(exp.sexp_type)
+
         _, receiver, message, *args = exp
 
         if repl? && (new_exp = fix_repl_var_that_looks_like_call(exp))
@@ -1484,6 +1492,8 @@ module Natalie
       end
 
       def transform_with_filename(exp, used:)
+        depth_was = @depth
+        @depth = 0
         _, filename, require_once, *body = exp
         instructions = [
           WithFilenameInstruction.new(filename, require_once: require_once),
@@ -1491,6 +1501,7 @@ module Natalie
           EndInstruction.new(:with_filename),
         ]
         instructions << PopInstruction.new unless used
+        @depth = depth_was
         instructions
       end
 
