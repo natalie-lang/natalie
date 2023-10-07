@@ -616,15 +616,29 @@ Value KernelModule::sleep(Env *env, Value length) {
 Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
     args.ensure_argc_at_least(env, 1);
-    const char *cmd[args.size() + 1];
-    for (size_t i = 0; i < args.size(); i++) {
-        auto arg = args[i];
+    int result;
+    if (args.size() == 1) {
+        auto arg = args.at(0);
         arg->assert_type(env, Object::Type::String, "String");
-        cmd[i] = arg->as_string()->c_str();
+        auto splitter = new RegexpObject { env, "\\s+" };
+        auto split = arg->as_string()->split(env, splitter, 0)->as_array();
+        const char *cmd[split->size() + 1];
+        for (size_t i = 0; i < split->size(); i++) {
+            cmd[i] = split->at(i)->as_string()->c_str();
+        }
+        cmd[split->size()] = nullptr;
+        result = posix_spawnp(&pid, cmd[0], NULL, NULL, const_cast<char *const *>(cmd), environ);
+    } else {
+        const char *cmd[args.size() + 1];
+        for (size_t i = 0; i < args.size(); i++) {
+            auto arg = args[i];
+            arg->assert_type(env, Object::Type::String, "String");
+            cmd[i] = arg->as_string()->c_str();
+        }
+        cmd[args.size()] = nullptr;
+        auto program = args[0]->as_string();
+        result = posix_spawnp(&pid, program->c_str(), NULL, NULL, const_cast<char *const *>(cmd), environ);
     }
-    cmd[args.size()] = nullptr;
-    auto program = args[0]->as_string();
-    int result = posix_spawnp(&pid, program->c_str(), NULL, NULL, const_cast<char *const *>(cmd), environ);
     if (result != 0)
         env->raise_errno();
     return Value::integer(pid);
