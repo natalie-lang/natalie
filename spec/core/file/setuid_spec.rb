@@ -29,14 +29,8 @@ describe "File.setuid?" do
       platform_is :solaris do
         # Solaris requires execute bit before setting suid
         system "chmod u+x #{@name}"
-        # NATFIXME: Fix arguments for Kernel#system
-        system "chmod", "u+x", @name
       end
-      NATFIXME 'Fix arguments for Kernel#system', exception: SpecFailedException do
-        system "chmod u+s #{@name}"
-        File.setuid?(@name).should == true
-      end
-      system "chmod", "u+s", @name
+      system "chmod u+s #{@name}"
 
       File.setuid?(@name).should == true
     end
