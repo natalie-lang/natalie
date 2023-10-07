@@ -28,6 +28,9 @@ public:
     ClassObject *Array() { return m_Array; }
     void set_Array(ClassObject *Array) { m_Array = Array; }
 
+    ClassObject *BasicObject() { return m_BasicObject; }
+    void set_BasicObject(ClassObject *BasicObject) { m_BasicObject = BasicObject; }
+
     ClassObject *Binding() { return m_Binding; }
     void set_Binding(ClassObject *Binding) { m_Binding = Binding; }
 
@@ -105,6 +108,7 @@ private:
     TM::Hashmap<SymbolObject *, Value> m_globals {};
 
     ClassObject *m_Array { nullptr };
+    ClassObject *m_BasicObject { nullptr };
     ClassObject *m_Binding { nullptr };
     ClassObject *m_Class { nullptr };
     ClassObject *m_Complex { nullptr };

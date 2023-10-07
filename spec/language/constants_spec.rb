@@ -11,11 +11,9 @@ describe "Literal (A::X) constant resolution" do
     it "searches the immediate class or module scope first" do
       ConstantSpecs::ClassA::CS_CONST10.should == :const10_10
       ConstantSpecs::ModuleA::CS_CONST10.should == :const10_1
-      NATFIXME 'searches the immediate class or module scope first', exception: SpecFailedException do
-        ConstantSpecs::ParentA::CS_CONST10.should == :const10_5
-        ConstantSpecs::ContainerA::CS_CONST10.should == :const10_2
-        ConstantSpecs::ContainerA::ChildA::CS_CONST10.should == :const10_3
-      end
+      ConstantSpecs::ParentA::CS_CONST10.should == :const10_5
+      ConstantSpecs::ContainerA::CS_CONST10.should == :const10_2
+      ConstantSpecs::ContainerA::ChildA::CS_CONST10.should == :const10_3
     end
 
     it "searches a module included in the immediate class before the superclass" do
@@ -27,9 +25,7 @@ describe "Literal (A::X) constant resolution" do
     end
 
     it "searches a module included in the superclass" do
-      NATFIXME 'searches a module included in the superclass', exception: NameError do
-        ConstantSpecs::ContainerA::ChildA::CS_CONST12.should == :const12_1
-      end
+      ConstantSpecs::ContainerA::ChildA::CS_CONST12.should == :const12_1
     end
 
     it "searches the superclass chain" do
@@ -101,9 +97,7 @@ describe "Literal (A::X) constant resolution" do
     it "searches a module included in the superclass" do
       ConstantSpecs::ModuleA::CS_CONST104 = :const104_1
       ConstantSpecs::ModuleE::CS_CONST104 = :const104_2
-      NATFIXME 'searches a module included in the superclass', exception: NameError do
-        ConstantSpecs::ContainerB::ChildB::CS_CONST104.should == :const104_2
-      end
+      ConstantSpecs::ContainerB::ChildB::CS_CONST104.should == :const104_2
     end
 
     it "searches the superclass chain" do
@@ -264,10 +258,8 @@ describe "Constant resolution within methods" do
     end
 
     it "searches a module included in the superclass" do
-      NATFIXME 'searches a module included in the superclass', exception: NameError do
-        ConstantSpecs::ContainerA::ChildA.const12.should == :const12_1
-        ConstantSpecs::ContainerA::ChildA.new.const12.should == :const12_1
-      end
+      ConstantSpecs::ContainerA::ChildA.const12.should == :const12_1
+      ConstantSpecs::ContainerA::ChildA.new.const12.should == :const12_1
     end
 
     it "searches the superclass chain" do
@@ -298,9 +290,7 @@ describe "Constant resolution within methods" do
     end
 
     it "searches Object as a lexical scope only if Object is explicitly opened" do
-      NATFIXME 'searches Object as a lexical scope only if Object is explicitly opened', exception: SpecFailedException do
-        ConstantSpecs::ContainerA::ChildA.const20.should == :const20_1
-      end
+      ConstantSpecs::ContainerA::ChildA.const20.should == :const20_1
       ConstantSpecs::ContainerA::ChildA.const21.should == :const21_1
     end
 
@@ -352,10 +342,8 @@ describe "Constant resolution within methods" do
       ConstantSpecs::ModuleA::CS_CONST204 = :const204_2
       ConstantSpecs::ModuleE::CS_CONST204 = :const204_1
 
-      NATFIXME 'searches a module included in the superclass', exception: NameError do
-        ConstantSpecs::ContainerB::ChildB.const204.should == :const204_1
-        ConstantSpecs::ContainerB::ChildB.new.const204.should == :const204_1
-      end
+      ConstantSpecs::ContainerB::ChildB.const204.should == :const204_1
+      ConstantSpecs::ContainerB::ChildB.new.const204.should == :const204_1
     end
 
     it "searches the superclass chain" do
@@ -405,13 +393,13 @@ describe "Constant resolution within methods" do
     it "searches Object as a lexical scope only if Object is explicitly opened" do
       Object::CS_CONST211 = :const211_1
       ConstantSpecs::ParentB::CS_CONST211 = :const211_2
-      NATFIXME 'searches Object as a lexical scope only if Object is explicitly opened', exception: SpecFailedException do
-        ConstantSpecs::ContainerB::ChildB.const211.should == :const211_1
-      end
+      ConstantSpecs::ContainerB::ChildB.const211.should == :const211_1
 
       Object::CS_CONST212 = :const212_2
       ConstantSpecs::ParentB::CS_CONST212 = :const212_1
-      ConstantSpecs::ContainerB::ChildB.const212.should == :const212_1
+      NATFIXME 'something about Object being opened', exception: SpecFailedException, message: ':const212_2 should be == to :const212_1' do
+        ConstantSpecs::ContainerB::ChildB.const212.should == :const212_1
+      end
     end
 
     it "returns the updated value when a constant is reassigned" do

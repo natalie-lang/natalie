@@ -41,6 +41,7 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     for (size_t i = 0; i < EncodingCount; i++)
         visitor.visit(m_Encodings[i]);
     visitor.visit(m_Array);
+    visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);
     visitor.visit(m_Class);
     visitor.visit(m_Complex);

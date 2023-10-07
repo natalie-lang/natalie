@@ -17,6 +17,7 @@ Env *build_top_env() {
     global_env->set_Class(Class);
 
     ClassObject *BasicObject = ClassObject::bootstrap_basic_object(env, Class);
+    global_env->set_BasicObject(BasicObject);
 
     ClassObject *Object = BasicObject->subclass(env, "Object");
 

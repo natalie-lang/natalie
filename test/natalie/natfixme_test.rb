@@ -1,3 +1,5 @@
+# skip-ruby
+
 require_relative "../spec_helper"
 
 describe "NATFIXME" do
