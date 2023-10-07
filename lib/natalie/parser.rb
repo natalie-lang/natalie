@@ -31,7 +31,6 @@ module Prism
     # * safe_call
     # * str
     # * to_ary
-    # * zsuper
     #
     def sexp_type
       type
@@ -46,6 +45,15 @@ module Prism
         sexp.column = location.start_column
       end
     end
+
+    def location
+      @location || Prism::Location.new(Source.new('unknown'), 0, 0)
+    end
+  end
+
+  class Location
+    # We need to store path information on each node.
+    attr_accessor :path
   end
 end
 
@@ -63,6 +71,7 @@ module Natalie
       end
 
       def visit_passthrough(node)
+        node.location.path = @path
         node
       end
 
@@ -71,7 +80,7 @@ module Natalie
       end
 
       def visit_and_node(node)
-        node.copy(left: visit(node.left), right: visit(node.right))
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       def visit_array_node(node)
@@ -353,7 +362,7 @@ module Natalie
       end
 
       def visit_defined_node(node)
-        node.copy(value: visit(node.value))
+        copy(node, value: visit(node.value))
       end
 
       def visit_else_node(node)
@@ -381,11 +390,10 @@ module Natalie
       end
 
       def visit_forwarding_super_node(node)
-        call = s(:zsuper, location: node.location)
         if node.block
-          visit_block_node(node.block, call: call)
+          visit_block_node(node.block, call: node)
         else
-          call
+          node
         end
       end
 
@@ -631,17 +639,7 @@ module Natalie
       def visit_multi_write_node(node)
         return visit(node.targets.first) if node.targets.size == 1 && !node.value
 
-        masgn = s(:masgn,
-                  s(:array, *node.targets.map { |n| visit(n) }, location: node.location),
-                  location: node.location)
-        if node.value
-          value = visit(node.value)
-          unless value.sexp_type == :array
-            value = s(:to_ary, value, location: node.location)
-          end
-          masgn << value
-        end
-        masgn
+        copy(node, targets: visit_all(node.targets), value: visit(node.value))
       end
 
       def visit_next_node(node)
@@ -670,7 +668,7 @@ module Natalie
       end
 
       def visit_or_node(node)
-        node.copy(left: visit(node.left), right: visit(node.right))
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       def visit_parameters_node(node)
@@ -803,7 +801,7 @@ module Natalie
       end
 
       def visit_statements_node(node)
-        s(:block, *node.child_nodes.map { |n| visit(n) }, location: node.location)
+        copy(node, body: node.body.map { |n| visit(n) })
       end
 
       def visit_string_concat_node(node)
@@ -857,9 +855,10 @@ module Natalie
         if node.names.size == 1
           s(:undef, visit(node.names.first), location: node.location)
         else
-          s(:block,
-            *node.names.map { |n| s(:undef, visit(n), location: n.location) },
-            location: node.location)
+          ::Prism::StatementsNode.new(
+            node.names.map { |n| s(:undef, visit(n), location: n.location) },
+            node.location
+          )
         end
       end
 
@@ -906,6 +905,12 @@ module Natalie
       end
 
       private
+
+      def copy(node, **kwargs)
+        n = node.copy(**kwargs)
+        n.location.path = @path
+        n
+      end
 
       def s(*items, location:)
         Sexp.new(*items, location: location, file: @path)
@@ -954,7 +959,7 @@ module Natalie
 
       attr_accessor :file, :line, :column
 
-      def inspect
+      def inspect(*)
         "s(#{map(&:inspect).join(', ')})"
       end
 
@@ -965,6 +970,10 @@ module Natalie
       end
 
       def sexp_type
+        first
+      end
+
+      def type
         first
       end
 

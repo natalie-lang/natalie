@@ -27,9 +27,9 @@ module Natalie
             next :next
           end
 
-          next :continue if ast == s(:block)
-          last_node = ast.pop
-          ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
+          next :continue if ast.body.empty?
+          last_node = ast.body.pop
+          ast.body << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
           temp = Tempfile.create('natalie.so')
           compiler = Compiler.new(ast, '(repl)')
           compiler.repl = true

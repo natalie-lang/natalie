@@ -11,10 +11,11 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:)
+      def initialize(ast, compiler_context:, macro_expander:)
         super()
         @ast = ast
         @compiler_context = compiler_context
+        @macro_expander = macro_expander
 
         # If any user code has required 'natalie/inline', then we enable
         # magical extra features. :-)
@@ -24,6 +25,10 @@ module Natalie
         # belongs to. Using a stack of object ids seems to work ok.
         # See the Rescue class for how it's used.
         @retry_context = []
+
+        # We need to know if we're at the top level (left-most indent)
+        # of a file, which enables certain macros.
+        @depth = 0
       end
 
       INLINE_CPP_MACROS = %i[
@@ -40,18 +45,18 @@ module Natalie
 
       # pass used: true to leave the final result on the stack
       def transform(used: false)
-        raise 'unexpected AST input' unless @ast.sexp_type == :block
-        transform_block(@ast, used: used).flatten
+        raise 'unexpected AST input' unless @ast.type == :statements_node
+        transform_statements_node(@ast, used: used).flatten
       end
 
       def transform_expression(exp, used:)
         case exp
-        when Sexp
+        when Sexp, ::Prism::Node
+          @depth += 1 unless exp.type == :statements_node
           method = "transform_#{exp.sexp_type}"
-          Array(send(method, exp, used: used)).flatten
-        when ::Prism::Node
-          method = "transform_#{exp.type}"
-          Array(send(method, exp, used: used)).flatten
+          result = send(method, exp, used: used)
+          @depth -= 1 unless exp.type == :statements_node
+          Array(result).flatten
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
@@ -322,11 +327,6 @@ module Natalie
         transform_hash(exp, bare: true, used: used)
       end
 
-      def transform_block(exp, used:)
-        _, *body = exp
-        transform_body(body, used: used)
-      end
-
       def transform_block_args(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, used: used)
       end
@@ -349,6 +349,9 @@ module Natalie
       end
 
       def transform_call(exp, used:, with_block: false)
+        exp = @macro_expander.expand(exp, depth: @depth)
+        return transform_expression(exp, used: used) unless %i[require_cpp_file call].include?(exp.sexp_type)
+
         _, receiver, message, *args = exp
 
         if repl? && (new_exp = fix_repl_var_that_looks_like_call(exp))
@@ -590,6 +593,14 @@ module Natalie
         [
           PushSelfInstruction.new,
           ConstFindInstruction.new(name, strict: false),
+        ]
+      end
+
+      def transform_constant_read_node(node, used:)
+        return [] unless used
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
         ]
       end
 
@@ -928,8 +939,8 @@ module Natalie
           instructions << transform_safe_call(call, used: used, with_block: true)
         when :super
           instructions << transform_super(call, used: used, with_block: true)
-        when :zsuper
-          instructions << transform_zsuper(call, used: used, with_block: true)
+        when :forwarding_super_node
+          instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else
           raise "unexpected call: #{call.sexp_type.inspect}"
         end
@@ -998,33 +1009,15 @@ module Natalie
         end
       end
 
+      def transform_local_variable_read_node(node, used:)
+        return [] unless used
+        VariableGetInstruction.new(node.name)
+      end
+
       def transform_lvar(exp, used:)
         return [] unless used
         _, name = exp
         VariableGetInstruction.new(name)
-      end
-
-      def transform_masgn(exp, used:)
-        # s(:masgn,
-        #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
-        #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
-        _, names_array, values = exp
-
-        raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
-        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary splat].include?(values.sexp_type)
-
-        # We don't actually want to use a simple to_ary.
-        # Our ToArrayInstruction is a little more special.
-        values = values.last if values.sexp_type == :to_ary
-
-        instructions = [
-          transform_expression(values, used: true),
-          DupInstruction.new,
-          ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_match2(exp, used:)
@@ -1093,6 +1086,23 @@ module Natalie
         )
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_multi_write_node(node, used:)
+        value = node.value
+
+        # We don't actually want to use a simple to_ary.
+        # Our ToArrayInstruction is a little more special.
+        value = value.last if value.type == :to_ary
+
+        instructions = [
+          transform_expression(value, used: true),
+          DupInstruction.new,
+          ToArrayInstruction.new,
+          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
+        ]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1402,6 +1412,10 @@ module Natalie
         transform_expression(value, used: used)
       end
 
+      def transform_statements_node(node, used:)
+        transform_body(node.body, used: used)
+      end
+
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
@@ -1484,6 +1498,8 @@ module Natalie
       end
 
       def transform_with_filename(exp, used:)
+        depth_was = @depth
+        @depth = 0
         _, filename, require_once, *body = exp
         instructions = [
           WithFilenameInstruction.new(filename, require_once: require_once),
@@ -1491,6 +1507,7 @@ module Natalie
           EndInstruction.new(:with_filename),
         ]
         instructions << PopInstruction.new unless used
+        @depth = depth_was
         instructions
       end
 
@@ -1515,7 +1532,7 @@ module Natalie
         instructions
       end
 
-      def transform_zsuper(_, used:, with_block: false)
+      def transform_forwarding_super_node(_, used:, with_block: false)
         instructions = []
         instructions << PushSelfInstruction.new
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)

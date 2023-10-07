@@ -21,38 +21,28 @@ module Natalie
       private
 
       def transform_arg(arg)
-        if arg.is_a?(Sexp)
-          case arg.sexp_type
-          when :cdecl
-            _, name = arg
-            transform_constant(name)
-          when :iasgn
-            _, name = arg
-            transform_instance_variable(name)
-          when :gasgn
-            _, name = arg
-            transform_global_variable(name)
-          when :lasgn
-            _, name = arg
-            transform_variable(name)
-          when :masgn
-            _, names_array = arg
-            transform_destructured_arg(names_array)
-          when :splat
-            _, name = arg
-            transform_splat_arg(name)
-          when :attrasgn, :call
-            _, receiver, message, *args = arg
-            transform_attr_assign_arg(receiver, message, args)
-          else
-            raise "I don't yet know how to compile #{arg.inspect} #{arg.file}##{arg.line}"
-          end
+        case arg.type
+        when :call_node
+          transform_attr_assign_arg(arg.receiver, arg.name, arg.arguments)
+        when :constant_target_node
+          transform_constant(arg.name)
+        when :global_variable_target_node
+          transform_global_variable(arg.name)
+        when :instance_variable_target_node
+          transform_instance_variable(arg.name)
+        when :local_variable_target_node
+          transform_variable(arg.name)
+        when :multi_target_node
+          transform_destructured_arg(arg)
+        when :splat_node
+          transform_splat_arg(arg.expression)
         else
-          raise "I don't yet know how to compile #{arg.inspect}"
+          raise "I don't yet know how to compile #{arg.inspect} #{arg.location.path}##{arg.location.start_line}"
         end
       end
 
-      def transform_attr_assign_arg(receiver, message, args)
+      def transform_attr_assign_arg(receiver, message, args_node)
+        args = args_node&.arguments || []
         shift_or_pop_next_arg
         @instructions << @pass.transform_expression(receiver, used: true)
         if args.any?
@@ -71,6 +61,11 @@ module Natalie
       end
 
       def transform_destructured_arg(arg)
+        if arg.targets.size == 1 && arg.targets.first.is_a?(::Prism::SplatNode)
+          # Prism always wraps a SplatNode in a MultiTargetNode?
+          return transform_splat_arg(arg.targets.first.expression)
+        end
+
         @instructions << ArrayShiftInstruction.new
         @instructions << DupInstruction.new
         @instructions << ToArrayInstruction.new
@@ -83,30 +78,26 @@ module Natalie
         return :reverse if arg.nil? # nameless splat
 
         case arg.sexp_type
-        when :gasgn
-          _, name = arg
-          @instructions << GlobalVariableSetInstruction.new(name)
-          @instructions << GlobalVariableGetInstruction.new(name)
-        when :iasgn
-          _, name = arg
-          @instructions << InstanceVariableSetInstruction.new(name)
-          @instructions << InstanceVariableGetInstruction.new(name)
-        when :lasgn
-          _, name = arg
-          @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name)
-        when :attrasgn, :call
-          _, receiver, message = arg
-          @instructions << @pass.transform_expression(receiver, used: true)
+        when :call_node
+          @instructions << @pass.transform_expression(arg.receiver, used: true)
           @instructions << SwapInstruction.new
           @instructions << PushArgcInstruction.new(1)
           @instructions << SendInstruction.new(
-            message,
+            arg.name,
             receiver_is_self: false,
             with_block: false,
             file: @file,
             line: @line,
           )
+        when :global_variable_target_node
+          @instructions << GlobalVariableSetInstruction.new(arg.name)
+          @instructions << GlobalVariableGetInstruction.new(arg.name)
+        when :instance_variable_target_node
+          @instructions << InstanceVariableSetInstruction.new(arg.name)
+          @instructions << InstanceVariableGetInstruction.new(arg.name)
+        when :local_variable_target_node
+          @instructions << variable_set(arg.name)
+          @instructions << VariableGetInstruction.new(arg.name)
         else
           raise "I don't yet know how to compile splat arg #{arg.inspect}"
         end
