@@ -1524,7 +1524,9 @@ def NATFIXME(description, exception: nil, message: nil)
 
   case status
   when :unexpected_pass
-    raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
+    if RUBY_ENGINE == 'natalie'
+      raise NatalieFixMeException, "Issue has been fixed, please remove or update the NATFIXME marker"
+    end
   when :correct_error_class_wrong_message
     raise NatalieFixMeException, "Issue hidden by NATFIXME marker message is incorrect (should be #{message.inspect} but was #{ex.message.inspect})"
   when :wrong_error_class
