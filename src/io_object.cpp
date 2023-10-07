@@ -287,9 +287,14 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
     ssize_t bytes_read;
     if (count_value && !count_value->is_nil()) {
         count_value->assert_type(env, Object::Type::Integer, "Integer");
-        int count = count_value->as_integer()->to_nat_int_t();
+        auto count_value_integer = count_value->as_integer();
+        if (!count_value_integer->is_fixnum())
+            env->raise("RangeError", "bignum too big to convert into `long'");
+        long count = count_value->as_integer()->to_nat_int_t();
         if (count < 0)
-            env->raise("ArgumentError", "negative length {} given", count);
+            env->raise("ArgumentError", "negative length {} given", (long long)count);
+        if (count > std::numeric_limits<off_t>::max())
+            env->raise("RangeError", "bignum too big to convert into `long'");
         TM::String buf(count, '\0');
         bytes_read = ::read(m_fileno, &buf[0], count);
         if (bytes_read < 0)
