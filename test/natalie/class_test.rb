@@ -53,14 +53,12 @@ describe 'class' do
     end
 
     it 'raises an error if the superclass is not a class' do
-      ruby_version_is '3.0' do # the message changed in 3.0
-        -> {
-          class WatClass < WAT; end
-        }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
-        -> {
-          Class.new(WAT)
-        }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
-      end
+      -> {
+        class WatClass < WAT; end
+      }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
+      -> {
+        Class.new(WAT)
+      }.should raise_error(TypeError, "superclass must be an instance of Class (given an instance of Integer)")
     end
 
     it 'raises an error if the superclass is Class' do
