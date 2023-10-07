@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/ioutil.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
