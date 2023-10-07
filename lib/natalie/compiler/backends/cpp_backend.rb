@@ -45,6 +45,7 @@ module Natalie
         [
           object_file_declarations,
           symbols_declaration,
+          files_declaration,
           @top.join("\n")
         ].join("\n\n")
       end
@@ -62,6 +63,10 @@ module Natalie
 
       def symbols_declaration
         "static SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def files_declaration
+        "static TM::Hashmap<SymbolObject *> #{files_var_name} {};"
       end
 
       def init_object_files
@@ -84,6 +89,10 @@ module Natalie
 
       def symbols_var_name
         static_var_name('symbols')
+      end
+
+      def files_var_name
+        static_var_name('files')
       end
 
       def static_var_name(suffix)

@@ -31,7 +31,7 @@ describe 'autoload' do
     $same_file_loaded.should == nil
     Foo::SameFile2.should be_an_instance_of(Class)
     Foo::SameFile1.should be_an_instance_of(Class)
-    $same_file_loaded.should == true
+    $same_file_loaded.should == 1 # should only execute the file once
   end
 
   it 'raises an error when the file does not define the constant' do

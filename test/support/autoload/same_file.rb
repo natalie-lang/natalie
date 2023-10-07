@@ -6,4 +6,5 @@ module Foo
   end
 end
 
-$same_file_loaded = true
+$same_file_loaded ||= 0
+$same_file_loaded += 1

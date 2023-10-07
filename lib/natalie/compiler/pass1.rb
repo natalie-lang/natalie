@@ -1491,9 +1491,9 @@ module Natalie
       end
 
       def transform_with_filename(exp, used:)
-        _, filename, *body = exp
+        _, filename, require_once, *body = exp
         instructions = [
-          WithFilenameInstruction.new(filename),
+          WithFilenameInstruction.new(filename, require_once: require_once),
           transform_body(body, used: true),
           EndInstruction.new(:with_filename),
         ]
