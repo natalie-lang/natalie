@@ -936,8 +936,8 @@ module Natalie
           instructions << transform_safe_call(call, used: used, with_block: true)
         when :super
           instructions << transform_super(call, used: used, with_block: true)
-        when :zsuper
-          instructions << transform_zsuper(call, used: used, with_block: true)
+        when :forwarding_super_node
+          instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else
           raise "unexpected call: #{call.sexp_type.inspect}"
         end
@@ -1526,7 +1526,7 @@ module Natalie
         instructions
       end
 
-      def transform_zsuper(_, used:, with_block: false)
+      def transform_forwarding_super_node(_, used:, with_block: false)
         instructions = []
         instructions << PushSelfInstruction.new
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)

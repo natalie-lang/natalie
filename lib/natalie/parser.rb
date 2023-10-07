@@ -31,7 +31,6 @@ module Prism
     # * safe_call
     # * str
     # * to_ary
-    # * zsuper
     #
     def sexp_type
       type
@@ -385,11 +384,10 @@ module Natalie
       end
 
       def visit_forwarding_super_node(node)
-        call = s(:zsuper, location: node.location)
         if node.block
-          visit_block_node(node.block, call: call)
+          visit_block_node(node.block, call: node)
         else
-          call
+          node
         end
       end
 
