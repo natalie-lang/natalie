@@ -81,7 +81,7 @@ module Natalie
         _, call, _, block = expr
         _, name = call.last
         @macros[name] = block
-        s(:block)
+        nothing(expr)
       end
 
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
@@ -104,21 +104,21 @@ module Natalie
           return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
         end
 
-        body = load_file(full_path, require_once: true)
+        body = load_file(full_path, require_once: true, location: location(expr))
         expr.new(:autoload_const, const, path, body)
       end
 
       def macro_require(expr:, current_path:, depth:)
         args = expr[3..]
         name = comptime_string(args.first)
-        return s(:block) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
+        return nothing(expr) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
           @inline_cpp_enabled[current_path] = true
-          return s(:block)
+          return nothing(expr)
         end
         EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: Dir.pwd, search: true))
-            return load_file(full_path, require_once: true)
+            return load_file(full_path, require_once: true, location: location(expr))
           end
         end
         drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
@@ -130,7 +130,7 @@ module Natalie
         base = File.dirname(current_path)
         EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: base, search: false))
-            return load_file(full_path, require_once: true)
+            return load_file(full_path, require_once: true, location: location(expr))
           end
         end
         drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
@@ -140,7 +140,7 @@ module Natalie
         args = expr[3..]
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
-        return load_file(full_path, require_once: false) if full_path
+        return load_file(full_path, require_once: false, location: location(expr)) if full_path
         drop_load_error "cannot load such file -- #{path}"
       end
 
@@ -187,7 +187,10 @@ module Natalie
         end
 
         _, _, _, body = expr
-        path_to_add = VM.compile_and_run(body.new(:block, body), path: current_path)
+        path_to_add = VM.compile_and_run(
+          ::Prism::StatementsNode.new([body], location(expr)),
+          path: current_path
+        )
 
         unless path_to_add.is_a?(String) && File.directory?(path_to_add)
           raise LoadPathMacroError, "#{path_to_add.inspect} is not a directory"
@@ -219,8 +222,8 @@ module Natalie
         load_path.map { |d| File.join(d, path) }.detect { |p| File.file?(p) }
       end
 
-      def load_file(path, require_once:)
-        return load_cpp_file(path, require_once: require_once) if path =~ /\.cpp$/
+      def load_file(path, require_once:, location:)
+        return load_cpp_file(path, require_once: require_once, location: location) if path =~ /\.cpp$/
 
         code = File.read(path)
         unless (ast = @parsed_files[path])
@@ -231,7 +234,7 @@ module Natalie
         s(:with_filename, path, require_once, ast)
       end
 
-      def load_cpp_file(path, require_once:)
+      def load_cpp_file(path, require_once:, location:)
         name = File.split(path).last.split('.').first
         return false_node if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
@@ -245,9 +248,13 @@ module Natalie
                        "...which will be rewritten to: `#{transformed_init_function}`"
           raise CompileError, "could not load #{name}"
         end
-        s(:block,
-          s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
-          ::Prism::TrueNode.new(nil))
+        ::Prism::StatementsNode.new(
+          [
+            s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
+            ::Prism::TrueNode.new(nil)
+          ],
+          location
+        )
       end
 
       def drop_error(exception_class, message)
@@ -262,7 +269,7 @@ module Natalie
       def drop_load_error(msg)
         # TODO: delegate to drop_error above
         STDERR.puts(msg) if @log_load_error
-        s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
+        s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg)))
       end
 
       def s(*items)
@@ -273,6 +280,21 @@ module Natalie
 
       def false_node
         ::Prism::FalseNode.new(nil)
+      end
+
+      def nothing(expr)
+        ::Prism::StatementsNode.new([], location(expr))
+      end
+
+      def location(expr)
+        case expr
+        when ::Prism::Node
+          expr.location
+        when Sexp
+          ::Prism::Location.new(::Prism::Source.new(expr.file), 0, 0)
+        else
+          raise "unknown node type: #{expr.inspect}"
+        end
       end
     end
   end

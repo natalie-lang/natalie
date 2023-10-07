@@ -45,17 +45,17 @@ module Natalie
 
       # pass used: true to leave the final result on the stack
       def transform(used: false)
-        raise 'unexpected AST input' unless @ast.sexp_type == :block
-        transform_block(@ast, used: used).flatten
+        raise 'unexpected AST input' unless @ast.type == :statements_node
+        transform_statements_node(@ast, used: used).flatten
       end
 
       def transform_expression(exp, used:)
         case exp
         when Sexp, ::Prism::Node
-          @depth += 1 unless exp.sexp_type == :block
+          @depth += 1 unless exp.type == :statements_node
           method = "transform_#{exp.sexp_type}"
           result = send(method, exp, used: used)
-          @depth -= 1 unless exp.sexp_type == :block
+          @depth -= 1 unless exp.type == :statements_node
           Array(result).flatten
         else
           raise "Unknown expression type: #{exp.inspect}"
@@ -325,11 +325,6 @@ module Natalie
 
       def transform_bare_hash(exp, used:)
         transform_hash(exp, bare: true, used: used)
-      end
-
-      def transform_block(exp, used:)
-        _, *body = exp
-        transform_body(body, used: used)
       end
 
       def transform_block_args(exp, used:)
@@ -1408,6 +1403,10 @@ module Natalie
       def transform_splat(exp, used:)
         _, value = exp
         transform_expression(value, used: used)
+      end
+
+      def transform_statements_node(node, used:)
+        transform_body(node.body, used: used)
       end
 
       def transform_str(exp, used:)

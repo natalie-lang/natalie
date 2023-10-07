@@ -805,7 +805,7 @@ module Natalie
       end
 
       def visit_statements_node(node)
-        s(:block, *node.child_nodes.map { |n| visit(n) }, location: node.location)
+        node.copy(body: node.body.map { |n| visit(n) })
       end
 
       def visit_string_concat_node(node)
@@ -859,9 +859,10 @@ module Natalie
         if node.names.size == 1
           s(:undef, visit(node.names.first), location: node.location)
         else
-          s(:block,
-            *node.names.map { |n| s(:undef, visit(n), location: n.location) },
-            location: node.location)
+          ::Prism::StatementsNode.new(
+            node.names.map { |n| s(:undef, visit(n), location: n.location) },
+            node.location
+          )
         end
       end
 
@@ -967,6 +968,10 @@ module Natalie
       end
 
       def sexp_type
+        first
+      end
+
+      def type
         first
       end
 
