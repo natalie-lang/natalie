@@ -50,6 +50,11 @@ module Prism
       @location || Prism::Location.new(Source.new('unknown'), 0, 0)
     end
   end
+
+  class Location
+    # We need to store path information on each node.
+    attr_accessor :path
+  end
 end
 
 module Natalie
@@ -66,6 +71,7 @@ module Natalie
       end
 
       def visit_passthrough(node)
+        node.location.path = @path
         node
       end
 
@@ -74,7 +80,7 @@ module Natalie
       end
 
       def visit_and_node(node)
-        node.copy(left: visit(node.left), right: visit(node.right))
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       def visit_array_node(node)
@@ -356,7 +362,7 @@ module Natalie
       end
 
       def visit_defined_node(node)
-        node.copy(value: visit(node.value))
+        copy(node, value: visit(node.value))
       end
 
       def visit_else_node(node)
@@ -672,7 +678,7 @@ module Natalie
       end
 
       def visit_or_node(node)
-        node.copy(left: visit(node.left), right: visit(node.right))
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       def visit_parameters_node(node)
@@ -805,7 +811,7 @@ module Natalie
       end
 
       def visit_statements_node(node)
-        node.copy(body: node.body.map { |n| visit(n) })
+        copy(node, body: node.body.map { |n| visit(n) })
       end
 
       def visit_string_concat_node(node)
@@ -909,6 +915,12 @@ module Natalie
       end
 
       private
+
+      def copy(node, **kwargs)
+        n = node.copy(**kwargs)
+        n.location.path = @path
+        n
+      end
 
       def s(*items, location:)
         Sexp.new(*items, location: location, file: @path)
