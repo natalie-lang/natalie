@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     class CppBackend
       class Transform
-        def initialize(instructions, top:, compiler_context:, symbols:, inline_functions:, stack: [])
+        def initialize(instructions, top:, compiler_context:, symbols:, inline_functions:, stack: [], compiled_files: {})
           if instructions.is_a?(InstructionManager)
             @instructions = instructions
           else
@@ -15,13 +15,14 @@ module Natalie
           @symbols = symbols
           @inline_functions = inline_functions
           @stack = stack
+          @compiled_files = compiled_files
         end
 
         def ip
           @instructions.ip
         end
 
-        attr_reader :stack, :env
+        attr_reader :stack, :env, :compiled_files
 
         attr_accessor :inline_functions
 
@@ -112,6 +113,7 @@ module Natalie
             compiler_context: @compiler_context,
             symbols: @symbols,
             inline_functions: @inline_functions,
+            compiled_files: @compiled_files,
           )
           yield(t)
         end
@@ -125,6 +127,7 @@ module Natalie
             compiler_context: @compiler_context,
             symbols: @symbols,
             inline_functions: @inline_functions,
+            compiled_files: @compiled_files,
           )
           yield(t)
           @stack_sizes << stack.size if @stack_sizes
@@ -174,10 +177,16 @@ module Natalie
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end
 
+        def files_var_name
+          "#{@compiler_context[:var_prefix]}files"
+        end
+
         private
 
         def value_has_side_effects?(value)
-          value !~ /^Value\((False|Nil|True)Object::the\(\)\)$/
+          return false if value =~ /^Value\((False|Nil|True)Object::the\(\)\)$/
+          return false if value =~ /^Value\(symbols\[\d+\]\/\*\:[^\*]+\*\/\)$/
+          true
         end
 
         def symbols_var_name

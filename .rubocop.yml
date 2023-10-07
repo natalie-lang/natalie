@@ -1,3 +1,6 @@
+AllCops:
+  TargetRubyVersion: 3.0 # the oldest version we support (don't suggest syntax newer than that)
+
 FrozenStringLiteralComment:
   Enabled: false
 

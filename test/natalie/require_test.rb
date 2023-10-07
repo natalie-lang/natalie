@@ -77,6 +77,13 @@ describe 'require' do
     result2 = require 'require/simple_again'
     result2.should == false
     simple_again.should == 'simple_again'
+    $simple_again_loaded.should == 1
+  end
+
+  it 'returns true every time you call load for a path' do
+    result1 = load 'require/simple_again.rb'
+    result1.should == true
+    $simple_again_loaded.should == 2
   end
 
   it 'works in the middle of a method' do

@@ -6,7 +6,7 @@ module Natalie
       class MacroError < StandardError; end
       class LoadPathMacroError < MacroError; end
 
-      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:, loaded_paths:)
+      def initialize(ast:, path:, load_path:, interpret:, compiler_context:, log_load_error:)
         @ast = ast
         @path = path
         @load_path = load_path
@@ -14,7 +14,7 @@ module Natalie
         @compiler_context = compiler_context
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
-        @loaded_paths = loaded_paths
+        @parsed_files = {}
       end
 
       attr_reader :ast, :path, :load_path, :depth
@@ -237,21 +237,14 @@ module Natalie
       def load_file(path, require_once:)
         return load_cpp_file(path, require_once: require_once) if path =~ /\.cpp$/
 
-        if @loaded_paths[path]
-          if require_once
-            ::Prism::FalseNode.new(nil)
-          else
-            ::Prism::TrueNode.new(nil)
-          end
-        else
-          @loaded_paths[path] = true
-          code = File.read(path)
-          file_ast = Natalie::Parser.new(code, path).ast
-          s(:block,
-            s(:with_main,
-              expand_macros(file_ast, path: path, depth: 0)),
-            ::Prism::TrueNode.new(nil))
+        code = File.read(path)
+        unless (ast = @parsed_files[path])
+          raw_ast = Natalie::Parser.new(code, path).ast
+          ast = expand_macros(raw_ast, path: path, depth: 0)
+          @parsed_files[path] = ast
         end
+
+        s(:with_filename, path, require_once, ast)
       end
 
       def load_cpp_file(path, require_once:)
