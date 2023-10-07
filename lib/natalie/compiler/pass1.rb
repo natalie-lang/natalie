@@ -596,6 +596,14 @@ module Natalie
         ]
       end
 
+      def transform_constant_read_node(node, used:)
+        return [] unless used
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
+        ]
+      end
+
       def transform_cvar(exp, used:)
         return [] unless used
         _, name = exp
@@ -1001,33 +1009,15 @@ module Natalie
         end
       end
 
+      def transform_local_variable_read_node(node, used:)
+        return [] unless used
+        VariableGetInstruction.new(node.name)
+      end
+
       def transform_lvar(exp, used:)
         return [] unless used
         _, name = exp
         VariableGetInstruction.new(name)
-      end
-
-      def transform_masgn(exp, used:)
-        # s(:masgn,
-        #   s(:array, s(:lasgn, :a), s(:lasgn, :b)),
-        #   s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2))))
-        _, names_array, values = exp
-
-        raise "Unexpected masgn names: #{names_array.inspect}" unless names_array.sexp_type == :array
-        raise "Unexpected masgn values: #{values.inspect}" unless %i[array to_ary splat].include?(values.sexp_type)
-
-        # We don't actually want to use a simple to_ary.
-        # Our ToArrayInstruction is a little more special.
-        values = values.last if values.sexp_type == :to_ary
-
-        instructions = [
-          transform_expression(values, used: true),
-          DupInstruction.new,
-          ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: exp.file, line: exp.line).transform(names_array),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_match2(exp, used:)
@@ -1096,6 +1086,23 @@ module Natalie
         )
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_multi_write_node(node, used:)
+        value = node.value
+
+        # We don't actually want to use a simple to_ary.
+        # Our ToArrayInstruction is a little more special.
+        value = value.last if value.type == :to_ary
+
+        instructions = [
+          transform_expression(value, used: true),
+          DupInstruction.new,
+          ToArrayInstruction.new,
+          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
+        ]
         instructions << PopInstruction.new unless used
         instructions
       end

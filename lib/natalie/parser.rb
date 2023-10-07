@@ -639,17 +639,7 @@ module Natalie
       def visit_multi_write_node(node)
         return visit(node.targets.first) if node.targets.size == 1 && !node.value
 
-        masgn = s(:masgn,
-                  s(:array, *node.targets.map { |n| visit(n) }, location: node.location),
-                  location: node.location)
-        if node.value
-          value = visit(node.value)
-          unless value.sexp_type == :array
-            value = s(:to_ary, value, location: node.location)
-          end
-          masgn << value
-        end
-        masgn
+        copy(node, targets: visit_all(node.targets), value: visit(node.value))
       end
 
       def visit_next_node(node)
