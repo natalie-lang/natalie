@@ -836,4 +836,11 @@ module Kernel
       args[0].write(sprintf(*args[1..]))
     end
   end
+
+  def system(...)
+    Process.wait(spawn(...))
+    $?.exitstatus.zero?
+  rescue
+    nil
+  end
 end

@@ -89,10 +89,7 @@ module KernelSpecs
   end
 
   class Method
-    public :abort, :exit, :exit!, :fork
-
-    # NATFIXME: the rest of these aren't implemented yet
-    #public :system
+    public :abort, :exit, :exit!, :fork, :system
   end
 
   class Methods
