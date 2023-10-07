@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/ioutil.hpp"
 #include "natalie/macros.hpp"
 
 #include <errno.h>
