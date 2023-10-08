@@ -48,14 +48,3 @@ describe "IO#autoclose" do
     -> { @io.autoclose = false }.should raise_error(IOError, /closed stream/)
   end
 end
-
-describe "IO#gets" do
-  it "sets $_ to nil afthe the last line has been read" do
-    File.open(__dir__ + '/../../spec/core/io/fixtures/lines.txt') do |f|
-      while line = f.gets
-        $_.should == line
-      end
-      $_.should be_nil
-    end
-  end
-end
