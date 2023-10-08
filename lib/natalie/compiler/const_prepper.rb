@@ -1,20 +1,23 @@
 module Natalie
   class Compiler
     class ConstPrepper
-      def initialize(name, pass:)
+      def initialize(node, pass:)
         @private = true
-        if name.is_a?(Symbol)
-          @name = name
+        case node.type
+        when :constant_read_node, :constant_target_node
+          @name = node.name
           @namespace = PushSelfInstruction.new
-        elsif name.sexp_type == :colon2
-          _, namespace, @name = name
-          @namespace = pass.transform_expression(namespace, used: true)
-          @private = false
-        elsif name.sexp_type == :colon3
-          _, @name = name
-          @namespace = PushObjectClassInstruction.new
+        when :constant_path_node, :constant_path_target_node
+          raise 'unexpected child here' if node.child.type != :constant_read_node
+          @name = node.child.name
+          if node.parent
+            @namespace = pass.transform_expression(node.parent, used: true)
+            @private = false
+          else
+            @namespace = PushObjectClassInstruction.new
+          end
         else
-          raise "Unknown constant name type #{name.inspect} #{name.file}##{name.line}"
+          raise "Unknown constant name type #{node.inspect} #{node.location.path}##{node.location.start_line}"
         end
       end
 

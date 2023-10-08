@@ -543,20 +543,6 @@ module Natalie
         instructions
       end
 
-      def transform_cdecl(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true)]
-        name, is_private, prep_instruction = constant_name(name)
-        # TODO: is_private shouldn't be ignored I think
-        instructions << prep_instruction
-        instructions << ConstSetInstruction.new(name)
-        if used
-          instructions << prep_instruction
-          instructions << ConstFindInstruction.new(name, strict: true)
-        end
-        instructions
-      end
-
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
         instructions = []
@@ -579,25 +565,6 @@ module Natalie
         instructions
       end
 
-      def transform_colon2(exp, used:)
-        _, namespace, name = exp
-        instructions = [
-          transform_expression(namespace, used: true),
-          ConstFindInstruction.new(name, strict: true),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_colon3(exp, used:)
-        return [] unless used
-        _, name = exp
-        [
-          PushObjectClassInstruction.new,
-          ConstFindInstruction.new(name, strict: true),
-        ]
-      end
-
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
@@ -607,12 +574,40 @@ module Natalie
         ]
       end
 
+      def transform_constant_path_node(node, used:)
+        name, _is_private, prep_instruction = constant_name(node)
+        # FIXME: is_private shouldn't be ignored I think
+        return [] unless used
+        [
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+        ]
+      end
+
+      def transform_constant_path_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        name, _is_private, prep_instruction = constant_name(node.target)
+        # FIXME: is_private shouldn't be ignored I think
+        instructions << prep_instruction
+        instructions << ConstSetInstruction.new(name)
+        instructions
+      end
+
       def transform_constant_read_node(node, used:)
         return [] unless used
         [
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
         ]
+      end
+
+      def transform_constant_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << PushSelfInstruction.new
+        instructions << ConstSetInstruction.new(node.name)
+        instructions
       end
 
       def transform_cvar(exp, used:)

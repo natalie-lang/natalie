@@ -14,9 +14,6 @@ module Prism
     # * bare_hash
     # * block
     # * block_pass
-    # * cdecl
-    # * colon2
-    # * colon3
     # * cvar
     # * evstr
     # * forward_args
@@ -52,6 +49,14 @@ module Prism
 
     def location
       @location || Prism::Location.new(Source.new('unknown'), 0, 0)
+    end
+
+    def file
+      location.path
+    end
+
+    def line
+      location.start_line
     end
   end
 
@@ -319,34 +324,21 @@ module Natalie
       end
 
       def visit_constant_path_node(node)
-        if node.parent
-          s(:colon2,
-            visit(node.parent),
-            node.child.slice.to_sym,
-            location: node.location)
-        else
-          s(:colon3, node.child.slice.to_sym, location: node.location)
-        end
+        node.copy(parent: visit(node.parent), child: visit(node.child))
       end
+
+      alias visit_constant_path_target_node visit_constant_path_node
 
       def visit_constant_path_write_node(node)
-        s(:cdecl,
-          visit(node.target),
-          visit(node.value),
-          location: node.location)
+        node.copy(target: visit(node.target), value: visit(node.value))
       end
 
-      def visit_constant_read_node(node)
-        name = node.slice.to_sym
-        s(:const, name, location: node.location)
-      end
+      alias visit_constant_read_node visit_passthrough
 
-      def visit_constant_target_node(node)
-        s(:cdecl, node.slice.to_sym, location: node.location)
-      end
+      alias visit_constant_target_node visit_passthrough
 
       def visit_constant_write_node(node)
-        s(:cdecl, node.name.to_sym, visit(node.value), location: node.location)
+        node.copy(value: visit(node.value))
       end
 
       def visit_call_operator_write_node(node)

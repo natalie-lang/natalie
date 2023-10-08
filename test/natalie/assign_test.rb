@@ -48,6 +48,9 @@ class AttrAssign
   attr_accessor :foo
 end
 
+module ConstantHolder
+end
+
 describe 'assignment' do
   it 'does single assignment' do
     a = 1
@@ -81,10 +84,11 @@ describe 'assignment' do
   end
 
   it 'does multiple assignment from an array for constants' do
-    A, B, C = [1, 2, 3]
+    A, ConstantHolder::B, ::ConstantHolder::C, ::D = [1, 2, 3, 4]
     A.should == 1
-    B.should == 2
-    C.should == 3
+    ConstantHolder::B.should == 2
+    ConstantHolder::C.should == 3
+    ::D.should == 4
   end
 
   it 'does multiple assignment from an array for instance variables' do
