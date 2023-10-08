@@ -32,8 +32,14 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {
 static ffi_type *get_ffi_type(Env *env, Value type) {
     type->assert_type(env, Object::Type::Symbol, "Symbol");
     auto type_sym = type->as_symbol();
-    if (type_sym == "pointer"_s) {
+    if (type_sym == "bool"_s) {
+        return &ffi_type_ushort;
+    } else if (type_sym == "pointer"_s) {
         return &ffi_type_pointer;
+    } else if (type_sym == "size_t"_s) {
+        return &ffi_type_uint64;
+    } else if (type_sym == "void"_s) {
+        return &ffi_type_void;
     } else {
         env->raise("TypeError", "unable to resolve type '{}'", type_sym->string());
     }
