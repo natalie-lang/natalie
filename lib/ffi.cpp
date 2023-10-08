@@ -19,7 +19,7 @@ Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {
         snprintf(buf, 1000, "Could not open library '%s': %s.", name->as_string()->c_str(), dlerror());
         env->raise("LoadError", buf);
     }
-    auto handle_ptr = new VoidPObject { handle };
+    auto handle_ptr = new VoidPObject { handle, [](auto p) { dlclose(p->void_ptr()); } };
     auto libs = self->ivar_get(env, "@ffi_libs"_s);
     if (libs->is_nil())
         libs = self->ivar_set(env, "@ffi_libs"_s, new ArrayObject);
@@ -48,7 +48,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     auto fn = (void (*)())fn_obj->as_void_p()->void_ptr();
     assert(fn);
 
-    auto result = new ffi_arg;
+    void *result = nullptr;
     void *values[args.size()];
     // TODO: set values
 
@@ -71,7 +71,6 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     auto arg_types_array = arg_types->as_array();
     auto arg_count = arg_types_array->size();
 
-    auto cif = new ffi_cif;
     ffi_type *ffi_args[arg_count];
     for (size_t i = 0; i < arg_count; ++i) {
         ffi_args[i] = get_ffi_type(env, arg_types_array->at(i));
@@ -81,14 +80,17 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     auto lib = libs->as_array()->first(); // what do we do if there is more than one?
     auto handle = lib->ivar_get(env, "@lib"_s)->as_void_p()->void_ptr();
 
+    dlerror(); // clear any previous error
     auto fn = dlsym(handle, name->string().c_str());
-    if (!fn) {
+    auto error = dlerror();
+    if (error) {
         auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s })->as_class();
         auto message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
         auto exception = NotFoundError->send(env, "new"_s, { message })->as_exception();
         env->raise_exception(exception);
     }
 
+    auto cif = new ffi_cif;
     auto status = ffi_prep_cif(
         cif,
         FFI_DEFAULT_ABI,
@@ -97,7 +99,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
         ffi_args);
 
     if (status != FFI_OK)
-        env->raise("LoadError", "some error");
+        env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
     auto block_env = new Env {};
     block_env->var_set("cif", 0, true, new VoidPObject { cif });
