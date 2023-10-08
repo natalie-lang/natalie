@@ -9,8 +9,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build
 RUN pip3 install compiledb || pip3 install compiledb --break-system-packages
 RUN gem install bundler --no-doc
 
-RUN gem install ffi # needed for ffi_test.rb -- not used by the compiler
-
 ENV LC_ALL=C.UTF-8
 ENV LLVM_CONFIG=/usr/lib/llvm-14/bin/llvm-config
 
