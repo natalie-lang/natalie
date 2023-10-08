@@ -23,22 +23,21 @@ class IO
 
       mode = opts.delete(:mode) || 'r'
       chomp = opts.delete(:chomp)
-      io = File.open(path, mode, **opts)
-      io.each_line(*args, **opts.merge(chomp: chomp)) do |line|
-        $_ = line
-        yield line
+      File.open(path, mode, **opts) do |io|
+        io.each_line(*args, **opts.merge(chomp: chomp)) do |line|
+          $_ = line
+          yield line
+        end
       end
-      io.close
       $_ = nil
     end
 
     def readlines(path, *args, **opts, &block)
       mode = opts.delete(:mode) || 'r'
       chomp = opts.delete(:chomp)
-      io = File.open(path, mode, **opts)
-      result = io.each_line(*args, **opts.merge(chomp: chomp), &block).to_a
-      io.close
-      result
+      File.open(path, mode, **opts) do |io|
+        io.each_line(*args, **opts.merge(chomp: chomp), &block).to_a
+      end
     end
   end
 
