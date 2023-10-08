@@ -29,7 +29,6 @@ module Prism
     # * masgn
     # * safe_call
     # * str
-    # * to_ary
     #
     def sexp_type
       type

@@ -1103,10 +1103,6 @@ module Natalie
       def transform_multi_write_node(node, used:)
         value = node.value
 
-        # We don't actually want to use a simple to_ary.
-        # Our ToArrayInstruction is a little more special.
-        value = value.last if value.type == :to_ary
-
         instructions = [
           transform_expression(value, used: true),
           DupInstruction.new,
@@ -1457,22 +1453,6 @@ module Natalie
         else
           raise "unexpected svalue type: #{svalue.inspect}"
         end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_to_ary(exp, used:)
-        _, value = exp
-        instructions = []
-        instructions << transform_expression(value, used: true)
-        instructions << PushArgcInstruction.new(0)
-        instructions << SendInstruction.new(
-          :to_ary,
-          receiver_is_self: false,
-          with_block: false,
-          file: exp.file,
-          line: exp.line,
-        )
         instructions << PopInstruction.new unless used
         instructions
       end
