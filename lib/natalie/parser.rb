@@ -683,7 +683,7 @@ module Natalie
       end
 
       def visit_optional_parameter_node(node)
-        s(:lasgn, node.name, visit(node.value), location: node.location)
+        node.copy(value: visit(node.value))
       end
 
       def visit_or_node(node)

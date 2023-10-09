@@ -50,6 +50,15 @@ module Natalie
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
+        elsif arg.is_a?(::Prism::OptionalParameterNode)
+          clean_up_keyword_args
+          transform_optional_arg(arg)
+        elsif arg.is_a?(::Prism::SplatNode)
+          clean_up_keyword_args
+          transform_splat_arg(arg.expression)
+        elsif arg.is_a?(::Prism::ArrayNode)
+          clean_up_keyword_args
+          transform_destructured_arg(arg)
         elsif arg.start_with?('**')
           transform_keyword_splat_arg(arg)
         elsif arg.start_with?('*')
@@ -62,15 +71,33 @@ module Natalie
       end
 
       def remaining_required_args
-        @args.select { |arg| !arg.is_a?(Sexp) && !arg.start_with?('*') }
+        @args.select do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type == :required_parameter_node
+          else
+            !arg.is_a?(Sexp) && !arg.start_with?('*')
+          end
+        end
       end
 
       def remaining_keyword_args
-        @args.select { |arg| arg.is_a?(Sexp) && arg.sexp_type == :kwarg }
+        @args.select do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_parameter_node
+          else
+            arg.is_a?(Sexp) && arg.sexp_type == :kwarg
+          end
+        end
       end
 
       def kwsplat?
-        @args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('**') }
+        @args.any? do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_rest_parameter_node
+          else
+            arg.is_a?(Symbol) && arg.start_with?('**')
+          end
+        end
       end
 
       def transform_required_arg(arg)
@@ -97,7 +124,13 @@ module Natalie
           return :reverse
         end
 
-        _, name, default_value = arg
+        if arg.is_a?(::Prism::Node)
+          name = arg.name
+          default_value = arg.value
+        else
+          _, name, default_value = arg
+        end
+
         if default_value&.sexp_type == :lvar && default_value[1] == name
           raise SyntaxError, "circular argument reference - #{name}"
         end

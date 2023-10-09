@@ -4,6 +4,10 @@ module Natalie
       def initialize(args, is_proc:)
         if args == 0
           @args = []
+        elsif args.is_a?(::Prism::Node) && args.type == :parameters_node
+          # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
+          @args = node.child_nodes.compact.sort_by { |n| n.location.start_offset }.dup
+          @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
         elsif args.is_a?(Sexp) && args.sexp_type == :args
           @args = args[1..]
           @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
@@ -31,14 +35,25 @@ module Natalie
 
       def splat_count
         args.count do |arg|
-          arg.is_a?(Symbol) && arg.start_with?('*')
+          if arg.is_a?(::Prism::Node)
+            arg.type == :rest_parameter_node ||
+              arg.type == :keyword_rest_parameter_node
+          else
+            arg.is_a?(Symbol) && arg.start_with?('*')
+          end
         end
       end
 
       def required_count
         args.count do |arg|
-          (arg.is_a?(Symbol) && !arg.start_with?('*')) ||
-            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :required_parameter_node ||
+              arg.type == :required_destructured_parameter_node ||
+              (arg.type == :keyword_parameter_node && !arg.value)
+          else
+            (arg.is_a?(Symbol) && !arg.start_with?('*')) ||
+              (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          end
         end
       end
 
@@ -49,20 +64,32 @@ module Natalie
       def optional_named_count
         return 0 if @is_proc
         args.count do |arg|
-          arg.is_a?(Sexp) && %i[lasgn masgn].include?(arg.sexp_type)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :optional_parameter_node
+          else
+            arg.is_a?(Sexp) && %i[lasgn masgn].include?(arg.sexp_type)
+          end
         end
       end
 
       def required_keyword_count
         args.count do |arg|
-          arg.is_a?(Sexp) && arg.sexp_type == :kwarg && arg.size == 2
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_parameter_node && !arg.value
+          else
+            arg.is_a?(Sexp) && arg.sexp_type == :kwarg && arg.size == 2
+          end
         end
       end
 
       def optional_keyword_count
         return 0 if @is_proc
         args.count do |arg|
-          arg.is_a?(Sexp) && arg.sexp_type == :kwarg && arg.size == 3
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_parameter_node && arg.value
+          else
+            arg.is_a?(Sexp) && arg.sexp_type == :kwarg && arg.size == 3
+          end
         end
       end
     end

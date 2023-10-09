@@ -639,7 +639,14 @@ module Natalie
           instructions << VariableSetInstruction.new(name, local_only: local_only)
         end
 
-        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
+        has_complicated_args = args.any? do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type != :required_parameter_node
+          else
+            arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*')
+          end
+        end
+
         may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
@@ -1552,33 +1559,59 @@ module Natalie
 
       def minimum_arg_count(args)
         args.count do |arg|
-          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :required_parameter_node ||
+              (arg.type == :keyword_parameter_node && !arg.value)
+          else
+            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
+              (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          end
         end
       end
 
       def maximum_arg_count(args)
-        if args.any? { |arg| arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**' }
-          # splat, no maximum
-          return nil
+        any_splats = args.any? do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type == :rest_parameter_node
+          else
+            arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**'
+          end
         end
+        return nil if any_splats # splat, no maximum
 
         args.count do |arg|
-          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-            (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
+          if arg.is_a?(::Prism::Node)
+            %i[
+              required_parameter_node
+              required_destructured_parameter_node
+              optional_parameter_node
+            ].include?(arg.type)
+          else
+            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
+              (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
+          end
         end
       end
 
       def any_keyword_args?(args)
         args.any? do |arg|
-          (arg.is_a?(Symbol) && arg[0..1] == '**') ||
-            (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_parameter_node ||
+              arg.type == :keyword_rest_parameter_node
+          else
+            (arg.is_a?(Symbol) && arg[0..1] == '**') ||
+              (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
+          end
         end
       end
 
       def required_keywords(args)
         args.filter_map do |arg|
-          if arg.is_a?(Sexp) && arg.sexp_type == :kwarg
+          if arg.is_a?(::Prism::Node)
+            if arg.type == :keyword_parameter_node && !arg.value
+              arg.name
+            end
+          elsif arg.is_a?(Sexp) && arg.sexp_type == :kwarg
             _, name, default = arg
             name if default.nil?
           end
