@@ -747,9 +747,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_required_parameter_node(node)
-        node.name.to_sym
-      end
+      alias visit_required_parameter_node visit_passthrough
 
       def visit_rescue_modifier_node(node)
         s(:rescue,

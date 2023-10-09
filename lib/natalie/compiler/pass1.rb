@@ -686,9 +686,9 @@ module Natalie
           instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
         end
 
-        args.each_with_index do |arg_name, index|
+        args.each_with_index do |arg, index|
           instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(arg_name, local_only: local_only)
+          instructions << VariableSetInstruction.new(arg.name, local_only: local_only)
         end
 
         instructions

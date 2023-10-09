@@ -59,6 +59,9 @@ module Natalie
         elsif arg.is_a?(::Prism::ArrayNode)
           clean_up_keyword_args
           transform_destructured_arg(arg)
+        elsif arg.is_a?(::Prism::RequiredParameterNode)
+          clean_up_keyword_args
+          transform_required_arg(arg)
         elsif arg.start_with?('**')
           transform_keyword_splat_arg(arg)
         elsif arg.start_with?('*')
@@ -102,7 +105,7 @@ module Natalie
 
       def transform_required_arg(arg)
         shift_or_pop_next_arg
-        @instructions << variable_set(arg)
+        @instructions << variable_set(arg.name)
       end
 
       def transform_optional_arg(arg)
@@ -162,12 +165,21 @@ module Natalie
       end
 
       def transform_splat_arg(arg)
-        name = arg.to_s.tr('*', '').to_sym
-        if name.empty?
-          :noop
+        if arg.is_a?(::Prism::Node)
+          if arg.name.empty?
+            :noop
+          else
+            @instructions << variable_set(arg.name)
+            @instructions << VariableGetInstruction.new(arg.name) # TODO: could eliminate this if the *splat is the last arg
+          end
         else
-          @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
+          name = arg.to_s.tr('*', '').to_sym
+          if name.empty?
+            :noop
+          else
+            @instructions << variable_set(name)
+            @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
+          end
         end
         :reverse
       end
@@ -186,7 +198,6 @@ module Natalie
       end
 
       def variable_set(name)
-        name = name[1..] if name.start_with?('&')
         raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
         VariableSetInstruction.new(name, local_only: @local_only)
       end
