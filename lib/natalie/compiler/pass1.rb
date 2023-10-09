@@ -485,7 +485,7 @@ module Natalie
             # =>
             # if (b === a || c === a || d === a)
             _, options_array, *body = when_statement
-            _, *options = options_array
+            options = options_array.elements
 
             options.each do |option|
               # Splats are handled in the backend.

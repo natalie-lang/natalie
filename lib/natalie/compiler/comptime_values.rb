@@ -5,9 +5,8 @@ module Natalie
         unless node.is_a?(::Prism::ArrayNode)
           raise_comptime_value_error('array', node)
         end
-        node[1..].map do |item|
-          comptime_string(item)
-        end
+
+        node.elements.map { |item| comptime_string(item) }
       end
 
       def comptime_string(node)
@@ -25,7 +24,7 @@ module Natalie
       end
 
       def raise_comptime_value_error(expected, node)
-          raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (#{node.file}##{node.line})"
+        raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (#{node.file}##{node.line})"
       end
     end
   end

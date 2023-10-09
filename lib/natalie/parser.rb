@@ -35,6 +35,12 @@ module Prism
       type
     end
 
+    # Find this transformation method so that we can catch any places where we
+    # might previously have been doing destructuring.
+    def to_ary
+      raise "Implicit destructuring not supported for prism nodes"
+    end
+
     # We need this to maintain the same interface as Sexp instances in the case
     # of the repl.
     def new(*parts)
