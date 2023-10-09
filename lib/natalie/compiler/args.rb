@@ -55,18 +55,17 @@ module Natalie
           transform_optional_arg(arg)
         elsif arg.is_a?(::Prism::SplatNode)
           clean_up_keyword_args
-          transform_splat_arg(arg.expression)
+          transform_splat_arg(arg)
         elsif arg.is_a?(::Prism::ArrayNode)
           clean_up_keyword_args
           transform_destructured_arg(arg)
         elsif arg.is_a?(::Prism::RequiredParameterNode)
           clean_up_keyword_args
           transform_required_arg(arg)
-        elsif arg.start_with?('**')
-          transform_keyword_splat_arg(arg)
-        elsif arg.start_with?('*')
-          clean_up_keyword_args
+        elsif arg.is_a?(::Prism::RestParameterNode)
           transform_splat_arg(arg)
+        elsif arg.is_a?(::Prism::KeywordRestParameterNode)
+          transform_keyword_splat_arg(arg)
         else
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -75,11 +74,7 @@ module Natalie
 
       def remaining_required_args
         @args.select do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :required_parameter_node
-          else
-            !arg.is_a?(Sexp) && !arg.start_with?('*')
-          end
+          arg.type == :required_parameter_node
         end
       end
 
@@ -95,11 +90,7 @@ module Natalie
 
       def kwsplat?
         @args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :keyword_rest_parameter_node
-          else
-            arg.is_a?(Symbol) && arg.start_with?('**')
-          end
+          arg.type == :keyword_rest_parameter_node
         end
       end
 
@@ -127,12 +118,8 @@ module Natalie
           return :reverse
         end
 
-        if arg.is_a?(::Prism::Node)
-          name = arg.name
-          default_value = arg.value
-        else
-          _, name, default_value = arg
-        end
+        name = arg.name
+        default_value = arg.value
 
         if default_value&.sexp_type == :lvar && default_value[1] == name
           raise SyntaxError, "circular argument reference - #{name}"
@@ -165,33 +152,37 @@ module Natalie
       end
 
       def transform_splat_arg(arg)
-        if arg.is_a?(::Prism::Node)
-          if arg.name.empty?
-            :noop
-          else
-            @instructions << variable_set(arg.name)
-            @instructions << VariableGetInstruction.new(arg.name) # TODO: could eliminate this if the *splat is the last arg
+        # NOTE: Is this a bug?
+        #
+        #     def foo(*b); end      => RestParameterNode
+        #
+        #     vs
+        #
+        #     def foo((*b)); end    => SplatParameterNode
+        #
+        if arg.type == :splat_node
+          if arg.expression
+            unless arg.expression.type == :required_parameter_node
+              raise "I don't know how to splat #{arg.expression.inspect}"
+            end
+
+            name = arg.expression.name
           end
         else
-          name = arg.to_s.tr('*', '').to_sym
-          if name.empty?
-            :noop
-          else
-            @instructions << variable_set(name)
-            @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
-          end
+          name = arg.name
+        end
+        if name
+          @instructions << variable_set(name)
+          @instructions << VariableGetInstruction.new(name)
         end
         :reverse
       end
 
       def transform_keyword_splat_arg(arg)
-        name = arg[2..-1]
         move_keyword_arg_hash_from_args_array_to_stack
-        if name.empty?
-          :noop
-        else
-          @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the **splat is the last arg
+        if arg.name
+          @instructions << variable_set(arg.name)
+          @instructions << VariableGetInstruction.new(arg.name)
         end
         @has_keyword_splat = true
         :reverse

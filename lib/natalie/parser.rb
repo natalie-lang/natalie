@@ -567,9 +567,7 @@ module Natalie
         exp
       end
 
-      def visit_keyword_rest_parameter_node(node)
-        "**#{node.name}".to_sym
-      end
+      alias visit_keyword_rest_parameter_node visit_passthrough
 
       def visit_lambda_node(node)
         visit_block_node(
@@ -768,9 +766,7 @@ module Natalie
         s(:resbody, ary, ref, visit(node.statements), location: node.location)
       end
 
-      def visit_rest_parameter_node(node)
-        "*#{node.name}".to_sym
-      end
+      alias visit_rest_parameter_node visit_passthrough
 
       def visit_retry_node(node)
         s(:retry, location: node.location)
