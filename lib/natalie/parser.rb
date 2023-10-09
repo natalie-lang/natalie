@@ -669,9 +669,7 @@ module Natalie
 
       alias visit_nil_node visit_passthrough
 
-      def visit_numbered_reference_read_node(node)
-        s(:nth_ref, node.number, location: node.location)
-      end
+      alias visit_numbered_reference_read_node visit_passthrough
 
       def visit_operator_write_node(node, read_sexp_type:, write_sexp_type:)
         s(write_sexp_type,

@@ -309,29 +309,6 @@ module Natalie
         [PushLastMatchInstruction.new(to_s: true)]
       end
 
-      def transform_nth_ref(exp, used:)
-        return [] unless used
-        _, num = exp
-        [
-          PushLastMatchInstruction.new(to_s: false),
-          DupInstruction.new,
-          IfInstruction.new,
-          PushIntInstruction.new(num),
-          PushArgcInstruction.new(1),
-          SendInstruction.new(
-            :[],
-            receiver_is_self: false,
-            with_block: false,
-            file: exp.file,
-            line: exp.line,
-          ),
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          PushNilInstruction.new,
-          EndInstruction.new(:if),
-        ]
-      end
-
       def transform_bare_hash(exp, used:)
         transform_hash(exp, bare: true, used: used)
       end
@@ -1125,6 +1102,28 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_numbered_reference_read_node(node, used:)
+        return [] unless used
+        [
+          PushLastMatchInstruction.new(to_s: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PushIntInstruction.new(node.number),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          PushNilInstruction.new,
+          EndInstruction.new(:if),
+        ]
       end
 
       def transform_op_asgn_and(exp, used:)
