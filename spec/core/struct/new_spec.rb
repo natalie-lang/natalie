@@ -74,7 +74,9 @@ describe "Struct.new" do
 
   ruby_version_is "3.2" do
     it "raises a TypeError if passed a Hash with an unknown key" do
-      -> { Struct.new(:animal, { name: 'chris' }) }.should raise_error(TypeError)
+      NATFIXME 'raises a TypeError if passed a Hash with an unknown key', exception: SpecFailedException do
+        -> { Struct.new(:animal, { name: 'chris' }) }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -159,8 +161,10 @@ describe "Struct.new" do
         obj = type.new(args: 42)
         obj2 = type.new(42)
 
-        obj.should == obj2
-        obj.args.should == 42
+        NATFIXME 'accepts keyword arguments to initialize', exception: SpecFailedException do
+          obj.should == obj2
+          obj.args.should == 42
+        end
         obj2.args.should == 42
       end
     end
