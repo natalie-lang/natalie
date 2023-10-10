@@ -11,12 +11,10 @@ ruby_version_is "3.2" do
     end
 
     it "accepts alternative positional arguments" do
-      NATFIXME 'Implement Data.[]', exception: NoMethodError, message: "undefined method `[]' for DataSpecs::Measure:Class" do
-        data = DataSpecs::Measure[42, "km"]
+      data = DataSpecs::Measure[42, "km"]
 
-        data.amount.should == 42
-        data.unit.should == "km"
-      end
+      data.amount.should == 42
+      data.unit.should == "km"
     end
 
     it "accepts keyword arguments" do
@@ -27,12 +25,10 @@ ruby_version_is "3.2" do
     end
 
     it "accepts alternative keyword arguments" do
-      NATFIXME 'Implement Data.[]', exception: NameError, message: "undefined method `[]' for DataSpecs::Measure:Class" do
-        data = DataSpecs::Measure[amount: 42, unit: "km"]
+      data = DataSpecs::Measure[amount: 42, unit: "km"]
 
-        data.amount.should == 42
-        data.unit.should == "km"
-      end
+      data.amount.should == 42
+      data.unit.should == "km"
     end
 
     it "raises ArgumentError if no arguments are given" do

@@ -33,6 +33,8 @@ class Data
         end
       end
 
+      define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
+
       define_singleton_method(:members) { members }
 
       if block
