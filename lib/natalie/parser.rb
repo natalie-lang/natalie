@@ -299,9 +299,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_class_variable_read_node(node)
-        s(:cvar, node.name, location: node.location)
-      end
+      alias visit_class_variable_read_node visit_passthrough
 
       def visit_class_variable_or_write_node(node)
         s(:op_asgn_or,

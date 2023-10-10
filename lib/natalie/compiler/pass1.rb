@@ -119,6 +119,11 @@ module Natalie
         instructions
       end
 
+      def transform_class_variable_read_node(node, used:)
+        return [] unless used
+        ClassVariableGetInstruction.new(node.name)
+      end
+
       def transform_constant_path_node(node, used:)
         name, _is_private, prep_instruction = constant_name(node)
         # FIXME: is_private shouldn't be ignored I think
@@ -644,12 +649,6 @@ module Natalie
           PushSelfInstruction.new,
           ConstFindInstruction.new(name, strict: false),
         ]
-      end
-
-      def transform_cvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        ClassVariableGetInstruction.new(name)
       end
 
       def transform_cvdecl(exp, used:)
