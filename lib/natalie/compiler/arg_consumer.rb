@@ -9,11 +9,7 @@ module Natalie
 
       def consume(exp)
         raise 'do not pass an Array to ArgConsumer' if exp.instance_of?(Array)
-        if exp.is_a?(::Prism::Node)
-          args = exp.targets
-        else
-          _, *args = exp
-        end
+        args = exp.targets
         while args.any?
           if @from_side == :left
             arg = args.shift

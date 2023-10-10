@@ -144,7 +144,7 @@ module Natalie
         output = []
         output << "Value #{fn}(Env *env, Value self, Args args, Block *block) {"
         if args
-          _, *args = args
+          args = args.elements
           output << "args.ensure_argc_is(env, #{args.size});"
           args.each_with_index do |arg, i|
             output << "Value #{comptime_symbol(arg)} = args[#{i}];"

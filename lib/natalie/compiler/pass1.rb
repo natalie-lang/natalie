@@ -65,7 +65,7 @@ module Natalie
       def transform_body(body, used:)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
-        instructions << transform_expression(last || nil_node, used: used)
+        instructions << transform_expression(last || Prism.nil_node, used: used)
         instructions
       end
 
@@ -81,6 +81,13 @@ module Natalie
       # INDIVIDUAL PRISM NODES = = = = =
       # (in alphabetical order)
 
+      def transform_alias_method_node(node, used:)
+        instructions = [transform_expression(node.new_name, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << transform_expression(node.old_name, used: true)
+        instructions << AliasInstruction.new
+      end
+
       def transform_and_node(node, used:)
         instructions = [
           *transform_expression(node.left, used: true),
@@ -91,6 +98,23 @@ module Natalie
           ElseInstruction.new(:if),
           EndInstruction.new(:if),
         ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_array_node(node, used:)
+        elements = node.elements
+        instructions = []
+
+        if node.elements.any? { |a| a.sexp_type == :splat }
+          instructions += transform_array_with_splat(elements)
+        else
+          elements.each do |element|
+            instructions << transform_expression(element, used: true)
+          end
+          instructions << CreateArrayInstruction.new(count: elements.size)
+        end
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -235,35 +259,20 @@ module Natalie
         instructions << AliasInstruction.new
       end
 
-      def transform_array(exp, used:)
-        _, *items = exp
-        instructions = []
-        if items.any? { |a| a.sexp_type == :splat }
-          instructions += transform_array_with_splat(items)
-        else
-          items.each do |item|
-            instructions << transform_expression(item, used: true)
-          end
-          instructions << CreateArrayInstruction.new(count: items.size)
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_array_with_splat(items)
-        items = items.dup
+      def transform_array_with_splat(elements)
+        elements = elements.dup
         instructions = []
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :splat
-          instructions << transform_expression(items.shift, used: true)
+        while elements.any? && elements.first.sexp_type != :splat
+          instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
         instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
 
         # now add to the array the first splat item and everything after
-        items.each do |arg|
+        elements.each do |arg|
           if arg.sexp_type == :splat
             _, value = arg
             instructions << transform_expression(value, used: true)
@@ -341,7 +350,7 @@ module Natalie
 
       def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         [
           transform_expression(value, used: true),
           BreakInstruction.new,
@@ -476,7 +485,7 @@ module Natalie
             # =>
             # if (b === a || c === a || d === a)
             _, options_array, *body = when_statement
-            _, *options = options_array
+            options = options_array.elements
 
             options.each do |option|
               # Splats are handled in the backend.
@@ -513,7 +522,9 @@ module Natalie
             # s(:array, option1, option2, ...)
             # =>
             # s(:or, option1, s(:or, option2, ...))
-            options = options[2..].reduce(options[1]) { |prev, option| ::Prism::OrNode.new(prev, option, nil, nil) }
+            options = options.elements
+            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
+
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
             instructions << transform_body(body, used: true)
@@ -716,8 +727,8 @@ module Natalie
       def transform_dot2(exp, used:, exclude_end: false)
         _, beginning, ending = exp
         instructions = [
-          transform_expression(ending || nil_node, used: true),
-          transform_expression(beginning || nil_node, used: true),
+          transform_expression(ending || Prism.nil_node, used: true),
+          transform_expression(beginning || Prism.nil_node, used: true),
           PushRangeInstruction.new(exclude_end),
         ]
         instructions << PopInstruction.new unless used
@@ -810,8 +821,7 @@ module Natalie
         when :lasgn
           instructions << VariableDeclareInstruction.new(args[1])
         when :masgn
-          _, (_, *array) = args
-          array.each do |arg|
+          args[1].elements.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
         else
@@ -822,7 +832,7 @@ module Natalie
 
       def transform_for(exp, used:)
         _, array, args, body = exp
-        body = nil_node if body.nil?
+        body = Prism.nil_node if body.nil?
         instructions = transform_for_declare_args(args)
         instructions << DefineBlockInstruction.new(arity: 1)
         instructions += transform_block_args_for_for(s(:args, args), used: true)
@@ -903,8 +913,8 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression || nil_node, used: true)
-        false_instructions = transform_expression(false_expression || nil_node, used: true)
+        true_instructions = transform_expression(true_expression || Prism.nil_node, used: true)
+        false_instructions = transform_expression(false_expression || Prism.nil_node, used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
@@ -928,7 +938,7 @@ module Natalie
         else
           instructions << transform_block_args(args, used: true)
         end
-        instructions << transform_expression(body || nil_node, used: true)
+        instructions << transform_expression(body || Prism.nil_node, used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
         when :call
@@ -1109,7 +1119,7 @@ module Natalie
 
       def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         [
           transform_expression(value, used: true),
           NextInstruction.new,
@@ -1362,7 +1372,7 @@ module Natalie
 
       def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
-        value ||= nil_node
+        value ||= Prism.nil_node
         instructions = [transform_expression(value, used: true)]
         instructions << ReturnInstruction.new
       end
@@ -1442,8 +1452,8 @@ module Natalie
         when :splat
           instructions << transform_expression(svalue, used: true)
           instructions << ArrayWrapInstruction.new
-        when :array
-          instructions << transform_array(svalue, used: true)
+        when :array_node
+          instructions << transform_array_node(svalue, used: true)
         else
           raise "unexpected svalue type: #{svalue.inspect}"
         end
@@ -1484,7 +1494,7 @@ module Natalie
 
       def transform_while(exp, used:)
         _, condition, body, pre = exp
-        body ||= nil_node
+        body ||= Prism.nil_node
 
         instructions = [
           WhileInstruction.new(pre: pre),
@@ -1626,10 +1636,6 @@ module Natalie
         sexp = Sexp.new
         items.each { |item| sexp << item }
         sexp
-      end
-
-      def nil_node
-        ::Prism::NilNode.new(nil)
       end
 
       class << self
