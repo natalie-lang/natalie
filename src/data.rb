@@ -1,5 +1,5 @@
 class Data
-  def self.define(*members)
+  def self.define(*members, &block)
     members = members.map(&:to_sym)
 
     Class.new do
@@ -18,6 +18,10 @@ class Data
       end
 
       define_singleton_method(:members) { members }
+
+      if block
+        instance_eval(&block)
+      end
     end
   end
 end

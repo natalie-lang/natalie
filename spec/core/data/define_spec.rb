@@ -24,15 +24,13 @@ ruby_version_is "3.2" do
     end
 
     it "accepts a block" do
-      NATFIXME 'Implement Data.new', exception: NoMethodError, message: "undefined method `title_with_year'" do
-        movie = Data.define(:title, :year) do
-          def title_with_year
-            "#{title} (#{year})"
-          end
+      movie = Data.define(:title, :year) do
+        def title_with_year
+          "#{title} (#{year})"
         end
-        movie.members.should == [:title, :year]
-        movie.new("Matrix", 1999).title_with_year.should == "Matrix (1999)"
       end
+      movie.members.should == [:title, :year]
+      movie.new("Matrix", 1999).title_with_year.should == "Matrix (1999)"
     end
   end
 end
