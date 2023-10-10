@@ -124,6 +124,11 @@ module Natalie
         ClassVariableGetInstruction.new(node.name)
       end
 
+      def transform_class_variable_target_node(node, used:)
+        raise "Target nodes should not be marked as used" if used
+        [ClassVariableSetInstruction.new(node.name)]
+      end
+
       def transform_class_variable_write_node(node, used:)
         instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
         instructions << ClassVariableGetInstruction.new(node.name) if used
@@ -880,7 +885,10 @@ module Natalie
 
       def transform_for_declare_args(args)
         instructions = []
+
         case args.sexp_type
+        when :class_variable_target_node
+          # Do nothing, no need to declare class variables.
         when :lasgn
           instructions << VariableDeclareInstruction.new(args[1])
         when :masgn
@@ -890,6 +898,7 @@ module Natalie
         else
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
+
         instructions
       end
 
@@ -1203,9 +1212,6 @@ module Natalie
                           when :lvar
                             _, name = variable
                             VariableGetInstruction.new(name, default_to_nil: true)
-                          when :cvar
-                            _, name = variable
-                            ClassVariableGetInstruction.new(name, default_to_nil: true)
                           else
                             transform_expression(variable, used: true)
                           end

@@ -26,6 +26,8 @@ module Natalie
           transform_attr_assign_arg(arg.receiver, arg.name, arg.arguments)
         when :constant_target_node, :constant_path_target_node
           transform_constant(arg)
+        when :class_variable_target_node
+          transform_class_variable(arg.name)
         when :global_variable_target_node
           transform_global_variable(arg.name)
         when :instance_variable_target_node
@@ -89,6 +91,9 @@ module Natalie
             file: @file,
             line: @line,
           )
+        when :class_variable_target_node
+          @instructions << ClassVariableSetInstruction.new(arg.name)
+          @instructions << ClassVariableGetInstruction.new(arg.name)
         when :global_variable_target_node
           @instructions << GlobalVariableSetInstruction.new(arg.name)
           @instructions << GlobalVariableGetInstruction.new(arg.name)
@@ -110,6 +115,11 @@ module Natalie
         name, prep_instruction = constant_name(name)
         @instructions << prep_instruction
         @instructions << ConstSetInstruction.new(name)
+      end
+
+      def transform_class_variable(name)
+        shift_or_pop_next_arg
+        @instructions << ClassVariableSetInstruction.new(name)
       end
 
       def transform_global_variable(name)

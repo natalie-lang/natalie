@@ -66,6 +66,11 @@ module Prism
     ArrayNode.new(elements, nil, nil, location)
   end
 
+  # Create a ClassVariableWriteNode with the optionally given values.
+  def self.class_variable_write_node(name:, value: nil, location: nil)
+    ClassVariableWriteNode.new(name, nil, value, nil, location)
+  end
+
   # Create a FalseNode with the optionally given location.
   def self.false_node(location: nil)
     FalseNode.new(location)
@@ -300,11 +305,13 @@ module Natalie
 
       alias visit_class_variable_read_node visit_passthrough
 
-      def visit_class_variable_or_write_node(node)
+      alias visit_class_variable_target_node visit_passthrough
+
+      def visit_class_variable_write_node(node)
         copy(node, value: visit(node.value))
       end
 
-      def visit_class_variable_write_node(node)
+      def visit_class_variable_or_write_node(node)
         copy(node, value: visit(node.value))
       end
 
@@ -743,7 +750,17 @@ module Natalie
 
       def visit_rescue_node(node)
         ref = visit(node.reference)
-        ref << s(:gvar, :$!, location: node.location) if ref
+
+        case ref
+        when nil
+          # Do nothing
+        when ::Prism::ClassVariableTargetNode
+          ref = ::Prism.class_variable_write_node(name: ref.name, value: s(:gvar, :$!, location: node.location), location: node.location)
+        when Sexp
+          # This is a sexp, so we can treat all of the writes the same and push
+          # on the value that should be written.
+          ref << s(:gvar, :$!, location: node.location)
+        end
 
         ary = Prism.array_node(elements: node.exceptions.map { |exception| visit(exception) }, location: node.location)
         s(:resbody, ary, ref, visit(node.statements), location: node.location)
