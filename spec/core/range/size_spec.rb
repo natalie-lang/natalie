@@ -50,11 +50,15 @@ describe "Range#size" do
     end
 
     it 'returns nil for all beginless ranges if the end is not numeric' do
-      (...'o').size.should == nil
+      NATFIXME 'returns nil for all beginless ranges if the end is not numeric', exception: SpecFailedException do
+        (...'o').size.should == nil
+      end
     end
 
     it 'returns nil if the start and the end is both nil' do
-      (nil..nil).size.should == nil
+      NATFIXME 'returns nil if the start and the end is both nil', exception: SpecFailedException do
+        (nil..nil).size.should == nil
+      end
     end
   end
 

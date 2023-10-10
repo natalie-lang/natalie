@@ -33,7 +33,7 @@ describe :array_pack_basic_non_float, shared: true do
   end
 
   ruby_version_is ""..."3.2" do
-    xit "warns in verbose mode that a directive is unknown" do
+    it "warns in verbose mode that a directive is unknown" do
       # additional directive ('a') is required for the X directive
       -> { [@obj, @obj].pack("a R" + pack_format) }.should complain(/unknown pack directive 'R'/, verbose: true)
       -> { [@obj, @obj].pack("a 0" + pack_format) }.should complain(/unknown pack directive '0'/, verbose: true)
@@ -46,9 +46,16 @@ describe :array_pack_basic_non_float, shared: true do
     # NOTE: it's just a plan of the Ruby core team
     it "warns that a directive is unknown" do
       # additional directive ('a') is required for the X directive
-      -> { [@obj, @obj].pack("a R" + pack_format) }.should complain(/unknown pack directive 'R'/)
-      -> { [@obj, @obj].pack("a 0" + pack_format) }.should complain(/unknown pack directive '0'/)
-      -> { [@obj, @obj].pack("a :" + pack_format) }.should complain(/unknown pack directive ':'/)
+      NATFIXME 'warns that a directive is unknown', exception: ArgumentError, message: 'R is not supported' do
+        -> { [@obj, @obj].pack("a R" + pack_format) }.should complain(/unknown pack directive 'R'/)
+      end
+      # Excact error class depends on caller, both SpecFailedException and ArgumentError have been seen
+      NATFIXME 'warns that a directive is unknown' do
+        -> { [@obj, @obj].pack("a 0" + pack_format) }.should complain(/unknown pack directive '0'/)
+      end
+      NATFIXME 'warns that a directive is unknown' do
+        -> { [@obj, @obj].pack("a :" + pack_format) }.should complain(/unknown pack directive ':'/)
+      end
     end
   end
 

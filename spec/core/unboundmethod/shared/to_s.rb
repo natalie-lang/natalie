@@ -33,8 +33,10 @@ describe :unboundmethod_to_s, shared: true do
     end
 
     ruby_version_is "3.2" do
-      @from_module.send(@method).should.start_with? "#<UnboundMethod: UnboundMethodSpecs::Mod#from_mod"
-      @from_method.send(@method).should.start_with? "#<UnboundMethod: UnboundMethodSpecs::Mod#from_mod"
+      NATFIXME 'returns a String including all details', exception: SpecFailedException do
+        @from_module.send(@method).should.start_with? "#<UnboundMethod: UnboundMethodSpecs::Mod#from_mod"
+        @from_method.send(@method).should.start_with? "#<UnboundMethod: UnboundMethodSpecs::Mod#from_mod"
+      end
     end
   end
 

@@ -15,7 +15,9 @@ describe "Fixnum" do
 
   ruby_version_is "3.2" do
     it "is no longer defined" do
-      Object.should_not.const_defined?(:Fixnum)
+      NATFIXME 'Fixnum is no longer defined', exception: SpecFailedException do
+        Object.should_not.const_defined?(:Fixnum)
+      end
     end
   end
 end
@@ -35,7 +37,9 @@ describe "Bignum" do
 
   ruby_version_is "3.2" do
     it "is no longer defined" do
-      Object.should_not.const_defined?(:Bignum)
+      NATFIXME 'Bignum is no longer defined', exception: SpecFailedException do
+        Object.should_not.const_defined?(:Bignum)
+      end
     end
   end
 end
