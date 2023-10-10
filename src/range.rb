@@ -122,6 +122,7 @@ class Range
   end
 
   def size
+    return if self.begin.nil? && !self.end.is_a?(Numeric)
     return Float::INFINITY if self.begin.nil?
     return unless self.begin.is_a?(Numeric)
     return Float::INFINITY if self.end.nil?
