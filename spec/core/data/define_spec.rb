@@ -24,7 +24,7 @@ ruby_version_is "3.2" do
     end
 
     it "accepts a block" do
-      NATFIXME 'Implement Data.new', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+      NATFIXME 'Implement Data.new', exception: NoMethodError, message: "undefined method `title_with_year'" do
         movie = Data.define(:title, :year) do
           def title_with_year
             "#{title} (#{year})"
