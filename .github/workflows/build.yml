@@ -35,7 +35,7 @@ jobs:
       - name: checkout submodules
         run: git submodule update --init --recursive
       - name: install ruby
-        run: brew install ruby autoconf automake libtool pkg-config
+        run: brew install ruby autoconf automake libtool pkg-config libffi
       - name: install openssl
         run: brew install openssl
       - name: test with clang on macOS
