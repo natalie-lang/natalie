@@ -119,6 +119,42 @@ module Natalie
         instructions
       end
 
+      def transform_constant_path_node(node, used:)
+        name, _is_private, prep_instruction = constant_name(node)
+        # FIXME: is_private shouldn't be ignored I think
+        return [] unless used
+        [
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+        ]
+      end
+
+      def transform_constant_path_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        name, _is_private, prep_instruction = constant_name(node.target)
+        # FIXME: is_private shouldn't be ignored I think
+        instructions << prep_instruction
+        instructions << ConstSetInstruction.new(name)
+        instructions
+      end
+
+      def transform_constant_read_node(node, used:)
+        return [] unless used
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
+        ]
+      end
+
+      def transform_constant_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << PushSelfInstruction.new
+        instructions << ConstSetInstruction.new(node.name)
+        instructions
+      end
+
       def transform_defined_node(node, used:)
         return [] unless used
 
@@ -180,6 +216,18 @@ module Natalie
         [PushFloatInstruction.new(node.value)]
       end
 
+      def transform_forwarding_super_node(_, used:, with_block: false)
+        instructions = []
+        instructions << PushSelfInstruction.new
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: true,
+          with_block: with_block,
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 
@@ -208,9 +256,49 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_local_variable_read_node(node, used:)
+        return [] unless used
+        VariableGetInstruction.new(node.name)
+      end
+
+      def transform_multi_write_node(node, used:)
+        value = node.value
+
+        instructions = [
+          transform_expression(value, used: true),
+          DupInstruction.new,
+          ToArrayInstruction.new,
+          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_nil_node(_, used:)
         return [] unless used
         [PushNilInstruction.new]
+      end
+
+      def transform_numbered_reference_read_node(node, used:)
+        return [] unless used
+        [
+          PushLastMatchInstruction.new(to_s: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PushIntInstruction.new(node.number),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          PushNilInstruction.new,
+          EndInstruction.new(:if),
+        ]
       end
 
       def transform_or_node(node, used:)
@@ -241,6 +329,14 @@ module Natalie
       def transform_self_node(_, used:)
         return [] unless used
         [PushSelfInstruction.new]
+      end
+
+      def transform_splat_node(node, used:)
+        transform_expression(node.expression, used: used)
+      end
+
+      def transform_statements_node(node, used:)
+        transform_body(node.body, used: used)
       end
 
       def transform_true_node(_, used:)
@@ -548,42 +644,6 @@ module Natalie
           PushSelfInstruction.new,
           ConstFindInstruction.new(name, strict: false),
         ]
-      end
-
-      def transform_constant_path_node(node, used:)
-        name, _is_private, prep_instruction = constant_name(node)
-        # FIXME: is_private shouldn't be ignored I think
-        return [] unless used
-        [
-          prep_instruction,
-          ConstFindInstruction.new(name, strict: true),
-        ]
-      end
-
-      def transform_constant_path_write_node(node, used:)
-        instructions = [transform_expression(node.value, used: true)]
-        instructions << DupInstruction.new if used
-        name, _is_private, prep_instruction = constant_name(node.target)
-        # FIXME: is_private shouldn't be ignored I think
-        instructions << prep_instruction
-        instructions << ConstSetInstruction.new(name)
-        instructions
-      end
-
-      def transform_constant_read_node(node, used:)
-        return [] unless used
-        [
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(node.name, strict: false),
-        ]
-      end
-
-      def transform_constant_write_node(node, used:)
-        instructions = [transform_expression(node.value, used: true)]
-        instructions << DupInstruction.new if used
-        instructions << PushSelfInstruction.new
-        instructions << ConstSetInstruction.new(node.name)
-        instructions
       end
 
       def transform_cvar(exp, used:)
@@ -997,11 +1057,6 @@ module Natalie
         end
       end
 
-      def transform_local_variable_read_node(node, used:)
-        return [] unless used
-        VariableGetInstruction.new(node.name)
-      end
-
       def transform_lvar(exp, used:)
         return [] unless used
         _, name = exp
@@ -1078,19 +1133,6 @@ module Natalie
         instructions
       end
 
-      def transform_multi_write_node(node, used:)
-        value = node.value
-
-        instructions = [
-          transform_expression(value, used: true),
-          DupInstruction.new,
-          ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
         _, value = exp
         value ||= Prism.nil_node
@@ -1108,28 +1150,6 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_numbered_reference_read_node(node, used:)
-        return [] unless used
-        [
-          PushLastMatchInstruction.new(to_s: false),
-          DupInstruction.new,
-          IfInstruction.new,
-          PushIntInstruction.new(node.number),
-          PushArgcInstruction.new(1),
-          SendInstruction.new(
-            :[],
-            receiver_is_self: false,
-            with_block: false,
-            file: node.location.path,
-            line: node.location.start_line,
-          ),
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          PushNilInstruction.new,
-          EndInstruction.new(:if),
-        ]
       end
 
       def transform_op_asgn_and(exp, used:)
@@ -1413,14 +1433,6 @@ module Natalie
         instructions
       end
 
-      def transform_splat_node(node, used:)
-        transform_expression(node.expression, used: used)
-      end
-
-      def transform_statements_node(node, used:)
-        transform_body(node.body, used: used)
-      end
-
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
@@ -1516,18 +1528,6 @@ module Natalie
         call_args = transform_call_args(args, instructions: instructions)
         instructions << YieldInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-        )
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_forwarding_super_node(_, used:, with_block: false)
-        instructions = []
-        instructions << PushSelfInstruction.new
-        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
-        instructions << SuperInstruction.new(
-          args_array_on_stack: true,
-          with_block: with_block,
         )
         instructions << PopInstruction.new unless used
         instructions
