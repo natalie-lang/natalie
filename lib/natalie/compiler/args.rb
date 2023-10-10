@@ -26,8 +26,6 @@ module Natalie
       def transform_arg(arg)
         if arg.is_a?(Sexp)
           case arg.sexp_type
-          when :kwarg
-            transform_keyword_arg(arg)
           when :lasgn
             clean_up_keyword_args
             if arg.size == 2
@@ -66,6 +64,8 @@ module Natalie
           transform_splat_arg(arg)
         elsif arg.is_a?(::Prism::KeywordRestParameterNode)
           transform_keyword_splat_arg(arg)
+        elsif arg.is_a?(::Prism::KeywordParameterNode)
+          transform_keyword_arg(arg)
         else
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -80,11 +80,7 @@ module Natalie
 
       def remaining_keyword_args
         @args.select do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :keyword_parameter_node
-          else
-            arg.is_a?(Sexp) && arg.sexp_type == :kwarg
-          end
+          arg.type == :keyword_parameter_node
         end
       end
 
@@ -131,15 +127,14 @@ module Natalie
       end
 
       def transform_keyword_arg(arg)
-        _, name, default = arg
         move_keyword_arg_hash_from_args_array_to_stack
-        if default
-          @instructions << @pass.transform_expression(default, used: true)
-          @instructions << HashDeleteWithDefaultInstruction.new(name)
+        if arg.value
+          @instructions << @pass.transform_expression(arg.value, used: true)
+          @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
         else
-          @instructions << HashDeleteInstruction.new(name)
+          @instructions << HashDeleteInstruction.new(arg.name)
         end
-        @instructions << variable_set(name)
+        @instructions << variable_set(arg.name)
       end
 
       def transform_destructured_arg(arg)

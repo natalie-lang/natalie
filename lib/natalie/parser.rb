@@ -118,7 +118,7 @@ module Natalie
       end
 
       def visit_array_node(node)
-        node.copy(elements: node.elements.map { |element| visit(element) })
+        copy(node, elements: node.elements.map { |element| visit(element) })
       end
 
       def visit_assoc_node(node)
@@ -324,13 +324,13 @@ module Natalie
       end
 
       def visit_constant_path_node(node)
-        node.copy(parent: visit(node.parent), child: visit(node.child))
+        copy(node, parent: visit(node.parent), child: visit(node.child))
       end
 
       alias visit_constant_path_target_node visit_constant_path_node
 
       def visit_constant_path_write_node(node)
-        node.copy(target: visit(node.target), value: visit(node.value))
+        copy(node, target: visit(node.target), value: visit(node.value))
       end
 
       alias visit_constant_read_node visit_passthrough
@@ -338,7 +338,7 @@ module Natalie
       alias visit_constant_target_node visit_passthrough
 
       def visit_constant_write_node(node)
-        node.copy(value: visit(node.value))
+        copy(node, value: visit(node.value))
       end
 
       def visit_call_operator_write_node(node)
@@ -562,9 +562,7 @@ module Natalie
       end
 
       def visit_keyword_parameter_node(node)
-        exp = s(:kwarg, node.name, location: node.location)
-        exp << visit(node.value) if node.value
-        exp
+        copy(node, value: visit(node.value))
       end
 
       alias visit_keyword_rest_parameter_node visit_passthrough
@@ -681,7 +679,7 @@ module Natalie
       end
 
       def visit_optional_parameter_node(node)
-        node.copy(value: visit(node.value))
+        copy(node, value: visit(node.value))
       end
 
       def visit_or_node(node)
@@ -800,7 +798,7 @@ module Natalie
       end
 
       def visit_splat_node(node)
-        s(:splat, visit(node.expression), location: node.location)
+        copy(node, expression: visit(node.expression))
       end
 
       def visit_source_file_node(node)

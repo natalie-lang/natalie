@@ -48,8 +48,7 @@ module Natalie
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
             arg.type == :required_parameter_node ||
-              arg.type == :required_destructured_parameter_node ||
-              (arg.type == :keyword_parameter_node && !arg.value)
+              arg.type == :required_destructured_parameter_node
           else
             (arg.is_a?(Symbol) && !arg.start_with?('*')) ||
               (arg.is_a?(Sexp) && arg.sexp_type == :masgn)

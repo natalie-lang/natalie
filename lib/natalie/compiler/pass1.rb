@@ -1560,8 +1560,7 @@ module Natalie
       def minimum_arg_count(args)
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
-            arg.type == :required_parameter_node ||
-              (arg.type == :keyword_parameter_node && !arg.value)
+            arg.type == :required_parameter_node
           else
             (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
               (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
