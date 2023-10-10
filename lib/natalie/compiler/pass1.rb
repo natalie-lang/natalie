@@ -119,6 +119,65 @@ module Natalie
         instructions
       end
 
+      def transform_class_variable_read_node(node, used:)
+        return [] unless used
+        ClassVariableGetInstruction.new(node.name)
+      end
+
+      def transform_class_variable_target_node(node, used:)
+        raise "Target nodes should not be marked as used" if used
+        [ClassVariableSetInstruction.new(node.name)]
+      end
+
+      def transform_class_variable_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
+        instructions << ClassVariableGetInstruction.new(node.name) if used
+        instructions
+      end
+
+      def transform_class_variable_and_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          ClassVariableSetInstruction.new(node.name),
+          ClassVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          EndInstruction.new(:if)
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_class_variable_or_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          ClassVariableSetInstruction.new(node.name),
+          ClassVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_class_variable_operator_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(node.operator, receiver_is_self: false, with_block: false, file: node.file, line: node.line),
+          ClassVariableSetInstruction.new(node.name)
+        ]
+        instructions << ClassVariableGetInstruction.new(node.name) if used
+        instructions
+      end
+
       def transform_constant_path_node(node, used:)
         name, _is_private, prep_instruction = constant_name(node)
         # FIXME: is_private shouldn't be ignored I think
@@ -646,19 +705,6 @@ module Natalie
         ]
       end
 
-      def transform_cvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        ClassVariableGetInstruction.new(name)
-      end
-
-      def transform_cvdecl(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), ClassVariableSetInstruction.new(name)]
-        instructions << ClassVariableGetInstruction.new(name) if used
-        instructions
-      end
-
       def transform_def(exp, used:)
         _, name, args, *body = exp
         arity = Arity.new(args, is_proc: false).arity
@@ -855,7 +901,10 @@ module Natalie
 
       def transform_for_declare_args(args)
         instructions = []
+
         case args.sexp_type
+        when :class_variable_target_node
+          # Do nothing, no need to declare class variables.
         when :lasgn
           instructions << VariableDeclareInstruction.new(args[1])
         when :local_variable_target_node
@@ -871,6 +920,7 @@ module Natalie
         else
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
+
         instructions
       end
 
@@ -1184,9 +1234,6 @@ module Natalie
                           when :lvar
                             _, name = variable
                             VariableGetInstruction.new(name, default_to_nil: true)
-                          when :cvar
-                            _, name = variable
-                            ClassVariableGetInstruction.new(name, default_to_nil: true)
                           else
                             transform_expression(variable, used: true)
                           end
