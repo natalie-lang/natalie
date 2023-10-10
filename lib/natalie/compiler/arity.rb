@@ -10,7 +10,7 @@ module Natalie
           @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
         elsif args.is_a?(Sexp) && args.sexp_type == :args
           @args = args[1..]
-          @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
+          @args.pop if @args.last&.type == :block_parameter_node
         else
           raise "expected args sexp, but got: #{args.inspect}"
         end

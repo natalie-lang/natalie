@@ -402,7 +402,7 @@ module Natalie
           instructions.unshift(transform_expression(block, used: true))
         end
 
-        if args.size == 1 && args.first.sexp_type == :forward_args && !block
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
           instructions.unshift(PushBlockInstruction.new)
           block = true
         end
@@ -417,7 +417,7 @@ module Natalie
         end
 
         # special ... syntax
-        if args.size == 1 && args.first.sexp_type == :forward_args
+        if args.size == 1 && args.first.type == :forwarding_arguments_node
           instructions << PushArgsInstruction.new(
             for_block: false,
             min_count: nil,
@@ -627,16 +627,16 @@ module Natalie
         instructions = []
 
         # special ... syntax
-        if args.size == 1 && args.first.is_a?(Sexp) && args.first.sexp_type == :forward_args
+        if args.size == 1 && args.first.type == :forwarding_parameter_node
           # nothing to do
           return []
         end
 
         # &block pass
-        if args.last.is_a?(Symbol) && args.last.start_with?('&')
-          name = args.pop[1..]
+        if args.last&.type == :block_parameter_node
+          block_arg = args.pop
           instructions << PushBlockInstruction.new
-          instructions << VariableSetInstruction.new(name, local_only: local_only)
+          instructions << VariableSetInstruction.new(block_arg.name, local_only: local_only)
         end
 
         has_complicated_args = args.any? do |arg|

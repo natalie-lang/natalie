@@ -12,14 +12,11 @@ module Prism
     # * args
     # * attrasgn
     # * bare_hash
-    # * block
     # * block_pass
     # * cvar
     # * evstr
-    # * forward_args
     # * gasgn
     # * iasgn
-    # * kwarg
     # * kwsplat
     # * lasgn
     # * lvar
@@ -183,9 +180,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_block_parameter_node(node)
-        "&#{node.name}".to_sym
-      end
+      alias visit_block_parameter_node visit_passthrough
 
       def visit_block_parameters_node(node)
         visit_parameters_node(node.parameters)
@@ -402,13 +397,9 @@ module Natalie
           location: node.location)
       end
 
-      def visit_forwarding_arguments_node(node)
-        s(:forward_args, location: node.location)
-      end
+      alias visit_forwarding_arguments_node visit_passthrough
 
-      def visit_forwarding_parameter_node(node)
-        s(:forward_args, location: node.location)
-      end
+      alias visit_forwarding_parameter_node visit_passthrough
 
       def visit_forwarding_super_node(node)
         if node.block
