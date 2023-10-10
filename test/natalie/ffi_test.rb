@@ -10,6 +10,7 @@ module LibRubyParser
   extend FFI::Library
   ffi_lib LIBRARY_PATH
   attach_function :pm_version, [], :pointer
+  attach_function :pm_string_sizeof, [], :size_t
 end
 
 describe 'FFI' do
@@ -60,8 +61,12 @@ describe 'FFI' do
   end
 
   it 'attaches a function that can be called' do
-    result = LibRubyParser.pm_version
-    result.address.should be_an_instance_of(Integer)
-    result.read_string.should =~ /^\d+\.\d+\.\d+$/
+    version = LibRubyParser.pm_version
+    version.address.should be_an_instance_of(Integer)
+    version.read_string.should =~ /^\d+\.\d+\.\d+$/
+
+    sizeof = LibRubyParser.pm_string_sizeof
+    sizeof.should be_an_instance_of(Integer)
+    sizeof.should == 24 # could be different on another architecture I guess
   end
 end

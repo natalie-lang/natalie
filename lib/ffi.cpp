@@ -60,11 +60,19 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
 
     ffi_call(cif, fn, &result, values);
 
-    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
-    auto pointer = Pointer->send(env, "new"_s);
-    pointer->ivar_set(env, "@address"_s, new VoidPObject { result });
-
-    return pointer;
+    if (cif->rtype == &ffi_type_pointer) {
+        auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
+        auto pointer = Pointer->send(env, "new"_s);
+        pointer->ivar_set(env, "@address"_s, new VoidPObject { result });
+        return pointer;
+    } else if (cif->rtype == &ffi_type_uint64) {
+        assert((uint64_t)result <= std::numeric_limits<nat_int_t>::max());
+        return Value::integer((nat_int_t)result);
+    } else {
+        printf("rtype = %p\n", cif->rtype);
+        printf("ffi_type_void = %p\n", &ffi_type_void);
+        env->raise("StandardError", "I don't yet know how to handle return type {}", (long long)cif->rtype);
+    }
 }
 
 Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
