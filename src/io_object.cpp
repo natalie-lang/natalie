@@ -386,21 +386,38 @@ Value IoObject::write(Env *env, Args args) const {
     return Value::integer(bytes_written);
 }
 
-// NATFIXME: Make this spec compliant and maybe more performant?
+// NATFIXME: Make this spec compliant
 Value IoObject::gets(Env *env, Value chomp) {
     raise_if_closed(env);
+    auto line = new StringObject {};
     char buffer[NAT_READ_BYTES + 1];
-    size_t index;
-    for (index = 0; index < NAT_READ_BYTES; ++index) {
-        if (::read(m_fileno, &buffer[index], 1) == 0) {
-            env->set_last_line(NilObject::the());
-            return NilObject::the();
-        }
 
-        if (buffer[index] == '\n')
+    errno = 0;
+    auto pos = ::lseek(m_fileno, 0, SEEK_CUR);
+    if (pos < 0 && errno)
+        env->raise_errno();
+
+    while (true) {
+        const auto bytes_read = ::pread(m_fileno, buffer, NAT_READ_BYTES, pos + line->bytesize());
+        if (bytes_read < 0)
+            env->raise_errno();
+        if (bytes_read == 0)
+            break;
+        line->append(buffer, bytes_read);
+        if (line->include("\n"))
             break;
     }
-    auto line = new StringObject { buffer, index + 1 };
+    if (line->is_empty()) {
+        env->set_last_line(NilObject::the());
+        return NilObject::the();
+    }
+    const auto *ptr = strstr(line->c_str(), "\n");
+    if (ptr)
+        line->truncate(ptr - line->c_str() + 1);
+    errno = 0;
+    auto new_pos = ::lseek(m_fileno, line->bytesize(), SEEK_CUR);
+    if (new_pos < 0 && errno)
+        env->raise_errno();
     if (chomp && chomp->is_truthy())
         line->chomp_in_place(env, nullptr);
     m_lineno++;
