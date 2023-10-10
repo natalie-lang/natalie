@@ -4,35 +4,27 @@ require_relative 'fixtures/classes'
 ruby_version_is "3.2" do
   describe "Data.define" do
     it "accepts no arguments" do
-      NATFIXME 'Implement Data.define', exception: NoMethodError, message: "undefined method `define' for Data:Class" do
-        empty_data = Data.define
-        empty_data.members.should == []
-      end
+      empty_data = Data.define
+      empty_data.members.should == []
     end
 
     it "accepts symbols" do
-      NATFIXME 'Implement Data.define', exception: NoMethodError, message: "undefined method `define' for Data:Class" do
-        movie = Data.define(:title, :year)
-        movie.members.should == [:title, :year]
-      end
+      movie = Data.define(:title, :year)
+      movie.members.should == [:title, :year]
     end
 
     it "accepts strings" do
-      NATFIXME 'Implement Data.define', exception: NoMethodError, message: "undefined method `define' for Data:Class" do
-        movie = Data.define("title", "year")
-        movie.members.should == [:title, :year]
-      end
+      movie = Data.define("title", "year")
+      movie.members.should == [:title, :year]
     end
 
     it "accepts a mix of strings and symbols" do
-      NATFIXME 'Implement Data.define', exception: NoMethodError, message: "undefined method `define' for Data:Class" do
-        movie = Data.define("title", :year, "genre")
-        movie.members.should == [:title, :year, :genre]
-      end
+      movie = Data.define("title", :year, "genre")
+      movie.members.should == [:title, :year, :genre]
     end
 
     it "accepts a block" do
-      NATFIXME 'Implement Data.define', exception: NoMethodError, message: "undefined method `define' for Data:Class" do
+      NATFIXME 'Implement Data.new', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
         movie = Data.define(:title, :year) do
           def title_with_year
             "#{title} (#{year})"
