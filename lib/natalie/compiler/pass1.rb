@@ -106,7 +106,7 @@ module Natalie
         elements = node.elements
         instructions = []
 
-        if node.elements.any? { |a| a.sexp_type == :splat }
+        if node.elements.any? { |a| a.sexp_type == :splat_node }
           instructions += transform_array_with_splat(elements)
         else
           elements.each do |element|
@@ -265,7 +265,7 @@ module Natalie
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while elements.any? && elements.first.sexp_type != :splat
+        while elements.any? && elements.first.sexp_type != :splat_node
           instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -273,9 +273,8 @@ module Natalie
 
         # now add to the array the first splat item and everything after
         elements.each do |arg|
-          if arg.sexp_type == :splat
-            _, value = arg
-            instructions << transform_expression(value, used: true)
+          if arg.sexp_type == :splat_node
+            instructions << transform_expression(arg.expression, used: true)
             instructions << ArrayConcatInstruction.new
           else
             instructions << transform_expression(arg, used: true)
@@ -407,7 +406,7 @@ module Natalie
           block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat }
+        if args.any? { |a| a.sexp_type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             with_block_pass: !!block,
@@ -467,8 +466,8 @@ module Natalie
             options.each do |option|
               # Splats are handled in the backend.
               # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat
-                _, option = option
+              if option.sexp_type == :splat_node
+                option = option.expression
                 is_splat = true
               else
                 is_splat = false
@@ -1414,9 +1413,8 @@ module Natalie
         instructions
       end
 
-      def transform_splat(exp, used:)
-        _, value = exp
-        transform_expression(value, used: used)
+      def transform_splat_node(node, used:)
+        transform_expression(node.expression, used: used)
       end
 
       def transform_statements_node(node, used:)
