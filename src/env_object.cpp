@@ -288,6 +288,11 @@ Value EnvObject::clear(Env *env) {
     return this;
 }
 
+Value EnvObject::clone(Env *env) {
+    env->raise("TypeError", "Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash");
+    return nullptr;
+}
+
 Value EnvObject::reject(Env *env, Block *block) {
     if (!block) {
         Block *size_block = new Block { env, this, env_size, 0 };

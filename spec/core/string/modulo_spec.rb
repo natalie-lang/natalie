@@ -386,9 +386,7 @@ describe "String#%" do
 
   ruby_version_is "3.2" do
     it "supports only the first character as argument for %c" do
-      NATFIXME 'supports only the first character as argument for %c', exception: ArgumentError, message: '%c requires a character' do
-        ("%c" % 'AA').should == "A"
-      end
+      ("%c" % 'AA').should == "A"
     end
   end
 

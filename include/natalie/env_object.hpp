@@ -13,6 +13,7 @@ class EnvObject : public Object {
 public:
     Value assoc(Env *, Value name);
     Value clear(Env *);
+    Value clone(Env *);
     Value delete_if(Env *, Block *);
     Value delete_key(Env *, Value name, Block *block);
     Value dup(Env *);

@@ -15,11 +15,9 @@ describe "ENV#clone" do
 
   ruby_version_is "3.2" do
     it "raises TypeError" do
-      NATFIXME 'ENV.clone raises TypeError', exception: SpecFailedException do
-        -> {
-          ENV.clone
-        }.should raise_error(TypeError, /Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash/)
-      end
+      -> {
+        ENV.clone
+      }.should raise_error(TypeError, /Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash/)
     end
   end
 end
