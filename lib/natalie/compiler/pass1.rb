@@ -135,6 +135,22 @@ module Natalie
         instructions
       end
 
+      def transform_class_variable_and_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          ClassVariableSetInstruction.new(node.name),
+          ClassVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          EndInstruction.new(:if)
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class_variable_or_write_node(node, used:)
         instructions = [
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
