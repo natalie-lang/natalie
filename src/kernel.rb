@@ -241,10 +241,7 @@ module Kernel
         unless s.is_a?(String)
           raise TypeError, "can't convert Object to String (#{arg.class.name}#to_str gives #{s.class.name})"
         end
-        if s.size != 1
-          raise ArgumentError, '%c requires a character'
-        end
-        s
+        s[0]
       else
         raise TypeError, "no implicit conversion of #{arg.class.name} into Integer"
       end
@@ -262,10 +259,7 @@ module Kernel
           unless s.is_a?(String)
             raise TypeError, "can't convert BasicObject to String"
           end
-          if s.size != 1
-            raise ArgumentError, '%c requires a character'
-          end
-          s
+          s[0]
         rescue NoMethodError
           raise TypeError, "no implicit conversion of BasicObject into Integer"
         end

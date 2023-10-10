@@ -305,15 +305,11 @@ describe :kernel_sprintf, shared: true do
 
       ruby_version_is "3.2" do
         it "displays only the first character if argument is a string of several characters" do
-          NATFIXME 'displays only the first character if argument is a string of several characters', exception: ArgumentError, message: '%c requires a character' do
-            @method.call("%c", "abc").should == "a"
-          end
+          @method.call("%c", "abc").should == "a"
         end
 
         it "displays no characters if argument is an empty string" do
-          NATFIXME 'displays only the first character if argument is a string of several characters', exception: ArgumentError, message: '%c requires a character' do
-            @method.call("%c", "").should == ""
-          end
+          @method.call("%c", "").should == ""
         end
       end
 
