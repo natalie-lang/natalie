@@ -8,10 +8,18 @@ module Natalie
         @line = line
       end
 
-      def transform(exp)
+      def transform(node)
         @from_side = :left
         @instructions = []
-        _, *@args = exp
+        if node.is_a?(Sexp)
+          _, *@args = node
+        elsif node.is_a?(::Prism::RequiredDestructuredParameterNode)
+          @args = node.parameters
+        elsif node.is_a?(::Prism::MultiTargetNode)
+          @args = node.targets
+        else
+          raise "unhandled node: #{node.inspect}"
+        end
         while @args.any?
           arg = @from_side == :left ? @args.shift : @args.pop
           if transform_arg(arg) == :reverse
@@ -48,6 +56,12 @@ module Natalie
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
+        elsif arg.is_a?(::Prism::LocalVariableTargetNode)
+          clean_up_keyword_args
+          transform_required_arg(arg)
+        elsif arg.is_a?(::Prism::MultiTargetNode) || arg.is_a?(::Prism::RequiredDestructuredParameterNode)
+          clean_up_keyword_args
+          transform_destructured_arg(arg)
         elsif arg.is_a?(::Prism::OptionalParameterNode)
           clean_up_keyword_args
           transform_optional_arg(arg)
@@ -67,8 +81,7 @@ module Natalie
         elsif arg.is_a?(::Prism::KeywordParameterNode)
           transform_keyword_arg(arg)
         else
-          clean_up_keyword_args
-          transform_required_arg(arg)
+          raise "unhandled node: #{arg.inspect}"
         end
       end
 
