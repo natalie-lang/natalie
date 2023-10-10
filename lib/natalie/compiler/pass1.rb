@@ -130,6 +130,33 @@ module Natalie
         instructions
       end
 
+      def transform_class_variable_or_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          ClassVariableSetInstruction.new(node.name),
+          ClassVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_class_variable_operator_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(node.operator, receiver_is_self: false, with_block: false, file: node.file, line: node.line),
+          ClassVariableSetInstruction.new(node.name)
+        ]
+        instructions << ClassVariableGetInstruction.new(node.name) if used
+        instructions
+      end
+
       def transform_constant_path_node(node, used:)
         name, _is_private, prep_instruction = constant_name(node)
         # FIXME: is_private shouldn't be ignored I think

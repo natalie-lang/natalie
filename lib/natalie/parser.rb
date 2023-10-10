@@ -13,7 +13,6 @@ module Prism
     # * attrasgn
     # * bare_hash
     # * block_pass
-    # * cvar
     # * evstr
     # * gasgn
     # * iasgn
@@ -302,10 +301,7 @@ module Natalie
       alias visit_class_variable_read_node visit_passthrough
 
       def visit_class_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:cvar, node.name, location: node.location),
-          s(:cvdecl, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_class_variable_write_node(node)
@@ -313,7 +309,7 @@ module Natalie
       end
 
       def visit_class_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :cvar, write_sexp_type: :cvdecl)
+        copy(node, value: visit(node.value))
       end
 
       def visit_constant_path_node(node)
