@@ -309,7 +309,7 @@ module Natalie
       end
 
       def visit_class_variable_write_node(node)
-        s(:cvdecl, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_class_variable_operator_write_node(node)

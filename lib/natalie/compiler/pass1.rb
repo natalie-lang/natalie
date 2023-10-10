@@ -124,6 +124,12 @@ module Natalie
         ClassVariableGetInstruction.new(node.name)
       end
 
+      def transform_class_variable_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
+        instructions << ClassVariableGetInstruction.new(node.name) if used
+        instructions
+      end
+
       def transform_constant_path_node(node, used:)
         name, _is_private, prep_instruction = constant_name(node)
         # FIXME: is_private shouldn't be ignored I think
@@ -649,13 +655,6 @@ module Natalie
           PushSelfInstruction.new,
           ConstFindInstruction.new(name, strict: false),
         ]
-      end
-
-      def transform_cvdecl(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), ClassVariableSetInstruction.new(name)]
-        instructions << ClassVariableGetInstruction.new(name) if used
-        instructions
       end
 
       def transform_def(exp, used:)
