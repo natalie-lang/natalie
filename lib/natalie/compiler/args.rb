@@ -26,8 +26,6 @@ module Natalie
       def transform_arg(arg)
         if arg.is_a?(Sexp)
           case arg.sexp_type
-          when :kwarg
-            transform_keyword_arg(arg)
           when :lasgn
             clean_up_keyword_args
             if arg.size == 2
@@ -50,11 +48,24 @@ module Natalie
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
-        elsif arg.start_with?('**')
-          transform_keyword_splat_arg(arg)
-        elsif arg.start_with?('*')
+        elsif arg.is_a?(::Prism::OptionalParameterNode)
+          clean_up_keyword_args
+          transform_optional_arg(arg)
+        elsif arg.is_a?(::Prism::SplatNode)
           clean_up_keyword_args
           transform_splat_arg(arg)
+        elsif arg.is_a?(::Prism::ArrayNode)
+          clean_up_keyword_args
+          transform_destructured_arg(arg)
+        elsif arg.is_a?(::Prism::RequiredParameterNode)
+          clean_up_keyword_args
+          transform_required_arg(arg)
+        elsif arg.is_a?(::Prism::RestParameterNode)
+          transform_splat_arg(arg)
+        elsif arg.is_a?(::Prism::KeywordRestParameterNode)
+          transform_keyword_splat_arg(arg)
+        elsif arg.is_a?(::Prism::KeywordParameterNode)
+          transform_keyword_arg(arg)
         else
           clean_up_keyword_args
           transform_required_arg(arg)
@@ -62,20 +73,26 @@ module Natalie
       end
 
       def remaining_required_args
-        @args.select { |arg| !arg.is_a?(Sexp) && !arg.start_with?('*') }
+        @args.select do |arg|
+          arg.type == :required_parameter_node
+        end
       end
 
       def remaining_keyword_args
-        @args.select { |arg| arg.is_a?(Sexp) && arg.sexp_type == :kwarg }
+        @args.select do |arg|
+          arg.type == :keyword_parameter_node
+        end
       end
 
       def kwsplat?
-        @args.any? { |arg| arg.is_a?(Symbol) && arg.start_with?('**') }
+        @args.any? do |arg|
+          arg.type == :keyword_rest_parameter_node
+        end
       end
 
       def transform_required_arg(arg)
         shift_or_pop_next_arg
-        @instructions << variable_set(arg)
+        @instructions << variable_set(arg.name)
       end
 
       def transform_optional_arg(arg)
@@ -97,7 +114,9 @@ module Natalie
           return :reverse
         end
 
-        _, name, default_value = arg
+        name = arg.name
+        default_value = arg.value
+
         if default_value&.sexp_type == :lvar && default_value[1] == name
           raise SyntaxError, "circular argument reference - #{name}"
         end
@@ -108,15 +127,14 @@ module Natalie
       end
 
       def transform_keyword_arg(arg)
-        _, name, default = arg
         move_keyword_arg_hash_from_args_array_to_stack
-        if default
-          @instructions << @pass.transform_expression(default, used: true)
-          @instructions << HashDeleteWithDefaultInstruction.new(name)
+        if arg.value
+          @instructions << @pass.transform_expression(arg.value, used: true)
+          @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
         else
-          @instructions << HashDeleteInstruction.new(name)
+          @instructions << HashDeleteInstruction.new(arg.name)
         end
-        @instructions << variable_set(name)
+        @instructions << variable_set(arg.name)
       end
 
       def transform_destructured_arg(arg)
@@ -129,31 +147,43 @@ module Natalie
       end
 
       def transform_splat_arg(arg)
-        name = arg.to_s.tr('*', '').to_sym
-        if name.empty?
-          :noop
+        # NOTE: Is this a bug?
+        #
+        #     def foo(*b); end      => RestParameterNode
+        #
+        #     vs
+        #
+        #     def foo((*b)); end    => SplatParameterNode
+        #
+        if arg.type == :splat_node
+          if arg.expression
+            unless arg.expression.type == :required_parameter_node
+              raise "I don't know how to splat #{arg.expression.inspect}"
+            end
+
+            name = arg.expression.name
+          end
         else
+          name = arg.name
+        end
+        if name
           @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
+          @instructions << VariableGetInstruction.new(name)
         end
         :reverse
       end
 
       def transform_keyword_splat_arg(arg)
-        name = arg[2..-1]
         move_keyword_arg_hash_from_args_array_to_stack
-        if name.empty?
-          :noop
-        else
-          @instructions << variable_set(name)
-          @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the **splat is the last arg
+        if arg.name
+          @instructions << variable_set(arg.name)
+          @instructions << VariableGetInstruction.new(arg.name)
         end
         @has_keyword_splat = true
         :reverse
       end
 
       def variable_set(name)
-        name = name[1..] if name.start_with?('&')
         raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
         VariableSetInstruction.new(name, local_only: @local_only)
       end

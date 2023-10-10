@@ -12,24 +12,17 @@ module Prism
     # * args
     # * attrasgn
     # * bare_hash
-    # * block
     # * block_pass
-    # * cdecl
-    # * colon2
-    # * colon3
     # * cvar
     # * evstr
-    # * forward_args
     # * gasgn
     # * iasgn
-    # * kwarg
     # * kwsplat
     # * lasgn
     # * lvar
     # * masgn
     # * safe_call
     # * str
-    # * to_ary
     #
     def sexp_type
       type
@@ -53,6 +46,14 @@ module Prism
 
     def location
       @location || Prism::Location.new(Source.new('unknown'), 0, 0)
+    end
+
+    def file
+      location.path
+    end
+
+    def line
+      location.start_line
     end
   end
 
@@ -114,7 +115,7 @@ module Natalie
       end
 
       def visit_array_node(node)
-        node.copy(elements: node.elements.map { |element| visit(element) })
+        copy(node, elements: node.elements.map { |element| visit(element) })
       end
 
       def visit_assoc_node(node)
@@ -179,9 +180,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_block_parameter_node(node)
-        "&#{node.name}".to_sym
-      end
+      alias visit_block_parameter_node visit_passthrough
 
       def visit_block_parameters_node(node)
         visit_parameters_node(node.parameters)
@@ -320,34 +319,21 @@ module Natalie
       end
 
       def visit_constant_path_node(node)
-        if node.parent
-          s(:colon2,
-            visit(node.parent),
-            node.child.slice.to_sym,
-            location: node.location)
-        else
-          s(:colon3, node.child.slice.to_sym, location: node.location)
-        end
+        copy(node, parent: visit(node.parent), child: visit(node.child))
       end
+
+      alias visit_constant_path_target_node visit_constant_path_node
 
       def visit_constant_path_write_node(node)
-        s(:cdecl,
-          visit(node.target),
-          visit(node.value),
-          location: node.location)
+        copy(node, target: visit(node.target), value: visit(node.value))
       end
 
-      def visit_constant_read_node(node)
-        name = node.slice.to_sym
-        s(:const, name, location: node.location)
-      end
+      alias visit_constant_read_node visit_passthrough
 
-      def visit_constant_target_node(node)
-        s(:cdecl, node.slice.to_sym, location: node.location)
-      end
+      alias visit_constant_target_node visit_passthrough
 
       def visit_constant_write_node(node)
-        s(:cdecl, node.name.to_sym, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_call_operator_write_node(node)
@@ -411,13 +397,9 @@ module Natalie
           location: node.location)
       end
 
-      def visit_forwarding_arguments_node(node)
-        s(:forward_args, location: node.location)
-      end
+      alias visit_forwarding_arguments_node visit_passthrough
 
-      def visit_forwarding_parameter_node(node)
-        s(:forward_args, location: node.location)
-      end
+      alias visit_forwarding_parameter_node visit_passthrough
 
       def visit_forwarding_super_node(node)
         if node.block
@@ -571,14 +553,10 @@ module Natalie
       end
 
       def visit_keyword_parameter_node(node)
-        exp = s(:kwarg, node.name, location: node.location)
-        exp << visit(node.value) if node.value
-        exp
+        copy(node, value: visit(node.value))
       end
 
-      def visit_keyword_rest_parameter_node(node)
-        "**#{node.name}".to_sym
-      end
+      alias visit_keyword_rest_parameter_node visit_passthrough
 
       def visit_lambda_node(node)
         visit_block_node(
@@ -678,9 +656,7 @@ module Natalie
 
       alias visit_nil_node visit_passthrough
 
-      def visit_numbered_reference_read_node(node)
-        s(:nth_ref, node.number, location: node.location)
-      end
+      alias visit_numbered_reference_read_node visit_passthrough
 
       def visit_operator_write_node(node, read_sexp_type:, write_sexp_type:)
         s(write_sexp_type,
@@ -694,7 +670,7 @@ module Natalie
       end
 
       def visit_optional_parameter_node(node)
-        s(:lasgn, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_or_node(node)
@@ -758,9 +734,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_required_parameter_node(node)
-        node.name.to_sym
-      end
+      alias visit_required_parameter_node visit_passthrough
 
       def visit_rescue_modifier_node(node)
         s(:rescue,
@@ -781,9 +755,7 @@ module Natalie
         s(:resbody, ary, ref, visit(node.statements), location: node.location)
       end
 
-      def visit_rest_parameter_node(node)
-        "*#{node.name}".to_sym
-      end
+      alias visit_rest_parameter_node visit_passthrough
 
       def visit_retry_node(node)
         s(:retry, location: node.location)
@@ -817,7 +789,7 @@ module Natalie
       end
 
       def visit_splat_node(node)
-        s(:splat, visit(node.expression), location: node.location)
+        copy(node, expression: visit(node.expression))
       end
 
       def visit_source_file_node(node)

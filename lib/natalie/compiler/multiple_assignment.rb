@@ -24,8 +24,8 @@ module Natalie
         case arg.type
         when :call_node
           transform_attr_assign_arg(arg.receiver, arg.name, arg.arguments)
-        when :constant_target_node
-          transform_constant(arg.name)
+        when :constant_target_node, :constant_path_target_node
+          transform_constant(arg)
         when :global_variable_target_node
           transform_global_variable(arg.name)
         when :instance_variable_target_node
@@ -146,7 +146,7 @@ module Natalie
       # returns a pair of [name, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
       def constant_name(name)
-        prepper = ConstPrepper.new(name, pass: self)
+        prepper = ConstPrepper.new(name, pass: @pass)
         [prepper.name, prepper.namespace]
       end
 

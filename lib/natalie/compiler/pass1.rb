@@ -106,7 +106,7 @@ module Natalie
         elements = node.elements
         instructions = []
 
-        if node.elements.any? { |a| a.sexp_type == :splat }
+        if node.elements.any? { |a| a.sexp_type == :splat_node }
           instructions += transform_array_with_splat(elements)
         else
           elements.each do |element|
@@ -116,6 +116,42 @@ module Natalie
         end
 
         instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_constant_path_node(node, used:)
+        name, _is_private, prep_instruction = constant_name(node)
+        # FIXME: is_private shouldn't be ignored I think
+        return [] unless used
+        [
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+        ]
+      end
+
+      def transform_constant_path_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        name, _is_private, prep_instruction = constant_name(node.target)
+        # FIXME: is_private shouldn't be ignored I think
+        instructions << prep_instruction
+        instructions << ConstSetInstruction.new(name)
+        instructions
+      end
+
+      def transform_constant_read_node(node, used:)
+        return [] unless used
+        [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
+        ]
+      end
+
+      def transform_constant_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true)]
+        instructions << DupInstruction.new if used
+        instructions << PushSelfInstruction.new
+        instructions << ConstSetInstruction.new(node.name)
         instructions
       end
 
@@ -180,6 +216,18 @@ module Natalie
         [PushFloatInstruction.new(node.value)]
       end
 
+      def transform_forwarding_super_node(_, used:, with_block: false)
+        instructions = []
+        instructions << PushSelfInstruction.new
+        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: true,
+          with_block: with_block,
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 
@@ -208,9 +256,49 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_local_variable_read_node(node, used:)
+        return [] unless used
+        VariableGetInstruction.new(node.name)
+      end
+
+      def transform_multi_write_node(node, used:)
+        value = node.value
+
+        instructions = [
+          transform_expression(value, used: true),
+          DupInstruction.new,
+          ToArrayInstruction.new,
+          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_nil_node(_, used:)
         return [] unless used
         [PushNilInstruction.new]
+      end
+
+      def transform_numbered_reference_read_node(node, used:)
+        return [] unless used
+        [
+          PushLastMatchInstruction.new(to_s: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PushIntInstruction.new(node.number),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          ElseInstruction.new(:if),
+          PopInstruction.new,
+          PushNilInstruction.new,
+          EndInstruction.new(:if),
+        ]
       end
 
       def transform_or_node(node, used:)
@@ -243,6 +331,14 @@ module Natalie
         [PushSelfInstruction.new]
       end
 
+      def transform_splat_node(node, used:)
+        transform_expression(node.expression, used: used)
+      end
+
+      def transform_statements_node(node, used:)
+        transform_body(node.body, used: used)
+      end
+
       def transform_true_node(_, used:)
         return [] unless used
         [PushTrueInstruction.new]
@@ -265,7 +361,7 @@ module Natalie
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while elements.any? && elements.first.sexp_type != :splat
+        while elements.any? && elements.first.sexp_type != :splat_node
           instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -273,9 +369,8 @@ module Natalie
 
         # now add to the array the first splat item and everything after
         elements.each do |arg|
-          if arg.sexp_type == :splat
-            _, value = arg
-            instructions << transform_expression(value, used: true)
+          if arg.sexp_type == :splat_node
+            instructions << transform_expression(arg.expression, used: true)
             instructions << ArrayConcatInstruction.new
           else
             instructions << transform_expression(arg, used: true)
@@ -307,29 +402,6 @@ module Natalie
         _, name = exp
         raise "Unknown back ref: #{name.inspect}" unless name == :&
         [PushLastMatchInstruction.new(to_s: true)]
-      end
-
-      def transform_nth_ref(exp, used:)
-        return [] unless used
-        _, num = exp
-        [
-          PushLastMatchInstruction.new(to_s: false),
-          DupInstruction.new,
-          IfInstruction.new,
-          PushIntInstruction.new(num),
-          PushArgcInstruction.new(1),
-          SendInstruction.new(
-            :[],
-            receiver_is_self: false,
-            with_block: false,
-            file: exp.file,
-            line: exp.line,
-          ),
-          ElseInstruction.new(:if),
-          PopInstruction.new,
-          PushNilInstruction.new,
-          EndInstruction.new(:if),
-        ]
       end
 
       def transform_bare_hash(exp, used:)
@@ -425,12 +497,12 @@ module Natalie
           instructions.unshift(transform_expression(block, used: true))
         end
 
-        if args.size == 1 && args.first.sexp_type == :forward_args && !block
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
           instructions.unshift(PushBlockInstruction.new)
           block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat }
+        if args.any? { |a| a.sexp_type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             with_block_pass: !!block,
@@ -440,7 +512,7 @@ module Natalie
         end
 
         # special ... syntax
-        if args.size == 1 && args.first.sexp_type == :forward_args
+        if args.size == 1 && args.first.type == :forwarding_arguments_node
           instructions << PushArgsInstruction.new(
             for_block: false,
             min_count: nil,
@@ -490,8 +562,8 @@ module Natalie
             options.each do |option|
               # Splats are handled in the backend.
               # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat
-                _, option = option
+              if option.sexp_type == :splat_node
+                option = option.expression
                 is_splat = true
               else
                 is_splat = false
@@ -543,20 +615,6 @@ module Natalie
         instructions
       end
 
-      def transform_cdecl(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true)]
-        name, is_private, prep_instruction = constant_name(name)
-        # TODO: is_private shouldn't be ignored I think
-        instructions << prep_instruction
-        instructions << ConstSetInstruction.new(name)
-        if used
-          instructions << prep_instruction
-          instructions << ConstFindInstruction.new(name, strict: true)
-        end
-        instructions
-      end
-
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
         instructions = []
@@ -579,39 +637,12 @@ module Natalie
         instructions
       end
 
-      def transform_colon2(exp, used:)
-        _, namespace, name = exp
-        instructions = [
-          transform_expression(namespace, used: true),
-          ConstFindInstruction.new(name, strict: true),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_colon3(exp, used:)
-        return [] unless used
-        _, name = exp
-        [
-          PushObjectClassInstruction.new,
-          ConstFindInstruction.new(name, strict: true),
-        ]
-      end
-
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
         [
           PushSelfInstruction.new,
           ConstFindInstruction.new(name, strict: false),
-        ]
-      end
-
-      def transform_constant_read_node(node, used:)
-        return [] unless used
-        [
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(node.name, strict: false),
         ]
       end
 
@@ -655,19 +686,26 @@ module Natalie
         instructions = []
 
         # special ... syntax
-        if args.size == 1 && args.first.is_a?(Sexp) && args.first.sexp_type == :forward_args
+        if args.size == 1 && args.first.type == :forwarding_parameter_node
           # nothing to do
           return []
         end
 
         # &block pass
-        if args.last.is_a?(Symbol) && args.last.start_with?('&')
-          name = args.pop[1..]
+        if args.last&.type == :block_parameter_node
+          block_arg = args.pop
           instructions << PushBlockInstruction.new
-          instructions << VariableSetInstruction.new(name, local_only: local_only)
+          instructions << VariableSetInstruction.new(block_arg.name, local_only: local_only)
         end
 
-        has_complicated_args = args.any? { |arg| arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*') }
+        has_complicated_args = args.any? do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type != :required_parameter_node
+          else
+            arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*')
+          end
+        end
+
         may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
@@ -707,9 +745,9 @@ module Natalie
           instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
         end
 
-        args.each_with_index do |arg_name, index|
+        args.each_with_index do |arg, index|
           instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(arg_name, local_only: local_only)
+          instructions << VariableSetInstruction.new(arg.name, local_only: local_only)
         end
 
         instructions
@@ -1019,11 +1057,6 @@ module Natalie
         end
       end
 
-      def transform_local_variable_read_node(node, used:)
-        return [] unless used
-        VariableGetInstruction.new(node.name)
-      end
-
       def transform_lvar(exp, used:)
         return [] unless used
         _, name = exp
@@ -1096,23 +1129,6 @@ module Natalie
         )
         instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_module)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_multi_write_node(node, used:)
-        value = node.value
-
-        # We don't actually want to use a simple to_ary.
-        # Our ToArrayInstruction is a little more special.
-        value = value.last if value.type == :to_ary
-
-        instructions = [
-          transform_expression(value, used: true),
-          DupInstruction.new,
-          ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
-        ]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1417,15 +1433,6 @@ module Natalie
         instructions
       end
 
-      def transform_splat(exp, used:)
-        _, value = exp
-        transform_expression(value, used: used)
-      end
-
-      def transform_statements_node(node, used:)
-        transform_body(node.body, used: used)
-      end
-
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
@@ -1457,22 +1464,6 @@ module Natalie
         else
           raise "unexpected svalue type: #{svalue.inspect}"
         end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_to_ary(exp, used:)
-        _, value = exp
-        instructions = []
-        instructions << transform_expression(value, used: true)
-        instructions << PushArgcInstruction.new(0)
-        instructions << SendInstruction.new(
-          :to_ary,
-          receiver_is_self: false,
-          with_block: false,
-          file: exp.file,
-          line: exp.line,
-        )
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1542,18 +1533,6 @@ module Natalie
         instructions
       end
 
-      def transform_forwarding_super_node(_, used:, with_block: false)
-        instructions = []
-        instructions << PushSelfInstruction.new
-        instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
-        instructions << SuperInstruction.new(
-          args_array_on_stack: true,
-          with_block: with_block,
-        )
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       # HELPERS = = = = = = = = = = = = =
 
       # returns a set of [name, is_private, prep_instruction]
@@ -1578,33 +1557,58 @@ module Natalie
 
       def minimum_arg_count(args)
         args.count do |arg|
-          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-            (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :required_parameter_node
+          else
+            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
+              (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
+          end
         end
       end
 
       def maximum_arg_count(args)
-        if args.any? { |arg| arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**' }
-          # splat, no maximum
-          return nil
+        any_splats = args.any? do |arg|
+          if arg.is_a?(::Prism::Node)
+            arg.type == :rest_parameter_node
+          else
+            arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**'
+          end
         end
+        return nil if any_splats # splat, no maximum
 
         args.count do |arg|
-          (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-            (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
+          if arg.is_a?(::Prism::Node)
+            %i[
+              required_parameter_node
+              required_destructured_parameter_node
+              optional_parameter_node
+            ].include?(arg.type)
+          else
+            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
+              (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
+          end
         end
       end
 
       def any_keyword_args?(args)
         args.any? do |arg|
-          (arg.is_a?(Symbol) && arg[0..1] == '**') ||
-            (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
+          if arg.is_a?(::Prism::Node)
+            arg.type == :keyword_parameter_node ||
+              arg.type == :keyword_rest_parameter_node
+          else
+            (arg.is_a?(Symbol) && arg[0..1] == '**') ||
+              (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
+          end
         end
       end
 
       def required_keywords(args)
         args.filter_map do |arg|
-          if arg.is_a?(Sexp) && arg.sexp_type == :kwarg
+          if arg.is_a?(::Prism::Node)
+            if arg.type == :keyword_parameter_node && !arg.value
+              arg.name
+            end
+          elsif arg.is_a?(Sexp) && arg.sexp_type == :kwarg
             _, name, default = arg
             name if default.nil?
           end
