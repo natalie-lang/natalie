@@ -20,7 +20,6 @@ module Prism
     # * kwsplat
     # * lasgn
     # * lvar
-    # * masgn
     # * safe_call
     # * str
     #
@@ -639,9 +638,7 @@ module Natalie
       def visit_multi_target_node(node)
         return visit(node.targets.first) if node.targets.size == 1
 
-        s(:masgn,
-          Prism.array_node(elements: node.targets.map { |target| visit(target) }, location: node.location),
-          location: node.location)
+        copy(node, targets: visit_all(node.targets))
       end
 
       def visit_multi_write_node(node)
@@ -729,9 +726,7 @@ module Natalie
       end
 
       def visit_required_destructured_parameter_node(node)
-        s(:masgn,
-          *node.parameters.map { |n| visit(n) },
-          location: node.location)
+        copy(node, parameters: visit_all(node.parameters))
       end
 
       alias visit_required_parameter_node visit_passthrough

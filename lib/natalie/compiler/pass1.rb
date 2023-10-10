@@ -858,8 +858,14 @@ module Natalie
         case args.sexp_type
         when :lasgn
           instructions << VariableDeclareInstruction.new(args[1])
+        when :local_variable_target_node
+          instructions << VariableDeclareInstruction.new(args.name)
         when :masgn
           args[1].elements.each do |arg|
+            instructions += transform_for_declare_args(arg)
+          end
+        when :multi_target_node
+          args.targets.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
         else
@@ -1558,7 +1564,7 @@ module Natalie
       def minimum_arg_count(args)
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
-            arg.type == :required_parameter_node
+            arg.type == :required_parameter_node || arg.type == :multi_target_node
           else
             (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
               (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
@@ -1579,9 +1585,10 @@ module Natalie
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
             %i[
-              required_parameter_node
-              required_destructured_parameter_node
+              multi_target_node
               optional_parameter_node
+              required_destructured_parameter_node
+              required_parameter_node
             ].include?(arg.type)
           else
             (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
