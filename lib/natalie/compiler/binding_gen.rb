@@ -487,6 +487,7 @@ gen.singleton_binding('ENV', '[]', 'EnvObject', 'ref', argc: 1, pass_env: true, 
 gen.singleton_binding('ENV', '[]=', 'EnvObject', 'refeq', argc: 2, pass_env: true, pass_block: false, aliases: ['store'], return_type: :Object)
 gen.singleton_binding('ENV', 'assoc', 'EnvObject', 'assoc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'clear', 'EnvObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.singleton_binding('ENV', 'clone', 'EnvObject', 'clone', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.singleton_binding('ENV', 'delete', 'EnvObject', 'delete_key', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'delete_if', 'EnvObject', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.singleton_binding('ENV', 'dup', 'EnvObject', 'dup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
