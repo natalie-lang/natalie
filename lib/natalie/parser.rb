@@ -15,7 +15,6 @@ module Prism
     # * block_pass
     # * evstr
     # * gasgn
-    # * iasgn
     # * kwsplat
     # * lasgn
     # * lvar
@@ -466,33 +465,23 @@ module Natalie
       end
 
       def visit_instance_variable_and_write_node(node)
-        s(:op_asgn_and,
-          s(:ivar, node.name, location: node.location),
-          s(:iasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_instance_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :ivar, write_sexp_type: :iasgn)
+        copy(node, value: visit(node.value))
       end
 
       def visit_instance_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:ivar, node.name, location: node.location),
-          s(:iasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
-      def visit_instance_variable_read_node(node)
-        s(:ivar, node.name, location: node.location)
-      end
+      alias visit_instance_variable_read_node visit_passthrough
 
-      def visit_instance_variable_target_node(node)
-        s(:iasgn, node.name, location: node.location)
-      end
+      alias visit_instance_variable_target_node visit_passthrough
 
       def visit_instance_variable_write_node(node)
-        s(:iasgn, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       alias visit_integer_node visit_passthrough

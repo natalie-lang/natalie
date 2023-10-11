@@ -310,6 +310,66 @@ module Natalie
         ]
       end
 
+      def transform_instance_variable_and_write_node(node, used:)
+        instructions = [
+          InstanceVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          InstanceVariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          InstanceVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_instance_variable_operator_write_node(node, used:)
+        instructions = [
+          InstanceVariableGetInstruction.new(node.name),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << InstanceVariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_instance_variable_or_write_node(node, used:)
+        instructions = [
+          InstanceVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          InstanceVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          InstanceVariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_instance_variable_read_node(node, used:)
+        return [] unless used
+        InstanceVariableGetInstruction.new(node.name)
+      end
+
+      def transform_instance_variable_write_node(node, used:)
+        instructions = [
+          transform_expression(node.value, used: true),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << InstanceVariableSetInstruction.new(node.name)
+        instructions
+      end
+
       def transform_integer_node(node, used:)
         return [] unless used
         [PushIntInstruction.new(node.value)]
@@ -995,13 +1055,6 @@ module Natalie
           end
         end
 
-        instructions
-      end
-
-      def transform_iasgn(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), InstanceVariableSetInstruction.new(name)]
-        instructions << InstanceVariableGetInstruction.new(name) if used
         instructions
       end
 
