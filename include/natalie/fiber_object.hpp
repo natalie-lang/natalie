@@ -143,6 +143,7 @@ public:
     Value inspect(Env *);
     bool is_alive() const;
     bool is_blocking() const;
+    static Value blocking(Env *, Block *);
     static Value is_blocking_current();
     static Value ref(Env *env, Value);
     static Value refeq(Env *env, Value, Value);
