@@ -310,6 +310,11 @@ module Natalie
         ]
       end
 
+      def transform_instance_variable_read_node(node, used:)
+        return [] unless used
+        InstanceVariableGetInstruction.new(node.name)
+      end
+
       def transform_instance_variable_write_node(node, used:)
         instructions = [
           transform_expression(node.value, used: true),

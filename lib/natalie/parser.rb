@@ -492,9 +492,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_instance_variable_read_node(node)
-        s(:ivar, node.name, location: node.location)
-      end
+      alias visit_instance_variable_read_node visit_passthrough
 
       alias visit_instance_variable_target_node visit_passthrough
 
