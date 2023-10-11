@@ -31,14 +31,22 @@ module Natalie
       File.join(BUILD_DIR, 'onigmo/lib'),
       File.join(BUILD_DIR, 'zlib'),
     ]
-    if system('pkg-config --exists openssl')
-      unless (openssl_inc_path = `pkg-config --cflags openssl`.strip).empty?
-        INC_PATHS << openssl_inc_path.sub(/^\-I/, '')
+
+    # TODO: make this configurable from Ruby source via a macro of some sort
+    %w[
+      openssl
+      libffi
+    ].each do |package|
+      next unless system("pkg-config --exists #{package}")
+
+      unless (inc_path = `pkg-config --cflags #{package}`.strip).empty?
+        INC_PATHS << inc_path.sub(/^-I/, '')
       end
-      unless (openssl_lib_path = `pkg-config --libs-only-L openssl`.strip).empty?
-        LIB_PATHS << openssl_lib_path.sub(/^\-L/, '')
+      unless (lib_path = `pkg-config --libs-only-L #{package}`.strip).empty?
+        LIB_PATHS << lib_path.sub(/^-L/, '')
       end
     end
+
     DL_EXT = RbConfig::CONFIG['DLEXT']
 
     CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
