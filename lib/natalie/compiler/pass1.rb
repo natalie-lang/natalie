@@ -310,6 +310,34 @@ module Natalie
         ]
       end
 
+      def transform_instance_variable_and_write_node(node, used:)
+        instructions = [
+          InstanceVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          InstanceVariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          InstanceVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_instance_variable_or_write_node(node, used:)
+        instructions = [
+          InstanceVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          InstanceVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          InstanceVariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_instance_variable_read_node(node, used:)
         return [] unless used
         InstanceVariableGetInstruction.new(node.name)
