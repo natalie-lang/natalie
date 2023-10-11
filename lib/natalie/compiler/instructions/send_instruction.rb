@@ -4,9 +4,9 @@ module Natalie
   class Compiler
     # use:
     # push(block) if block
+    # push(receiver)
     # push(*args)
     # push(argc)
-    # push(receiver)
     # send(message)
     class SendInstruction < BaseInstruction
       def initialize(message, receiver_is_self:, with_block:, file:, line:, args_array_on_stack: false, has_keyword_hash: false, forward_args: false)
