@@ -492,7 +492,7 @@ module Natalie
       end
 
       def visit_instance_variable_write_node(node)
-        s(:iasgn, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       alias visit_integer_node visit_passthrough

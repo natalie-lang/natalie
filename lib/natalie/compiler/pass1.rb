@@ -310,6 +310,15 @@ module Natalie
         ]
       end
 
+      def transform_instance_variable_write_node(node, used:)
+        instructions = [
+          transform_expression(node.value, used: true),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << InstanceVariableSetInstruction.new(node.name)
+        instructions
+      end
+
       def transform_integer_node(node, used:)
         return [] unless used
         [PushIntInstruction.new(node.value)]
