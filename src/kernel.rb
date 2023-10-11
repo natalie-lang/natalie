@@ -812,6 +812,10 @@ module Kernel
 
   # NATFIXME: the ... syntax doesnt appear to pass the block
   def open(filename, *a, **kw, &blk)
+    if filename.respond_to?(:to_open)
+      result = filename.to_open(*a, **kw)
+      return blk.nil? ? result : blk.call(result)
+    end
     if !filename.respond_to?(:to_path) && !filename.is_a?(String) && filename.respond_to?(:to_str)
       filename = filename.to_str
     end

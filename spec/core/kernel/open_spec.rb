@@ -130,56 +130,46 @@ describe "Kernel#open" do
     end
 
     it "calls #to_open on argument" do
-      NATFIXME 'Support #to_open', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-        obj = mock('fileish')
-        @file = File.open(@name)
-        obj.should_receive(:to_open).and_return(@file)
-        @file = open(obj)
-        @file.should be_kind_of(File)
-      end
+      obj = mock('fileish')
+      @file = File.open(@name)
+      obj.should_receive(:to_open).and_return(@file)
+      @file = open(obj)
+      @file.should be_kind_of(File)
     end
 
     it "returns the value from #to_open" do
-      NATFIXME 'Support #to_open', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-        obj = mock('to_open')
-        obj.should_receive(:to_open).and_return(:value)
+      obj = mock('to_open')
+      obj.should_receive(:to_open).and_return(:value)
 
-        open(obj).should == :value
-      end
+      open(obj).should == :value
     end
 
     it "passes its arguments onto #to_open" do
-      NATFIXME 'Support #to_open', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
-        obj = mock('to_open')
-        obj.should_receive(:to_open).with(1, 2, 3)
-        open(obj, 1, 2, 3)
-      end
+      obj = mock('to_open')
+      obj.should_receive(:to_open).with(1, 2, 3)
+      open(obj, 1, 2, 3)
     end
 
     it "passes keyword arguments onto #to_open as keyword arguments if to_open accepts them" do
-      NATFIXME 'Support #to_open', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 1..3)' do
-        obj = Object.new
-        def obj.to_open(*args, **kw)
-          ScratchPad << {args: args, kw: kw}
-        end
-
-        ScratchPad.record []
-        open(obj, 1, 2, 3, a: "b")
-        ScratchPad.recorded.should == [args: [1, 2, 3], kw: {a: "b"}]
+      obj = Object.new
+      def obj.to_open(*args, **kw)
+        ScratchPad << {args: args, kw: kw}
       end
+
+      ScratchPad.record []
+      open(obj, 1, 2, 3, a: "b")
+      ScratchPad.recorded.should == [args: [1, 2, 3], kw: {a: "b"}]
     end
 
     it "passes the return value from #to_open to a block" do
-      NATFIXME 'Support #to_open', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-        obj = mock('to_open')
-        obj.should_receive(:to_open).and_return(:value)
+      obj = mock('to_open')
+      obj.should_receive(:to_open).and_return(:value)
 
-        open(obj) do |mock|
-          ScratchPad.record(mock)
-        end
-
-        ScratchPad.recorded.should == :value
+      open(obj) do |mock|
+        ScratchPad.record(mock)
       end
+
+      ScratchPad.recorded.should == :value
     end
   end
 
