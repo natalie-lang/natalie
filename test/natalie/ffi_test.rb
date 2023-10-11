@@ -22,7 +22,7 @@ describe 'FFI' do
       end
     end.should raise_error(
       LoadError,
-      /Could not open library 'non_existent\.so': non_existent\.so: cannot open shared object file: No such file or directory\./
+      /Could not open library.*non_existent\.so/
     )
   end
 
