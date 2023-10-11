@@ -67,16 +67,14 @@ ruby_version_is "3.2" do
   describe "Fiber.blocking" do
     context "when fiber is non-blocking" do
       it "can become blocking" do
-        NATFIXME 'Implement Fiber.blocking', exception: NoMethodError, message: "undefined method `blocking' for Fiber:Class" do
-          fiber = Fiber.new(blocking: false) do
-            Fiber.blocking do |f|
-              f.blocking? ? :blocking : :non_blocking
-            end
+        fiber = Fiber.new(blocking: false) do
+          Fiber.blocking do |f|
+            f.blocking? ? :blocking : :non_blocking
           end
-
-          blocking = fiber.resume
-          blocking.should == :blocking
         end
+
+        blocking = fiber.resume
+        blocking.should == :blocking
       end
     end
   end

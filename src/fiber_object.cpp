@@ -65,6 +65,16 @@ bool FiberObject::is_blocking() const {
     return m_blocking;
 }
 
+Value FiberObject::blocking(Env *env, Block *block) {
+    auto fiber = current();
+    if (fiber->is_blocking()) {
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { fiber }, nullptr);
+    }
+    fiber->m_blocking = true;
+    auto unblock = Defer([&fiber] { fiber->m_blocking = false; });
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { fiber }, nullptr);
+}
+
 Value FiberObject::is_blocking_current() {
     return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
 }
