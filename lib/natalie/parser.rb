@@ -466,7 +466,7 @@ module Natalie
 
       def visit_instance_variable_and_write_node(node)
         s(:op_asgn_and,
-          s(:ivar, node.name, location: node.location),
+          ::Prism::InstanceVariableReadNode.new(node.name, nil),
           ::Prism::InstanceVariableWriteNode.new(node.name, nil, visit(node.value), nil, nil),
           location: node.location)
       end
@@ -476,7 +476,7 @@ module Natalie
           node.name,
           nil,
           s(:call,
-            s(:ivar, node.name, location: node.location),
+            ::Prism::InstanceVariableReadNode.new(node.name, nil),
             node.operator,
             visit(node.value),
             location: node.location),
@@ -487,7 +487,7 @@ module Natalie
 
       def visit_instance_variable_or_write_node(node)
         s(:op_asgn_or,
-          s(:ivar, node.name, location: node.location),
+          ::Prism::InstanceVariableReadNode.new(node.name, nil),
           ::Prism::InstanceVariableWriteNode.new(node.name, nil, visit(node.value), nil, nil),
           location: node.location)
       end
