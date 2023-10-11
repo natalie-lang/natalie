@@ -15,10 +15,11 @@ class NilObject : public Object {
 public:
     static NilObject *the() {
         if (s_instance) {
-            assert(s_instance->flags() == 0);
+            assert(s_instance->flags() == Flag::Frozen);
             return s_instance;
         }
         s_instance = new NilObject();
+        s_instance->freeze();
         return s_instance;
     }
 
