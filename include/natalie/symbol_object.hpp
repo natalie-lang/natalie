@@ -117,6 +117,7 @@ private:
             }
             if (all_ascii) m_encoding = EncodingObject::get(Encoding::US_ASCII);
         }
+        freeze();
     }
 
     const TM::String m_name {};
