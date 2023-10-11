@@ -487,9 +487,7 @@ module Natalie
         s(:ivar, node.name, location: node.location)
       end
 
-      def visit_instance_variable_target_node(node)
-        s(:iasgn, node.name, location: node.location)
-      end
+      alias visit_instance_variable_target_node visit_passthrough
 
       def visit_instance_variable_write_node(node)
         copy(node, value: visit(node.value))
