@@ -1007,13 +1007,6 @@ module Natalie
         instructions
       end
 
-      def transform_iasgn(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), InstanceVariableSetInstruction.new(name)]
-        instructions << InstanceVariableGetInstruction.new(name) if used
-        instructions
-      end
-
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = transform_expression(true_expression || Prism.nil_node, used: true)

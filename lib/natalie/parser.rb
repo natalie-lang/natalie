@@ -15,7 +15,6 @@ module Prism
     # * block_pass
     # * evstr
     # * gasgn
-    # * iasgn
     # * kwsplat
     # * lasgn
     # * lvar
@@ -468,18 +467,28 @@ module Natalie
       def visit_instance_variable_and_write_node(node)
         s(:op_asgn_and,
           s(:ivar, node.name, location: node.location),
-          s(:iasgn, node.name, visit(node.value), location: node.location),
+          ::Prism::InstanceVariableWriteNode.new(node.name, nil, visit(node.value), nil, nil),
           location: node.location)
       end
 
       def visit_instance_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :ivar, write_sexp_type: :iasgn)
+        ::Prism::InstanceVariableWriteNode.new(
+          node.name,
+          nil,
+          s(:call,
+            s(:ivar, node.name, location: node.location),
+            node.operator,
+            visit(node.value),
+            location: node.location),
+          nil,
+          nil
+        )
       end
 
       def visit_instance_variable_or_write_node(node)
         s(:op_asgn_or,
           s(:ivar, node.name, location: node.location),
-          s(:iasgn, node.name, visit(node.value), location: node.location),
+          ::Prism::InstanceVariableWriteNode.new(node.name, nil, visit(node.value), nil, nil),
           location: node.location)
       end
 
