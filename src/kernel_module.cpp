@@ -605,9 +605,30 @@ Value KernelModule::sleep(Env *env, Value length) {
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
-    nanosleep(&ts, nullptr);
-    if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
-        env->raise_errno();
+    if (!FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil()) {
+        ts.tv_sec += t_begin.tv_sec;
+        ts.tv_nsec += t_begin.tv_nsec;
+        if (ts.tv_nsec >= 1000000000) {
+            ts.tv_sec++;
+            ts.tv_nsec -= 1000000000;
+        }
+        while (true) {
+            FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
+            // When we get here, the scheduler should have checked our timeout. But loop in case we got
+            // restarted too early
+            if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+                env->raise_errno();
+            if (t_end.tv_sec > ts.tv_sec || (t_end.tv_sec == ts.tv_sec && t_end.tv_nsec > ts.tv_nsec))
+                break;
+            secs = t_end.tv_sec - ts.tv_sec;
+            secs += (t_end.tv_nsec - ts.tv_nsec) / 1000000000.0;
+            length = new FloatObject { secs };
+        }
+    } else {
+        nanosleep(&ts, nullptr);
+        if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+            env->raise_errno();
+    }
     int elapsed = t_end.tv_sec - t_begin.tv_sec;
     if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
     return IntegerObject::create(elapsed);
