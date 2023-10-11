@@ -573,6 +573,7 @@ RationalObject *KernelModule::Rational(Env *env, double arg) {
 
 Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
     auto name = name_val->to_instance_variable_name(env);
+    this->assert_not_frozen(env);
     return ivar_remove(env, name);
 }
 

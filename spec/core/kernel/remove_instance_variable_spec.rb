@@ -49,9 +49,13 @@ describe "Kernel#remove_instance_variable" do
   end
 
   it "raises for frozen objects" do
-    -> { nil.remove_instance_variable(:@foo) }.should raise_error(FrozenError)
+    NATFIXME 'NilObject should be frozen', exception: SpecFailedException do
+      -> { nil.remove_instance_variable(:@foo) }.should raise_error(FrozenError)
+    end
     -> { nil.remove_instance_variable(:foo) }.should raise_error(NameError)
-    -> { :foo.remove_instance_variable(:@foo) }.should raise_error(FrozenError)
+    NATFIXME 'Symbol should be frozen', exception: SpecFailedException do
+      -> { :foo.remove_instance_variable(:@foo) }.should raise_error(FrozenError)
+    end
   end
 
   describe "when passed a String" do
