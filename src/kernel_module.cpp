@@ -584,7 +584,6 @@ Value KernelModule::sleep(Env *env, Value length) {
         }
         NAT_UNREACHABLE();
     }
-    timespec ts;
     float secs;
     if (length->is_integer()) {
         secs = length->as_integer()->to_nat_int_t();
@@ -601,9 +600,9 @@ Value KernelModule::sleep(Env *env, Value length) {
     }
     if (secs < 0.0)
         env->raise("ArgumentError", "time interval must not be negative");
+    timespec ts, t_begin, t_end;
     ts.tv_sec = ::floor(secs);
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
-    timespec t_begin, t_end;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
     nanosleep(&ts, nullptr);
