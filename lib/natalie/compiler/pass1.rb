@@ -458,6 +458,11 @@ module Natalie
         transform_body(node.body, used: used)
       end
 
+      def transform_symbol_node(node, used:)
+        return [] unless used
+        [PushSymbolInstruction.new(node.unescaped.to_sym)]
+      end
+
       def transform_true_node(_, used:)
         return [] unless used
         [PushTrueInstruction.new]
@@ -1139,8 +1144,6 @@ module Natalie
           PushIntInstruction.new(lit)
         when Float
           PushFloatInstruction.new(lit)
-        when Symbol
-          PushSymbolInstruction.new(lit)
         when Range
           [
             transform_lit(lit.end, used: true),
@@ -1576,7 +1579,14 @@ module Natalie
 
       def transform_undef(exp, used:)
         _, name = exp
-        name = name.last
+        name = if name.type == :symbol_node
+                 name.unescaped.to_sym
+               else
+                 # FIXME: doesn't work with real dynamic symbol :-(
+                 # only works with: s(:dsym, "simple")
+                 # We'll need UndefineMethodInstruction to pop its argument from the stack to fix this.
+                 name.last
+               end
         instructions = [
           UndefineMethodInstruction.new(name: name),
         ]

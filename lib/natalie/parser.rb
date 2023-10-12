@@ -840,9 +840,7 @@ module Natalie
         end
       end
 
-      def visit_symbol_node(node)
-        s(:lit, node.unescaped.to_sym, location: node.location)
-      end
+      alias visit_symbol_node visit_passthrough
 
       alias visit_true_node visit_passthrough
 
