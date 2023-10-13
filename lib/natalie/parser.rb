@@ -116,6 +116,10 @@ module Natalie
         copy(node, left: visit(node.left), right: visit(node.right))
       end
 
+      def visit_arguments_node(node)
+        copy(node, arguments: node.arguments.map { |n| visit(n) })
+      end
+
       def visit_array_node(node)
         copy(node, elements: node.elements.map { |element| visit(element) })
       end
@@ -206,15 +210,24 @@ module Natalie
 
         args, block = node_arguments_and_block(node)
 
-        call = s(sexp_type,
-                visit(node.child_nodes.first),
-                node.name.to_sym,
-                *args,
-                location: node.location)
+        # HACK: alert changing block and changing arguments to plain array (temporary!)
+        call = copy(node, receiver: visit(node.receiver), arguments: args, block: nil)
 
-        if call[2] == :!~
-          call[2] = :=~
-          call = s(:not, call, location: node.location)
+        if call.name == :!~
+          # FIXME: handle this in pass1
+          call = s(:not,
+                   ::Prism::CallNode.new(
+                     call.receiver,
+                     call.location,
+                     call.message_loc,
+                     call.opening_loc,
+                     call.arguments,
+                     call.closing_loc,
+                     call.block,
+                     call.send(:flags),
+                     :=~,
+                     call.location),
+                   location: node.location)
         end
 
         if block
@@ -709,15 +722,9 @@ module Natalie
 
       alias visit_rational_node visit_passthrough
 
-      def visit_redo_node(node)
-        s(:redo, location: node.location)
-      end
+      alias visit_redo_node visit_passthrough
 
-      def visit_regular_expression_node(node)
-        s(:lit,
-          Regexp.new(node.content, node.options),
-          location: node.location)
-      end
+      alias visit_regular_expression_node visit_passthrough
 
       alias visit_required_destructured_parameter_node visit_passthrough
 
@@ -754,12 +761,10 @@ module Natalie
 
       alias visit_rest_parameter_node visit_passthrough
 
-      def visit_retry_node(node)
-        s(:retry, location: node.location)
-      end
+      alias visit_retry_node visit_passthrough
 
       def visit_return_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :return)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_return_or_next_or_break_node(node, sexp_type:)
@@ -885,8 +890,7 @@ module Natalie
       end
 
       def visit_yield_node(node)
-        arguments = node.arguments&.child_nodes || []
-        s(:yield, *arguments.map { |n| visit(n) }, location: node.location)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_x_string_node(node)

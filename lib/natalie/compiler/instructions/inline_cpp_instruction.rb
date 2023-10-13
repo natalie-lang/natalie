@@ -17,7 +17,16 @@ module Natalie
       end
 
       def generate(transform)
-        type, _, name, *rest = exp
+        if exp.instance_of?(Sexp)
+          type, _, name, *rest = exp
+        elsif exp.is_a?(::Prism::CallNode)
+          type = exp.type
+          name = exp.name
+          rest = exp.arguments
+        else
+          raise "unexpected node passed to InlineCppInstruction: #{exp.inspect}"
+        end
+
         generator = if type == :require_cpp_file
                       "generate_require_cpp_file"
                     else
