@@ -7,10 +7,10 @@ class Scheduler
 
   def run
     until @waiting.empty?
-      fiber, = @waiting.find { |fiber, timeout| fiber.alive? && timeout <= current_time }
+      obj_id, (fiber, _) = @waiting.find { |_, (fiber, timeout)| fiber.alive? && timeout <= current_time }
 
-      unless fiber.nil?
-        @waiting.delete(fiber)
+      unless obj_id.nil?
+        @waiting.delete(obj_id)
         fiber.resume
       end
     end
@@ -21,7 +21,8 @@ class Scheduler
   end
 
   def kernel_sleep(duration)
-    @waiting[Fiber.current] = current_time + duration
+    # NATFIXME: Issues when using Fiber objects as hash key, use object_id for the time being.
+    @waiting[Fiber.current.object_id] = [Fiber.current, current_time + duration]
     Fiber.yield
   end
 
