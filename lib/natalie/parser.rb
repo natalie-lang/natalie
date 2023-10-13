@@ -709,9 +709,7 @@ module Natalie
 
       alias visit_rational_node visit_passthrough
 
-      def visit_redo_node(node)
-        s(:redo, location: node.location)
-      end
+      alias visit_redo_node visit_passthrough
 
       alias visit_regular_expression_node visit_passthrough
 

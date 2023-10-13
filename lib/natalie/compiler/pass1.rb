@@ -445,6 +445,10 @@ module Natalie
         ]
       end
 
+      def transform_redo_node(*)
+        [RedoInstruction.new]
+      end
+
       def transform_regular_expression_node(node, used:)
         return [] unless used
         regexp = Regexp.new(node.content, node.options)
@@ -1486,10 +1490,6 @@ module Natalie
           instructions << PopInstruction.new unless used
           instructions
         end
-      end
-
-      def transform_redo(*)
-        [RedoInstruction.new]
       end
 
       alias transform_require_cpp_file transform_call
