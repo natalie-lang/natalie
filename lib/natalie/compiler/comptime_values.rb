@@ -17,10 +17,10 @@ module Natalie
       end
 
       def comptime_symbol(node)
-        unless node.sexp_type == :lit && node.last.is_a?(Symbol)
+        unless node.sexp_type == :symbol_node
           raise_comptime_value_error('symbol', node)
         end
-        node.last
+        node.unescaped.to_sym
       end
 
       def raise_comptime_value_error(expected, node)
