@@ -82,8 +82,7 @@ describe "A singleton class" do
   end
 end
 
-# NATFIXME: A constant on a singleton class results in a time out
-xdescribe "A constant on a singleton class" do
+describe "A constant on a singleton class" do
   before :each do
     @object = Object.new
     class << @object
@@ -121,9 +120,11 @@ xdescribe "A constant on a singleton class" do
   end
 
   it "cannot be accessed via object::CONST" do
-    -> do
-      @object::CONST
-    end.should raise_error(TypeError)
+    NATFIXME 'cannot be accessed via object::CONST', exception: SpecFailedException do
+      -> do
+        @object::CONST
+      end.should raise_error(TypeError)
+    end
   end
 
   it "raises a NameError for anonymous_module::CONST" do
