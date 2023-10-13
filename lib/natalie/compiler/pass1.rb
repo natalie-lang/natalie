@@ -459,6 +459,20 @@ module Natalie
         [RetryInstruction.new(id: @retry_context.last)]
       end
 
+      def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
+        instructions = []
+        if node.arguments.nil? || node.arguments.arguments.none?
+          nil_node = Prism.nil_node(location: node.location)
+          instructions << transform_expression(nil_node, used: true)
+        elsif node.arguments.arguments.size == 1
+          instructions << transform_expression(node.arguments.arguments.first, used: true)
+        else
+          array = Prism.array_node(elements: node.arguments.arguments, location: node.location)
+          instructions << transform_expression(array, used: true)
+        end
+        instructions << ReturnInstruction.new
+      end
+
       def transform_self_node(_, used:)
         return [] unless used
         [PushSelfInstruction.new]
@@ -1502,13 +1516,6 @@ module Natalie
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
-        _, value = exp
-        value ||= Prism.nil_node
-        instructions = [transform_expression(value, used: true)]
-        instructions << ReturnInstruction.new
       end
 
       def transform_safe_call(exp, used:, with_block: false)

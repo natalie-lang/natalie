@@ -116,6 +116,10 @@ module Natalie
         copy(node, left: visit(node.left), right: visit(node.right))
       end
 
+      def visit_arguments_node(node)
+        copy(node, arguments: node.arguments.map { |n| visit(n) })
+      end
+
       def visit_array_node(node)
         copy(node, elements: node.elements.map { |element| visit(element) })
       end
@@ -751,7 +755,7 @@ module Natalie
       alias visit_retry_node visit_passthrough
 
       def visit_return_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :return)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_return_or_next_or_break_node(node, sexp_type:)
