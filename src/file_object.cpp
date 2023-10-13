@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <filesystem>
 // #include <fnmatch.h> // use ruby defined values instead of os-defined
+#include <sys/file.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -99,6 +100,16 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
         merged->truncate(merged->length() - 1);
     }
     return merged;
+}
+
+Value FileObject::flock(Env *env, Value locking_constant) {
+    const auto locking_constant_int = IntegerObject::convert_to_nat_int_t(env, locking_constant);
+    if (::flock(fileno(env), locking_constant_int) < 0) {
+        if (errno == EWOULDBLOCK)
+            return FalseObject::the();
+        env->raise_errno();
+    }
+    return Value::integer(0);
 }
 
 void FileObject::unlink(Env *env, Value path) {

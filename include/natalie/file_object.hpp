@@ -83,6 +83,7 @@ public:
     static Value lstat(Env *env, Value path);
     static Value stat(Env *env, Value path);
 
+    Value flock(Env *, Value);
     Value lstat(Env *env) const; // instance method
 
     static int truncate(Env *env, Value path, Value size);
