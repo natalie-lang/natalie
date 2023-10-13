@@ -458,6 +458,11 @@ module Natalie
         transform_body(node.body, used: used)
       end
 
+      def transform_string_node(node, used:)
+        return [] unless used
+        PushStringInstruction.new(node.unescaped)
+      end
+
       def transform_symbol_node(node, used:)
         return [] unless used
         [PushSymbolInstruction.new(node.unescaped.to_sym)]

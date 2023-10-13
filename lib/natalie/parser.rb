@@ -922,7 +922,7 @@ module Natalie
       end
 
       def node_arguments_and_block(node)
-        args = node.arguments&.arguments || []
+        args = node.arguments&.arguments&.dup || []
         block = node.block
         if block.is_a?(Prism::BlockArgumentNode)
           args << block
