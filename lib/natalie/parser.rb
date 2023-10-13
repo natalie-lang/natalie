@@ -748,9 +748,7 @@ module Natalie
 
       alias visit_rest_parameter_node visit_passthrough
 
-      def visit_retry_node(node)
-        s(:retry, location: node.location)
-      end
+      alias visit_retry_node visit_passthrough
 
       def visit_return_node(node)
         visit_return_or_next_or_break_node(node, sexp_type: :return)

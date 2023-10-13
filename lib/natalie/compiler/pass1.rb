@@ -455,6 +455,10 @@ module Natalie
         PushRegexpInstruction.new(regexp)
       end
 
+      def transform_retry_node(*)
+        [RetryInstruction.new(id: @retry_context.last)]
+      end
+
       def transform_self_node(_, used:)
         return [] unless used
         [PushSelfInstruction.new]
@@ -1498,10 +1502,6 @@ module Natalie
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_retry(*)
-        [RetryInstruction.new(id: @retry_context.last)]
       end
 
       def transform_return(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
