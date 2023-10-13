@@ -824,6 +824,7 @@ module Kernel
     end
     File.open(filename, *a, **kw, &blk)
   end
+  private :open
 
   alias format sprintf
 
