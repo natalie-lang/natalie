@@ -609,6 +609,7 @@ gen.binding('File', 'atime', 'FileObject', 'atime', argc: 0, pass_env: true, pas
 gen.binding('File', 'chmod', 'FileObject', 'chmod', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'chown', 'FileObject', 'chown', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'ctime', 'FileObject', 'ctime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('File', 'flock', 'FileObject', 'flock', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'initialize', 'FileObject', 'initialize', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('File', 'lstat', 'FileObject', 'lstat', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('File', 'mtime', 'FileObject', 'mtime', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

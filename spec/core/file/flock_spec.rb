@@ -37,7 +37,8 @@ describe "File#flock" do
     END_OF_CODE
   end
 
-  it "blocks if trying to lock an exclusively locked file" do
+  # NATFIXME: Threads
+  xit "blocks if trying to lock an exclusively locked file" do
     @file.flock File::LOCK_EX
 
     out = ruby_exe(<<-END_OF_CODE, escape: true)
