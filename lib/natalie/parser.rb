@@ -632,13 +632,13 @@ module Natalie
       def visit_multi_target_node(node)
         return visit(node.targets.first) if node.targets.size == 1
 
-        copy(node, targets: visit_all(node.targets))
+        visit_passthrough(node)
       end
 
       def visit_multi_write_node(node)
         return visit(node.targets.first) if node.targets.size == 1 && !node.value
 
-        copy(node, targets: visit_all(node.targets), value: visit(node.value))
+        copy(node, value: visit(node.value))
       end
 
       def visit_next_node(node)
@@ -719,9 +719,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_required_destructured_parameter_node(node)
-        copy(node, parameters: visit_all(node.parameters))
-      end
+      alias visit_required_destructured_parameter_node visit_passthrough
 
       alias visit_required_parameter_node visit_passthrough
 
@@ -922,7 +920,7 @@ module Natalie
       end
 
       def node_arguments_and_block(node)
-        args = node.arguments&.arguments || []
+        args = node.arguments&.arguments&.dup || []
         block = node.block
         if block.is_a?(Prism::BlockArgumentNode)
           args << block
