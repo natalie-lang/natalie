@@ -102,6 +102,77 @@ module Natalie
         instructions
       end
 
+      def transform_arguments_node_for_callish(node)
+        args = node&.arguments || []
+        instructions = []
+
+        if args.last&.sexp_type == :block_pass
+          _, block = args.pop
+          instructions.unshift(transform_expression(block, used: true))
+        end
+
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
+          instructions.unshift(PushBlockInstruction.new)
+          block = true
+        end
+
+        if args.any? { |a| a.sexp_type == :splat_node }
+          instructions << transform_array_with_splat(args)
+          return {
+            instructions: instructions,
+            with_block_pass: !!block,
+            args_array_on_stack: true,
+            has_keyword_hash: args.last&.sexp_type == :bare_hash
+          }
+        end
+
+        # special ... syntax
+        if args.size == 1 && args.first.type == :forwarding_arguments_node
+          instructions << PushArgsInstruction.new(
+            for_block: false,
+            min_count: nil,
+            max_count: nil,
+            spread: false,
+            to_array: false,
+          )
+          return {
+            instructions: instructions,
+            with_block_pass: !!block,
+            args_array_on_stack: true,
+            has_keyword_hash: false,
+            forward_args: true,
+          }
+        end
+
+        args.each do |arg|
+          instructions << transform_expression(arg, used: true)
+        end
+
+        has_keyword_hash = args.last&.sexp_type == :bare_hash
+
+        instructions << PushArgcInstruction.new(args.size)
+
+        {
+          instructions: instructions,
+          with_block_pass: !!block,
+          args_array_on_stack: false,
+          has_keyword_hash: has_keyword_hash,
+        }
+      end
+
+      def transform_arguments_node_for_returnish(node, location:)
+        case node&.arguments&.size || 0
+        when 0
+          nil_node = Prism.nil_node(location: location)
+          transform_expression(nil_node, used: true)
+        when 1
+          transform_expression(node.arguments.first, used: true)
+        else
+          array = Prism.array_node(elements: node.arguments, location: location)
+          transform_expression(array, used: true)
+        end
+      end
+
       def transform_array_node(node, used:)
         elements = node.elements
         instructions = []
@@ -460,16 +531,9 @@ module Natalie
       end
 
       def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
-        instructions = []
-        if node.arguments.nil? || node.arguments.arguments.none?
-          nil_node = Prism.nil_node(location: node.location)
-          instructions << transform_expression(nil_node, used: true)
-        elsif node.arguments.arguments.size == 1
-          instructions << transform_expression(node.arguments.arguments.first, used: true)
-        else
-          array = Prism.array_node(elements: node.arguments.arguments, location: node.location)
-          instructions << transform_expression(array, used: true)
-        end
+        instructions = [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location)
+        ]
         instructions << ReturnInstruction.new
       end
 
@@ -499,6 +563,16 @@ module Natalie
       def transform_true_node(_, used:)
         return [] unless used
         [PushTrueInstruction.new]
+      end
+
+      def transform_yield_node(node, used:)
+        arg_meta = transform_arguments_node_for_callish(node.arguments)
+        instructions = arg_meta.fetch(:instructions)
+        instructions << YieldInstruction.new(
+          args_array_on_stack: arg_meta.fetch(:args_array_on_stack),
+        )
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       # INDIVIDUAL EXPRESSIONS = = = = =
@@ -1650,17 +1724,6 @@ module Natalie
           transform_str(exp.new(:str, command), used: true),
           ShellInstruction.new,
         ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_yield(exp, used:)
-        _, *args = exp
-        instructions = []
-        call_args = transform_call_args(args, instructions: instructions)
-        instructions << YieldInstruction.new(
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-        )
         instructions << PopInstruction.new unless used
         instructions
       end

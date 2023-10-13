@@ -881,8 +881,7 @@ module Natalie
       end
 
       def visit_yield_node(node)
-        arguments = node.arguments&.child_nodes || []
-        s(:yield, *arguments.map { |n| visit(n) }, location: node.location)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_x_string_node(node)
