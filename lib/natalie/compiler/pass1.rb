@@ -190,6 +190,89 @@ module Natalie
         instructions
       end
 
+      def transform_call_node(node, used:, with_block: false)
+        node = @macro_expander.expand(node, depth: @depth)
+
+        unless %i[require_cpp_file call_node].include?(node.sexp_type)
+          return transform_expression(node, used: used)
+        end
+
+        receiver = node.receiver
+        message = node.name
+        args = node.arguments
+
+        if repl? && (new_exp = fix_repl_var_that_looks_like_call(node))
+          return transform_expression(new_exp, used: used)
+        end
+
+        if is_inline_macro_call_node?(node)
+          instructions = []
+          if message == :__call__
+            args[1..].reverse_each do |arg|
+              instructions << transform_expression(arg, used: true)
+            end
+          end
+          instructions << InlineCppInstruction.new(node)
+          return instructions
+        end
+
+        if receiver.nil? && message == :lambda && args.empty?
+          # NOTE: We need Kernel#lambda to behave just like the stabby
+          # lambda (->) operator so we can attach the "break point" to
+          # it. I realize this is a bit of a hack and if someone wants
+          # to alias Kernel#lambda, then their method will create a
+          # broken lambda, i.e. calling `break` won't work correctly.
+          # Maybe someday we can think of a better way to handle this...
+          return transform_lambda(Sexp.new(:lambda), used: used)
+        end
+
+        if receiver.nil? && message == :block_given? && !with_block
+          return [
+            PushBlockInstruction.new(from_nearest_env: true),
+            transform_call_node(node, used: used, with_block: true),
+          ]
+        end
+
+        instructions = []
+        if receiver.nil?
+          instructions << PushSelfInstruction.new
+        else
+          instructions << transform_expression(receiver, used: true)
+        end
+
+        if node.safe_navigation?
+          # wrap the whole thing with an effective `unless reciever.nil?`
+          instructions << DupInstruction.new # duplicate receiver for IsNil below
+          instructions << IsNilInstruction.new
+          instructions << IfInstruction.new
+          instructions << PopInstruction.new # pop duplicated receiver since it is unused
+          instructions << PushNilInstruction.new
+          instructions << ElseInstruction.new(:if)
+        end
+
+        call_args = transform_call_args(args, instructions: instructions)
+        with_block ||= call_args.fetch(:with_block_pass)
+
+        instructions << SendInstruction.new(
+          message,
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          receiver_is_self: receiver.nil?,
+          with_block: with_block,
+          has_keyword_hash: call_args.fetch(:has_keyword_hash),
+          forward_args: call_args[:forward_args],
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+
+        if node.safe_navigation?
+          # close out our safe navigation `if` wrapper
+          instructions << EndInstruction.new(:if)
+        end
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class_variable_read_node(node, used:)
         return [] unless used
         ClassVariableGetInstruction.new(node.name)
@@ -1202,6 +1285,8 @@ module Natalie
         case call.sexp_type
         when :call
           instructions << transform_call(call, used: used, with_block: true)
+        when :call_node
+          instructions << transform_call_node(call, used: used, with_block: true)
         when :lambda
           instructions << transform_lambda(call, used: used)
         when :safe_call
@@ -1738,7 +1823,8 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        exp == s(:lambda) || exp == s(:call, nil, :lambda)
+        exp == s(:lambda) || exp == s(:call, nil, :lambda) ||
+          (exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda)
       end
 
       def is_inline_macro_call?(exp)
@@ -1748,6 +1834,14 @@ module Natalie
         inline_enabled &&
           receiver.nil? &&
           INLINE_CPP_MACROS.include?(message)
+      end
+
+      def is_inline_macro_call_node?(node)
+        inline_enabled = @inline_cpp_enabled[node.location.path] ||
+                         node.type == :require_cpp_file
+        inline_enabled &&
+          node.receiver.nil? &&
+          INLINE_CPP_MACROS.include?(node.name)
       end
 
       def minimum_arg_count(args)
@@ -1820,6 +1914,12 @@ module Natalie
       # But we know which variables are defined in the REPL, so we can convert the :call
       # back to an :lvar as needed.
       def fix_repl_var_that_looks_like_call(exp)
+        if (exp.is_a?(::Prism::Node))
+          return false unless exp.type == :call_node && exp.receiver.nil?
+          return false unless @compiler_context[:vars].key?(exp.name)
+          return Sexp.new(:lvar, exp.name)
+        end
+
         unless exp.size == 3 && exp[..1] == [:call, nil]
           return false
         end

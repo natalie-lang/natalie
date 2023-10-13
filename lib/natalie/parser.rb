@@ -210,15 +210,24 @@ module Natalie
 
         args, block = node_arguments_and_block(node)
 
-        call = s(sexp_type,
-                visit(node.child_nodes.first),
-                node.name.to_sym,
-                *args,
-                location: node.location)
+        # HACK: alert changing block and changing arguments to plain array (temporary!)
+        call = copy(node, receiver: visit(node.receiver), arguments: args, block: nil)
 
-        if call[2] == :!~
-          call[2] = :=~
-          call = s(:not, call, location: node.location)
+        if call.name == :!~
+          # FIXME: handle this in pass1
+          call = s(:not,
+                   ::Prism::CallNode.new(
+                     call.receiver,
+                     call.location,
+                     call.message_loc,
+                     call.opening_loc,
+                     call.arguments,
+                     call.closing_loc,
+                     call.block,
+                     call.send(:flags),
+                     :=~,
+                     call.location),
+                   location: node.location)
         end
 
         if block

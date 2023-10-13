@@ -40,7 +40,9 @@ module Natalie
       private
 
       def get_macro_name(node)
+        return get_macro_name_from_node(node) if node.is_a?(::Prism::Node)
         return false unless node.is_a?(Sexp)
+
         if node[0..1] == s(:call, nil)
           _, _, name = node
           if MACROS.include?(name)
@@ -59,10 +61,32 @@ module Natalie
         end
       end
 
+      def get_macro_name_from_node(node)
+        if node.type == :call_node && node.receiver.nil?
+          if MACROS.include?(node.name)
+            node.name
+          elsif @macros_enabled
+            if node.name == :macro!
+              node.name
+            elsif @macros.key?(node.name)
+              :user_macro
+            end
+          end
+        elsif node.sexp_type == :iter
+          get_macro_name(node[1])
+        else
+          get_hidden_macro_name(node)
+        end
+      end
+
       # "Hidden macros" are just regular-looking Ruby code we intercept at compile-time.
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
-        if node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
+        if node.is_a?(::Prism::CallNode)
+          if node.type == :call_node && node.receiver&.type == :gvar && %i[$LOAD_PATH $:].include?(node.receiver[1]) && %i[<< unshift].include?(node.name)
+            :update_load_path
+          end
+        elsif node.instance_of?(Sexp) && node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
           :update_load_path
         end
       end
@@ -87,7 +111,7 @@ module Natalie
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
 
       def macro_autoload(expr:, current_path:, depth:)
-        args = expr[3..]
+        args = expr.arguments || []
         const_node, path_node = args
         const = comptime_symbol(const_node)
         begin
@@ -109,7 +133,7 @@ module Natalie
       end
 
       def macro_require(expr:, current_path:, depth:)
-        args = expr[3..]
+        args = expr.arguments || []
         name = comptime_string(args.first)
         return nothing(expr) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
@@ -125,19 +149,20 @@ module Natalie
       end
 
       def macro_require_relative(expr:, current_path:, depth:)
-        args = expr[3..]
+        args = expr.arguments || []
         name = comptime_string(args.first)
         base = File.dirname(current_path)
         EXTENSIONS_TO_TRY.each do |extension|
           if (full_path = find_full_path(name + extension, base: base, search: false))
-            return load_file(full_path, require_once: true, location: location(expr))
+            lf = load_file(full_path, require_once: true, location: location(expr))
+            return lf
           end
         end
         drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
       end
 
       def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
-        args = expr[3..]
+        args = expr.arguments || []
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false, location: location(expr)) if full_path
@@ -145,7 +170,7 @@ module Natalie
       end
 
       def macro_eval(expr:, current_path:, depth:)
-        args = expr[3..]
+        args = expr.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
         if node.sexp_type == :str
@@ -169,7 +194,7 @@ module Natalie
       end
 
       def macro_include_str!(expr:, current_path:)
-        args = expr[3..]
+        args = expr.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           s(:str, File.read(full_path))
@@ -182,13 +207,12 @@ module Natalie
       # $LOAD_PATH.unshift(some_expression)
       def macro_update_load_path(expr:, current_path:, depth:)
         if depth > 1
-          name = expr[1][1]
+          name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
         end
 
-        _, _, _, body = expr
         path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new([body], location(expr)),
+          ::Prism::StatementsNode.new(expr.arguments, location(expr)),
           path: current_path
         )
 
