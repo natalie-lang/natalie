@@ -713,11 +713,7 @@ module Natalie
         s(:redo, location: node.location)
       end
 
-      def visit_regular_expression_node(node)
-        s(:lit,
-          Regexp.new(node.content, node.options),
-          location: node.location)
-      end
+      alias visit_regular_expression_node visit_passthrough
 
       alias visit_required_destructured_parameter_node visit_passthrough
 

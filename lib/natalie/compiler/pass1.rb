@@ -445,6 +445,12 @@ module Natalie
         ]
       end
 
+      def transform_regular_expression_node(node, used:)
+        return [] unless used
+        regexp = Regexp.new(node.content, node.options)
+        PushRegexpInstruction.new(regexp)
+      end
+
       def transform_self_node(_, used:)
         return [] unless used
         [PushSelfInstruction.new]
@@ -1161,8 +1167,6 @@ module Natalie
             transform_lit(lit.denominator, used: true),
             PushRationalInstruction.new,
           ]
-        when Regexp
-          PushRegexpInstruction.new(lit)
         when Complex
           [
             transform_lit(lit.real, used: true),
