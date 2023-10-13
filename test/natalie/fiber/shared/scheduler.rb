@@ -8,10 +8,11 @@ class Scheduler
   def run
     until @waiting.empty?
       fiber, = @waiting.find { |fiber, timeout| fiber.alive? && timeout <= current_time }
-      next if fiber.nil?
 
-      @waiting.delete(fiber)
-      fiber.resume
+      unless fiber.nil?
+        @waiting.delete(fiber)
+        fiber.resume
+      end
     end
   end
 
