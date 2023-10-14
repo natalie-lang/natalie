@@ -91,6 +91,7 @@
 #include "natalie/method.hpp"
 #include "natalie/method_object.hpp"
 #include "natalie/module_object.hpp"
+#include "natalie/mutex_object.hpp"
 #include "natalie/native_profiler.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"

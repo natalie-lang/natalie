@@ -129,6 +129,7 @@ public:
     bool is_io() const { return m_type == Type::Io; }
     bool is_file_stat() const { return m_type == Type::FileStat; }
     bool is_match_data() const { return m_type == Type::MatchData; }
+    bool is_mutex() const { return m_type == Type::Mutex; }
     bool is_proc() const { return m_type == Type::Proc; }
     bool is_random() const { return m_type == Type::Random; }
     bool is_range() const { return m_type == Type::Range; }
@@ -182,6 +183,8 @@ public:
     const MethodObject *as_method() const;
     ModuleObject *as_module();
     const ModuleObject *as_module() const;
+    MutexObject *as_mutex();
+    const MutexObject *as_mutex() const;
     NilObject *as_nil();
     const NilObject *as_nil() const;
     ProcObject *as_proc();

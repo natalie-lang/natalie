@@ -34,6 +34,7 @@ class MatchDataObject;
 class Method;
 class MethodObject;
 class ModuleObject;
+class MutexObject;
 class NatalieProfiler;
 class NatalieProfilerEvent;
 class NilObject;

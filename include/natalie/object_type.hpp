@@ -23,6 +23,7 @@ enum class ObjectType {
     MatchData,
     Method,
     Module,
+    Mutex,
     Object,
     Proc,
     Range,

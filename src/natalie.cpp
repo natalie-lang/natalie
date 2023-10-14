@@ -78,6 +78,9 @@ Env *build_top_env() {
     ClassObject *Fiber = Object->subclass(env, "Fiber", Object::Type::Fiber);
     Object->const_set("Fiber"_s, Fiber);
 
+    ClassObject *Mutex = Object->subclass(env, "Mutex", Object::Type::Mutex);
+    Object->const_set("Mutex"_s, Mutex);
+
     ClassObject *Numeric = Object->subclass(env, "Numeric");
     Object->const_set("Numeric"_s, Numeric);
     Numeric->include_once(env, Comparable);

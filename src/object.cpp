@@ -70,6 +70,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ModuleObject { klass };
         break;
 
+    case Object::Type::Mutex:
+        obj = new MutexObject { klass };
+        break;
+
     case Object::Type::Object:
         obj = new Object { klass };
         break;
@@ -215,6 +219,16 @@ ModuleObject *Object::as_module() {
 const ModuleObject *Object::as_module() const {
     assert(is_module());
     return static_cast<const ModuleObject *>(this);
+}
+
+MutexObject *Object::as_mutex() {
+    assert(is_mutex());
+    return static_cast<MutexObject *>(this);
+}
+
+const MutexObject *Object::as_mutex() const {
+    assert(is_mutex());
+    return static_cast<const MutexObject *>(this);
 }
 
 ClassObject *Object::as_class() {
