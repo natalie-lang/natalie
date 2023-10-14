@@ -119,7 +119,9 @@ describe :io_write_transcode, shared: true do
     result = File.binread(@transcode_filename)
     expected = [0, 104, 0, 101, 0, 108, 0, 108, 0, 111] # UTF-16BE bytes for "hello"
 
-    result.bytes.should == expected
+    NATFIXME 'Encodings', exception: SpecFailedException do
+      result.bytes.should == expected
+    end
   end
 
   it "transcodes the given string when the external encoding is set and the string encoding is BINARY" do
@@ -127,7 +129,9 @@ describe :io_write_transcode, shared: true do
 
     File.open(@transcode_filename, "w", external_encoding: Encoding::UTF_16BE) do |file|
       file.external_encoding.should == Encoding::UTF_16BE
-      -> { file.send(@method, str) }.should raise_error(Encoding::UndefinedConversionError)
+      NATFIXME 'Encodings', exception: SpecFailedException do
+        -> { file.send(@method, str) }.should raise_error(Encoding::UndefinedConversionError)
+      end
     end
   end
 end

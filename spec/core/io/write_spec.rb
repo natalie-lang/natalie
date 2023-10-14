@@ -21,7 +21,9 @@ describe "IO#write on a file" do
   end
 
   it "does not check if the file is writable if writing zero bytes" do
-    -> { @readonly_file.write("") }.should_not raise_error
+    NATFIXME 'does not check if the file is writable if writing zero bytes', exception: SpecFailedException do
+      -> { @readonly_file.write("") }.should_not raise_error
+    end
   end
 
   before :each do
@@ -45,7 +47,9 @@ describe "IO#write on a file" do
   end
 
   it "returns a length of 0 when passed no arguments" do
-    @file.write().should == 0
+    NATFIXME 'Support zero arguments', exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1+)' do
+      @file.write().should == 0
+    end
   end
 
   it "returns the number of bytes written" do
@@ -59,7 +63,9 @@ describe "IO#write on a file" do
       f.write("ƒ".freeze)
     end
 
-    File.binread(@filename).bytes.should == [159]
+    NATFIXME 'Encoding', exception: SpecFailedException do
+      File.binread(@filename).bytes.should == [159]
+    end
   end
 
   it "does not modify arguments when passed multiple arguments and external encoding not set" do
@@ -75,38 +81,46 @@ describe "IO#write on a file" do
   end
 
   it "uses the encoding from the given option for non-ascii encoding" do
-    File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
-      file.write("hi").should == 8
+    NATFIXME 'Encoding', exception: SpecFailedException do
+      File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
+        file.write("hi").should == 8
+      end
+      File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
     end
-    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
   it "uses the encoding from the given option for non-ascii encoding even if in binary mode" do
-    File.open(@filename, "w", encoding: Encoding::UTF_32LE, binmode: true) do |file|
-      file.should.binmode?
-      file.write("hi").should == 8
-    end
-    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+    NATFIXME 'Encoding', exception: SpecFailedException do
+      File.open(@filename, "w", encoding: Encoding::UTF_32LE, binmode: true) do |file|
+        file.should.binmode?
+        file.write("hi").should == 8
+      end
+      File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
 
-    File.open(@filename, "wb", encoding: Encoding::UTF_32LE) do |file|
-      file.should.binmode?
-      file.write("hi").should == 8
+      File.open(@filename, "wb", encoding: Encoding::UTF_32LE) do |file|
+        file.should.binmode?
+        file.write("hi").should == 8
+      end
+      File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
     end
-    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
   it "uses the encoding from the given option for non-ascii encoding when multiple arguments passes" do
-    File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
-      file.write("h", "i").should == 8
+    NATFIXME 'Encoding', exception: SpecFailedException do
+      File.open(@filename, "w", encoding: Encoding::UTF_32LE) do |file|
+        file.write("h", "i").should == 8
+      end
+      File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
     end
-    File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
   end
 
   it "raises a invalid byte sequence error if invalid bytes are being written" do
     # pack "\xFEhi" to avoid utf-8 conflict
     xFEhi = ([254].pack('C*') + 'hi').force_encoding('utf-8')
     File.open(@filename, "w", encoding: Encoding::US_ASCII) do |file|
-      -> { file.write(xFEhi) }.should raise_error(Encoding::InvalidByteSequenceError)
+      NATFIXME 'Encoding', exception: SpecFailedException do
+        -> { file.write(xFEhi) }.should raise_error(Encoding::InvalidByteSequenceError)
+      end
     end
   end
 
@@ -140,50 +154,66 @@ describe "IO.write" do
   it_behaves_like :io_binwrite, :write
 
   it "uses an :open_args option" do
-    IO.write(@filename, 'hi', open_args: ["w", nil, {encoding: Encoding::UTF_32LE}]).should == 8
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+      IO.write(@filename, 'hi', open_args: ["w", nil, {encoding: Encoding::UTF_32LE}]).should == 8
+    end
   end
 
   it "disregards other options if :open_args is given" do
-    IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
-    File.read(@filename).should == "\0\0hi"
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 2)' do
+      IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
+      File.read(@filename).should == "\0\0hi"
+    end
   end
 
   it "requires mode to be specified in :open_args" do
-    -> {
-      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
-    }.should raise_error(IOError, "not opened for writing")
+    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
+      -> {
+        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
+      }.should raise_error(IOError, "not opened for writing")
+    end
 
-    IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true}]).should == 8
-    IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, mode: "w"}]).should == 8
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+      IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true}]).should == 8
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, mode: "w"}]).should == 8
+    end
   end
 
   it "requires mode to be specified in :open_args even if flags option passed" do
-    -> {
-      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
-    }.should raise_error(IOError, "not opened for writing")
+    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
+      -> {
+        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
+      }.should raise_error(IOError, "not opened for writing")
 
-    IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}]).should == 8
-    IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT, mode: "w"}]).should == 8
+      IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}]).should == 8
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT, mode: "w"}]).should == 8
+    end
   end
 
   it "uses the given encoding and returns the number of bytes written" do
-    IO.write(@filename, 'hi', mode: "w", encoding: Encoding::UTF_32LE).should == 8
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+      IO.write(@filename, 'hi', mode: "w", encoding: Encoding::UTF_32LE).should == 8
+    end
   end
 
   it "raises ArgumentError if encoding is specified in mode parameter and is given as :encoding option" do
-    -> {
-      IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
-    }.should raise_error(ArgumentError, "encoding specified twice")
+    NATFIXME 'Keyword arguments', exception: SpecFailedException do
+      -> {
+        IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
+      }.should raise_error(ArgumentError, "encoding specified twice")
 
-    -> {
-      IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
-    }.should raise_error(ArgumentError, "encoding specified twice")
+      -> {
+        IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
+      }.should raise_error(ArgumentError, "encoding specified twice")
+    end
   end
 
   it "writes the file with the permissions in the :perm parameter" do
     rm_r @filename
-    IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
-    (File.stat(@filename).mode & 0o777) == 0o755
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+      IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
+      (File.stat(@filename).mode & 0o777) == 0o755
+    end
   end
 
   # NATFIXME: Conversion above Unicode Basic Latin (0x00..0x7F) not implemented
@@ -282,15 +312,17 @@ describe "IO#write on STDOUT" do
     it "raises SignalException SIGPIPE if the stream is closed instead of Errno::EPIPE like other IOs" do
       stderr_file = tmp("stderr")
       begin
-        IO.popen([*ruby_exe, "-e", "loop { puts :ok }"], "r", err: stderr_file) do |io|
-          io.gets.should == "ok\n"
-          io.close
+        NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+          IO.popen([*ruby_exe, "-e", "loop { puts :ok }"], "r", err: stderr_file) do |io|
+            io.gets.should == "ok\n"
+            io.close
+          end
+          status = $?
+          status.should_not.success?
+          status.should.signaled?
+          Signal.signame(status.termsig).should == 'PIPE'
+          File.read(stderr_file).should.empty?
         end
-        status = $?
-        status.should_not.success?
-        status.should.signaled?
-        Signal.signame(status.termsig).should == 'PIPE'
-        File.read(stderr_file).should.empty?
       ensure
         rm_r stderr_file
       end
