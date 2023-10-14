@@ -580,7 +580,7 @@ Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
 Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
         while (true) {
-            if (!FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil())
+            if (FiberObject::scheduler_is_relevant())
                 FiberObject::scheduler()->send(env, "kernel_sleep"_s);
             ::sleep(1000);
         }
@@ -607,7 +607,7 @@ Value KernelModule::sleep(Env *env, Value length) {
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
-    if (!FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil()) {
+    if (FiberObject::scheduler_is_relevant()) {
         ts.tv_sec += t_begin.tv_sec;
         ts.tv_nsec += t_begin.tv_nsec;
         if (ts.tv_nsec >= 1000000000) {
