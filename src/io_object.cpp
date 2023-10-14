@@ -116,12 +116,24 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
-Value IoObject::binwrite(Env *env, Value filename, Value string, Value offset) {
+Value IoObject::binwrite(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 2, 3);
+    auto filename = args.at(0);
+    auto string = args.at(1);
+    auto offset = args.at(2, nullptr);
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     auto mode = O_WRONLY | O_CREAT | O_CLOEXEC;
     if (!offset || offset->is_nil())
         mode |= O_TRUNC;
-    auto kwargs = new HashObject { env, { "mode"_s, IntegerObject::create(mode), "binmode"_s, TrueObject::the() } };
+    if (kwargs) {
+        kwargs = kwargs->dup(env)->as_hash();
+    } else {
+        kwargs = new HashObject {};
+    }
+    if (!kwargs->has_key(env, "mode"_s))
+        kwargs->put(env, "mode"_s, IntegerObject::create(mode));
+    kwargs->put(env, "binmode"_s, TrueObject::the());
     FileObject *file = _new(env, File, Args({ filename, kwargs }, true), nullptr)->as_file();
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
