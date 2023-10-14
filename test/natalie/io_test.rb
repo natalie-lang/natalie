@@ -60,6 +60,7 @@ describe "IO#gets" do
   end
 
   after :each do
+    @io.close
     rm_r @name
   end
 
