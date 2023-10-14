@@ -149,6 +149,7 @@ public:
     static Value refeq(Env *env, Value, Value);
     Value resume(Env *env, Args args);
     static Value scheduler();
+    static bool scheduler_is_relevant();
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;

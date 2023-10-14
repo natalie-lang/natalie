@@ -580,11 +580,12 @@ Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
 Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
         while (true) {
+            if (FiberObject::scheduler_is_relevant())
+                FiberObject::scheduler()->send(env, "kernel_sleep"_s);
             ::sleep(1000);
         }
         NAT_UNREACHABLE();
     }
-    timespec ts;
     float secs;
     if (length->is_integer()) {
         secs = length->as_integer()->to_nat_int_t();
@@ -601,14 +602,35 @@ Value KernelModule::sleep(Env *env, Value length) {
     }
     if (secs < 0.0)
         env->raise("ArgumentError", "time interval must not be negative");
+    timespec ts, t_begin, t_end;
     ts.tv_sec = ::floor(secs);
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
-    timespec t_begin, t_end;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
-    nanosleep(&ts, nullptr);
-    if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
-        env->raise_errno();
+    if (FiberObject::scheduler_is_relevant()) {
+        ts.tv_sec += t_begin.tv_sec;
+        ts.tv_nsec += t_begin.tv_nsec;
+        if (ts.tv_nsec >= 1000000000) {
+            ts.tv_sec++;
+            ts.tv_nsec -= 1000000000;
+        }
+        while (true) {
+            FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
+            // When we get here, the scheduler should have checked our timeout. But loop in case we got
+            // restarted too early
+            if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+                env->raise_errno();
+            if (t_end.tv_sec > ts.tv_sec || (t_end.tv_sec == ts.tv_sec && t_end.tv_nsec > ts.tv_nsec))
+                break;
+            secs = t_end.tv_sec - ts.tv_sec;
+            secs += (t_end.tv_nsec - ts.tv_nsec) / 1000000000.0;
+            length = new FloatObject { secs };
+        }
+    } else {
+        nanosleep(&ts, nullptr);
+        if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+            env->raise_errno();
+    }
     int elapsed = t_end.tv_sec - t_begin.tv_sec;
     if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
     return IntegerObject::create(elapsed);

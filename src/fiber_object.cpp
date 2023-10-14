@@ -130,6 +130,10 @@ Value FiberObject::scheduler() {
     return s_scheduler;
 }
 
+bool FiberObject::scheduler_is_relevant() {
+    return !FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil();
+}
+
 Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     if (scheduler->is_nil()) {
         s_scheduler = nullptr;
