@@ -2,7 +2,7 @@ module Natalie
   class Compiler
     class Arity
       def initialize(args, is_proc:)
-        if args == 0
+        if args.nil? || args == 0
           @args = []
         elsif args.is_a?(::Prism::Node) && args.type == :parameters_node
           # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436

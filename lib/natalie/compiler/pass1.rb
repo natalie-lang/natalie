@@ -286,11 +286,6 @@ module Natalie
         ClassVariableGetInstruction.new(node.name)
       end
 
-      def transform_class_variable_target_node(node, used:)
-        raise "Target nodes should not be marked as used" if used
-        [ClassVariableSetInstruction.new(node.name)]
-      end
-
       def transform_class_variable_write_node(node, used:)
         instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
         instructions << ClassVariableGetInstruction.new(node.name) if used
@@ -376,6 +371,30 @@ module Natalie
         instructions
       end
 
+      def transform_def_node(node, used:)
+        arity = Arity.new(node.parameters, is_proc: false).arity
+
+        instructions = []
+        if node.receiver
+          instructions << [
+            transform_expression(node.receiver, used: true),
+            SingletonClassInstruction.new,
+          ]
+        else
+          instructions << PushSelfInstruction.new
+        end
+
+        instructions << [
+          DefineMethodInstruction.new(name: node.name, arity: arity),
+          transform_defn_args(node.parameters, used: true),
+          transform_body([node.body], used: true),
+          EndInstruction.new(:define_method),
+        ]
+
+        instructions << PushSymbolInstruction.new(node.name) if used
+        instructions
+      end
+
       def transform_defined_node(node, used:)
         return [] unless used
 
@@ -437,6 +456,17 @@ module Natalie
         [PushFloatInstruction.new(node.value)]
       end
 
+      def transform_for_node(node, used:)
+        instructions = transform_for_declare_args(node.index)
+        instructions << DefineBlockInstruction.new(arity: 1)
+        instructions += transform_block_args_for_for(s(:args, node.index), used: true)
+        instructions += transform_expression(node.statements, used: true)
+        instructions << EndInstruction.new(:define_block)
+        call = Sexp.new(:call, node.collection, :each)
+        instructions << transform_call(call, used: used, with_block: true)
+        instructions
+      end
+
       def transform_forwarding_super_node(_, used:, with_block: false)
         instructions = []
         instructions << PushSelfInstruction.new
@@ -447,6 +477,57 @@ module Natalie
         )
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_global_variable_and_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          GlobalVariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          GlobalVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_global_variable_operator_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << GlobalVariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_global_variable_or_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          GlobalVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          GlobalVariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_global_variable_read_node(node, used:)
+        return [] unless used
+        GlobalVariableGetInstruction.new(node.name)
       end
 
       def transform_imaginary_node(node, used:)
@@ -535,6 +616,52 @@ module Natalie
       def transform_integer_node(node, used:)
         return [] unless used
         [PushIntInstruction.new(node.value)]
+      end
+
+      def transform_local_variable_and_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          VariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          VariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_local_variable_operator_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << VariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_local_variable_or_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          VariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          VariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_local_variable_read_node(node, used:)
@@ -968,26 +1095,6 @@ module Natalie
         ]
       end
 
-      def transform_def(exp, used:)
-        _, name, args, *body = exp
-        arity = Arity.new(args, is_proc: false).arity
-        instructions = [
-          DefineMethodInstruction.new(name: name, arity: arity),
-          transform_defn_args(args, used: true),
-          transform_body(body, used: true),
-          EndInstruction.new(:define_method),
-        ]
-        instructions << PushSymbolInstruction.new(name) if used
-        instructions
-      end
-
-      def transform_defn(exp, used:)
-        [
-          PushSelfInstruction.new,
-          transform_def(exp, used: used),
-        ]
-      end
-
       def transform_defn_args(exp, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
         _, *args = exp
@@ -1060,15 +1167,6 @@ module Natalie
         end
 
         instructions
-      end
-
-      def transform_defs(exp, used:)
-        _, owner, name, args, *body = exp
-        [
-          transform_expression(owner, used: true),
-          SingletonClassInstruction.new,
-          transform_def(exp.new(:defn, name, args, *body), used: used),
-        ]
       end
 
       def transform_dot2(exp, used:, exclude_end: false)
@@ -1184,19 +1282,6 @@ module Natalie
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
 
-        instructions
-      end
-
-      def transform_for(exp, used:)
-        _, array, args, body = exp
-        body = Prism.nil_node if body.nil?
-        instructions = transform_for_declare_args(args)
-        instructions << DefineBlockInstruction.new(arity: 1)
-        instructions += transform_block_args_for_for(s(:args, args), used: true)
-        instructions += transform_expression(body, used: true)
-        instructions << EndInstruction.new(:define_block)
-        call = exp.new(:call, array, :each)
-        instructions << transform_call(call, used: used, with_block: true)
         instructions
       end
 
@@ -1866,6 +1951,7 @@ module Natalie
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
             %i[
+              local_variable_target_node
               multi_target_node
               optional_parameter_node
               required_destructured_parameter_node

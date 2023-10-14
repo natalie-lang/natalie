@@ -6,15 +6,6 @@ module Natalie
       end
 
       def transform(exp)
-        # s(:rescue,
-        #   s(:lit, 1),
-        #   s(:resbody, s(:array, s(:const, :NoMethodError)),
-        #     nil,
-        #     s(:lit, 2)),
-        #   s(:resbody, s(:array, s(:const, :ArgumentError)),
-        #     nil,
-        #     s(:lit, 3)))
-
         _, *rescue_exprs = exp
         body = shift_body(rescue_exprs)
         else_body = pop_else_body(rescue_exprs)
@@ -37,16 +28,6 @@ module Natalie
       private
 
       def transform_catch_body(rescue_exprs, retry_id:)
-        # [
-        #   s(:resbody,
-        #     s(:array, s(:const, :NoMethodError)),
-        #     s(:lasgn, :e, s(:gvar, :$!)),
-        #     s(:lit, 2)),
-        #   s(:resbody, s(:array, s(:const, :ArgumentError)),
-        #     nil,
-        #     s(:lit, 3))
-        # ]
-
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
             _, match_array, variable_set, *rescue_body = rescue_expr
@@ -66,7 +47,7 @@ module Natalie
               @pass.transform_expression(match_array, used: true),
               MatchExceptionInstruction.new,
               IfInstruction.new,
-              variable_set ? @pass.transform_expression(variable_set, used: false) : [],
+              transform_reference_node(variable_set),
               rescue_instructions,
               ElseInstruction.new(:if),
             ]
@@ -103,6 +84,34 @@ module Natalie
           @pass.transform_expression(else_body, used: true),
           EndInstruction.new(:if),
         ]
+      end
+
+      def transform_reference_node(node)
+        return [] if node.nil?
+
+        instructions = [GlobalVariableGetInstruction.new(:$!)]
+
+        case node
+        when ::Prism::ClassVariableTargetNode
+          instructions << ClassVariableSetInstruction.new(node.name)
+        when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
+          prepper = ConstPrepper.new(node, pass: @pass)
+          instructions << [
+            GlobalVariableGetInstruction.new(:$!),
+            prepper.namespace,
+            ConstSetInstruction.new(prepper.name)
+          ]
+        when ::Prism::GlobalVariableTargetNode
+          instructions << GlobalVariableSetInstruction.new(node.name)
+        when ::Prism::InstanceVariableTargetNode
+          instructions << InstanceVariableSetInstruction.new(node.name)
+        when ::Prism::LocalVariableTargetNode
+          instructions << VariableSetInstruction.new(node.name)
+        else
+          raise "unhandled reference node for rescue: #{node.inspect}"
+        end
+
+        instructions
       end
 
       def shift_body(rescue_exprs)

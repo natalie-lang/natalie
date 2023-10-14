@@ -298,11 +298,11 @@ module Natalie
         copy(node, value: visit(node.value))
       end
 
-      def visit_class_variable_or_write_node(node)
+      def visit_class_variable_operator_write_node(node)
         copy(node, value: visit(node.value))
       end
 
-      def visit_class_variable_operator_write_node(node)
+      def visit_class_variable_or_write_node(node)
         copy(node, value: visit(node.value))
       end
 
@@ -344,25 +344,12 @@ module Natalie
       end
 
       def visit_def_node(node)
-        if node.receiver
-          receiver = visit(node.receiver)
-          if receiver.sexp_type == :call
-            # NOTE: possible bug? https://github.com/ruby/prism/issues/1435
-            receiver = s(:lvar, receiver.last, location: node.receiver.location)
-          end
-          s(:defs,
-            receiver,
-            node.name.to_sym,
-            visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || Prism.nil_node(location: node.location),
-            location: node.location)
-        else
-          s(:defn,
-            node.name.to_sym,
-            visit(node.parameters) || s(:args, location: node.location),
-            visit(node.body) || Prism.nil_node(location: node.location),
-            location: node.location)
-        end
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          parameters: visit(node.parameters),
+          body: visit(node.body)
+        )
       end
 
       def visit_defined_node(node)
@@ -378,11 +365,12 @@ module Natalie
       alias visit_float_node visit_passthrough
 
       def visit_for_node(node)
-        s(:for,
-          visit(node.collection),
-          visit(node.index),
-          visit(node.statements),
-          location: node.location)
+        copy(
+          node,
+          collection: visit(node.collection),
+          index: visit(node.index),
+          statements: visit(node.statements)
+        )
       end
 
       alias visit_forwarding_arguments_node visit_passthrough
@@ -398,30 +386,20 @@ module Natalie
       end
 
       def visit_global_variable_and_write_node(node)
-        s(:op_asgn_and,
-          s(:gvar, node.name, location: node.location),
-          s(:gasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_global_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :gvar, write_sexp_type: :gasgn)
+        copy(node, value: visit(node.value))
       end
 
       def visit_global_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:gvar, node.name, location: node.location),
-          s(:gasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
-      def visit_global_variable_read_node(node)
-        s(:gvar, node.name, location: node.location)
-      end
+      alias visit_global_variable_read_node visit_passthrough
 
-      def visit_global_variable_target_node(node)
-        s(:gasgn, node.name, location: node.location)
-      end
+      alias visit_global_variable_target_node visit_passthrough
 
       def visit_global_variable_write_node(node)
         s(:gasgn, node.name, visit(node.value), location: node.location)
@@ -544,35 +522,22 @@ module Natalie
       end
 
       def visit_local_variable_and_write_node(node)
-        s(:op_asgn_and,
-          s(:lvar,
-            node.name,
-            location: node.location),
-          s(:lasgn,
-            node.name,
-            visit(node.value),
-            location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :lvar, write_sexp_type: :lasgn)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:lvar, node.name, location: node.location),
-          s(:lasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_read_node(node)
         s(:lvar, node.name, location: node.location)
       end
 
-      def visit_local_variable_target_node(node)
-        s(:lasgn, node.name, location: node.location)
-      end
+      alias visit_local_variable_target_node visit_passthrough
 
       def visit_local_variable_write_node(node)
         s(:lasgn, node.name, visit(node.value), location: node.location)
@@ -700,12 +665,19 @@ module Natalie
         case ref
         when nil
           # Do nothing
-        when ::Prism::ClassVariableTargetNode
-          ref = ::Prism.class_variable_write_node(name: ref.name, value: s(:gvar, :$!, location: node.location), location: node.location)
+        when ::Prism::ClassVariableTargetNode,
+             ::Prism::ConstantTargetNode,
+             ::Prism::ConstantPathTargetNode,
+             ::Prism::GlobalVariableTargetNode,
+             ::Prism::InstanceVariableTargetNode,
+             ::Prism::LocalVariableTargetNode
+          # Do nothing here; handle these in Compiler::Rescue
         when Sexp
           # This is a sexp, so we can treat all of the writes the same and push
           # on the value that should be written.
           ref << s(:gvar, :$!, location: node.location)
+        else
+          raise "unhandled rescue reference: #{ref}"
         end
 
         ary = Prism.array_node(elements: node.exceptions.map { |exception| visit(exception) }, location: node.location)
