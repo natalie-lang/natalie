@@ -349,13 +349,13 @@ module Natalie
           s(:defs,
             receiver,
             node.name.to_sym,
-            visit(node.parameters) || s(:args, location: node.location),
+            visit(node.parameters),
             visit(node.body) || Prism.nil_node(location: node.location),
             location: node.location)
         else
           s(:defn,
             node.name.to_sym,
-            visit(node.parameters) || s(:args, location: node.location),
+            visit(node.parameters),
             visit(node.body) || Prism.nil_node(location: node.location),
             location: node.location)
         end
