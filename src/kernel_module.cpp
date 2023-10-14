@@ -580,6 +580,8 @@ Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
 Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
         while (true) {
+            if (!FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil())
+                FiberObject::scheduler()->send(env, "kernel_sleep"_s);
             ::sleep(1000);
         }
         NAT_UNREACHABLE();
