@@ -379,6 +379,10 @@ Value IoObject::binmode(Env *env) {
     return this;
 }
 
+int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
+    return -1;
+}
+
 int IoObject::write(Env *env, Value obj) const {
     raise_if_closed(env);
     obj = obj->to_s(env);
