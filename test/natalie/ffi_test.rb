@@ -10,6 +10,8 @@ module LibRubyParser
   extend FFI::Library
   ffi_lib LIBRARY_PATH
   attach_function :pm_version, [], :pointer
+  attach_function :pm_buffer_init, [:pointer], :bool
+  attach_function :pm_buffer_free, [:pointer], :void
   attach_function :pm_string_sizeof, [], :size_t
 end
 
@@ -68,5 +70,16 @@ describe 'FFI' do
     sizeof = LibRubyParser.pm_string_sizeof
     sizeof.should be_an_instance_of(Integer)
     sizeof.should == 24 # could be different on another architecture I guess
+  end
+
+  it 'can allocate a pointer, pass it as an argument, and free it later' do
+    pointer = FFI::MemoryPointer.new(24)
+
+    begin
+      LibRubyParser.pm_buffer_init(pointer).should == true
+    ensure
+      LibRubyParser.pm_buffer_free(pointer)
+      pointer.free
+    end
   end
 end

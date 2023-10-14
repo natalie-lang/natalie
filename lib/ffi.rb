@@ -24,4 +24,10 @@ module FFI
     __bind_method__ :address, :FFI_Pointer_address
     __bind_method__ :read_string, :FFI_Pointer_read_string
   end
+
+  class MemoryPointer
+    __bind_method__ :initialize, :FFI_MemoryPointer_initialize
+    __bind_method__ :free, :FFI_MemoryPointer_free
+    __bind_method__ :inspect, :FFI_MemoryPointer_inspect
+  end
 end
