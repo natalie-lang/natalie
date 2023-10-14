@@ -114,6 +114,23 @@ module Natalie
             GlobalVariableGetInstruction.new(:$!),
             ClassVariableSetInstruction.new(node.name)
           ]
+        when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
+          prepper = ConstPrepper.new(node, pass: @pass)
+          [
+            GlobalVariableGetInstruction.new(:$!),
+            prepper.namespace,
+            ConstSetInstruction.new(prepper.name)
+          ]
+        when ::Prism::GlobalVariableTargetNode
+          [
+            GlobalVariableGetInstruction.new(:$!),
+            GlobalVariableSetInstruction.new(node.name)
+          ]
+        when ::Prism::InstanceVariableTargetNode
+          [
+            GlobalVariableGetInstruction.new(:$!),
+            InstanceVariableSetInstruction.new(node.name)
+          ]
         when ::Prism::LocalVariableTargetNode
           [
             GlobalVariableGetInstruction.new(:$!),

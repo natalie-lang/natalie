@@ -19,6 +19,48 @@ describe 'begin/rescue/else' do
              e
            end
     r2.message.should == 'foo'
+
+    begin
+      raise 'foo'
+    rescue => @e
+    end
+    @e.message.should == 'foo'
+
+    begin
+      raise 'foo'
+    rescue => $e
+    end
+    $e.message.should == 'foo'
+
+    begin
+      raise 'foo'
+    rescue => E
+    end
+    E.message.should == 'foo'
+
+    module M; end
+    begin
+      raise 'foo'
+    rescue => M::E
+    end
+    M::E.message.should == 'foo'
+
+    begin
+      raise 'foo'
+    rescue => ::E2
+    end
+    ::E2.message.should == 'foo'
+
+    class Foo
+      def foo
+        begin
+          raise 'foo'
+        rescue => @@e
+        end
+        @@e
+      end
+    end
+    Foo.new.foo.message.should == 'foo'
   end
 
   it 'uses the same scope' do

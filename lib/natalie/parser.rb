@@ -419,9 +419,7 @@ module Natalie
         s(:gvar, node.name, location: node.location)
       end
 
-      def visit_global_variable_target_node(node)
-        s(:gasgn, node.name, location: node.location)
-      end
+      alias visit_global_variable_target_node visit_passthrough
 
       def visit_global_variable_write_node(node)
         s(:gasgn, node.name, visit(node.value), location: node.location)
@@ -698,10 +696,13 @@ module Natalie
         case ref
         when nil
           # Do nothing
-        when ::Prism::ClassVariableTargetNode
-          # Do nothing here; handle this in Compiler::Rescue
-        when ::Prism::LocalVariableTargetNode
-          # Do nothing here; handle this in Compiler::Rescue
+        when ::Prism::ClassVariableTargetNode,
+             ::Prism::ConstantTargetNode,
+             ::Prism::ConstantPathTargetNode,
+             ::Prism::GlobalVariableTargetNode,
+             ::Prism::InstanceVariableTargetNode,
+             ::Prism::LocalVariableTargetNode
+          # Do nothing here; handle these in Compiler::Rescue
         when Sexp
           # This is a sexp, so we can treat all of the writes the same and push
           # on the value that should be written.
