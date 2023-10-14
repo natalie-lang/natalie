@@ -253,6 +253,10 @@ module Natalie
         call_args = transform_call_args(args, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
+        if node.name == :!~
+          message = :=~
+        end
+
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
@@ -267,6 +271,10 @@ module Natalie
         if node.safe_navigation?
           # close out our safe navigation `if` wrapper
           instructions << EndInstruction.new(:if)
+        end
+
+        if node.name == :!~
+          instructions << NotInstruction.new
         end
 
         instructions << PopInstruction.new unless used
