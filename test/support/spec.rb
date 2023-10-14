@@ -1211,6 +1211,20 @@ class RespondToExpectation
   end
 end
 
+class BlockCallerExpectation
+  def match(block)
+    block.call
+    raise SpecFailedException, "Expected #{block} to block the caller"
+  rescue ThreadError
+  end
+
+  def inverted_match(block)
+    block.call
+  rescue ThreadError
+    raise SpecFailedException, "Expected #{block} to not block the caller"
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -1353,6 +1367,10 @@ class Object
 
   def stub!(message)
     Stub.new(self, message).any_number_of_times.tap { |stub| $stub_registry.register(stub) }
+  end
+
+  def block_caller
+    BlockCallerExpectation.new
   end
 end
 

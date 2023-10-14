@@ -7,6 +7,8 @@
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
+#include <mutex>
+
 namespace Natalie {
 
 class MutexObject : public Object {
@@ -19,6 +21,13 @@ public:
 
     Value lock(Env *);
     Value unlock(Env *);
+
+    virtual void visit_children(Visitor &) override final;
+
+private:
+    // NATFIXME: Use Mutex the correct way
+    std::mutex m_mutex {};
+    FiberObject *m_owner { nullptr };
 };
 
 }
