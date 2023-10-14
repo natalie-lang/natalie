@@ -151,6 +151,21 @@ describe 'for' do
     end
     results.should == [1, 2, 3, 4]
   end
+
+  # FIXME: Natalie cannot compile this yet
+  #it 'can set all types of variables and constants as index' do
+  #  module M; end
+  #  ary = [[1, 2, 3, 4, 5, 6, 7]]
+  #  for (foo, @foo, @@foo, $foo, Foo, M::Foo, ::Bar) in foo
+  #  end
+  #  foo.should == 1
+  #  @foo.should == 2
+  #  @@foo.should == 3
+  #  $foo.should == 4
+  #  Foo.should == 5
+  #  M::Foo.should == 6
+  #  ::Bar.should == 7
+  #end
 end
 
 describe 'loop' do
