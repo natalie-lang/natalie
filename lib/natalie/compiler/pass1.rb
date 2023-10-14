@@ -479,6 +479,11 @@ module Natalie
         instructions
       end
 
+      def transform_global_variable_read_node(node, used:)
+        return [] unless used
+        GlobalVariableGetInstruction.new(node.name)
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 

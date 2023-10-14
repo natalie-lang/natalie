@@ -83,7 +83,7 @@ module Natalie
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
         if node.is_a?(::Prism::CallNode)
-          if node.type == :call_node && node.receiver&.type == :gvar && %i[$LOAD_PATH $:].include?(node.receiver[1]) && %i[<< unshift].include?(node.name)
+          if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
             :update_load_path
           end
         elsif node.instance_of?(Sexp) && node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
@@ -207,7 +207,11 @@ module Natalie
       # $LOAD_PATH.unshift(some_expression)
       def macro_update_load_path(expr:, current_path:, depth:)
         if depth > 1
-          name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
+          if expr.is_a?(::Prism::Node)
+            name = expr.receiver.name
+          else
+            name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
+          end
           return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
         end
 

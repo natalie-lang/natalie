@@ -403,9 +403,7 @@ module Natalie
           location: node.location)
       end
 
-      def visit_global_variable_read_node(node)
-        s(:gvar, node.name, location: node.location)
-      end
+      alias visit_global_variable_read_node visit_passthrough
 
       alias visit_global_variable_target_node visit_passthrough
 
