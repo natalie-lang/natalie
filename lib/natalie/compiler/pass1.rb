@@ -241,7 +241,7 @@ module Natalie
         end
 
         if node.safe_navigation?
-          # wrap the whole thing with an effective `unless reciever.nil?`
+          # wrap the SendInstruction with an effective `unless reciever.nil?`
           instructions << DupInstruction.new # duplicate receiver for IsNil below
           instructions << IsNilInstruction.new
           instructions << IfInstruction.new
@@ -252,6 +252,10 @@ module Natalie
 
         call_args = transform_call_args(args, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
+
+        if node.name == :!~
+          message = :=~
+        end
 
         instructions << SendInstruction.new(
           message,
@@ -267,6 +271,10 @@ module Natalie
         if node.safe_navigation?
           # close out our safe navigation `if` wrapper
           instructions << EndInstruction.new(:if)
+        end
+
+        if node.name == :!~
+          instructions << NotInstruction.new
         end
 
         instructions << PopInstruction.new unless used
@@ -1363,16 +1371,6 @@ module Natalie
         return [] unless used
         _, name = exp
         VariableGetInstruction.new(name)
-      end
-
-      def transform_match2(exp, used:)
-        _, regexp, string = exp
-        transform_call(exp.new(:call, regexp, :=~, string), used: used)
-      end
-
-      def transform_match3(exp, used:)
-        _, string, regexp = exp
-        transform_call(exp.new(:call, regexp, :=~, string), used: used)
       end
 
       def transform_match_write(exp, used:)
