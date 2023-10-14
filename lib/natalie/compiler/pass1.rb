@@ -618,6 +618,52 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_local_variable_and_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          VariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          VariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_local_variable_operator_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << VariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_local_variable_or_write_node(node, used:)
+        instructions = [
+          VariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          VariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          VariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_local_variable_read_node(node, used:)
         return [] unless used
         VariableGetInstruction.new(node.name)

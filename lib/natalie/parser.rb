@@ -522,26 +522,15 @@ module Natalie
       end
 
       def visit_local_variable_and_write_node(node)
-        s(:op_asgn_and,
-          s(:lvar,
-            node.name,
-            location: node.location),
-          s(:lasgn,
-            node.name,
-            visit(node.value),
-            location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_operator_write_node(node)
-        visit_operator_write_node(node, read_sexp_type: :lvar, write_sexp_type: :lasgn)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:lvar, node.name, location: node.location),
-          s(:lasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_local_variable_read_node(node)
