@@ -6,15 +6,6 @@ module Natalie
       end
 
       def transform(exp)
-        # s(:rescue,
-        #   s(:lit, 1),
-        #   s(:resbody, s(:array, s(:const, :NoMethodError)),
-        #     nil,
-        #     s(:lit, 2)),
-        #   s(:resbody, s(:array, s(:const, :ArgumentError)),
-        #     nil,
-        #     s(:lit, 3)))
-
         _, *rescue_exprs = exp
         body = shift_body(rescue_exprs)
         else_body = pop_else_body(rescue_exprs)
@@ -37,16 +28,6 @@ module Natalie
       private
 
       def transform_catch_body(rescue_exprs, retry_id:)
-        # [
-        #   s(:resbody,
-        #     s(:array, s(:const, :NoMethodError)),
-        #     s(:lasgn, :e, s(:gvar, :$!)),
-        #     s(:lit, 2)),
-        #   s(:resbody, s(:array, s(:const, :ArgumentError)),
-        #     nil,
-        #     s(:lit, 3))
-        # ]
-
         catch_body = rescue_exprs.reduce([]) do |instr, rescue_expr|
           if rescue_expr.sexp_type == :resbody
             _, match_array, variable_set, *rescue_body = rescue_expr
