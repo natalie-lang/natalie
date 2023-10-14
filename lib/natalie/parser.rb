@@ -298,11 +298,11 @@ module Natalie
         copy(node, value: visit(node.value))
       end
 
-      def visit_class_variable_or_write_node(node)
+      def visit_class_variable_operator_write_node(node)
         copy(node, value: visit(node.value))
       end
 
-      def visit_class_variable_operator_write_node(node)
+      def visit_class_variable_or_write_node(node)
         copy(node, value: visit(node.value))
       end
 
