@@ -7,6 +7,7 @@ class StandardError < Exception; end
   class EncodingError < StandardError; end
   class FiberError < StandardError; end
   class IndexError < StandardError; end
+  class ThreadError < StandardError; end
     class StopIteration < IndexError; end
 class NameError < StandardError
   attr_reader :name, :receiver
