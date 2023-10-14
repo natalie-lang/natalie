@@ -161,7 +161,7 @@ module Natalie
       end
 
       def variable_set(name)
-        raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
+        raise "bad var name: #{name.inspect}" unless name =~ /^(?:[[:alpha:]]|_)[[:alnum:]]*/
         VariableSetInstruction.new(name, local_only: false)
       end
 

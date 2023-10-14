@@ -110,16 +110,15 @@ describe "IO#write on a file" do
     end
   end
 
-  # NATFIXME: Compile error: bad var name
-  # it "writes binary data if no encoding is given" do
-    # File.open(@filename, "w") do |file|
-      # file.write('Hëllö'.encode('ISO-8859-1'))
-    # end
-    # ë = ([235].pack('U')).encode('ISO-8859-1')
-    # ö = ([246].pack('U')).encode('ISO-8859-1')
-    # res = "H#{ë}ll#{ö}"
-    # File.binread(@filename).should == res.force_encoding(Encoding::BINARY)
-  # end
+  it "writes binary data if no encoding is given" do
+    File.open(@filename, "w") do |file|
+      file.write('Hëllö'.encode('ISO-8859-1'))
+    end
+    ë = ([235].pack('U')).encode('ISO-8859-1')
+    ö = ([246].pack('U')).encode('ISO-8859-1')
+    res = "H#{ë}ll#{ö}"
+    File.binread(@filename).should == res.force_encoding(Encoding::BINARY)
+  end
 
   platform_is_not :windows do
     it "writes binary data if no encoding is given and multiple arguments passed" do

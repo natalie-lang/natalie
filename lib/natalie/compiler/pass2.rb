@@ -50,7 +50,7 @@ module Natalie
       end
 
       def find_or_create_var(env, name, local_only: false)
-        raise "bad var name: #{name.inspect}" unless name =~ /^[a-z_][a-z0-9_]*/
+        raise "bad var name: #{name.inspect}" unless name =~ /^(?:[[:alpha:]]|_)[[:alnum:]]*/
 
         owning_env = env
 
