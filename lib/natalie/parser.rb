@@ -197,17 +197,6 @@ module Natalie
       end
 
       def visit_call_node(node)
-        if %w[=~ !~].include?(node.name) &&
-          [node.receiver, node.arguments&.child_nodes&.first].any? { |n| n.is_a?(Prism::RegularExpressionNode) }
-          return visit_match_node(node)
-        end
-
-        sexp_type = if node.safe_navigation?
-                      :safe_call
-                    else
-                      :call
-                    end
-
         args, block = node_arguments_and_block(node)
 
         # HACK: alert changing block and changing arguments to plain array (temporary!)
@@ -587,25 +576,6 @@ module Natalie
 
       def visit_local_variable_write_node(node)
         s(:lasgn, node.name, visit(node.value), location: node.location)
-      end
-
-      def visit_match_node(node)
-        match = if node.receiver.is_a?(Prism::RegularExpressionNode)
-                  s(:match2,
-                    visit(node.receiver),
-                    visit(node.arguments.child_nodes.first),
-                    location: node.location)
-                else
-                  s(:match3,
-                    visit(node.arguments.child_nodes.first),
-                    visit(node.receiver),
-                    location: node.location)
-                end
-        if node.name == '!~'
-          s(:not, match, location: node.location)
-        else
-          match
-        end
       end
 
       def visit_match_write_node(node)
