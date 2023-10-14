@@ -386,10 +386,7 @@ module Natalie
       end
 
       def visit_global_variable_and_write_node(node)
-        s(:op_asgn_and,
-          s(:gvar, node.name, location: node.location),
-          s(:gasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_global_variable_operator_write_node(node)
@@ -397,10 +394,7 @@ module Natalie
       end
 
       def visit_global_variable_or_write_node(node)
-        s(:op_asgn_or,
-          s(:gvar, node.name, location: node.location),
-          s(:gasgn, node.name, visit(node.value), location: node.location),
-          location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       alias visit_global_variable_read_node visit_passthrough

@@ -479,6 +479,34 @@ module Natalie
         instructions
       end
 
+      def transform_global_variable_and_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          transform_expression(node.value, used: true),
+          GlobalVariableSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          GlobalVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_global_variable_or_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          IfInstruction.new,
+          GlobalVariableGetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          GlobalVariableSetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_global_variable_read_node(node, used:)
         return [] unless used
         GlobalVariableGetInstruction.new(node.name)
