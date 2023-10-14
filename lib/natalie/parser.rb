@@ -346,10 +346,6 @@ module Natalie
       def visit_def_node(node)
         if node.receiver
           receiver = visit(node.receiver)
-          if receiver.sexp_type == :call
-            # NOTE: possible bug? https://github.com/ruby/prism/issues/1435
-            receiver = s(:lvar, receiver.last, location: node.receiver.location)
-          end
           s(:defs,
             receiver,
             node.name.to_sym,
