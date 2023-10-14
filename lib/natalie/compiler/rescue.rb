@@ -66,7 +66,7 @@ module Natalie
               @pass.transform_expression(match_array, used: true),
               MatchExceptionInstruction.new,
               IfInstruction.new,
-              variable_set ? @pass.transform_expression(variable_set, used: false) : [],
+              transform_reference_node(variable_set),
               rescue_instructions,
               ElseInstruction.new(:if),
             ]
@@ -103,6 +103,27 @@ module Natalie
           @pass.transform_expression(else_body, used: true),
           EndInstruction.new(:if),
         ]
+      end
+
+      def transform_reference_node(node)
+        case node
+        when nil
+          []
+        when ::Prism::ClassVariableTargetNode
+          [
+            GlobalVariableGetInstruction.new(:$!),
+            ClassVariableSetInstruction.new(node.name)
+          ]
+        when ::Prism::LocalVariableTargetNode
+          [
+            GlobalVariableGetInstruction.new(:$!),
+            VariableSetInstruction.new(node.name)
+          ]
+        when Sexp
+          @pass.transform_expression(node, used: false)
+        else
+          raise "unhandled reference node for rescue: #{node.inspect}"
+        end
       end
 
       def shift_body(rescue_exprs)

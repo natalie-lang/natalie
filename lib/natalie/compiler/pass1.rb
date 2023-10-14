@@ -286,11 +286,6 @@ module Natalie
         ClassVariableGetInstruction.new(node.name)
       end
 
-      def transform_class_variable_target_node(node, used:)
-        raise "Target nodes should not be marked as used" if used
-        [ClassVariableSetInstruction.new(node.name)]
-      end
-
       def transform_class_variable_write_node(node, used:)
         instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
         instructions << ClassVariableGetInstruction.new(node.name) if used
@@ -1866,6 +1861,7 @@ module Natalie
         args.count do |arg|
           if arg.is_a?(::Prism::Node)
             %i[
+              local_variable_target_node
               multi_target_node
               optional_parameter_node
               required_destructured_parameter_node

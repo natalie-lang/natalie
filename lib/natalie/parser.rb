@@ -570,9 +570,7 @@ module Natalie
         s(:lvar, node.name, location: node.location)
       end
 
-      def visit_local_variable_target_node(node)
-        s(:lasgn, node.name, location: node.location)
-      end
+      alias visit_local_variable_target_node visit_passthrough
 
       def visit_local_variable_write_node(node)
         s(:lasgn, node.name, visit(node.value), location: node.location)
@@ -701,11 +699,15 @@ module Natalie
         when nil
           # Do nothing
         when ::Prism::ClassVariableTargetNode
-          ref = ::Prism.class_variable_write_node(name: ref.name, value: s(:gvar, :$!, location: node.location), location: node.location)
+          # Do nothing here; handle this in Compiler::Rescue
+        when ::Prism::LocalVariableTargetNode
+          # Do nothing here; handle this in Compiler::Rescue
         when Sexp
           # This is a sexp, so we can treat all of the writes the same and push
           # on the value that should be written.
           ref << s(:gvar, :$!, location: node.location)
+        else
+          raise "unhandled rescue reference: #{ref}"
         end
 
         ary = Prism.array_node(elements: node.exceptions.map { |exception| visit(exception) }, location: node.location)
