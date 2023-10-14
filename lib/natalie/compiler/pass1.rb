@@ -493,6 +493,24 @@ module Natalie
         instructions
       end
 
+      def transform_global_variable_operator_write_node(node, used:)
+        instructions = [
+          GlobalVariableGetInstruction.new(node.name),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << GlobalVariableSetInstruction.new(node.name)
+        instructions
+      end
+
       def transform_global_variable_or_write_node(node, used:)
         instructions = [
           GlobalVariableGetInstruction.new(node.name),
