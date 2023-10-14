@@ -20,7 +20,14 @@ class Scheduler
     run
   end
 
-  def kernel_sleep(duration)
+  def kernel_sleep(duration = nil)
+    # NATFIXME: We don't have any mechanism to stop a fiber with an infinite sleep, so we should not
+    # resume that one.
+    if duration.nil?
+      Fiber.yield
+      return
+    end
+
     # NATFIXME: Issues when using Fiber objects as hash key, use object_id for the time being.
     @waiting[Fiber.current.object_id] = [Fiber.current, current_time + duration]
     Fiber.yield

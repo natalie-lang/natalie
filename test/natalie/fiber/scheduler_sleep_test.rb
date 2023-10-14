@@ -6,7 +6,7 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     Fiber.set_scheduler(nil)
   end
 
-  it 'can interleave fibers with Kernel.sleep' do
+  it 'can interleave fibers with Kernel.sleep with a duration' do
     scheduler = Scheduler.new
     Fiber.set_scheduler(scheduler)
     events = []
@@ -27,6 +27,29 @@ describe 'Fiber.scheduler with Kernel.sleep' do
     scheduler.close
 
     events.should == ['Going to sleep', 'Coffee', 'Woken up']
+  end
+
+  it 'can interleave fibers with Kernel.sleep without a duration' do
+    scheduler = Scheduler.new
+    Fiber.set_scheduler(scheduler)
+    events = []
+
+    sleeper = Fiber.new do
+      events << 'Going to sleep'
+      sleep
+      events << 'Woken up'
+    end
+
+    barista = Fiber.new do
+      events << 'Coffee'
+    end
+
+    sleeper.resume
+    barista.resume
+
+    scheduler.close
+
+    events.should == ['Going to sleep', 'Coffee']
   end
 
   it 'does not interleave blocking fibers' do
