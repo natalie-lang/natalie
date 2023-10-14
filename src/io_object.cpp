@@ -520,6 +520,18 @@ Value IoObject::print(Env *env, Args args) const {
     return NilObject::the();
 }
 
+Value IoObject::pwrite(Env *env, Value data, Value offset) {
+    raise_if_closed(env);
+    if (!is_writable(m_fileno))
+        env->raise("IOError", "not opened for writing");
+    auto offset_int = IntegerObject::convert_to_nat_int_t(env, offset);
+    auto str = data->to_s(env);
+    auto result = ::pwrite(m_fileno, str->c_str(), str->bytesize(), offset_int);
+    if (result < 0)
+        env->raise_errno();
+    return IntegerObject::create(result);
+}
+
 Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();

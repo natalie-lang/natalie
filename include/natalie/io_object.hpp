@@ -83,6 +83,7 @@ public:
     void putstr(Env *, StringObject *);
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
+    Value pwrite(Env *, Value, Value);
     Value seek(Env *, Value, Value) const;
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
