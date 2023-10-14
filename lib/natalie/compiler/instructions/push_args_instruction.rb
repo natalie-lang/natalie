@@ -12,7 +12,7 @@ module Natalie
       end
 
       def to_s
-        s = 'push_args'
+        s = "push_args #{@min_count}..#{@max_count}"
         s << ' (for_block)' if @for_block
         s << ' (spread)' if @spread
         s
