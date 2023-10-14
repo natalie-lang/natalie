@@ -90,7 +90,8 @@ describe :io_write, shared: true do
     # and the RJIT worker keeps the pipe open until the worker execve().
     # TODO: consider acquiring GVL from RJIT worker.
     guard_not -> { defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled? } do
-      it "raises Errno::EPIPE if the read end is closed and does not die from SIGPIPE" do
+      # NATFIXME: This crashes Natalie
+      xit "raises Errno::EPIPE if the read end is closed and does not die from SIGPIPE" do
         @r.close
         -> { @w.send(@method, "foo") }.should raise_error(Errno::EPIPE, /Broken pipe/)
       end
