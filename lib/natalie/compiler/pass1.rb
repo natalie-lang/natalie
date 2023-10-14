@@ -456,6 +456,17 @@ module Natalie
         [PushFloatInstruction.new(node.value)]
       end
 
+      def transform_for_node(node, used:)
+        instructions = transform_for_declare_args(node.index)
+        instructions << DefineBlockInstruction.new(arity: 1)
+        instructions += transform_block_args_for_for(s(:args, node.index), used: true)
+        instructions += transform_expression(node.statements, used: true)
+        instructions << EndInstruction.new(:define_block)
+        call = Sexp.new(:call, node.collection, :each)
+        instructions << transform_call(call, used: used, with_block: true)
+        instructions
+      end
+
       def transform_forwarding_super_node(_, used:, with_block: false)
         instructions = []
         instructions << PushSelfInstruction.new
@@ -1174,19 +1185,6 @@ module Natalie
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
 
-        instructions
-      end
-
-      def transform_for(exp, used:)
-        _, array, args, body = exp
-        body = Prism.nil_node if body.nil?
-        instructions = transform_for_declare_args(args)
-        instructions << DefineBlockInstruction.new(arity: 1)
-        instructions += transform_block_args_for_for(s(:args, args), used: true)
-        instructions += transform_expression(body, used: true)
-        instructions << EndInstruction.new(:define_block)
-        call = exp.new(:call, array, :each)
-        instructions << transform_call(call, used: used, with_block: true)
         instructions
       end
 

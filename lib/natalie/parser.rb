@@ -365,11 +365,12 @@ module Natalie
       alias visit_float_node visit_passthrough
 
       def visit_for_node(node)
-        s(:for,
-          visit(node.collection),
-          visit(node.index),
-          visit(node.statements),
-          location: node.location)
+        copy(
+          node,
+          collection: visit(node.collection),
+          index: visit(node.index),
+          statements: visit(node.statements)
+        )
       end
 
       alias visit_forwarding_arguments_node visit_passthrough
