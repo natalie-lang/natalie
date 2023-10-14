@@ -371,6 +371,30 @@ module Natalie
         instructions
       end
 
+      def transform_def_node(node, used:)
+        arity = Arity.new(node.parameters, is_proc: false).arity
+
+        instructions = []
+        if node.receiver
+          instructions << [
+            transform_expression(node.receiver, used: true),
+            SingletonClassInstruction.new,
+          ]
+        else
+          instructions << PushSelfInstruction.new
+        end
+
+        instructions << [
+          DefineMethodInstruction.new(name: node.name, arity: arity),
+          transform_defn_args(node.parameters, used: true),
+          transform_body([node.body], used: true),
+          EndInstruction.new(:define_method),
+        ]
+
+        instructions << PushSymbolInstruction.new(node.name) if used
+        instructions
+      end
+
       def transform_defined_node(node, used:)
         return [] unless used
 
@@ -963,26 +987,6 @@ module Natalie
         ]
       end
 
-      def transform_def(exp, used:)
-        _, name, args, *body = exp
-        arity = Arity.new(args, is_proc: false).arity
-        instructions = [
-          DefineMethodInstruction.new(name: name, arity: arity),
-          transform_defn_args(args, used: true),
-          transform_body(body, used: true),
-          EndInstruction.new(:define_method),
-        ]
-        instructions << PushSymbolInstruction.new(name) if used
-        instructions
-      end
-
-      def transform_defn(exp, used:)
-        [
-          PushSelfInstruction.new,
-          transform_def(exp, used: used),
-        ]
-      end
-
       def transform_defn_args(exp, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
         _, *args = exp
@@ -1055,15 +1059,6 @@ module Natalie
         end
 
         instructions
-      end
-
-      def transform_defs(exp, used:)
-        _, owner, name, args, *body = exp
-        [
-          transform_expression(owner, used: true),
-          SingletonClassInstruction.new,
-          transform_def(exp.new(:defn, name, args, *body), used: used),
-        ]
       end
 
       def transform_dot2(exp, used:, exclude_end: false)

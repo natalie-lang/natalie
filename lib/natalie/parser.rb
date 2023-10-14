@@ -344,21 +344,12 @@ module Natalie
       end
 
       def visit_def_node(node)
-        if node.receiver
-          receiver = visit(node.receiver)
-          s(:defs,
-            receiver,
-            node.name.to_sym,
-            visit(node.parameters),
-            visit(node.body) || Prism.nil_node(location: node.location),
-            location: node.location)
-        else
-          s(:defn,
-            node.name.to_sym,
-            visit(node.parameters),
-            visit(node.body) || Prism.nil_node(location: node.location),
-            location: node.location)
-        end
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          parameters: visit(node.parameters),
+          body: visit(node.body)
+        )
       end
 
       def visit_defined_node(node)
