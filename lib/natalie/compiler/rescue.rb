@@ -106,41 +106,31 @@ module Natalie
       end
 
       def transform_reference_node(node)
+        return [] if node.nil?
+
+        instructions = [GlobalVariableGetInstruction.new(:$!)]
+
         case node
-        when nil
-          []
         when ::Prism::ClassVariableTargetNode
-          [
-            GlobalVariableGetInstruction.new(:$!),
-            ClassVariableSetInstruction.new(node.name)
-          ]
+          instructions << ClassVariableSetInstruction.new(node.name)
         when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
           prepper = ConstPrepper.new(node, pass: @pass)
-          [
+          instructions << [
             GlobalVariableGetInstruction.new(:$!),
             prepper.namespace,
             ConstSetInstruction.new(prepper.name)
           ]
         when ::Prism::GlobalVariableTargetNode
-          [
-            GlobalVariableGetInstruction.new(:$!),
-            GlobalVariableSetInstruction.new(node.name)
-          ]
+          instructions << GlobalVariableSetInstruction.new(node.name)
         when ::Prism::InstanceVariableTargetNode
-          [
-            GlobalVariableGetInstruction.new(:$!),
-            InstanceVariableSetInstruction.new(node.name)
-          ]
+          instructions << InstanceVariableSetInstruction.new(node.name)
         when ::Prism::LocalVariableTargetNode
-          [
-            GlobalVariableGetInstruction.new(:$!),
-            VariableSetInstruction.new(node.name)
-          ]
-        when Sexp
-          @pass.transform_expression(node, used: false)
+          instructions << VariableSetInstruction.new(node.name)
         else
           raise "unhandled reference node for rescue: #{node.inspect}"
         end
+
+        instructions
       end
 
       def shift_body(rescue_exprs)
