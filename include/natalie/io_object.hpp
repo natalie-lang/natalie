@@ -52,7 +52,7 @@ public:
     Value append(Env *, Value);
     Value autoclose(Env *, Value);
     static Value binread(Env *, Value, Value = nullptr, Value = nullptr);
-    static Value binwrite(Env *, Value, Value, Value = nullptr);
+    static Value binwrite(Env *, Args);
     Value binmode(Env *);
     Value close(Env *);
     Value dup(Env *) const;

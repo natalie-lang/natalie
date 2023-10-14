@@ -116,7 +116,11 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     return data;
 }
 
-Value IoObject::binwrite(Env *env, Value filename, Value string, Value offset) {
+Value IoObject::binwrite(Env *env, Args args) {
+    args.ensure_argc_between(env, 2, 3);
+    auto filename = args.at(0);
+    auto string = args.at(1);
+    auto offset = args.at(2, nullptr);
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     auto mode = O_WRONLY | O_CREAT | O_CLOEXEC;
     if (!offset || offset->is_nil())
