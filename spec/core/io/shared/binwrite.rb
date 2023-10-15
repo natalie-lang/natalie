@@ -23,7 +23,7 @@ describe :io_binwrite, shared: true do
 
   it "accepts options as a keyword argument" do
     if @method == :write
-      NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 2)' do
+      NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
         IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
 
         -> {
@@ -118,15 +118,8 @@ describe :io_binwrite, shared: true do
   end
 
   it "accepts a :flags option without :mode one" do
-    if @method == :write
-      NATFIXME 'Keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-        IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
-        File.read(@filename).should == "hello, world!"
-      end
-    else
-      IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
-      File.read(@filename).should == "hello, world!"
-    end
+    IO.send(@method, @filename, "hello, world!", flags: File::CREAT)
+    File.read(@filename).should == "hello, world!"
   end
 
   it "raises an error if readonly mode is specified" do

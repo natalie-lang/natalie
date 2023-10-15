@@ -277,12 +277,13 @@ Value IoObject::read_file(Env *env, Args args) {
 }
 
 Value IoObject::write_file(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 2);
     auto filename = args.at(0);
     auto string = args.at(1);
     Value flags = new StringObject { "w" };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, { filename, flags }, nullptr)->as_file();
+    FileObject *file = _new(env, File, Args({ filename, flags, kwargs }, true), nullptr)->as_file();
     int bytes_written = file->write(env, string);
     file->close(env);
     return Value::integer(bytes_written);
