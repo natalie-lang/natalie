@@ -191,26 +191,24 @@ describe "IO.write" do
   end
 
   it "uses the given encoding and returns the number of bytes written" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'mode specified twice' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', mode: "w", encoding: Encoding::UTF_32LE).should == 8
     end
   end
 
   it "raises ArgumentError if encoding is specified in mode parameter and is given as :encoding option" do
-    NATFIXME 'Keyword arguments', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
-      }.should raise_error(ArgumentError, "encoding specified twice")
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
 
-      -> {
-        IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
-      }.should raise_error(ArgumentError, "encoding specified twice")
-    end
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
   end
 
   it "writes the file with the permissions in the :perm parameter" do
     rm_r @filename
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'mode specified twice' do
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'unknown keyword: :perm' do
       IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
       (File.stat(@filename).mode & 0o777) == 0o755
     end
