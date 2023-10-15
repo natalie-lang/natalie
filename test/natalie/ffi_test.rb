@@ -4,14 +4,24 @@ require_relative '../spec_helper'
 require 'ffi'
 
 SO_EXT = RbConfig::CONFIG['SOEXT']
-LIBRARY_PATH = File.expand_path("../../build/prism/build/librubyparser.#{SO_EXT}", __dir__)
+PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/librubyparser.#{SO_EXT}", __dir__)
+STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EXT}", __dir__)
+
+module TestStubs
+  extend FFI::Library
+  ffi_lib STUB_LIBRARY_PATH
+  attach_function :test_bool, [:bool], :bool
+  attach_function :test_char, [:char], :char
+end
 
 module LibRubyParser
   extend FFI::Library
-  ffi_lib LIBRARY_PATH
+  ffi_lib PRISM_LIBRARY_PATH
   attach_function :pm_version, [], :pointer
   attach_function :pm_buffer_init, [:pointer], :bool
   attach_function :pm_buffer_free, [:pointer], :void
+  attach_function :pm_buffer_value, [:pointer], :pointer
+  attach_function :pm_buffer_length, [:pointer], :size_t
   attach_function :pm_string_sizeof, [], :size_t
 end
 
@@ -33,19 +43,19 @@ describe 'FFI' do
     libs.size.should == 1
     lib = libs.first
     lib.should be_an_instance_of FFI::DynamicLibrary
-    lib.name.should == LIBRARY_PATH
+    lib.name.should == PRISM_LIBRARY_PATH
   end
 
   it 'raises an error if an unknown symbol is used' do
     lambda do
       module Foo
         extend FFI::Library
-        ffi_lib LIBRARY_PATH
+        ffi_lib PRISM_LIBRARY_PATH
         attach_function :something_unknown, [], :pointer
       end
     end.should raise_error(
       FFI::NotFoundError,
-      "Function 'something_unknown' not found in [#{LIBRARY_PATH}]"
+      "Function 'something_unknown' not found in [#{PRISM_LIBRARY_PATH}]"
     )
   end
 
@@ -53,7 +63,7 @@ describe 'FFI' do
     lambda do
       module Foo
         extend FFI::Library
-        ffi_lib LIBRARY_PATH
+        ffi_lib PRISM_LIBRARY_PATH
         attach_function :pm_version, [], :some_bad_type
       end
     end.should raise_error(
@@ -81,5 +91,14 @@ describe 'FFI' do
       LibRubyParser.pm_buffer_free(pointer)
       pointer.free
     end
+  end
+
+  it 'can pass and return bools' do
+    TestStubs.test_bool(true).should == true
+    TestStubs.test_bool(false).should == false
+  end
+
+  it 'can pass and return chars' do
+    TestStubs.test_char('a').should == 'a'
   end
 end

@@ -45,7 +45,7 @@ end
 task distclean: :clobber
 
 desc 'Run the test suite'
-task test: :build do
+task test: %i[build build_test_support] do
   sh 'bundle exec ruby test/all.rb'
 end
 
@@ -293,6 +293,8 @@ task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
+task build_test_support: "build/test/support/ffi_stubs.#{DL_EXT}"
+
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
 multitask special_objects: SPECIAL_OBJECT_FILES
@@ -431,6 +433,11 @@ file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{
     ruby extconf.rb && \
     make
   SH
+end
+
+file "build/test/support/ffi_stubs.#{DL_EXT}" => 'test/support/ffi_stubs.c' do |t|
+  mkdir_p 'build/test/support'
+  sh "#{cc} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{t.source}"
 end
 
 task :tidy_internal do
