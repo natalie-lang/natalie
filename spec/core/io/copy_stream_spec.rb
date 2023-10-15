@@ -15,10 +15,8 @@ describe :io_copy_stream_to_file, shared: true do
   end
 
   it "copies only length bytes when specified" do
-    NATFIXME 'Implement src_length argument', exception: NotImplementedError, message: 'NATFIXME: Support src_length argument' do
-      IO.copy_stream(@object.from, @to_name, 8).should == 8
-      File.read(@to_name).should == "Line one"
-    end
+    IO.copy_stream(@object.from, @to_name, 8).should == 8
+    File.read(@to_name).should == "Line one"
   end
 
   it "calls #to_path to convert on object to a file name" do
@@ -84,10 +82,8 @@ describe :io_copy_stream_to_io, shared: true do
   end
 
   it "copies only length bytes when specified" do
-    NATFIXME 'Implement src_length argument', exception: NotImplementedError, message: 'NATFIXME: Support src_length argument' do
-      IO.copy_stream(@object.from, @to_io, 8).should == 8
-      File.read(@to_name).should == "Line one"
-    end
+    IO.copy_stream(@object.from, @to_io, 8).should == 8
+    File.read(@to_name).should == "Line one"
   end
 end
 
