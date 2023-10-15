@@ -394,12 +394,16 @@ int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Valu
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     if (src->is_io() || src->respond_to(env, "to_io"_s)) {
         src_io = src->to_io(env);
+        if (!is_readable(src_io->fileno(env)))
+            env->raise("IOError", "not opened for reading");
     } else {
         auto filename = ioutil::convert_using_to_path(env, src);
         src_io = _new(env, File, { filename }, nullptr)->as_io();
     }
     if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
         dst_io = dst->to_io(env);
+        if (!is_writable(dst_io->fileno(env)))
+            env->raise("IOError", "not opened for writing");
     } else {
         auto filename = ioutil::convert_using_to_path(env, dst);
         dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
