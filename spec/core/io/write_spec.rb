@@ -154,63 +154,57 @@ describe "IO.write" do
   it_behaves_like :io_binwrite, :write
 
   it "uses an :open_args option" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", nil, {encoding: Encoding::UTF_32LE}]).should == 8
     end
   end
 
   it "disregards other options if :open_args is given" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 4, expected 2)' do
-      IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
-      File.read(@filename).should == "\0\0hi"
-    end
+    IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
+    File.read(@filename).should == "\0\0hi"
   end
 
   it "requires mode to be specified in :open_args" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
-      }.should raise_error(IOError, "not opened for writing")
-    end
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
+    }.should raise_error(IOError, "not opened for writing")
 
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true}]).should == 8
       IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, mode: "w"}]).should == 8
     end
   end
 
   it "requires mode to be specified in :open_args even if flags option passed" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
-      }.should raise_error(IOError, "not opened for writing")
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
+    }.should raise_error(IOError, "not opened for writing")
 
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}]).should == 8
       IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT, mode: "w"}]).should == 8
     end
   end
 
   it "uses the given encoding and returns the number of bytes written" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', mode: "w", encoding: Encoding::UTF_32LE).should == 8
     end
   end
 
   it "raises ArgumentError if encoding is specified in mode parameter and is given as :encoding option" do
-    NATFIXME 'Keyword arguments', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
-      }.should raise_error(ArgumentError, "encoding specified twice")
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16LE:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
 
-      -> {
-        IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
-      }.should raise_error(ArgumentError, "encoding specified twice")
-    end
+    -> {
+      IO.write(@filename, 'hi', mode: "w:UTF-16BE", encoding: Encoding::UTF_32LE)
+    }.should raise_error(ArgumentError, "encoding specified twice")
   end
 
   it "writes the file with the permissions in the :perm parameter" do
     rm_r @filename
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
+    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'unknown keyword: :perm' do
       IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
       (File.stat(@filename).mode & 0o777) == 0o755
     end

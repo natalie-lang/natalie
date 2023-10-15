@@ -104,7 +104,7 @@ public:
     static Value try_convert(Env *, Value);
 
     Value write(Env *, Args) const;
-    static Value write_file(Env *, Value, Value);
+    static Value write_file(Env *, Args);
 
     Value get_path() const;
     void set_path(StringObject *path) { m_path = path; }

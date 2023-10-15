@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/ioutil.hpp"
+#include "tm/defer.hpp"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -118,28 +119,12 @@ Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
 
 Value IoObject::binwrite(Env *env, Args args) {
     auto kwargs = args.pop_keyword_hash();
-    args.ensure_argc_between(env, 2, 3);
-    auto filename = args.at(0);
-    auto string = args.at(1);
-    auto offset = args.at(2, nullptr);
-    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    auto mode = O_WRONLY | O_CREAT | O_CLOEXEC;
-    if (!offset || offset->is_nil())
-        mode |= O_TRUNC;
-    if (kwargs) {
-        kwargs = kwargs->dup(env)->as_hash();
-    } else {
+    if (!kwargs)
         kwargs = new HashObject {};
-    }
-    if (!kwargs->has_key(env, "mode"_s))
-        kwargs->put(env, "mode"_s, IntegerObject::create(mode));
     kwargs->put(env, "binmode"_s, TrueObject::the());
-    FileObject *file = _new(env, File, Args({ filename, kwargs }, true), nullptr)->as_file();
-    if (offset && !offset->is_nil())
-        file->set_pos(env, offset);
-    auto result = file->write(env, string);
-    file->close(env);
-    return IntegerObject::create(result);
+    auto args_array = args.to_array();
+    args_array->push(kwargs);
+    return write_file(env, Args { args_array, true });
 }
 
 Value IoObject::dup(Env *env) const {
@@ -276,12 +261,30 @@ Value IoObject::read_file(Env *env, Args args) {
     return data;
 }
 
-Value IoObject::write_file(Env *env, Value filename, Value string) {
-    Value flags = new StringObject { "w" };
+Value IoObject::write_file(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 2, 3);
+    auto filename = args.at(0);
+    auto string = args.at(1);
+    auto offset = args.at(2, nullptr);
+    auto mode = Value::integer(O_WRONLY | O_CREAT | O_CLOEXEC);
+    if (!offset || offset->is_nil())
+        mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
+    if (kwargs && kwargs->has_key(env, "mode"_s))
+        mode = kwargs->delete_key(env, "mode"_s, nullptr);
+    Args open_args { { filename, mode, kwargs }, true };
+    if (kwargs && kwargs->has_key(env, "open_args"_s)) {
+        auto next_args = new ArrayObject { filename };
+        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr)->to_ary(env));
+        auto open_args_has_kw = next_args->last()->is_hash();
+        open_args = Args(next_args, open_args_has_kw);
+    }
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, { filename, flags }, nullptr)->as_file();
+    FileObject *file = _new(env, File, std::move(open_args), nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
+    Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
-    file->close(env);
     return Value::integer(bytes_written);
 }
 
