@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 #include "natalie/ioutil.hpp"
-#include "tm/defer.hpp"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -387,10 +386,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         if (!is_readable(src_io->fileno(env)))
             env->raise("IOError", "not opened for reading");
         if (src_offset && !src_offset->is_nil()) {
-            auto old_pos = src_io->pos(env);
-            Defer reset_pos { [&]() { src_io->set_pos(env, Value::integer(old_pos)); } };
-            src_io->set_pos(env, src_offset);
-            src_io->read(env, src_length, data);
+            src_io->pread(env, src_length, src_offset, data);
         } else {
             src_io->read(env, src_length, data);
         }
