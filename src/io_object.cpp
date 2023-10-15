@@ -276,7 +276,10 @@ Value IoObject::read_file(Env *env, Args args) {
     return data;
 }
 
-Value IoObject::write_file(Env *env, Value filename, Value string) {
+Value IoObject::write_file(Env *env, Args args) {
+    args.ensure_argc_is(env, 2);
+    auto filename = args.at(0);
+    auto string = args.at(1);
     Value flags = new StringObject { "w" };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename, flags }, nullptr)->as_file();
