@@ -296,7 +296,7 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-Value IoObject::read(Env *env, Value count_value, Value buffer) const {
+Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer->is_nil()) {
         if (!buffer->is_string() && buffer->respond_to(env, "to_str"_s))

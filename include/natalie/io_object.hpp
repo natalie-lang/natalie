@@ -93,7 +93,7 @@ public:
     Value set_sync(Env *, Value);
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
-    Value read(Env *, Value, Value) const;
+    Value read(Env *, Value, Value);
     static Value read_file(Env *, Args);
     Value readbyte(Env *);
     Value readline(Env *, Value = nullptr);
