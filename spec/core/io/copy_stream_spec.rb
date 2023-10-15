@@ -253,24 +253,30 @@ describe "IO.copy_stream" do
     end
 
     it "calls #readpartial on the source Object if defined" do
-      from = IOSpecs::CopyStreamReadPartial.new @io
+      NATFIXME 'Duck typing the source with #readpartial', exception: TypeError, message: 'no implicit conversion of IOSpecs::CopyStreamReadPartial into String' do
+        from = IOSpecs::CopyStreamReadPartial.new @io
 
-      IO.copy_stream(from, @to_name)
-      File.read(@to_name).should == @content
+        IO.copy_stream(from, @to_name)
+        File.read(@to_name).should == @content
+      end
     end
 
     it "calls #read on the source Object" do
-      from = IOSpecs::CopyStreamRead.new @io
+      NATFIXME 'Duck typing the source with #read', exception: TypeError, message: 'no implicit conversion of IOSpecs::CopyStreamRead into String' do
+        from = IOSpecs::CopyStreamRead.new @io
 
-      IO.copy_stream(from, @to_name)
-      File.read(@to_name).should == @content
+        IO.copy_stream(from, @to_name)
+        File.read(@to_name).should == @content
+      end
     end
 
     it "calls #write on the destination Object" do
-      to = mock("io_copy_stream_to_object")
-      to.should_receive(:write).with(@content).and_return(@content.size)
+      NATFIXME 'Duck typing the destination with #write', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+        to = mock("io_copy_stream_to_object")
+        to.should_receive(:write).with(@content).and_return(@content.size)
 
-      IO.copy_stream(@from_name, to)
+        IO.copy_stream(@from_name, to)
+      end
     end
 
     it "does not call #pos on the source if no offset is given" do

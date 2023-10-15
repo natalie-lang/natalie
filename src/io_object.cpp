@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/ioutil.hpp"
+#include "tm/defer.hpp"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -380,6 +381,25 @@ Value IoObject::binmode(Env *env) {
 }
 
 int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
+    IoObject *src_io = nullptr, *dst_io = nullptr;
+    bool close_src = false, close_dst = false;
+    Defer close { [&]() {
+        if (close_src) src_io->close(env);
+        if (close_dst) dst_io->close(env);
+    } };
+    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    if (src->is_io() || src->respond_to(env, "to_io"_s)) {
+        src_io = src->to_io(env);
+    } else {
+        auto filename = ioutil::convert_using_to_path(env, src);
+        src_io = _new(env, File, { filename }, nullptr)->as_io();
+    }
+    if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
+        dst_io = dst->to_io(env);
+    } else {
+        auto filename = ioutil::convert_using_to_path(env, dst);
+        dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
+    }
     return -1;
 }
 
