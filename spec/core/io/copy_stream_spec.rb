@@ -15,8 +15,10 @@ describe :io_copy_stream_to_file, shared: true do
   end
 
   it "copies only length bytes when specified" do
-    IO.copy_stream(@object.from, @to_name, 8).should == 8
-    File.read(@to_name).should == "Line one"
+    NATFIXME 'Implement src_length argument', exception: NotImplementedError, message: 'NATFIXME: Support src_length argument' do
+      IO.copy_stream(@object.from, @to_name, 8).should == 8
+      File.read(@to_name).should == "Line one"
+    end
   end
 
   it "calls #to_path to convert on object to a file name" do
@@ -38,8 +40,10 @@ end
 describe :io_copy_stream_to_file_with_offset, shared: true do
   platform_is_not :windows do
     it "copies only length bytes from the offset" do
-      IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
-      File.read(@to_name).should == " one\n\nLi"
+      NATFIXME 'Implement src_offset argument', exception: NotImplementedError, message: 'NATFIXME: Support src_offset argument' do
+        IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
+        File.read(@to_name).should == " one\n\nLi"
+      end
     end
   end
 end
@@ -80,16 +84,20 @@ describe :io_copy_stream_to_io, shared: true do
   end
 
   it "copies only length bytes when specified" do
-    IO.copy_stream(@object.from, @to_io, 8).should == 8
-    File.read(@to_name).should == "Line one"
+    NATFIXME 'Implement src_length argument', exception: NotImplementedError, message: 'NATFIXME: Support src_length argument' do
+      IO.copy_stream(@object.from, @to_io, 8).should == 8
+      File.read(@to_name).should == "Line one"
+    end
   end
 end
 
 describe :io_copy_stream_to_io_with_offset, shared: true do
   platform_is_not :windows do
     it "copies only length bytes from the offset" do
-      IO.copy_stream(@object.from, @to_io, 8, 4).should == 8
-      File.read(@to_name).should == " one\n\nLi"
+      NATFIXME 'Implement src_offset argument', exception: NotImplementedError, message: 'NATFIXME: Support src_offset argument' do
+        IO.copy_stream(@object.from, @to_io, 8, 4).should == 8
+        File.read(@to_name).should == " one\n\nLi"
+      end
     end
   end
 end
@@ -135,9 +143,11 @@ describe "IO.copy_stream" do
 
     platform_is_not :windows do
       it "does not change the IO offset when an offset is specified" do
-        @from_io.pos = 10
-        IO.copy_stream(@from_io, @to_name, 8, 4)
-        @from_io.pos.should == 10
+        NATFIXME 'Implement src_offset argument', exception: NotImplementedError, message: 'NATFIXME: Support src_offset argument' do
+          @from_io.pos = 10
+          IO.copy_stream(@from_io, @to_name, 8, 4)
+          @from_io.pos.should == 10
+        end
       end
     end
 
@@ -222,7 +232,9 @@ describe "IO.copy_stream" do
 
     platform_is_not :windows do
       it "raises an error when an offset is specified" do
-        -> { IO.copy_stream(@from_io, @to_name, 8, 4) }.should raise_error(Errno::ESPIPE)
+        NATFIXME 'Implement src_offset argument', exception: NotImplementedError, message: 'NATFIXME: Support src_offset argument' do
+          -> { IO.copy_stream(@from_io, @to_name, 8, 4) }.should raise_error(Errno::ESPIPE)
+        end
       end
     end
 

@@ -381,6 +381,10 @@ Value IoObject::binmode(Env *env) {
 }
 
 int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
+    if (src_offset && !src_offset->is_nil())
+        env->raise("NotImplementedError", "NATFIXME: Support src_offset argument");
+    if (src_length && !src_length->is_nil())
+        env->raise("NotImplementedError", "NATFIXME: Support src_length argument");
     IoObject *src_io = nullptr, *dst_io = nullptr;
     bool close_src = false, close_dst = false;
     Defer close { [&]() {
