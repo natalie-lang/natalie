@@ -55,7 +55,7 @@ public:
     static Value binwrite(Env *, Args);
     Value binmode(Env *);
     Value close(Env *);
-    static int copy_stream(Env *, Value, Value, Value = nullptr, Value = nullptr);
+    static Value copy_stream(Env *, Value, Value, Value = nullptr, Value = nullptr);
     Value dup(Env *) const;
     Value each_byte(Env *, Block *);
     Value external_encoding() const { return m_external_encoding; }

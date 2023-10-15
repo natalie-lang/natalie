@@ -380,7 +380,7 @@ Value IoObject::binmode(Env *env) {
     return this;
 }
 
-int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
+Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
     IoObject *src_io = nullptr, *dst_io = nullptr;
     bool close_src = false, close_dst = false;
     Defer close { [&]() {
@@ -413,7 +413,7 @@ int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Valu
     } else {
         data = src_io->read(env, src_length, nullptr);
     }
-    return dst_io->write(env, data);
+    return Value::integer(dst_io->write(env, data));
 }
 
 int IoObject::write(Env *env, Value obj) const {
