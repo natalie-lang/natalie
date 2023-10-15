@@ -271,12 +271,10 @@ describe "IO.copy_stream" do
     end
 
     it "calls #write on the destination Object" do
-      NATFIXME 'Duck typing the destination with #write', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-        to = mock("io_copy_stream_to_object")
-        to.should_receive(:write).with(@content).and_return(@content.size)
+      to = mock("io_copy_stream_to_object")
+      to.should_receive(:write).with(@content).and_return(@content.size)
 
-        IO.copy_stream(@from_name, to)
-      end
+      IO.copy_stream(@from_name, to)
     end
 
     it "does not call #pos on the source if no offset is given" do

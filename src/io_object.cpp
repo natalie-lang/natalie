@@ -381,11 +381,10 @@ Value IoObject::binmode(Env *env) {
 }
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
-    IoObject *src_io = nullptr, *dst_io = nullptr;
-    bool close_src = false, close_dst = false;
+    IoObject *src_io = nullptr;
+    bool close_src = false;
     Defer close { [&]() {
         if (close_src) src_io->close(env);
-        if (close_dst) dst_io->close(env);
     } };
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     if (src->is_io() || src->respond_to(env, "to_io"_s)) {
@@ -396,14 +395,6 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         auto filename = ioutil::convert_using_to_path(env, src);
         src_io = _new(env, File, { filename }, nullptr)->as_io();
     }
-    if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
-        dst_io = dst->to_io(env);
-        if (!is_writable(dst_io->fileno(env)))
-            env->raise("IOError", "not opened for writing");
-    } else {
-        auto filename = ioutil::convert_using_to_path(env, dst);
-        dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
-    }
     Value data;
     if (src_offset && !src_offset->is_nil()) {
         auto old_pos = src_io->pos(env);
@@ -413,7 +404,18 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
     } else {
         data = src_io->read(env, src_length, nullptr);
     }
-    return Value::integer(dst_io->write(env, data));
+
+    if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
+        auto dst_io = dst->to_io(env);
+        return Value::integer(dst_io->write(env, data));
+    } else if (dst->respond_to(env, "write"_s)) {
+        return dst->send(env, "write"_s, { data });
+    } else {
+        auto filename = ioutil::convert_using_to_path(env, dst);
+        auto dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
+        Defer close { [&]() { dst_io->close(env); } };
+        return Value::integer(dst_io->write(env, data));
+    }
 }
 
 int IoObject::write(Env *env, Value obj) const {
