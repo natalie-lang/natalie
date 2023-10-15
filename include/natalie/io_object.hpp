@@ -124,6 +124,7 @@ private:
     bool m_autoclose { false };
     bool m_sync { false };
     StringObject *m_path { nullptr };
+    TM::String m_read_buffer {};
 };
 
 }
