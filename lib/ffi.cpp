@@ -89,14 +89,19 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
                 env->raise("ArgumentError", "Expected MemoryPointer but got {}", val);
             }
         } else if (type == bool_sym) {
-            arg_values[i].us = val->is_truthy() ? 1 : 0;
+            if (val == TrueObject::the())
+                arg_values[i].us = 1;
+            else if (val == FalseObject::the())
+                arg_values[i].us = 0;
+            else
+                env->raise("TypeError", "wrong argument type (expected a boolean parameter)");
             arg_pointers[i] = &(arg_values[i].us);
         } else if (type == char_sym) {
-            auto string = val->as_string_or_raise(env);
-            if (!string->is_empty())
-                arg_values[i].uc = string->at(0);
-            else
+            auto integer = val->as_integer_or_raise(env)->to_nat_int_t();
+            if (integer < 0 || integer > 256)
                 arg_values[i].uc = 0;
+            else
+                arg_values[i].uc = integer;
             arg_pointers[i] = &(arg_values[i].uc);
         } else {
             env->raise("StandardError", "I don't yet know how to handle argument type {}", val->klass()->name());
@@ -109,8 +114,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
     if (return_type == bool_sym) {
         return bool_object((uint64_t)result);
     } else if (return_type == char_sym) {
-        TM::String c = (char)result;
-        return new StringObject { std::move(c) };
+        return Value::integer(result);
     } else if (return_type == pointer_sym) {
         auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
         auto pointer = Pointer->send(env, "new"_s);

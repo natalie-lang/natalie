@@ -96,9 +96,16 @@ describe 'FFI' do
   it 'can pass and return bools' do
     TestStubs.test_bool(true).should == true
     TestStubs.test_bool(false).should == false
+    [1, 'foo', nil].each do |bad_arg|
+      -> { TestStubs.test_bool(bad_arg) }.should raise_error(TypeError)
+    end
   end
 
   it 'can pass and return chars' do
-    TestStubs.test_char('a').should == 'a'
+    TestStubs.test_char('a'.ord).should == 97
+    TestStubs.test_char(0).should == 0
+    TestStubs.test_char(120).should == 120
+    TestStubs.test_char(512).should == 0
+    -> { TestStubs.test_char(nil) }.should raise_error(TypeError)
   end
 end
