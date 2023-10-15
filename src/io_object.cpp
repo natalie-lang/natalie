@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/ioutil.hpp"
+#include "tm/defer.hpp"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -286,8 +287,8 @@ Value IoObject::write_file(Env *env, Args args) {
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, Args({ filename, mode, kwargs }, true), nullptr)->as_file();
+    Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
-    file->close(env);
     return Value::integer(bytes_written);
 }
 
