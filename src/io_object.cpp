@@ -198,7 +198,14 @@ Value IoObject::getbyte(Env *env) {
 }
 
 Value IoObject::inspect() const {
-    const auto details = m_closed ? TM::String("(closed)") : TM::String::format("fd {}", m_fileno);
+    TM::String details;
+    if (m_closed) {
+        details = "(closed)";
+    } else if (m_path) {
+        details = m_path->string();
+    } else {
+        details = TM::String::format("fd {}", m_fileno);
+    }
     return StringObject::format("#<{}:{}>", klass()->inspect_str(), details);
 }
 
