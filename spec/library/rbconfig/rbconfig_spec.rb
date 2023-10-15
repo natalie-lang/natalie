@@ -78,14 +78,12 @@ describe 'RbConfig::CONFIG' do
     it "['STRIP'] exists and can be executed" do
       strip = RbConfig::CONFIG.fetch('STRIP')
       copy = tmp("sh")
-      NATFIXME 'cp helper not yet implemented', exception: NoMethodError, message: "undefined method `copy_stream'" do
-        cp '/bin/sh', copy
-        begin
-          out = `#{strip} #{copy}`
-          $?.should.success?
-        ensure
-          rm_r copy
-        end
+      cp '/bin/sh', copy
+      begin
+        out = `#{strip} #{copy}`
+        $?.should.success?
+      ensure
+        rm_r copy
       end
     end
   end

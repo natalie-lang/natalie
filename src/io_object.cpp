@@ -389,6 +389,35 @@ Value IoObject::binmode(Env *env) {
     return this;
 }
 
+Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
+    Value data = new StringObject {};
+    if (src->is_io() || src->respond_to(env, "to_io"_s)) {
+        auto src_io = src->to_io(env);
+        if (!is_readable(src_io->fileno(env)))
+            env->raise("IOError", "not opened for reading");
+        if (src_offset && !src_offset->is_nil()) {
+            src_io->pread(env, src_length, src_offset, data);
+        } else {
+            src_io->read(env, src_length, data);
+        }
+    } else if (src->respond_to(env, "read"_s)) {
+        src->send(env, "read"_s, { src_length, data });
+    } else if (src->respond_to(env, "readpartial"_s)) {
+        src->send(env, "readpartial"_s, { src_length, data });
+    } else {
+        data = read_file(env, { src, src_length, src_offset });
+    }
+
+    if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
+        auto dst_io = dst->to_io(env);
+        return Value::integer(dst_io->write(env, data));
+    } else if (dst->respond_to(env, "write"_s)) {
+        return dst->send(env, "write"_s, { data });
+    } else {
+        return write_file(env, dst, data);
+    }
+}
+
 int IoObject::write(Env *env, Value obj) const {
     raise_if_closed(env);
     obj = obj->to_s(env);
