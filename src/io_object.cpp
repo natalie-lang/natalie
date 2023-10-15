@@ -285,8 +285,15 @@ Value IoObject::write_file(Env *env, Args args) {
     Value mode = new StringObject { "w" };
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
+    Args open_args { { filename, mode, kwargs }, true };
+    if (kwargs && kwargs->has_key(env, "open_args"_s)) {
+        auto next_args = new ArrayObject { filename };
+        next_args->concat(*kwargs->fetch(env, "open_args"_s, nullptr, nullptr)->to_ary(env));
+        auto open_args_has_kw = next_args->last()->is_hash();
+        open_args = Args(next_args, open_args_has_kw);
+    }
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, Args({ filename, mode, kwargs }, true), nullptr)->as_file();
+    FileObject *file = _new(env, File, std::move(open_args), nullptr)->as_file();
     Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
     return Value::integer(bytes_written);

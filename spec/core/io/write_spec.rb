@@ -154,7 +154,7 @@ describe "IO.write" do
   it_behaves_like :io_binwrite, :write
 
   it "uses an :open_args option" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'unknown keyword: :open_args' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", nil, {encoding: Encoding::UTF_32LE}]).should == 8
     end
   end
@@ -167,24 +167,22 @@ describe "IO.write" do
   end
 
   it "requires mode to be specified in :open_args" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
-      }.should raise_error(IOError, "not opened for writing")
-    end
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true}])
+    }.should raise_error(IOError, "not opened for writing")
 
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'unknown keyword: :open_args' do
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true}]).should == 8
       IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, mode: "w"}]).should == 8
     end
   end
 
   it "requires mode to be specified in :open_args even if flags option passed" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: SpecFailedException do
-      -> {
-        IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
-      }.should raise_error(IOError, "not opened for writing")
+    -> {
+      IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}])
+    }.should raise_error(IOError, "not opened for writing")
 
+    NATFIXME 'Encoding', exception: SpecFailedException do
       IO.write(@filename, 'hi', open_args: ["w", {encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT}]).should == 8
       IO.write(@filename, 'hi', open_args: [{encoding: Encoding::UTF_32LE, binmode: true, flags: File::CREAT, mode: "w"}]).should == 8
     end
