@@ -381,27 +381,26 @@ Value IoObject::binmode(Env *env) {
 }
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
-    IoObject *src_io = nullptr;
-    bool close_src = false;
-    Defer close { [&]() {
-        if (close_src) src_io->close(env);
-    } };
-    ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    Value data;
     if (src->is_io() || src->respond_to(env, "to_io"_s)) {
-        src_io = src->to_io(env);
+        auto src_io = src->to_io(env);
         if (!is_readable(src_io->fileno(env)))
             env->raise("IOError", "not opened for reading");
+        if (src_offset && !src_offset->is_nil()) {
+            auto old_pos = src_io->pos(env);
+            Defer reset_pos { [&]() { src_io->set_pos(env, Value::integer(old_pos)); } };
+            src_io->set_pos(env, src_offset);
+            data = src_io->read(env, src_length, nullptr);
+        } else {
+            data = src_io->read(env, src_length, nullptr);
+        }
     } else {
+        ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
         auto filename = ioutil::convert_using_to_path(env, src);
-        src_io = _new(env, File, { filename }, nullptr)->as_io();
-    }
-    Value data;
-    if (src_offset && !src_offset->is_nil()) {
-        auto old_pos = src_io->pos(env);
-        Defer reset_pos { [&]() { src_io->set_pos(env, Value::integer(old_pos)); } };
-        src_io->set_pos(env, src_offset);
-        data = src_io->read(env, src_length, nullptr);
-    } else {
+        auto src_io = _new(env, File, { filename }, nullptr)->as_io();
+        Defer close { [&]() { src_io->close(env); } };
+        if (src_offset && !src_offset->is_nil())
+            src_io->set_pos(env, src_offset);
         data = src_io->read(env, src_length, nullptr);
     }
 
@@ -412,6 +411,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         return dst->send(env, "write"_s, { data });
     } else {
         auto filename = ioutil::convert_using_to_path(env, dst);
+        ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
         auto dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
         Defer close { [&]() { dst_io->close(env); } };
         return Value::integer(dst_io->write(env, data));
