@@ -281,11 +281,11 @@ Value IoObject::write_file(Env *env, Args args) {
     args.ensure_argc_is(env, 2);
     auto filename = args.at(0);
     auto string = args.at(1);
-    Value flags = new StringObject { "w" };
+    Value mode = new StringObject { "w" };
     if (kwargs && kwargs->has_key(env, "mode"_s))
-        flags = kwargs->delete_key(env, "mode"_s, nullptr);
+        mode = kwargs->delete_key(env, "mode"_s, nullptr);
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-    FileObject *file = _new(env, File, Args({ filename, flags, kwargs }, true), nullptr)->as_file();
+    FileObject *file = _new(env, File, Args({ filename, mode, kwargs }, true), nullptr)->as_file();
     int bytes_written = file->write(env, string);
     file->close(env);
     return Value::integer(bytes_written);
