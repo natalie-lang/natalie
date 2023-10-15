@@ -160,10 +160,8 @@ describe "IO.write" do
   end
 
   it "disregards other options if :open_args is given" do
-    NATFIXME 'Add keyword arguments to IO.write', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-      IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
-      File.read(@filename).should == "\0\0hi"
-    end
+    IO.write(@filename, 'hi', 2, mode: "r", encoding: Encoding::UTF_32LE, open_args: ["w"]).should == 2
+    File.read(@filename).should == "\0\0hi"
   end
 
   it "requires mode to be specified in :open_args" do

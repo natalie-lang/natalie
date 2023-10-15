@@ -22,21 +22,11 @@ describe :io_binwrite, shared: true do
   end
 
   it "accepts options as a keyword argument" do
-    if @method == :write
-      NATFIXME "Add offset to IO.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-        IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
+    IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
 
-        -> {
-          IO.send(@method, @filename, "hi", 0, {flags: File::CREAT})
-        }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 2..3)")
-      end
-    else
-      IO.send(@method, @filename, "hi", 0, flags: File::CREAT).should == 2
-
-      -> {
-        IO.send(@method, @filename, "hi", 0, {flags: File::CREAT})
-      }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 2..3)")
-    end
+    -> {
+      IO.send(@method, @filename, "hi", 0, {flags: File::CREAT})
+    }.should raise_error(ArgumentError, "wrong number of arguments (given 4, expected 2..3)")
   end
 
   it "creates a file if missing" do
@@ -54,15 +44,8 @@ describe :io_binwrite, shared: true do
     fn = @filename + "xxx"
     begin
       File.should_not.exist?(fn)
-      if @method == :write
-        NATFIXME "Add offset to IO.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-          IO.send(@method, fn, "test", 0)
-          File.should.exist?(fn)
-        end
-      else
-        IO.send(@method, fn, "test", 0)
-        File.should.exist?(fn)
-      end
+      IO.send(@method, fn, "test", 0)
+      File.should.exist?(fn)
     ensure
       rm_r fn
     end
@@ -74,47 +57,22 @@ describe :io_binwrite, shared: true do
   end
 
   it "doesn't truncate the file and writes the given string if an offset is given" do
-    if @method == :write
-      NATFIXME "Add offset to IO.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-        IO.send(@method, @filename, "hello, world!", 0)
-        File.read(@filename).should == "hello, world!34567890123456789"
-        IO.send(@method, @filename, "hello, world!", 20)
-        File.read(@filename).should == "hello, world!3456789hello, world!"
-      end
-    else
-      IO.send(@method, @filename, "hello, world!", 0)
-      File.read(@filename).should == "hello, world!34567890123456789"
-      IO.send(@method, @filename, "hello, world!", 20)
-      File.read(@filename).should == "hello, world!3456789hello, world!"
-    end
+    IO.send(@method, @filename, "hello, world!", 0)
+    File.read(@filename).should == "hello, world!34567890123456789"
+    IO.send(@method, @filename, "hello, world!", 20)
+    File.read(@filename).should == "hello, world!3456789hello, world!"
   end
 
   it "doesn't truncate and writes at the given offset after passing empty opts" do
-    if @method == :write
-      NATFIXME "Add offset to IO.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-        IO.send(@method, @filename, "hello world!", 1, **{})
-        File.read(@filename).should == "0hello world!34567890123456789"
-      end
-    else
-      IO.send(@method, @filename, "hello world!", 1, **{})
-      File.read(@filename).should == "0hello world!34567890123456789"
-    end
+    IO.send(@method, @filename, "hello world!", 1, **{})
+    File.read(@filename).should == "0hello world!34567890123456789"
   end
 
   it "accepts a :mode option" do
-    if @method == :write
-      NATFIXME "Add offset to IO.#{@method}", exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 2)' do
-        IO.send(@method, @filename, "hello, world!", mode: 'a')
-        File.read(@filename).should == "012345678901234567890123456789hello, world!"
-        IO.send(@method, @filename, "foo", 2, mode: 'w')
-        File.read(@filename).should == "\0\0foo"
-      end
-    else
-      IO.send(@method, @filename, "hello, world!", mode: 'a')
-      File.read(@filename).should == "012345678901234567890123456789hello, world!"
-      IO.send(@method, @filename, "foo", 2, mode: 'w')
-      File.read(@filename).should == "\0\0foo"
-    end
+    IO.send(@method, @filename, "hello, world!", mode: 'a')
+    File.read(@filename).should == "012345678901234567890123456789hello, world!"
+    IO.send(@method, @filename, "foo", 2, mode: 'w')
+    File.read(@filename).should == "\0\0foo"
   end
 
   it "accepts a :flags option without :mode one" do

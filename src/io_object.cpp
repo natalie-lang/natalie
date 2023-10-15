@@ -279,10 +279,13 @@ Value IoObject::read_file(Env *env, Args args) {
 
 Value IoObject::write_file(Env *env, Args args) {
     auto kwargs = args.pop_keyword_hash();
-    args.ensure_argc_is(env, 2);
+    args.ensure_argc_between(env, 2, 3);
     auto filename = args.at(0);
     auto string = args.at(1);
-    Value mode = new StringObject { "w" };
+    auto offset = args.at(2, nullptr);
+    auto mode = Value::integer(O_WRONLY | O_CREAT | O_CLOEXEC);
+    if (!offset || offset->is_nil())
+        mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
     Args open_args { { filename, mode, kwargs }, true };
@@ -294,6 +297,8 @@ Value IoObject::write_file(Env *env, Args args) {
     }
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, std::move(open_args), nullptr)->as_file();
+    if (offset && !offset->is_nil())
+        file->set_pos(env, offset);
     Defer close { [&file, &env]() { file->close(env); } };
     int bytes_written = file->write(env, string);
     return Value::integer(bytes_written);
