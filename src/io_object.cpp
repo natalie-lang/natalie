@@ -414,7 +414,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
     } else if (dst->respond_to(env, "write"_s)) {
         return dst->send(env, "write"_s, { data });
     } else {
-        return write_file(env, dst, data);
+        return write_file(env, { dst, data });
     }
 }
 
