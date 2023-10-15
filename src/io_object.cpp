@@ -399,13 +399,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
     } else if (src->respond_to(env, "readpartial"_s)) {
         src->send(env, "readpartial"_s, { src_length, data });
     } else {
-        ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-        auto filename = ioutil::convert_using_to_path(env, src);
-        auto src_io = _new(env, File, { filename }, nullptr)->as_io();
-        Defer close { [&]() { src_io->close(env); } };
-        if (src_offset && !src_offset->is_nil())
-            src_io->set_pos(env, src_offset);
-        src_io->read(env, src_length, data);
+        data = read_file(env, { src, src_length, src_offset });
     }
 
     if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
@@ -414,11 +408,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
     } else if (dst->respond_to(env, "write"_s)) {
         return dst->send(env, "write"_s, { data });
     } else {
-        auto filename = ioutil::convert_using_to_path(env, dst);
-        ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
-        auto dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
-        Defer close { [&]() { dst_io->close(env); } };
-        return Value::integer(dst_io->write(env, data));
+        return write_file(env, dst, data);
     }
 }
 
