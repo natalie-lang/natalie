@@ -262,12 +262,10 @@ describe "IO.copy_stream" do
     end
 
     it "calls #read on the source Object" do
-      NATFIXME 'Duck typing the source with #read', exception: TypeError, message: 'no implicit conversion of IOSpecs::CopyStreamRead into String' do
-        from = IOSpecs::CopyStreamRead.new @io
+      from = IOSpecs::CopyStreamRead.new @io
 
-        IO.copy_stream(from, @to_name)
-        File.read(@to_name).should == @content
-      end
+      IO.copy_stream(from, @to_name)
+      File.read(@to_name).should == @content
     end
 
     it "calls #write on the destination Object" do

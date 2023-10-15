@@ -381,7 +381,7 @@ Value IoObject::binmode(Env *env) {
 }
 
 Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
-    Value data;
+    Value data = new StringObject {};
     if (src->is_io() || src->respond_to(env, "to_io"_s)) {
         auto src_io = src->to_io(env);
         if (!is_readable(src_io->fileno(env)))
@@ -390,10 +390,12 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
             auto old_pos = src_io->pos(env);
             Defer reset_pos { [&]() { src_io->set_pos(env, Value::integer(old_pos)); } };
             src_io->set_pos(env, src_offset);
-            data = src_io->read(env, src_length, nullptr);
+            src_io->read(env, src_length, data);
         } else {
-            data = src_io->read(env, src_length, nullptr);
+            src_io->read(env, src_length, data);
         }
+    } else if (src->respond_to(env, "read"_s)) {
+        src->send(env, "read"_s, { src_length, data });
     } else {
         ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
         auto filename = ioutil::convert_using_to_path(env, src);
@@ -401,7 +403,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         Defer close { [&]() { src_io->close(env); } };
         if (src_offset && !src_offset->is_nil())
             src_io->set_pos(env, src_offset);
-        data = src_io->read(env, src_length, nullptr);
+        src_io->read(env, src_length, data);
     }
 
     if (dst->is_io() || dst->respond_to(env, "to_io"_s)) {
