@@ -85,12 +85,12 @@ void Env::raise(ClassObject *klass, StringObject *message) {
 }
 
 void Env::raise(ClassObject *klass, String message) {
-    raise(klass, new StringObject(message));
+    raise(klass, new StringObject(std::move(message)));
 }
 
-void Env::raise(const char *class_name, const String message) {
+void Env::raise(const char *class_name, String message) {
     ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
-    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { message } };
+    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { std::move(message) } };
     this->raise_exception(exception);
 }
 
@@ -158,22 +158,22 @@ void Env::raise_no_method_error(Object *receiver, SymbolObject *name, MethodMiss
         NAT_UNREACHABLE();
     }
     auto NoMethodError = find_top_level_const(this, "NoMethodError"_s)->as_class();
-    ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { message } };
+    ExceptionObject *exception = new ExceptionObject { NoMethodError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@receiver"_s, receiver);
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
-void Env::raise_name_error(SymbolObject *name, const String message) {
+void Env::raise_name_error(SymbolObject *name, String message) {
     auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
-    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { message } };
+    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
 
-void Env::raise_name_error(StringObject *name, const String message) {
+void Env::raise_name_error(StringObject *name, String message) {
     auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
-    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { message } };
+    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { std::move(message) } };
     exception->ivar_set(this, "@name"_s, name);
     this->raise_exception(exception);
 }
@@ -188,7 +188,7 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     }
 
     String message = String::format("comparison of {} with {} failed", lhs_class, rhs_inspect);
-    raise("ArgumentError", message);
+    raise("ArgumentError", std::move(message));
 }
 
 void Env::warn(String message) {
@@ -199,7 +199,7 @@ void Env::warn(String message) {
         message = String::format("{}:{}: {}", m_file, m_line, message);
     }
 
-    _stderr.send(this, "puts"_s, { new StringObject { message } });
+    _stderr.send(this, "puts"_s, { new StringObject { std::move(message) } });
 }
 
 void Env::ensure_block_given(Block *block) {
@@ -227,7 +227,7 @@ void Env::ensure_no_missing_keywords(HashObject *kwargs, std::initializer_list<c
         message.append(", ");
         message.append(missing[i]->inspect_str(this));
     }
-    raise("ArgumentError", message);
+    raise("ArgumentError", std::move(message));
 }
 
 void Env::ensure_no_extra_keywords(HashObject *kwargs) {
@@ -242,7 +242,7 @@ void Env::ensure_no_extra_keywords(HashObject *kwargs) {
         message.append(", ");
         message.append(it->key->inspect_str(this));
     }
-    raise("ArgumentError", message);
+    raise("ArgumentError", std::move(message));
 }
 
 Value Env::last_match(bool to_s) {
