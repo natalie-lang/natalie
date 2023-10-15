@@ -381,8 +381,6 @@ Value IoObject::binmode(Env *env) {
 }
 
 int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Value src_offset) {
-    if (src_offset && !src_offset->is_nil())
-        env->raise("NotImplementedError", "NATFIXME: Support src_offset argument");
     IoObject *src_io = nullptr, *dst_io = nullptr;
     bool close_src = false, close_dst = false;
     Defer close { [&]() {
@@ -406,7 +404,15 @@ int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Valu
         auto filename = ioutil::convert_using_to_path(env, dst);
         dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
     }
-    auto data = src_io->read(env, src_length, nullptr);
+    Value data;
+    if (src_offset && !src_offset->is_nil()) {
+        auto old_pos = src_io->pos(env);
+        Defer reset_pos { [&]() { src_io->set_pos(env, Value::integer(old_pos)); } };
+        src_io->set_pos(env, src_offset);
+        data = src_io->read(env, src_length, nullptr);
+    } else {
+        data = src_io->read(env, src_length, nullptr);
+    }
     return dst_io->write(env, data);
 }
 
