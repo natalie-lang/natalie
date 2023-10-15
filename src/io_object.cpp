@@ -396,6 +396,8 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
         }
     } else if (src->respond_to(env, "read"_s)) {
         src->send(env, "read"_s, { src_length, data });
+    } else if (src->respond_to(env, "readpartial"_s)) {
+        src->send(env, "readpartial"_s, { src_length, data });
     } else {
         ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
         auto filename = ioutil::convert_using_to_path(env, src);

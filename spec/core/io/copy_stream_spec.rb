@@ -253,7 +253,7 @@ describe "IO.copy_stream" do
     end
 
     it "calls #readpartial on the source Object if defined" do
-      NATFIXME 'Duck typing the source with #readpartial', exception: TypeError, message: 'no implicit conversion of IOSpecs::CopyStreamReadPartial into String' do
+      NATFIXME 'Implement IO#readpartial', exception: NoMethodError, message: "undefined method `readpartial'" do
         from = IOSpecs::CopyStreamReadPartial.new @io
 
         IO.copy_stream(from, @to_name)
