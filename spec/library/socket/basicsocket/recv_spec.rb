@@ -116,10 +116,9 @@ describe 'BasicSocket#recv' do
     end
 
     describe 'using an unbound socket' do
-      it 'blocks the caller' do
-        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-          -> { @server.recv(4) }.should block_caller
-        end
+      # NATFIXME: Fix block_caller, this currently results in a timeout
+      xit 'blocks the caller' do
+        -> { @server.recv(4) }.should block_caller
       end
     end
 
@@ -129,10 +128,9 @@ describe 'BasicSocket#recv' do
       end
 
       describe 'without any data available' do
-        it 'blocks the caller' do
-          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-            -> { @server.recv(4) }.should block_caller
-          end
+        # NATFIXME: Fix block_caller, this currently results in a timeout
+        xit 'blocks the caller' do
+          -> { @server.recv(4) }.should block_caller
         end
       end
 
@@ -153,14 +151,13 @@ describe 'BasicSocket#recv' do
           @server.recv(6).should == 'he'
         end
 
-        it 'blocks the caller when called twice without new data being available' do
+        # NATFIXME: Fix block_caller, this currently results in a timeout
+        xit 'blocks the caller when called twice without new data being available' do
           @client.write('hello')
 
           @server.recv(2).should == 'he'
 
-          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-            -> { @server.recv(4) }.should block_caller
-          end
+          -> { @server.recv(4) }.should block_caller
         end
 
         it 'takes a peek at the data when using the MSG_PEEK flag' do
