@@ -104,46 +104,16 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto pass = args.at(0)->to_str(env);
     if (!kwargs) kwargs = new HashObject {};
-    TM::Vector<TM::String> missing_keywords {};
-    auto salt = kwargs->remove(env, "salt"_s);
-    if (!salt) {
-        missing_keywords.push("salt");
-    } else {
-        salt = salt->to_str(env);
-    }
-    auto iterations = kwargs->remove(env, "iterations"_s);
-    if (!iterations) {
-        missing_keywords.push("iterations");
-    } else {
-        iterations = iterations->to_int(env);
-    }
-    auto length = kwargs->remove(env, "length"_s);
-    if (!length) {
-        missing_keywords.push("length");
-    } else {
-        length = length->to_int(env);
-    }
+    env->ensure_no_missing_keywords(kwargs, { "salt", "iterations", "length", "hash" });
+    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
+    auto iterations = kwargs->remove(env, "iterations"_s)->to_int(env);
+    auto length = kwargs->remove(env, "length"_s)->to_int(env);
     auto hash = kwargs->remove(env, "hash"_s);
-    if (!hash) {
-        missing_keywords.push("hash");
-    } else {
-        auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
-        if (!hash->is_a(env, digest_klass))
-            hash = Object::_new(env, digest_klass, { hash }, nullptr);
-        hash = hash->send(env, "name"_s);
-    }
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    if (!hash->is_a(env, digest_klass))
+        hash = Object::_new(env, digest_klass, { hash }, nullptr);
+    hash = hash->send(env, "name"_s);
     env->ensure_no_extra_keywords(kwargs);
-    if (!missing_keywords.is_empty()) {
-        TM::String message { "missing keyword" };
-        if (missing_keywords.size() > 1) message.append('s');
-        message.append(": :");
-        message.append(missing_keywords.pop_front());
-        for (const auto &missing : missing_keywords) {
-            message.append(", :");
-            message.append(missing);
-        }
-        env->raise("ArgumentError", message);
-    }
 
     const EVP_MD *md = EVP_get_digestbyname(hash->as_string()->c_str());
     if (!md)
