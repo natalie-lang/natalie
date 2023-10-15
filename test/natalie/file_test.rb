@@ -277,4 +277,12 @@ describe 'File' do
       File.chmod(0777).should == 0
     end
   end
+
+  describe "#inspect" do
+    it "should include the filename" do
+      f = File.new('test/support/file.txt')
+      f.inspect.should.include?('test/support/file.txt')
+      f.close
+    end
+  end
 end
