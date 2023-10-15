@@ -408,7 +408,8 @@ int IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Valu
         auto filename = ioutil::convert_using_to_path(env, dst);
         dst_io = _new(env, File, { filename, new StringObject { "w" } }, nullptr)->as_io();
     }
-    return -1;
+    auto data = src_io->read(env, nullptr, nullptr);
+    return dst_io->write(env, data);
 }
 
 int IoObject::write(Env *env, Value obj) const {
