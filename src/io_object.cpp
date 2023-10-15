@@ -190,11 +190,10 @@ int IoObject::fsync(Env *env) {
 
 Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
-    unsigned char buffer;
-    int result = ::read(m_fileno, &buffer, 1);
-    if (result == -1) throw_unless_readable(env, this);
-    if (result == 0) return NilObject::the(); // eof case
-    return Value::integer(buffer);
+    auto result = read(env, Value::integer(1), nullptr);
+    if (result->is_string())
+        result = result->as_string()->ord(env);
+    return result;
 }
 
 Value IoObject::inspect() const {
@@ -320,7 +319,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
         TM::String buf(count, '\0');
         bytes_read = ::read(m_fileno, &buf[0], count);
         if (bytes_read < 0)
-            env->raise_errno();
+            throw_unless_readable(env, this);
         buf.truncate(bytes_read);
         if (bytes_read == 0) {
             if (buffer != nullptr)
@@ -349,7 +348,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
         str = new StringObject {};
     }
     if (bytes_read < 0) {
-        env->raise_errno();
+        throw_unless_readable(env, this);
     } else if (bytes_read == 0) {
         str->clear(env);
         return str;
