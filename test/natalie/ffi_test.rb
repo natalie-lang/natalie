@@ -114,6 +114,8 @@ describe 'FFI' do
   it 'can pass and return strings' do
     s = 'foo'
     TestStubs.test_char_pointer(s).read_string.should == 'foo'
+    s = 'foo bar baz'
+    TestStubs.test_char_pointer(s).read_string(7).should == 'foo bar'
   end
 
   it 'can pass and return integers' do

@@ -207,9 +207,17 @@ Value FFI_Pointer_address(Env *env, Value self, Args args, Block *) {
 }
 
 Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 0);
+    args.ensure_argc_between(env, 0, 1);
 
     auto address = self->ivar_get(env, "@address"_s)->as_void_p()->void_ptr();
+
+    if (args.size() >= 1) {
+        auto length = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+        if (length < 0 || (size_t)length > std::numeric_limits<size_t>::max())
+            env->raise("ArgumentError", "length out of range");
+        return new StringObject { (char *)address, (size_t)length };
+    }
+
     return new StringObject { (char *)address };
 }
 
