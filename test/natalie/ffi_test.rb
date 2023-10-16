@@ -13,6 +13,7 @@ module TestStubs
   attach_function :test_bool, [:bool], :bool
   attach_function :test_char, [:char], :char
   attach_function :test_char_pointer, [:pointer], :pointer
+  attach_function :test_size_t, [:size_t], :size_t
 end
 
 module LibRubyParser
@@ -113,5 +114,9 @@ describe 'FFI' do
   it 'can pass and return strings' do
     s = 'foo'
     TestStubs.test_char_pointer(s).read_string.should == 'foo'
+  end
+
+  it 'can pass and return integers' do
+    TestStubs.test_size_t(3).should == 3
   end
 end

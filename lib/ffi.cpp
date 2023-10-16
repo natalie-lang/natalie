@@ -51,6 +51,7 @@ typedef union {
     void *vp;
     unsigned short us;
     unsigned char uc;
+    uint64_t u64;
 } FFI_Library_call_arg_slot;
 
 static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *block) {
@@ -104,8 +105,15 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
             else
                 arg_values[i].uc = integer;
             arg_pointers[i] = &(arg_values[i].uc);
+        } else if (type == size_t_sym) {
+            auto size = val->as_integer_or_raise(env)->to_nat_int_t();
+            if (size < 0 || (uint64_t)size > std::numeric_limits<uint64_t>::max())
+                arg_values[i].u64 = 0;
+            else
+                arg_values[i].u64 = size;
+            arg_pointers[i] = &(arg_values[i].u64);
         } else {
-            env->raise("StandardError", "I don't yet know how to handle argument type {}", val->klass()->name());
+            env->raise("StandardError", "I don't yet know how to handle argument type {} (arg {})", type->inspect_str(env), (int)i);
         }
     }
 
