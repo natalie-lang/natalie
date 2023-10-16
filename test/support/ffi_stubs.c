@@ -13,6 +13,6 @@ size_t test_size_t(size_t arg) {
     return arg;
 }
 
-void *test_void_star(void *arg) {
+const char *test_char_pointer(const char *arg) {
     return arg;
 }

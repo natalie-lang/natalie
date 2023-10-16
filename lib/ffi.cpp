@@ -67,7 +67,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
 
     args.ensure_argc_is(env, cif->nargs);
 
-    auto MemoryPointer = fetch_nested_const({ "FFI"_s, "MemoryPointer"_s })->as_class();
+    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
 
     auto bool_sym = "bool"_s;
     auto char_sym = "char"_s;
@@ -82,12 +82,13 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
         auto val = args.at(i);
         auto type = arg_types->at(i);
         if (type == pointer_sym) {
-            if (val->klass() == MemoryPointer) {
+            if (val->is_a(env, Pointer))
                 arg_values[i].vp = val->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
-                arg_pointers[i] = &(arg_values[i].vp);
-            } else {
-                env->raise("ArgumentError", "Expected MemoryPointer but got {}", val);
-            }
+            else if (val->is_string())
+                arg_values[i].vp = (void *)val->as_string()->c_str();
+            else
+                env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val->inspect_str(env), (int)i);
+            arg_pointers[i] = &(arg_values[i].vp);
         } else if (type == bool_sym) {
             if (val == TrueObject::the())
                 arg_values[i].us = 1;
@@ -223,7 +224,7 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
-Value FFI_MemoryPointer_free(Env *env, Value self, Args args, Block *) {
+Value FFI_Pointer_free(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr = self->ivar_get(env, "@ptr"_s)->as_void_p();

@@ -12,6 +12,7 @@ module TestStubs
   ffi_lib STUB_LIBRARY_PATH
   attach_function :test_bool, [:bool], :bool
   attach_function :test_char, [:char], :char
+  attach_function :test_char_pointer, [:pointer], :pointer
 end
 
 module LibRubyParser
@@ -107,5 +108,10 @@ describe 'FFI' do
     TestStubs.test_char(120).should == 120
     TestStubs.test_char(512).should == 0
     -> { TestStubs.test_char(nil) }.should raise_error(TypeError)
+  end
+
+  it 'can pass and return strings' do
+    s = 'foo'
+    TestStubs.test_char_pointer(s).read_string.should == 'foo'
   end
 end

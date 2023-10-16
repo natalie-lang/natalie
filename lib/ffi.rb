@@ -23,11 +23,11 @@ module FFI
   class Pointer
     __bind_method__ :address, :FFI_Pointer_address
     __bind_method__ :read_string, :FFI_Pointer_read_string
+    __bind_method__ :free, :FFI_Pointer_free
   end
 
-  class MemoryPointer
+  class MemoryPointer < Pointer
     __bind_method__ :initialize, :FFI_MemoryPointer_initialize
-    __bind_method__ :free, :FFI_MemoryPointer_free
     __bind_method__ :inspect, :FFI_MemoryPointer_inspect
   end
 end
