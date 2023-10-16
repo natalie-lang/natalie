@@ -293,7 +293,7 @@ task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
-task build_test_support: "build/test/support/ffi_stubs.#{DL_EXT}"
+task build_test_support: "build/test/support/ffi_stubs.#{SO_EXT}"
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
