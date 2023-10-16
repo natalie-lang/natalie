@@ -435,7 +435,7 @@ file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{
   SH
 end
 
-file "build/test/support/ffi_stubs.#{DL_EXT}" => 'test/support/ffi_stubs.c' do |t|
+file "build/test/support/ffi_stubs.#{SO_EXT}" => 'test/support/ffi_stubs.c' do |t|
   mkdir_p 'build/test/support'
   sh "#{cc} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{t.source}"
 end
