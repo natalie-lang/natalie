@@ -922,8 +922,6 @@ module Natalie
     end
 
     def initialize(code_str, path)
-      raise 'TODO' if RUBY_ENGINE == 'natalie'
-
       @code_str = code_str
       @path = path
     end
