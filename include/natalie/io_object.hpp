@@ -103,6 +103,7 @@ public:
     bool sync(Env *) const;
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);
+    Value ungetbyte(Env *, Value);
 
     Value write(Env *, Args) const;
     static Value write_file(Env *, Args);

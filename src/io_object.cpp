@@ -721,6 +721,26 @@ Value IoObject::try_convert(Env *env, Value val) {
     return NilObject::the();
 }
 
+Value IoObject::ungetbyte(Env *env, Value byte) {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    if (!byte || byte->is_nil())
+        return NilObject::the();
+    if (byte->is_integer()) {
+        nat_int_t value = 0xff;
+        if (!byte->as_integer()->is_bignum()) {
+            value = IntegerObject::convert_to_nat_int_t(env, byte);
+            if (value > 0xff) value = 0xff;
+        }
+        m_read_buffer.prepend_char(static_cast<char>(value & 0xff));
+    } else {
+        const auto &value = byte->to_str(env)->string();
+        m_read_buffer.prepend(value);
+    }
+    return NilObject::the();
+}
+
 int IoObject::rewind(Env *env) {
     raise_if_closed(env);
     errno = 0;
