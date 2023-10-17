@@ -96,3 +96,29 @@ describe "IO#pwrite" do
     File.read(@name).should == 'x'
   end
 end
+
+describe "IO#read" do
+  # There is little in the officials specs about interactions of buffered reads
+  # with other methods. These tests add a bit more of an integration testing
+  # level.
+  context "Buffered reads and interactions with other methods" do
+    before :each do
+      file = File.join(__dir__, '../../spec/core/io/fixtures/lines.txt')
+      @lines = File.read(file)
+      @io = File.open(file, 'r')
+    end
+
+    after :each do
+      @io.close if @io && !@io.closed?
+    end
+
+    it "reads the buffer filled by ungetbyte" do
+      @io.ungetbyte('X'.ord)
+      @io.ungetbyte('Y'.ord)
+      @io.ungetbyte('Z'.ord)
+
+      @io.read(2).should == 'ZY'
+      @io.read.should == "X#{@lines}"
+    end
+  end
+end
