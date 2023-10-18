@@ -97,6 +97,36 @@ describe "IO#pwrite" do
   end
 end
 
+describe "IO#ungetbyte" do
+  before :each do
+    @name = tmp('io_pwrite')
+    @io = File.open(@name, 'a+')
+  end
+
+  after :each do
+    @io.close
+    rm_r @name
+  end
+
+  it "converts negative values to positive bytes" do
+    @io.ungetbyte(-50)
+    @io.getbyte.should == 256 - 50
+  end
+
+  it "supports negative values over 255" do
+    @io.ungetbyte(-256)
+    @io.getbyte.should == 0
+  end
+
+  it "does things with big negative values" do
+    @io.ungetbyte(-400)
+    @io.getbyte.should == [-400].pack('C').ord
+
+    @io.ungetbyte(-12345678)
+    @io.getbyte.should == [-12345678].pack('C').ord
+  end
+end
+
 describe "IO#read" do
   # There is little in the officials specs about interactions of buffered reads
   # with other methods. These tests add a bit more of an integration testing
