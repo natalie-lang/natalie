@@ -798,6 +798,67 @@ size_t StringObject::char_count(Env *env) const {
     return char_count;
 }
 
+Value StringObject::scan(Env *env, Value pattern, Block *block) {
+    if (!pattern->is_string() && !pattern->is_regexp() && pattern->respond_to(env, "to_str"_s))
+        pattern = pattern->send(env, "to_str"_s);
+    if (pattern->is_string())
+        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern));
+    pattern->assert_type(env, Type::Regexp, "Regexp");
+    auto regexp = pattern->as_regexp();
+    auto ary = new ArrayObject {};
+    size_t char_index = 0;
+    size_t new_char_index = 0;
+    size_t total_chars = char_count(env);
+    Value match_value = nullptr;
+    MatchDataObject *match_obj = nullptr;
+
+    auto caller_env = env->caller();
+
+    while (!(match_value = regexp->match(env, this, Value::integer(char_index)))->is_nil()) {
+        match_obj = match_value->as_match_data();
+        env->set_match(match_obj);
+
+        if (match_obj->has_captures()) {
+            auto captures = match_obj->captures(env)->as_array_or_raise(env);
+            if (block) {
+                Value args[] = { captures };
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+            } else {
+                ary->push(captures);
+            }
+        } else {
+            auto str = match_obj->as_match_data()->to_s(env);
+            if (block) {
+                Value args[] = { str };
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+            } else {
+                ary->push(str);
+            }
+        }
+
+        auto offset_ary = match_obj->offset(env, Value::integer(0));
+        if (offset_ary)
+            new_char_index = offset_ary->as_array_or_raise(env)->last()->as_integer_or_raise(env)->to_nat_int_t();
+
+        if (new_char_index > char_index) {
+            char_index = new_char_index;
+        } else {
+            char_index++;
+        }
+
+        if (char_index > total_chars)
+            break;
+    }
+
+    if (block) {
+        caller_env->set_last_match(match_obj);
+        return this;
+    }
+
+    caller_env->set_last_match(match_obj);
+    return ary;
+}
+
 Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
     assert_not_frozen(env);
 
@@ -3051,5 +3112,4 @@ Value StringObject::try_convert(Env *env, Value val) {
         val->klass()->inspect_str(),
         result->klass()->inspect_str());
 }
-
 }

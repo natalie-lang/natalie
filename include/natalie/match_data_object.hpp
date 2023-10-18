@@ -40,10 +40,14 @@ public:
     ssize_t end_char_index(Env *, size_t) const;
 
     Value array(int);
+    Value byteoffset(Env *, Value);
     Value group(int) const;
     Value offset(Env *, Value);
 
+    Value begin(Env *, Value) const;
     Value captures(Env *);
+    Value end(Env *, Value) const;
+    bool has_captures() const { return size() > 1; }
     Value inspect(Env *);
     Value match(Env *, Value);
     Value match_length(Env *, Value);

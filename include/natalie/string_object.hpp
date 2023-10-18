@@ -329,7 +329,7 @@ public:
     Value ord(Env *) const;
     Value partition(Env *, Value);
     Value prepend(Env *, Args);
-    Value ref(Env *, Value, Value);
+    Value ref(Env *, Value, Value = nullptr);
     Value ref_slice_range_in_place(size_t, size_t);
     Value ref_fast_index(Env *, size_t) const;
     Value ref_fast_range(Env *, size_t, size_t) const;
@@ -341,6 +341,7 @@ public:
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     size_t char_count(Env *) const;
+    Value scan(Env *, Value, Block * = nullptr);
     Value setbyte(Env *, Value, Value);
     Value size(Env *) const;
     Value slice_in_place(Env *, Value, Value);

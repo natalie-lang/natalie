@@ -19,6 +19,19 @@ Value MatchDataObject::array(int start) {
     return array;
 }
 
+Value MatchDataObject::byteoffset(Env *env, Value n) {
+    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, n);
+    if (index >= (nat_int_t)size())
+        return NilObject::the();
+
+    auto begin = m_region->beg[index];
+    auto end = m_region->end[index];
+    if (begin == -1)
+        return new ArrayObject { NilObject::the(), NilObject::the() };
+
+    return new ArrayObject { Value::integer(begin), Value::integer(end) };
+}
+
 ssize_t MatchDataObject::beg_byte_index(size_t index) const {
     if (index >= size()) return -1;
     return m_region->beg[index];
@@ -55,12 +68,14 @@ Value MatchDataObject::group(int index) const {
     if (index < 0)
         index += m_region->num_regs;
 
+    assert(index >= 0);
+
     if (m_region->beg[index] == -1)
         return NilObject::the();
 
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
-    return new StringObject { str, length };
+    return new StringObject { str, length, m_string->encoding() };
 }
 
 Value MatchDataObject::offset(Env *env, Value n) {
@@ -80,8 +95,22 @@ Value MatchDataObject::offset(Env *env, Value n) {
     };
 }
 
+Value MatchDataObject::begin(Env *env, Value start) const {
+    auto index = start->as_integer_or_raise(env)->to_nat_int_t();
+    if (index < 0)
+        env->raise("IndexError", "bad index");
+    return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
+}
+
 Value MatchDataObject::captures(Env *env) {
     return this->array(1);
+}
+
+Value MatchDataObject::end(Env *env, Value start) const {
+    auto index = start->as_integer_or_raise(env)->to_nat_int_t();
+    if (index < 0)
+        env->raise("IndexError", "bad index");
+    return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
 Value MatchDataObject::inspect(Env *env) {

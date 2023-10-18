@@ -49,8 +49,10 @@ public:
         onig_free(m_regex);
     }
 
-    static Value compile(Env *env, Value pattern, Value flags, ClassObject *klass) {
+    static Value compile(Env *env, Value pattern, Value flags = nullptr, ClassObject *klass = nullptr) {
         pattern->assert_type(env, Object::Type::String, "String");
+        if (!klass)
+            klass = GlobalEnv::the()->Regexp();
         RegexpObject *regexp = new RegexpObject { klass };
         regexp->send(env, "initialize"_s, { pattern, flags });
         return regexp;
