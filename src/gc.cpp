@@ -14,10 +14,12 @@ void *Cell::operator new(size_t size) {
     return cell;
 }
 
-void Cell::operator delete(void *ptr) {
-    // We may need this in the future, but for now, let's just get a big
-    // beautiful abort if anything is trying to delete a GC-allocated object.
-    NAT_UNREACHABLE();
+void Cell::operator delete(void *) {
+    // sweep() deletes cells, and this will almost never be called by generated code.
+    // However, it does get called in one place that I know of... when creating a
+    // RegexpObject, if the syntax is incorrect, an error is raised. Throwing an
+    // exception causes C++ to automatically call delete on the in-progress
+    // object creation. We can just ignore that and let sweep() clean up the cell later.
 }
 
 void MarkingVisitor::visit(Value val) {
