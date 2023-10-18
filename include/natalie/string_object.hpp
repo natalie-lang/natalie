@@ -369,6 +369,7 @@ public:
     Value convert_integer(Env *, nat_int_t base);
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
+    static size_t char_index_to_byte_index(ArrayObject *chars, size_t char_index);
 
     static CaseFoldType check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags);
 

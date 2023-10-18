@@ -1362,8 +1362,8 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
 
         // Check if there was a captured segment for the requested capture. If
         // there wasn't return nil.
-        ssize_t start_byte_index = match_result->as_match_data()->index(capture);
-        ssize_t end_byte_index = match_result->as_match_data()->ending(capture);
+        ssize_t start_byte_index = match_result->as_match_data()->beg_byte_index(capture);
+        ssize_t end_byte_index = match_result->as_match_data()->end_byte_index(capture);
         if (start_byte_index == -1 || end_byte_index == -1)
             return NilObject::the();
 
@@ -1573,6 +1573,18 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
+size_t StringObject::char_index_to_byte_index(ArrayObject *chars, size_t char_index) {
+    size_t current_char_index = 0;
+    size_t current_byte_index = 0;
+    for (auto character : *chars) {
+        if (current_char_index >= char_index)
+            break;
+        ++current_char_index;
+        current_byte_index += character->as_string()->length();
+    }
+    return current_byte_index;
+}
+
 Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     assert_not_frozen(env);
 
@@ -1756,7 +1768,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
             match = nullptr;
             result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index, block);
             if (match)
-                start_index = match->index(0) + expanded_replacement->length();
+                start_index = match->beg_byte_index(0) + expanded_replacement->length();
         } while (match);
         return result;
     } else {
@@ -1801,7 +1813,7 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         return dup(env)->as_string();
     *match = match_result->as_match_data();
     size_t length = (*match)->as_match_data()->to_s(env)->as_string()->length();
-    nat_int_t index = (*match)->as_match_data()->index(0);
+    nat_int_t index = (*match)->as_match_data()->beg_byte_index(0);
     StringObject *out = new StringObject { c_str(), static_cast<size_t>(index), m_encoding };
     if (block) {
         auto string = (*match)->to_s(env);
@@ -2950,8 +2962,8 @@ Value StringObject::partition(Env *env, Value val) {
         if (match_result->is_nil()) {
             return new ArrayObject { new StringObject(*this), new StringObject("", m_encoding), new StringObject("", m_encoding) };
         } else {
-            start_byte_index = match_result->as_match_data()->index(0);
-            end_byte_index = match_result->as_match_data()->ending(0);
+            start_byte_index = match_result->as_match_data()->beg_byte_index(0);
+            end_byte_index = match_result->as_match_data()->end_byte_index(0);
             ary->push(new StringObject(m_string.substring(0, start_byte_index), m_encoding));
         }
 

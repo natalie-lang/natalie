@@ -19,14 +19,28 @@ Value MatchDataObject::array(int start) {
     return array;
 }
 
-ssize_t MatchDataObject::index(size_t index) {
+ssize_t MatchDataObject::beg_byte_index(size_t index) const {
     if (index >= size()) return -1;
     return m_region->beg[index];
 }
 
-ssize_t MatchDataObject::ending(size_t index) {
+ssize_t MatchDataObject::beg_char_index(Env *env, size_t index) const {
+    if (index >= size()) return -1;
+    auto chars = m_string->chars(env)->as_array();
+    auto beg = m_region->beg[index];
+    return StringObject::byte_index_to_char_index(chars, beg);
+}
+
+ssize_t MatchDataObject::end_byte_index(size_t index) const {
     if (index >= size()) return -1;
     return m_region->end[index];
+}
+
+ssize_t MatchDataObject::end_char_index(Env *env, size_t index) const {
+    if (index >= size()) return -1;
+    auto chars = m_string->chars(env)->as_array();
+    auto end = m_region->end[index];
+    return StringObject::byte_index_to_char_index(chars, end);
 }
 
 /**

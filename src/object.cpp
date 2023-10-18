@@ -961,6 +961,8 @@ Value Object::dup(Env *env) const {
         return new RangeObject { *as_range() };
     case Object::Type::Rational:
         return new RationalObject { *as_rational() };
+    case Object::Type::Regexp:
+        return new RegexpObject { env, as_regexp()->pattern(), as_regexp()->options() };
     case Object::Type::String:
         return new StringObject { *as_string() };
     case Object::Type::Symbol:
