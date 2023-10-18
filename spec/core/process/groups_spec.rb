@@ -3,10 +3,7 @@ require_relative '../../spec_helper'
 describe "Process.groups" do
   platform_is_not :windows do
     it "gets an Array of the gids of groups in the supplemental group access list" do
-      NATFIXME 'Implement String#scan', exception: NoMethodError, message: "undefined method `scan'" do
-        groups = `id -G`.scan(/\d+/).map { |i| i.to_i }
-      end
-      groups = `id -G`.split(/\s+/).map { |i| i.to_i }
+      groups = `id -G`.scan(/\d+/).map { |i| i.to_i }
       # Include the standard `id` command output.  On macOS, GNU
       # coreutils `id` is limited to NGROUPS_MAX groups, because of
       # the backward compatibility of getgroups(2).
