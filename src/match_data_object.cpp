@@ -232,7 +232,7 @@ Value MatchDataObject::to_a(Env *env) {
     return this->array(0);
 }
 
-Value MatchDataObject::to_s(Env *env) {
+Value MatchDataObject::to_s(Env *env) const {
     assert(size() > 0);
     return group(0);
 }

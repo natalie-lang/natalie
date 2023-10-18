@@ -57,7 +57,7 @@ public:
     Value pre_match(Env *);
     Value regexp() const;
     Value to_a(Env *);
-    Value to_s(Env *);
+    Value to_s(Env *) const;
     Value ref(Env *, Value);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
