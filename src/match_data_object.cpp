@@ -96,7 +96,13 @@ Value MatchDataObject::offset(Env *env, Value n) {
 }
 
 Value MatchDataObject::begin(Env *env, Value start) const {
-    auto index = start->to_int(env)->to_nat_int_t();
+    nat_int_t index;
+    if (start->is_string() || start->is_symbol()) {
+        const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
+        index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+    } else {
+        index = start->to_int(env)->to_nat_int_t();
+    }
     if (index < 0)
         env->raise("IndexError", "bad index");
     if (group(index)->is_nil())
@@ -109,7 +115,13 @@ Value MatchDataObject::captures(Env *env) {
 }
 
 Value MatchDataObject::end(Env *env, Value start) const {
-    auto index = start->to_int(env)->to_nat_int_t();
+    nat_int_t index;
+    if (start->is_string() || start->is_symbol()) {
+        const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
+        index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+    } else {
+        index = start->to_int(env)->to_nat_int_t();
+    }
     if (index < 0)
         env->raise("IndexError", "bad index");
     if (group(index)->is_nil())
