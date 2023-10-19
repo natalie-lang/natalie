@@ -127,6 +127,65 @@ describe "IO#ungetbyte" do
   end
 end
 
+describe "IO#pos" do
+  # There is little in the officials specs about interactions of buffered reads
+  # with other methods. These tests add a bit more of an integration testing
+  # level.
+  context "Buffered IO and interactions with other methods" do
+    before :each do
+      @name = tmp("io_gets")
+      File.open(@name, 'w') do |fh|
+        fh.write('.' * 200)
+      end
+      @io = File.open(@name)
+    end
+
+    after :each do
+      @io.close
+      rm_r @name
+    end
+
+    it "can be negative" do
+      @io.ungetbyte(0x30)
+      @io.ungetbyte(0x31)
+      @io.pos.should == -2
+    end
+  end
+end
+
+describe "IO#pos=" do
+  # There is little in the officials specs about interactions of buffered reads
+  # with other methods. These tests add a bit more of an integration testing
+  # level.
+  context "Buffered IO and interactions with other methods" do
+    before :each do
+      @name = tmp("io_gets")
+      File.open(@name, 'w') do |fh|
+        fh.write('.' * 200)
+      end
+      @io = File.open(@name)
+    end
+
+    after :each do
+      @io.close
+      rm_r @name
+    end
+    it "cannot be set to negative values" do
+      @io.ungetbyte(0x30)
+      @io.ungetbyte(0x31)
+      -> { @io.pos = -1 }.should raise_error(Errno::EINVAL, /Invalid argument/)
+    end
+
+    it "completely resets the IO buffer" do
+      @io.read(2)
+      @io.ungetbyte(0x30)
+      @io.ungetbyte(0x31)
+      @io.pos = 1
+      @io.getbyte.should == '.'.ord
+    end
+  end
+end
+
 describe "IO#read" do
   # There is little in the officials specs about interactions of buffered reads
   # with other methods. These tests add a bit more of an integration testing
