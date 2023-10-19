@@ -10,8 +10,14 @@ describe 'ruby/spec' do
   SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
 
   Dir.chdir File.expand_path('../..', __dir__)
-  Dir['spec/**/*_spec.rb'].each do |path|
-    code = File.read(path, encoding: 'utf-8')
+  glob = if ENV['DEBUG_PARSER']
+           # I use this when I'm working on the parser, as it catches 99% of bugs
+           # and finishes a lot quicker
+           Dir['spec/language/*_spec.rb']
+         else
+           Dir['spec/**/*_spec.rb']
+         end
+  glob.each do |path|
     describe path do
       it 'passes all specs' do
         out_nat =
