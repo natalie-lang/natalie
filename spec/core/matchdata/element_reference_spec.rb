@@ -14,21 +14,19 @@ describe "MatchData#[]" do
   end
 
   it "supports accessors [start, length]" do
-    NATFIXME 'Support second argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[1, 2].should == %w|H X|
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[-3, 2].should == %w|X 113|
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[1, 2].should == %w|H X|
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[-3, 2].should == %w|X 113|
 
-      # negative index is larger than the number of match values
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[-30, 2].should == nil
+    # negative index is larger than the number of match values
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[-30, 2].should == nil
 
-      # length argument larger than number of match values is capped to match value length
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 10].should == %w|113 8|
+    # length argument larger than number of match values is capped to match value length
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 10].should == %w|113 8|
 
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 0].should == []
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 0].should == []
 
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -1].should == nil
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -30].should == nil
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -1].should == nil
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -30].should == nil
   end
 
   it "supports ranges [start..end]" do

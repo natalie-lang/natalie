@@ -237,7 +237,7 @@ Value MatchDataObject::to_s(Env *env) const {
     return group(0);
 }
 
-Value MatchDataObject::ref(Env *env, Value index_value) {
+Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
         const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();
         const nat_int_t index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
@@ -252,6 +252,31 @@ Value MatchDataObject::ref(Env *env, Value index_value) {
         index = index_value.get_fast_integer();
     } else {
         index = IntegerObject::convert_to_nat_int_t(env, index_value);
+    }
+    if (size_value && !size_value->is_nil()) {
+        nat_int_t size;
+        if (size_value.is_fast_integer()) {
+            size = size_value.get_fast_integer();
+        } else {
+            size = IntegerObject::convert_to_nat_int_t(env, size_value);
+        }
+
+        if (size < 0)
+            return NilObject::the();
+        if (size == 0)
+            return new ArrayObject {};
+
+        auto first_result = group(index);
+        if (first_result->is_nil())
+            return NilObject::the();
+
+        auto result = new ArrayObject { first_result };
+        for (auto i = index + 1; i < index + size; i++) {
+            auto next_result = group(i);
+            if (next_result->is_nil()) break;
+            result->push(next_result);
+        }
+        return result;
     }
     return group(index);
 }
