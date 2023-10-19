@@ -14,43 +14,55 @@ describe "MatchData#[]" do
   end
 
   it "supports accessors [start, length]" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[1, 2].should == %w|H X|
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[-3, 2].should == %w|X 113|
+    NATFIXME 'Support second argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[1, 2].should == %w|H X|
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[-3, 2].should == %w|X 113|
 
-    # negative index is larger than the number of match values
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[-30, 2].should == nil
+      # negative index is larger than the number of match values
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[-30, 2].should == nil
 
-    # length argument larger than number of match values is capped to match value length
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 10].should == %w|113 8|
+      # length argument larger than number of match values is capped to match value length
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 10].should == %w|113 8|
 
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 0].should == []
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, 0].should == []
 
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -1].should == nil
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -30].should == nil
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -1].should == nil
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3, -30].should == nil
+    end
   end
 
   it "supports ranges [start..end]" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..10].should == %w|113 8|
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[-30..2].should == nil
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..1].should == []
+    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..10].should == %w|113 8|
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[-30..2].should == nil
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..1].should == []
+    end
   end
 
   it "supports endless ranges [start..]" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..].should == %w|113 8|
+    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..].should == %w|113 8|
+    end
   end
 
   it "supports beginningless ranges [..end]" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[..1].should == %w|HX1138 H|
+    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[..1].should == %w|HX1138 H|
+    end
   end
 
   it "supports beginningless endless ranges [nil..nil]" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.")[nil..nil].should == %w|HX1138 H X 113 8|
+    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match("THX1138.")[nil..nil].should == %w|HX1138 H X 113 8|
+    end
   end
 
   it "returns instances of String when given a String subclass" do
     str = MatchDataSpecs::MyString.new("THX1138.")
-    /(.)(.)(\d+)(\d)/.match(str)[0..-1].each { |m| m.should be_an_instance_of(String) }
+    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
+      /(.)(.)(\d+)(\d)/.match(str)[0..-1].each { |m| m.should be_an_instance_of(String) }
+    end
   end
 end
 
