@@ -756,6 +756,7 @@ int IoObject::set_pos(Env *env, Value position) {
     errno = 0;
     auto result = ::lseek(m_fileno, offset, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
+    m_read_buffer.clear();
     return result;
 }
 
@@ -857,7 +858,7 @@ int IoObject::pos(Env *env) {
     errno = 0;
     auto result = ::lseek(m_fileno, 0, SEEK_CUR);
     if (result < 0 && errno) env->raise_errno();
-    return result;
+    return result - m_read_buffer.size();
 }
 
 // This is a variant of getbyte that raises EOFError
