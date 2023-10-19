@@ -1757,47 +1757,6 @@ module Natalie
         instructions
       end
 
-      def transform_op_asgn_and(exp, used:)
-        _, variable, assignment = exp
-        var_instruction = if variable.sexp_type == :lvar
-                            _, name = variable
-                            VariableGetInstruction.new(name, default_to_nil: true)
-                          else
-                            transform_expression(variable, used: true)
-                          end
-        instructions = [
-          var_instruction,
-          IfInstruction.new,
-          transform_expression(assignment, used: true),
-          ElseInstruction.new(:if),
-          var_instruction,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_op_asgn_or(exp, used:)
-        _, variable, assignment = exp
-        var_instruction = case variable.sexp_type
-                          when :lvar
-                            _, name = variable
-                            VariableGetInstruction.new(name, default_to_nil: true)
-                          else
-                            transform_expression(variable, used: true)
-                          end
-        instructions = [
-          var_instruction,
-          IfInstruction.new,
-          var_instruction,
-          ElseInstruction.new(:if),
-          transform_expression(assignment, used: true),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       alias transform_require_cpp_file transform_call
 
       def transform_rescue(exp, used:)
