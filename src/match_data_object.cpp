@@ -247,6 +247,24 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
 
         return group(index);
     }
+    if (index_value->type() == Object::Type::Range) {
+        auto range = index_value->as_range();
+        const nat_int_t first = range->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
+        const nat_int_t last = range->end()->is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
+        if (last < first)
+            return new ArrayObject {};
+        auto first_result = group(first);
+        if (first_result->is_nil())
+            return NilObject::the();
+        auto result = new ArrayObject { first_result };
+        for (auto i = first + 1; i <= last; i++) {
+            auto next_result = group(i);
+            if (next_result->is_nil())
+                break;
+            result->push(next_result);
+        }
+        return result;
+    }
     nat_int_t index;
     if (index_value.is_fast_integer()) {
         index = index_value.get_fast_integer();

@@ -30,37 +30,27 @@ describe "MatchData#[]" do
   end
 
   it "supports ranges [start..end]" do
-    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..10].should == %w|113 8|
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[-30..2].should == nil
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..1].should == []
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..10].should == %w|113 8|
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[-30..2].should == nil
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..1].should == []
   end
 
   it "supports endless ranges [start..]" do
-    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[3..].should == %w|113 8|
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[3..].should == %w|113 8|
   end
 
   it "supports beginningless ranges [..end]" do
-    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[..1].should == %w|HX1138 H|
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[..1].should == %w|HX1138 H|
   end
 
   it "supports beginningless endless ranges [nil..nil]" do
-    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-      /(.)(.)(\d+)(\d)/.match("THX1138.")[nil..nil].should == %w|HX1138 H X 113 8|
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138.")[nil..nil].should == %w|HX1138 H X 113 8|
   end
 
   it "returns instances of String when given a String subclass" do
     str = MatchDataSpecs::MyString.new("THX1138.")
-    NATFIXME 'Support range argument', exception: TypeError, message: 'no implicit conversion of Range into Integer' do
-      /(.)(.)(\d+)(\d)/.match(str)[0..-1].each { |m| m.should be_an_instance_of(String) }
-    end
+    /(.)(.)(\d+)(\d)/.match(str)[0..-1].each { |m| m.should be_an_instance_of(String) }
   end
 end
 
