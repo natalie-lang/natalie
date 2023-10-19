@@ -210,7 +210,12 @@ module Natalie
       end
 
       def visit_call_or_write_node(node)
-        copy(node, receiver: visit(node.receiver), value: visit(node.value))
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          arguments: visit(node.arguments),
+          value: visit(node.value)
+        )
       end
 
       def visit_case_node(node)
@@ -272,7 +277,12 @@ module Natalie
       end
 
       def visit_call_operator_write_node(node)
-        copy(node, receiver: visit(node.receiver), value: visit(node.value))
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          arguments: visit(node.arguments),
+          value: visit(node.value)
+        )
       end
 
       def visit_def_node(node)

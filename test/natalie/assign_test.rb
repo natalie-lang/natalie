@@ -217,15 +217,17 @@ describe 'assignment' do
     d ||= 5
     d.should == true
 
+    def e; :e; end
+
     h = {}
-    h[:e] ||= 5
-    h[:e].should == 5
-    h[:e] ||= 6
-    h[:e].should == 5
-    h[:e] += 1
-    h[:e].should == 6
-    h[:e] -= 1
-    h[:e].should == 5
+    h[e] ||= 5
+    h[e].should == 5
+    h[e] ||= 6
+    h[e].should == 5
+    h[e] += 1
+    h[e].should == 6
+    h[e] -= 1
+    h[e].should == 5
     h[:f] ||=
       begin
         1
