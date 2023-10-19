@@ -99,6 +99,8 @@ Value MatchDataObject::begin(Env *env, Value start) const {
     auto index = start->to_int(env)->to_nat_int_t();
     if (index < 0)
         env->raise("IndexError", "bad index");
+    if (group(index)->is_nil())
+        return NilObject::the();
     return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
 }
 
@@ -110,6 +112,8 @@ Value MatchDataObject::end(Env *env, Value start) const {
     auto index = start->to_int(env)->to_nat_int_t();
     if (index < 0)
         env->raise("IndexError", "bad index");
+    if (group(index)->is_nil())
+        return NilObject::the();
     return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
