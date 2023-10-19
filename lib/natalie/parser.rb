@@ -209,61 +209,8 @@ module Natalie
         end
       end
 
-      def visit_call_operator_or_write_node(node)
-        if node.target.name.to_sym == :[]=
-          args = node.target.arguments&.child_nodes || []
-          s(:op_asgn1,
-            visit(node.target.receiver),
-            s(:arglist, *args.map { |n| visit(n) }, location: node.location),
-            node.operator.tr('=', '').to_sym,
-            visit(node.value),
-            location: node.location)
-        elsif node.operator.to_sym == :'||='
-          receiver = visit(node.target.receiver)
-          s(:op_asgn_or,
-            s(:call,
-              receiver,
-              node.target.name.tr('=', '').to_sym,
-              location: node.target.location),
-            s(:attrasgn,
-              receiver,
-              node.target.name.to_sym,
-              visit(node.value),
-              location: node.value.location),
-            location: node.location)
-        else
-          s(:op_asgn2,
-            visit(node.target.receiver),
-            node.target.name.to_sym,
-            node.operator.tr('=', '').to_sym,
-            visit(node.value),
-            location: node.location)
-        end
-      end
-
       def visit_call_or_write_node(node)
-        if node.read_name.to_sym == :[]
-          args = node.arguments&.child_nodes || []
-          s(:op_asgn1,
-            visit(node.receiver),
-            s(:arglist, *args.map { |n| visit(n) }, location: node.location),
-            node.operator.tr('=', '').to_sym,
-            visit(node.value),
-            location: node.location)
-        else
-          receiver = visit(node.receiver)
-          s(:op_asgn_or,
-            s(:call,
-              receiver,
-              node.read_name.to_sym,
-              location: node.receiver.location),
-            s(:attrasgn,
-              receiver,
-              node.write_name.to_sym,
-              visit(node.value),
-              location: node.value.location),
-            location: node.location)
-        end
+        copy(node, receiver: visit(node.receiver), value: visit(node.value))
       end
 
       def visit_case_node(node)
@@ -325,22 +272,7 @@ module Natalie
       end
 
       def visit_call_operator_write_node(node)
-        if node.write_name.to_sym == :[]=
-          args = node.arguments&.child_nodes || []
-          s(:op_asgn1,
-            visit(node.receiver),
-            s(:arglist, *args.map { |n| visit(n) }, location: node.location),
-            node.operator,
-            visit(node.value),
-            location: node.location)
-        else
-          s(:op_asgn2,
-            visit(node.receiver),
-            node.write_name.to_sym,
-            node.operator,
-            visit(node.value),
-            location: node.location)
-        end
+        copy(node, receiver: visit(node.receiver), value: visit(node.value))
       end
 
       def visit_def_node(node)
