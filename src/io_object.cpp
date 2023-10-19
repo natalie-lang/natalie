@@ -316,6 +316,11 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             env->raise("ArgumentError", "negative length {} given", (long long)count);
         if (count > std::numeric_limits<off_t>::max())
             env->raise("RangeError", "bignum too big to convert into `long'");
+        if (m_read_buffer.size() >= static_cast<size_t>(count)) {
+            auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), EncodingObject::get(Encoding::ASCII_8BIT) };
+            m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
+            return result;
+        }
         TM::String buf(count, '\0');
         bytes_read = ::read(m_fileno, &buf[0], count);
         if (bytes_read < 0)
