@@ -4,8 +4,10 @@ require_relative 'fixtures/classes'
 
 describe :string_match_escaped_literal, shared: true do
   not_supported_on :opal do
-    xit "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
-      "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
+    it "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
+      NATFIXME 'support ASCII-only UTF-8 escape sequences', exception: SyntaxError, message: 'too short digits' do
+        "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
+      end
     end
   end
 end
@@ -26,10 +28,10 @@ describe "String#=~" do
   end
 
   it "invokes obj.=~ with self if obj is neither a string nor regexp" do
-    str = "w00t"
-    obj = mock('x')
+    NATFIXME 'coercion', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
+      str = "w00t"
+      obj = mock('x')
 
-    NATFIXME 'This works in the REPL, but not in the specs?', exception: TypeError, message: 'no implicit conversion of MockObject into Regexp' do
       obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
       str.should =~ obj
 
@@ -47,8 +49,7 @@ describe "String#=~" do
     $~.should == nil
   end
 
-  # Breaks the run all tests
-  xit "returns the character index of a found match" do
+  it "returns the character index of a found match" do
     ("こにちわ" =~ /に/).should == 1
   end
 
@@ -67,8 +68,7 @@ describe "String#match" do
         "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
       end
 
-      # Breaks the run all tests
-      xit "uses the start as a character offset" do
+      it "uses the start as a character offset" do
         "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
       end
     end
@@ -78,9 +78,10 @@ describe "String#match" do
         "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
       end
 
-      # Breaks the run all tests
-      xit "uses the start as a character offset" do
-        "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+      it "uses the start as a character offset" do
+        NATFIXME 'negative offset', exception: NoMethodError, message: "undefined method `captures' for nil:NilClass" do
+          "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+        end
       end
     end
   end
@@ -143,11 +144,12 @@ describe "String#match" do
     Regexp.last_match.should == nil
   end
 
-  # NATFIXME: Implement Regexp#dup
-  xit "calls match on the regular expression" do
-    regexp = /./.dup
-    regexp.should_receive(:match).and_return(:foo)
-    'hello'.match(regexp).should == :foo
+  it "calls match on the regular expression" do
+    NATFIXME 'need to use send internally', exception: SpecFailedException, message: '#<MatchData "h"> should be == to :foo' do
+      regexp = /./.dup
+      regexp.should_receive(:match).and_return(:foo)
+      'hello'.match(regexp).should == :foo
+    end
   end
 end
 

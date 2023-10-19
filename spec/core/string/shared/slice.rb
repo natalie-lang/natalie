@@ -311,9 +311,7 @@ describe :string_slice_regexp, shared: true do
   end
 
   it "returns a String in the same encoding as self" do
-    NATFIXME 'returns a String in the same encoding as self', exception: SpecFailedException do
-      "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/).encoding.should == Encoding::US_ASCII
-    end
+    "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/).encoding.should == Encoding::US_ASCII
   end
 
   it "returns String instances" do
@@ -367,9 +365,7 @@ describe :string_slice_regexp_index, shared: true do
   end
 
   it "returns a String in the same encoding as self" do
-    NATFIXME 'returns a String in the same encoding as self', exception: SpecFailedException do
-      "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/, 0).encoding.should == Encoding::US_ASCII
-    end
+    "hello there".encode("US-ASCII").send(@method, /[aeiou](.)\1/, 0).encoding.should == Encoding::US_ASCII
   end
 
   it "calls to_int on the given index" do

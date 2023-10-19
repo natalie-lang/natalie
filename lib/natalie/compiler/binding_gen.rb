@@ -962,7 +962,10 @@ gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true
 
 gen.undefine_singleton_method('MatchData', 'new')
 gen.undefine_singleton_method('MatchData', 'allocate')
+gen.binding('MatchData', 'begin', 'MatchDataObject', 'begin', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('MatchData', 'byteoffset', 'MatchDataObject', 'byteoffset', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'captures', 'MatchDataObject', 'captures', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('MatchData', 'end', 'MatchDataObject', 'end', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'inspect', 'MatchDataObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'match', 'MatchDataObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'match_length', 'MatchDataObject', 'match_length', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -1224,6 +1227,7 @@ gen.binding('String', 'reverse!', 'StringObject', 'reverse_in_place', argc: 0, p
 gen.binding('String', 'rjust', 'StringObject', 'rjust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'rstrip', 'StringObject', 'rstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'rstrip!', 'StringObject', 'rstrip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'scan', 'StringObject', 'scan', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'setbyte', 'StringObject', 'setbyte', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'slice!', 'StringObject', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)

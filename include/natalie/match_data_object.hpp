@@ -32,16 +32,22 @@ public:
 
     StringObject *string() const { return m_string; }
 
-    size_t size() { return m_region->num_regs; }
+    size_t size() const { return m_region->num_regs; }
 
-    ssize_t index(size_t);
-    ssize_t ending(size_t);
+    ssize_t beg_byte_index(size_t) const;
+    ssize_t beg_char_index(Env *, size_t) const;
+    ssize_t end_byte_index(size_t) const;
+    ssize_t end_char_index(Env *, size_t) const;
 
     Value array(int);
+    Value byteoffset(Env *, Value);
     Value group(int) const;
     Value offset(Env *, Value);
 
+    Value begin(Env *, Value) const;
     Value captures(Env *);
+    Value end(Env *, Value) const;
+    bool has_captures() const { return size() > 1; }
     Value inspect(Env *);
     Value match(Env *, Value);
     Value match_length(Env *, Value);
@@ -51,7 +57,7 @@ public:
     Value pre_match(Env *);
     Value regexp() const;
     Value to_a(Env *);
-    Value to_s(Env *);
+    Value to_s(Env *) const;
     Value ref(Env *, Value);
 
     virtual void gc_inspect(char *buf, size_t len) const override {

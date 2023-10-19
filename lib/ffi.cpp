@@ -188,7 +188,7 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
         env->raise("LoadError", "There was an error preparing the FFI call data structure: {}", (int)status);
 
     auto block_env = new Env {};
-    block_env->var_set("cif", 0, true, new VoidPObject { cif });
+    block_env->var_set("cif", 0, true, new VoidPObject { cif, [](auto p) { delete (ffi_cif *)p->void_ptr(); } });
     block_env->var_set("arg_types", 1, true, arg_types_array);
     block_env->var_set("return_type", 2, true, return_type);
     block_env->var_set("ffi_args", 3, true, ffi_args_obj);
@@ -232,7 +232,10 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
     auto ptr_obj = new VoidPObject {
         ptr,
         [](auto p) {
-            free(p->void_ptr());
+            if (p->void_ptr()) {
+                free(p->void_ptr());
+                p->set_void_ptr(nullptr);
+            }
         }
     };
     self->ivar_set(env, "@ptr"_s, ptr_obj);
@@ -244,7 +247,10 @@ Value FFI_Pointer_free(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
     auto ptr = self->ivar_get(env, "@ptr"_s)->as_void_p();
-    free(ptr->void_ptr());
+    if (ptr->void_ptr()) {
+        free(ptr->void_ptr());
+        ptr->set_void_ptr(nullptr);
+    }
     return NilObject::the();
 }
 

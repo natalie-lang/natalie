@@ -232,7 +232,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     } else {
         MatchDataObject *matchdata = result->as_match_data();
         assert(matchdata->size() > 0);
-        return IntegerObject::from_ssize_t(env, matchdata->index(0));
+        return IntegerObject::from_ssize_t(env, matchdata->beg_char_index(env, 0));
     }
 }
 
@@ -255,9 +255,14 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
         } else if (start->is_integer()) {
             start_index = start->as_integer()->to_nat_int_t();
         }
-    }
-    if (start_index < 0) {
-        start_index += str_obj->length();
+        auto chars = str_obj->chars(env)->as_array();
+        if (start_index < 0) {
+            // FIXME: get char index
+            start_index += str_obj->length();
+            assert(start_index >= 0);
+        } else {
+            start_index = StringObject::char_index_to_byte_index(chars, start_index);
+        }
     }
 
     OnigRegion *region = onig_region_new();

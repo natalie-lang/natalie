@@ -798,6 +798,67 @@ size_t StringObject::char_count(Env *env) const {
     return char_count;
 }
 
+Value StringObject::scan(Env *env, Value pattern, Block *block) {
+    if (!pattern->is_string() && !pattern->is_regexp() && pattern->respond_to(env, "to_str"_s))
+        pattern = pattern->send(env, "to_str"_s);
+    if (pattern->is_string())
+        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern));
+    pattern->assert_type(env, Type::Regexp, "Regexp");
+    auto regexp = pattern->as_regexp();
+    auto ary = new ArrayObject {};
+    size_t char_index = 0;
+    size_t new_char_index = 0;
+    size_t total_chars = char_count(env);
+    Value match_value = nullptr;
+    MatchDataObject *match_obj = nullptr;
+
+    auto caller_env = env->caller();
+
+    while (!(match_value = regexp->match(env, this, Value::integer(char_index)))->is_nil()) {
+        match_obj = match_value->as_match_data();
+        env->set_match(match_obj);
+
+        if (match_obj->has_captures()) {
+            auto captures = match_obj->captures(env)->as_array_or_raise(env);
+            if (block) {
+                Value args[] = { captures };
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+            } else {
+                ary->push(captures);
+            }
+        } else {
+            auto str = match_obj->as_match_data()->to_s(env);
+            if (block) {
+                Value args[] = { str };
+                NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(1, args), nullptr);
+            } else {
+                ary->push(str);
+            }
+        }
+
+        auto offset_ary = match_obj->offset(env, Value::integer(0));
+        if (offset_ary)
+            new_char_index = offset_ary->as_array_or_raise(env)->last()->as_integer_or_raise(env)->to_nat_int_t();
+
+        if (new_char_index > char_index) {
+            char_index = new_char_index;
+        } else {
+            char_index++;
+        }
+
+        if (char_index > total_chars)
+            break;
+    }
+
+    if (block) {
+        caller_env->set_last_match(match_obj);
+        return this;
+    }
+
+    caller_env->set_last_match(match_obj);
+    return ary;
+}
+
 Value StringObject::setbyte(Env *env, Value index_obj, Value value_obj) {
     assert_not_frozen(env);
 
@@ -1362,8 +1423,8 @@ Value StringObject::slice_in_place(Env *env, Value index_obj, Value length_obj) 
 
         // Check if there was a captured segment for the requested capture. If
         // there wasn't return nil.
-        ssize_t start_byte_index = match_result->as_match_data()->index(capture);
-        ssize_t end_byte_index = match_result->as_match_data()->ending(capture);
+        ssize_t start_byte_index = match_result->as_match_data()->beg_byte_index(capture);
+        ssize_t end_byte_index = match_result->as_match_data()->end_byte_index(capture);
         if (start_byte_index == -1 || end_byte_index == -1)
             return NilObject::the();
 
@@ -1573,6 +1634,18 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
+size_t StringObject::char_index_to_byte_index(ArrayObject *chars, size_t char_index) {
+    size_t current_char_index = 0;
+    size_t current_byte_index = 0;
+    for (auto character : *chars) {
+        if (current_char_index >= char_index)
+            break;
+        ++current_char_index;
+        current_byte_index += character->as_string()->length();
+    }
+    return current_byte_index;
+}
+
 Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
     assert_not_frozen(env);
 
@@ -1756,7 +1829,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
             match = nullptr;
             result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index, block);
             if (match)
-                start_index = match->index(0) + expanded_replacement->length();
+                start_index = match->beg_byte_index(0) + expanded_replacement->length();
         } while (match);
         return result;
     } else {
@@ -1801,7 +1874,7 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
         return dup(env)->as_string();
     *match = match_result->as_match_data();
     size_t length = (*match)->as_match_data()->to_s(env)->as_string()->length();
-    nat_int_t index = (*match)->as_match_data()->index(0);
+    nat_int_t index = (*match)->as_match_data()->beg_byte_index(0);
     StringObject *out = new StringObject { c_str(), static_cast<size_t>(index), m_encoding };
     if (block) {
         auto string = (*match)->to_s(env);
@@ -2950,8 +3023,8 @@ Value StringObject::partition(Env *env, Value val) {
         if (match_result->is_nil()) {
             return new ArrayObject { new StringObject(*this), new StringObject("", m_encoding), new StringObject("", m_encoding) };
         } else {
-            start_byte_index = match_result->as_match_data()->index(0);
-            end_byte_index = match_result->as_match_data()->ending(0);
+            start_byte_index = match_result->as_match_data()->beg_byte_index(0);
+            end_byte_index = match_result->as_match_data()->end_byte_index(0);
             ary->push(new StringObject(m_string.substring(0, start_byte_index), m_encoding));
         }
 
@@ -3039,5 +3112,4 @@ Value StringObject::try_convert(Env *env, Value val) {
         val->klass()->inspect_str(),
         result->klass()->inspect_str());
 }
-
 }
