@@ -261,9 +261,11 @@ bool Env::has_last_match() {
 void Env::set_last_match(MatchDataObject *match) {
     auto env = non_block_env();
     env->global_set("$~"_s, match);
-    env->global_set("$`"_s, match->pre_match(env));
-    env->global_set("$'"_s, match->post_match(env));
     env->set_match(match);
+    if (match) {
+        env->global_set("$`"_s, match->pre_match(env));
+        env->global_set("$'"_s, match->post_match(env));
+    }
 }
 
 Value Env::exception_object() {
