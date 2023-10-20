@@ -18,9 +18,7 @@ describe "MatchData#values_at" do
 
   context "when passed an integer Range" do
     it "returns an array containing each value given by the elements of the range" do
-      NATFIXME 'returns an array containing each value given by the elements of the range', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..2).should == ["HX1138", "H", "X"]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..2).should == ["HX1138", "H", "X"]
     end
 
     it "fills with nil values for range elements larger than the captured values number" do
@@ -36,15 +34,11 @@ describe "MatchData#values_at" do
     end
 
     it "supports endless Range" do
-      NATFIXME 'supports endless Range', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..).should == ["HX1138", "H", "X", "113", "8"]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..).should == ["HX1138", "H", "X", "113", "8"]
     end
 
     it "supports beginningless Range" do
-      NATFIXME 'supports beginningless Range', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(..2).should == ["HX1138", "H", "X"]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(..2).should == ["HX1138", "H", "X"]
     end
 
     it "returns an empty Array when Range is empty" do
@@ -63,15 +57,11 @@ describe "MatchData#values_at" do
   end
 
   it "supports multiple integer Ranges" do
-    NATFIXME 'supports multiple integer Ranges', exception: SpecFailedException do
-      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(1..2, 2..3).should == ["H", "X", "X", "113"]
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(1..2, 2..3).should == ["H", "X", "X", "113"]
   end
 
   it "supports mixing integer Ranges and Integers" do
-    NATFIXME 'supports mixing integer Ranges and Integers', exception: SpecFailedException do
-      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(1..2, 4).should == ["H", "X", "8"]
-    end
+    /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(1..2, 4).should == ["H", "X", "8"]
   end
 
   it 'supports mixing of names and indices' do
