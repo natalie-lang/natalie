@@ -1930,7 +1930,7 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
                 break;
             // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
             default:
-                fprintf(stderr, "Unknown backslash reference: \\%c", c);
+                fprintf(stderr, "Unknown backslash reference: \\%c\n", c);
                 abort();
             }
             break;
