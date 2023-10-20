@@ -962,6 +962,7 @@ gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true
 
 gen.undefine_singleton_method('MatchData', 'new')
 gen.undefine_singleton_method('MatchData', 'allocate')
+gen.binding('MatchData', '==', 'MatchDataObject', 'eq', argc: 1, pass_env: true, pass_block: false, aliases: ['eql?'], return_type: :bool)
 gen.binding('MatchData', 'begin', 'MatchDataObject', 'begin', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'byteoffset', 'MatchDataObject', 'byteoffset', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('MatchData', 'captures', 'MatchDataObject', 'captures', argc: 0, pass_env: true, pass_block: false, aliases: ['deconstruct'], return_type: :Object)
