@@ -96,9 +96,17 @@ Value MatchDataObject::offset(Env *env, Value n) {
 }
 
 Value MatchDataObject::begin(Env *env, Value start) const {
-    auto index = start->as_integer_or_raise(env)->to_nat_int_t();
+    nat_int_t index;
+    if (start->is_string() || start->is_symbol()) {
+        const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
+        index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+    } else {
+        index = start->to_int(env)->to_nat_int_t();
+    }
     if (index < 0)
         env->raise("IndexError", "bad index");
+    if (group(index)->is_nil())
+        return NilObject::the();
     return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
 }
 
@@ -106,10 +114,18 @@ Value MatchDataObject::captures(Env *env) {
     return this->array(1);
 }
 
-Value MatchDataObject::end(Env *env, Value start) const {
-    auto index = start->as_integer_or_raise(env)->to_nat_int_t();
+Value MatchDataObject::end(Env *env, Value end) const {
+    nat_int_t index;
+    if (end->is_string() || end->is_symbol()) {
+        const auto &str = end->type() == Object::Type::String ? end->as_string()->string() : end->as_symbol()->string();
+        index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+    } else {
+        index = end->to_int(env)->to_nat_int_t();
+    }
     if (index < 0)
         env->raise("IndexError", "bad index");
+    if (group(index)->is_nil())
+        return NilObject::the();
     return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
