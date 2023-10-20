@@ -22,9 +22,7 @@ describe "MatchData#values_at" do
     end
 
     it "fills with nil values for range elements larger than the captured values number" do
-      NATFIXME 'fills with nil values for range elements larger than the captured values number', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..5).should == ["HX1138", "H", "X", "113", "8", nil]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0..5).should == ["HX1138", "H", "X", "113", "8", nil]
     end
 
     it "raises RangeError if any element of the range is negative and out of range" do
