@@ -201,6 +201,15 @@ describe "IO#read" do
       @io.close if @io && !@io.closed?
     end
 
+    it "reads the buffer filled by ungetbyte with a limit" do
+      @io.ungetbyte('X'.ord)
+      @io.ungetbyte('Y'.ord)
+      @io.ungetbyte('Z'.ord)
+
+      @io.read(2).should == 'ZY'
+      @io.read(3).should == "X#{@lines[0, 2]}"
+    end
+
     it "reads the buffer filled by ungetbyte" do
       @io.ungetbyte('X'.ord)
       @io.ungetbyte('Y'.ord)
