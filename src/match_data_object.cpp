@@ -301,7 +301,10 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
         if (key->is_range()) {
-            result->concat(env, { ref(env, key) });
+            auto range = key->as_range();
+            if (range->begin()->is_integer() && range->begin()->as_integer()->to_nat_int_t() < -static_cast<nat_int_t>(size()))
+                env->raise("RangeError", "{} out of range", range->inspect_str(env));
+            result->concat(env, { ref(env, range) });
         } else {
             result->push(ref(env, key));
         }
