@@ -166,6 +166,12 @@ Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
     return result;
 }
 
+bool MatchDataObject::eq(Env *env, Value other) const {
+    if (!other->is_match_data()) return false;
+    const auto other_md = other->as_match_data();
+    return m_string->eq(env, other_md->m_string) && m_regexp->eq(env, other_md->m_regexp);
+}
+
 Value MatchDataObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<MatchData" };
     const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));

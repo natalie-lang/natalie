@@ -48,6 +48,7 @@ public:
     Value captures(Env *);
     Value deconstruct_keys(Env *, Value);
     Value end(Env *, Value) const;
+    bool eq(Env *, Value) const;
     bool has_captures() const { return size() > 1; }
     Value inspect(Env *);
     Value match(Env *, Value);
