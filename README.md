@@ -61,7 +61,7 @@ rake
   and try again.
 - If you get an error about file permissions, e.g. unable to write a file to somewhere like
   `/usr/lib/ruby`, or another path that would require root, then you have a couple options:
-  - Use a tool like [rbenv](https://github.com/rbenv/rbenv) to install a Ruby verison in your
+  - Use a tool like [rbenv](https://github.com/rbenv/rbenv) to install a Ruby version in your
     home directory. Gems will also be installed there. Run `rbenv version` to see which version
     is currently selected. Run `rbenv shell` followed by a version to select that version.
   - Specify where to install gems with something like:
