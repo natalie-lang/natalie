@@ -296,6 +296,10 @@ Value MatchDataObject::to_s(Env *env) const {
     return group(0);
 }
 
+ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
+    return new ArrayObject {};
+}
+
 Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
         const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();
