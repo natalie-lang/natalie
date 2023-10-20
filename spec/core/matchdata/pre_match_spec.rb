@@ -4,9 +4,7 @@ require_relative 'fixtures/classes'
 describe "MatchData#pre_match" do
   it "returns the string before the match, equiv. special var $`" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").pre_match.should == 'T'
-    NATFIXME 'Implement $` special global variable', exception: SpecFailedException do
-      $`.should == 'T'
-    end
+    $`.should == 'T'
   end
 
   it "sets the encoding to the encoding of the source String" do
