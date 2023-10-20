@@ -7,16 +7,12 @@ describe "MatchData#values_at" do
 
   context "when passed a list of Integers" do
     it "returns an array containing each value given by one of integers" do
-      NATFIXME 'returns an array containing each value given by one of integers', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0, 2, -2).should == ["HX1138", "X", "113"]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0, 2, -2).should == ["HX1138", "X", "113"]
     end
 
     it "returns nil value for any integer that is out of range" do
-      NATFIXME 'returns nil value for any integer that is out of range', exception: SpecFailedException do
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(5).should == [nil]
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(-6).should == [nil]
-      end
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(5).should == [nil]
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(-6).should == [nil]
     end
   end
 

@@ -297,7 +297,14 @@ Value MatchDataObject::to_s(Env *env) const {
 }
 
 ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
-    return new ArrayObject {};
+    auto result = new ArrayObject {};
+    for (size_t i = 0; i < args.size(); i++) {
+        auto key = args[i];
+        if (key->is_integer()) {
+            result->push(ref(env, key));
+        }
+    }
+    return result;
 }
 
 Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
