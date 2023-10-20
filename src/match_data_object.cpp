@@ -20,9 +20,17 @@ Value MatchDataObject::array(int start) {
 }
 
 Value MatchDataObject::byteoffset(Env *env, Value n) {
-    nat_int_t index = IntegerObject::convert_to_nat_int_t(env, n);
-    if (index >= (nat_int_t)size())
-        return NilObject::the();
+    nat_int_t index;
+    if (n->is_string() || n->is_symbol()) {
+        const auto &str = n->type() == Object::Type::String ? n->as_string()->string() : n->as_symbol()->string();
+        index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+        if (index < 0)
+            env->raise("IndexError", "undefined group name reference: {}", str);
+    } else {
+        index = n->to_int(env)->to_nat_int_t();
+        if (index < 0 || index >= static_cast<nat_int_t>(size()))
+            env->raise("IndexError", "index {} out of matches", index);
+    }
 
     auto begin = m_region->beg[index];
     auto end = m_region->end[index];
