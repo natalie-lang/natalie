@@ -73,10 +73,8 @@ describe "MatchData#values_at" do
   end
 
   it "fails when passed arguments of unsupported types" do
-    NATFIXME 'fails when passed arguments of unsupported types', exception: SpecFailedException do
-      -> {
-        /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(Object.new)
-      }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
-    end
+    -> {
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(Object.new)
+    }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
   end
 end

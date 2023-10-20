@@ -300,10 +300,10 @@ ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
     auto result = new ArrayObject {};
     for (size_t i = 0; i < args.size(); i++) {
         auto key = args[i];
-        if (key->is_integer() || key->is_string() || key->is_symbol()) {
-            result->push(ref(env, key));
-        } else if (key->is_range()) {
+        if (key->is_range()) {
             result->concat(env, { ref(env, key) });
+        } else {
+            result->push(ref(env, key));
         }
     }
     return result;
