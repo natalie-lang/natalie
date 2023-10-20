@@ -3,7 +3,7 @@ class File
   Separator = SEPARATOR
   ALT_SEPARATOR = nil
   PATH_SEPARATOR = ":".freeze
-  
+
   # NATFIXME: File.join still has many unhandled special cases
   def self.join(*parts)
     parts = parts.flatten
@@ -61,7 +61,7 @@ class File
     end
     base.dup
   end
-  
+
   def self.dirname(path, depth=1)
     if path.respond_to?(:to_path)
       path = path.to_path
@@ -98,5 +98,51 @@ class File
     return "" if file.start_with?(".") &&  !file[1..].include?(".")
     return "." if file.end_with?(".") # ext is a period if ends with period
     file.sub(/^.*\./,'.')
+  end
+
+  def self.fnmatch(pattern, path, flags = 0)
+    unless pattern.is_a?(String)
+      raise TypeError, "no implicit conversion of #{pattern.class} into String"
+    end
+
+    path = path.to_path if !path.is_a?(String) && path.respond_to?(:to_path)
+    unless path.is_a?(String)
+      raise TypeError, "no implicit conversion of #{path.class} into String"
+    end
+
+    flags = flags.to_int if !flags.is_a?(Integer) && flags.respond_to?(:to_int)
+    unless flags.is_a?(Integer)
+      raise TypeError, "no implicit conversion of #{flags.class} into Integer"
+    end
+
+    consume_double_star = false
+
+    if flags & FNM_PATHNAME != 0
+      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
+      regexp = Regexp.new(
+        '\A' +
+        Regexp.quote(pattern)
+          .gsub("\\*\\*#{SEPARATOR}", "(.*#{SEPARATOR}|^)")
+          .gsub('\*', "[^#{SEPARATOR}]*")
+          .gsub('\?', "[^#{SEPARATOR}]") +
+        '\z'
+      )
+      regexp.match?(path)
+    else
+      return false if flags & FNM_DOTMATCH == 0 && path.start_with?('.') && !pattern.start_with?('.')
+      regexp = Regexp.new(
+        '\A' +
+        Regexp.quote(pattern)
+          .gsub('\*\*', '.*')
+          .gsub('\*', '.*')
+          .gsub('\?', '.') +
+        '\z'
+      )
+      regexp.match?(path)
+    end
+  end
+
+  class << self
+    alias fnmatch? fnmatch
   end
 end
