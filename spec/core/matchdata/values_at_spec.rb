@@ -54,15 +54,11 @@ describe "MatchData#values_at" do
 
   context "when passed names" do
     it 'slices captures with the given names' do
-      NATFIXME 'slices captures with the given names', exception: SpecFailedException do
-        /(?<a>.)(?<b>.)(?<c>.)/.match('012').values_at(:c, :a).should == ['2', '0']
-      end
+      /(?<a>.)(?<b>.)(?<c>.)/.match('012').values_at(:c, :a).should == ['2', '0']
     end
 
     it 'slices captures with the given String names' do
-      NATFIXME 'slices captures with the given String names', exception: SpecFailedException do
-        /(?<a>.)(?<b>.)(?<c>.)/.match('012').values_at('c', 'a').should == ['2', '0']
-      end
+      /(?<a>.)(?<b>.)(?<c>.)/.match('012').values_at('c', 'a').should == ['2', '0']
     end
   end
 
@@ -79,9 +75,7 @@ describe "MatchData#values_at" do
   end
 
   it 'supports mixing of names and indices' do
-    NATFIXME 'supports mixing of names and indices', exception: SpecFailedException do
-      /\A(?<a>.)(?<b>.)\z/.match('01').values_at(0, 1, 2, :a, :b).should == ['01', '0', '1', '0', '1']
-    end
+    /\A(?<a>.)(?<b>.)\z/.match('01').values_at(0, 1, 2, :a, :b).should == ['01', '0', '1', '0', '1']
   end
 
   it "returns a new empty Array if no arguments given" do
