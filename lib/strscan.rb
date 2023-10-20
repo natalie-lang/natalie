@@ -187,6 +187,10 @@ class StringScanner
 
   def [](index)
     return nil unless @match
+    if index.is_a?(Range)
+      raise TypeError, "no implicit conversion of #{index.class} into Integer"
+    end
+
     @match[index]
   end
 
