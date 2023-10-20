@@ -137,6 +137,35 @@ Value MatchDataObject::end(Env *env, Value end) const {
     return IntegerObject::from_ssize_t(env, end_char_index(env, (size_t)index));
 }
 
+Value MatchDataObject::deconstruct_keys(Env *env, Value keys) {
+    if (!keys || keys->is_nil()) {
+        auto result = new HashObject {};
+        for (auto name : *names()->as_array()) {
+            auto value = ref(env, name);
+            result->put(env, name->as_string()->to_sym(env), value);
+        }
+        return result;
+    }
+
+    if (!keys->is_array())
+        env->raise("TypeError", "wrong argument type {} (expected Array)", keys->klass()->inspect_str());
+
+    auto result = new HashObject {};
+    if (keys->as_array()->size() > static_cast<size_t>(onig_number_of_names(m_regexp->m_regex)))
+        return result;
+
+    for (auto name : *keys->as_array()) {
+        if (!name->is_symbol())
+            env->raise("TypeError", "wrong argument type {} (expected Symbol)", name->klass()->inspect_str());
+        const auto &str = name->as_symbol()->string();
+        auto index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+        if (index < 0)
+            break;
+        result->put(env, name, group(index));
+    }
+    return result;
+}
+
 Value MatchDataObject::inspect(Env *env) {
     StringObject *out = new StringObject { "#<MatchData" };
     const auto names_size = static_cast<size_t>(onig_number_of_names(m_regexp->m_regex));
