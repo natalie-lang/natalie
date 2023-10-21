@@ -66,13 +66,11 @@ describe "IO#readline" do
   describe "when passed separator and limit" do
     it "reads limit bytes till the separator" do
       # Voici la ligne une.\
-      NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-        @io.readline(" ", 4).should == "Voic"
-        @io.readline(" ", 4).should == "i "
-        @io.readline(" ", 4).should == "la "
-        @io.readline(" ", 4).should == "lign"
-        @io.readline(" ", 4).should == "e "
-      end
+      @io.readline(" ", 4).should == "Voic"
+      @io.readline(" ", 4).should == "i "
+      @io.readline(" ", 4).should == "la "
+      @io.readline(" ", 4).should == "lign"
+      @io.readline(" ", 4).should == "e "
     end
   end
 
@@ -82,13 +80,11 @@ describe "IO#readline" do
     end
 
     it "raises exception when options passed as Hash" do
-      NATFIXME 'Support arguments', exception: SpecFailedException do
-        -> { @io.readline({ chomp: true }) }.should raise_error(TypeError)
+      -> { @io.readline({ chomp: true }) }.should raise_error(TypeError)
 
-        -> {
-          @io.readline("\n", 1, { chomp: true })
-        }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 0..2)")
-      end
+      -> {
+        @io.readline("\n", 1, { chomp: true })
+      }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 0..2)")
     end
   end
 end

@@ -448,9 +448,10 @@ Value IoObject::write(Env *env, Args args) const {
 }
 
 // NATFIXME: Make this spec compliant
-Value IoObject::gets(Env *env, Value sep, Value chomp) {
+Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
+    bool has_limit = false;
     if (!sep) {
         sep = env->global_get("$/"_s);
     } else if (!sep->is_nil()) {
@@ -459,11 +460,18 @@ Value IoObject::gets(Env *env, Value sep, Value chomp) {
             sep = new StringObject { "\n\n" };
     }
 
+    if (limit) {
+        limit = limit->to_int(env);
+        has_limit = true;
+    } else {
+        limit = Value::integer(NAT_READ_BYTES);
+    }
+
     if (sep->is_nil())
         return read(env, nullptr, nullptr);
 
     while (true) {
-        auto next_line = read(env, Value::integer(NAT_READ_BYTES), nullptr);
+        auto next_line = read(env, limit, nullptr);
         if (next_line->is_nil()) {
             if (line->is_empty()) {
                 env->set_last_line(NilObject::the());
@@ -472,7 +480,7 @@ Value IoObject::gets(Env *env, Value sep, Value chomp) {
             break;
         }
         line->append(next_line);
-        if (line->include(env, sep))
+        if (has_limit || line->include(env, sep))
             break;
     }
 
@@ -887,8 +895,8 @@ Value IoObject::readbyte(Env *env) {
 // This is a variant of gets that raises EOFError
 // NATFIXME: Add arguments when those features are
 //  added to IOObject::gets()
-Value IoObject::readline(Env *env, Value sep, Value chomp) {
-    auto result = gets(env, sep, chomp);
+Value IoObject::readline(Env *env, Value sep, Value limit, Value chomp) {
+    auto result = gets(env, sep, limit, chomp);
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
     return result;

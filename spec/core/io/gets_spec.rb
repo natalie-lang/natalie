@@ -168,11 +168,9 @@ describe "IO#gets" do
     it "raises exception when options passed as Hash" do
       -> { @io.gets({ chomp: true }) }.should raise_error(TypeError)
 
-      NATFIXME 'Support arguments', exception: SpecFailedException do
-        -> {
-          @io.gets("\n", 1, { chomp: true })
-        }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 0..2)")
-      end
+      -> {
+        @io.gets("\n", 1, { chomp: true })
+      }.should raise_error(ArgumentError, "wrong number of arguments (given 3, expected 0..2)")
     end
   end
 end
@@ -217,7 +215,7 @@ describe "IO#gets" do
   end
 
   it "calls #to_int to convert the second object argument to an Integer limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+    NATFIXME 'Support limit with nil separator', exception: SpecFailedException do
       obj = mock("io gets limit")
       obj.should_receive(:to_int).and_return(2)
 
@@ -226,12 +224,10 @@ describe "IO#gets" do
   end
 
   it "calls #to_str to convert the first argument to a String when passed a limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      obj = mock("io gets separator")
-      obj.should_receive(:to_str).and_return($/)
+    obj = mock("io gets separator")
+    obj.should_receive(:to_str).and_return($/)
 
-      @io.gets(obj, 5).should == "one\n"
-    end
+    @io.gets(obj, 5).should == "one\n"
   end
 
   it "reads to the default separator when passed a single argument greater than the number of bytes to the separator" do
@@ -247,33 +243,25 @@ describe "IO#gets" do
   end
 
   it "reads limit bytes when passed nil and a limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
+    NATFIXME 'Support limit with nil separator', exception: SpecFailedException do
       @io.gets(nil, 6).should == "one\n\nt"
     end
   end
 
   it "reads all bytes when the limit is higher than the available bytes" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.gets(nil, 100).should == "one\n\ntwo\n\nthree\nfour\n"
-    end
+    @io.gets(nil, 100).should == "one\n\ntwo\n\nthree\nfour\n"
   end
 
   it "reads until the next paragraph when passed '' and a limit greater than the next paragraph" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.gets("", 6).should == "one\n\n"
-    end
+    @io.gets("", 6).should == "one\n\n"
   end
 
   it "reads limit bytes when passed '' and a limit less than the next paragraph" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.gets("", 3).should == "one"
-    end
+    @io.gets("", 3).should == "one"
   end
 
   it "reads all bytes when pass a separator and reading more than all bytes" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
-      @io.gets("\t", 100).should == "one\n\ntwo\n\nthree\nfour\n"
-    end
+    @io.gets("\t", 100).should == "one\n\ntwo\n\nthree\nfour\n"
   end
 
   it "returns empty string when 0 passed as a limit" do
