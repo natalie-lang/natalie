@@ -451,6 +451,7 @@ Value IoObject::write(Env *env, Args args) const {
 Value IoObject::gets(Env *env, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
+    auto global_record_separator = env->global_get("$/"_s)->as_string();
 
     while (true) {
         auto next_line = read(env, Value::integer(NAT_READ_BYTES), nullptr);
@@ -462,15 +463,15 @@ Value IoObject::gets(Env *env, Value chomp) {
             break;
         }
         line->append(next_line);
-        if (line->include("\n"))
+        if (line->include(env, global_record_separator))
             break;
     }
 
-    auto split = line->split(env, new StringObject { "\n" }, 2)->as_array();
+    auto split = line->split(env, global_record_separator, 2)->as_array();
     if (split->size() == 2) {
         line = split->at(0)->as_string();
         if (!chomp || chomp->is_falsey())
-            line->append_char('\n');
+            line->append(global_record_separator);
         m_read_buffer = split->at(1)->as_string()->string();
     }
 
