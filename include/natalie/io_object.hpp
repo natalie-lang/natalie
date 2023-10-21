@@ -65,7 +65,7 @@ public:
     int fileno(Env *) const;
     int fsync(Env *);
     Value getbyte(Env *);
-    Value gets(Env *, Value = nullptr);
+    Value gets(Env *, Value = nullptr, Value = nullptr, Value = nullptr);
     Value initialize(Env *, Args, Block * = nullptr);
     Value inspect() const;
     Value internal_encoding() const { return m_internal_encoding; }
@@ -93,16 +93,17 @@ public:
     Value set_sync(Env *, Value);
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
-    Value read(Env *, Value, Value) const;
+    Value read(Env *, Value, Value);
     static Value read_file(Env *, Args);
     Value readbyte(Env *);
-    Value readline(Env *, Value = nullptr);
+    Value readline(Env *, Value = nullptr, Value = nullptr, Value = nullptr);
     int rewind(Env *);
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
     bool sync(Env *) const;
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);
+    Value ungetbyte(Env *, Value);
 
     Value write(Env *, Args) const;
     static Value write_file(Env *, Args);
@@ -124,6 +125,7 @@ private:
     bool m_autoclose { false };
     bool m_sync { false };
     StringObject *m_path { nullptr };
+    TM::String m_read_buffer {};
 };
 
 }

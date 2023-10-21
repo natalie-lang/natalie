@@ -190,11 +190,10 @@ int IoObject::fsync(Env *env) {
 
 Value IoObject::getbyte(Env *env) {
     raise_if_closed(env);
-    unsigned char buffer;
-    int result = ::read(m_fileno, &buffer, 1);
-    if (result == -1) throw_unless_readable(env, this);
-    if (result == 0) return NilObject::the(); // eof case
-    return Value::integer(buffer);
+    auto result = read(env, Value::integer(1), nullptr);
+    if (result->is_string())
+        result = result->as_string()->ord(env);
+    return result;
 }
 
 Value IoObject::inspect() const {
@@ -297,7 +296,7 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-Value IoObject::read(Env *env, Value count_value, Value buffer) const {
+Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer->is_nil()) {
         if (!buffer->is_string() && buffer->respond_to(env, "to_str"_s))
@@ -317,12 +316,19 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
             env->raise("ArgumentError", "negative length {} given", (long long)count);
         if (count > std::numeric_limits<off_t>::max())
             env->raise("RangeError", "bignum too big to convert into `long'");
-        TM::String buf(count, '\0');
-        bytes_read = ::read(m_fileno, &buf[0], count);
+        if (m_read_buffer.size() >= static_cast<size_t>(count)) {
+            auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), EncodingObject::get(Encoding::ASCII_8BIT) };
+            m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
+            return result;
+        }
+        TM::String buf(count - m_read_buffer.size(), '\0');
+        bytes_read = ::read(m_fileno, &buf[0], count - m_read_buffer.size());
         if (bytes_read < 0)
-            env->raise_errno();
+            throw_unless_readable(env, this);
         buf.truncate(bytes_read);
-        if (bytes_read == 0) {
+        buf.prepend(m_read_buffer);
+        m_read_buffer.clear();
+        if (buf.is_empty()) {
             if (buffer != nullptr)
                 buffer->as_string()->clear(env);
             if (count == 0) {
@@ -349,9 +355,11 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
         str = new StringObject {};
     }
     if (bytes_read < 0) {
-        env->raise_errno();
+        throw_unless_readable(env, this);
     } else if (bytes_read == 0) {
         str->clear(env);
+        str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+        m_read_buffer.clear();
         return str;
     } else {
         str->set_str(buf, bytes_read);
@@ -363,6 +371,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) const {
         buf[bytes_read] = 0;
         str->append(buf, bytes_read);
     }
+    str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+    m_read_buffer.clear();
     return str;
 }
 
@@ -437,40 +447,56 @@ Value IoObject::write(Env *env, Args args) const {
     return Value::integer(bytes_written);
 }
 
-// NATFIXME: Make this spec compliant
-Value IoObject::gets(Env *env, Value chomp) {
+Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
-    char buffer[NAT_READ_BYTES + 1];
+    bool has_limit = false;
+    if (sep && !sep->is_nil()) {
+        if (sep->is_integer() || sep->respond_to(env, "to_int"_s)) {
+            limit = sep;
+            sep = nullptr;
+        } else {
+            sep = sep->to_str(env);
+            if (sep->as_string()->is_empty())
+                sep = new StringObject { "\n\n" };
+        }
+    }
 
-    errno = 0;
-    auto pos = ::lseek(m_fileno, 0, SEEK_CUR);
-    if (pos < 0 && errno)
-        env->raise_errno();
+    if (!sep)
+        sep = env->global_get("$/"_s);
+
+    if (limit) {
+        limit = limit->to_int(env);
+        has_limit = true;
+    } else {
+        limit = Value::integer(NAT_READ_BYTES);
+    }
+
+    if (sep->is_nil())
+        return read(env, has_limit ? limit : nullptr, nullptr);
 
     while (true) {
-        const auto bytes_read = ::pread(m_fileno, buffer, NAT_READ_BYTES, pos + line->bytesize());
-        if (bytes_read < 0)
-            env->raise_errno();
-        if (bytes_read == 0)
+        auto next_line = read(env, limit, nullptr);
+        if (next_line->is_nil()) {
+            if (line->is_empty()) {
+                env->set_last_line(NilObject::the());
+                return NilObject::the();
+            }
             break;
-        line->append(buffer, bytes_read);
-        if (line->include("\n"))
+        }
+        line->append(next_line);
+        if (has_limit || line->include(env, sep))
             break;
     }
-    if (line->is_empty()) {
-        env->set_last_line(NilObject::the());
-        return NilObject::the();
+
+    auto split = line->split(env, sep, Value::integer(2))->as_array();
+    if (split->size() == 2) {
+        line = split->at(0)->as_string();
+        if (!chomp || chomp->is_falsey())
+            line->append(sep);
+        m_read_buffer = split->at(1)->as_string()->string();
     }
-    const auto *ptr = strstr(line->c_str(), "\n");
-    if (ptr)
-        line->truncate(ptr - line->c_str() + 1);
-    errno = 0;
-    auto new_pos = ::lseek(m_fileno, line->bytesize(), SEEK_CUR);
-    if (new_pos < 0 && errno)
-        env->raise_errno();
-    if (chomp && chomp->is_truthy())
-        line->chomp_in_place(env, nullptr);
+
     m_lineno++;
     env->set_last_line(line);
     env->set_last_lineno(IntegerObject::create(m_lineno));
@@ -722,12 +748,33 @@ Value IoObject::try_convert(Env *env, Value val) {
     return NilObject::the();
 }
 
+Value IoObject::ungetbyte(Env *env, Value byte) {
+    raise_if_closed(env);
+    if (!is_readable(m_fileno))
+        env->raise("IOError", "not opened for reading");
+    if (!byte || byte->is_nil())
+        return NilObject::the();
+    if (byte->is_integer()) {
+        nat_int_t value = 0xff;
+        if (!byte->as_integer()->is_bignum()) {
+            value = IntegerObject::convert_to_nat_int_t(env, byte);
+            if (value > 0xff) value = 0xff;
+        }
+        m_read_buffer.prepend_char(static_cast<char>(value & 0xff));
+    } else {
+        const auto &value = byte->to_str(env)->string();
+        m_read_buffer.prepend(value);
+    }
+    return NilObject::the();
+}
+
 int IoObject::rewind(Env *env) {
     raise_if_closed(env);
     errno = 0;
     auto result = ::lseek(m_fileno, 0, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
     m_lineno = 0;
+    m_read_buffer.clear();
     return 0;
 }
 
@@ -737,6 +784,7 @@ int IoObject::set_pos(Env *env, Value position) {
     errno = 0;
     auto result = ::lseek(m_fileno, offset, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
+    m_read_buffer.clear();
     return result;
 }
 
@@ -838,7 +886,7 @@ int IoObject::pos(Env *env) {
     errno = 0;
     auto result = ::lseek(m_fileno, 0, SEEK_CUR);
     if (result < 0 && errno) env->raise_errno();
-    return result;
+    return result - m_read_buffer.size();
 }
 
 // This is a variant of getbyte that raises EOFError
@@ -852,8 +900,8 @@ Value IoObject::readbyte(Env *env) {
 // This is a variant of gets that raises EOFError
 // NATFIXME: Add arguments when those features are
 //  added to IOObject::gets()
-Value IoObject::readline(Env *env, Value chomp) {
-    auto result = gets(env, chomp);
+Value IoObject::readline(Env *env, Value sep, Value limit, Value chomp) {
+    auto result = gets(env, sep, limit, chomp);
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
     return result;

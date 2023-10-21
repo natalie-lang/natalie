@@ -257,13 +257,11 @@ describe "File.open" do
   end
 
   it "can't read in a block when call open with File::WRONLY||File::RDONLY mode" do
-    NATFIXME "can't read in a block when call open with File::WRONLY||File::RDONLY mode", exception: SpecFailedException do
-      -> {
-        File.open(@file, File::WRONLY|File::RDONLY ) do |f|
-          f.gets.should == nil
-        end
-      }.should raise_error(IOError)
-    end
+    -> {
+      File.open(@file, File::WRONLY|File::RDONLY ) do |f|
+        f.gets.should == nil
+      end
+    }.should raise_error(IOError)
   end
 
   it "can write in a block when call open with WRONLY mode" do
@@ -280,51 +278,39 @@ describe "File.open" do
 
   it "raises an IOError when read in a block opened with WRONLY mode" do
     File.open(@file, File::WRONLY) do |f|
-      NATFIXME 'raises an IOError when read in a block opened with WRONLY mode', exception: SpecFailedException do
-        -> { f.gets  }.should raise_error(IOError)
-      end
+      -> { f.gets  }.should raise_error(IOError)
     end
   end
 
   it "raises an IOError when read in a block opened with 'w' mode" do
     File.open(@file, "w") do |f|
-      NATFIXME "raises an IOError when read in a block opened with 'w' mode", exception: SpecFailedException do
-        -> { f.gets   }.should raise_error(IOError)
-      end
+      -> { f.gets   }.should raise_error(IOError)
     end
   end
 
   it "raises an IOError when read in a block opened with 'a' mode" do
     File.open(@file, "a") do |f|
-      NATFIXME "raises an IOError when read in a block opened with 'a' mode", exception: SpecFailedException do
-        -> { f.gets  }.should raise_error(IOError)
-      end
+      -> { f.gets  }.should raise_error(IOError)
     end
   end
 
   it "raises an IOError when read in a block opened with 'a' mode" do
     File.open(@file, "a") do |f|
       f.puts("writing").should == nil
-      NATFIXME "raises an IOError when read in a block opened with 'a' mode", exception: SpecFailedException do
-        -> { f.gets }.should raise_error(IOError)
-      end
+      -> { f.gets }.should raise_error(IOError)
     end
   end
 
   it "raises an IOError when read in a block opened with 'a' mode" do
     File.open(@file, File::WRONLY|File::APPEND ) do |f|
-      NATFIXME "raises an IOError when read in a block opened with 'a' mode", exception: SpecFailedException do
-        -> { f.gets }.should raise_error(IOError)
-      end
+      -> { f.gets }.should raise_error(IOError)
     end
   end
 
   it "raises an IOError when read in a block opened with File::WRONLY|File::APPEND mode" do
     File.open(@file, File::WRONLY|File::APPEND ) do |f|
       f.puts("writing").should == nil
-      NATFIXME 'raises an IOError when read in a block opened with File::WRONLY|File::APPEND mode', exception: SpecFailedException do
-        -> { f.gets }.should raise_error(IOError)
-      end
+      -> { f.gets }.should raise_error(IOError)
     end
   end
 
