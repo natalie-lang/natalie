@@ -451,36 +451,29 @@ Value IoObject::write(Env *env, Args args) const {
 Value IoObject::gets(Env *env, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
-    char buffer[NAT_READ_BYTES + 1];
-
-    errno = 0;
-    auto pos = ::lseek(m_fileno, 0, SEEK_CUR);
-    if (pos < 0 && errno)
-        env->raise_errno();
 
     while (true) {
-        const auto bytes_read = ::pread(m_fileno, buffer, NAT_READ_BYTES, pos + line->bytesize());
-        if (bytes_read < 0)
-            env->raise_errno();
-        if (bytes_read == 0)
+        auto next_line = read(env, Value::integer(NAT_READ_BYTES), nullptr);
+        if (next_line->is_nil()) {
+            if (line->is_empty()) {
+                env->set_last_line(NilObject::the());
+                return NilObject::the();
+            }
             break;
-        line->append(buffer, bytes_read);
+        }
+        line->append(next_line);
         if (line->include("\n"))
             break;
     }
-    if (line->is_empty()) {
-        env->set_last_line(NilObject::the());
-        return NilObject::the();
+
+    auto split = line->split(env, new StringObject { "\n" }, 2)->as_array();
+    if (split->size() == 2) {
+        line = split->at(0)->as_string();
+        if (!chomp || chomp->is_falsey())
+            line->append_char('\n');
+        m_read_buffer = split->at(1)->as_string()->string();
     }
-    const auto *ptr = strstr(line->c_str(), "\n");
-    if (ptr)
-        line->truncate(ptr - line->c_str() + 1);
-    errno = 0;
-    auto new_pos = ::lseek(m_fileno, line->bytesize(), SEEK_CUR);
-    if (new_pos < 0 && errno)
-        env->raise_errno();
-    if (chomp && chomp->is_truthy())
-        line->chomp_in_place(env, nullptr);
+
     m_lineno++;
     env->set_last_line(line);
     env->set_last_lineno(IntegerObject::create(m_lineno));

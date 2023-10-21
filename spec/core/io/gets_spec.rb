@@ -201,15 +201,11 @@ describe "IO#gets" do
   end
 
   it "raises an IOError if the stream is opened for append only" do
-    NATFIXME 'Check read mode', exception: SpecFailedException do
-      -> { File.open(@name, "a:utf-8") { |f| f.gets } }.should raise_error(IOError)
-    end
+    -> { File.open(@name, "a:utf-8") { |f| f.gets } }.should raise_error(IOError)
   end
 
   it "raises an IOError if the stream is opened for writing only" do
-    NATFIXME 'Check read mode', exception: SpecFailedException do
-      -> { File.open(@name, "w:utf-8") { |f| f.gets } }.should raise_error(IOError)
-    end
+    -> { File.open(@name, "w:utf-8") { |f| f.gets } }.should raise_error(IOError)
   end
 end
 
