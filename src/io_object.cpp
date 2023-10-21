@@ -447,7 +447,6 @@ Value IoObject::write(Env *env, Args args) const {
     return Value::integer(bytes_written);
 }
 
-// NATFIXME: Make this spec compliant
 Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
