@@ -100,6 +100,9 @@ class File
     file.sub(/^.*\./,'.')
   end
 
+  # NOTE: This method is implemented with Regexps, and that was most certainly a mistake.
+  # If you feel the need to fix a bug here, I'm sorry. We should really rewrite this
+  # with a proper tokenizer and state machine.
   def self.fnmatch(pattern, path, flags = 0)
     unless pattern.is_a?(String)
       raise TypeError, "no implicit conversion of #{pattern.class} into String"
