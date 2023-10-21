@@ -195,7 +195,7 @@ module Natalie
           @instructions << VariableGetInstruction.new(arg.name)
         end
         @has_keyword_splat = true
-        :reverse
+        :reverse unless remaining_keyword_args.any?
       end
 
       def variable_set(name)
