@@ -6,6 +6,10 @@ end
 
 def underscore_arguments(_, _) _ end
 
+def optional_splat_keyword_arguments(o = 1, *s, k:)
+  [o, s, k]
+end
+
 describe 'splat operators' do
   it 'should work with literal arguments' do
     argument_proxy(1).should == [[1], {}]
@@ -78,4 +82,8 @@ end
 
 describe 'underscore args' do
   underscore_arguments(1, 2).should == 1
+end
+
+describe 'keyword argument following splat and optional' do
+  optional_splat_keyword_arguments(:a, :b, k: :c).should == [:a, [:b], :c]
 end

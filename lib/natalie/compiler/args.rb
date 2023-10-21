@@ -76,6 +76,7 @@ module Natalie
           clean_up_keyword_args
           transform_required_arg(arg)
         elsif arg.is_a?(::Prism::RestParameterNode)
+          clean_up_keyword_args
           transform_splat_arg(arg)
         elsif arg.is_a?(::Prism::KeywordRestParameterNode)
           transform_keyword_splat_arg(arg)
