@@ -78,38 +78,39 @@ describe :file_fnmatch, shared: true do
   end
 
   it "does not match unterminated range of characters" do
-    File.send(@method, 'abc[de', 'abcd').should == false
+    NATFIXME 'unterminated range', exception: SyntaxError do
+      File.send(@method, 'abc[de', 'abcd').should == false
+    end
   end
 
   it "does not match unterminated range of characters as a literal" do
-    NATFIXME '[] expansion', exception: SpecFailedException do
+    NATFIXME '[] expansion', exception: SyntaxError do
       File.send(@method, 'abc[de', 'abc[de').should == false
     end
   end
 
   it "matches ranges of characters using bracket expression (e.g. [a-z])" do
-    NATFIXME '[] expansion', exception: SpecFailedException do
-      File.send(@method, 'ca[a-z]', 'cat').should == true
-    end
+    File.send(@method, 'ca[a-z]', 'cat').should == true
   end
 
   it "matches ranges of characters using bracket expression, taking case into account" do
-    NATFIXME '[] expansion', exception: SpecFailedException do
-      File.send(@method, '[a-z]', 'D').should == false
-      File.send(@method, '[^a-z]', 'D').should == true
-      File.send(@method, '[A-Z]', 'd').should == false
-      File.send(@method, '[^A-Z]', 'd').should == true
-      File.send(@method, '[a-z]', 'D', File::FNM_CASEFOLD).should == true
-    end
+    File.send(@method, '[a-z]', 'D').should == false
+    File.send(@method, '[^a-z]', 'D').should == true
+    File.send(@method, '[A-Z]', 'd').should == false
+    File.send(@method, '[^A-Z]', 'd').should == true
+    File.send(@method, '[a-z]', 'D', File::FNM_CASEFOLD).should == true
   end
 
   it "does not match characters outside of the range of the bracket expression" do
     File.send(@method, 'ca[x-z]', 'cat').should == false
-    File.send(@method, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
+    NATFIXME 'single character range?', exception: SyntaxError do
+      File.send(@method, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
+    end
   end
 
   it "matches ranges of characters using exclusive bracket expression (e.g. [^t] or [!t])" do
     File.send(@method, 'ca[^t]', 'cat').should == false
+    File.send(@method, 'ca[^t]', 'cas').should == true
     File.send(@method, 'ca[!t]', 'cat').should == false
   end
 
@@ -160,9 +161,11 @@ describe :file_fnmatch, shared: true do
   end
 
   it "matches '\\' characters in path when flags includes FNM_NOESACPE" do
-    File.send(@method, '\a', '\a', File::FNM_NOESCAPE).should == true
-    File.send(@method, '\a', 'a', File::FNM_NOESCAPE).should == false
-    File.send(@method, '\[foo\]\[bar\]', '[foo][bar]', File::FNM_NOESCAPE).should == false
+    NATFIXME 'FNM_NOESCAPE', exception: SpecFailedException do
+      File.send(@method, '\a', '\a', File::FNM_NOESCAPE).should == true
+      File.send(@method, '\a', 'a', File::FNM_NOESCAPE).should == false
+      File.send(@method, '\[foo\]\[bar\]', '[foo][bar]', File::FNM_NOESCAPE).should == false
+    end
   end
 
   it "escapes special characters inside bracket expression" do

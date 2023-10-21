@@ -120,21 +120,30 @@ class File
       path = path.upcase
     end
 
+    pattern = pattern.gsub(/\./) { '\.' }
+
     if flags & FNM_PATHNAME != 0
       return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
-      pattern = Regexp.quote(pattern)
-                      .gsub("\\*\\*#{SEPARATOR}", "(.*#{SEPARATOR}|^)")
-                      .gsub('\*', "[^#{SEPARATOR}]*")
-                      .gsub('\?', "[^#{SEPARATOR}]")
+      pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
+        if m.to_s == "**#{SEPARATOR}"
+          "(.*#{SEPARATOR}|^)"
+        else
+          "[^#{SEPARATOR}]*#{m[1]}"
+        end
+      end
+      pattern = pattern.gsub(/\?/, "[^#{SEPARATOR}]")
+                       .gsub(/\[((?!\^)[^\]]*)#{SEPARATOR}([^\]]*)\]/, '[\1\2]')
     else
-      return false if flags & FNM_DOTMATCH == 0 && path.start_with?('.') && !pattern.start_with?('.')
-      pattern = Regexp.quote(pattern)
-                      .gsub('\*\*', '.*')
-                      .gsub('\*', '.*')
-                      .gsub('\?', '.')
+      return false if flags & FNM_DOTMATCH == 0 && path.start_with?('.') && !pattern.start_with?('\.')
+      pattern = pattern.gsub(/\*?\*/, '.*')
+                       .gsub(/\?/, '.')
     end
-    regexp = Regexp.new('\A' + pattern + '\z')
-    regexp.match?(path)
+
+    return false if pattern.include?('[]')
+
+    pattern = pattern.gsub(/\[!/, '[^')
+
+    Regexp.new('\A' + pattern + '\z').match?(path)
   end
 
   class << self
