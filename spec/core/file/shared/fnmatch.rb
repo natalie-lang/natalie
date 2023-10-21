@@ -13,24 +13,26 @@ describe :file_fnmatch, shared: true do
   end
 
   it "supports some { } patterns when File::FNM_EXTGLOB is passed" do
-    NATFIXME '{} expansion', exception: SpecFailedException do
-      File.send(@method, "{a,b}", "a", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{a,b}", "b", File::FNM_EXTGLOB).should == true
-      File.send(@method, "c{at,ub}s", "cats", File::FNM_EXTGLOB).should == true
-      File.send(@method, "c{at,ub}s", "cubs", File::FNM_EXTGLOB).should == true
-      File.send(@method, "-c{at,ub}s-", "-cats-", File::FNM_EXTGLOB).should == true
-      File.send(@method, "-c{at,ub}s-", "-cubs-", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{a,b,c}{d,e,f}{g,h}", "adg", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{a,b,c}{d,e,f}{g,h}", "bdg", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{a,b,c}{d,e,f}{g,h}", "ceh", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{aa,bb,cc,dd}", "aa", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{aa,bb,cc,dd}", "bb", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{aa,bb,cc,dd}", "cc", File::FNM_EXTGLOB).should == true
-      File.send(@method, "{aa,bb,cc,dd}", "dd", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{a,b}", "a", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{a,b}", "b", File::FNM_EXTGLOB).should == true
+    File.send(@method, "c{at,ub}s", "cats", File::FNM_EXTGLOB).should == true
+    File.send(@method, "c{at,ub}s", "cubs", File::FNM_EXTGLOB).should == true
+    File.send(@method, "-c{at,ub}s-", "-cats-", File::FNM_EXTGLOB).should == true
+    File.send(@method, "-c{at,ub}s-", "-cubs-", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{a,b,c}{d,e,f}{g,h}", "adg", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{a,b,c}{d,e,f}{g,h}", "bdg", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{a,b,c}{d,e,f}{g,h}", "ceh", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{aa,bb,cc,dd}", "aa", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{aa,bb,cc,dd}", "bb", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{aa,bb,cc,dd}", "cc", File::FNM_EXTGLOB).should == true
+    File.send(@method, "{aa,bb,cc,dd}", "dd", File::FNM_EXTGLOB).should == true
+    NATFIXME 'nexted {} patterns', exception: SpecFailedException do
       File.send(@method, "{1,5{a,b{c,d}}}", "1", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5a", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5bd", File::FNM_EXTGLOB).should == true
+    end
+    NATFIXME 'escaped {}', exception: SyntaxError do
       File.send(@method, "\\\\{a\\,b,b\\}c}", "\\a,b", File::FNM_EXTGLOB).should == true
       File.send(@method, "\\\\{a\\,b,b\\}c}", "\\b}c", File::FNM_EXTGLOB).should == true
     end
@@ -53,10 +55,12 @@ describe :file_fnmatch, shared: true do
     File.send(@method, "{g..a}", "a", File::FNM_EXTGLOB).should == false
     File.send(@method, "{g..a}", "d", File::FNM_EXTGLOB).should == false
     File.send(@method, "{g..a}", "g", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: ,", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: }", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+    NATFIXME 'weird {} patterns', exception: SpecFailedException do
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: ,", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: }", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+    end
   end
 
   it "doesn't match an extra } when File::FNM_EXTGLOB is passed" do

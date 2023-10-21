@@ -120,12 +120,19 @@ class File
       path = path.upcase
     end
 
-    pattern = pattern.gsub(/\./) { '\.' }
+    pattern = pattern.gsub(/\.|\(|\)|\||\$|!/) { |m| '\\' + m }
+
+    if flags & FNM_EXTGLOB != 0
+      pattern = pattern.gsub(/\{([^}]*)\}/) do |m|
+        # FIXME: $1 not set here
+        "(#{m[1...-1].tr(',', '|')})"
+      end
+    end
 
     if flags & FNM_PATHNAME != 0
       return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
       pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
-        if m.to_s == "**#{SEPARATOR}"
+        if m == "**#{SEPARATOR}"
           "(.*#{SEPARATOR}|^)"
         else
           "[^#{SEPARATOR}]*#{m[1]}"
@@ -141,7 +148,7 @@ class File
 
     return false if pattern.include?('[]')
 
-    pattern = pattern.gsub(/\[!/, '[^')
+    pattern = pattern.gsub(/\[\\!/, '[^')
 
     Regexp.new('\A' + pattern + '\z').match?(path)
   end
