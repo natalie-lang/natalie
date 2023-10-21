@@ -45,13 +45,13 @@ describe "IO#readline" do
 
   describe "when passed limit" do
     it "reads limit bytes" do
-      NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
         @io.readline(3).should == "Voi"
       end
     end
 
     it "returns an empty string when passed 0 as a limit" do
-      NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
         @io.readline(0).should == ""
       end
     end
@@ -66,7 +66,7 @@ describe "IO#readline" do
   describe "when passed separator and limit" do
     it "reads limit bytes till the separator" do
       # Voici la ligne une.\
-      NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+      NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
         @io.readline(" ", 4).should == "Voic"
         @io.readline(" ", 4).should == "i "
         @io.readline(" ", 4).should == "la "

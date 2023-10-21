@@ -59,13 +59,13 @@ describe "IO#gets" do
 
   describe "with nil separator" do
     it "returns the entire contents" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
         @io.gets(nil).should == IOSpecs.lines.join("")
       end
     end
 
     it "updates lineno with each invocation" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
         while @io.gets(nil)
           @io.lineno.should == @count += 1
         end
@@ -73,7 +73,7 @@ describe "IO#gets" do
     end
 
     it "updates $. with each invocation" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
         while @io.gets(nil)
           $..should == @count += 1
         end
@@ -85,7 +85,7 @@ describe "IO#gets" do
     # Two successive newlines in the input separate paragraphs.
     # When there are more than two successive newlines, only two are kept.
     it "returns the next paragraph" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support empty separator argument', exception: SpecFailedException do
         @io.gets("").should == IOSpecs.lines[0,3].join("")
         @io.gets("").should == IOSpecs.lines[4,3].join("")
         @io.gets("").should == IOSpecs.lines[7,2].join("")
@@ -94,49 +94,39 @@ describe "IO#gets" do
 
     it "reads until the beginning of the next paragraph" do
       # There are three newlines between the first and second paragraph
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Support empty separator argument', exception: SpecFailedException do
         @io.gets("")
         @io.gets.should == IOSpecs.lines[4]
       end
     end
 
     it "updates lineno with each invocation" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        while @io.gets("")
-          @io.lineno.should == @count += 1
-        end
+      while @io.gets("")
+        @io.lineno.should == @count += 1
       end
     end
 
     it "updates $. with each invocation" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        while @io.gets("")
-          $..should == @count += 1
-        end
+      while @io.gets("")
+        $..should == @count += 1
       end
     end
   end
 
   describe "with an arbitrary String separator" do
     it "reads up to and including the separator" do
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        @io.gets("la linea").should == "Voici la ligne une.\nQui \303\250 la linea"
-      end
+      @io.gets("la linea").should == "Voici la ligne une.\nQui \303\250 la linea"
     end
 
     it "updates lineno with each invocation" do
-    NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        while (@io.gets("la"))
-          @io.lineno.should == @count += 1
-        end
+      while (@io.gets("la"))
+        @io.lineno.should == @count += 1
       end
     end
 
     it "updates $. with each invocation" do
-    NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-        while @io.gets("la")
-          $..should == @count += 1
-        end
+      while @io.gets("la")
+        $..should == @count += 1
       end
     end
 
@@ -178,9 +168,7 @@ describe "IO#gets" do
     end
 
     it "raises exception when options passed as Hash" do
-      NATFIXME 'Support arguments', exception: SpecFailedException do
-        -> { @io.gets({ chomp: true }) }.should raise_error(TypeError)
-      end
+      -> { @io.gets({ chomp: true }) }.should raise_error(TypeError)
 
       NATFIXME 'Support arguments', exception: SpecFailedException do
         -> {
@@ -222,7 +210,7 @@ describe "IO#gets" do
   end
 
   it "calls #to_int to convert a single object argument to an Integer limit" do
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
       obj = mock("io gets limit")
       obj.should_receive(:to_int).and_return(6)
 
@@ -231,7 +219,7 @@ describe "IO#gets" do
   end
 
   it "calls #to_int to convert the second object argument to an Integer limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       obj = mock("io gets limit")
       obj.should_receive(:to_int).and_return(2)
 
@@ -240,7 +228,7 @@ describe "IO#gets" do
   end
 
   it "calls #to_str to convert the first argument to a String when passed a limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       obj = mock("io gets separator")
       obj.should_receive(:to_str).and_return($/)
 
@@ -249,49 +237,49 @@ describe "IO#gets" do
   end
 
   it "reads to the default separator when passed a single argument greater than the number of bytes to the separator" do
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
       @io.gets(6).should == "one\n"
     end
   end
 
   it "reads limit bytes when passed a single argument less than the number of bytes to the default separator" do
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
       @io.gets(3).should == "one"
     end
   end
 
   it "reads limit bytes when passed nil and a limit" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       @io.gets(nil, 6).should == "one\n\nt"
     end
   end
 
   it "reads all bytes when the limit is higher than the available bytes" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       @io.gets(nil, 100).should == "one\n\ntwo\n\nthree\nfour\n"
     end
   end
 
   it "reads until the next paragraph when passed '' and a limit greater than the next paragraph" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       @io.gets("", 6).should == "one\n\n"
     end
   end
 
   it "reads limit bytes when passed '' and a limit less than the next paragraph" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       @io.gets("", 3).should == "one"
     end
   end
 
   it "reads all bytes when pass a separator and reading more than all bytes" do
-    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0)' do
+    NATFIXME 'Support separator and limit arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 0..1)' do
       @io.gets("\t", 100).should == "one\n\ntwo\n\nthree\nfour\n"
     end
   end
 
   it "returns empty string when 0 passed as a limit" do
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
       @io.gets(0).should == ""
       @io.gets(nil, 0).should == ""
       @io.gets("", 0).should == ""
@@ -320,7 +308,7 @@ describe "IO#gets" do
   end
 
   it "reads limit bytes and extra bytes when limit is reached not at character boundary" do
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
       [@io.gets(1), @io.gets(1)].should == ["朝", "日"]
     end
   end
@@ -328,7 +316,7 @@ describe "IO#gets" do
   it "read limit bytes and extra bytes with maximum of 16" do
     # create str "朝日\xE3" + "\x81\xE3" * 8 to avoid utf-8 conflicts
     str = "朝日" + ([227] + [129,227] * 8).pack('C*').force_encoding('utf-8')
-    NATFIXME 'Support limit argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
       @io.gets(7).should == str
     end
   end

@@ -448,10 +448,16 @@ Value IoObject::write(Env *env, Args args) const {
 }
 
 // NATFIXME: Make this spec compliant
-Value IoObject::gets(Env *env, Value chomp) {
+Value IoObject::gets(Env *env, Value sep, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
-    auto global_record_separator = env->global_get("$/"_s)->as_string();
+    if (!sep) {
+        sep = env->global_get("$/"_s);
+    } else {
+        sep = sep->to_str(env);
+        if (sep->as_string()->is_empty())
+            sep = new StringObject { "\n\n" };
+    }
 
     while (true) {
         auto next_line = read(env, Value::integer(NAT_READ_BYTES), nullptr);
@@ -463,15 +469,15 @@ Value IoObject::gets(Env *env, Value chomp) {
             break;
         }
         line->append(next_line);
-        if (line->include(env, global_record_separator))
+        if (line->include(env, sep))
             break;
     }
 
-    auto split = line->split(env, global_record_separator, 2)->as_array();
+    auto split = line->split(env, sep, Value::integer(2))->as_array();
     if (split->size() == 2) {
         line = split->at(0)->as_string();
         if (!chomp || chomp->is_falsey())
-            line->append(global_record_separator);
+            line->append(sep);
         m_read_buffer = split->at(1)->as_string()->string();
     }
 
@@ -878,8 +884,8 @@ Value IoObject::readbyte(Env *env) {
 // This is a variant of gets that raises EOFError
 // NATFIXME: Add arguments when those features are
 //  added to IOObject::gets()
-Value IoObject::readline(Env *env, Value chomp) {
-    auto result = gets(env, chomp);
+Value IoObject::readline(Env *env, Value sep, Value chomp) {
+    auto result = gets(env, sep, chomp);
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
     return result;

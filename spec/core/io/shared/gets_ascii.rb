@@ -5,7 +5,7 @@ describe :io_gets_ascii, shared: true do
       @name = tmp("gets_specs.txt")
       touch(@name, "wb") { |f| f.print "this is a test\xFFtesty\ntestier" }
 
-      NATFIXME 'Support separator argument', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      NATFIXME 'Encoding issues', exception: ArgumentError, message: 'invalid byte sequence in UTF-8' do
         File.open(@name, "rb") { |f| @data = f.send(@method, "\xFF") }
       end
     end
