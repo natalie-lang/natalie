@@ -380,4 +380,10 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     return group(index);
 }
 
+String MatchDataObject::dbg_inspect() const {
+    auto str = group(0);
+    assert(!str->is_nil());
+    return String::format("#<MatchData \"{}\">", str->as_string()->c_str());
+}
+
 }

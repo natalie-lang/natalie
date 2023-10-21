@@ -26,12 +26,16 @@ describe :file_fnmatch, shared: true do
     File.send(@method, "{aa,bb,cc,dd}", "bb", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "cc", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "dd", File::FNM_EXTGLOB).should == true
-    File.send(@method, "{1,5{a,b{c,d}}}", "1", File::FNM_EXTGLOB).should == true
-    File.send(@method, "{1,5{a,b{c,d}}}", "5a", File::FNM_EXTGLOB).should == true
-    File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
-    File.send(@method, "{1,5{a,b{c,d}}}", "5bd", File::FNM_EXTGLOB).should == true
-    File.send(@method, "\\\\{a\\,b,b\\}c}", "\\a,b", File::FNM_EXTGLOB).should == true
-    File.send(@method, "\\\\{a\\,b,b\\}c}", "\\b}c", File::FNM_EXTGLOB).should == true
+    NATFIXME 'nexted {} patterns', exception: SpecFailedException do
+      File.send(@method, "{1,5{a,b{c,d}}}", "1", File::FNM_EXTGLOB).should == true
+      File.send(@method, "{1,5{a,b{c,d}}}", "5a", File::FNM_EXTGLOB).should == true
+      File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
+      File.send(@method, "{1,5{a,b{c,d}}}", "5bd", File::FNM_EXTGLOB).should == true
+    end
+    NATFIXME 'escaped {}', exception: SyntaxError do
+      File.send(@method, "\\\\{a\\,b,b\\}c}", "\\a,b", File::FNM_EXTGLOB).should == true
+      File.send(@method, "\\\\{a\\,b,b\\}c}", "\\b}c", File::FNM_EXTGLOB).should == true
+    end
   end
 
   it "doesn't support some { } patterns even when File::FNM_EXTGLOB is passed" do
@@ -51,10 +55,12 @@ describe :file_fnmatch, shared: true do
     File.send(@method, "{g..a}", "a", File::FNM_EXTGLOB).should == false
     File.send(@method, "{g..a}", "d", File::FNM_EXTGLOB).should == false
     File.send(@method, "{g..a}", "g", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: ,", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: }", File::FNM_EXTGLOB).should == false
-    File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+    NATFIXME 'weird {} patterns', exception: SpecFailedException do
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: ,", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: }", File::FNM_EXTGLOB).should == false
+      File.send(@method, "escaping: {{,\\,,\\},\\{}", "escaping: {", File::FNM_EXTGLOB).should == false
+    end
   end
 
   it "doesn't match an extra } when File::FNM_EXTGLOB is passed" do
@@ -76,11 +82,15 @@ describe :file_fnmatch, shared: true do
   end
 
   it "does not match unterminated range of characters" do
-    File.send(@method, 'abc[de', 'abcd').should == false
+    NATFIXME 'unterminated range', exception: SyntaxError do
+      File.send(@method, 'abc[de', 'abcd').should == false
+    end
   end
 
   it "does not match unterminated range of characters as a literal" do
-    File.send(@method, 'abc[de', 'abc[de').should == false
+    NATFIXME '[] expansion', exception: SyntaxError do
+      File.send(@method, 'abc[de', 'abc[de').should == false
+    end
   end
 
   it "matches ranges of characters using bracket expression (e.g. [a-z])" do
@@ -97,11 +107,14 @@ describe :file_fnmatch, shared: true do
 
   it "does not match characters outside of the range of the bracket expression" do
     File.send(@method, 'ca[x-z]', 'cat').should == false
-    File.send(@method, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
+    NATFIXME 'single character range?', exception: SyntaxError do
+      File.send(@method, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
+    end
   end
 
   it "matches ranges of characters using exclusive bracket expression (e.g. [^t] or [!t])" do
     File.send(@method, 'ca[^t]', 'cat').should == false
+    File.send(@method, 'ca[^t]', 'cas').should == true
     File.send(@method, 'ca[!t]', 'cat').should == false
   end
 
@@ -135,27 +148,35 @@ describe :file_fnmatch, shared: true do
   end
 
   it "matches literal ? or * in path when pattern includes \\? or \\*" do
-    File.send(@method, '\?', '?').should == true
-    File.send(@method, '\?', 'a').should == false
+    NATFIXME 'escaped special character', exception: SpecFailedException do
+      File.send(@method, '\?', '?').should == true
+      File.send(@method, '\?', 'a').should == false
 
-    File.send(@method, '\*', '*').should == true
-    File.send(@method, '\*', 'a').should == false
+      File.send(@method, '\*', '*').should == true
+      File.send(@method, '\*', 'a').should == false
+    end
   end
 
   it "matches literal character (e.g. 'a') in path when pattern includes escaped character (e.g. \\a)" do
-    File.send(@method, '\a', 'a').should == true
-    File.send(@method, 'this\b', 'thisb').should == true
+    NATFIXME 'escaped character', exception: SpecFailedException do
+      File.send(@method, '\a', 'a').should == true
+      File.send(@method, 'this\b', 'thisb').should == true
+    end
   end
 
   it "matches '\\' characters in path when flags includes FNM_NOESACPE" do
-    File.send(@method, '\a', '\a', File::FNM_NOESCAPE).should == true
-    File.send(@method, '\a', 'a', File::FNM_NOESCAPE).should == false
-    File.send(@method, '\[foo\]\[bar\]', '[foo][bar]', File::FNM_NOESCAPE).should == false
+    NATFIXME 'FNM_NOESCAPE', exception: SpecFailedException do
+      File.send(@method, '\a', '\a', File::FNM_NOESCAPE).should == true
+      File.send(@method, '\a', 'a', File::FNM_NOESCAPE).should == false
+      File.send(@method, '\[foo\]\[bar\]', '[foo][bar]', File::FNM_NOESCAPE).should == false
+    end
   end
 
   it "escapes special characters inside bracket expression" do
-    File.send(@method, '[\?]', '?').should == true
-    File.send(@method, '[\*]', '*').should == true
+    NATFIXME '[] expansion', exception: SpecFailedException do
+      File.send(@method, '[\?]', '?').should == true
+      File.send(@method, '[\*]', '*').should == true
+    end
   end
 
   it "does not match leading periods in filenames with wildcards by default" do

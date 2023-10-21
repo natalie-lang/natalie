@@ -73,6 +73,8 @@ public:
         visitor.visit(m_regexp);
     }
 
+    virtual String dbg_inspect() const override;
+
     /**
      * If the underlying string that this MatchDataObject references is going to
      * be mutated in place, then we need to dup the source string so that we are

@@ -242,6 +242,16 @@ describe 'regexp' do
     end
   end
 
+  describe '#gsub' do
+    it 'does not get stuck in a loop if the replacement is larger than the pattern and matches again' do
+      'f'.gsub(/f*/, 'ffff').should == 'ffffffff'
+    end
+
+    it 'works with zero-width match' do
+      "f\nmp".gsub(/^/, 'gi').should == "gif\ngimp"
+    end
+  end
+
   describe '#sub' do
     it 'expands backrefs' do
       'tim'.sub(/t(i)m/, "\\1").should == 'i'

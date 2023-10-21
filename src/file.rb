@@ -3,7 +3,7 @@ class File
   Separator = SEPARATOR
   ALT_SEPARATOR = nil
   PATH_SEPARATOR = ":".freeze
-  
+
   # NATFIXME: File.join still has many unhandled special cases
   def self.join(*parts)
     parts = parts.flatten
@@ -61,7 +61,7 @@ class File
     end
     base.dup
   end
-  
+
   def self.dirname(path, depth=1)
     if path.respond_to?(:to_path)
       path = path.to_path
@@ -98,5 +98,65 @@ class File
     return "" if file.start_with?(".") &&  !file[1..].include?(".")
     return "." if file.end_with?(".") # ext is a period if ends with period
     file.sub(/^.*\./,'.')
+  end
+
+  # NOTE: This method is implemented with Regexps, and that was most certainly a mistake.
+  # If you feel the need to fix a bug here, I'm sorry. We should really rewrite this
+  # with a proper tokenizer and state machine.
+  def self.fnmatch(pattern, path, flags = 0)
+    unless pattern.is_a?(String)
+      raise TypeError, "no implicit conversion of #{pattern.class} into String"
+    end
+
+    path = path.to_path if !path.is_a?(String) && path.respond_to?(:to_path)
+    unless path.is_a?(String)
+      raise TypeError, "no implicit conversion of #{path.class} into String"
+    end
+
+    flags = flags.to_int if !flags.is_a?(Integer) && flags.respond_to?(:to_int)
+    unless flags.is_a?(Integer)
+      raise TypeError, "no implicit conversion of #{flags.class} into Integer"
+    end
+
+    if flags & FNM_CASEFOLD != 0
+      pattern = pattern.upcase
+      path = path.upcase
+    end
+
+    pattern = pattern.gsub(/\.|\(|\)|\||\$|!/) { |m| '\\' + m }
+
+    if flags & FNM_EXTGLOB != 0
+      pattern = pattern.gsub(/\{([^}]*)\}/) do |m|
+        # FIXME: $1 not set here
+        "(#{m[1...-1].tr(',', '|')})"
+      end
+    end
+
+    if flags & FNM_PATHNAME != 0
+      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
+      pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
+        if m == "**#{SEPARATOR}"
+          "(.*#{SEPARATOR}|^)"
+        else
+          "[^#{SEPARATOR}]*#{m[1]}"
+        end
+      end
+      pattern = pattern.gsub(/\?/, "[^#{SEPARATOR}]")
+                       .gsub(/\[((?!\^)[^\]]*)#{SEPARATOR}([^\]]*)\]/, '[\1\2]')
+    else
+      return false if flags & FNM_DOTMATCH == 0 && path.start_with?('.') && !pattern.start_with?('\.')
+      pattern = pattern.gsub(/\*?\*/, '.*')
+                       .gsub(/\?/, '.')
+    end
+
+    return false if pattern.include?('[]')
+
+    pattern = pattern.gsub(/\[\\!/, '[^')
+
+    Regexp.new('\A' + pattern + '\z').match?(path)
+  end
+
+  class << self
+    alias fnmatch? fnmatch
   end
 end
