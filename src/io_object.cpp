@@ -452,13 +452,19 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};
     bool has_limit = false;
-    if (!sep) {
-        sep = env->global_get("$/"_s);
-    } else if (!sep->is_nil()) {
-        sep = sep->to_str(env);
-        if (sep->as_string()->is_empty())
-            sep = new StringObject { "\n\n" };
+    if (sep && !sep->is_nil()) {
+        if (sep->is_integer() || sep->respond_to(env, "to_int"_s)) {
+            limit = sep;
+            sep = nullptr;
+        } else {
+            sep = sep->to_str(env);
+            if (sep->as_string()->is_empty())
+                sep = new StringObject { "\n\n" };
+        }
     }
+
+    if (!sep)
+        sep = env->global_get("$/"_s);
 
     if (limit) {
         limit = limit->to_int(env);

@@ -206,12 +206,10 @@ describe "IO#gets" do
   end
 
   it "calls #to_int to convert a single object argument to an Integer limit" do
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      obj = mock("io gets limit")
-      obj.should_receive(:to_int).and_return(6)
+    obj = mock("io gets limit")
+    obj.should_receive(:to_int).and_return(6)
 
-      @io.gets(obj).should == "one\n"
-    end
+    @io.gets(obj).should == "one\n"
   end
 
   it "calls #to_int to convert the second object argument to an Integer limit" do
@@ -229,15 +227,11 @@ describe "IO#gets" do
   end
 
   it "reads to the default separator when passed a single argument greater than the number of bytes to the separator" do
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
-      @io.gets(6).should == "one\n"
-    end
+    @io.gets(6).should == "one\n"
   end
 
   it "reads limit bytes when passed a single argument less than the number of bytes to the default separator" do
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
-      @io.gets(3).should == "one"
-    end
+    @io.gets(3).should == "one"
   end
 
   it "reads limit bytes when passed nil and a limit" do
@@ -261,17 +255,13 @@ describe "IO#gets" do
   end
 
   it "returns empty string when 0 passed as a limit" do
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
-      @io.gets(0).should == ""
-      @io.gets(nil, 0).should == ""
-      @io.gets("", 0).should == ""
-    end
+    @io.gets(0).should == ""
+    @io.gets(nil, 0).should == ""
+    @io.gets("", 0).should == ""
   end
 
   it "does not accept limit that doesn't fit in a C off_t" do
-    NATFIXME 'Support limit argument', exception: SpecFailedException do
-      -> { @io.gets(2**128) }.should raise_error(RangeError)
-    end
+    -> { @io.gets(2**128) }.should raise_error(RangeError)
   end
 end
 
@@ -290,7 +280,7 @@ describe "IO#gets" do
   end
 
   it "reads limit bytes and extra bytes when limit is reached not at character boundary" do
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
+    NATFIXME 'Encodings', exception: ArgumentError, message: 'invalid byte sequence in UTF-8' do
       [@io.gets(1), @io.gets(1)].should == ["朝", "日"]
     end
   end
@@ -298,7 +288,7 @@ describe "IO#gets" do
   it "read limit bytes and extra bytes with maximum of 16" do
     # create str "朝日\xE3" + "\x81\xE3" * 8 to avoid utf-8 conflicts
     str = "朝日" + ([227] + [129,227] * 8).pack('C*').force_encoding('utf-8')
-    NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
+    NATFIXME 'Encodings', exception: ArgumentError, message: 'invalid byte sequence in UTF-8' do
       @io.gets(7).should == str
     end
   end

@@ -45,21 +45,15 @@ describe "IO#readline" do
 
   describe "when passed limit" do
     it "reads limit bytes" do
-      NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
-        @io.readline(3).should == "Voi"
-      end
+      @io.readline(3).should == "Voi"
     end
 
     it "returns an empty string when passed 0 as a limit" do
-      NATFIXME 'Support limit argument', exception: TypeError, message: 'no implicit conversion of Integer into String' do
-        @io.readline(0).should == ""
-      end
+      @io.readline(0).should == ""
     end
 
     it "does not accept Integers that don't fit in a C off_t" do
-      NATFIXME 'Support limit argument', exception: SpecFailedException do
-        -> { @io.readline(2**128) }.should raise_error(RangeError)
-      end
+      -> { @io.readline(2**128) }.should raise_error(RangeError)
     end
   end
 
