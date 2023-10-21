@@ -118,9 +118,7 @@ describe :file_fnmatch, shared: true do
   end
 
   it "matches characters with case insensitive comparison when flags includes FNM_CASEFOLD" do
-    NATFIXME 'case fold', exception: SpecFailedException do
-      File.send(@method, 'cat', 'CAT', File::FNM_CASEFOLD).should == true
-    end
+    File.send(@method, 'cat', 'CAT', File::FNM_CASEFOLD).should == true
   end
 
   platform_is_not :windows do

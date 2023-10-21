@@ -115,6 +115,11 @@ class File
       raise TypeError, "no implicit conversion of #{flags.class} into Integer"
     end
 
+    if flags & FNM_CASEFOLD != 0
+      pattern = pattern.upcase
+      path = path.upcase
+    end
+
     if flags & FNM_PATHNAME != 0
       return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
       pattern = Regexp.quote(pattern)
