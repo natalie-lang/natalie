@@ -97,7 +97,7 @@ public:
 
     Value last_match(bool to_s = false);
     bool has_last_match();
-    void set_last_match(Value match);
+    void set_last_match(MatchDataObject *match);
 
     void build_vars(size_t);
 
