@@ -752,6 +752,7 @@ int IoObject::rewind(Env *env) {
     auto result = ::lseek(m_fileno, 0, SEEK_SET);
     if (result < 0 && errno) env->raise_errno();
     m_lineno = 0;
+    m_read_buffer.clear();
     return 0;
 }
 
