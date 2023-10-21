@@ -468,7 +468,7 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     }
 
     if (sep->is_nil())
-        return read(env, nullptr, nullptr);
+        return read(env, has_limit ? limit : nullptr, nullptr);
 
     while (true) {
         auto next_line = read(env, limit, nullptr);

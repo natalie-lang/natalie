@@ -215,12 +215,10 @@ describe "IO#gets" do
   end
 
   it "calls #to_int to convert the second object argument to an Integer limit" do
-    NATFIXME 'Support limit with nil separator', exception: SpecFailedException do
-      obj = mock("io gets limit")
-      obj.should_receive(:to_int).and_return(2)
+    obj = mock("io gets limit")
+    obj.should_receive(:to_int).and_return(2)
 
-      @io.gets(nil, obj).should == "on"
-    end
+    @io.gets(nil, obj).should == "on"
   end
 
   it "calls #to_str to convert the first argument to a String when passed a limit" do
@@ -243,9 +241,7 @@ describe "IO#gets" do
   end
 
   it "reads limit bytes when passed nil and a limit" do
-    NATFIXME 'Support limit with nil separator', exception: SpecFailedException do
-      @io.gets(nil, 6).should == "one\n\nt"
-    end
+    @io.gets(nil, 6).should == "one\n\nt"
   end
 
   it "reads all bytes when the limit is higher than the available bytes" do
