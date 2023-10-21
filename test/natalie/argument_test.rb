@@ -4,6 +4,8 @@ def argument_proxy(*args, **kwargs)
   [args, kwargs]
 end
 
+def underscore_arguments(_, _) _ end
+
 describe 'splat operators' do
   it 'should work with literal arguments' do
     argument_proxy(1).should == [[1], {}]
@@ -72,4 +74,8 @@ describe 'forward args' do
   it 'passes block arguments' do
     foo(1, b: 2) { 4 }.should == [1, 2, 4]
   end
+end
+
+describe 'underscore args' do
+  underscore_arguments(1, 2).should == 1
 end

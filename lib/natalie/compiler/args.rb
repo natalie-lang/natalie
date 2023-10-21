@@ -6,6 +6,7 @@ module Natalie
         @local_only = local_only
         @file = file
         @line = line
+        @underscore_arg_set = false
       end
 
       def transform(node)
@@ -198,6 +199,16 @@ module Natalie
 
       def variable_set(name)
         raise "bad var name: #{name.inspect}" unless name =~ /^(?:[[:alpha:]]|_)[[:alnum:]]*/
+
+        if name == :_
+          if @underscore_arg_set
+            # don't keep setting the same _ argument
+            return PopInstruction.new
+          else
+            @underscore_arg_set = true
+          end
+        end
+
         VariableSetInstruction.new(name, local_only: @local_only)
       end
 
