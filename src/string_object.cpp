@@ -655,75 +655,6 @@ Value StringObject::concat(Env *env, Args args) {
     return this;
 }
 
-class CharacterSelector {
-public:
-    virtual ~CharacterSelector() {};
-    virtual bool matches(StringView character) = 0;
-    virtual String print() = 0;
-    virtual Vector<String> selectors() = 0;
-};
-
-class BasicCharacterSelector : public CharacterSelector {
-public:
-    BasicCharacterSelector() { }
-    BasicCharacterSelector(Vector<String> selectors)
-        : m_selectors(selectors) {
-    }
-    virtual ~BasicCharacterSelector() { }
-
-    virtual bool matches(StringView character) {
-        for (auto &selector : m_selectors) {
-            if (selector == character.to_string())
-                return true;
-        }
-        return false;
-    }
-
-    virtual String print() {
-        String selectors = "";
-        for (auto selector : m_selectors) {
-            selectors.append(", ");
-            selectors.append(selector);
-        }
-        return String("BasicCharacterSelector(") + selectors + ")";
-    }
-
-    virtual Vector<String> selectors() { return m_selectors; }
-
-private:
-    Vector<String> m_selectors {};
-};
-
-class NegatedCharacterSelectors : public CharacterSelector {
-public:
-    NegatedCharacterSelectors() { }
-    NegatedCharacterSelectors(Vector<String> selectors)
-        : m_selectors(selectors) {
-    }
-    virtual ~NegatedCharacterSelectors() { }
-
-    virtual bool matches(StringView character) {
-        for (auto &selector : m_selectors) {
-            if (selector == character.to_string())
-                return false;
-        }
-        return true;
-    }
-
-    virtual String print() {
-        String selectors = "";
-        for (auto selector : m_selectors) {
-            selectors.append(", ");
-            selectors.append(selector);
-        }
-        return String("NegatedCharacterSelectors(") + selectors + ")";
-    }
-    virtual Vector<String> selectors() { return m_selectors; }
-
-private:
-    Vector<String> m_selectors {};
-};
-
 Value StringObject::count(Env *env, Args args) {
     args.ensure_argc_at_least(env, 1);
 
@@ -777,8 +708,6 @@ Value StringObject::count(Env *env, Args args) {
         }
 
         // intersect with current selectors
-
-        // Negated characters are always added
         if (negated) {
             for (auto pair : new_selectors) {
                 negated_characters.set(pair.first);
@@ -796,12 +725,6 @@ Value StringObject::count(Env *env, Args args) {
 
     // apply selectors
     nat_int_t total_count = 0;
-    // printf("basic: %ld\n", basic_characters.size());
-    // printf("negated: %ld; containing:\n", negated_characters.size());
-    // for (auto pair : negated_characters) {
-    //     printf(" - %s\n", pair.first.c_str());
-    // }
-
     if (!negated_characters.is_empty() || !basic_characters.is_empty()) {
         for (auto character : *this) {
             if (
