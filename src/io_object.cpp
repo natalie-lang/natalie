@@ -358,6 +358,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         throw_unless_readable(env, this);
     } else if (bytes_read == 0) {
         str->clear(env);
+        str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+        m_read_buffer.clear();
         return str;
     } else {
         str->set_str(buf, bytes_read);
@@ -369,6 +371,8 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         buf[bytes_read] = 0;
         str->append(buf, bytes_read);
     }
+    str->prepend(env, { new StringObject { std::move(m_read_buffer) } });
+    m_read_buffer.clear();
     return str;
 }
 
