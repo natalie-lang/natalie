@@ -82,8 +82,7 @@ describe "String#gsub with pattern and replacement" do
     str.gsub(re, '\10').should == "A0a0"
   end
 
-  # NATFIXME: src/object.cpp:386: Natalie::StringObject* Natalie::Object::as_string(): Assertion `is_string()' failed.
-  xit "treats \\1 sequences without corresponding captures as empty strings" do
+  it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
 
     # NATFIXME: Fix infinite loop
