@@ -296,6 +296,28 @@ Value MatchDataObject::to_s(Env *env) const {
     return group(0);
 }
 
+ArrayObject *MatchDataObject::values_at(Env *env, Args args) {
+    auto result = new ArrayObject {};
+    for (size_t i = 0; i < args.size(); i++) {
+        auto key = args[i];
+        if (key->is_range()) {
+            auto range = key->as_range();
+            if (range->begin()->is_integer() && range->begin()->as_integer()->to_nat_int_t() < -static_cast<nat_int_t>(size()))
+                env->raise("RangeError", "{} out of range", range->inspect_str(env));
+            auto append = ref(env, range);
+            result->concat(env, { append });
+            auto size = range->send(env, "size"_s);
+            if (append->is_array() && size->is_integer() && size->as_integer()->to_nat_int_t() > static_cast<nat_int_t>(append->as_array()->size())) {
+                for (nat_int_t i = append->as_array()->size(); i < size->as_integer()->to_nat_int_t(); i++)
+                    result->push(NilObject::the());
+            }
+        } else {
+            result->push(ref(env, key));
+        }
+    }
+    return result;
+}
+
 Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
         const auto &str = index_value->type() == Object::Type::String ? index_value->as_string()->string() : index_value->as_symbol()->string();

@@ -60,6 +60,7 @@ public:
     Value regexp() const;
     Value to_a(Env *);
     Value to_s(Env *) const;
+    ArrayObject *values_at(Env *, Args);
     Value ref(Env *, Value, Value = nullptr);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
