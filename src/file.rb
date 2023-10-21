@@ -115,31 +115,21 @@ class File
       raise TypeError, "no implicit conversion of #{flags.class} into Integer"
     end
 
-    consume_double_star = false
-
     if flags & FNM_PATHNAME != 0
       return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
-      regexp = Regexp.new(
-        '\A' +
-        Regexp.quote(pattern)
-          .gsub("\\*\\*#{SEPARATOR}", "(.*#{SEPARATOR}|^)")
-          .gsub('\*', "[^#{SEPARATOR}]*")
-          .gsub('\?', "[^#{SEPARATOR}]") +
-        '\z'
-      )
-      regexp.match?(path)
+      pattern = Regexp.quote(pattern)
+                      .gsub("\\*\\*#{SEPARATOR}", "(.*#{SEPARATOR}|^)")
+                      .gsub('\*', "[^#{SEPARATOR}]*")
+                      .gsub('\?', "[^#{SEPARATOR}]")
     else
       return false if flags & FNM_DOTMATCH == 0 && path.start_with?('.') && !pattern.start_with?('.')
-      regexp = Regexp.new(
-        '\A' +
-        Regexp.quote(pattern)
-          .gsub('\*\*', '.*')
-          .gsub('\*', '.*')
-          .gsub('\?', '.') +
-        '\z'
-      )
-      regexp.match?(path)
+      pattern = Regexp.quote(pattern)
+                      .gsub('\*\*', '.*')
+                      .gsub('\*', '.*')
+                      .gsub('\?', '.')
     end
+    regexp = Regexp.new('\A' + pattern + '\z')
+    regexp.match?(path)
   end
 
   class << self
