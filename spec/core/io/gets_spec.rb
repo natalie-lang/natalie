@@ -59,13 +59,11 @@ describe "IO#gets" do
 
   describe "with nil separator" do
     it "returns the entire contents" do
-      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
-        @io.gets(nil).should == IOSpecs.lines.join("")
-      end
+      @io.gets(nil).should == IOSpecs.lines.join("")
     end
 
     it "updates lineno with each invocation" do
-      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
+      NATFIXME 'it updates lineno with each invocation', exception: SpecFailedException do
         while @io.gets(nil)
           @io.lineno.should == @count += 1
         end
@@ -73,7 +71,7 @@ describe "IO#gets" do
     end
 
     it "updates $. with each invocation" do
-      NATFIXME 'Support separator argument', exception: TypeError, message: 'no implicit conversion from nil to string' do
+      NATFIXME 'it updates $. with each invocation', exception: SpecFailedException do
         while @io.gets(nil)
           $..should == @count += 1
         end

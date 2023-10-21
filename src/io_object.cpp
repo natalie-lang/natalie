@@ -453,11 +453,14 @@ Value IoObject::gets(Env *env, Value sep, Value chomp) {
     auto line = new StringObject {};
     if (!sep) {
         sep = env->global_get("$/"_s);
-    } else {
+    } else if (!sep->is_nil()) {
         sep = sep->to_str(env);
         if (sep->as_string()->is_empty())
             sep = new StringObject { "\n\n" };
     }
+
+    if (sep->is_nil())
+        return read(env, nullptr, nullptr);
 
     while (true) {
         auto next_line = read(env, Value::integer(NAT_READ_BYTES), nullptr);
