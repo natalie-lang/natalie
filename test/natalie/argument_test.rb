@@ -4,6 +4,16 @@ def argument_proxy(*args, **kwargs)
   [args, kwargs]
 end
 
+def underscore_arguments(_, _) _ end
+
+def optional_splat_keyword_arguments(o = 1, *s, k:)
+  [o, s, k]
+end
+
+def optional_keyword_keyword_rest_arguments(o = 1, k: 2, **kr)
+  [o, k, kr]
+end
+
 describe 'splat operators' do
   it 'should work with literal arguments' do
     argument_proxy(1).should == [[1], {}]
@@ -72,4 +82,16 @@ describe 'forward args' do
   it 'passes block arguments' do
     foo(1, b: 2) { 4 }.should == [1, 2, 4]
   end
+end
+
+describe 'underscore args' do
+  underscore_arguments(1, 2).should == 1
+end
+
+describe 'keyword argument following splat and optional' do
+  optional_splat_keyword_arguments(:a, :b, k: :c).should == [:a, [:b], :c]
+end
+
+describe 'optional and keyword argument followed by keyword rest' do
+  optional_keyword_keyword_rest_arguments(:a, k: :b, c: :d).should == [:a, :b, { c: :d }]
 end

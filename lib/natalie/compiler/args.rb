@@ -6,6 +6,7 @@ module Natalie
         @local_only = local_only
         @file = file
         @line = line
+        @underscore_arg_set = false
       end
 
       def transform(node)
@@ -75,6 +76,7 @@ module Natalie
           clean_up_keyword_args
           transform_required_arg(arg)
         elsif arg.is_a?(::Prism::RestParameterNode)
+          clean_up_keyword_args
           transform_splat_arg(arg)
         elsif arg.is_a?(::Prism::KeywordRestParameterNode)
           transform_keyword_splat_arg(arg)
@@ -193,11 +195,21 @@ module Natalie
           @instructions << VariableGetInstruction.new(arg.name)
         end
         @has_keyword_splat = true
-        :reverse
+        :reverse unless remaining_keyword_args.any?
       end
 
       def variable_set(name)
         raise "bad var name: #{name.inspect}" unless name =~ /^(?:[[:alpha:]]|_)[[:alnum:]]*/
+
+        if name == :_
+          if @underscore_arg_set
+            # don't keep setting the same _ argument
+            return PopInstruction.new
+          else
+            @underscore_arg_set = true
+          end
+        end
+
         VariableSetInstruction.new(name, local_only: @local_only)
       end
 

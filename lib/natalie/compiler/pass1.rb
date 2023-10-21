@@ -1342,6 +1342,10 @@ module Natalie
           end
         end
 
+        if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
+          has_complicated_args = true
+        end
+
         may_need_to_destructure_args_for_block = for_block && args.size > 1
 
         if has_complicated_args || may_need_to_destructure_args_for_block
