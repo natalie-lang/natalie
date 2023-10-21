@@ -321,12 +321,14 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
             return result;
         }
-        TM::String buf(count, '\0');
-        bytes_read = ::read(m_fileno, &buf[0], count);
+        TM::String buf(count - m_read_buffer.size(), '\0');
+        bytes_read = ::read(m_fileno, &buf[0], count - m_read_buffer.size());
         if (bytes_read < 0)
             throw_unless_readable(env, this);
         buf.truncate(bytes_read);
-        if (bytes_read == 0) {
+        buf.prepend(m_read_buffer);
+        m_read_buffer.clear();
+        if (buf.is_empty()) {
             if (buffer != nullptr)
                 buffer->as_string()->clear(env);
             if (count == 0) {
