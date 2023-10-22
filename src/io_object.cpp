@@ -647,6 +647,8 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
             env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->inspect_str());
         }
     }
+    if (whence == SEEK_CUR && !m_read_buffer.is_empty())
+        amount -= m_read_buffer.size();
     int result = lseek(m_fileno, amount, whence);
     if (result == -1)
         env->raise_errno();
