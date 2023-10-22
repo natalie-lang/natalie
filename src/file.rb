@@ -123,7 +123,7 @@ class File
       path = path.upcase
     end
 
-    pattern = pattern.gsub(/\.|\(|\)|\||\$|!/) { |m| '\\' + m }
+    pattern = pattern.gsub(/\.|\(|\)|\||(?<!\[)\^|\$|!|\+/) { |m| '\\' + m }
 
     if flags & FNM_EXTGLOB != 0
       pattern = pattern.gsub(/\{([^}]*)\}/) do |m|
@@ -133,7 +133,22 @@ class File
     end
 
     if flags & FNM_PATHNAME != 0
-      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./ && !pattern.start_with?('\.')
+      if flags & FNM_DOTMATCH == 0
+        file = File.split(path).last
+        dir = path[...-file.size]
+        file_pattern = File.split(pattern).last
+        dir_pattern = pattern[...-file_pattern.size]
+        #p(path: path, pattern: pattern, dir: dir, file: file, dir_pattern: dir_pattern, file_pattern: file_pattern)
+        if dir =~ /^\.|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          # directory part of pattern does not allow hidden directories
+          return false
+        end
+        if file =~ /^\.|#{SEPARATOR}\./ && file_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          # file part of pattern does not allow hidden files
+          return false
+        end
+      end
+
       pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
         if m == "**#{SEPARATOR}"
           "(.*#{SEPARATOR}|^)"
@@ -152,6 +167,7 @@ class File
     return false if pattern.include?('[]')
 
     pattern = pattern.gsub(/\[\\!/, '[^')
+    #p(pattern: pattern, path: path)
 
     Regexp.new('\A' + pattern + '\z').match?(path)
   end

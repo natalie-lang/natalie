@@ -26,7 +26,7 @@ describe :file_fnmatch, shared: true do
     File.send(@method, "{aa,bb,cc,dd}", "bb", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "cc", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "dd", File::FNM_EXTGLOB).should == true
-    NATFIXME 'nexted {} patterns', exception: SpecFailedException do
+    NATFIXME 'nested {} patterns', exception: SpecFailedException do
       File.send(@method, "{1,5{a,b{c,d}}}", "1", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5a", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
@@ -191,6 +191,14 @@ describe :file_fnmatch, shared: true do
     File.send(@method, '.*', '.profile', File::FNM_PATHNAME).should == true
     File.send(@method, ".*file", "nondotfile").should == false
     File.send(@method, ".*file", "nondotfile", File::FNM_PATHNAME).should == false
+  end
+
+  it "does not match directories with leading periods by default with FNM_PATHNAME" do
+    File.send(@method, '.*', '.directory/nondotfile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', '.directory/.profile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', 'foo/.directory/nondotfile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', 'foo/.directory/.profile', File::FNM_PATHNAME).should == false
+    File.send(@method, '**/.dotfile', '.dotsubdir/.dotfile', File::FNM_PATHNAME).should == false
   end
 
   it "matches leading periods in filenames when flags includes FNM_DOTMATCH" do
