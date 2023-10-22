@@ -139,6 +139,8 @@ class IO
       self.lineno += 1
       yield line
     end
+
+    self
   end
 
   # The following are used in IO.select
