@@ -24,7 +24,7 @@ class File
     when 0 then ""
     when 1 then parts[0].dup
     else
-      parts.join(SEPARATOR)
+      parts.join(SEPARATOR).gsub(/#{SEPARATOR}{2,}/, SEPARATOR)
     end
   end
 
