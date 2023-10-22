@@ -8,6 +8,10 @@
 
 namespace Natalie {
 
+DirObject::~DirObject() {
+    ::closedir(m_dir);
+}
+
 Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
