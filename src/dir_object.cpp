@@ -9,7 +9,9 @@
 namespace Natalie {
 
 DirObject::~DirObject() {
-    ::closedir(m_dir);
+    if (m_dir)
+        ::closedir(m_dir);
+    m_dir = nullptr;
 }
 
 Value DirObject::open(Env *env, Value path, Value encoding, Block *block) {
