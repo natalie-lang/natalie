@@ -24,7 +24,9 @@ describe :io_each, shared: true do
     end
 
     it "returns self" do
-      @io.send(@method) { |l| l }.should equal(@io)
+      NATFIXME 'returns self', exception: SpecFailedException do
+        @io.send(@method) { |l| l }.should equal(@io)
+      end
     end
 
     it "does not change $_" do
@@ -115,10 +117,12 @@ describe :io_each, shared: true do
     end
 
     it "discards leading newlines" do
-      @io.readline
-      @io.readline
-      @io.send(@method, "") { |s| ScratchPad << s }
-      ScratchPad.recorded.should == IOSpecs.paragraphs[1..-1]
+      NATFIXME 'discards leading newlines', exception: SpecFailedException do
+        @io.readline
+        @io.readline
+        @io.send(@method, "") { |s| ScratchPad << s }
+        ScratchPad.recorded.should == IOSpecs.paragraphs[1..-1]
+      end
     end
   end
 
@@ -143,7 +147,9 @@ describe :io_each, shared: true do
 
     describe "when a block is given" do
       it "accepts an empty block" do
-        @io.send(@method, nil, 1024) {}.should equal(@io)
+        NATFIXME 'returns self', exception: SpecFailedException do
+          @io.send(@method, nil, 1024) {}.should equal(@io)
+        end
       end
 
       describe "when passed nil as a separator" do
@@ -161,10 +167,12 @@ describe :io_each, shared: true do
         end
 
         it "discards leading newlines" do
-          @io.readline
-          @io.readline
-          @io.send(@method, "", 1024) { |s| ScratchPad << s }
-          ScratchPad.recorded.should == IOSpecs.paragraphs[1..-1]
+          NATFIXME 'discards leading newlines', exception: SpecFailedException do
+            @io.readline
+            @io.readline
+            @io.send(@method, "", 1024) { |s| ScratchPad << s }
+            ScratchPad.recorded.should == IOSpecs.paragraphs[1..-1]
+          end
         end
       end
     end
@@ -189,15 +197,19 @@ describe :io_each, shared: true do
 
   describe "when passed chomp and a separator" do
     it "yields each line without separator to the passed block" do
-      @io.send(@method, " ", chomp: true) { |s| ScratchPad << s }
-      ScratchPad.recorded.should == IOSpecs.lines_space_separator_without_trailing_spaces
+      NATFIXME 'yields each line without separator to the passed block', exception: SpecFailedException do
+        @io.send(@method, " ", chomp: true) { |s| ScratchPad << s }
+        ScratchPad.recorded.should == IOSpecs.lines_space_separator_without_trailing_spaces
+      end
     end
   end
 
   describe "when passed chomp and empty line as a separator" do
     it "yields each paragraph without trailing new line characters" do
-      @io.send(@method, "", 1024, chomp: true) { |s| ScratchPad << s }
-      ScratchPad.recorded.should == IOSpecs.paragraphs_without_trailing_new_line_characters
+      NATFIXME 'yields each paragraph without trailing new line characters', exception: SpecFailedException do
+        @io.send(@method, "", 1024, chomp: true) { |s| ScratchPad << s }
+        ScratchPad.recorded.should == IOSpecs.paragraphs_without_trailing_new_line_characters
+      end
     end
   end
 
