@@ -133,11 +133,15 @@ class File
     end
 
     if flags & FNM_PATHNAME != 0
+      return true if path == ".#{SEPARATOR}" && pattern.start_with?("\\.#{SEPARATOR}**")
+
       if flags & FNM_DOTMATCH == 0
-        file = File.split(path).last
-        dir = path[...-file.size]
-        file_pattern = File.split(pattern).last
-        dir_pattern = pattern[...-file_pattern.size]
+        return false if path == '.' && pattern != '\.**' && pattern != '\.*'
+
+        file = path.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || path
+        dir = path.slice(0, path.size - file.size)
+        file_pattern = pattern.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || pattern
+        dir_pattern = pattern.slice(0, pattern.size - file_pattern.size)
         #p(path: path, pattern: pattern, dir: dir, file: file, dir_pattern: dir_pattern, file_pattern: file_pattern)
         if dir =~ /^\.|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
           # directory part of pattern does not allow hidden directories

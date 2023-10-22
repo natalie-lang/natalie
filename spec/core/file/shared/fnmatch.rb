@@ -252,6 +252,19 @@ describe :file_fnmatch, shared: true do
     File.send(@method, pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
   end
 
+  it "has special handling for ./ when using * and FNM_PATHNAME" do
+    File.send(@method, './*', '.', File::FNM_PATHNAME).should be_false
+    File.send(@method, './*', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './*/', './', File::FNM_PATHNAME).should be_false
+    File.send(@method, './**', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './**/', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './*', '.', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_false
+    File.send(@method, './*', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, './*/', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_false
+    File.send(@method, './**', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, './**/', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+  end
+
   it "accepts an object that has a #to_path method" do
     File.send(@method, '\*', mock_to_path('a')).should == false
   end
