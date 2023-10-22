@@ -621,7 +621,7 @@ Value IoObject::close(Env *env) {
     }
 }
 
-Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
+Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     raise_if_closed(env);
     nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
     int whence = 0;

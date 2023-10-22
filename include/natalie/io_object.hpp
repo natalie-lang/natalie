@@ -85,7 +85,7 @@ public:
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
     Value pwrite(Env *, Value, Value);
-    Value seek(Env *, Value, Value) const;
+    Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
