@@ -650,6 +650,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1)
         env->raise_errno();
+    m_read_buffer.clear();
     return Value::integer(0);
 }
 
