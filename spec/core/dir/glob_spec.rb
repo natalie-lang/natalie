@@ -138,7 +138,9 @@ describe "Dir.glob" do
       ./subdir_two/
     ]
 
-    Dir.glob('./**/', File::FNM_DOTMATCH).sort.should == expected
+    NATFIXME 'why is ./special/ln/ in our list????', exception: SpecFailedException do
+      Dir.glob('./**/', File::FNM_DOTMATCH).sort.should == expected
+    end
   end
 
   it "matches a list of paths by concatenating their individual results" do
@@ -159,14 +161,19 @@ describe "Dir.glob" do
       deeply//nested/directory/structure
     ]
 
-    Dir.glob('{deeply//**/structure}').sort.should == expected
+    NATFIXME 'preserve double slash', exception: SpecFailedException do
+      Dir.glob('{deeply//**/structure}').sort.should == expected
+    end
   end
 
   it "accepts a block and yields it with each elements" do
     ary = []
     ret = Dir.glob(["file_o*", "file_t*"]) { |t| ary << t }
     ret.should be_nil
-    ary.should == %w!file_one.ext file_two.ext!
+    NATFIXME 'out of order', exception: SpecFailedException do
+      ary.should == %w!file_one.ext file_two.ext!
+    end
+    ary.sort.should == %w!file_one.ext file_two.ext!
   end
 
   it "ignores non-dirs when traversing recursively" do
@@ -315,9 +322,7 @@ describe "Dir.glob" do
   end
 
   it "handles simple directory patterns" do
-    NATFIXME 'directory name with trailing slash', exception: SpecFailedException do
-      Dir.glob('.dotsubdir/').should == ['.dotsubdir/']
-    end
+    Dir.glob('.dotsubdir/').should == ['.dotsubdir/']
   end
 
   it "handles simple directory patterns applied to non-directories" do

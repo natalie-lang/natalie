@@ -143,11 +143,13 @@ class File
         file_pattern = pattern.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || pattern
         dir_pattern = pattern.slice(0, pattern.size - file_pattern.size)
         #p(path: path, pattern: pattern, dir: dir, file: file, dir_pattern: dir_pattern, file_pattern: file_pattern)
-        if dir =~ /^\.|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+        if dir =~ /^\.[^#{SEPARATOR}]|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          #p 1
           # directory part of pattern does not allow hidden directories
           return false
         end
         if file =~ /^\.|#{SEPARATOR}\./ && file_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          #p 2
           # file part of pattern does not allow hidden files
           return false
         end

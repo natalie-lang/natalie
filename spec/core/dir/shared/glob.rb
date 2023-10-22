@@ -269,10 +269,8 @@ describe :dir_glob, shared: true do
 
   ruby_version_is '3.1' do
     it "recursively matches any subdirectories including ./ with '.**/'" do
-      NATFIXME 'special . directory', exception: SpecFailedException do
-        Dir.chdir("#{DirSpecs.mock_dir}/subdir_one") do
-          Dir.send(@method, '.**/').should == ['./']
-        end
+      Dir.chdir("#{DirSpecs.mock_dir}/subdir_one") do
+        Dir.send(@method, '.**/').should == ['./']
       end
     end
   end
