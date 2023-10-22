@@ -394,6 +394,8 @@ Env *build_top_env() {
 
     env->global_set("$/"_s, new StringObject { "\n", 1 });
 
+    env->global_set("$$"_s, Value::integer(getpid()));
+
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
