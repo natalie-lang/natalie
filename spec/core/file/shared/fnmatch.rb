@@ -186,9 +186,11 @@ describe :file_fnmatch, shared: true do
     File.should_not.send(@method, '*/*', 'dave/.profile', File::FNM_PATHNAME)
   end
 
-  it "matches patterns with leading periods to dotfiles by default" do
+  it "matches patterns with leading periods to dotfiles" do
     File.send(@method, '.*', '.profile').should == true
+    File.send(@method, '.*', '.profile', File::FNM_PATHNAME).should == true
     File.send(@method, ".*file", "nondotfile").should == false
+    File.send(@method, ".*file", "nondotfile", File::FNM_PATHNAME).should == false
   end
 
   it "matches leading periods in filenames when flags includes FNM_DOTMATCH" do

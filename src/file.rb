@@ -133,7 +133,7 @@ class File
     end
 
     if flags & FNM_PATHNAME != 0
-      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
+      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./ && !pattern.start_with?('\.')
       pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
         if m == "**#{SEPARATOR}"
           "(.*#{SEPARATOR}|^)"
