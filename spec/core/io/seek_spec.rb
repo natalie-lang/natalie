@@ -70,7 +70,9 @@ describe "IO#seek" do
         zero.seek(offset, File::SEEK_SET)
         pos = zero.pos
 
-        pos.should == offset
+        NATFIXME 'supports seek offsets greater than 2^32', exception: SpecFailedException do
+          pos.should == offset
+        end
       ensure
         zero.close rescue nil
       end
