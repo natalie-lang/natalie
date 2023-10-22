@@ -101,6 +101,7 @@ public:
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
     bool sync(Env *) const;
+    Value sysseek(Env *, Value, Value = nullptr);
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);

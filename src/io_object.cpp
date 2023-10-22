@@ -795,6 +795,11 @@ bool IoObject::sync(Env *env) const {
     raise_if_closed(env);
     return m_sync;
 }
+
+Value IoObject::sysseek(Env *env, Value amount, Value whence) {
+    return seek(env, amount, whence);
+}
+
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
     int nfds = 0;
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
