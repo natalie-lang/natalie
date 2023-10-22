@@ -799,7 +799,8 @@ bool IoObject::sync(Env *env) const {
 Value IoObject::sysseek(Env *env, Value amount, Value whence) {
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysseek for buffered IO");
-    return seek(env, amount, whence);
+    seek(env, amount, whence);
+    return IntegerObject::create(pos(env));
 }
 
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
