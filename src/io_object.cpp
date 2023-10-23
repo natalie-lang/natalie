@@ -801,7 +801,13 @@ Value IoObject::sysread(Env *env, Value amount, Value buffer) {
         return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");
-    return read(env, amount, buffer);
+    auto result = read(env, amount, buffer);
+    if (result->is_nil()) {
+        if (buffer && !buffer->is_nil())
+            buffer->to_str(env)->clear(env);
+        env->raise("EOFError", "end of file reached");
+    }
+    return result;
 }
 
 Value IoObject::sysseek(Env *env, Value amount, Value whence) {
