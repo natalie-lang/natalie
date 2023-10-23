@@ -83,7 +83,7 @@ public:
     void puts(Env *, Value);
     void putstr(Env *, StringObject *);
     void putary(Env *, ArrayObject *);
-    Value print(Env *, Args) const;
+    Value print(Env *, Args);
     Value pwrite(Env *, Value, Value);
     Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
@@ -107,7 +107,7 @@ public:
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);
 
-    Value write(Env *, Args) const;
+    Value write(Env *, Args);
     static Value write_file(Env *, Args);
 
     Value get_path() const;
@@ -116,7 +116,7 @@ public:
 
 protected:
     void raise_if_closed(Env *) const;
-    int write(Env *, Value) const;
+    int write(Env *, Value);
 
 private:
     EncodingObject *m_external_encoding { nullptr };
