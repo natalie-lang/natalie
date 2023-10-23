@@ -797,6 +797,8 @@ bool IoObject::sync(Env *env) const {
 }
 
 Value IoObject::sysread(Env *env, Value amount, Value buffer) {
+    if (amount->to_int(env)->is_zero() && buffer && !buffer->is_nil())
+        return buffer;
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysread for buffered IO");
     return read(env, amount, buffer);
