@@ -895,6 +895,7 @@ gen.binding('IO', 'set_encoding', 'IoObject', 'set_encoding', argc: 1..2, pass_e
 gen.binding('IO', 'stat', 'IoObject', 'stat', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'sync', 'IoObject', 'sync', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('IO', 'sync=', 'IoObject', 'set_sync', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'sysread', 'IoObject', 'sysread', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'sysseek', 'IoObject', 'sysseek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'tell', 'IoObject', 'pos', argc: 0, pass_env: true, pass_block: false, aliases: ['pos'], return_type: :int)
 gen.binding('IO', 'to_io', 'IoObject', 'to_io', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

@@ -796,6 +796,20 @@ bool IoObject::sync(Env *env) const {
     return m_sync;
 }
 
+Value IoObject::sysread(Env *env, Value amount, Value buffer) {
+    if (amount->to_int(env)->is_zero() && buffer && !buffer->is_nil())
+        return buffer;
+    if (!m_read_buffer.is_empty())
+        env->raise("IOError", "sysread for buffered IO");
+    auto result = read(env, amount, buffer);
+    if (result->is_nil()) {
+        if (buffer && !buffer->is_nil())
+            buffer->to_str(env)->clear(env);
+        env->raise("EOFError", "end of file reached");
+    }
+    return result;
+}
+
 Value IoObject::sysseek(Env *env, Value amount, Value whence) {
     if (!m_read_buffer.is_empty())
         env->raise("IOError", "sysseek for buffered IO");
