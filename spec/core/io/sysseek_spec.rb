@@ -41,13 +41,9 @@ describe "IO#sysseek" do
 
     # this is the safest way of checking the EOF when
     # sys-* methods are invoked
-    NATFIXME 'Implement IO#sysread', exception: SpecFailedException do
-      -> { @io.sysread(1) }.should raise_error(EOFError)
-    end
+    -> { @io.sysread(1) }.should raise_error(EOFError)
 
     @io.sysseek(-25, IO::SEEK_END)
-    NATFIXME 'Implement IO#sysread', exception: NoMethodError, message: "undefined method `sysread'" do
-      @io.sysread(7).should == "cinco.\n"
-    end
+    @io.sysread(7).should == "cinco.\n"
   end
 end

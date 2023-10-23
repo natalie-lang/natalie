@@ -48,10 +48,8 @@ describe "IO#eof?" do
   end
 
   it "returns true after reading with sysread" do
-    NATFIXME 'Implement IO#sysread', exception: NoMethodError, message: "undefined method `sysread'" do
-      @io.sysread(File.size(@name))
-      @io.should.eof?
-    end
+    @io.sysread(File.size(@name))
+    @io.should.eof?
   end
 
   it "returns true after reading with readlines" do
