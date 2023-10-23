@@ -67,17 +67,21 @@ describe "IO#sysread on a file" do
   end
 
   it "does not raise error if called after IO#read followed by IO#syswrite" do
-    @file.read(5)
-    @file.syswrite("abcde")
-    -> { @file.sysread(5) }.should_not raise_error(IOError)
+    NATFIXME 'Implement IO#syswrite', exception: NoMethodError, message: "undefined method `syswrite'" do
+      @file.read(5)
+      @file.syswrite("abcde")
+      -> { @file.sysread(5) }.should_not raise_error(IOError)
+    end
   end
 
   it "reads updated content after the flushed buffered IO#write" do
-    @file.write("abcde")
-    @file.flush
-    @file.sysread(5).should == "56789"
-    File.open(@file_name) do |f|
-      f.sysread(10).should == "abcde56789"
+    NATFIXME 'Implement IO#flush', exception: NoMethodError, message: "undefined method `flush'" do
+      @file.write("abcde")
+      @file.flush
+      @file.sysread(5).should == "56789"
+      File.open(@file_name) do |f|
+        f.sysread(10).should == "abcde56789"
+      end
     end
   end
 
@@ -120,8 +124,10 @@ describe "IO#sysread" do
   end
 
   it "returns a smaller string if less than size bytes are available" do
-    @write.syswrite "ab"
-    @read.sysread(3).should == "ab"
+    NATFIXME 'Implement IO#syswrite', exception: NoMethodError, message: "undefined method `syswrite'" do
+      @write.syswrite "ab"
+      @read.sysread(3).should == "ab"
+    end
   end
 
   guard_not -> { platform_is :windows and ruby_version_is ""..."3.2" } do # https://bugs.ruby-lang.org/issues/18880
