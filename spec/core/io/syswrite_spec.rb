@@ -40,8 +40,10 @@ describe "IO#syswrite on a file" do
   end
 
   it "warns if called immediately after a buffered IO#write" do
-    @file.write("abcde")
-    -> { @file.syswrite("fghij") }.should complain(/syswrite/)
+    NATFIXME 'Rewrite buffered IO to FILE * functions (like fopen(3))', exception: SpecFailedException do
+      @file.write("abcde")
+      -> { @file.syswrite("fghij") }.should complain(/syswrite/)
+    end
   end
 
   it "does not warn if called after IO#write with intervening IO#sysread" do
@@ -61,17 +63,19 @@ end
 
 describe "IO#syswrite on a pipe" do
   it "returns the written bytes if the fd is in nonblock mode and write would block" do
-    require 'io/nonblock'
-    r, w = IO.pipe
-    begin
-      w.nonblock = true
-      larger_than_pipe_capacity = 2 * 1024 * 1024
-      written = w.syswrite("a"*larger_than_pipe_capacity)
-      written.should > 0
-      written.should < larger_than_pipe_capacity
-    ensure
-      w.close
-      r.close
+    NATFIXME 'Add "io/nonblock"', exception: LoadError, message: 'cannot load such file io/nonblock' do
+      require 'io/nonblock'
+      r, w = IO.pipe
+      begin
+        w.nonblock = true
+        larger_than_pipe_capacity = 2 * 1024 * 1024
+        written = w.syswrite("a"*larger_than_pipe_capacity)
+        written.should > 0
+        written.should < larger_than_pipe_capacity
+      ensure
+        w.close
+        r.close
+      end
     end
   end
 end
