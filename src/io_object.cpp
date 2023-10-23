@@ -817,6 +817,10 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
     return IntegerObject::create(pos(env));
 }
 
+Value IoObject::syswrite(Env *env, Value obj) {
+    return write(env, Args { obj });
+}
+
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
     int nfds = 0;
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
