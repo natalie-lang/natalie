@@ -135,6 +135,8 @@ class File
     if flags & FNM_PATHNAME != 0
       return true if path == ".#{SEPARATOR}" && pattern.start_with?("\\.#{SEPARATOR}**")
 
+      pattern = pattern.sub(%r{\*\*/\*$}, '**')
+
       if flags & FNM_DOTMATCH == 0
         return false if path == '.' && pattern != '\.**' && pattern != '\.*'
 
@@ -143,7 +145,7 @@ class File
         file_pattern = pattern.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || pattern
         dir_pattern = pattern.slice(0, pattern.size - file_pattern.size)
         #p(path: path, pattern: pattern, dir: dir, file: file, dir_pattern: dir_pattern, file_pattern: file_pattern)
-        if dir =~ /^\.[^#{SEPARATOR}]|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+        if dir =~ /^\.|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
           #p 1
           # directory part of pattern does not allow hidden directories
           return false
@@ -156,10 +158,11 @@ class File
       end
 
       pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
-        if m == "**#{SEPARATOR}"
-          "(.*#{SEPARATOR}|^)"
+        tail = m.end_with?(SEPARATOR) ? SEPARATOR : ''
+        if m =~ /\*\*#{SEPARATOR}?/
+          "(.*#{tail}|^)"
         else
-          "[^#{SEPARATOR}]*#{m[1]}"
+          "[^#{SEPARATOR}]*#{tail}"
         end
       end
       pattern = pattern.gsub(/\?/, "[^#{SEPARATOR}]")
@@ -173,7 +176,7 @@ class File
     return false if pattern.include?('[]')
 
     pattern = pattern.gsub(/\[\\!/, '[^')
-    #p(pattern: pattern, path: path)
+    #p(pattern: pattern, path: path, match: Regexp.new('\A' + pattern + '\z').match?(path))
 
     Regexp.new('\A' + pattern + '\z').match?(path)
   end

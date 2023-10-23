@@ -265,6 +265,13 @@ describe :file_fnmatch, shared: true do
     File.send(@method, './**/', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
   end
 
+  it "matches **/* with FNM_PATHNAME as if it were just **" do
+    File.send(@method, 'nested/**/*', 'nested/subdir', File::FNM_PATHNAME).should be_true
+    File.send(@method, 'nested/**/*', 'nested/subdir/file', File::FNM_PATHNAME).should be_true
+    File.send(@method, 'nested/**/*', 'nested/.dotsubdir', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, 'nested/**/*', 'nested/.dotsubir/.dotfile', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+  end
+
   it "accepts an object that has a #to_path method" do
     File.send(@method, '\*', mock_to_path('a')).should == false
   end
