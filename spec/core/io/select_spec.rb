@@ -15,9 +15,7 @@ describe "IO.select" do
   end
 
   it "returns immediately all objects that are ready for I/O when timeout is 0" do
-    NATFIXME 'Implement IO#syswrite', exception: NoMethodError, message: "undefined method `syswrite'" do
-      @wr.syswrite("be ready")
-    end
+    @wr.syswrite("be ready")
     @wr.write("be ready")
     IO.pipe do |_, wr|
       result = IO.select [@rd], [wr], nil, 0
