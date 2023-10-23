@@ -621,7 +621,7 @@ Value IoObject::close(Env *env) {
     }
 }
 
-Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
+Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {
     raise_if_closed(env);
     nat_int_t amount = IntegerObject::convert_to_nat_int_t(env, amount_value);
     int whence = 0;
@@ -633,11 +633,11 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
         case Object::Type::Symbol: {
             SymbolObject *whence_sym = whence_value->as_symbol();
             if (whence_sym->string() == "SET") {
-                whence = 0;
+                whence = SEEK_SET;
             } else if (whence_sym->string() == "CUR") {
-                whence = 1;
+                whence = SEEK_CUR;
             } else if (whence_sym->string() == "END") {
-                whence = 2;
+                whence = SEEK_END;
             } else {
                 env->raise("TypeError", "no implicit conversion of Symbol into Integer");
             }
@@ -647,9 +647,12 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
             env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->inspect_str());
         }
     }
+    if (whence == SEEK_CUR && !m_read_buffer.is_empty())
+        amount -= m_read_buffer.size();
     int result = lseek(m_fileno, amount, whence);
     if (result == -1)
         env->raise_errno();
+    m_read_buffer.clear();
     return Value::integer(0);
 }
 
@@ -792,6 +795,14 @@ bool IoObject::sync(Env *env) const {
     raise_if_closed(env);
     return m_sync;
 }
+
+Value IoObject::sysseek(Env *env, Value amount, Value whence) {
+    if (!m_read_buffer.is_empty())
+        env->raise("IOError", "sysseek for buffered IO");
+    seek(env, amount, whence);
+    return IntegerObject::create(pos(env));
+}
+
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
     int nfds = 0;
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;

@@ -85,7 +85,7 @@ public:
     void putary(Env *, ArrayObject *);
     Value print(Env *, Args) const;
     Value pwrite(Env *, Value, Value);
-    Value seek(Env *, Value, Value) const;
+    Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
     void set_fileno(int fileno) { m_fileno = fileno; }
@@ -101,6 +101,7 @@ public:
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
     bool sync(Env *) const;
+    Value sysseek(Env *, Value, Value = nullptr);
     IoObject *to_io(Env *);
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);
