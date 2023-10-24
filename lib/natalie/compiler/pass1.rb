@@ -63,6 +63,7 @@ module Natalie
       end
 
       def transform_body(body, used:)
+        body = body.body if body.is_a?(Prism::StatementsNode)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
         instructions << transform_expression(last || Prism.nil_node, used: used)
@@ -1006,6 +1007,17 @@ module Natalie
         [PushSelfInstruction.new]
       end
 
+      def transform_singleton_class_node(node, used:)
+        instructions = [
+          transform_expression(node.expression, used: true),
+          WithSingletonInstruction.new,
+          transform_body(node.body, used: true),
+          EndInstruction.new(:with_singleton),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_splat_node(node, used:)
         transform_expression(node.expression, used: used)
       end
@@ -1804,18 +1816,6 @@ module Natalie
           line: exp.line,
         )
         instructions << EndInstruction.new(:if)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_sclass(exp, used:)
-        _, owner, *body = exp
-        instructions = [
-          transform_expression(owner, used: true),
-          WithSingletonInstruction.new,
-          transform_body(body, used: true),
-          EndInstruction.new(:with_singleton),
-        ]
         instructions << PopInstruction.new unless used
         instructions
       end

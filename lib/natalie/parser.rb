@@ -627,7 +627,7 @@ module Natalie
       alias visit_self_node visit_passthrough
 
       def visit_singleton_class_node(node)
-        s(:sclass, visit(node.expression), visit(node.body), location: node.location)
+        copy(node, expression: visit(node.expression), body: visit(node.body))
       end
 
       def visit_source_line_node(node)
