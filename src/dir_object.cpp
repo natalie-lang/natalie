@@ -252,7 +252,12 @@ Value DirObject::mkdir(Env *env, Value path, Value mode) {
 }
 
 Value DirObject::pwd(Env *env) {
-    return new StringObject { std::filesystem::current_path().c_str() };
+    std::error_code ec;
+    auto path = std::filesystem::current_path(ec);
+    errno = ec.value();
+    if (errno)
+        env->raise_errno();
+    return new StringObject { path.c_str() };
 }
 
 Value DirObject::rmdir(Env *env, Value path) {
