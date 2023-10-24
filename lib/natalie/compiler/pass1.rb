@@ -993,6 +993,19 @@ module Natalie
         PushStringInstruction.new(node.unescaped)
       end
 
+      def transform_super_node(node, used:, with_block: false)
+        instructions = []
+        instructions << PushSelfInstruction.new
+        call_args = transform_call_args(node.arguments, instructions: instructions)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          with_block: with_block || call_args.fetch(:with_block_pass),
+          has_keyword_hash: call_args.fetch(:has_keyword_hash)
+        )
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_symbol_node(node, used:)
         return [] unless used
         [PushSymbolInstruction.new(node.unescaped.to_sym)]
@@ -1608,8 +1621,8 @@ module Natalie
           instructions << transform_lambda(call, used: used)
         when :safe_call
           instructions << transform_safe_call(call, used: used, with_block: true)
-        when :super
-          instructions << transform_super(call, used: used, with_block: true)
+        when :super_node
+          instructions << transform_super_node(call, used: used, with_block: true)
         when :forwarding_super_node
           instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else
@@ -1813,20 +1826,6 @@ module Natalie
         return [] unless used
         _, str = exp
         PushStringInstruction.new(str)
-      end
-
-      def transform_super(exp, used:, with_block: false)
-        _, *args = exp
-        instructions = []
-        instructions << PushSelfInstruction.new
-        call_args = transform_call_args(args, instructions: instructions)
-        instructions << SuperInstruction.new(
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          with_block: with_block || call_args.fetch(:with_block_pass),
-          has_keyword_hash: call_args.fetch(:has_keyword_hash)
-        )
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_svalue(exp, used:)

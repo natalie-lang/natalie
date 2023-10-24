@@ -702,7 +702,8 @@ module Natalie
 
       def visit_super_node(node)
         args, block = node_arguments_and_block(node)
-        call = s(:super, *args, location: node.location)
+        # HACK: alert changing arguments to plain array (temporary!)
+        call = copy(node, arguments: args)
         if block
           visit_block_node(node.block, call: call)
         else
