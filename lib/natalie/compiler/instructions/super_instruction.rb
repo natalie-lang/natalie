@@ -3,9 +3,10 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class SuperInstruction < BaseInstruction
-      def initialize(args_array_on_stack:, with_block:)
+      def initialize(args_array_on_stack:, with_block:, has_keyword_hash: false)
         @args_array_on_stack = args_array_on_stack
         @with_block = with_block
+        @has_keyword_hash = has_keyword_hash
       end
 
       def to_s
@@ -36,7 +37,7 @@ module Natalie
         current_method_block = 'block'
         block = @with_block ? "to_block(env, #{transform.pop})" : current_method_block
 
-        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}), #{block})"
+        transform.exec_and_push :super, "super(env, #{receiver}, Args(#{arg_count}, #{args_array_on_stack}, #{@has_keyword_hash ? 'true' : 'false'}), #{block})"
       end
 
       def execute(vm)
