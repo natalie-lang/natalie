@@ -521,6 +521,80 @@ module Natalie
         instructions
       end
 
+      def transform_case_node(node, used:)
+        return transform_expression(node.consequent, used: used) if node.conditions.empty?
+
+        instructions = []
+        if node.predicate
+          instructions << transform_expression(node.predicate, used: true)
+          node.conditions.each do |when_statement|
+            # case a
+            # when b, c, d
+            # =>
+            # if (b === a || c === a || d === a)
+            _, options_array, *body = when_statement
+            options = options_array.elements
+
+            options.each do |option|
+              # Splats are handled in the backend.
+              # For C++, it's done in the is_case_equal() function.
+              if option.sexp_type == :splat_node
+                option = option.expression
+                is_splat = true
+              else
+                is_splat = false
+              end
+
+              option_instructions = transform_expression(option, used: true)
+              instructions << option_instructions
+              instructions << CaseEqualInstruction.new(is_splat: is_splat)
+              instructions << IfInstruction.new
+              instructions << PushTrueInstruction.new
+              instructions << ElseInstruction.new(:if)
+            end
+            instructions << PushFalseInstruction.new
+            instructions << [EndInstruction.new(:if)] * options.length
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
+          end
+        else
+          # glorified if-else
+          node.conditions.each do |when_statement|
+            # case
+            # when a == b, b == c, c == d
+            # =>
+            # if (a == b || b == c || c == d)
+            _, options, *body = when_statement
+
+            # s(:array, option1, option2, ...)
+            # =>
+            # s(:or, option1, s(:or, option2, ...))
+            options = options.elements
+            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
+
+            instructions << transform_expression(options, used: true)
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
+          end
+        end
+
+        instructions << if node.consequent.nil?
+                          PushNilInstruction.new
+                        else
+                          transform_expression(node.consequent, used: true)
+                        end
+
+        instructions << [EndInstruction.new(:if)] * node.conditions.length
+
+        # The case value is never popped during comparison, so we have to pop it here.
+        instructions << [SwapInstruction.new, PopInstruction.new] if node.predicate
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class_variable_read_node(node, used:)
         return [] unless used
         ClassVariableGetInstruction.new(node.name)
@@ -1258,76 +1332,6 @@ module Natalie
           args_array_on_stack: false,
           has_keyword_hash: has_keyword_hash,
         }
-      end
-
-      def transform_case(exp, used:)
-        _, var, *whens, else_block = exp
-        return transform_expression(else_block, used: used) if whens.empty?
-        instructions = []
-        if var
-          instructions << transform_expression(var, used: true)
-          whens.each do |when_statement|
-            # case a
-            # when b, c, d
-            # =>
-            # if (b === a || c === a || d === a)
-            _, options_array, *body = when_statement
-            options = options_array.elements
-
-            options.each do |option|
-              # Splats are handled in the backend.
-              # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat_node
-                option = option.expression
-                is_splat = true
-              else
-                is_splat = false
-              end
-
-              option_instructions = transform_expression(option, used: true)
-              instructions << option_instructions
-              instructions << CaseEqualInstruction.new(is_splat: is_splat)
-              instructions << IfInstruction.new
-              instructions << PushTrueInstruction.new
-              instructions << ElseInstruction.new(:if)
-            end
-            instructions << PushFalseInstruction.new
-            instructions << [EndInstruction.new(:if)] * options.length
-            instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
-            instructions << ElseInstruction.new(:if)
-          end
-        else
-          # glorified if-else
-          whens.each do |when_statement|
-            # case
-            # when a == b, b == c, c == d
-            # =>
-            # if (a == b || b == c || c == d)
-            _, options, *body = when_statement
-
-            # s(:array, option1, option2, ...)
-            # =>
-            # s(:or, option1, s(:or, option2, ...))
-            options = options.elements
-            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
-
-            instructions << transform_expression(options, used: true)
-            instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
-            instructions << ElseInstruction.new(:if)
-          end
-        end
-
-        instructions << (else_block.nil? ? PushNilInstruction.new : transform_expression(else_block, used: true))
-
-        instructions << [EndInstruction.new(:if)] * whens.length
-
-        # The case value is never popped during comparison, so we have to pop it here.
-        instructions << [SwapInstruction.new, PopInstruction.new] if var
-
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_class(exp, used:)

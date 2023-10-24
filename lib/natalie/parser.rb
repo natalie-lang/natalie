@@ -211,11 +211,12 @@ module Natalie
       def visit_case_node(node)
         raise SyntaxError, 'expected at least one when clause for case' if node.conditions.empty?
 
-        s(:case,
-          visit(node.predicate),
-          *node.conditions.map { |n| visit(n) },
-          visit(node.consequent),
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          conditions: node.conditions.map { |n| visit(n) },
+          consequent: visit(node.consequent)
+        )
       end
 
       def visit_class_node(node)
