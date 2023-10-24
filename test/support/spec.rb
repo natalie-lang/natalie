@@ -34,6 +34,7 @@ end
 $context = []
 @shared = {}
 @specs = []
+$natfixme_depth = 0 # if > 0 then we are in a NATFIXME
 
 $expectations = []
 
@@ -435,10 +436,10 @@ class Matcher
 
   def eq(other)
     if @subject != other
-      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF)
+      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
         diff(@subject, other)
         raise SpecFailedException, 'two strings should match'
-      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF)
+      elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
         diff(
           "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
           "[\n" + other.map(&:inspect).join("\n") + "\n]",
@@ -1490,6 +1491,8 @@ def NATFIXME(description, exception: nil, message: nil)
   raise SpecFailedException, "NATFIXME requires a block" unless block_given?
   exception ||= StandardError
 
+  $natfixme_depth += 1
+
   # if running in the context of a test, show a skipped test
   if instance_variables.include?(:@skipped)
     @skipped << [@context, @test]
@@ -1521,6 +1524,8 @@ def NATFIXME(description, exception: nil, message: nil)
   rescue Exception => ex
     [:wrong_error_class, ex] # another error was thrown
   end
+
+  $natfixme_depth -= 1
 
   case status
   when :unexpected_pass
