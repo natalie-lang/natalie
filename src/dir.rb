@@ -22,6 +22,7 @@ class Dir
       end
 
       flags |= File::FNM_PATHNAME | File::FNM_EXTGLOB
+      base_given = !!base
       base = Dir.pwd if base.nil? || base == ''
       return unless File.directory?(base)
 
@@ -35,7 +36,7 @@ class Dir
 
       raise ArgumentError, 'nul-separated glob pattern' if patterns.any? { |pat| pat.include?("\0") }
 
-      follow_symlinks = true unless patterns.grep(/\*\*/).any?
+      follow_symlinks = patterns.grep(/(\A|[^\*])\*#{File::SEPARATOR}/).any?
       start_with_dot = patterns.grep(/\A\./).any?
       dot_slash = patterns.grep(%r{\A\./}).any?
       end_with_slash = patterns.first.end_with?('/')
@@ -44,15 +45,18 @@ class Dir
         dir_to_match = dir
         if end_with_slash && !dir.end_with?('/')
           if dir == '.' && !start_with_dot
-            dir_to_match = '/'
+            dir_to_match = '/' if base_given
           else
             dir_to_match = dir + '/'
           end
         end
+
+        return if File.symlink?(dir) && !follow_symlinks
+
         if patterns.any? { |pattern| File.fnmatch(pattern, dir_to_match, flags) }
           yield dir_to_match
         end
-        return if File.symlink?(dir) && !follow_symlinks
+
         Dir.each_child(dir) do |path|
           full_path = File.join(dir, path)
           full_path.sub!(%r{^\./}, '') unless dot_slash

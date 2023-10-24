@@ -87,9 +87,7 @@ describe "Dir.glob" do
     ]
 
 
-    NATFIXME 'special/ln should not appear (it is a duplicate of subdir_one/)', exception: SpecFailedException do
-      Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
-    end
+    Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
   end
 
   ruby_version_is ''...'3.1' do
@@ -143,9 +141,7 @@ describe "Dir.glob" do
       ./subdir_two/
     ]
 
-    NATFIXME 'why is ./special/ln/ in our list????', exception: SpecFailedException do
-      Dir.glob('./**/', File::FNM_DOTMATCH).sort.should == expected
-    end
+    Dir.glob('./**/', File::FNM_DOTMATCH).sort.should == expected
   end
 
   it "matches a list of paths by concatenating their individual results" do
@@ -385,15 +381,13 @@ describe "Dir.glob" do
     end
 
     it "will follow symlinks when testing directory after recursive directory in pattern" do
-      NATFIXME 'special case of **/* and symlink', exception: SpecFailedException do
-        expected = %w[
-          deeply/nondotfile
-          special/ln/nondotfile
-          subdir_one/nondotfile
-          subdir_two/nondotfile
-        ]
-        Dir.glob('**/*/nondotfile').sort.should == expected
-      end
+      expected = %w[
+        deeply/nondotfile
+        special/ln/nondotfile
+        subdir_one/nondotfile
+        subdir_two/nondotfile
+      ]
+      Dir.glob('**/*/nondotfile').sort.should == expected
     end
   end
 end

@@ -246,9 +246,7 @@ describe :dir_glob, shared: true do
       subdir_two/
     ]
 
-    NATFIXME 'subdirectory matching', exception: SpecFailedException do
-      Dir.send(@method, '**/').sort.should == expected
-    end
+    Dir.send(@method, '**/').sort.should == expected
   end
 
   it "recursively matches any subdirectories except './' or '../' with '**/' from the base directory if that is specified" do
