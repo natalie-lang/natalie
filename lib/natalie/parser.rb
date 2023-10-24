@@ -511,17 +511,6 @@ module Natalie
 
       alias visit_numbered_reference_read_node visit_passthrough
 
-      def visit_operator_write_node(node, read_sexp_type:, write_sexp_type:)
-        s(write_sexp_type,
-          node.name,
-          s(:call,
-            s(read_sexp_type, node.name, location: node.location),
-            node.operator,
-            visit(node.value),
-            location: node.location),
-          location: node.location)
-      end
-
       def visit_optional_parameter_node(node)
         copy(node, value: visit(node.value))
       end
