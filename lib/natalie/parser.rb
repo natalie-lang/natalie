@@ -543,19 +543,7 @@ module Natalie
       end
 
       def visit_range_node(node)
-        if node.left.is_a?(Prism::IntegerNode) && node.right.is_a?(Prism::IntegerNode)
-          left = node.left.value
-          right = node.right.value
-          if node.exclude_end?
-            s(:lit, left...right, location: node.location)
-          else
-            s(:lit, left..right, location: node.location)
-          end
-        elsif node.exclude_end?
-          s(:dot3, visit(node.left), visit(node.right), location: node.location)
-        else
-          s(:dot2, visit(node.left), visit(node.right), location: node.location)
-        end
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       alias visit_rational_node visit_passthrough

@@ -1081,6 +1081,16 @@ module Natalie
         instructions
       end
 
+      def transform_range_node(node, used:)
+        instructions = [
+          transform_expression(node.right || Prism.nil_node, used: true),
+          transform_expression(node.left || Prism.nil_node, used: true),
+          PushRangeInstruction.new(node.exclude_end?),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_rational_node(node, used:)
         return [] unless used
 
@@ -1458,21 +1468,6 @@ module Natalie
         instructions
       end
 
-      def transform_dot2(exp, used:, exclude_end: false)
-        _, beginning, ending = exp
-        instructions = [
-          transform_expression(ending || Prism.nil_node, used: true),
-          transform_expression(beginning || Prism.nil_node, used: true),
-          PushRangeInstruction.new(exclude_end),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dot3(exp, used:)
-        transform_dot2(exp, used: used, exclude_end: true)
-      end
-
       def transform_dregx(exp, used:)
         options = exp.pop if exp.last.is_a?(Integer)
         instructions = [
@@ -1714,12 +1709,6 @@ module Natalie
           PushIntInstruction.new(lit)
         when Float
           PushFloatInstruction.new(lit)
-        when Range
-          [
-            transform_lit(lit.end, used: true),
-            transform_lit(lit.begin, used: true),
-            PushRangeInstruction.new(lit.exclude_end?),
-          ]
         when Rational
           [
             transform_lit(lit.numerator, used: true),
