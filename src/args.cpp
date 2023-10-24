@@ -52,6 +52,11 @@ Args Args::shift(Args &args) {
     return Args(ary, args.has_keyword_hash());
 }
 
+Value Args::shift() {
+    assert(m_data.size() > 0);
+    return m_data.pop_front();
+}
+
 ArrayObject *Args::to_array() const {
     return new ArrayObject { m_data.size(), m_data.data() };
 }
