@@ -505,7 +505,7 @@ module Natalie
       end
 
       def visit_next_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :next)
+        copy(node, arguments: visit(node.arguments))
       end
 
       alias visit_nil_node visit_passthrough
@@ -622,19 +622,6 @@ module Natalie
 
       def visit_return_node(node)
         copy(node, arguments: visit(node.arguments))
-      end
-
-      def visit_return_or_next_or_break_node(node, sexp_type:)
-        args = node.arguments&.child_nodes || []
-        if args.empty?
-          s(sexp_type, nil, location: node.location)
-        elsif args.size == 1
-          s(sexp_type, visit(args.first), location: node.location)
-        else
-          s(sexp_type,
-            Prism.array_node(elements: args.map { |arg| visit(arg) }, location: node.location),
-            location: node.location)
-        end
       end
 
       alias visit_self_node visit_passthrough

@@ -921,6 +921,13 @@ module Natalie
         instructions
       end
 
+      def transform_next_node(node, used:)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          NextInstruction.new
+        ]
+      end
+
       def transform_nil_node(_, used:)
         return [] unless used
         [PushNilInstruction.new]
@@ -1753,15 +1760,6 @@ module Natalie
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
-        _, value = exp
-        value ||= Prism.nil_node
-        [
-          transform_expression(value, used: true),
-          NextInstruction.new,
-        ]
       end
 
       def transform_not(exp, used:)
