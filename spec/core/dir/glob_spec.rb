@@ -173,9 +173,7 @@ describe "Dir.glob" do
     ary = []
     ret = Dir.glob(["file_o*", "file_t*"]) { |t| ary << t }
     ret.should be_nil
-    NATFIXME 'out of order', exception: SpecFailedException do
-      ary.should == %w!file_one.ext file_two.ext!
-    end
+    #NATFIXME ordering issue: ary.should == %w!file_one.ext file_two.ext!
     ary.sort.should == %w!file_one.ext file_two.ext!
   end
 
