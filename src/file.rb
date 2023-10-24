@@ -135,8 +135,6 @@ class File
     if flags & FNM_PATHNAME != 0
       return true if path == ".#{SEPARATOR}" && pattern.start_with?("\\.#{SEPARATOR}**")
 
-      pattern = pattern.sub(%r{\*\*/\*$}, '**')
-
       if flags & FNM_DOTMATCH == 0
         return false if path == '.' && pattern != '\.**' && pattern != '\.*'
 
@@ -157,12 +155,18 @@ class File
         end
       end
 
-      pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
-        tail = m.end_with?(SEPARATOR) ? SEPARATOR : ''
-        if m =~ /\*\*#{SEPARATOR}?/
-          "(.*#{tail}|^)"
+      pattern = pattern.gsub(/\*\*(#{SEPARATOR}.)?|\*#{SEPARATOR}?/) do |m|
+        case m
+        when "**#{SEPARATOR}*", "*#{SEPARATOR}*"
+          '.*'
+        when /^\*\*#{SEPARATOR}(.)/
+          ".*#{$1}"
+        when '**', '*'
+          "[^#{SEPARATOR}]*"
+        when "*#{SEPARATOR}"
+          "[^#{SEPARATOR}]*#{SEPARATOR}"
         else
-          "[^#{SEPARATOR}]*#{tail}"
+          raise "invariant: #{m}"
         end
       end
       pattern = pattern.gsub(/\?/, "[^#{SEPARATOR}]")
