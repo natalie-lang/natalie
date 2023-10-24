@@ -220,13 +220,12 @@ module Natalie
       end
 
       def visit_class_node(node)
-        name = visit(node.constant_path)
-        name = name[1] if name.sexp_type == :const
-        s(:class,
-          name,
-          visit(node.superclass),
-          visit(node.body),
-          location: node.location)
+        copy(
+          node,
+          constant_path: visit(node.constant_path),
+          superclass: visit(node.superclass),
+          body: visit(node.body)
+        )
       end
 
       alias visit_class_variable_read_node visit_passthrough

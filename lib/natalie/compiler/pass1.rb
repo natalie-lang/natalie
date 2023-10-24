@@ -595,6 +595,27 @@ module Natalie
         instructions
       end
 
+      def transform_class_node(node, used:)
+        instructions = []
+        if node.superclass
+          instructions << transform_expression(node.superclass, used: true)
+        else
+          instructions << PushObjectClassInstruction.new
+        end
+        name, is_private, prep_instruction = constant_name(node.constant_path)
+        instructions << prep_instruction
+        instructions << DefineClassInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+        instructions += transform_body(node.body, used: true)
+        instructions << EndInstruction.new(:define_class)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_class_variable_read_node(node, used:)
         return [] unless used
         ClassVariableGetInstruction.new(node.name)
@@ -1332,28 +1353,6 @@ module Natalie
           args_array_on_stack: false,
           has_keyword_hash: has_keyword_hash,
         }
-      end
-
-      def transform_class(exp, used:)
-        _, name, superclass, *body = exp
-        instructions = []
-        if superclass
-          instructions << transform_expression(superclass, used: true)
-        else
-          instructions << PushObjectClassInstruction.new
-        end
-        name, is_private, prep_instruction = constant_name(name)
-        instructions << prep_instruction
-        instructions << DefineClassInstruction.new(
-          name: name,
-          is_private: is_private,
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions += transform_body(body, used: true)
-        instructions << EndInstruction.new(:define_class)
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_const(exp, used:)
