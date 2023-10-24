@@ -49,6 +49,8 @@ int DirObject::fileno(Env *env) {
 }
 
 Value DirObject::close(Env *env) {
+    if (m_dir)
+        ::closedir(m_dir);
     m_dir = nullptr;
     return NilObject::the();
 }
