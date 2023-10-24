@@ -484,12 +484,11 @@ module Natalie
       end
 
       def visit_module_node(node)
-        name = visit(node.constant_path)
-        name = name[1] if name.sexp_type == :const
-        s(:module,
-          name,
-          visit(node.body),
-          location: node.location)
+        copy(
+          node,
+          constant_path: visit(node.constant_path),
+          body: visit(node.body)
+        )
       end
 
       def visit_multi_target_node(node)

@@ -1004,6 +1004,22 @@ module Natalie
         VariableGetInstruction.new(node.name)
       end
 
+      def transform_module_node(node, used:)
+        instructions = []
+        name, is_private, prep_instruction = constant_name(node.constant_path)
+        instructions << prep_instruction
+        instructions << DefineModuleInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+        instructions += transform_body(node.body, used: true)
+        instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_multi_write_node(node, used:)
         value = node.value
 
@@ -1767,23 +1783,6 @@ module Natalie
         end
         instructions << EndInstruction.new(:if)
 
-        instructions
-      end
-
-      def transform_module(exp, used:)
-        _, name, *body = exp
-        instructions = []
-        name, is_private, prep_instruction = constant_name(name)
-        instructions << prep_instruction
-        instructions << DefineModuleInstruction.new(
-          name: name,
-          is_private: is_private,
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions += transform_body(body, used: true)
-        instructions << EndInstruction.new(:define_module)
-        instructions << PopInstruction.new unless used
         instructions
       end
 
