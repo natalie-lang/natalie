@@ -190,6 +190,18 @@ module Natalie
         instructions
       end
 
+      def transform_back_reference_read_node(node, used:)
+        return [] unless used
+        case node.slice
+        when '$`', "$'"
+          [GlobalVariableGetInstruction.new(node.slice.to_sym)]
+        when '$&'
+          [PushLastMatchInstruction.new(to_s: true)]
+        else
+          raise "unknown back ref read node: #{node.slice}"
+        end
+      end
+
       def transform_call_node(node, used:, with_block: false)
         node = @macro_expander.expand(node, depth: @depth)
 
@@ -1077,13 +1089,6 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_back_ref(exp, used:)
-        return [] unless used
-        _, name = exp
-        raise "Unknown back ref: #{name.inspect}" unless name == :&
-        [PushLastMatchInstruction.new(to_s: true)]
       end
 
       def transform_bare_hash(exp, used:)

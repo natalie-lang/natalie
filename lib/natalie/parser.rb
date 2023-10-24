@@ -131,15 +131,7 @@ module Natalie
         copy(node, value: visit(node.value))
       end
 
-      def visit_back_reference_read_node(node)
-        name = node.slice[1..].to_sym
-        case name
-        when :"'", :`
-          s(:gvar, :"$#{name}", location: node.location)
-        else
-          s(:back_ref, name, location: node.location)
-        end
-      end
+      alias visit_back_reference_read_node visit_passthrough
 
       def visit_begin_node(node)
         if !node.rescue_clause && !node.else_clause
