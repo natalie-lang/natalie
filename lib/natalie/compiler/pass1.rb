@@ -202,6 +202,13 @@ module Natalie
         end
       end
 
+      def transform_break_node(node, used:)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          BreakInstruction.new
+        ]
+      end
+
       def transform_call_node(node, used:, with_block: false)
         node = @macro_expander.expand(node, depth: @depth)
 
@@ -981,10 +988,10 @@ module Natalie
       end
 
       def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
-        instructions = [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          ReturnInstruction.new
         ]
-        instructions << ReturnInstruction.new
       end
 
       def transform_self_node(_, used:)
@@ -1105,15 +1112,6 @@ module Natalie
 
       def transform_block_args_for_for(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
-      end
-
-      def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
-        _, value = exp
-        value ||= Prism.nil_node
-        [
-          transform_expression(value, used: true),
-          BreakInstruction.new,
-        ]
       end
 
       def transform_call(exp, used:, with_block: false)

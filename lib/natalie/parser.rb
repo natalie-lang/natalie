@@ -183,7 +183,7 @@ module Natalie
       end
 
       def visit_break_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :break)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_call_node(node)
