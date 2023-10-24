@@ -428,7 +428,7 @@ Value IoObject::copy_stream(Env *env, Value src, Value dst, Value src_length, Va
     }
 }
 
-int IoObject::write(Env *env, Value obj) const {
+int IoObject::write(Env *env, Value obj) {
     raise_if_closed(env);
     obj = obj->to_s(env);
     obj->assert_type(env, Object::Type::String, "String");
@@ -438,7 +438,7 @@ int IoObject::write(Env *env, Value obj) const {
     return result;
 }
 
-Value IoObject::write(Env *env, Args args) const {
+Value IoObject::write(Env *env, Args args) {
     args.ensure_argc_at_least(env, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < args.size(); i++) {
@@ -579,7 +579,7 @@ Value IoObject::puts(Env *env, Args args) {
     return NilObject::the();
 }
 
-Value IoObject::print(Env *env, Args args) const {
+Value IoObject::print(Env *env, Args args) {
     if (args.size() > 0) {
         auto fsep = env->output_file_separator();
         auto valid_fsep = !fsep->is_nil();
@@ -815,6 +815,10 @@ Value IoObject::sysseek(Env *env, Value amount, Value whence) {
         env->raise("IOError", "sysseek for buffered IO");
     seek(env, amount, whence);
     return IntegerObject::create(pos(env));
+}
+
+Value IoObject::syswrite(Env *env, Value obj) {
+    return write(env, Args { obj });
 }
 
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
