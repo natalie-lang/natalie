@@ -57,7 +57,7 @@ class Dir
           yield dir_to_match
         end
 
-        Dir.each_child(dir) do |path|
+        Dir.children(dir)&.each do |path|
           full_path = File.join(dir, path)
           full_path.sub!(%r{^\./}, '') unless dot_slash
           if File.directory?(full_path)
@@ -73,6 +73,8 @@ class Dir
       Dir.chdir(base) do
         recurse.('.')
       end
+
+      nil
     end
 
     alias [] glob
