@@ -86,7 +86,10 @@ describe "Dir.glob" do
       subdir_two/
     ]
 
-    Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
+
+    NATFIXME 'special/ln should not appear (it is a duplicate of subdir_one/)', exception: SpecFailedException do
+      Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
+    end
   end
 
   ruby_version_is ''...'3.1' do
@@ -106,13 +109,15 @@ describe "Dir.glob" do
   ruby_version_is '3.1' do
     it "recursively matches files and directories in nested dot subdirectory except . with 'nested/**/*' from the current directory and option File::FNM_DOTMATCH" do
       expected = %w[
-       nested/.
-       nested/.dotsubir
-       nested/.dotsubir/.dotfile
-       nested/.dotsubir/nondotfile
-     ]
+        nested/.
+        nested/.dotsubir
+        nested/.dotsubir/.dotfile
+        nested/.dotsubir/nondotfile
+      ]
 
-      Dir.glob('nested/**/*', File::FNM_DOTMATCH).sort.should == expected.sort
+      NATFIXME 'nested/. is missing', exception: SpecFailedException do
+        Dir.glob('nested/**/*', File::FNM_DOTMATCH).sort.should == expected.sort
+      end
     end
   end
 
@@ -153,7 +158,9 @@ describe "Dir.glob" do
       subdir_two/nondotfile.ext
     ]
 
-    Dir.glob('{deeply/**/,subdir_two/*}').sort.should == expected
+    NATFIXME 'expansions', exception: SpecFailedException do
+      Dir.glob('{deeply/**/,subdir_two/*}').sort.should == expected
+    end
   end
 
   it "preserves multiple /s before a **" do

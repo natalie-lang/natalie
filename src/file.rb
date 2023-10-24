@@ -155,12 +155,14 @@ class File
         end
       end
 
-      pattern = pattern.gsub(/\*\*(#{SEPARATOR}.)?|\*#{SEPARATOR}?/) do |m|
+      pattern = pattern.gsub(/\*\*(#{SEPARATOR}.?)?|\*#{SEPARATOR}?/) do |m|
         case m
         when "**#{SEPARATOR}*", "*#{SEPARATOR}*"
           '.*'
         when /^\*\*#{SEPARATOR}(.)/
-          ".*#{$1}"
+          "(.*#{SEPARATOR}|\\A)#{$1}"
+        when "**#{SEPARATOR}"
+          ".*#{SEPARATOR}"
         when '**', '*'
           "[^#{SEPARATOR}]*"
         when "*#{SEPARATOR}"
