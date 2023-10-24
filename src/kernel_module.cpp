@@ -650,8 +650,7 @@ Value KernelModule::spawn(Env *env, Args args) {
             auto combined = String::format(
                 "{}={}",
                 pair.key->as_string_or_raise(env)->string(),
-                pair.val->as_string_or_raise(env)->string()
-            );
+                pair.val->as_string_or_raise(env)->string());
             new_env.push(strdup(combined.c_str()));
         }
         new_env.push(nullptr);
@@ -679,8 +678,7 @@ Value KernelModule::spawn(Env *env, Args args) {
             NULL,
             NULL,
             const_cast<char *const *>(cmd),
-            new_env.is_empty() ? environ : new_env.data()
-        );
+            new_env.is_empty() ? environ : new_env.data());
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
@@ -696,8 +694,7 @@ Value KernelModule::spawn(Env *env, Args args) {
             NULL,
             NULL,
             const_cast<char *const *>(cmd),
-            new_env.is_empty() ? environ : new_env.data()
-        );
+            new_env.is_empty() ? environ : new_env.data());
     }
 
     if (result != 0)
