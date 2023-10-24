@@ -259,6 +259,22 @@ class StringIO
     nil
   end
 
+  def putc(argument)
+    __assert_not_write_closed
+
+    if !argument.is_a?(String)
+      if !argument.respond_to?(:to_int)
+        raise TypeError, "no implicit conversion of #{argument.class} into Integer"
+      end
+
+      argument = (argument.to_int % 256).chr
+    end
+
+    write(argument.to_s[0])
+
+    argument
+  end
+
   def write(argument)
     __assert_not_write_closed
 
