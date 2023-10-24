@@ -1196,6 +1196,7 @@ gen.binding('String', 'chr', 'StringObject', 'chr', argc: 0, pass_env: true, pas
 gen.binding('String', 'clear', 'StringObject', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'codepoints', 'StringObject', 'codepoints', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'concat', 'StringObject', 'concat', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'count', 'StringObject', 'count', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'crypt', 'StringObject', 'crypt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'downcase', 'StringObject', 'downcase', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'downcase!', 'StringObject', 'downcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
