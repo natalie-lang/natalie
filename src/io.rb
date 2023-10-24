@@ -47,12 +47,6 @@ class IO
   SEEK_DATA = 3
   SEEK_HOLE = 4
 
-  def each
-    while (line = gets)
-      yield line
-    end
-  end
-
   def printf(format_string, *arguments)
     print(Kernel.sprintf(format_string, *arguments))
   end
@@ -61,7 +55,7 @@ class IO
     each_line(...).to_a
   end
 
-  def each_line(*args, **opts)
+  def each(*args, **opts)
     return enum_for(:each_line, *args, **opts) unless block_given?
 
     if args.size == 2
@@ -142,6 +136,8 @@ class IO
 
     self
   end
+
+  alias each_line each
 
   # The following are used in IO.select
 
