@@ -33,9 +33,6 @@ class Dir
         end
       end
 
-      # remove ./ from front of patterns
-      #patterns.map! { |pattern| pattern.sub(%r{\A\./}, '') }
-
       raise ArgumentError, 'nul-separated glob pattern' if patterns.any? { |pat| pat.include?("\0") }
 
       follow_symlinks = true unless patterns.grep(/\*\*/).any?
@@ -52,8 +49,6 @@ class Dir
             dir_to_match = dir + '/'
           end
         end
-        #p({dir: dir, patterns: patterns, isdir: File.directory?(dir), symlink: File.symlink?(dir)})
-        #p patterns.map { |pattern| File.fnmatch(pattern, dir, flags) }
         if patterns.any? { |pattern| File.fnmatch(pattern, dir_to_match, flags) }
           yield dir_to_match
         end
@@ -61,7 +56,6 @@ class Dir
         Dir.each_child(dir) do |path|
           full_path = File.join(dir, path)
           full_path.sub!(%r{^\./}, '') unless dot_slash
-          #p({dir: dir, path: path, full_path: full_path, patterns: patterns, isdir: File.directory?(full_path)})
           if File.directory?(full_path)
             recurse.(full_path)
           elsif patterns.any? { |pattern| File.fnmatch(pattern, full_path, flags) }
