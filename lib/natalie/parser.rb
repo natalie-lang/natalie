@@ -630,17 +630,13 @@ module Natalie
         copy(node, expression: visit(node.expression), body: visit(node.body))
       end
 
-      def visit_source_line_node(node)
-        s(:lit, node.location.start_line, location: node.location)
-      end
+      alias visit_source_line_node visit_passthrough
 
       def visit_splat_node(node)
         copy(node, expression: visit(node.expression))
       end
 
-      def visit_source_file_node(node)
-        s(:str, node.filepath, location: node.location)
-      end
+      alias visit_source_file_node visit_passthrough
 
       def visit_statements_node(node)
         copy(node, body: node.body.map { |n| visit(n) })

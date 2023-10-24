@@ -1018,6 +1018,16 @@ module Natalie
         instructions
       end
 
+      def transform_source_file_node(node, used:)
+        return [] unless used
+        [PushStringInstruction.new(node.filepath)]
+      end
+
+      def transform_source_line_node(node, used:)
+        return [] unless used
+        [PushIntInstruction.new(node.location.start_line)]
+      end
+
       def transform_splat_node(node, used:)
         transform_expression(node.expression, used: used)
       end
