@@ -26,7 +26,7 @@ describe :file_fnmatch, shared: true do
     File.send(@method, "{aa,bb,cc,dd}", "bb", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "cc", File::FNM_EXTGLOB).should == true
     File.send(@method, "{aa,bb,cc,dd}", "dd", File::FNM_EXTGLOB).should == true
-    NATFIXME 'nexted {} patterns', exception: SpecFailedException do
+    NATFIXME 'nested {} patterns', exception: SpecFailedException do
       File.send(@method, "{1,5{a,b{c,d}}}", "1", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5a", File::FNM_EXTGLOB).should == true
       File.send(@method, "{1,5{a,b{c,d}}}", "5bc", File::FNM_EXTGLOB).should == true
@@ -186,9 +186,19 @@ describe :file_fnmatch, shared: true do
     File.should_not.send(@method, '*/*', 'dave/.profile', File::FNM_PATHNAME)
   end
 
-  it "matches patterns with leading periods to dotfiles by default" do
+  it "matches patterns with leading periods to dotfiles" do
     File.send(@method, '.*', '.profile').should == true
+    File.send(@method, '.*', '.profile', File::FNM_PATHNAME).should == true
     File.send(@method, ".*file", "nondotfile").should == false
+    File.send(@method, ".*file", "nondotfile", File::FNM_PATHNAME).should == false
+  end
+
+  it "does not match directories with leading periods by default with FNM_PATHNAME" do
+    File.send(@method, '.*', '.directory/nondotfile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', '.directory/.profile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', 'foo/.directory/nondotfile', File::FNM_PATHNAME).should == false
+    File.send(@method, '.*', 'foo/.directory/.profile', File::FNM_PATHNAME).should == false
+    File.send(@method, '**/.dotfile', '.dotsubdir/.dotfile', File::FNM_PATHNAME).should == false
   end
 
   it "matches leading periods in filenames when flags includes FNM_DOTMATCH" do
@@ -240,6 +250,33 @@ describe :file_fnmatch, shared: true do
     File.send(@method, pattern, '/a/b/c/foo', File::FNM_PATHNAME).should be_true
     File.send(@method, pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME).should be_true
     File.send(@method, pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+  end
+
+  it "has special handling for ./ when using * and FNM_PATHNAME" do
+    File.send(@method, './*', '.', File::FNM_PATHNAME).should be_false
+    File.send(@method, './*', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './*/', './', File::FNM_PATHNAME).should be_false
+    File.send(@method, './**', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './**/', './', File::FNM_PATHNAME).should be_true
+    File.send(@method, './*', '.', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_false
+    File.send(@method, './*', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, './*/', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_false
+    File.send(@method, './**', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, './**/', './', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+  end
+
+  it "matches **/* with FNM_PATHNAME to recurse directories" do
+    File.send(@method, 'nested/**/*', 'nested/subdir', File::FNM_PATHNAME).should be_true
+    File.send(@method, 'nested/**/*', 'nested/subdir/file', File::FNM_PATHNAME).should be_true
+    File.send(@method, 'nested/**/*', 'nested/.dotsubdir', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, 'nested/**/*', 'nested/.dotsubir/.dotfile', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+  end
+
+  it "matches ** with FNM_PATHNAME only in current directory" do
+    File.send(@method, 'nested/**', 'nested/subdir', File::FNM_PATHNAME).should be_true
+    File.send(@method, 'nested/**', 'nested/subdir/file', File::FNM_PATHNAME).should be_false
+    File.send(@method, 'nested/**', 'nested/.dotsubdir', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+    File.send(@method, 'nested/**', 'nested/.dotsubir/.dotfile', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_false
   end
 
   it "accepts an object that has a #to_path method" do

@@ -160,7 +160,7 @@ class Date
   end
 
   def downto(min)
-    return to_enum(:downto, max) unless block_given?
+    return to_enum(:downto, min) unless block_given?
     date = self
     while date >= min
       yield date

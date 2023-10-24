@@ -26,6 +26,8 @@ public:
     DirObject(ClassObject *klass)
         : Object { Object::Type::Dir, klass } { }
 
+    virtual ~DirObject();
+
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
         visitor.visit(m_path);

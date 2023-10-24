@@ -24,7 +24,7 @@ class File
     when 0 then ""
     when 1 then parts[0].dup
     else
-      parts.join(SEPARATOR)
+      parts.join(SEPARATOR).gsub(/#{SEPARATOR}{2,}/, SEPARATOR)
     end
   end
 
@@ -123,7 +123,7 @@ class File
       path = path.upcase
     end
 
-    pattern = pattern.gsub(/\.|\(|\)|\||\$|!/) { |m| '\\' + m }
+    pattern = pattern.gsub(/\.|\(|\)|\||(?<!\[)\^|\$|!|\+/) { |m| '\\' + m }
 
     if flags & FNM_EXTGLOB != 0
       pattern = pattern.gsub(/\{([^}]*)\}/) do |m|
@@ -133,12 +133,39 @@ class File
     end
 
     if flags & FNM_PATHNAME != 0
-      return false if flags & FNM_DOTMATCH == 0 && path =~ /^\.|#{SEPARATOR}\./
-      pattern = pattern.gsub(/\*?\*(#{SEPARATOR}?)/) do |m|
-        if m == "**#{SEPARATOR}"
-          "(.*#{SEPARATOR}|^)"
+      return true if path == ".#{SEPARATOR}" && pattern.start_with?("\\.#{SEPARATOR}**")
+
+      if flags & FNM_DOTMATCH == 0
+        return false if path == '.' && pattern != '\.**' && pattern != '\.*'
+
+        file = path.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || path
+        dir = path.slice(0, path.size - file.size)
+        file_pattern = pattern.match(/(?<=#{SEPARATOR})[^#{SEPARATOR}]*\z/)&.to_s || pattern
+        dir_pattern = pattern.slice(0, pattern.size - file_pattern.size)
+        if dir =~ /^\.|#{SEPARATOR}\./ && dir_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          # directory part of pattern does not allow hidden directories
+          return false
+        end
+        if file =~ /^\.|#{SEPARATOR}\./ && file_pattern !~ /^\\\.|#{SEPARATOR}\\\./
+          # file part of pattern does not allow hidden files
+          return false
+        end
+      end
+
+      pattern = pattern.gsub(/\*\*(#{SEPARATOR}.?)?|\*#{SEPARATOR}?/) do |m|
+        case m
+        when "**#{SEPARATOR}*", "*#{SEPARATOR}*"
+          '.*'
+        when /^\*\*#{SEPARATOR}(.)/
+          "(.*#{SEPARATOR}|\\A)#{$1}"
+        when "**#{SEPARATOR}"
+          ".*#{SEPARATOR}"
+        when '**', '*'
+          "[^#{SEPARATOR}]*"
+        when "*#{SEPARATOR}"
+          "[^#{SEPARATOR}]*#{SEPARATOR}"
         else
-          "[^#{SEPARATOR}]*#{m[1]}"
+          raise "invariant: #{m}"
         end
       end
       pattern = pattern.gsub(/\?/, "[^#{SEPARATOR}]")

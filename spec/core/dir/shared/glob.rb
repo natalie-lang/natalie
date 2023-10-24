@@ -12,8 +12,10 @@ describe :dir_glob, shared: true do
   end
 
   it "raises an Encoding::CompatibilityError if the argument encoding is not compatible with US-ASCII" do
-    pattern = "file*".force_encoding Encoding::UTF_16BE
-    -> { Dir.send(@method, pattern) }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Encoding::CompatibilityError', exception: NameError do
+      pattern = "file*".force_encoding Encoding::UTF_16BE
+      -> { Dir.send(@method, pattern) }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 
   it "calls #to_path to convert a pattern" do
@@ -90,16 +92,22 @@ describe :dir_glob, shared: true do
   end
 
   it "matches directories with special characters when escaped" do
-    Dir.send(@method, 'special/\{}/special').should == ["special/{}/special"]
+    NATFIXME 'escaped characters', exception: SyntaxError do
+      Dir.send(@method, 'special/\{}/special').should == ["special/{}/special"]
+    end
   end
 
   platform_is_not :windows do
     it "matches regexp special *" do
-      Dir.send(@method, 'special/\*').should == ['special/*']
+      NATFIXME 'escaped characters', exception: SpecFailedException do
+        Dir.send(@method, 'special/\*').should == ['special/*']
+      end
     end
 
     it "matches regexp special ?" do
-      Dir.send(@method, 'special/\?').should == ['special/?']
+      NATFIXME 'escaped characters', exception: SpecFailedException do
+        Dir.send(@method, 'special/\?').should == ['special/?']
+      end
     end
 
     it "matches regexp special |" do
@@ -111,7 +119,9 @@ describe :dir_glob, shared: true do
     end
 
     it "matches directory with special characters in their name in complex patterns" do
-      Dir.glob("special/test +()\\[\\]\\{\\}/hello_world{.{en},}{.{html},}{+{phone},}{.{erb},}").should == ['special/test +()[]{}/hello_world.erb']
+      NATFIXME 'escaped characters', exception: SpecFailedException do
+        Dir.glob("special/test +()\\[\\]\\{\\}/hello_world{.{en},}{.{html},}{+{phone},}{.{erb},}").should == ['special/test +()[]{}/hello_world.erb']
+      end
     end
   end
 
@@ -148,7 +158,9 @@ describe :dir_glob, shared: true do
   end
 
   it "matches paths with glob patterns" do
-    Dir.send(@method, 'special/test\{1\}/*').should == ['special/test{1}/file[1]']
+    NATFIXME 'escaped characters', exception: SpecFailedException do
+      Dir.send(@method, 'special/test\{1\}/*').should == ['special/test{1}/file[1]']
+    end
   end
 
   ruby_version_is ''...'3.1' do
@@ -300,17 +312,23 @@ describe :dir_glob, shared: true do
   end
 
   it "matches dot or non-dotfiles with '{,.}*'" do
-    Dir.send(@method, '{,.}*').sort.should == DirSpecs.expected_glob_paths
+    NATFIXME 'special . directory', exception: SpecFailedException do
+      Dir.send(@method, '{,.}*').sort.should == DirSpecs.expected_glob_paths
+    end
   end
 
   it "respects the order of {} expressions, expanding left most first" do
-    files = Dir.send(@method, "brace/a{.js,.html}{.erb,.rjs}")
-    files.should == %w!brace/a.js.rjs brace/a.html.erb!
+    NATFIXME 'order of expansion', exception: SpecFailedException do
+      files = Dir.send(@method, "brace/a{.js,.html}{.erb,.rjs}")
+      files.should == %w!brace/a.js.rjs brace/a.html.erb!
+    end
   end
 
   it "respects the optional nested {} expressions" do
-    files = Dir.send(@method, "brace/a{.{js,html},}{.{erb,rjs},}")
-    files.should == %w!brace/a.js.rjs brace/a.js brace/a.html.erb brace/a.erb brace/a!
+    NATFIXME 'nested expansion', exception: SpecFailedException do
+      files = Dir.send(@method, "brace/a{.{js,html},}{.{erb,rjs},}")
+      files.should == %w!brace/a.js.rjs brace/a.js brace/a.html.erb brace/a.erb brace/a!
+    end
   end
 
   it "matches special characters by escaping with a backslash with '\\<character>'" do
@@ -387,14 +405,16 @@ describe :dir_glob, shared: true do
     it "accepts both relative and absolute paths" do
       require 'pathname'
 
-      path_abs = File.join(@mock_dir, "a/b/c")
-      path_rel = Pathname.new(path_abs).relative_path_from(Pathname.new(Dir.pwd))
+      NATFIXME 'Pathname#relative_path_from' do
+        path_abs = File.join(@mock_dir, "a/b/c")
+        path_rel = Pathname.new(path_abs).relative_path_from(Pathname.new(Dir.pwd))
 
-      result_abs = Dir.send(@method, "*", base: path_abs).sort
-      result_rel = Dir.send(@method, "*", base: path_rel).sort
+        result_abs = Dir.send(@method, "*", base: path_abs).sort
+        result_rel = Dir.send(@method, "*", base: path_rel).sort
 
-      result_abs.should == %w( d y )
-      result_rel.should == %w( d y )
+        result_abs.should == %w( d y )
+        result_rel.should == %w( d y )
+      end
     end
 
     it "returns [] if specified path does not exist" do
