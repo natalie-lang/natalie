@@ -95,9 +95,7 @@ describe "String#casecmp independent of case" do
     end
 
     it "does not case fold" do
-      NATFIXME 'Pending unicode casemap support', exception: SpecFailedException do
-        "ß".casecmp("ss").should == 1
-      end
+      "ß".casecmp("ss").should == 1
     end
   end
 

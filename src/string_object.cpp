@@ -622,20 +622,7 @@ Value StringObject::clear(Env *env) {
 
 Value StringObject::cmp(Env *env, Value other) const {
     if (other->type() != Object::Type::String) return NilObject::the();
-    auto *str = c_str();
-    auto *other_str = other->as_string()->c_str();
-    size_t other_length = other->as_string()->length();
-    for (size_t i = 0; i < length(); ++i) {
-        if (i >= other_length)
-            return Value::integer(1);
-        if (str[i] < other_str[i])
-            return Value::integer(-1);
-        else if (str[i] > other_str[i])
-            return Value::integer(1);
-    }
-    if (length() < other_length)
-        return Value::integer(-1);
-    return Value::integer(0);
+    return Value::integer(m_string.cmp(other->as_string()->m_string));
 }
 
 Value StringObject::concat(Env *env, Args args) {
@@ -666,6 +653,166 @@ Value StringObject::concat(Env *env, Args args) {
     }
 
     return this;
+}
+
+class CharacterSelector {
+public:
+    virtual ~CharacterSelector() {};
+    virtual bool matches(StringView character) = 0;
+    virtual String print() = 0;
+    virtual Vector<String> selectors() = 0;
+};
+
+class BasicCharacterSelector : public CharacterSelector {
+public:
+    BasicCharacterSelector() { }
+    BasicCharacterSelector(Vector<String> selectors)
+        : m_selectors(selectors) {
+    }
+    virtual ~BasicCharacterSelector() { }
+
+    virtual bool matches(StringView character) {
+        for (auto &selector : m_selectors) {
+            if (selector == character.to_string())
+                return true;
+        }
+        return false;
+    }
+
+    virtual String print() {
+        String selectors = "";
+        for (auto selector : m_selectors) {
+            selectors.append(", ");
+            selectors.append(selector);
+        }
+        return String("BasicCharacterSelector(") + selectors + ")";
+    }
+
+    virtual Vector<String> selectors() { return m_selectors; }
+
+private:
+    Vector<String> m_selectors {};
+};
+
+class NegatedCharacterSelectors : public CharacterSelector {
+public:
+    NegatedCharacterSelectors() { }
+    NegatedCharacterSelectors(Vector<String> selectors)
+        : m_selectors(selectors) {
+    }
+    virtual ~NegatedCharacterSelectors() { }
+
+    virtual bool matches(StringView character) {
+        for (auto &selector : m_selectors) {
+            if (selector == character.to_string())
+                return false;
+        }
+        return true;
+    }
+
+    virtual String print() {
+        String selectors = "";
+        for (auto selector : m_selectors) {
+            selectors.append(", ");
+            selectors.append(selector);
+        }
+        return String("NegatedCharacterSelectors(") + selectors + ")";
+    }
+    virtual Vector<String> selectors() { return m_selectors; }
+
+private:
+    Vector<String> m_selectors {};
+};
+
+Value StringObject::count(Env *env, Args args) {
+    args.ensure_argc_at_least(env, 1);
+
+    auto basic_characters = Hashmap<String>(HashType::TMString);
+    auto negated_characters = Hashmap<String>(HashType::TMString);
+
+    // For each argument
+    for (size_t i = 0; i < args.size(); ++i) {
+        auto arg = args[i];
+
+        // Try convert to string
+        auto selectors = arg->to_str(env);
+        auto new_selectors = Hashmap<String>(HashType::TMString);
+        StringView last_character = {};
+        bool negated = false;
+        // Split into selectors
+        auto it = selectors->begin();
+        if (*it == "^") {
+            ++it;
+
+            if (it != selectors->end()) {
+                negated = true;
+            } else {
+                new_selectors.set("^");
+            }
+        }
+        for (; it != selectors->end(); ++it) {
+            auto value = *it;
+            if (value == "-" && last_character != StringView()) {
+                ++it;
+                if (it == selectors->end()) {
+                    new_selectors.set(value.to_string());
+                    break;
+                }
+
+                auto next_value = *it;
+                if (last_character.to_string().cmp(next_value.to_string()) == 1)
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+
+                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
+                auto all_chars = range->to_a(env)->as_array();
+                for (auto character : *all_chars) {
+                    auto character_string = character->as_string()->string();
+                    new_selectors.set(character_string);
+                }
+                last_character = StringView();
+            } else {
+                last_character = value;
+                new_selectors.set(value.to_string());
+            }
+        }
+
+        // intersect with current selectors
+
+        // Negated characters are always added
+        if (negated) {
+            for (auto pair : new_selectors) {
+                negated_characters.set(pair.first);
+            }
+        } else {
+            auto new_basic_characters = Hashmap<String>(HashType::TMString);
+            for (auto pair : new_selectors) {
+                if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
+                    new_basic_characters.set(pair.first);
+                }
+            }
+            basic_characters = new_basic_characters;
+        }
+    }
+
+    // apply selectors
+    nat_int_t total_count = 0;
+    // printf("basic: %ld\n", basic_characters.size());
+    // printf("negated: %ld; containing:\n", negated_characters.size());
+    // for (auto pair : negated_characters) {
+    //     printf(" - %s\n", pair.first.c_str());
+    // }
+
+    if (!negated_characters.is_empty() || !basic_characters.is_empty()) {
+        for (auto character : *this) {
+            if (
+                (negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
+                && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr)) {
+                total_count++;
+            }
+        }
+    }
+
+    return IntegerObject::create(total_count);
 }
 
 Value StringObject::crypt(Env *env, Value salt) {
