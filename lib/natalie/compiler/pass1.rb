@@ -1538,8 +1538,8 @@ module Natalie
       def transform_hash(exp, used:, bare: false)
         _, *items = exp
         instructions = []
-        if items.any? { |a| a.sexp_type == :kwsplat }
-          instructions += transform_hash_with_kwsplat(items, bare: bare)
+        if items.any? { |a| a.sexp_type == :assoc_splat_node }
+          instructions += transform_hash_with_assoc_splat(items, bare: bare)
         else
           items.each do |item|
             instructions << transform_expression(item, used: true)
@@ -1550,16 +1550,13 @@ module Natalie
         instructions
       end
 
-      def transform_hash_with_kwsplat(items, bare:)
+      def transform_hash_with_assoc_splat(items, bare:)
         items = items.dup
         instructions = []
 
-        # TODO: skip CreateHashInstruction if splat is first
-        # (will need to duplicate the kwsplat value)
-
         # create hash from items before the splat
         prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :kwsplat
+        while items.any? && items.first.sexp_type != :assoc_splat_node
           instructions << transform_expression(items.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -1568,9 +1565,8 @@ module Natalie
         # now add to the hash the first splat item and everything after
         while items.any?
           key = items.shift
-          if key.sexp_type == :kwsplat
-            _, value = key
-            instructions << transform_expression(value, used: true)
+          if key.sexp_type == :assoc_splat_node
+            instructions << transform_expression(key.value, used: true)
             instructions << HashMergeInstruction.new
           else
             value = items.shift

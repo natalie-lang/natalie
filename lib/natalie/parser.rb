@@ -15,7 +15,6 @@ module Prism
     # * block_pass
     # * evstr
     # * gasgn
-    # * kwsplat
     # * lasgn
     # * lvar
     # * safe_call
@@ -129,7 +128,7 @@ module Natalie
       end
 
       def visit_assoc_splat_node(node)
-        s(:kwsplat, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_back_reference_read_node(node)
