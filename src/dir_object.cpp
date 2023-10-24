@@ -202,6 +202,9 @@ Value DirObject::each_child(Env *env, Block *block) {
 Value DirObject::children(Env *env, Value path, Value encoding) {
     auto dir = new DirObject {};
     dir->initialize(env, path, encoding);
+    Defer close_dir([&]() {
+        dir->close(env);
+    });
     return dir->children(env);
 }
 
