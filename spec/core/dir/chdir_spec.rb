@@ -30,10 +30,8 @@ describe "Dir.chdir" do
   end
 
   it "changes to the specified directory" do
-    NATFIXME 'broken due to spec tmp() realpath issue', exception: SpecFailedException do
-      Dir.chdir DirSpecs.mock_dir
-      Dir.pwd.should == DirSpecs.mock_dir
-    end
+    Dir.chdir DirSpecs.mock_dir
+    Dir.pwd.should == DirSpecs.mock_dir
   end
 
   it "returns 0 when successfully changing directory" do
@@ -84,11 +82,9 @@ describe "Dir.chdir" do
 
   it "changes to the specified directory for the duration of the block" do
     ar = Dir.chdir(DirSpecs.mock_dir) { |dir| [dir, Dir.pwd] }
-    NATFIXME 'broken due to spec tmp() realpath issue', exception: SpecFailedException do
-      ar.should == [DirSpecs.mock_dir, DirSpecs.mock_dir]
+    ar.should == [DirSpecs.mock_dir, DirSpecs.mock_dir]
 
-      Dir.pwd.should == @original
-    end
+    Dir.pwd.should == @original
   end
 
   it "raises an Errno::ENOENT if the directory does not exist" do
