@@ -106,9 +106,9 @@ module Natalie
         args = node&.arguments || []
         instructions = []
 
-        if args.last&.sexp_type == :block_pass
-          _, block = args.pop
-          instructions.unshift(transform_expression(block, used: true))
+        if args.last&.sexp_type == :block_argument_node
+          block_arg = args.pop
+          instructions.unshift(transform_expression(block_arg.expression, used: true))
         end
 
         if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
@@ -1179,8 +1179,9 @@ module Natalie
       end
 
       def transform_call_args(args, instructions: [])
-        if args.last&.sexp_type == :block_pass
-          _, block = args.pop
+        if args.last&.sexp_type == :block_argument_node
+          block_arg = args.pop
+          block = block_arg.expression
           instructions.unshift(transform_expression(block, used: true))
         end
 

@@ -12,7 +12,6 @@ module Prism
     # * args
     # * attrasgn
     # * bare_hash
-    # * block_pass
     # * evstr
     # * gasgn
     # * lasgn
@@ -164,7 +163,7 @@ module Natalie
       end
 
       def visit_block_argument_node(node)
-        s(:block_pass, visit(node.expression), location: node.location)
+        copy(node, expression: visit(node.expression))
       end
 
       def visit_block_node(node, call:)
