@@ -640,6 +640,28 @@ Value KernelModule::spawn(Env *env, Args args) {
     pid_t pid;
     args.ensure_argc_at_least(env, 1);
     int result;
+
+    Vector<char *> new_env;
+    if (args.size() > 1 && args.at(0)->is_hash()) {
+        auto hash = args.shift()->as_hash_or_raise(env);
+        for (auto ep = environ; *ep; ep++)
+            new_env.push(strdup(*ep));
+        for (auto pair : *hash) {
+            auto combined = String::format(
+                "{}={}",
+                pair.key->as_string_or_raise(env)->string(),
+                pair.val->as_string_or_raise(env)->string());
+            new_env.push(strdup(combined.c_str()));
+        }
+        new_env.push(nullptr);
+    }
+
+    Defer free_new_env([&]() {
+        for (auto str : new_env) {
+            free(str);
+        }
+    });
+
     if (args.size() == 1) {
         auto arg = args.at(0);
         arg->assert_type(env, Object::Type::String, "String");
@@ -650,7 +672,13 @@ Value KernelModule::spawn(Env *env, Args args) {
             cmd[i] = split->at(i)->as_string()->c_str();
         }
         cmd[split->size()] = nullptr;
-        result = posix_spawnp(&pid, cmd[0], NULL, NULL, const_cast<char *const *>(cmd), environ);
+        result = posix_spawnp(
+            &pid,
+            cmd[0],
+            NULL,
+            NULL,
+            const_cast<char *const *>(cmd),
+            new_env.is_empty() ? environ : new_env.data());
     } else {
         const char *cmd[args.size() + 1];
         for (size_t i = 0; i < args.size(); i++) {
@@ -660,10 +688,18 @@ Value KernelModule::spawn(Env *env, Args args) {
         }
         cmd[args.size()] = nullptr;
         auto program = args[0]->as_string();
-        result = posix_spawnp(&pid, program->c_str(), NULL, NULL, const_cast<char *const *>(cmd), environ);
+        result = posix_spawnp(
+            &pid,
+            program->c_str(),
+            NULL,
+            NULL,
+            const_cast<char *const *>(cmd),
+            new_env.is_empty() ? environ : new_env.data());
     }
+
     if (result != 0)
         env->raise_errno();
+
     return Value::integer(pid);
 }
 
