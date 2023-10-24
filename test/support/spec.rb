@@ -437,12 +437,12 @@ class Matcher
   def eq(other)
     if @subject != other
       if @subject.is_a?(String) && other.is_a?(String) && (@subject.size >= MIN_STRING_SIZE_TO_RUN_DIFF || other.size >= MIN_STRING_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
-        diff(@subject, other)
+        diff(other, @subject)
         raise SpecFailedException, 'two strings should match'
       elsif @subject.is_a?(Array) && other.is_a?(Array) && (@subject.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF || other.size >= MIN_ARRAY_SIZE_TO_RUN_DIFF) && $natfixme_depth == 0
         diff(
-          "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
           "[\n" + other.map(&:inspect).join("\n") + "\n]",
+          "[\n" + @subject.map(&:inspect).join("\n") + "\n]",
         )
         raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
       else
