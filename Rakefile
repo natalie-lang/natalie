@@ -154,6 +154,13 @@ task prism_templated_sources: :build_dir do
     mkdir_p dir unless File.exist?(dir)
     cp File.join(build_dir, src), full_dest
   end
+  # we don't have Method#parameters yet, so change that to use Method#arity
+  serialize_path = File.join(gen_dir, 'lib/prism/serialize.rb')
+  patched_source = File.read(serialize_path).sub(
+    '.parameters.none? { |_, name| name == :offset }',
+    '.arity == 1'
+  )
+  File.write(serialize_path, patched_source)
 end
 
 # # # # Docker Tasks (used for CI) # # # #

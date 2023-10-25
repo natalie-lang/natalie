@@ -8,7 +8,7 @@ if you are looking to modify the template
 require "stringio"
 
 # Polyfill for String#unpack1 with the offset parameter.
-if String.instance_method(:unpack1).parameters.none? { |_, name| name == :offset }
+if String.instance_method(:unpack1).arity == 1
   String.prepend(
     Module.new {
       def unpack1(format, offset: 0)
