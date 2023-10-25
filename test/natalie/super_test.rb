@@ -48,6 +48,10 @@ class Greeter
   def greet_without_super
     super
   end
+
+  def greet_with_keyword(value:)
+    value
+  end
 end
 
 class PirateGreeter < Greeter
@@ -90,6 +94,10 @@ class PirateGreeter < Greeter
 
   def greet_using_block
     super { 'ARRRR. Hello using a block.' }
+  end
+
+  def greet_with_keyword
+    super(value: 'ARRRRR')
   end
 end
 
@@ -158,5 +166,10 @@ describe 'super' do
   it 'works with an aliased method' do
     greeter = PirateGreeter.new
     greeter.aliased_greet.should == 'ARRRR. Hello.'
+  end
+
+  it 'works with keyword arguments' do
+    greeter = PirateGreeter.new
+    greeter.greet_with_keyword.should == 'ARRRRR'
   end
 end

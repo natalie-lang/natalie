@@ -1823,6 +1823,7 @@ module Natalie
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block || call_args.fetch(:with_block_pass),
+          has_keyword_hash: call_args.fetch(:has_keyword_hash)
         )
         instructions << PopInstruction.new unless used
         instructions
