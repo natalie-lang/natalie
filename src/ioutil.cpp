@@ -207,7 +207,9 @@ namespace ioutil {
 
         void parse_path(Env *env, flags_struct *self, HashObject *kwargs) {
             if (!kwargs) return;
-            kwargs->remove(env, "path"_s);
+            auto path = kwargs->remove(env, "path"_s);
+            if (!path) return;
+            self->path = convert_using_to_path(env, path);
         }
     };
 
