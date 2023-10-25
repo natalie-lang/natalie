@@ -70,8 +70,7 @@ describe "File.new" do
     end
   end
 
-  #NATFIXME: Partial implementation of File.new, different behaviour on Linux and MacOS
-  xit "returns a new File with modus fd" do
+  it "returns a new File with modus fd" do
     @fh = File.new(@file)
     fh_copy = File.new(@fh.fileno)
     fh_copy.autoclose = false
