@@ -21,6 +21,7 @@ namespace ioutil {
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
         bool autoclose { false };
+        StringObject *path { nullptr };
 
         flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
     };
