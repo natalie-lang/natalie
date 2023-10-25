@@ -269,7 +269,7 @@ module Natalie
     end
 
     def link_flags
-      (@context[:compile_ld_flags].uniq - unnecessary_link_flags).join(' ')
+      (@context[:compile_ld_flags].join(' ').split.uniq - unnecessary_link_flags).join(' ')
     end
 
     def unnecessary_link_flags
