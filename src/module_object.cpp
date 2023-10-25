@@ -46,6 +46,8 @@ void ModuleObject::include_once(Env *env, ModuleObject *module) {
         assert(this_index != -1);
         m_included_modules.insert(this_index + 1, module);
     }
+    if (module->respond_to(env, "included"_s))
+        module->send(env, "included"_s, { this });
 }
 
 Value ModuleObject::prepend(Env *env, Args args) {
