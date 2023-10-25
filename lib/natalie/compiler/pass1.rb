@@ -63,6 +63,7 @@ module Natalie
       end
 
       def transform_body(body, used:)
+        body = body.body if body.is_a?(Prism::StatementsNode)
         *body, last = body
         instructions = body.map { |exp| transform_expression(exp, used: false) }
         instructions << transform_expression(last || Prism.nil_node, used: used)
@@ -106,9 +107,9 @@ module Natalie
         args = node&.arguments || []
         instructions = []
 
-        if args.last&.sexp_type == :block_pass
-          _, block = args.pop
-          instructions.unshift(transform_expression(block, used: true))
+        if args.last&.sexp_type == :block_argument_node
+          block_arg = args.pop
+          instructions.unshift(transform_expression(block_arg.expression, used: true))
         end
 
         if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
@@ -188,6 +189,25 @@ module Natalie
 
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_back_reference_read_node(node, used:)
+        return [] unless used
+        case node.slice
+        when '$`', "$'"
+          [GlobalVariableGetInstruction.new(node.slice.to_sym)]
+        when '$&'
+          [PushLastMatchInstruction.new(to_s: true)]
+        else
+          raise "unknown back ref read node: #{node.slice}"
+        end
+      end
+
+      def transform_break_node(node, used:)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          BreakInstruction.new
+        ]
       end
 
       def transform_call_node(node, used:, with_block: false)
@@ -497,6 +517,101 @@ module Natalie
           ]
         end
 
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_case_node(node, used:)
+        return transform_expression(node.consequent, used: used) if node.conditions.empty?
+
+        instructions = []
+        if node.predicate
+          instructions << transform_expression(node.predicate, used: true)
+          node.conditions.each do |when_statement|
+            # case a
+            # when b, c, d
+            # =>
+            # if (b === a || c === a || d === a)
+            _, options_array, *body = when_statement
+            options = options_array.elements
+
+            options.each do |option|
+              # Splats are handled in the backend.
+              # For C++, it's done in the is_case_equal() function.
+              if option.sexp_type == :splat_node
+                option = option.expression
+                is_splat = true
+              else
+                is_splat = false
+              end
+
+              option_instructions = transform_expression(option, used: true)
+              instructions << option_instructions
+              instructions << CaseEqualInstruction.new(is_splat: is_splat)
+              instructions << IfInstruction.new
+              instructions << PushTrueInstruction.new
+              instructions << ElseInstruction.new(:if)
+            end
+            instructions << PushFalseInstruction.new
+            instructions << [EndInstruction.new(:if)] * options.length
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
+          end
+        else
+          # glorified if-else
+          node.conditions.each do |when_statement|
+            # case
+            # when a == b, b == c, c == d
+            # =>
+            # if (a == b || b == c || c == d)
+            _, options, *body = when_statement
+
+            # s(:array, option1, option2, ...)
+            # =>
+            # s(:or, option1, s(:or, option2, ...))
+            options = options.elements
+            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
+
+            instructions << transform_expression(options, used: true)
+            instructions << IfInstruction.new
+            instructions << transform_body(body, used: true)
+            instructions << ElseInstruction.new(:if)
+          end
+        end
+
+        instructions << if node.consequent.nil?
+                          PushNilInstruction.new
+                        else
+                          transform_expression(node.consequent, used: true)
+                        end
+
+        instructions << [EndInstruction.new(:if)] * node.conditions.length
+
+        # The case value is never popped during comparison, so we have to pop it here.
+        instructions << [SwapInstruction.new, PopInstruction.new] if node.predicate
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_class_node(node, used:)
+        instructions = []
+        if node.superclass
+          instructions << transform_expression(node.superclass, used: true)
+        else
+          instructions << PushObjectClassInstruction.new
+        end
+        name, is_private, prep_instruction = constant_name(node.constant_path)
+        instructions << prep_instruction
+        instructions << DefineClassInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+        instructions += transform_body(node.body, used: true)
+        instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -889,6 +1004,22 @@ module Natalie
         VariableGetInstruction.new(node.name)
       end
 
+      def transform_module_node(node, used:)
+        instructions = []
+        name, is_private, prep_instruction = constant_name(node.constant_path)
+        instructions << prep_instruction
+        instructions << DefineModuleInstruction.new(
+          name: name,
+          is_private: is_private,
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+        instructions += transform_body(node.body, used: true)
+        instructions << EndInstruction.new(:define_module)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_multi_write_node(node, used:)
         value = node.value
 
@@ -900,6 +1031,13 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
+      end
+
+      def transform_next_node(node, used:)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          NextInstruction.new
+        ]
       end
 
       def transform_nil_node(_, used:)
@@ -943,6 +1081,16 @@ module Natalie
         instructions
       end
 
+      def transform_range_node(node, used:)
+        instructions = [
+          transform_expression(node.right || Prism.nil_node, used: true),
+          transform_expression(node.left || Prism.nil_node, used: true),
+          PushRangeInstruction.new(node.exclude_end?),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_rational_node(node, used:)
         return [] unless used
 
@@ -969,15 +1117,36 @@ module Natalie
       end
 
       def transform_return_node(node, used:) # rubocop:disable Lint/UnusedMethodArgument
-        instructions = [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location)
+        [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location),
+          ReturnInstruction.new
         ]
-        instructions << ReturnInstruction.new
       end
 
       def transform_self_node(_, used:)
         return [] unless used
         [PushSelfInstruction.new]
+      end
+
+      def transform_singleton_class_node(node, used:)
+        instructions = [
+          transform_expression(node.expression, used: true),
+          WithSingletonInstruction.new,
+          transform_body(node.body, used: true),
+          EndInstruction.new(:with_singleton),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_source_file_node(node, used:)
+        return [] unless used
+        [PushStringInstruction.new(node.filepath)]
+      end
+
+      def transform_source_line_node(node, used:)
+        return [] unless used
+        [PushIntInstruction.new(node.location.start_line)]
       end
 
       def transform_splat_node(node, used:)
@@ -991,6 +1160,19 @@ module Natalie
       def transform_string_node(node, used:)
         return [] unless used
         PushStringInstruction.new(node.unescaped)
+      end
+
+      def transform_super_node(node, used:, with_block: false)
+        instructions = []
+        instructions << PushSelfInstruction.new
+        call_args = transform_call_args(node.arguments, instructions: instructions)
+        instructions << SuperInstruction.new(
+          args_array_on_stack: call_args.fetch(:args_array_on_stack),
+          with_block: with_block || call_args.fetch(:with_block_pass),
+          has_keyword_hash: call_args.fetch(:has_keyword_hash)
+        )
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_symbol_node(node, used:)
@@ -1066,13 +1248,6 @@ module Natalie
         instructions
       end
 
-      def transform_back_ref(exp, used:)
-        return [] unless used
-        _, name = exp
-        raise "Unknown back ref: #{name.inspect}" unless name == :&
-        [PushLastMatchInstruction.new(to_s: true)]
-      end
-
       def transform_bare_hash(exp, used:)
         transform_hash(exp, bare: true, used: used)
       end
@@ -1087,15 +1262,6 @@ module Natalie
 
       def transform_block_args_for_for(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
-      end
-
-      def transform_break(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
-        _, value = exp
-        value ||= Prism.nil_node
-        [
-          transform_expression(value, used: true),
-          BreakInstruction.new,
-        ]
       end
 
       def transform_call(exp, used:, with_block: false)
@@ -1161,8 +1327,9 @@ module Natalie
       end
 
       def transform_call_args(args, instructions: [])
-        if args.last&.sexp_type == :block_pass
-          _, block = args.pop
+        if args.last&.sexp_type == :block_argument_node
+          block_arg = args.pop
+          block = block_arg.expression
           instructions.unshift(transform_expression(block, used: true))
         end
 
@@ -1212,98 +1379,6 @@ module Natalie
           args_array_on_stack: false,
           has_keyword_hash: has_keyword_hash,
         }
-      end
-
-      def transform_case(exp, used:)
-        _, var, *whens, else_block = exp
-        return transform_expression(else_block, used: used) if whens.empty?
-        instructions = []
-        if var
-          instructions << transform_expression(var, used: true)
-          whens.each do |when_statement|
-            # case a
-            # when b, c, d
-            # =>
-            # if (b === a || c === a || d === a)
-            _, options_array, *body = when_statement
-            options = options_array.elements
-
-            options.each do |option|
-              # Splats are handled in the backend.
-              # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat_node
-                option = option.expression
-                is_splat = true
-              else
-                is_splat = false
-              end
-
-              option_instructions = transform_expression(option, used: true)
-              instructions << option_instructions
-              instructions << CaseEqualInstruction.new(is_splat: is_splat)
-              instructions << IfInstruction.new
-              instructions << PushTrueInstruction.new
-              instructions << ElseInstruction.new(:if)
-            end
-            instructions << PushFalseInstruction.new
-            instructions << [EndInstruction.new(:if)] * options.length
-            instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
-            instructions << ElseInstruction.new(:if)
-          end
-        else
-          # glorified if-else
-          whens.each do |when_statement|
-            # case
-            # when a == b, b == c, c == d
-            # =>
-            # if (a == b || b == c || c == d)
-            _, options, *body = when_statement
-
-            # s(:array, option1, option2, ...)
-            # =>
-            # s(:or, option1, s(:or, option2, ...))
-            options = options.elements
-            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
-
-            instructions << transform_expression(options, used: true)
-            instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
-            instructions << ElseInstruction.new(:if)
-          end
-        end
-
-        instructions << (else_block.nil? ? PushNilInstruction.new : transform_expression(else_block, used: true))
-
-        instructions << [EndInstruction.new(:if)] * whens.length
-
-        # The case value is never popped during comparison, so we have to pop it here.
-        instructions << [SwapInstruction.new, PopInstruction.new] if var
-
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_class(exp, used:)
-        _, name, superclass, *body = exp
-        instructions = []
-        if superclass
-          instructions << transform_expression(superclass, used: true)
-        else
-          instructions << PushObjectClassInstruction.new
-        end
-        name, is_private, prep_instruction = constant_name(name)
-        instructions << prep_instruction
-        instructions << DefineClassInstruction.new(
-          name: name,
-          is_private: is_private,
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions += transform_body(body, used: true)
-        instructions << EndInstruction.new(:define_class)
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_const(exp, used:)
@@ -1391,21 +1466,6 @@ module Natalie
         end
 
         instructions
-      end
-
-      def transform_dot2(exp, used:, exclude_end: false)
-        _, beginning, ending = exp
-        instructions = [
-          transform_expression(ending || Prism.nil_node, used: true),
-          transform_expression(beginning || Prism.nil_node, used: true),
-          PushRangeInstruction.new(exclude_end),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dot3(exp, used:)
-        transform_dot2(exp, used: used, exclude_end: true)
       end
 
       def transform_dregx(exp, used:)
@@ -1525,8 +1585,8 @@ module Natalie
       def transform_hash(exp, used:, bare: false)
         _, *items = exp
         instructions = []
-        if items.any? { |a| a.sexp_type == :kwsplat }
-          instructions += transform_hash_with_kwsplat(items, bare: bare)
+        if items.any? { |a| a.sexp_type == :assoc_splat_node }
+          instructions += transform_hash_with_assoc_splat(items, bare: bare)
         else
           items.each do |item|
             instructions << transform_expression(item, used: true)
@@ -1537,16 +1597,13 @@ module Natalie
         instructions
       end
 
-      def transform_hash_with_kwsplat(items, bare:)
+      def transform_hash_with_assoc_splat(items, bare:)
         items = items.dup
         instructions = []
 
-        # TODO: skip CreateHashInstruction if splat is first
-        # (will need to duplicate the kwsplat value)
-
         # create hash from items before the splat
         prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :kwsplat
+        while items.any? && items.first.sexp_type != :assoc_splat_node
           instructions << transform_expression(items.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -1555,9 +1612,8 @@ module Natalie
         # now add to the hash the first splat item and everything after
         while items.any?
           key = items.shift
-          if key.sexp_type == :kwsplat
-            _, value = key
-            instructions << transform_expression(value, used: true)
+          if key.sexp_type == :assoc_splat_node
+            instructions << transform_expression(key.value, used: true)
             instructions << HashMergeInstruction.new
           else
             value = items.shift
@@ -1608,8 +1664,8 @@ module Natalie
           instructions << transform_lambda(call, used: used)
         when :safe_call
           instructions << transform_safe_call(call, used: used, with_block: true)
-        when :super
-          instructions << transform_super(call, used: used, with_block: true)
+        when :super_node
+          instructions << transform_super_node(call, used: used, with_block: true)
         when :forwarding_super_node
           instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else
@@ -1653,12 +1709,6 @@ module Natalie
           PushIntInstruction.new(lit)
         when Float
           PushFloatInstruction.new(lit)
-        when Range
-          [
-            transform_lit(lit.end, used: true),
-            transform_lit(lit.begin, used: true),
-            PushRangeInstruction.new(lit.exclude_end?),
-          ]
         when Rational
           [
             transform_lit(lit.numerator, used: true),
@@ -1725,32 +1775,6 @@ module Natalie
         instructions
       end
 
-      def transform_module(exp, used:)
-        _, name, *body = exp
-        instructions = []
-        name, is_private, prep_instruction = constant_name(name)
-        instructions << prep_instruction
-        instructions << DefineModuleInstruction.new(
-          name: name,
-          is_private: is_private,
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions += transform_body(body, used: true)
-        instructions << EndInstruction.new(:define_module)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_next(exp, used:) # rubocop:disable Lint/UnusedMethodArgument
-        _, value = exp
-        value ||= Prism.nil_node
-        [
-          transform_expression(value, used: true),
-          NextInstruction.new,
-        ]
-      end
-
       def transform_not(exp, used:)
         _, value = exp
         instructions = [
@@ -1797,36 +1821,10 @@ module Natalie
         instructions
       end
 
-      def transform_sclass(exp, used:)
-        _, owner, *body = exp
-        instructions = [
-          transform_expression(owner, used: true),
-          WithSingletonInstruction.new,
-          transform_body(body, used: true),
-          EndInstruction.new(:with_singleton),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
         PushStringInstruction.new(str)
-      end
-
-      def transform_super(exp, used:, with_block: false)
-        _, *args = exp
-        instructions = []
-        instructions << PushSelfInstruction.new
-        call_args = transform_call_args(args, instructions: instructions)
-        instructions << SuperInstruction.new(
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          with_block: with_block || call_args.fetch(:with_block_pass),
-          has_keyword_hash: call_args.fetch(:has_keyword_hash)
-        )
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_svalue(exp, used:)

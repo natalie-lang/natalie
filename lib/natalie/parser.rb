@@ -12,10 +12,8 @@ module Prism
     # * args
     # * attrasgn
     # * bare_hash
-    # * block_pass
     # * evstr
     # * gasgn
-    # * kwsplat
     # * lasgn
     # * lvar
     # * safe_call
@@ -129,18 +127,10 @@ module Natalie
       end
 
       def visit_assoc_splat_node(node)
-        s(:kwsplat, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
-      def visit_back_reference_read_node(node)
-        name = node.slice[1..].to_sym
-        case name
-        when :"'", :`
-          s(:gvar, :"$#{name}", location: node.location)
-        else
-          s(:back_ref, name, location: node.location)
-        end
-      end
+      alias visit_back_reference_read_node visit_passthrough
 
       def visit_begin_node(node)
         if !node.rescue_clause && !node.else_clause
@@ -173,7 +163,7 @@ module Natalie
       end
 
       def visit_block_argument_node(node)
-        s(:block_pass, visit(node.expression), location: node.location)
+        copy(node, expression: visit(node.expression))
       end
 
       def visit_block_node(node, call:)
@@ -193,7 +183,7 @@ module Natalie
       end
 
       def visit_break_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :break)
+        copy(node, arguments: visit(node.arguments))
       end
 
       def visit_call_node(node)
@@ -221,21 +211,21 @@ module Natalie
       def visit_case_node(node)
         raise SyntaxError, 'expected at least one when clause for case' if node.conditions.empty?
 
-        s(:case,
-          visit(node.predicate),
-          *node.conditions.map { |n| visit(n) },
-          visit(node.consequent),
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          conditions: node.conditions.map { |n| visit(n) },
+          consequent: visit(node.consequent)
+        )
       end
 
       def visit_class_node(node)
-        name = visit(node.constant_path)
-        name = name[1] if name.sexp_type == :const
-        s(:class,
-          name,
-          visit(node.superclass),
-          visit(node.body),
-          location: node.location)
+        copy(
+          node,
+          constant_path: visit(node.constant_path),
+          superclass: visit(node.superclass),
+          body: visit(node.body)
+        )
       end
 
       alias visit_class_variable_read_node visit_passthrough
@@ -494,12 +484,11 @@ module Natalie
       end
 
       def visit_module_node(node)
-        name = visit(node.constant_path)
-        name = name[1] if name.sexp_type == :const
-        s(:module,
-          name,
-          visit(node.body),
-          location: node.location)
+        copy(
+          node,
+          constant_path: visit(node.constant_path),
+          body: visit(node.body)
+        )
       end
 
       def visit_multi_target_node(node)
@@ -515,23 +504,12 @@ module Natalie
       end
 
       def visit_next_node(node)
-        visit_return_or_next_or_break_node(node, sexp_type: :next)
+        copy(node, arguments: visit(node.arguments))
       end
 
       alias visit_nil_node visit_passthrough
 
       alias visit_numbered_reference_read_node visit_passthrough
-
-      def visit_operator_write_node(node, read_sexp_type:, write_sexp_type:)
-        s(write_sexp_type,
-          node.name,
-          s(:call,
-            s(read_sexp_type, node.name, location: node.location),
-            node.operator,
-            visit(node.value),
-            location: node.location),
-          location: node.location)
-      end
 
       def visit_optional_parameter_node(node)
         copy(node, value: visit(node.value))
@@ -565,19 +543,7 @@ module Natalie
       end
 
       def visit_range_node(node)
-        if node.left.is_a?(Prism::IntegerNode) && node.right.is_a?(Prism::IntegerNode)
-          left = node.left.value
-          right = node.right.value
-          if node.exclude_end?
-            s(:lit, left...right, location: node.location)
-          else
-            s(:lit, left..right, location: node.location)
-          end
-        elsif node.exclude_end?
-          s(:dot3, visit(node.left), visit(node.right), location: node.location)
-        else
-          s(:dot2, visit(node.left), visit(node.right), location: node.location)
-        end
+        copy(node, left: visit(node.left), right: visit(node.right))
       end
 
       alias visit_rational_node visit_passthrough
@@ -634,36 +600,19 @@ module Natalie
         copy(node, arguments: visit(node.arguments))
       end
 
-      def visit_return_or_next_or_break_node(node, sexp_type:)
-        args = node.arguments&.child_nodes || []
-        if args.empty?
-          s(sexp_type, nil, location: node.location)
-        elsif args.size == 1
-          s(sexp_type, visit(args.first), location: node.location)
-        else
-          s(sexp_type,
-            Prism.array_node(elements: args.map { |arg| visit(arg) }, location: node.location),
-            location: node.location)
-        end
-      end
-
       alias visit_self_node visit_passthrough
 
       def visit_singleton_class_node(node)
-        s(:sclass, visit(node.expression), visit(node.body), location: node.location)
+        copy(node, expression: visit(node.expression), body: visit(node.body))
       end
 
-      def visit_source_line_node(node)
-        s(:lit, node.location.start_line, location: node.location)
-      end
+      alias visit_source_line_node visit_passthrough
 
       def visit_splat_node(node)
         copy(node, expression: visit(node.expression))
       end
 
-      def visit_source_file_node(node)
-        s(:str, node.filepath, location: node.location)
-      end
+      alias visit_source_file_node visit_passthrough
 
       def visit_statements_node(node)
         copy(node, body: node.body.map { |n| visit(n) })
@@ -702,7 +651,8 @@ module Natalie
 
       def visit_super_node(node)
         args, block = node_arguments_and_block(node)
-        call = s(:super, *args, location: node.location)
+        # HACK: alert changing arguments to plain array (temporary!)
+        call = copy(node, arguments: args)
         if block
           visit_block_node(node.block, call: call)
         else
