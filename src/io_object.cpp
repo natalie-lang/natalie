@@ -65,6 +65,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
     set_fileno(fileno);
     set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
     m_autoclose = wanted_flags.autoclose;
+    m_path = wanted_flags.path;
     if (block)
         env->warn("{}::new() does not take block; use {}::open() instead", m_klass->inspect_str(), m_klass->inspect_str());
     return this;
