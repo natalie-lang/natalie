@@ -11,6 +11,9 @@ class Dir
       '/tmp'
     end
 
+    # FIXME: we accept multiple patterns, but really this breaks if the patterns aren't very similar
+    # e.g. combining "/foo/**/*.rb" with "./*.rb" is going to break.
+    # We should run through the recurse process for each pattern I think.
     def glob(patterns, flags = 0, base: nil, sort: true)
       if sort != true && sort != false
         raise ArgumentError, "expected true or false as sort: #{sort.inspect}"
@@ -21,11 +24,6 @@ class Dir
         return sort ? result.sort : result
       end
 
-      flags |= File::FNM_PATHNAME | File::FNM_EXTGLOB
-      base_given = !!base
-      base = Dir.pwd if base.nil? || base == ''
-      return unless File.directory?(base)
-
       patterns = Array(patterns).map do |pattern|
         if pattern.is_a?(String)
           pattern
@@ -34,16 +32,35 @@ class Dir
         end
       end
 
+      is_absolute = patterns.first.start_with?(File::SEPARATOR)
+      flags |= File::FNM_PATHNAME | File::FNM_EXTGLOB
+      base_given = !(base.nil? || base == '')
+
+      unless base_given
+        if is_absolute
+          longest_real_path = patterns.first.split(File::SEPARATOR).take_while do |part|
+            part !~ /\*|\?|\[|\{/
+          end
+          base = longest_real_path.join(File::SEPARATOR)
+          base = File.split(base).first unless File.directory?(base)
+        else
+          base = Dir.pwd unless base_given
+        end
+      end
+      return unless File.directory?(base)
+
       raise ArgumentError, 'nul-separated glob pattern' if patterns.any? { |pat| pat.include?("\0") }
 
-      follow_symlinks = patterns.grep(/(\A|[^\*])\*#{File::SEPARATOR}/).any?
+      follow_symlinks = patterns.grep(/(\A|[^*])\*#{File::SEPARATOR}/).any?
       start_with_dot = patterns.grep(/\A\./).any?
-      dot_slash = patterns.grep(%r{\A\./}).any?
-      end_with_slash = patterns.first.end_with?('/')
+      dot_slash = patterns.grep(/\A\.#{File::SEPARATOR}/).any?
+      end_with_slash = patterns.first.end_with?(File::SEPARATOR)
 
       recurse = lambda do |dir|
         dir_to_match = dir
-        if end_with_slash && !dir.end_with?('/')
+        if is_absolute
+          dir_to_match = File.join(base, dir)
+        elsif end_with_slash && !dir.end_with?('/')
           if dir == '.' && !start_with_dot
             dir_to_match = '/' if base_given
           else
@@ -58,12 +75,13 @@ class Dir
         end
 
         Dir.children(dir)&.each do |path|
-          full_path = File.join(dir, path)
-          full_path.sub!(%r{^\./}, '') unless dot_slash
-          if File.directory?(full_path)
-            recurse.(full_path)
-          elsif patterns.any? { |pattern| File.fnmatch(pattern, full_path, flags) }
-            yield full_path
+          relative_path = File.join(dir, path)
+          relative_path.sub!(%r{^\./}, '') unless dot_slash
+          path_to_match = is_absolute ? File.join(base, relative_path) : relative_path
+          if File.directory?(relative_path)
+            recurse.(relative_path)
+          elsif patterns.any? { |pattern| File.fnmatch(pattern, path_to_match, flags) }
+            yield path_to_match
           end
         end
       rescue Errno::EACCES

@@ -24,4 +24,17 @@ describe 'Dir' do
       Dir.pwd.should == File.expand_path('../..', __dir__)
     end
   end
+
+  describe '.glob' do
+    it 'works with absolute paths' do
+      root = File.expand_path('../support', __dir__)
+      pattern = File.join(root, '*.txt')
+      names = %w[
+        file.txt
+        large_text.txt
+        large_zlib_input.txt
+      ].map { |n| File.join(root, n) }
+      Dir[pattern].sort.should == names
+    end
+  end
 end
