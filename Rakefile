@@ -75,6 +75,11 @@ task :watch do
   sh "ls #{files} | entr -c -s 'rake test_last_modified'"
 end
 
+desc 'Test that the self-hosted compiler builds and runs'
+task test_self_hosted: :bootstrap do
+  sh 'bin/nat --version'
+end
+
 def num_procs
   `command -v nproc 2>&1 >/dev/null && nproc || command -v sysctl 2>&1 >/dev/null && sysctl -n hw.ncpu || echo 4`.strip
 rescue SystemCallError
@@ -202,7 +207,7 @@ task docker_bash_lldb: :docker_build_clang do
      "natalie_clang_#{ruby_version_string}"
 end
 
-task docker_test: %i[docker_test_gcc docker_test_clang]
+task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted]
 
 task docker_test_gcc: :docker_build_gcc do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_gcc_#{ruby_version_string} test"
@@ -210,6 +215,10 @@ end
 
 task docker_test_clang: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test"
+end
+
+task docker_test_self_hosted: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted"
 end
 
 task docker_tidy: :docker_build_clang do
