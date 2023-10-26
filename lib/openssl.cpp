@@ -151,6 +151,9 @@ Value init(Env *env, Value self) {
     };
     OpenSSL->const_set("VERSION"_s, VERSION);
 
+    OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
+    OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
+
     auto Digest = OpenSSL->const_get("Digest"_s);
     if (!Digest) {
         Digest = GlobalEnv::the()->Object()->subclass(env, "Digest");
