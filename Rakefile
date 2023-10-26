@@ -447,7 +447,7 @@ file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{
     make && \
     cd ext/prism && \
     ruby extconf.rb && \
-    make
+    make -j 4
   SH
 end
 
