@@ -143,6 +143,7 @@ private:
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
+    FILE *m_file { nullptr };
     int m_lineno { 0 };
     std::atomic<bool> m_closed { false };
     bool m_autoclose { true };
