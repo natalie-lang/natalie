@@ -1642,8 +1642,6 @@ module Natalie
         case call.sexp_type
         when :lambda
           instructions << transform_lambda(call, used: used)
-        when :safe_call
-          instructions << transform_safe_call(call, used: used, with_block: true)
         when :super_node
           instructions << transform_super_node(call, used: used, with_block: true)
         when :forwarding_super_node
@@ -1761,34 +1759,6 @@ module Natalie
 
       def transform_rescue(exp, used:)
         instructions = Rescue.new(self).transform(exp)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_safe_call(exp, used:, with_block: false)
-        _, receiver, message, *args = exp
-
-        instructions = []
-        instructions << transform_expression(receiver, used: true)
-
-        instructions << DupInstruction.new # duplicate receiver for IsNil below
-        instructions << IsNilInstruction.new
-        instructions << IfInstruction.new
-        instructions << PopInstruction.new # pop duplicated receiver since it is unused
-        instructions << PushNilInstruction.new
-        instructions << ElseInstruction.new(:if)
-
-        call_args = transform_call_args(args, with_block: false, instructions: instructions)
-
-        instructions << SendInstruction.new(
-          message,
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: false,
-          with_block: with_block || call_args.fetch(:with_block_pass),
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions << EndInstruction.new(:if)
         instructions << PopInstruction.new unless used
         instructions
       end
