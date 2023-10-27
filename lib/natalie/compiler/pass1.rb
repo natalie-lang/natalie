@@ -236,7 +236,7 @@ module Natalie
           return instructions
         end
 
-        if receiver.nil? && message == :lambda && args.empty?
+        if receiver.nil? && message == :lambda && args.empty? && node.block.is_a?(Prism::BlockNode)
           # NOTE: We need Kernel#lambda to behave just like the stabby
           # lambda (->) operator so we can attach the "break point" to
           # it. I realize this is a bit of a hack and if someone wants
