@@ -43,18 +43,7 @@ module Natalie
         return get_macro_name_from_node(node) if node.is_a?(::Prism::Node)
         return false unless node.is_a?(Sexp)
 
-        if node[0..1] == s(:call, nil)
-          _, _, name = node
-          if MACROS.include?(name)
-            name
-          elsif @macros_enabled
-            if name == :macro!
-              name
-            elsif @macros.key?(name)
-              :user_macro
-            end
-          end
-        elsif node.sexp_type == :iter
+        if node.sexp_type == :iter
           get_macro_name(node[1])
         else
           get_hidden_macro_name(node)
@@ -82,11 +71,7 @@ module Natalie
       # "Hidden macros" are just regular-looking Ruby code we intercept at compile-time.
       # We will try to support common Ruby idioms here that cannot be done at runtime.
       def get_hidden_macro_name(node)
-        if node.is_a?(::Prism::CallNode)
-          if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
-            :update_load_path
-          end
-        elsif node.instance_of?(Sexp) && node.match(s(:call, s(:gvar, %i[$LOAD_PATH $:]), %i[<< unshift]))
+        if node.type == :call_node && node.receiver&.type == :global_variable_read_node && %i[$LOAD_PATH $:].include?(node.receiver.name) && %i[<< unshift].include?(node.name)
           :update_load_path
         end
       end
@@ -177,11 +162,10 @@ module Natalie
           begin
             Natalie::Parser.new(node[1], current_path).ast
           rescue SyntaxError => e
-            # TODO: add a flag to raise syntax errors at compile time?
-            s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, e.message))
+            drop_error(:SyntaxError, e.message)
           end
         else
-          s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, 'eval() only works on static strings'))
+          drop_error(:SyntaxError, 'eval() only works on static strings')
         end
       end
 
@@ -278,26 +262,31 @@ module Natalie
         end
         ::Prism::StatementsNode.new(
           [
-            s(:require_cpp_file, nil, :__inline__, s(:str, cpp_source)),
+            Prism.call_node(
+              receiver: nil,
+              name: :__internal_inline_code__,
+              arguments: [s(:str, cpp_source)]
+            ),
             ::Prism.true_node
           ],
           location
         )
       end
 
-      def drop_error(exception_class, message)
-        warn(message)
-        s(:call,
-          nil,
-          :raise,
-          s(:const, exception_class),
-          s(:str, message))
+      def drop_error(exception_class, message, print_warning: false)
+        warn(message) if print_warning
+        Prism.call_node(
+          receiver: nil,
+          name: :raise,
+          arguments: [
+            s(:const, exception_class),
+            s(:str, message)
+          ]
+        )
       end
 
-      def drop_load_error(msg)
-        # TODO: delegate to drop_error above
-        STDERR.puts(msg) if @log_load_error
-        s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg)))
+      def drop_load_error(message)
+        drop_error(:LoadError, message, print_warning: @log_load_error)
       end
 
       def s(*items)

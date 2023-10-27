@@ -40,6 +40,7 @@ module Natalie
         __define_method__
         __function__
         __inline__
+        __internal_inline_code__
         __ld_flags__
       ].freeze
 
@@ -213,7 +214,8 @@ module Natalie
       def transform_call_node(node, used:, with_block: false)
         node = @macro_expander.expand(node, depth: @depth)
 
-        unless %i[require_cpp_file call_node].include?(node.sexp_type)
+        # TODO: what is this?
+        unless node.sexp_type == :call_node
           return transform_expression(node, used: used)
         end
 
@@ -807,8 +809,8 @@ module Natalie
         instructions += transform_block_args_for_for(s(:args, node.index), used: true)
         instructions += transform_expression(node.statements, used: true)
         instructions << EndInstruction.new(:define_block)
-        call = Sexp.new(:call, node.collection, :each)
-        instructions << transform_call(call, used: used, with_block: true)
+        call = Prism.call_node(receiver: node.collection, name: :each)
+        instructions << transform_call_node(call, used: used, with_block: true)
         instructions
       end
 
@@ -1249,11 +1251,6 @@ module Natalie
         instructions
       end
 
-      def transform_attrasgn(exp, used:)
-        _, receiver, message, *args = exp
-        transform_call(exp.new(:call, receiver, message, *args), used: used)
-      end
-
       def transform_autoload_const(exp, used:)
         _, name, path, *body = exp
         instructions = [
@@ -1293,69 +1290,6 @@ module Natalie
 
       def transform_block_args_for_for(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
-      end
-
-      def transform_call(exp, used:, with_block: false)
-        exp = @macro_expander.expand(exp, depth: @depth)
-        return transform_expression(exp, used: used) unless %i[require_cpp_file call].include?(exp.sexp_type)
-
-        _, receiver, message, *args = exp
-
-        if repl? && (new_exp = fix_repl_var_that_looks_like_call(exp))
-          return transform_expression(new_exp, used: used)
-        end
-
-        if is_inline_macro_call?(exp)
-          instructions = []
-          if message == :__call__
-            args[1..].reverse_each do |arg|
-              instructions << transform_expression(arg, used: true)
-            end
-          end
-          instructions << InlineCppInstruction.new(exp)
-          return instructions
-        end
-
-        if receiver.nil? && message == :lambda && args.empty?
-          # NOTE: We need Kernel#lambda to behave just like the stabby
-          # lambda (->) operator so we can attach the "break point" to
-          # it. I realize this is a bit of a hack and if someone wants
-          # to alias Kernel#lambda, then their method will create a
-          # broken lambda, i.e. calling `break` won't work correctly.
-          # Maybe someday we can think of a better way to handle this...
-          return transform_lambda_node(node, used: used)
-        end
-
-        if receiver.nil? && message == :block_given? && !with_block
-          return [
-            PushBlockInstruction.new(from_nearest_env: true),
-            transform_call(exp, used: used, with_block: true),
-          ]
-        end
-
-        instructions = []
-
-        if receiver.nil?
-          instructions << PushSelfInstruction.new
-        else
-          instructions << transform_expression(receiver, used: true)
-        end
-
-        call_args = transform_call_args(args, instructions: instructions)
-        with_block ||= call_args.fetch(:with_block_pass)
-
-        instructions << SendInstruction.new(
-          message,
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: receiver.nil?,
-          with_block: with_block,
-          has_keyword_hash: call_args.fetch(:has_keyword_hash),
-          forward_args: call_args[:forward_args],
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_call_args(args, instructions: [])
@@ -1558,12 +1492,13 @@ module Natalie
 
       def transform_ensure(exp, used:)
         _, body, ensure_body = exp
+        raise_call = Prism.call_node(receiver: nil, name: :raise)
         instructions = [
           TryInstruction.new(discard_catch_result: true),
           transform_expression(body, used: true),
           CatchInstruction.new,
           transform_expression(ensure_body, used: true),
-          transform_expression(exp.new(:call, nil, :raise), used: true),
+          transform_expression(raise_call, used: true),
           EndInstruction.new(:try),
           DupInstruction.new,
           PushRescuedInstruction.new,
@@ -1807,8 +1742,6 @@ module Natalie
         instructions
       end
 
-      alias transform_require_cpp_file transform_call
-
       def transform_rescue(exp, used:)
         instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
@@ -1884,7 +1817,15 @@ module Natalie
 
       def transform_until(exp, used:)
         _, condition, body, pre = exp
-        transform_while(exp.new(:while, s(:call, condition, :!), body, pre), used: used)
+        transform_while(
+          exp.new(
+            :while,
+            Prism.call_node(receiver: condition, name: :!),
+            body,
+            pre
+          ),
+          used: used
+        )
       end
 
       def transform_while(exp, used:)
@@ -1936,22 +1877,13 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        exp == s(:lambda) || exp == s(:call, nil, :lambda) ||
+        exp == s(:lambda) ||
           (exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda)
-      end
-
-      def is_inline_macro_call?(exp)
-        type, receiver, message, * = exp
-        inline_enabled = @inline_cpp_enabled[exp.file] ||
-                         type == :require_cpp_file
-        inline_enabled &&
-          receiver.nil? &&
-          INLINE_CPP_MACROS.include?(message)
       end
 
       def is_inline_macro_call_node?(node)
         inline_enabled = @inline_cpp_enabled[node.location.path] ||
-                         node.type == :require_cpp_file
+                         node.name == :__internal_inline_code__
         inline_enabled &&
           node.receiver.nil? &&
           INLINE_CPP_MACROS.include?(node.name)
@@ -2024,9 +1956,8 @@ module Natalie
       end
 
       # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. Both cases look like this: `s(:call, nil, :foo)`.
-      # But we know which variables are defined in the REPL, so we can convert the :call
-      # back to an :lvar as needed.
+      # and variable lookup. But we know which variables are defined in the REPL,
+      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
       def fix_repl_var_that_looks_like_call(exp)
         if (exp.is_a?(::Prism::Node))
           return false unless exp.type == :call_node && exp.receiver.nil?

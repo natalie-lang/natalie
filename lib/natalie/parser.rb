@@ -10,7 +10,6 @@ module Prism
     # handle are:
     #
     # * args
-    # * attrasgn
     # * bare_hash
     # * evstr
     # * gasgn
@@ -60,6 +59,13 @@ module Prism
   # Create an ArrayNode with the optionally given elements and location.
   def self.array_node(elements: [], location: nil)
     ArrayNode.new(elements, nil, nil, location)
+  end
+
+  # Create a CallNode with the optionally given values.
+  def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
+    # TODO: use a real ArgumentsNode
+    #arguments = ArgumentsNode.new(arguments, location)
+    CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
   end
 
   # Create a ClassVariableWriteNode with the optionally given values.

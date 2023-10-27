@@ -57,7 +57,7 @@ module Natalie
         end
 
         catch_body << @pass.transform_expression(
-          rescue_exprs.first.new(:call, nil, :raise),
+          Prism.call_node(receiver: nil, name: :raise),
           used: true
         )
 

@@ -29,7 +29,13 @@ module Natalie
 
           next :continue if ast.body.empty?
           last_node = ast.body.pop
-          ast.body << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
+          ast.body << Prism.call_node(
+                        receiver: nil,
+                        name: :puts,
+                        arguments: [
+                          Prism.call_node(receiver: s(:lasgn, :_, last_node), name: :inspect)
+                        ]
+                      )
           temp = Tempfile.create('natalie.so')
           compiler = Compiler.new(ast, '(repl)')
           compiler.repl = true
