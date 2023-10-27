@@ -165,17 +165,8 @@ module Natalie
         copy(node, expression: visit(node.expression))
       end
 
-      def visit_block_node_new(node)
-        return if node.nil?
-
-        case node.type
-        when :block_argument_node
-          copy(node, expression: visit(node.expression))
-        when :block_node
-          copy(node, parameters: visit(node.parameters), body: visit(node.body))
-        else
-          raise "unexpected block node: #{node.inspect}"
-        end
+      def visit_block_node(node)
+        copy(node, parameters: visit(node.parameters), body: visit(node.body))
       end
 
       alias visit_block_parameter_node visit_passthrough
@@ -193,7 +184,7 @@ module Natalie
           node,
           receiver: visit(node.receiver),
           arguments: visit(node.arguments),
-          block: visit_block_node_new(node.block)
+          block: visit(node.block)
         )
       end
 
@@ -310,7 +301,7 @@ module Natalie
       def visit_forwarding_super_node(node)
         copy(
           node,
-          block: visit_block_node_new(node.block)
+          block: visit(node.block)
         )
       end
 
@@ -643,7 +634,7 @@ module Natalie
         copy(
           node,
           arguments: visit(node.arguments),
-          block: visit_block_node_new(node.block)
+          block: visit(node.block)
         )
       end
 
