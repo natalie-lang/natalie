@@ -114,7 +114,7 @@ module Natalie
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
-        expr.new(:autoload_const, const, path, body)
+        Sexp.new(:autoload_const, const, path, body)
       end
 
       def macro_require(expr:, current_path:, depth:)

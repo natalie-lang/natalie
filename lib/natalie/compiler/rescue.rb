@@ -34,7 +34,7 @@ module Natalie
 
             # empty array, so let's rescue StandardError
             if match_array.elements.empty?
-              match_array = match_array.copy(elements: [match_array.new(:const, :StandardError)])
+              match_array = match_array.copy(elements: [Prism.constant_read_node(name: :StandardError)])
             end
 
             # Wrap in a retry_context so any RetryInstructions inside know

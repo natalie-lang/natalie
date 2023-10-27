@@ -27,16 +27,6 @@ module Prism
       raise "Implicit destructuring not supported for prism nodes"
     end
 
-    # We need this to maintain the same interface as Sexp instances in the case
-    # of the repl.
-    def new(*parts)
-      Natalie::Parser::Sexp.new(*parts).tap do |sexp|
-        sexp.file = "<compiled>"
-        sexp.line = location.start_line
-        sexp.column = location.start_column
-      end
-    end
-
     def location
       @location || Prism::Location.new(Source.new('unknown'), 0, 0)
     end
@@ -69,6 +59,11 @@ module Prism
   # Create a ClassVariableWriteNode with the optionally given values.
   def self.class_variable_write_node(name:, value: nil, location: nil)
     ClassVariableWriteNode.new(name, nil, value, nil, location)
+  end
+
+  # Create a ConstantReadNode with the optionally given values.
+  def self.constant_read_node(name:, location: nil)
+    ConstantReadNode.new(name, location)
   end
 
   # Create a FalseNode with the optionally given location.
