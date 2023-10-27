@@ -96,7 +96,7 @@ module Natalie
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
 
       def macro_autoload(expr:, current_path:, depth:)
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         const_node, path_node = args
         const = comptime_symbol(const_node)
         begin
@@ -118,7 +118,7 @@ module Natalie
       end
 
       def macro_require(expr:, current_path:, depth:)
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         return nothing(expr) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
         if name == 'natalie/inline'
@@ -134,7 +134,7 @@ module Natalie
       end
 
       def macro_require_relative(expr:, current_path:, depth:)
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         base = File.dirname(current_path)
         EXTENSIONS_TO_TRY.each do |extension|
@@ -147,7 +147,7 @@ module Natalie
       end
 
       def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false, location: location(expr)) if full_path
@@ -155,7 +155,7 @@ module Natalie
       end
 
       def macro_eval(expr:, current_path:, depth:)
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
         if node.sexp_type == :str
@@ -178,7 +178,7 @@ module Natalie
       end
 
       def macro_include_str!(expr:, current_path:)
-        args = expr.arguments || []
+        args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           s(:str, File.read(full_path))
@@ -200,7 +200,7 @@ module Natalie
         end
 
         path_to_add = VM.compile_and_run(
-          ::Prism::StatementsNode.new(expr.arguments, location(expr)),
+          ::Prism::StatementsNode.new(expr.arguments&.arguments, location(expr)),
           path: current_path
         )
 

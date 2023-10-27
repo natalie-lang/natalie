@@ -22,7 +22,7 @@ module Natalie
         elsif exp.is_a?(::Prism::CallNode)
           type = exp.type
           name = exp.name
-          rest = exp.arguments
+          rest = exp.arguments&.arguments || []
         else
           raise "unexpected node passed to InlineCppInstruction: #{exp.inspect}"
         end

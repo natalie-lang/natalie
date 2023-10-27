@@ -62,8 +62,7 @@ module Prism
 
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
-    # TODO: use a real ArgumentsNode
-    #arguments = ArgumentsNode.new(arguments, location)
+    arguments = ArgumentsNode.new(arguments, location)
     CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
   end
 
@@ -208,7 +207,7 @@ module Natalie
         copy(
           node,
           receiver: visit(node.receiver),
-          arguments: (node.arguments&.arguments&.dup || []).map { |n| visit(n) }, # TODO: stop doing this
+          arguments: visit(node.arguments),
           block: visit_block_node_new(node.block)
         )
       end
@@ -661,10 +660,9 @@ module Natalie
       end
 
       def visit_super_node(node)
-        # HACK: alert changing arguments to plain array (temporary!)
         copy(
           node,
-          arguments: (node.arguments&.arguments&.dup || []).map { |n| visit(n) }, # TODO: stop doing this
+          arguments: visit(node.arguments),
           block: visit_block_node_new(node.block)
         )
       end

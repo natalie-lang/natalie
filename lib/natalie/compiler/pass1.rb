@@ -219,7 +219,7 @@ module Natalie
       def transform_call_node(node, used:, with_block: false)
         receiver = node.receiver
         message = node.name
-        args = node.arguments
+        args = node.arguments&.arguments || []
 
         if repl? && (new_exp = fix_repl_var_that_looks_like_call(node))
           return transform_expression(new_exp, used: used)
@@ -1208,7 +1208,8 @@ module Natalie
 
         instructions << PushSelfInstruction.new
 
-        call_args = transform_call_args(node.arguments, with_block: with_block, instructions: instructions)
+        args = node.arguments&.arguments || []
+        call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block,
@@ -1323,13 +1324,6 @@ module Natalie
       end
 
       def transform_call_args(args, with_block:, instructions: [])
-        # TODO: remove this once BlockArgumentNode is no longer being added to the args array
-        if args.last&.sexp_type == :block_argument_node
-          block_arg = args.pop
-          block = block_arg.expression
-          instructions.unshift(transform_expression(block, used: true))
-        end
-
         if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
           instructions.unshift(PushBlockInstruction.new)
           with_block = true
@@ -1355,7 +1349,7 @@ module Natalie
           )
           return {
             instructions: instructions,
-            with_block_pass: !!block,
+            with_block_pass: !!with_block,
             args_array_on_stack: true,
             has_keyword_hash: false,
             forward_args: true,
@@ -1372,7 +1366,7 @@ module Natalie
 
         {
           instructions: instructions,
-          with_block_pass: !!block,
+          with_block_pass: !!with_block,
           args_array_on_stack: false,
           has_keyword_hash: has_keyword_hash,
         }
