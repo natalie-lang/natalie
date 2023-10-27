@@ -243,7 +243,7 @@ module Natalie
           # to alias Kernel#lambda, then their method will create a
           # broken lambda, i.e. calling `break` won't work correctly.
           # Maybe someday we can think of a better way to handle this...
-          return transform_lambda(Sexp.new(:lambda), used: used)
+          return transform_lambda_node(node.block, used: used)
         end
 
         if receiver.nil? && message == :block_given? && !with_block
@@ -254,6 +254,16 @@ module Natalie
         end
 
         instructions = []
+
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        end
+
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
@@ -953,6 +963,13 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_lambda_node(node, used:)
+        instructions = transform_block_node(node, used: true, is_lambda: true)
+        instructions << CreateLambdaInstruction.new
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_local_variable_and_write_node(node, used:)
         instructions = [
           VariableGetInstruction.new(node.name, default_to_nil: true),
@@ -1252,6 +1269,20 @@ module Natalie
         transform_hash(exp, bare: true, used: used)
       end
 
+      def transform_block_node(node, used:, is_lambda:)
+        arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
+        instructions = []
+        instructions << DefineBlockInstruction.new(arity: arity)
+        if is_lambda
+          instructions << transform_block_args_for_lambda(node.parameters, used: true)
+        else
+          instructions << transform_block_args(node.parameters, used: true)
+        end
+        instructions << transform_expression(node.body || Prism.nil_node, used: true)
+        instructions << EndInstruction.new(:define_block)
+        instructions
+      end
+
       def transform_block_args(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, used: used)
       end
@@ -1292,7 +1323,7 @@ module Natalie
           # to alias Kernel#lambda, then their method will create a
           # broken lambda, i.e. calling `break` won't work correctly.
           # Maybe someday we can think of a better way to handle this...
-          return transform_lambda(exp.new(:lambda), used: used)
+          return transform_lambda_node(node, used: used)
         end
 
         if receiver.nil? && message == :block_given? && !with_block
@@ -1303,6 +1334,7 @@ module Natalie
         end
 
         instructions = []
+
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
@@ -1656,10 +1688,6 @@ module Natalie
         instructions << transform_expression(body || Prism.nil_node, used: true)
         instructions << EndInstruction.new(:define_block)
         case call.sexp_type
-        when :call
-          instructions << transform_call(call, used: used, with_block: true)
-        when :call_node
-          instructions << transform_call_node(call, used: used, with_block: true)
         when :lambda
           instructions << transform_lambda(call, used: used)
         when :safe_call
@@ -1678,12 +1706,6 @@ module Natalie
         return [] unless used
         _, name = exp
         InstanceVariableGetInstruction.new(name)
-      end
-
-      def transform_lambda(_, used:)
-        instructions = [CreateLambdaInstruction.new]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_lasgn(exp, used:)
