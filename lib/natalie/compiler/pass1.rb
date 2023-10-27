@@ -50,17 +50,22 @@ module Natalie
         transform_statements_node(@ast, used: used).flatten
       end
 
-      def transform_expression(exp, used:)
-        case exp
+      def transform_expression(node, used:)
+        case node
         when Sexp, ::Prism::Node
-          @depth += 1 unless exp.type == :statements_node
-          method = "transform_#{exp.sexp_type}"
-          result = send(method, exp, used: used)
-          @depth -= 1 unless exp.type == :statements_node
+          node = expand_macros(node) if node.type == :call_node
+          @depth += 1 unless node.type == :statements_node
+          method = "transform_#{node.type}"
+          result = send(method, node, used: used)
+          @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         else
-          raise "Unknown expression type: #{exp.inspect}"
+          raise "Unknown node type: #{node.inspect}"
         end
+      end
+
+      def expand_macros(node)
+        @macro_expander.expand(node, depth: @depth)
       end
 
       def transform_body(body, used:)
@@ -212,13 +217,6 @@ module Natalie
       end
 
       def transform_call_node(node, used:, with_block: false)
-        node = @macro_expander.expand(node, depth: @depth)
-
-        # TODO: what is this?
-        unless node.sexp_type == :call_node
-          return transform_expression(node, used: used)
-        end
-
         receiver = node.receiver
         message = node.name
         args = node.arguments
