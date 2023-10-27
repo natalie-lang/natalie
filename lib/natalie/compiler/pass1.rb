@@ -1643,28 +1643,6 @@ module Natalie
         instructions
       end
 
-      def transform_iter(exp, used:)
-        _, call, args, body = exp
-        is_lambda = is_lambda_call?(call)
-        arity = Arity.new(args, is_proc: !is_lambda).arity
-        instructions = []
-        instructions << DefineBlockInstruction.new(arity: arity)
-        if is_lambda_call?(call)
-          instructions << transform_block_args_for_lambda(args, used: true)
-        else
-          instructions << transform_block_args(args, used: true)
-        end
-        instructions << transform_expression(body || Prism.nil_node, used: true)
-        instructions << EndInstruction.new(:define_block)
-        case call.sexp_type
-        when :lambda
-          instructions << transform_lambda(call, used: used)
-        else
-          raise "unexpected call: #{call.sexp_type.inspect}"
-        end
-        instructions
-      end
-
       def transform_ivar(exp, used:)
         return [] unless used
         _, name = exp

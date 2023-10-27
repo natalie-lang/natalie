@@ -165,16 +165,6 @@ module Natalie
         copy(node, expression: visit(node.expression))
       end
 
-      def visit_block_node(node, call:)
-        raise "unexpected node: #{node.inspect}" unless node.is_a?(Prism::BlockNode) || node.is_a?(Prism::LambdaNode)
-
-        s(:iter,
-          call,
-          visit(node.parameters) || 0,
-          visit(node.body),
-          location: node.location)
-      end
-
       def visit_block_node_new(node)
         return if node.nil?
 
