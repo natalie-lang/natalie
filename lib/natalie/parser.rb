@@ -15,7 +15,6 @@ module Prism
     # * gasgn
     # * lasgn
     # * lvar
-    # * safe_call
     # * str
     #
     def sexp_type
@@ -662,14 +661,12 @@ module Natalie
       end
 
       def visit_super_node(node)
-        args, block = node_arguments_and_block(node)
         # HACK: alert changing arguments to plain array (temporary!)
-        call = copy(node, arguments: args)
-        if block
-          visit_block_node(node.block, call: call)
-        else
-          call
-        end
+        copy(
+          node,
+          arguments: (node.arguments&.arguments&.dup || []).map { |n| visit(n) }, # TODO: stop doing this
+          block: visit_block_node_new(node.block)
+        )
       end
 
       alias visit_symbol_node visit_passthrough
@@ -750,17 +747,6 @@ module Natalie
           end
         end
         ary2
-      end
-
-      def node_arguments_and_block(node)
-        args = node.arguments&.arguments&.dup || []
-        block = node.block
-        if block.is_a?(Prism::BlockArgumentNode)
-          args << block
-          block = nil
-        end
-        args.map! { |n| visit(n) }
-        [args, block]
       end
     end
 

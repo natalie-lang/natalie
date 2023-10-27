@@ -269,10 +269,8 @@ module Natalie
 
         # block_given? works with nearest block
         if receiver.nil? && message == :block_given? && !with_block
-          return [
-            PushBlockInstruction.new(from_nearest_env: true),
-            transform_call_node(node, used: used, with_block: true),
-          ]
+          instructions << PushBlockInstruction.new(from_nearest_env: true)
+          with_block = true
         end
 
         # foo.bar
@@ -1192,15 +1190,31 @@ module Natalie
         PushStringInstruction.new(node.unescaped)
       end
 
-      def transform_super_node(node, used:, with_block: false)
+      def transform_super_node(node, used:)
         instructions = []
+
+        # block handling
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
+        end
+
         instructions << PushSelfInstruction.new
-        call_args = transform_call_args(node.arguments, with_block: false, instructions: instructions)
+
+        call_args = transform_call_args(node.arguments, with_block: with_block, instructions: instructions)
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          with_block: with_block || call_args.fetch(:with_block_pass),
+          with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash)
         )
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1642,8 +1656,6 @@ module Natalie
         case call.sexp_type
         when :lambda
           instructions << transform_lambda(call, used: used)
-        when :super_node
-          instructions << transform_super_node(call, used: used, with_block: true)
         when :forwarding_super_node
           instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else

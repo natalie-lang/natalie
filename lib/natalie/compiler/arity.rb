@@ -4,10 +4,11 @@ module Natalie
       def initialize(args, is_proc:)
         if args.nil? || args == 0
           @args = []
-        elsif args.is_a?(::Prism::Node) && args.type == :parameters_node
+        elsif args.is_a?(::Prism::Node) && %i[parameters_node block_parameters_node].include?(args.type)
           # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
-          @args = node.child_nodes.compact.sort_by { |n| n.location.start_offset }.dup
+          @args = args.child_nodes.compact.sort_by { |n| n.location.start_offset }.dup
           @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
+          @args.pop if @args.last&.type == :block_parameter_node
         elsif args.is_a?(Sexp) && args.sexp_type == :args
           @args = args[1..]
           @args.pop if @args.last&.type == :block_parameter_node
