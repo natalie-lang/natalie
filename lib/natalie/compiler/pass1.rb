@@ -1889,62 +1889,36 @@ module Natalie
 
       def minimum_arg_count(args)
         args.count do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :required_parameter_node || arg.type == :multi_target_node
-          else
-            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-              (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
-          end
+          arg.type == :required_parameter_node || arg.type == :multi_target_node
         end
       end
 
       def maximum_arg_count(args)
-        any_splats = args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :rest_parameter_node
-          else
-            arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**'
-          end
-        end
-        return nil if any_splats # splat, no maximum
+        # splat means no maximum
+        return nil if args.any? { |arg| arg.type == :rest_parameter_node }
 
         args.count do |arg|
-          if arg.is_a?(::Prism::Node)
-            %i[
-              local_variable_target_node
-              multi_target_node
-              optional_parameter_node
-              required_destructured_parameter_node
-              required_parameter_node
-            ].include?(arg.type)
-          else
-            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-              (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
-          end
+          %i[
+            local_variable_target_node
+            multi_target_node
+            optional_parameter_node
+            required_destructured_parameter_node
+            required_parameter_node
+          ].include?(arg.type)
         end
       end
 
       def any_keyword_args?(args)
         args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :keyword_parameter_node ||
-              arg.type == :keyword_rest_parameter_node
-          else
-            (arg.is_a?(Symbol) && arg[0..1] == '**') ||
-              (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
-          end
+          arg.type == :keyword_parameter_node ||
+            arg.type == :keyword_rest_parameter_node
         end
       end
 
       def required_keywords(args)
         args.filter_map do |arg|
-          if arg.is_a?(::Prism::Node)
-            if arg.type == :keyword_parameter_node && !arg.value
-              arg.name
-            end
-          elsif arg.is_a?(Sexp) && arg.sexp_type == :kwarg
-            _, name, default = arg
-            name if default.nil?
+          if arg.type == :keyword_parameter_node && !arg.value
+            arg.name
           end
         end
       end
@@ -1956,23 +1930,11 @@ module Natalie
       # HACK: When using the REPL, the parser doesn't differentiate between method calls
       # and variable lookup. But we know which variables are defined in the REPL,
       # so we can convert the CallNode back to an LocalVariableReadNode as needed.
-      def fix_repl_var_that_looks_like_call(exp)
-        if (exp.is_a?(::Prism::Node))
-          return false unless exp.type == :call_node && exp.receiver.nil?
-          return false unless @compiler_context[:vars].key?(exp.name)
-          return Sexp.new(:lvar, exp.name)
-        end
+      def fix_repl_var_that_looks_like_call(node)
+        return false unless node.type == :call_node && node.receiver.nil?
+        return false unless @compiler_context[:vars].key?(node.name)
 
-        unless exp.size == 3 && exp[..1] == [:call, nil]
-          return false
-        end
-
-        name = exp.last
-        unless @compiler_context[:vars].key?(name)
-          return false
-        end
-
-        exp.new(:lvar, exp.last)
+        return Sexp.new(:lvar, node.name)
       end
 
       def s(*items)
