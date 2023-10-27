@@ -823,14 +823,29 @@ module Natalie
         instructions
       end
 
-      def transform_forwarding_super_node(_, used:, with_block: false)
+      def transform_forwarding_super_node(node, used:, with_block: false)
         instructions = []
+
+        # block handling
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
+        end
+
         instructions << PushSelfInstruction.new
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << SuperInstruction.new(
           args_array_on_stack: true,
           with_block: with_block,
         )
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1644,8 +1659,6 @@ module Natalie
         case call.sexp_type
         when :lambda
           instructions << transform_lambda(call, used: used)
-        when :forwarding_super_node
-          instructions << transform_forwarding_super_node(call, used: used, with_block: true)
         else
           raise "unexpected call: #{call.sexp_type.inspect}"
         end

@@ -318,11 +318,10 @@ module Natalie
       alias visit_forwarding_parameter_node visit_passthrough
 
       def visit_forwarding_super_node(node)
-        if node.block
-          visit_block_node(node.block, call: node)
-        else
-          node
-        end
+        copy(
+          node,
+          block: visit_block_node_new(node.block)
+        )
       end
 
       def visit_global_variable_and_write_node(node)
