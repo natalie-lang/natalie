@@ -585,10 +585,6 @@ module Natalie
              ::Prism::InstanceVariableTargetNode,
              ::Prism::LocalVariableTargetNode
           # Do nothing here; handle these in Compiler::Rescue
-        when Sexp
-          # This is a sexp, so we can treat all of the writes the same and push
-          # on the value that should be written.
-          ref << s(:gvar, :$!, location: node.location)
         else
           raise "unhandled rescue reference: #{ref}"
         end

@@ -1568,12 +1568,6 @@ module Natalie
         instructions
       end
 
-      def transform_gvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        GlobalVariableGetInstruction.new(name)
-      end
-
       def transform_hash(exp, used:, bare: false)
         _, *items = exp
         instructions = []
