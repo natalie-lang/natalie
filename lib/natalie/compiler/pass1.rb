@@ -246,15 +246,9 @@ module Natalie
           return transform_lambda_node(node.block, used: used)
         end
 
-        if receiver.nil? && message == :block_given? && !with_block
-          return [
-            PushBlockInstruction.new(from_nearest_env: true),
-            transform_call_node(node, used: used, with_block: true),
-          ]
-        end
-
         instructions = []
 
+        # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
           instructions << transform_block_node(
@@ -262,8 +256,27 @@ module Natalie
             used: true,
             is_lambda: is_lambda_call?(node)
           )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
         end
 
+        # foo(...) block handling
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
+          instructions << PushBlockInstruction.new
+          with_block = true
+        end
+
+        # block_given? works with nearest block
+        if receiver.nil? && message == :block_given? && !with_block
+          return [
+            PushBlockInstruction.new(from_nearest_env: true),
+            transform_call_node(node, used: used, with_block: true),
+          ]
+        end
+
+        # foo.bar
+        # ^
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
@@ -280,7 +293,7 @@ module Natalie
           instructions << ElseInstruction.new(:if)
         end
 
-        call_args = transform_call_args(args, instructions: instructions)
+        call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
         if node.name == :!~
@@ -1182,7 +1195,7 @@ module Natalie
       def transform_super_node(node, used:, with_block: false)
         instructions = []
         instructions << PushSelfInstruction.new
-        call_args = transform_call_args(node.arguments, instructions: instructions)
+        call_args = transform_call_args(node.arguments, with_block: false, instructions: instructions)
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
           with_block: with_block || call_args.fetch(:with_block_pass),
@@ -1264,6 +1277,11 @@ module Natalie
         transform_hash(exp, bare: true, used: used)
       end
 
+      def transform_block_argument_node(node, used:)
+        return [] unless used
+        [transform_expression(node.expression, used: true)]
+      end
+
       def transform_block_node(node, used:, is_lambda:)
         arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
         instructions = []
@@ -1290,22 +1308,23 @@ module Natalie
         transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
       end
 
-      def transform_call_args(args, instructions: [])
+      def transform_call_args(args, with_block:, instructions: [])
+        # TODO: remove this once BlockArgumentNode is no longer being added to the args array
         if args.last&.sexp_type == :block_argument_node
           block_arg = args.pop
           block = block_arg.expression
           instructions.unshift(transform_expression(block, used: true))
         end
 
-        if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
           instructions.unshift(PushBlockInstruction.new)
-          block = true
+          with_block = true
         end
 
         if args.any? { |a| a.sexp_type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
-            with_block_pass: !!block,
+            with_block_pass: !!with_block,
             args_array_on_stack: true,
             has_keyword_hash: args.last&.sexp_type == :bare_hash
           }
@@ -1759,7 +1778,7 @@ module Natalie
         instructions << PushNilInstruction.new
         instructions << ElseInstruction.new(:if)
 
-        call_args = transform_call_args(args, instructions: instructions)
+        call_args = transform_call_args(args, with_block: false, instructions: instructions)
 
         instructions << SendInstruction.new(
           message,

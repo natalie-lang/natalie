@@ -183,9 +183,16 @@ module Natalie
       end
 
       def visit_block_node_new(node)
-        return unless node.is_a?(Prism::BlockNode)
+        return if node.nil?
 
-        copy(node, parameters: visit(node.parameters), body: visit(node.body))
+        case node.type
+        when :block_argument_node
+          copy(node, expression: visit(node.expression))
+        when :block_node
+          copy(node, parameters: visit(node.parameters), body: visit(node.body))
+        else
+          raise "unexpected block node: #{node.inspect}"
+        end
       end
 
       alias visit_block_parameter_node visit_passthrough
@@ -199,10 +206,12 @@ module Natalie
       end
 
       def visit_call_node(node)
-        args, block = node_arguments_and_block(node)
-
-        # HACK: alert changing block and changing arguments to plain array (temporary!)
-        copy(node, receiver: visit(node.receiver), arguments: args, block: visit_block_node_new(node.block))
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          arguments: (node.arguments&.arguments&.dup || []).map { |n| visit(n) }, # TODO: stop doing this
+          block: visit_block_node_new(node.block)
+        )
       end
 
       def visit_call_or_write_node(node)
