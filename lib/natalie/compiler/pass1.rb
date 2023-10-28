@@ -209,6 +209,24 @@ module Natalie
         end
       end
 
+      def transform_begin_node(node, used:)
+        try_instruction = TryInstruction.new
+        retry_id = try_instruction.object_id
+
+        instructions = [
+          try_instruction,
+          transform_body(node.statements, used: true),
+          CatchInstruction.new,
+          retry_context(retry_id) do
+            transform_expression(node.rescue_clause, used: true)
+          end,
+          EndInstruction.new(:try),
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_break_node(node, used:)
         [
           transform_arguments_node_for_returnish(node.arguments, location: node.location),
@@ -1153,6 +1171,99 @@ module Natalie
         return [] unless used
         regexp = Regexp.new(node.content, node.options)
         PushRegexpInstruction.new(regexp)
+      end
+
+      def transform_rescue_modifier_node(node, used:)
+        instructions = [
+          TryInstruction.new,
+          transform_expression(node.expression, used: true),
+          CatchInstruction.new,
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(:StandardError),
+          CreateArrayInstruction.new(count: 1),
+          MatchExceptionInstruction.new,
+          IfInstruction.new,
+          transform_expression(node.rescue_expression, used: true),
+          ElseInstruction.new(:if),
+          PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :raise,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          EndInstruction.new(:if),
+          EndInstruction.new(:try),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_rescue_node(node, used:)
+        exceptions = node.exceptions.dup
+        unless exceptions.any?
+          exceptions << Prism.constant_read_node(name: :StandardError)
+        end
+
+        instructions = [
+          exceptions.map { |n| transform_expression(n, used: true) },
+          CreateArrayInstruction.new(count: exceptions.size),
+          MatchExceptionInstruction.new,
+          IfInstruction.new,
+          transform_rescue_reference_node(node.reference),
+          transform_body(node.statements, used: true),
+        ]
+
+        instructions << ElseInstruction.new(:if)
+        if node.consequent
+          instructions += transform_expression(node.consequent, used: true)
+        else
+          instructions += [
+            PushSelfInstruction.new,
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :raise,
+              receiver_is_self: true,
+              with_block: false,
+              file: node.location.path,
+              line: node.location.start_line,
+            )
+          ]
+        end
+        instructions << EndInstruction.new(:if)
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_rescue_reference_node(node)
+        return [] if node.nil?
+
+        instructions = [GlobalVariableGetInstruction.new(:$!)]
+
+        case node
+        when ::Prism::ClassVariableTargetNode
+          instructions << ClassVariableSetInstruction.new(node.name)
+        when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
+          prepper = ConstPrepper.new(node, pass: self)
+          instructions << [
+            GlobalVariableGetInstruction.new(:$!),
+            prepper.namespace,
+            ConstSetInstruction.new(prepper.name)
+          ]
+        when ::Prism::GlobalVariableTargetNode
+          instructions << GlobalVariableSetInstruction.new(node.name)
+        when ::Prism::InstanceVariableTargetNode
+          instructions << InstanceVariableSetInstruction.new(node.name)
+        when ::Prism::LocalVariableTargetNode
+          instructions << VariableSetInstruction.new(node.name)
+        else
+          raise "unhandled reference node for rescue: #{node.inspect}"
+        end
+
+        instructions
       end
 
       def transform_retry_node(*)

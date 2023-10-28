@@ -141,13 +141,22 @@ module Natalie
           else
             visit(node.statements)
           end
+        elsif !node.ensure_clause && !node.else_clause
+          # carve out a bit for Prism to work on now
+          copy(
+            node,
+            statements: visit(node.statements),
+            rescue_clause: visit(node.rescue_clause),
+            else_clause: visit(node.else_clause),
+            ensure_clause: visit(node.ensure_clause)
+          )
         else
           res = s(:rescue, location: node.location)
           res << visit(node.statements) if node.statements
           rescue_clause = node.rescue_clause
-          res << visit(rescue_clause)
+          res << visit_rescue_node_old(rescue_clause)
           while (rescue_clause = rescue_clause.consequent)
-            res << visit(rescue_clause)
+            res << visit_rescue_node_old(rescue_clause)
           end
           res << visit(node.else_clause) if node.else_clause
           if node.ensure_clause
@@ -542,17 +551,24 @@ module Natalie
       alias visit_required_parameter_node visit_passthrough
 
       def visit_rescue_modifier_node(node)
-        s(:rescue,
-          visit(node.expression),
-          s(:resbody,
-            Prism.array_node(location: node.rescue_expression.location),
-            nil,
-            visit(node.rescue_expression),
-            location: node.rescue_expression.location),
-          location: node.location)
+        copy(
+          node,
+          expression: visit(node.expression),
+          rescue_expression: visit(node.rescue_expression)
+        )
       end
 
       def visit_rescue_node(node)
+        copy(
+          node,
+          exceptions: node.exceptions.map { |exception| visit(exception) },
+          reference: visit(node.reference),
+          statements: visit(node.statements),
+          consequent: visit(node.consequent)
+        )
+      end
+
+      def visit_rescue_node_old(node)
         ref = visit(node.reference)
 
         case ref
