@@ -23,7 +23,7 @@ module Natalie
         # a block is on the stack
         @with_block = with_block
 
-        # a bare hash (probably a keyword hash) is last in the args
+        # a keyword hash is last in the args
         @has_keyword_hash = has_keyword_hash
 
         # true when special ... syntax was used

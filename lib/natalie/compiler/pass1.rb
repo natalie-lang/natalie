@@ -945,7 +945,7 @@ module Natalie
         GlobalVariableGetInstruction.new(node.name)
       end
 
-      def transform_hash_node(node, used:, bare: false)
+      def transform_hash_node(node, used:)
         instructions = []
 
         # create hash from elements before a splat
@@ -956,7 +956,7 @@ module Natalie
           instructions << transform_expression(element.value, used: true)
           prior_to_splat_count += 1
         end
-        instructions << CreateHashInstruction.new(count: prior_to_splat_count, bare: bare)
+        instructions << CreateHashInstruction.new(count: prior_to_splat_count)
 
         # now, if applicable, add to the hash the splat element and everything after
         node.elements[prior_to_splat_count..].each do |element|
@@ -971,10 +971,6 @@ module Natalie
         end
 
         instructions
-      end
-
-      def transform_keyword_hash_node(node, used:)
-        transform_hash_node(node, used: used, bare: true)
       end
 
       def transform_imaginary_node(node, used:)
@@ -1064,6 +1060,8 @@ module Natalie
         return [] unless used
         [PushIntInstruction.new(node.value)]
       end
+
+      alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
         instructions = transform_block_node(node, used: true, is_lambda: true)
