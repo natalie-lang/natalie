@@ -1061,6 +1061,36 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_interpolated_regular_expression_node(node, used:)
+        parts = node.parts.dup
+
+        starter = if parts.first.type == :str
+                    PushStringInstruction.new(parts.shift[2]) # 2 = content
+                  else
+                    PushStringInstruction.new('')
+                  end
+
+        instructions = [starter]
+
+        parts.each do |part|
+          case part
+          when Sexp
+            instructions << PushStringInstruction.new(part[2]) # 2 = content
+          when Prism::StringNode
+            instructions << PushStringInstruction.new(part.content)
+          when Prism::EmbeddedStatementsNode
+            instructions << transform_expression(part.statements, used: true)
+          else
+            raise "unknown interpolated string segment: #{part.inspect}"
+          end
+          instructions << StringAppendInstruction.new
+        end
+
+        instructions << StringToRegexpInstruction.new(options: node.options)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)

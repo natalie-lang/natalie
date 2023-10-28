@@ -263,6 +263,10 @@ module Natalie
         visit(node.child_nodes.first)
       end
 
+      def visit_embedded_statements_node(node)
+        copy(node, statements: visit(node.statements))
+      end
+
       def visit_ensure_node(node)
         copy(node, statements: visit(node.statements))
       end
@@ -326,9 +330,7 @@ module Natalie
       alias visit_imaginary_node visit_passthrough
 
       def visit_interpolated_regular_expression_node(node)
-        dregx = visit_interpolated_stringish_node(node, sexp_type: :dregx, unescaped: false)
-        dregx << node.options if node.options != 0
-        dregx
+        copy(node, parts: node.parts.map { |n| visit(n) })
       end
 
       def visit_instance_variable_and_write_node(node)
@@ -614,7 +616,7 @@ module Natalie
       end
 
       def visit_string_node(node)
-        s(:str, node.unescaped, location: node.location)
+        s(:str, node.unescaped, node.content, location: node.location)
       end
 
       def visit_super_node(node)
