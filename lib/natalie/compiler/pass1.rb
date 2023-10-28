@@ -945,6 +945,14 @@ module Natalie
         GlobalVariableGetInstruction.new(node.name)
       end
 
+      def transform_global_variable_write_node(node, used:)
+        [
+          transform_expression(node.value, used: true),
+          used ? DupInstruction.new : nil,
+          GlobalVariableSetInstruction.new(node.name)
+        ].compact
+      end
+
       def transform_hash_node(node, used:)
         instructions = []
 
@@ -1778,13 +1786,6 @@ module Natalie
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
 
-        instructions
-      end
-
-      def transform_gasgn(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
-        instructions << GlobalVariableGetInstruction.new(name) if used
         instructions
       end
 

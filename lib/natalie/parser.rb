@@ -10,8 +10,6 @@ module Prism
     # handle are:
     #
     # * args
-    # * evstr
-    # * gasgn
     # * str
     #
     def sexp_type
@@ -312,7 +310,7 @@ module Natalie
       alias visit_global_variable_target_node visit_passthrough
 
       def visit_global_variable_write_node(node)
-        s(:gasgn, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_hash_node(node)
