@@ -141,7 +141,7 @@ module Natalie
           else
             visit(node.statements)
           end
-        elsif !node.ensure_clause && !node.else_clause
+        elsif !node.ensure_clause
           # carve out a bit for Prism to work on now
           copy(
             node,

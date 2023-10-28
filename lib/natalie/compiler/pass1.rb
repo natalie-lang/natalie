@@ -223,6 +223,18 @@ module Natalie
           EndInstruction.new(:try),
         ]
 
+        if node.else_clause
+          instructions += [
+            PushRescuedInstruction.new,
+            IfInstruction.new,
+            # noop
+            ElseInstruction.new(:if),
+            PopInstruction.new, # we don't want the result of the try
+            transform_expression(node.else_clause, used: true),
+            EndInstruction.new(:if),
+          ]
+        end
+
         instructions << PopInstruction.new unless used
         instructions
       end
