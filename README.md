@@ -162,3 +162,5 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
+
+<p align="right"><a href="#top"><img src="https://cdn-icons-png.flaticon.com/512/892/892692.png" height="50px"></a></p>
