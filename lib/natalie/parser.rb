@@ -592,10 +592,11 @@ module Natalie
       end
 
       def visit_when_node(node)
-        s(:when,
-          Prism.array_node(elements: node.conditions.map { |condition| visit(condition) }, location: node.location),
-          visit(node.statements),
-          location: node.location)
+        copy(
+          node,
+          conditions: node.conditions.map { |n| visit(n) },
+          statements: visit(node.statements)
+        )
       end
 
       def visit_while_node(node)

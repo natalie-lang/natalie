@@ -597,8 +597,8 @@ module Natalie
             # when b, c, d
             # =>
             # if (b === a || c === a || d === a)
-            _, options_array, *body = when_statement
-            options = options_array.elements
+            options = when_statement.conditions
+            body = when_statement.statements&.body
 
             options.each do |option|
               # Splats are handled in the backend.
@@ -630,12 +630,12 @@ module Natalie
             # when a == b, b == c, c == d
             # =>
             # if (a == b || b == c || c == d)
-            _, options, *body = when_statement
+            options = when_statement.conditions
+            body = when_statement.statements&.body
 
             # s(:array, option1, option2, ...)
             # =>
             # s(:or, option1, s(:or, option2, ...))
-            options = options.elements
             options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
 
             instructions << transform_expression(options, used: true)
