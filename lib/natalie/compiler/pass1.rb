@@ -1520,6 +1520,33 @@ module Natalie
         transform_body(node.body, used: used)
       end
 
+      def transform_string_concat_node(node, used:)
+        left = node.left
+        right = node.right
+
+        keep = case [left.type, right.type]
+               when %i[string_node string_node]
+                 left.unescaped << right.unescaped
+                 left.content << right.content
+                 left
+               when %i[interpolated_string_node interpolated_string_node]
+                 right.parts.each do |part|
+                   left.parts << part
+                 end
+                 left
+               when %i[string_node interpolated_string_node]
+                 right.parts.unshift(left)
+                 right
+               when %i[interpolated_string_node string_node]
+                 left.parts << right
+                 left
+               else
+                 raise SyntaxError, "Unexpected nodes for StringConcatNode: #{left.inspect} and #{right.inspect}"
+               end
+
+        transform_expression(keep, used: used)
+      end
+
       def transform_string_node(node, used:)
         return [] unless used
         PushStringInstruction.new(node.unescaped)
