@@ -15,8 +15,6 @@ module Natalie
   class Compiler
     include Flags
 
-    Sexp = Natalie::Parser::Sexp
-
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')

@@ -4,13 +4,6 @@ require 'prism'
 
 module Prism
   class Node
-    # This is to maintain the same interface as Sexp instances. It doesn't
-    # provide the exact same thing, so as we migrate we'll need to update call
-    # sites to handle the "correct" type.
-    def sexp_type
-      type
-    end
-
     # Find this transformation method so that we can catch any places where we
     # might previously have been doing destructuring.
     def to_ary
@@ -603,10 +596,6 @@ module Natalie
         n
       end
 
-      def s(*items, location:)
-        Sexp.new(*items, location: location, file: @path)
-      end
-
       def flatten(ary)
         ary2 = []
         ary.map do |item|
@@ -619,67 +608,6 @@ module Natalie
           end
         end
         ary2
-      end
-    end
-
-    class Sexp < Array
-      def initialize(*parts, location: nil, file: nil)
-        super(parts.size)
-        parts.each_with_index do |part, index|
-          self[index] = part
-        end
-        self.file = file
-        self.line = location&.start_line
-        self.column = location&.start_column
-      end
-
-      attr_accessor :file, :line, :column
-
-      def inspect(q = nil)
-        "s(#{map(&:inspect).join(', ')})"
-      end
-
-      def pretty_print(q)
-        q.group(1, 's(', ')') do
-          q.seplist(self) { |v| q.pp(v) }
-        end
-      end
-
-      def sexp_type
-        first
-      end
-
-      def type
-        first
-      end
-
-      def new(*parts)
-        Sexp.new(*parts).tap do |sexp|
-          sexp.file = file
-          sexp.line = line
-          sexp.column = column
-        end
-      end
-
-      def strip_trailing_nils
-        pop while last.nil?
-        self
-      end
-
-      def match(pattern, node = self)
-        if node.is_a?(Sexp)
-          node.each_with_index.all? do |part, index|
-            pattern.nil? || match(pattern[index], part)
-          end
-        elsif pattern.instance_of?(Array)
-          pattern.include?(node)
-        elsif pattern.nil?
-          true
-        elsif node == pattern
-          true
-        else
-          false
-        end
       end
     end
 

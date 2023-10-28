@@ -31,45 +31,31 @@ module Natalie
       private
 
       def transform_arg(arg)
-        if arg.is_a?(Sexp)
-          case arg.sexp_type
-          when :masgn
-            clean_up_keyword_args
-            if arg[1].is_a?(::Prism::ArrayNode)
-              # for-loop masgn looks like: s(:masgn, s(:array, ...))
-              arg = arg.new(:masgn, *arg[1].elements)
-            end
-            transform_destructured_arg(arg)
-          when :splat
-            clean_up_keyword_args
-            transform_splat_arg(arg[1])
-          else
-            raise "I don't yet know how to compile #{arg.inspect}"
-          end
-        elsif arg.is_a?(::Prism::LocalVariableTargetNode)
+        case arg
+        when ::Prism::LocalVariableTargetNode
           clean_up_keyword_args
           transform_required_arg(arg)
-        elsif arg.is_a?(::Prism::MultiTargetNode) || arg.is_a?(::Prism::RequiredDestructuredParameterNode)
+        when ::Prism::MultiTargetNode, ::Prism::RequiredDestructuredParameterNode
           clean_up_keyword_args
           transform_destructured_arg(arg)
-        elsif arg.is_a?(::Prism::OptionalParameterNode)
+        when ::Prism::OptionalParameterNode
           clean_up_keyword_args
           transform_optional_arg(arg)
-        elsif arg.is_a?(::Prism::SplatNode)
+        when ::Prism::SplatNode
           clean_up_keyword_args
           transform_splat_arg(arg)
-        elsif arg.is_a?(::Prism::ArrayNode)
+        when ::Prism::ArrayNode
           clean_up_keyword_args
           transform_destructured_arg(arg)
-        elsif arg.is_a?(::Prism::RequiredParameterNode)
+        when ::Prism::RequiredParameterNode
           clean_up_keyword_args
           transform_required_arg(arg)
-        elsif arg.is_a?(::Prism::RestParameterNode)
+        when ::Prism::RestParameterNode
           clean_up_keyword_args
           transform_splat_arg(arg)
-        elsif arg.is_a?(::Prism::KeywordRestParameterNode)
+        when ::Prism::KeywordRestParameterNode
           transform_keyword_splat_arg(arg)
-        elsif arg.is_a?(::Prism::KeywordParameterNode)
+        when ::Prism::KeywordParameterNode
           transform_keyword_arg(arg)
         else
           raise "unhandled node: #{arg.inspect}"

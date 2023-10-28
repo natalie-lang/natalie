@@ -17,9 +17,7 @@ module Natalie
       end
 
       def generate(transform)
-        if exp.instance_of?(Sexp)
-          type, _, name, *rest = exp
-        elsif exp.is_a?(::Prism::CallNode)
+        if exp.is_a?(::Prism::CallNode)
           type = exp.type
           name = exp.name
           rest = exp.arguments&.arguments || []

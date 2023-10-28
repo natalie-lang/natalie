@@ -51,13 +51,25 @@ module Natalie
 
       def transform_expression(node, used:)
         case node
-        when Sexp, ::Prism::Node
+        when ::Prism::Node
           node = expand_macros(node) if node.type == :call_node
+          return transform_expression(node, used: used) unless node.is_a?(::Prism::Node)
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
           result = send(method, node, used: used)
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
+        when Array
+          if %i[with_filename autoload_const].include?(node.first)
+            # TODO: remove this kludge and change these fake node types to CallNode or something else
+            @depth += 1
+            method = "transform_#{node.first}"
+            result = send(method, node, used: used)
+            @depth -= 1
+            Array(result).flatten
+          else
+            raise "Unknown node type: #{node.inspect}"
+          end
         else
           raise "Unknown node type: #{node.inspect}"
         end
@@ -112,7 +124,7 @@ module Natalie
         args = node&.arguments || []
         instructions = []
 
-        if args.last&.sexp_type == :block_argument_node
+        if args.last&.type == :block_argument_node
           block_arg = args.pop
           instructions.unshift(transform_expression(block_arg.expression, used: true))
         end
@@ -122,7 +134,7 @@ module Natalie
           block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat_node }
+        if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             instructions: instructions,
@@ -183,7 +195,7 @@ module Natalie
         elements = node.elements
         instructions = []
 
-        if node.elements.any? { |a| a.sexp_type == :splat_node }
+        if node.elements.any? { |a| a.type == :splat_node }
           instructions += transform_array_with_splat(elements)
         else
           elements.each do |element|
@@ -603,7 +615,7 @@ module Natalie
             options.each do |option|
               # Splats are handled in the backend.
               # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat_node
+              if option.type == :splat_node
                 option = option.expression
                 is_splat = true
               else
@@ -633,9 +645,6 @@ module Natalie
             options = when_statement.conditions
             body = when_statement.statements&.body
 
-            # s(:array, option1, option2, ...)
-            # =>
-            # s(:or, option1, s(:or, option2, ...))
             options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
 
             instructions << transform_expression(options, used: true)
@@ -968,7 +977,7 @@ module Natalie
 
         # now, if applicable, add to the hash the splat element and everything after
         node.elements[prior_to_splat_count..].each do |element|
-          if element.sexp_type == :assoc_splat_node
+          if element.type == :assoc_splat_node
             instructions << transform_expression(element.value, used: true)
             instructions << HashMergeInstruction.new
           else
@@ -1677,7 +1686,7 @@ module Natalie
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while elements.any? && elements.first.sexp_type != :splat_node
+        while elements.any? && elements.first.type != :splat_node
           instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -1685,7 +1694,7 @@ module Natalie
 
         # now add to the array the first splat item and everything after
         elements.each do |arg|
-          if arg.sexp_type == :splat_node
+          if arg.type == :splat_node
             instructions << transform_expression(arg.expression, used: true)
             instructions << ArrayConcatInstruction.new
           else
@@ -1745,7 +1754,7 @@ module Natalie
           with_block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat_node }
+        if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             with_block_pass: !!with_block,
@@ -1824,11 +1833,7 @@ module Natalie
         end
 
         has_complicated_args = args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type != :required_parameter_node
-          else
-            arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*')
-          end
+          arg.type != :required_parameter_node
         end
 
         if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
@@ -1880,7 +1885,7 @@ module Natalie
       def transform_for_declare_args(args)
         instructions = []
 
-        case args.sexp_type
+        case args.type
         when :class_variable_target_node
           # Do nothing, no need to declare class variables.
         when :local_variable_write_node
@@ -1908,35 +1913,6 @@ module Natalie
         InstanceVariableGetInstruction.new(name)
       end
 
-      def transform_lit(exp, used:)
-        return [] unless used
-        lit = if exp.is_a?(Sexp)
-                exp[1]
-              else
-                exp
-              end
-        case lit
-        when Integer
-          PushIntInstruction.new(lit)
-        when Float
-          PushFloatInstruction.new(lit)
-        when Rational
-          [
-            transform_lit(lit.numerator, used: true),
-            transform_lit(lit.denominator, used: true),
-            PushRationalInstruction.new,
-          ]
-        when Complex
-          [
-            transform_lit(lit.real, used: true),
-            transform_lit(lit.imaginary, used: true),
-            PushComplexInstruction.new,
-          ]
-        else
-          raise "I don't yet know how to handle lit: \"#{lit.inspect}\" (#{exp.file}:#{exp.line}:#{exp.column})"
-        end
-      end
-
       def transform_not(exp, used:)
         _, value = exp
         instructions = [
@@ -1956,7 +1932,7 @@ module Natalie
       def transform_svalue(exp, used:)
         _, svalue = exp
         instructions = []
-        case svalue.sexp_type
+        case svalue.type
         when :splat
           instructions << transform_expression(svalue, used: true)
           instructions << ArrayWrapInstruction.new
@@ -2005,8 +1981,7 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        exp == s(:lambda) ||
-          (exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda)
+        exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda
       end
 
       def is_inline_macro_call_node?(node)
@@ -2055,12 +2030,6 @@ module Natalie
 
       def repl?
         @compiler_context[:repl]
-      end
-
-      def s(*items)
-        sexp = Sexp.new
-        items.each { |item| sexp << item }
-        sexp
       end
 
       class << self

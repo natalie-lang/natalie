@@ -40,13 +40,6 @@ module Natalie
       private
 
       def get_macro_name(node)
-        return get_macro_name_from_node(node) if node.is_a?(::Prism::Node)
-        return false unless node.is_a?(Sexp)
-
-        get_hidden_macro_name(node)
-      end
-
-      def get_macro_name_from_node(node)
         if node.type == :call_node && node.receiver.nil?
           if MACROS.include?(node.name)
             node.name
@@ -108,7 +101,7 @@ module Natalie
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
-        Sexp.new(:autoload_const, const, path, body)
+        [:autoload_const, const, path, body]
       end
 
       def macro_require(expr:, current_path:, depth:)
@@ -237,7 +230,7 @@ module Natalie
           @parsed_files[path] = ast
         end
 
-        s(:with_filename, path, require_once, ast)
+        [:with_filename, path, require_once, ast]
       end
 
       def load_cpp_file(path, require_once:, location:)
@@ -285,12 +278,6 @@ module Natalie
         drop_error(:LoadError, message, print_warning: @log_load_error)
       end
 
-      def s(*items)
-        sexp = Sexp.new
-        items.each { |item| sexp << item }
-        sexp
-      end
-
       def false_node
         ::Prism::FalseNode.new(nil)
       end
@@ -303,8 +290,6 @@ module Natalie
         case expr
         when ::Prism::Node
           expr.location
-        when Sexp
-          ::Prism::Location.new(::Prism::Source.new(expr.file), 0, 0)
         else
           raise "unknown node type: #{expr.inspect}"
         end

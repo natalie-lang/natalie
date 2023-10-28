@@ -10,14 +10,14 @@ module Natalie
       end
 
       def comptime_string(node)
-        unless node.sexp_type == :string_node
+        unless node.type == :string_node
           raise_comptime_value_error('string', node)
         end
         node.unescaped
       end
 
       def comptime_symbol(node)
-        unless node.sexp_type == :symbol_node
+        unless node.type == :symbol_node
           raise_comptime_value_error('symbol', node)
         end
         node.unescaped.to_sym
