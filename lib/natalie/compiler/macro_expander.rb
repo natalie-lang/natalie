@@ -158,9 +158,9 @@ module Natalie
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
-        if node.sexp_type == :str
+        if node.type == :string_node
           begin
-            Natalie::Parser.new(node[1], current_path).ast
+            Natalie::Parser.new(node.unescaped, current_path).ast
           rescue SyntaxError => e
             drop_error(:SyntaxError, e.message)
           end
@@ -181,7 +181,7 @@ module Natalie
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
-          s(:str, File.read(full_path))
+          Prism.string_node(unescaped: File.read(full_path))
         else
           raise IOError, "cannot find file #{name} at #{node.file}##{node.line}"
         end
@@ -265,7 +265,9 @@ module Natalie
             Prism.call_node(
               receiver: nil,
               name: :__internal_inline_code__,
-              arguments: [s(:str, cpp_source)]
+              arguments: [
+                Prism.string_node(unescaped: cpp_source)
+              ]
             ),
             ::Prism.true_node
           ],
@@ -280,7 +282,7 @@ module Natalie
           name: :raise,
           arguments: [
             s(:const, exception_class),
-            s(:str, message)
+            Prism.string_node(unescaped: message)
           ]
         )
       end

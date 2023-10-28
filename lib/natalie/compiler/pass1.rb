@@ -1083,8 +1083,9 @@ module Natalie
       def transform_interpolated_stringish_node(node, used:, unescaped:)
         parts = node.parts.dup
 
-        starter = if parts.first.type == :str
-                    PushStringInstruction.new(parts.shift[unescaped ? 1 : 2]) # 1 = unescaped, 2 = content
+        starter = if parts.first.type == :string_node
+                    part = parts.shift
+                    PushStringInstruction.new(unescaped ? part.unescaped : part.content)
                   else
                     PushStringInstruction.new('')
                   end
@@ -1093,10 +1094,8 @@ module Natalie
 
         parts.each do |part|
           case part
-          when Sexp
-            instructions << PushStringInstruction.new(part[unescaped ? 1 : 2]) # 1 = unescaped, 2 = content
           when Prism::StringNode
-            instructions << PushStringInstruction.new(part.content)
+            instructions << PushStringInstruction.new(unescaped ? part.unescaped : part.content)
           when Prism::EmbeddedStatementsNode
             instructions << transform_expression(part.statements, used: true)
           else
@@ -1734,36 +1733,6 @@ module Natalie
         instructions
       end
 
-      def transform_dregx(exp, used:)
-        options = exp.pop if exp.last.is_a?(Integer)
-        instructions = [
-          transform_dstr(exp, used: true),
-          StringToRegexpInstruction.new(options: options),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dstr(exp, used:)
-        _, start, *rest = exp
-        instructions = [PushStringInstruction.new(start)]
-        rest.each do |segment|
-          case segment.sexp_type
-          when :evstr
-            _, value = segment
-            instructions << transform_expression(value, used: true)
-            instructions << StringAppendInstruction.new
-          when :str
-            instructions << transform_expression(segment, used: true)
-            instructions << StringAppendInstruction.new
-          else
-            raise "unknown dstr segment: #{segment.inspect}"
-          end
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_for_declare_args(args)
         instructions = []
 
@@ -1970,7 +1939,7 @@ module Natalie
       def transform_xstr(exp, used:)
         _, command = exp
         instructions = [
-          transform_str(exp.new(:str, command), used: true),
+          PushStringInstruction.new(command),
           ShellInstruction.new,
         ]
         instructions << PopInstruction.new unless used

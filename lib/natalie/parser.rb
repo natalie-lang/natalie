@@ -10,7 +10,6 @@ module Prism
     # handle are:
     #
     # * args
-    # * str
     #
     def sexp_type
       type
@@ -79,6 +78,11 @@ module Prism
   # Create an OrNode with the optionally given left, right, and location.
   def self.or_node(left: nil, right: nil, location: nil)
     OrNode.new(left, right, nil, location)
+  end
+
+  # Create a StringNode with the optionally given location.
+  def self.string_node(unescaped:, location: nil)
+    StringNode.new(0, nil, nil, nil, unescaped, location)
   end
 
   # Create a TrueNode with the optionally given location.
@@ -549,18 +553,19 @@ module Natalie
         left = visit(node.left)
         right = visit(node.right)
         case [left.type, right.type]
-        when %i[str str]
-          left[1] << right[1]
+        when %i[string_node string_node]
+          left.unescaped << right.unescaped
+          left.content << right.content
           left
         when %i[interpolated_string_node interpolated_string_node]
           right.parts.each do |part|
             left.parts << part
           end
           left
-        when %i[str interpolated_string_node]
+        when %i[string_node interpolated_string_node]
           right.parts.unshift(left)
           right
-        when %i[interpolated_string_node str]
+        when %i[interpolated_string_node string_node]
           left.parts << right
           left
         else
@@ -568,9 +573,7 @@ module Natalie
         end
       end
 
-      def visit_string_node(node)
-        s(:str, node.unescaped, node.content, location: node.location)
-      end
+      alias visit_string_node visit_passthrough
 
       def visit_super_node(node)
         copy(

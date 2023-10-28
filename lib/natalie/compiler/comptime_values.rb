@@ -10,10 +10,10 @@ module Natalie
       end
 
       def comptime_string(node)
-        unless node.sexp_type == :str
+        unless node.sexp_type == :string_node
           raise_comptime_value_error('string', node)
         end
-        node.last
+        node.unescaped
       end
 
       def comptime_symbol(node)
