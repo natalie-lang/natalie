@@ -600,11 +600,11 @@ module Natalie
       end
 
       def visit_while_node(node)
-        s(:while,
-          visit(node.predicate),
-          visit(node.statements),
-          !node.begin_modifier?,
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          statements: visit(node.statements)
+        )
       end
 
       def visit_yield_node(node)
