@@ -77,7 +77,7 @@ describe "Proc#source_location" do
   it "returns the location of the proc's body; not necessarily the proc itself" do
     ProcSpecs::SourceLocation.my_detached_proc.source_location.last.should == 41
     ProcSpecs::SourceLocation.my_detached_proc_new.source_location.last.should == 51
-    NATFIXME 'Why does this call IO#source_location', exception: NoMethodError, message: /undefined method `source_location' for #<[^>]+>:IO/ do
+    NATFIXME 'wrong line number', exception: SpecFailedException, message: /\d+ should be == to 46/ do
       ProcSpecs::SourceLocation.my_detached_lambda.source_location.last.should == 46
     end
   end

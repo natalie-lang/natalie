@@ -13,7 +13,7 @@ module Natalie
       attr_reader :exp
 
       def to_s
-        'inline_cpp'
+        "inline_cpp #{exp.name}"
       end
 
       def generate(transform)
@@ -22,16 +22,12 @@ module Natalie
         elsif exp.is_a?(::Prism::CallNode)
           type = exp.type
           name = exp.name
-          rest = exp.arguments
+          rest = exp.arguments&.arguments || []
         else
           raise "unexpected node passed to InlineCppInstruction: #{exp.inspect}"
         end
 
-        generator = if type == :require_cpp_file
-                      "generate_require_cpp_file"
-                    else
-                      "generate_#{name.to_s.gsub(/__/, '')}"
-                    end
+        generator = "generate_#{name.to_s.gsub(/__/, '')}"
         send(generator, transform, *rest)
       end
 
@@ -188,15 +184,15 @@ module Natalie
         transform.push_nil
       end
 
-      def generate_ld_flags(transform, flags)
-        flags = comptime_string(flags)
-        transform.add_ld_flags(flags)
+      def generate_internal_inline_code(transform, body)
+        body = comptime_string(body)
+        transform.top body
         transform.push_nil
       end
 
-      def generate_require_cpp_file(transform, body)
-        body = comptime_string(body)
-        transform.top body
+      def generate_ld_flags(transform, flags)
+        flags = comptime_string(flags)
+        transform.add_ld_flags(flags)
         transform.push_nil
       end
     end

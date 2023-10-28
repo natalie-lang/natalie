@@ -3,7 +3,6 @@ require_relative './arity'
 require_relative './base_pass'
 require_relative './const_prepper'
 require_relative './multiple_assignment'
-require_relative './rescue'
 
 module Natalie
   class Compiler
@@ -40,6 +39,7 @@ module Natalie
         __define_method__
         __function__
         __inline__
+        __internal_inline_code__
         __ld_flags__
       ].freeze
 
@@ -49,17 +49,22 @@ module Natalie
         transform_statements_node(@ast, used: used).flatten
       end
 
-      def transform_expression(exp, used:)
-        case exp
+      def transform_expression(node, used:)
+        case node
         when Sexp, ::Prism::Node
-          @depth += 1 unless exp.type == :statements_node
-          method = "transform_#{exp.sexp_type}"
-          result = send(method, exp, used: used)
-          @depth -= 1 unless exp.type == :statements_node
+          node = expand_macros(node) if node.type == :call_node
+          @depth += 1 unless node.type == :statements_node
+          method = "transform_#{node.type}"
+          result = send(method, node, used: used)
+          @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         else
-          raise "Unknown expression type: #{exp.inspect}"
+          raise "Unknown node type: #{node.inspect}"
         end
+      end
+
+      def expand_macros(node)
+        @macro_expander.expand(node, depth: @depth)
       end
 
       def transform_body(body, used:)
@@ -203,6 +208,51 @@ module Natalie
         end
       end
 
+      def transform_begin_node(node, used:)
+        try_instruction = TryInstruction.new
+        retry_id = try_instruction.object_id
+
+        instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+
+        if node.rescue_clause
+          instructions.unshift(try_instruction)
+          instructions += [
+            CatchInstruction.new,
+            retry_context(retry_id) do
+              transform_expression(node.rescue_clause, used: true)
+            end,
+            EndInstruction.new(:try)
+          ]
+        end
+
+        if node.else_clause
+          instructions += [
+            PushRescuedInstruction.new,
+            IfInstruction.new,
+            # noop
+            ElseInstruction.new(:if),
+            PopInstruction.new, # we don't want the result of the try
+            transform_expression(node.else_clause, used: true),
+            EndInstruction.new(:if),
+          ]
+        end
+
+        if node.ensure_clause
+          raise_call = Prism.call_node(receiver: nil, name: :raise)
+          instructions.unshift(TryInstruction.new(discard_catch_result: true))
+          instructions += [
+            CatchInstruction.new,
+            transform_expression(node.ensure_clause.statements, used: true),
+            transform_expression(raise_call, used: true),
+            EndInstruction.new(:try),
+            transform_expression(node.ensure_clause.statements, used: false)
+          ]
+        end
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_break_node(node, used:)
         [
           transform_arguments_node_for_returnish(node.arguments, location: node.location),
@@ -211,15 +261,9 @@ module Natalie
       end
 
       def transform_call_node(node, used:, with_block: false)
-        node = @macro_expander.expand(node, depth: @depth)
-
-        unless %i[require_cpp_file call_node].include?(node.sexp_type)
-          return transform_expression(node, used: used)
-        end
-
         receiver = node.receiver
         message = node.name
-        args = node.arguments
+        args = node.arguments&.arguments || []
 
         if repl? && (new_exp = fix_repl_var_that_looks_like_call(node))
           return transform_expression(new_exp, used: used)
@@ -236,24 +280,45 @@ module Natalie
           return instructions
         end
 
-        if receiver.nil? && message == :lambda && args.empty?
+        if receiver.nil? && message == :lambda && args.empty? && node.block.is_a?(Prism::BlockNode)
           # NOTE: We need Kernel#lambda to behave just like the stabby
           # lambda (->) operator so we can attach the "break point" to
           # it. I realize this is a bit of a hack and if someone wants
           # to alias Kernel#lambda, then their method will create a
           # broken lambda, i.e. calling `break` won't work correctly.
           # Maybe someday we can think of a better way to handle this...
-          return transform_lambda(Sexp.new(:lambda), used: used)
-        end
-
-        if receiver.nil? && message == :block_given? && !with_block
-          return [
-            PushBlockInstruction.new(from_nearest_env: true),
-            transform_call_node(node, used: used, with_block: true),
-          ]
+          return transform_lambda_node(node.block, used: used)
         end
 
         instructions = []
+
+        # block handling
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
+        end
+
+        # foo(...) block handling
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
+          instructions << PushBlockInstruction.new
+          with_block = true
+        end
+
+        # block_given? works with nearest block
+        if receiver.nil? && message == :block_given? && !with_block
+          instructions << PushBlockInstruction.new(from_nearest_env: true)
+          with_block = true
+        end
+
+        # foo.bar
+        # ^
         if receiver.nil?
           instructions << PushSelfInstruction.new
         else
@@ -270,7 +335,7 @@ module Natalie
           instructions << ElseInstruction.new(:if)
         end
 
-        call_args = transform_call_args(args, instructions: instructions)
+        call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
         if node.name == :!~
@@ -797,19 +862,34 @@ module Natalie
         instructions += transform_block_args_for_for(s(:args, node.index), used: true)
         instructions += transform_expression(node.statements, used: true)
         instructions << EndInstruction.new(:define_block)
-        call = Sexp.new(:call, node.collection, :each)
-        instructions << transform_call(call, used: used, with_block: true)
+        call = Prism.call_node(receiver: node.collection, name: :each)
+        instructions << transform_call_node(call, used: used, with_block: true)
         instructions
       end
 
-      def transform_forwarding_super_node(_, used:, with_block: false)
+      def transform_forwarding_super_node(node, used:, with_block: false)
         instructions = []
+
+        # block handling
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
+        end
+
         instructions << PushSelfInstruction.new
         instructions << PushArgsInstruction.new(for_block: false, min_count: 0, max_count: 0)
         instructions << SuperInstruction.new(
           args_array_on_stack: true,
           with_block: with_block,
         )
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -951,6 +1031,13 @@ module Natalie
       def transform_integer_node(node, used:)
         return [] unless used
         [PushIntInstruction.new(node.value)]
+      end
+
+      def transform_lambda_node(node, used:)
+        instructions = transform_block_node(node, used: true, is_lambda: true)
+        instructions << CreateLambdaInstruction.new
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_local_variable_and_write_node(node, used:)
@@ -1112,6 +1199,99 @@ module Natalie
         PushRegexpInstruction.new(regexp)
       end
 
+      def transform_rescue_modifier_node(node, used:)
+        instructions = [
+          TryInstruction.new,
+          transform_expression(node.expression, used: true),
+          CatchInstruction.new,
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(:StandardError, strict: false),
+          CreateArrayInstruction.new(count: 1),
+          MatchExceptionInstruction.new,
+          IfInstruction.new,
+          transform_expression(node.rescue_expression, used: true),
+          ElseInstruction.new(:if),
+          PushSelfInstruction.new,
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :raise,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          EndInstruction.new(:if),
+          EndInstruction.new(:try),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_rescue_node(node, used:)
+        exceptions = node.exceptions.dup
+        unless exceptions.any?
+          exceptions << Prism.constant_read_node(name: :StandardError)
+        end
+
+        instructions = [
+          exceptions.map { |n| transform_expression(n, used: true) },
+          CreateArrayInstruction.new(count: exceptions.size),
+          MatchExceptionInstruction.new,
+          IfInstruction.new,
+          transform_rescue_reference_node(node.reference),
+          transform_body(node.statements, used: true),
+        ]
+
+        instructions << ElseInstruction.new(:if)
+        if node.consequent
+          instructions += transform_expression(node.consequent, used: true)
+        else
+          instructions += [
+            PushSelfInstruction.new,
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :raise,
+              receiver_is_self: true,
+              with_block: false,
+              file: node.location.path,
+              line: node.location.start_line,
+            )
+          ]
+        end
+        instructions << EndInstruction.new(:if)
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_rescue_reference_node(node)
+        return [] if node.nil?
+
+        instructions = [GlobalVariableGetInstruction.new(:$!)]
+
+        case node
+        when ::Prism::ClassVariableTargetNode
+          instructions << ClassVariableSetInstruction.new(node.name)
+        when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
+          prepper = ConstPrepper.new(node, pass: self)
+          instructions << [
+            GlobalVariableGetInstruction.new(:$!),
+            prepper.namespace,
+            ConstSetInstruction.new(prepper.name)
+          ]
+        when ::Prism::GlobalVariableTargetNode
+          instructions << GlobalVariableSetInstruction.new(node.name)
+        when ::Prism::InstanceVariableTargetNode
+          instructions << InstanceVariableSetInstruction.new(node.name)
+        when ::Prism::LocalVariableTargetNode
+          instructions << VariableSetInstruction.new(node.name)
+        else
+          raise "unhandled reference node for rescue: #{node.inspect}"
+        end
+
+        instructions
+      end
+
       def transform_retry_node(*)
         [RetryInstruction.new(id: @retry_context.last)]
       end
@@ -1162,15 +1342,32 @@ module Natalie
         PushStringInstruction.new(node.unescaped)
       end
 
-      def transform_super_node(node, used:, with_block: false)
+      def transform_super_node(node, used:)
         instructions = []
+
+        # block handling
+        if node.block.is_a?(Prism::BlockNode)
+          with_block = true
+          instructions << transform_block_node(
+            node.block,
+            used: true,
+            is_lambda: is_lambda_call?(node)
+          )
+        elsif node.block.is_a?(Prism::BlockArgumentNode)
+          with_block = true
+          instructions << transform_expression(node.block, used: true)
+        end
+
         instructions << PushSelfInstruction.new
-        call_args = transform_call_args(node.arguments, instructions: instructions)
+
+        args = node.arguments&.arguments || []
+        call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         instructions << SuperInstruction.new(
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          with_block: with_block || call_args.fetch(:with_block_pass),
+          with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash)
         )
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -1232,11 +1429,6 @@ module Natalie
         instructions
       end
 
-      def transform_attrasgn(exp, used:)
-        _, receiver, message, *args = exp
-        transform_call(exp.new(:call, receiver, message, *args), used: used)
-      end
-
       def transform_autoload_const(exp, used:)
         _, name, path, *body = exp
         instructions = [
@@ -1252,6 +1444,25 @@ module Natalie
         transform_hash(exp, bare: true, used: used)
       end
 
+      def transform_block_argument_node(node, used:)
+        return [] unless used
+        [transform_expression(node.expression, used: true)]
+      end
+
+      def transform_block_node(node, used:, is_lambda:)
+        arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
+        instructions = []
+        instructions << DefineBlockInstruction.new(arity: arity)
+        if is_lambda
+          instructions << transform_block_args_for_lambda(node.parameters, used: true)
+        else
+          instructions << transform_block_args(node.parameters, used: true)
+        end
+        instructions << transform_expression(node.body || Prism.nil_node, used: true)
+        instructions << EndInstruction.new(:define_block)
+        instructions
+      end
+
       def transform_block_args(exp, used:)
         transform_defn_args(exp, for_block: true, check_args: false, used: used)
       end
@@ -1264,84 +1475,16 @@ module Natalie
         transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
       end
 
-      def transform_call(exp, used:, with_block: false)
-        exp = @macro_expander.expand(exp, depth: @depth)
-        return transform_expression(exp, used: used) unless %i[require_cpp_file call].include?(exp.sexp_type)
-
-        _, receiver, message, *args = exp
-
-        if repl? && (new_exp = fix_repl_var_that_looks_like_call(exp))
-          return transform_expression(new_exp, used: used)
-        end
-
-        if is_inline_macro_call?(exp)
-          instructions = []
-          if message == :__call__
-            args[1..].reverse_each do |arg|
-              instructions << transform_expression(arg, used: true)
-            end
-          end
-          instructions << InlineCppInstruction.new(exp)
-          return instructions
-        end
-
-        if receiver.nil? && message == :lambda && args.empty?
-          # NOTE: We need Kernel#lambda to behave just like the stabby
-          # lambda (->) operator so we can attach the "break point" to
-          # it. I realize this is a bit of a hack and if someone wants
-          # to alias Kernel#lambda, then their method will create a
-          # broken lambda, i.e. calling `break` won't work correctly.
-          # Maybe someday we can think of a better way to handle this...
-          return transform_lambda(exp.new(:lambda), used: used)
-        end
-
-        if receiver.nil? && message == :block_given? && !with_block
-          return [
-            PushBlockInstruction.new(from_nearest_env: true),
-            transform_call(exp, used: used, with_block: true),
-          ]
-        end
-
-        instructions = []
-        if receiver.nil?
-          instructions << PushSelfInstruction.new
-        else
-          instructions << transform_expression(receiver, used: true)
-        end
-
-        call_args = transform_call_args(args, instructions: instructions)
-        with_block ||= call_args.fetch(:with_block_pass)
-
-        instructions << SendInstruction.new(
-          message,
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: receiver.nil?,
-          with_block: with_block,
-          has_keyword_hash: call_args.fetch(:has_keyword_hash),
-          forward_args: call_args[:forward_args],
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_call_args(args, instructions: [])
-        if args.last&.sexp_type == :block_argument_node
-          block_arg = args.pop
-          block = block_arg.expression
-          instructions.unshift(transform_expression(block, used: true))
-        end
-
-        if args.size == 1 && args.first.type == :forwarding_arguments_node && !block
+      def transform_call_args(args, with_block:, instructions: [])
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
           instructions.unshift(PushBlockInstruction.new)
-          block = true
+          with_block = true
         end
 
         if args.any? { |a| a.sexp_type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
-            with_block_pass: !!block,
+            with_block_pass: !!with_block,
             args_array_on_stack: true,
             has_keyword_hash: args.last&.sexp_type == :bare_hash
           }
@@ -1358,7 +1501,7 @@ module Natalie
           )
           return {
             instructions: instructions,
-            with_block_pass: !!block,
+            with_block_pass: !!with_block,
             args_array_on_stack: true,
             has_keyword_hash: false,
             forward_args: true,
@@ -1375,7 +1518,7 @@ module Natalie
 
         {
           instructions: instructions,
-          with_block_pass: !!block,
+          with_block_pass: !!with_block,
           args_array_on_stack: false,
           has_keyword_hash: has_keyword_hash,
         }
@@ -1524,26 +1667,6 @@ module Natalie
         instructions
       end
 
-      def transform_ensure(exp, used:)
-        _, body, ensure_body = exp
-        instructions = [
-          TryInstruction.new(discard_catch_result: true),
-          transform_expression(body, used: true),
-          CatchInstruction.new,
-          transform_expression(ensure_body, used: true),
-          transform_expression(exp.new(:call, nil, :raise), used: true),
-          EndInstruction.new(:try),
-          DupInstruction.new,
-          PushRescuedInstruction.new,
-          IfInstruction.new,
-          ElseInstruction.new(:if),
-          transform_expression(ensure_body, used: false),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_for_declare_args(args)
         instructions = []
 
@@ -1574,12 +1697,6 @@ module Natalie
         instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
         instructions << GlobalVariableGetInstruction.new(name) if used
         instructions
-      end
-
-      def transform_gvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        GlobalVariableGetInstruction.new(name)
       end
 
       def transform_hash(exp, used:, bare: false)
@@ -1642,48 +1759,10 @@ module Natalie
         instructions
       end
 
-      def transform_iter(exp, used:)
-        _, call, args, body = exp
-        is_lambda = is_lambda_call?(call)
-        arity = Arity.new(args, is_proc: !is_lambda).arity
-        instructions = []
-        instructions << DefineBlockInstruction.new(arity: arity)
-        if is_lambda_call?(call)
-          instructions << transform_block_args_for_lambda(args, used: true)
-        else
-          instructions << transform_block_args(args, used: true)
-        end
-        instructions << transform_expression(body || Prism.nil_node, used: true)
-        instructions << EndInstruction.new(:define_block)
-        case call.sexp_type
-        when :call
-          instructions << transform_call(call, used: used, with_block: true)
-        when :call_node
-          instructions << transform_call_node(call, used: used, with_block: true)
-        when :lambda
-          instructions << transform_lambda(call, used: used)
-        when :safe_call
-          instructions << transform_safe_call(call, used: used, with_block: true)
-        when :super_node
-          instructions << transform_super_node(call, used: used, with_block: true)
-        when :forwarding_super_node
-          instructions << transform_forwarding_super_node(call, used: used, with_block: true)
-        else
-          raise "unexpected call: #{call.sexp_type.inspect}"
-        end
-        instructions
-      end
-
       def transform_ivar(exp, used:)
         return [] unless used
         _, name = exp
         InstanceVariableGetInstruction.new(name)
-      end
-
-      def transform_lambda(_, used:)
-        instructions = [CreateLambdaInstruction.new]
-        instructions << PopInstruction.new unless used
-        instructions
       end
 
       def transform_lasgn(exp, used:)
@@ -1785,42 +1864,6 @@ module Natalie
         instructions
       end
 
-      alias transform_require_cpp_file transform_call
-
-      def transform_rescue(exp, used:)
-        instructions = Rescue.new(self).transform(exp)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_safe_call(exp, used:, with_block: false)
-        _, receiver, message, *args = exp
-
-        instructions = []
-        instructions << transform_expression(receiver, used: true)
-
-        instructions << DupInstruction.new # duplicate receiver for IsNil below
-        instructions << IsNilInstruction.new
-        instructions << IfInstruction.new
-        instructions << PopInstruction.new # pop duplicated receiver since it is unused
-        instructions << PushNilInstruction.new
-        instructions << ElseInstruction.new(:if)
-
-        call_args = transform_call_args(args, instructions: instructions)
-
-        instructions << SendInstruction.new(
-          message,
-          args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: false,
-          with_block: with_block || call_args.fetch(:with_block_pass),
-          file: exp.file,
-          line: exp.line,
-        )
-        instructions << EndInstruction.new(:if)
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
@@ -1862,7 +1905,15 @@ module Natalie
 
       def transform_until(exp, used:)
         _, condition, body, pre = exp
-        transform_while(exp.new(:while, s(:call, condition, :!), body, pre), used: used)
+        transform_while(
+          exp.new(
+            :while,
+            Prism.call_node(receiver: condition, name: :!),
+            body,
+            pre
+          ),
+          used: used
+        )
       end
 
       def transform_while(exp, used:)
@@ -1914,22 +1965,13 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        exp == s(:lambda) || exp == s(:call, nil, :lambda) ||
+        exp == s(:lambda) ||
           (exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda)
-      end
-
-      def is_inline_macro_call?(exp)
-        type, receiver, message, * = exp
-        inline_enabled = @inline_cpp_enabled[exp.file] ||
-                         type == :require_cpp_file
-        inline_enabled &&
-          receiver.nil? &&
-          INLINE_CPP_MACROS.include?(message)
       end
 
       def is_inline_macro_call_node?(node)
         inline_enabled = @inline_cpp_enabled[node.location.path] ||
-                         node.type == :require_cpp_file
+                         node.name == :__internal_inline_code__
         inline_enabled &&
           node.receiver.nil? &&
           INLINE_CPP_MACROS.include?(node.name)
@@ -1937,62 +1979,36 @@ module Natalie
 
       def minimum_arg_count(args)
         args.count do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :required_parameter_node || arg.type == :multi_target_node
-          else
-            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-              (arg.is_a?(Sexp) && arg.sexp_type == :masgn)
-          end
+          arg.type == :required_parameter_node || arg.type == :multi_target_node
         end
       end
 
       def maximum_arg_count(args)
-        any_splats = args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :rest_parameter_node
-          else
-            arg.is_a?(Symbol) && arg[0] == '*' && arg[0..1] != '**'
-          end
-        end
-        return nil if any_splats # splat, no maximum
+        # splat means no maximum
+        return nil if args.any? { |arg| arg.type == :rest_parameter_node }
 
         args.count do |arg|
-          if arg.is_a?(::Prism::Node)
-            %i[
-              local_variable_target_node
-              multi_target_node
-              optional_parameter_node
-              required_destructured_parameter_node
-              required_parameter_node
-            ].include?(arg.type)
-          else
-            (arg.is_a?(Symbol) && arg[0] != '&' && arg[0] != '*') ||
-              (arg.is_a?(Sexp) && [:lasgn, :masgn].include?(arg.sexp_type))
-          end
+          %i[
+            local_variable_target_node
+            multi_target_node
+            optional_parameter_node
+            required_destructured_parameter_node
+            required_parameter_node
+          ].include?(arg.type)
         end
       end
 
       def any_keyword_args?(args)
         args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :keyword_parameter_node ||
-              arg.type == :keyword_rest_parameter_node
-          else
-            (arg.is_a?(Symbol) && arg[0..1] == '**') ||
-              (arg.is_a?(Sexp) && arg.sexp_type == :kwarg)
-          end
+          arg.type == :keyword_parameter_node ||
+            arg.type == :keyword_rest_parameter_node
         end
       end
 
       def required_keywords(args)
         args.filter_map do |arg|
-          if arg.is_a?(::Prism::Node)
-            if arg.type == :keyword_parameter_node && !arg.value
-              arg.name
-            end
-          elsif arg.is_a?(Sexp) && arg.sexp_type == :kwarg
-            _, name, default = arg
-            name if default.nil?
+          if arg.type == :keyword_parameter_node && !arg.value
+            arg.name
           end
         end
       end
@@ -2002,26 +2018,13 @@ module Natalie
       end
 
       # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. Both cases look like this: `s(:call, nil, :foo)`.
-      # But we know which variables are defined in the REPL, so we can convert the :call
-      # back to an :lvar as needed.
-      def fix_repl_var_that_looks_like_call(exp)
-        if (exp.is_a?(::Prism::Node))
-          return false unless exp.type == :call_node && exp.receiver.nil?
-          return false unless @compiler_context[:vars].key?(exp.name)
-          return Sexp.new(:lvar, exp.name)
-        end
+      # and variable lookup. But we know which variables are defined in the REPL,
+      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
+      def fix_repl_var_that_looks_like_call(node)
+        return false unless node.type == :call_node && node.receiver.nil?
+        return false unless @compiler_context[:vars].key?(node.name)
 
-        unless exp.size == 3 && exp[..1] == [:call, nil]
-          return false
-        end
-
-        name = exp.last
-        unless @compiler_context[:vars].key?(name)
-          return false
-        end
-
-        exp.new(:lvar, exp.last)
+        return Sexp.new(:lvar, node.name)
       end
 
       def s(*items)
@@ -2033,7 +2036,7 @@ module Natalie
       class << self
         def debug_instructions(instructions)
           instructions.each_with_index do |instruction, index|
-            desc = "#{index} #{instruction}"
+            desc = "#{instruction}"
             puts desc
           end
         end

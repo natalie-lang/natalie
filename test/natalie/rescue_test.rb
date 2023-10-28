@@ -342,4 +342,9 @@ describe 'ensure' do
              end
     result.should == 3
   end
+
+  it 'works in modifier form' do
+    x = foo rescue 3
+    x.should == 3
+  end
 end

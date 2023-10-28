@@ -380,6 +380,7 @@ def suppress_warning
   old_stderr = $stderr
   $stderr = IOStub.new
   yield
+ensure
   $stderr = old_stderr
 end
 

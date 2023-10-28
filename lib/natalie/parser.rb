@@ -10,13 +10,11 @@ module Prism
     # handle are:
     #
     # * args
-    # * attrasgn
     # * bare_hash
     # * evstr
     # * gasgn
     # * lasgn
     # * lvar
-    # * safe_call
     # * str
     #
     def sexp_type
@@ -27,16 +25,6 @@ module Prism
     # might previously have been doing destructuring.
     def to_ary
       raise "Implicit destructuring not supported for prism nodes"
-    end
-
-    # We need this to maintain the same interface as Sexp instances in the case
-    # of the repl.
-    def new(*parts)
-      Natalie::Parser::Sexp.new(*parts).tap do |sexp|
-        sexp.file = "<compiled>"
-        sexp.line = location.start_line
-        sexp.column = location.start_column
-      end
     end
 
     def location
@@ -62,9 +50,20 @@ module Prism
     ArrayNode.new(elements, nil, nil, location)
   end
 
+  # Create a CallNode with the optionally given values.
+  def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
+    arguments = ArgumentsNode.new(arguments, location)
+    CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
+  end
+
   # Create a ClassVariableWriteNode with the optionally given values.
   def self.class_variable_write_node(name:, value: nil, location: nil)
     ClassVariableWriteNode.new(name, nil, value, nil, location)
+  end
+
+  # Create a ConstantReadNode with the optionally given values.
+  def self.constant_read_node(name:, location: nil)
+    ConstantReadNode.new(name, location)
   end
 
   # Create a FalseNode with the optionally given location.
@@ -133,47 +132,21 @@ module Natalie
       alias visit_back_reference_read_node visit_passthrough
 
       def visit_begin_node(node)
-        if !node.rescue_clause && !node.else_clause
-          if node.ensure_clause
-            s(:ensure,
-              visit(node.statements),
-              visit(node.ensure_clause.statements),
-              location: node.location)
-          else
-            visit(node.statements)
-          end
-        else
-          res = s(:rescue, location: node.location)
-          res << visit(node.statements) if node.statements
-          rescue_clause = node.rescue_clause
-          res << visit(rescue_clause)
-          while (rescue_clause = rescue_clause.consequent)
-            res << visit(rescue_clause)
-          end
-          res << visit(node.else_clause) if node.else_clause
-          if node.ensure_clause
-            s(:ensure,
-              res,
-              visit(node.ensure_clause.statements),
-              location: node.location)
-          else
-            res
-          end
-        end
+        copy(
+          node,
+          statements: visit(node.statements),
+          rescue_clause: visit(node.rescue_clause),
+          else_clause: visit(node.else_clause),
+          ensure_clause: visit(node.ensure_clause)
+        )
       end
 
       def visit_block_argument_node(node)
         copy(node, expression: visit(node.expression))
       end
 
-      def visit_block_node(node, call:)
-        raise "unexpected node: #{node.inspect}" unless node.is_a?(Prism::BlockNode) || node.is_a?(Prism::LambdaNode)
-
-        s(:iter,
-          call,
-          visit(node.parameters) || 0,
-          visit(node.body),
-          location: node.location)
+      def visit_block_node(node)
+        copy(node, parameters: visit(node.parameters), body: visit(node.body))
       end
 
       alias visit_block_parameter_node visit_passthrough
@@ -187,16 +160,12 @@ module Natalie
       end
 
       def visit_call_node(node)
-        args, block = node_arguments_and_block(node)
-
-        # HACK: alert changing block and changing arguments to plain array (temporary!)
-        call = copy(node, receiver: visit(node.receiver), arguments: args, block: nil)
-
-        if block
-          visit_block_node(block, call: call)
-        else
-          call
-        end
+        copy(
+          node,
+          receiver: visit(node.receiver),
+          arguments: visit(node.arguments),
+          block: visit(node.block)
+        )
       end
 
       def visit_call_or_write_node(node)
@@ -292,6 +261,10 @@ module Natalie
         visit(node.child_nodes.first)
       end
 
+      def visit_ensure_node(node)
+        copy(node, statements: visit(node.statements))
+      end
+
       alias visit_false_node visit_passthrough
 
       alias visit_float_node visit_passthrough
@@ -310,11 +283,10 @@ module Natalie
       alias visit_forwarding_parameter_node visit_passthrough
 
       def visit_forwarding_super_node(node)
-        if node.block
-          visit_block_node(node.block, call: node)
-        else
-          node
-        end
+        copy(
+          node,
+          block: visit(node.block)
+        )
       end
 
       def visit_global_variable_and_write_node(node)
@@ -447,10 +419,7 @@ module Natalie
       alias visit_keyword_rest_parameter_node visit_passthrough
 
       def visit_lambda_node(node)
-        visit_block_node(
-          node,
-          call: s(:lambda, location: node.location)
-        )
+        copy(node, parameters: visit(node.parameters), body: visit(node.body))
       end
 
       def visit_local_variable_and_write_node(node)
@@ -557,17 +526,24 @@ module Natalie
       alias visit_required_parameter_node visit_passthrough
 
       def visit_rescue_modifier_node(node)
-        s(:rescue,
-          visit(node.expression),
-          s(:resbody,
-            Prism.array_node(location: node.rescue_expression.location),
-            nil,
-            visit(node.rescue_expression),
-            location: node.rescue_expression.location),
-          location: node.location)
+        copy(
+          node,
+          expression: visit(node.expression),
+          rescue_expression: visit(node.rescue_expression)
+        )
       end
 
       def visit_rescue_node(node)
+        copy(
+          node,
+          exceptions: node.exceptions.map { |exception| visit(exception) },
+          reference: visit(node.reference),
+          statements: visit(node.statements),
+          consequent: visit(node.consequent)
+        )
+      end
+
+      def visit_rescue_node_old(node)
         ref = visit(node.reference)
 
         case ref
@@ -580,10 +556,6 @@ module Natalie
              ::Prism::InstanceVariableTargetNode,
              ::Prism::LocalVariableTargetNode
           # Do nothing here; handle these in Compiler::Rescue
-        when Sexp
-          # This is a sexp, so we can treat all of the writes the same and push
-          # on the value that should be written.
-          ref << s(:gvar, :$!, location: node.location)
         else
           raise "unhandled rescue reference: #{ref}"
         end
@@ -650,14 +622,11 @@ module Natalie
       end
 
       def visit_super_node(node)
-        args, block = node_arguments_and_block(node)
-        # HACK: alert changing arguments to plain array (temporary!)
-        call = copy(node, arguments: args)
-        if block
-          visit_block_node(node.block, call: call)
-        else
-          call
-        end
+        copy(
+          node,
+          arguments: visit(node.arguments),
+          block: visit(node.block)
+        )
       end
 
       alias visit_symbol_node visit_passthrough
@@ -738,17 +707,6 @@ module Natalie
           end
         end
         ary2
-      end
-
-      def node_arguments_and_block(node)
-        args = node.arguments&.arguments&.dup || []
-        block = node.block
-        if block.is_a?(Prism::BlockArgumentNode)
-          args << block
-          block = nil
-        end
-        args.map! { |n| visit(n) }
-        [args, block]
       end
     end
 

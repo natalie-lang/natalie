@@ -20,6 +20,16 @@ describe 'Proc' do
       p = lambda { 'hello from proc' }
       p.should be_kind_of(Proc)
     end
+
+    it 'creates a new Proc object from a block argument' do
+      def create_lambda(&block)
+        lambda(&block)
+      end
+      result = suppress_warning do
+        create_lambda { 1 }
+      end
+      result.should be_kind_of(Proc)
+    end
   end
 
   describe '-> operator' do
