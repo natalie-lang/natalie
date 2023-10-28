@@ -31,7 +31,7 @@ module Natalie
 
       def expand(call_node, depth:)
         if (macro_name = get_macro_name(call_node))
-          run_macro(macro_name, call_node, current_path: call_node.file, depth: depth)
+          run_macro(macro_name, call_node, current_path: call_node.location.path, depth: depth)
         else
           call_node
         end
@@ -89,7 +89,7 @@ module Natalie
         begin
           path = comptime_string(path_node)
         rescue ArgumentError
-          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.file}##{expr.line}"
+          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.location.path}##{expr.location.start_line}"
         end
 
         full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
@@ -97,7 +97,7 @@ module Natalie
         end.first
 
         unless full_path
-          return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
+          return drop_load_error "cannot load such file #{path} at #{expr.location.path}##{expr.location.start_line}"
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
@@ -117,7 +117,7 @@ module Natalie
             return load_file(full_path, require_once: true, location: location(expr))
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
       def macro_require_relative(expr:, current_path:, depth:)
@@ -130,7 +130,7 @@ module Natalie
             return lf
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
       def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
@@ -170,7 +170,7 @@ module Natalie
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           Prism.string_node(unescaped: File.read(full_path))
         else
-          raise IOError, "cannot find file #{name} at #{node.file}##{node.line}"
+          raise IOError, "cannot find file #{name} at #{node.location.path}##{node.location.start_line}"
         end
       end
 
@@ -183,7 +183,7 @@ module Natalie
           else
             name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           end
-          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
+          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.location.path}##{expr.location.start_line})")
         end
 
         path_to_add = VM.compile_and_run(

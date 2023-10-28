@@ -13,14 +13,6 @@ module Prism
     def location
       @location || Prism::Location.new(Source.new('unknown'), 0, 0)
     end
-
-    def file
-      location.path
-    end
-
-    def line
-      location.start_line
-    end
   end
 
   class Location
