@@ -1,6 +1,6 @@
 # Natalie
 
-[![github build status](https://github.com/natalie-lang/natalie/actions/workflows/build.yml/badge.svg)](https://github.com/natalie-lang/natalie/actions?query=workflow%3ABuild+branch%3Amaster)
+[![Github build status](https://github.com/natalie-lang/natalie/actions/workflows/build.yml/badge.svg)](https://github.com/natalie-lang/natalie/actions?query=workflow%3ABuild+branch%3Amaster)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/natalie-lang/natalie/blob/master/LICENSE)
 [![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)
 
@@ -43,7 +43,7 @@ Prerequisites:
 - Ruby 3.0 or higher with dev headers
   - Using [rbenv](https://github.com/rbenv/rbenv) to install Ruby is preferred.
   - Installing [rbenv-aliases](https://github.com/tpope/rbenv-aliases) along with rbenv helps with matching Ruby versions like `3.0` to the latest patch release.
-  - If not using rbenv or another version manager, you'll need the `ruby` and `ruby-dev` package from your system.
+  - If not using rbenv or another version manager, you'll need the `ruby` and `ruby-dev` packages from your system.
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
 
@@ -60,7 +60,7 @@ rake
 - **Don't use `sudo`!** If you already made that mistake, then you should `sudo rm -rf build`
   and try again.
 - If you get an error about file permissions, e.g. unable to write a file to somewhere like
-  `/usr/lib/ruby`, or another path that would require root, then you have a couple options:
+  `/usr/lib/ruby`, or another path that would require root, then you have a couple of options:
   - Use a tool like [rbenv](https://github.com/rbenv/rbenv) to install a Ruby version in your
     home directory. Gems will also be installed there. Run `rbenv version` to see which version
     is currently selected. Run `rbenv shell` followed by a version to select that version.
@@ -134,13 +134,13 @@ bin/natalie test/runner.rb test/natalie/if_test.rb test/natalie/loop_test.rb
 
 The files in `spec/` come from the excellent [ruby/spec](https://github.com/ruby/spec)
 project, which is a community-curated repo of test files that any Ruby
-implementation can use to compare its conformance to what MRI (Matz's Ruby
+implementation can be used to compare its conformance to what MRI (Matz's Ruby
 Interpreter) does. We copy specs over as we implement the part of the language
 that they cover.
 
 Everything in `test/` is stuff we wrote while working on Natalie. These are
 tests that helped us bootstrap certain parts of the language and/or weren't
-covered as much as we would like by the official Ruby specs. We use this
+covered as much as we would have liked by the official Ruby specs. We use this
 to supplement the specs in `spec/`.
 
 ## Copyright & License
