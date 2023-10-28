@@ -981,6 +981,21 @@ module Natalie
         instructions
       end
 
+      def transform_if_node(node, used:)
+        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        instructions = [
+          transform_expression(node.predicate, used: true),
+          IfInstruction.new,
+          true_instructions,
+          ElseInstruction.new(:if),
+          false_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 
@@ -1508,6 +1523,21 @@ module Natalie
         [PushTrueInstruction.new]
       end
 
+      def transform_unless_node(node, used:)
+        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        instructions = [
+          transform_expression(node.predicate, used: true),
+          IfInstruction.new,
+          false_instructions,
+          ElseInstruction.new(:if),
+          true_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_until_node(node, used:)
         pre = !node.begin_modifier?
         instructions = [
@@ -1809,22 +1839,6 @@ module Natalie
           raise "I don't yet know how to declare this variable: #{args.inspect}"
         end
 
-        instructions
-      end
-
-      def transform_if(exp, used:)
-        _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression || Prism.nil_node, used: true)
-        false_instructions = transform_expression(false_expression || Prism.nil_node, used: true)
-        instructions = [
-          transform_expression(condition, used: true),
-          IfInstruction.new,
-          true_instructions,
-          ElseInstruction.new(:if),
-          false_instructions,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
         instructions
       end
 

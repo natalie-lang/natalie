@@ -318,11 +318,12 @@ module Natalie
       end
 
       def visit_if_node(node)
-        s(:if,
-          visit(node.predicate),
-          visit(node.statements),
-          visit(node.consequent),
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          statements: visit(node.statements),
+          consequent: visit(node.consequent)
+        )
       end
 
       alias visit_imaginary_node visit_passthrough
@@ -576,11 +577,12 @@ module Natalie
       end
 
       def visit_unless_node(node)
-        s(:if,
-          visit(node.predicate),
-          visit(node.consequent),
-          visit(node.statements),
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          statements: visit(node.statements),
+          consequent: visit(node.consequent)
+        )
       end
 
       def visit_until_node(node)
