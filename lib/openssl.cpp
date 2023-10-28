@@ -1,5 +1,6 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/kdf.h>
 #include <openssl/rand.h>
 
 #include "natalie.hpp"
@@ -135,6 +136,52 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(out), out_size, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
+Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_is(env, 1);
+    auto pass = args.at(0)->to_str(env);
+    env->ensure_no_missing_keywords(kwargs, { "salt", "N", "r", "p", "length" });
+    auto salt = kwargs->remove(env, "salt"_s)->to_str(env);
+    auto N = kwargs->remove(env, "N"_s)->to_int(env);
+    auto r = kwargs->remove(env, "r"_s)->to_int(env);
+    auto p = kwargs->remove(env, "p"_s)->to_int(env);
+    auto length = kwargs->remove(env, "length"_s)->to_int(env);
+    if (length->is_negative() || length->is_bignum())
+        env->raise("ArgumentError", "negative string size (or size too big)");
+    env->ensure_no_extra_keywords(kwargs);
+
+    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    auto KDF = OpenSSL->const_get("KDF"_s);
+    auto KDFError = KDF->const_get("KDFError"_s);
+    auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, NULL);
+    Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
+    unsigned char out[length->to_nat_int_t()];
+    size_t outlen = sizeof(out);
+    if (EVP_PKEY_derive_init(pctx) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PKEY_derive_init", KDFError->as_class());
+    }
+    if (EVP_PKEY_CTX_set1_pbe_pass(pctx, pass->c_str(), pass->bytesize()) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+    if (EVP_PKEY_CTX_set1_scrypt_salt(pctx, reinterpret_cast<const unsigned char *>(salt->c_str()), salt->bytesize()) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+    if (EVP_PKEY_CTX_set_scrypt_N(pctx, N->to_nat_int_t()) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+    if (EVP_PKEY_CTX_set_scrypt_r(pctx, r->to_nat_int_t()) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+    if (EVP_PKEY_CTX_set_scrypt_p(pctx, p->to_nat_int_t()) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+    if (EVP_PKEY_derive(pctx, out, &outlen) <= 0) {
+        OpenSSL_raise_error(env, "EVP_PBE_scrypt", KDFError->as_class());
+    }
+
+    return new StringObject { reinterpret_cast<const char *>(out), outlen };
+}
+
 Value init(Env *env, Value self) {
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     if (!OpenSSL) {
@@ -173,6 +220,7 @@ Value init(Env *env, Value self) {
         OpenSSL->const_set("KDF"_s, KDF);
     }
     KDF->define_singleton_method(env, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
+    KDF->define_singleton_method(env, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
     return NilObject::the();
 }
