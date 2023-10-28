@@ -611,9 +611,7 @@ module Natalie
         copy(node, arguments: visit(node.arguments))
       end
 
-      def visit_x_string_node(node)
-        s(:xstr, node.unescaped, location: node.location)
-      end
+      alias visit_x_string_node visit_passthrough
 
       private
 

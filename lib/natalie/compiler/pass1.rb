@@ -1542,6 +1542,15 @@ module Natalie
         instructions
       end
 
+      def transform_x_string_node(node, used:)
+        instructions = [
+          PushStringInstruction.new(node.unescaped),
+          ShellInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_yield_node(node, used:)
         arg_meta = transform_arguments_node_for_callish(node.arguments)
         instructions = arg_meta.fetch(:instructions)
@@ -1950,16 +1959,6 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         @depth = depth_was
-        instructions
-      end
-
-      def transform_xstr(exp, used:)
-        _, command = exp
-        instructions = [
-          PushStringInstruction.new(command),
-          ShellInstruction.new,
-        ]
-        instructions << PopInstruction.new unless used
         instructions
       end
 
