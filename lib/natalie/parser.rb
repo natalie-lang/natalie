@@ -13,8 +13,6 @@ module Prism
     # * bare_hash
     # * evstr
     # * gasgn
-    # * lasgn
-    # * lvar
     # * str
     #
     def sexp_type
@@ -69,6 +67,11 @@ module Prism
   # Create a FalseNode with the optionally given location.
   def self.false_node(location: nil)
     FalseNode.new(location)
+  end
+
+  # Create an LocalVariableWriteNode with the optionally given location.
+  def self.local_variable_write_node(name:, value:, location: nil)
+    LocalVariableWriteNode.new(name, 0, nil, value, nil, location)
   end
 
   # Create a NilNode with the optionally given location.
@@ -434,14 +437,12 @@ module Natalie
         copy(node, value: visit(node.value))
       end
 
-      def visit_local_variable_read_node(node)
-        s(:lvar, node.name, location: node.location)
-      end
+      alias visit_local_variable_read_node visit_passthrough
 
       alias visit_local_variable_target_node visit_passthrough
 
       def visit_local_variable_write_node(node)
-        s(:lasgn, node.name, visit(node.value), location: node.location)
+        copy(node, value: visit(node.value))
       end
 
       def visit_match_write_node(node)

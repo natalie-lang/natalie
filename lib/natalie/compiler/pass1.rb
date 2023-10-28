@@ -265,8 +265,8 @@ module Natalie
         message = node.name
         args = node.arguments&.arguments || []
 
-        if repl? && (new_exp = fix_repl_var_that_looks_like_call(node))
-          return transform_expression(new_exp, used: used)
+        if repl? && (instructions = transform_repl_variable_that_looks_like_call(node, used: used))
+          return instructions
         end
 
         if is_inline_macro_call_node?(node)
@@ -1091,6 +1091,16 @@ module Natalie
         VariableGetInstruction.new(node.name)
       end
 
+      def transform_local_variable_write_node(node, used:)
+        instructions = [
+          VariableDeclareInstruction.new(node.name),
+          transform_expression(node.value, used: true),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << VariableSetInstruction.new(node.name)
+        instructions
+      end
+
       def transform_module_node(node, used:)
         instructions = []
         name, is_private, prep_instruction = constant_name(node.constant_path)
@@ -1197,6 +1207,20 @@ module Natalie
         return [] unless used
         regexp = Regexp.new(node.content, node.options)
         PushRegexpInstruction.new(regexp)
+      end
+
+      # HACK: When using the REPL, the parser doesn't differentiate between method calls
+      # and variable lookup. But we know which variables are defined in the REPL,
+      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
+      # TODO: Can we pass a list of local variables to Prism so this hack can be removed?
+      def transform_repl_variable_that_looks_like_call(node, used:)
+        return unless node.type == :call_node && node.receiver.nil?
+        return unless @compiler_context[:vars].key?(node.name)
+
+        # it is a variable, but it's unused so just return some empty instructions
+        return [] unless used
+
+        [VariableGetInstruction.new(node.name)]
       end
 
       def transform_rescue_modifier_node(node, used:)
@@ -1673,8 +1697,8 @@ module Natalie
         case args.sexp_type
         when :class_variable_target_node
           # Do nothing, no need to declare class variables.
-        when :lasgn
-          instructions << VariableDeclareInstruction.new(args[1])
+        when :local_variable_write_node
+          instructions << VariableDeclareInstruction.new(args.name)
         when :local_variable_target_node
           instructions << VariableDeclareInstruction.new(args.name)
         when :masgn
@@ -1765,17 +1789,6 @@ module Natalie
         InstanceVariableGetInstruction.new(name)
       end
 
-      def transform_lasgn(exp, used:)
-        _, name, value = exp
-        instructions = [
-          VariableDeclareInstruction.new(name),
-          transform_expression(value, used: true),
-          VariableSetInstruction.new(name),
-        ]
-        instructions << VariableGetInstruction.new(name) if used
-        instructions
-      end
-
       def transform_lit(exp, used:)
         return [] unless used
         lit = if exp.is_a?(Sexp)
@@ -1803,12 +1816,6 @@ module Natalie
         else
           raise "I don't yet know how to handle lit: \"#{lit.inspect}\" (#{exp.file}:#{exp.line}:#{exp.column})"
         end
-      end
-
-      def transform_lvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        VariableGetInstruction.new(name)
       end
 
       def transform_match_write(exp, used:)
@@ -2015,16 +2022,6 @@ module Natalie
 
       def repl?
         @compiler_context[:repl]
-      end
-
-      # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. But we know which variables are defined in the REPL,
-      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
-      def fix_repl_var_that_looks_like_call(node)
-        return false unless node.type == :call_node && node.receiver.nil?
-        return false unless @compiler_context[:vars].key?(node.name)
-
-        return Sexp.new(:lvar, node.name)
       end
 
       def s(*items)

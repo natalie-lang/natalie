@@ -35,15 +35,6 @@ module Natalie
       def transform_arg(arg)
         if arg.is_a?(Sexp)
           case arg.sexp_type
-          when :lasgn
-            clean_up_keyword_args
-            if arg.size == 2
-              # for-loop args look like: s(:lasgn, :x)
-              transform_required_arg(arg[1])
-            else
-              # otherwise, they should look like: s(:lasgn, :x, s(:lit, 1))
-              transform_optional_arg(arg)
-            end
           when :masgn
             clean_up_keyword_args
             if arg[1].is_a?(::Prism::ArrayNode)
@@ -132,7 +123,7 @@ module Natalie
         name = arg.name
         default_value = arg.value
 
-        if default_value&.sexp_type == :lvar && default_value[1] == name
+        if default_value&.type == :local_variable_read_node && default_value.name == name
           raise SyntaxError, "circular argument reference - #{name}"
         end
 
