@@ -1062,10 +1062,21 @@ module Natalie
       end
 
       def transform_interpolated_regular_expression_node(node, used:)
+        instructions = transform_interpolated_stringish_node(node, used: true, unescaped: false)
+        instructions << StringToRegexpInstruction.new(options: node.options)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_interpolated_string_node(node, used:)
+        transform_interpolated_stringish_node(node, used: true, unescaped: true)
+      end
+
+      def transform_interpolated_stringish_node(node, used:, unescaped:)
         parts = node.parts.dup
 
         starter = if parts.first.type == :str
-                    PushStringInstruction.new(parts.shift[2]) # 2 = content
+                    PushStringInstruction.new(parts.shift[unescaped ? 1 : 2]) # 1 = unescaped, 2 = content
                   else
                     PushStringInstruction.new('')
                   end
@@ -1075,7 +1086,7 @@ module Natalie
         parts.each do |part|
           case part
           when Sexp
-            instructions << PushStringInstruction.new(part[2]) # 2 = content
+            instructions << PushStringInstruction.new(part[unescaped ? 1 : 2]) # 1 = unescaped, 2 = content
           when Prism::StringNode
             instructions << PushStringInstruction.new(part.content)
           when Prism::EmbeddedStatementsNode
@@ -1086,7 +1097,6 @@ module Natalie
           instructions << StringAppendInstruction.new
         end
 
-        instructions << StringToRegexpInstruction.new(options: node.options)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2045,7 +2055,7 @@ module Natalie
       class << self
         def debug_instructions(instructions)
           instructions.each_with_index do |instruction, index|
-            desc = "#{index} #{instruction}"
+            desc = "#{instruction}"
             puts desc
           end
         end

@@ -356,7 +356,7 @@ module Natalie
       alias visit_integer_node visit_passthrough
 
       def visit_interpolated_string_node(node)
-        visit_interpolated_stringish_node(node, sexp_type: :dstr)
+        copy(node, parts: node.parts.map { |n| visit(n) })
       end
 
       def visit_interpolated_stringish_node(node, sexp_type:, unescaped: true)
@@ -591,24 +591,20 @@ module Natalie
       def visit_string_concat_node(node)
         left = visit(node.left)
         right = visit(node.right)
-        case [left.sexp_type, right.sexp_type]
+        case [left.type, right.type]
         when %i[str str]
           left[1] << right[1]
           left
-        when %i[dstr dstr]
-          right[1..].each do |segment|
-            left << if segment.is_a?(String)
-                      s(:str, segment, location: node.right.location)
-                    else
-                      segment
-                    end
+        when %i[interpolated_string_node interpolated_string_node]
+          right.parts.each do |part|
+            left.parts << part
           end
           left
-        when %i[str dstr]
-          right[1] = left[1] + right[1]
+        when %i[str interpolated_string_node]
+          right.parts.unshift(left)
           right
-        when %i[dstr str]
-          left << right
+        when %i[interpolated_string_node str]
+          left.parts << right
           left
         else
           raise SyntaxError, "Unexpected nodes for StringConcatNode: #{left.inspect} and #{right.inspect}"
