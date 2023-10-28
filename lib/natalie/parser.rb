@@ -401,7 +401,10 @@ module Natalie
       end
 
       def visit_match_write_node(node)
-        s(:match_write, visit(node.call), *node.locals, location: node.location)
+        copy(
+          node,
+          call: visit(node.call)
+        )
       end
 
       def visit_missing_node(_)
