@@ -500,27 +500,6 @@ module Natalie
         )
       end
 
-      def visit_rescue_node_old(node)
-        ref = visit(node.reference)
-
-        case ref
-        when nil
-          # Do nothing
-        when ::Prism::ClassVariableTargetNode,
-             ::Prism::ConstantTargetNode,
-             ::Prism::ConstantPathTargetNode,
-             ::Prism::GlobalVariableTargetNode,
-             ::Prism::InstanceVariableTargetNode,
-             ::Prism::LocalVariableTargetNode
-          # Do nothing here; handle these in Compiler::Rescue
-        else
-          raise "unhandled rescue reference: #{ref}"
-        end
-
-        ary = Prism.array_node(elements: node.exceptions.map { |exception| visit(exception) }, location: node.location)
-        s(:resbody, ary, ref, visit(node.statements), location: node.location)
-      end
-
       alias visit_rest_parameter_node visit_passthrough
 
       alias visit_retry_node visit_passthrough
