@@ -141,7 +141,7 @@ module Natalie
           else
             visit(node.statements)
           end
-        elsif !node.ensure_clause
+        else
           # carve out a bit for Prism to work on now
           copy(
             node,
@@ -150,23 +150,6 @@ module Natalie
             else_clause: visit(node.else_clause),
             ensure_clause: visit(node.ensure_clause)
           )
-        else
-          res = s(:rescue, location: node.location)
-          res << visit(node.statements) if node.statements
-          rescue_clause = node.rescue_clause
-          res << visit_rescue_node_old(rescue_clause)
-          while (rescue_clause = rescue_clause.consequent)
-            res << visit_rescue_node_old(rescue_clause)
-          end
-          res << visit(node.else_clause) if node.else_clause
-          if node.ensure_clause
-            s(:ensure,
-              res,
-              visit(node.ensure_clause.statements),
-              location: node.location)
-          else
-            res
-          end
         end
       end
 
@@ -288,6 +271,10 @@ module Natalie
 
       def visit_else_node(node)
         visit(node.child_nodes.first)
+      end
+
+      def visit_ensure_node(node)
+        copy(node, statements: visit(node.statements))
       end
 
       alias visit_false_node visit_passthrough

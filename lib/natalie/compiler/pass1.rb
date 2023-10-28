@@ -235,6 +235,18 @@ module Natalie
           ]
         end
 
+        if node.ensure_clause
+          raise_call = Prism.call_node(receiver: nil, name: :raise)
+          instructions.unshift(TryInstruction.new(discard_catch_result: true))
+          instructions += [
+            CatchInstruction.new,
+            transform_expression(node.ensure_clause.statements, used: true),
+            transform_expression(raise_call, used: true),
+            EndInstruction.new(:try),
+            transform_expression(node.ensure_clause.statements, used: false)
+          ]
+        end
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2049,7 +2061,7 @@ module Natalie
       class << self
         def debug_instructions(instructions)
           instructions.each_with_index do |instruction, index|
-            desc = "#{index} #{instruction}"
+            desc = "#{instruction}"
             puts desc
           end
         end
