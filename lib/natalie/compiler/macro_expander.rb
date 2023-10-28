@@ -43,11 +43,7 @@ module Natalie
         return get_macro_name_from_node(node) if node.is_a?(::Prism::Node)
         return false unless node.is_a?(Sexp)
 
-        if node.sexp_type == :iter
-          get_macro_name(node[1])
-        else
-          get_hidden_macro_name(node)
-        end
+        get_hidden_macro_name(node)
       end
 
       def get_macro_name_from_node(node)
@@ -61,8 +57,6 @@ module Natalie
               :user_macro
             end
           end
-        elsif node.sexp_type == :iter
-          get_macro_name(node[1])
         else
           get_hidden_macro_name(node)
         end
