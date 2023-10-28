@@ -132,21 +132,13 @@ module Natalie
       alias visit_back_reference_read_node visit_passthrough
 
       def visit_begin_node(node)
-        if !node.rescue_clause && !node.else_clause && node.ensure_clause
-          s(:ensure,
-            visit(node.statements),
-            visit(node.ensure_clause.statements),
-            location: node.location)
-        else
-          # carve out a bit for Prism to work on now
-          copy(
-            node,
-            statements: visit(node.statements),
-            rescue_clause: visit(node.rescue_clause),
-            else_clause: visit(node.else_clause),
-            ensure_clause: visit(node.ensure_clause)
-          )
-        end
+        copy(
+          node,
+          statements: visit(node.statements),
+          rescue_clause: visit(node.rescue_clause),
+          else_clause: visit(node.else_clause),
+          ensure_clause: visit(node.ensure_clause)
+        )
       end
 
       def visit_block_argument_node(node)
