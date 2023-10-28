@@ -1,19 +1,17 @@
 module Natalie
   class Compiler
     class Args
-      def initialize(pass, local_only: true, file:, line:)
+      def initialize(pass, local_only: true)
         @pass = pass
         @local_only = local_only
-        @file = file
-        @line = line
         @underscore_arg_set = false
       end
 
       def transform(node)
         @from_side = :left
         @instructions = []
-        if node.is_a?(Sexp)
-          _, *@args = node
+        if node.instance_of?(Array)
+          @args = node
         elsif node.is_a?(::Prism::RequiredDestructuredParameterNode)
           @args = node.parameters
         elsif node.is_a?(::Prism::MultiTargetNode)
@@ -147,7 +145,7 @@ module Natalie
         @instructions << ArrayShiftInstruction.new
         @instructions << DupInstruction.new
         @instructions << ToArrayInstruction.new
-        sub_processor = self.class.new(@pass, local_only: @local_only, file: @file, line: @line)
+        sub_processor = self.class.new(@pass, local_only: @local_only)
         @instructions << sub_processor.transform(arg)
         @instructions << PopInstruction.new
       end

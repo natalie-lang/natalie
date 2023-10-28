@@ -859,7 +859,7 @@ module Natalie
       def transform_for_node(node, used:)
         instructions = transform_for_declare_args(node.index)
         instructions << DefineBlockInstruction.new(arity: 1)
-        instructions += transform_block_args_for_for(s(:args, node.index), used: true)
+        instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true)
         instructions << EndInstruction.new(:define_block)
         call = Prism.call_node(receiver: node.collection, name: :each)
@@ -1655,9 +1655,25 @@ module Natalie
         ]
       end
 
-      def transform_defn_args(exp, used:, for_block: false, check_args: true, local_only: true)
+      def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
-        _, *args = exp
+
+        args = case node
+               when nil
+                 []
+               when Prism::ParametersNode
+                 (
+                   node.requireds +
+                   [node.rest] +
+                   node.optionals +
+                   node.posts +
+                   node.keywords +
+                   [node.keyword_rest] +
+                   [node.block]
+                 ).compact
+               else
+                 [node]
+               end
 
         instructions = []
 
@@ -1711,12 +1727,7 @@ module Natalie
             spread: for_block && args.size > 1,
           )
 
-          instructions << Args.new(
-            self,
-            local_only: local_only,
-            file: exp.file,
-            line: exp.line
-          ).transform(exp.new(:args, *args))
+          instructions << Args.new(self, local_only: local_only).transform(args)
 
           return instructions
         end

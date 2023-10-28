@@ -6,11 +6,7 @@ module Prism
   class Node
     # This is to maintain the same interface as Sexp instances. It doesn't
     # provide the exact same thing, so as we migrate we'll need to update call
-    # sites to handle the "correct" type. The list of types that we need to
-    # handle are:
-    #
-    # * args
-    #
+    # sites to handle the "correct" type.
     def sexp_type
       type
     end
@@ -156,7 +152,7 @@ module Natalie
       alias visit_block_parameter_node visit_passthrough
 
       def visit_block_parameters_node(node)
-        visit_parameters_node(node.parameters)
+        visit_parameters_node(node.parameters) if node.parameters
       end
 
       def visit_break_node(node)
@@ -448,14 +444,16 @@ module Natalie
       end
 
       def visit_parameters_node(node)
-        return Sexp.new(:args) unless node
-
-        # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
-        in_order = node.child_nodes.compact.sort_by { |n| n.location.start_offset }
-
-        s(:args,
-          *in_order.map { |n| visit(n) }.compact,
-          location: node.location)
+        copy(
+          node,
+          requireds: node.requireds.map { |n| visit(n) },
+          rest: visit(node.rest),
+          optionals: node.optionals.map { |n| visit(n) },
+          posts: node.posts.map { |n| visit(n) },
+          keywords: node.keywords.map { |n| visit(n) },
+          keyword_rest: visit(node.keyword_rest),
+          block: visit(node.block)
+        )
       end
 
       def visit_parentheses_node(node)
