@@ -3,7 +3,6 @@ require_relative './arity'
 require_relative './base_pass'
 require_relative './const_prepper'
 require_relative './multiple_assignment'
-require_relative './rescue'
 
 module Natalie
   class Compiler
@@ -1668,27 +1667,6 @@ module Natalie
         instructions
       end
 
-      def transform_ensure(exp, used:)
-        _, body, ensure_body = exp
-        raise_call = Prism.call_node(receiver: nil, name: :raise)
-        instructions = [
-          TryInstruction.new(discard_catch_result: true),
-          transform_expression(body, used: true),
-          CatchInstruction.new,
-          transform_expression(ensure_body, used: true),
-          transform_expression(raise_call, used: true),
-          EndInstruction.new(:try),
-          DupInstruction.new,
-          PushRescuedInstruction.new,
-          IfInstruction.new,
-          ElseInstruction.new(:if),
-          transform_expression(ensure_body, used: false),
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_for_declare_args(args)
         instructions = []
 
@@ -1882,12 +1860,6 @@ module Natalie
           transform_expression(value, used: true),
           NotInstruction.new,
         ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_rescue(exp, used:)
-        instructions = Rescue.new(self).transform(exp)
         instructions << PopInstruction.new unless used
         instructions
       end
