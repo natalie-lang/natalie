@@ -213,6 +213,11 @@ module Natalie
         try_instruction = TryInstruction.new
         retry_id = try_instruction.object_id
 
+        if !node.rescue_clause && !node.else_clause && !node.ensure_clause
+          # begin; foo; end -- usually used with a modifier like `while`
+          return transform_expression(node.statements, used: used)
+        end
+
         instructions = [
           try_instruction,
           transform_body(node.statements, used: true),
