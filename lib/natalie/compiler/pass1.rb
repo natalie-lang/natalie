@@ -1788,15 +1788,6 @@ module Natalie
         }
       end
 
-      def transform_const(exp, used:)
-        return [] unless used
-        _, name = exp
-        [
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(name, strict: false),
-        ]
-      end
-
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
 

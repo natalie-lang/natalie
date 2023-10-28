@@ -275,7 +275,7 @@ module Natalie
           receiver: nil,
           name: :raise,
           arguments: [
-            s(:const, exception_class),
+            Prism.constant_read_node(name: exception_class),
             Prism.string_node(unescaped: message)
           ]
         )
