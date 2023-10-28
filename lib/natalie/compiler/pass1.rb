@@ -1916,24 +1916,9 @@ module Natalie
 
       def transform_undef(exp, used:)
         _, name = exp
-        name = case name.type
-               when :symbol_node
-                 name.unescaped.to_sym
-               when :interpolated_symbol_node
-                 # FIXME: doesn't work with real dynamic symbol :-(
-                 # only works with: s(:dsym, "simple")
-                 # We'll need UndefineMethodInstruction to pop its argument from the stack to fix this.
-                 part = name.parts.first
-                 if part.type == :str
-                   part[1]
-                 else
-                   part.statements.body.first[1]
-                 end
-               else
-                 raise 'NATFIXME: dynamic symbol for undef'
-               end
         instructions = [
-          UndefineMethodInstruction.new(name: name),
+          transform_expression(name, used: true),
+          UndefineMethodInstruction.new
         ]
         instructions << PushNilInstruction.new if used
         instructions
