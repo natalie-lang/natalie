@@ -63,6 +63,27 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
         }
     }
     set_fileno(fileno);
+    // NATFIXME: We're effectively reversing the loging from ioutil.cpp, this should be rewritten
+    const auto flags = actual_flags & (O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_TRUNC | O_APPEND);
+    String mode;
+    if (flags == O_RDONLY || flags == (O_RDONLY | O_APPEND)) {
+        mode = "r";
+    } else if (flags == O_RDWR) {
+        mode = "r+";
+    } else if (flags == O_WRONLY || flags == (O_WRONLY | O_CREAT | O_TRUNC)) {
+        mode = "w";
+    } else if (flags == (O_RDWR | O_CREAT | O_TRUNC)) {
+        mode = "w+";
+    } else if (flags == (O_WRONLY | O_CREAT | O_APPEND) || flags == (O_WRONLY | O_APPEND)) {
+        mode = "a";
+    } else if (flags == (O_RDWR | O_CREAT | O_APPEND) || flags == (O_RDWR | O_APPEND)) {
+        mode = "a+";
+    } else {
+        env->raise("ArgumentError", "Unknown flags: {}", flags);
+    }
+    m_file = fdopen(m_fileno, mode.c_str());
+    if (!m_file)
+        env->raise_errno();
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
@@ -697,7 +718,12 @@ Value IoObject::close(Env *env) {
     // on a closed file descriptor.
     ThreadObject::interrupt();
 
-    int result = ::close(m_fileno);
+    int result;
+    if (m_file) {
+        result = ::fclose(m_file);
+    } else {
+        result = ::close(m_fileno);
+    }
     if (result == -1)
         env->raise_errno();
 
