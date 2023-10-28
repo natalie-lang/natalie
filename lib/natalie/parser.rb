@@ -569,14 +569,7 @@ module Natalie
       alias visit_true_node visit_passthrough
 
       def visit_undef_node(node)
-        if node.names.size == 1
-          s(:undef, visit(node.names.first), location: node.location)
-        else
-          ::Prism::StatementsNode.new(
-            node.names.map { |n| s(:undef, visit(n), location: n.location) },
-            node.location
-          )
-        end
+        copy(node, names: node.names.map { |n| visit(n) })
       end
 
       def visit_unless_node(node)

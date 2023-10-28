@@ -1951,12 +1951,14 @@ module Natalie
         instructions
       end
 
-      def transform_undef(exp, used:)
-        _, name = exp
-        instructions = [
-          transform_expression(name, used: true),
-          UndefineMethodInstruction.new
-        ]
+      def transform_undef_node(node, used:)
+        instructions = node.names.flat_map do |name|
+          [
+            transform_expression(name, used: true),
+            UndefineMethodInstruction.new
+          ]
+        end
+
         instructions << PushNilInstruction.new if used
         instructions
       end
