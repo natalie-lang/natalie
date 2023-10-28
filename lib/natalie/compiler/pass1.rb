@@ -1101,6 +1101,31 @@ module Natalie
         instructions
       end
 
+      def transform_interpolated_symbol_node(node, used:)
+        instructions = [
+          transform_interpolated_stringish_node(node, used: true, unescaped: false),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :to_sym,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          )
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_interpolated_x_string_node(node, used:)
+        instructions = [
+          transform_interpolated_stringish_node(node, used: true, unescaped: false),
+          ShellInstruction.new
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
@@ -1731,32 +1756,6 @@ module Natalie
         instructions
       end
 
-      def transform_dsym(exp, used:)
-        instructions = [
-          transform_dstr(exp, used: true),
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :to_sym,
-            receiver_is_self: false,
-            with_block: false,
-            file: exp.file,
-            line: exp.line,
-          ),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dxstr(exp, used:)
-        _, *parts = exp
-        instructions = [
-          transform_dstr(exp.new(:dstr, *parts), used: true),
-          ShellInstruction.new,
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_for_declare_args(args)
         instructions = []
 
@@ -1917,13 +1916,21 @@ module Natalie
 
       def transform_undef(exp, used:)
         _, name = exp
-        name = if name.type == :symbol_node
+        name = case name.type
+               when :symbol_node
                  name.unescaped.to_sym
-               else
+               when :interpolated_symbol_node
                  # FIXME: doesn't work with real dynamic symbol :-(
                  # only works with: s(:dsym, "simple")
                  # We'll need UndefineMethodInstruction to pop its argument from the stack to fix this.
-                 name.last
+                 part = name.parts.first
+                 if part.type == :str
+                   part[1]
+                 else
+                   part.statements.body.first[1]
+                 end
+               else
+                 raise 'NATFIXME: dynamic symbol for undef'
                end
         instructions = [
           UndefineMethodInstruction.new(name: name),
