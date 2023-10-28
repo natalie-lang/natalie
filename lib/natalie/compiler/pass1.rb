@@ -1508,6 +1508,27 @@ module Natalie
         [PushTrueInstruction.new]
       end
 
+      def transform_until_node(node, used:)
+        pre = !node.begin_modifier?
+        instructions = [
+          WhileInstruction.new(pre: pre),
+          transform_expression(node.predicate, used: true),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :!,
+            receiver_is_self: true,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          WhileBodyInstruction.new,
+          transform_expression(node.statements || Prism.nil_node, used: true),
+          EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_yield_node(node, used:)
         arg_meta = transform_arguments_node_for_callish(node.arguments)
         instructions = arg_meta.fetch(:instructions)
@@ -1903,19 +1924,6 @@ module Natalie
         ]
         instructions << PushNilInstruction.new if used
         instructions
-      end
-
-      def transform_until(exp, used:)
-        _, condition, body, pre = exp
-        transform_while(
-          exp.new(
-            :while,
-            Prism.call_node(receiver: condition, name: :!),
-            body,
-            pre
-          ),
-          used: used
-        )
       end
 
       def transform_while(exp, used:)

@@ -584,11 +584,11 @@ module Natalie
       end
 
       def visit_until_node(node)
-        s(:until,
-          visit(node.predicate),
-          visit(node.statements),
-          !node.begin_modifier?,
-          location: node.location)
+        copy(
+          node,
+          predicate: visit(node.predicate),
+          statements: visit(node.statements)
+        )
       end
 
       def visit_when_node(node)
