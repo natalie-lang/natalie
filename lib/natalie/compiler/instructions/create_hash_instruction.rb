@@ -10,6 +10,7 @@ module Natalie
 
       attr_reader :count
 
+      # TODO: is this used?
       def bare?
         !!@bare
       end

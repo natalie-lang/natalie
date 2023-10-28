@@ -10,7 +10,6 @@ module Prism
     # handle are:
     #
     # * args
-    # * bare_hash
     # * evstr
     # * gasgn
     # * str
@@ -125,7 +124,7 @@ module Natalie
       end
 
       def visit_assoc_node(node)
-        [visit(node.key), visit(node.value)]
+        copy(node, key: visit(node.key), value: visit(node.value))
       end
 
       def visit_assoc_splat_node(node)
@@ -313,9 +312,7 @@ module Natalie
       end
 
       def visit_hash_node(node)
-        s(:hash,
-          *flatten(node.child_nodes.map { |n| visit(n) }),
-          location: node.location)
+        copy(node, elements: node.elements.map { |n| visit(n) })
       end
 
       def visit_if_node(node)
@@ -410,9 +407,7 @@ module Natalie
       end
 
       def visit_keyword_hash_node(node)
-        s(:bare_hash,
-          *flatten(node.child_nodes.map { |n| visit(n) }),
-          location: node.location)
+        copy(node, elements: node.elements.map { |n| visit(n) })
       end
 
       def visit_keyword_parameter_node(node)

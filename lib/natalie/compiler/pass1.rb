@@ -128,7 +128,7 @@ module Natalie
             instructions: instructions,
             with_block_pass: !!block,
             args_array_on_stack: true,
-            has_keyword_hash: args.last&.sexp_type == :bare_hash
+            has_keyword_hash: args.last&.type == :keyword_hash_node
           }
         end
 
@@ -154,7 +154,7 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
 
-        has_keyword_hash = args.last&.sexp_type == :bare_hash
+        has_keyword_hash = args.last&.type == :keyword_hash_node
 
         instructions << PushArgcInstruction.new(args.size)
 
@@ -945,6 +945,38 @@ module Natalie
         GlobalVariableGetInstruction.new(node.name)
       end
 
+      def transform_hash_node(node, used:, bare: false)
+        instructions = []
+
+        # create hash from elements before a splat
+        prior_to_splat_count = 0
+        node.elements.each do |element|
+          break if element.type == :assoc_splat_node
+          instructions << transform_expression(element.key, used: true)
+          instructions << transform_expression(element.value, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateHashInstruction.new(count: prior_to_splat_count, bare: bare)
+
+        # now, if applicable, add to the hash the splat element and everything after
+        node.elements[prior_to_splat_count..].each do |element|
+          if element.sexp_type == :assoc_splat_node
+            instructions << transform_expression(element.value, used: true)
+            instructions << HashMergeInstruction.new
+          else
+            instructions << transform_expression(element.key, used: true)
+            instructions << transform_expression(element.value, used: true)
+            instructions << HashPutInstruction.new
+          end
+        end
+
+        instructions
+      end
+
+      def transform_keyword_hash_node(node, used:)
+        transform_hash_node(node, used: used, bare: true)
+      end
+
       def transform_imaginary_node(node, used:)
         return [] unless used
 
@@ -1464,10 +1496,6 @@ module Natalie
         instructions
       end
 
-      def transform_bare_hash(exp, used:)
-        transform_hash(exp, bare: true, used: used)
-      end
-
       def transform_block_argument_node(node, used:)
         return [] unless used
         [transform_expression(node.expression, used: true)]
@@ -1510,7 +1538,7 @@ module Natalie
           return {
             with_block_pass: !!with_block,
             args_array_on_stack: true,
-            has_keyword_hash: args.last&.sexp_type == :bare_hash
+            has_keyword_hash: args.last&.type == :keyword_hash_node
           }
         end
 
@@ -1536,7 +1564,7 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
 
-        has_keyword_hash = args.last&.sexp_type == :bare_hash
+        has_keyword_hash = args.last&.type == :keyword_hash_node
 
         instructions << PushArgcInstruction.new(args.size)
 
@@ -1720,50 +1748,6 @@ module Natalie
         _, name, value = exp
         instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
         instructions << GlobalVariableGetInstruction.new(name) if used
-        instructions
-      end
-
-      def transform_hash(exp, used:, bare: false)
-        _, *items = exp
-        instructions = []
-        if items.any? { |a| a.sexp_type == :assoc_splat_node }
-          instructions += transform_hash_with_assoc_splat(items, bare: bare)
-        else
-          items.each do |item|
-            instructions << transform_expression(item, used: true)
-          end
-          instructions << CreateHashInstruction.new(count: items.size / 2, bare: bare)
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_hash_with_assoc_splat(items, bare:)
-        items = items.dup
-        instructions = []
-
-        # create hash from items before the splat
-        prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :assoc_splat_node
-          instructions << transform_expression(items.shift, used: true)
-          prior_to_splat_count += 1
-        end
-        instructions << CreateHashInstruction.new(count: prior_to_splat_count / 2, bare: bare)
-
-        # now add to the hash the first splat item and everything after
-        while items.any?
-          key = items.shift
-          if key.sexp_type == :assoc_splat_node
-            instructions << transform_expression(key.value, used: true)
-            instructions << HashMergeInstruction.new
-          else
-            value = items.shift
-            instructions << transform_expression(key, used: true)
-            instructions << transform_expression(value, used: true)
-            instructions << HashPutInstruction.new
-          end
-        end
-
         instructions
       end
 
