@@ -1205,7 +1205,7 @@ module Natalie
           transform_expression(node.expression, used: true),
           CatchInstruction.new,
           PushSelfInstruction.new,
-          ConstFindInstruction.new(:StandardError),
+          ConstFindInstruction.new(:StandardError, strict: false),
           CreateArrayInstruction.new(count: 1),
           MatchExceptionInstruction.new,
           IfInstruction.new,
