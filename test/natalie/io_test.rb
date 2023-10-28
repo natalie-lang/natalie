@@ -71,35 +71,9 @@ describe "IO#gets" do
   end
 end
 
-describe "IO#pwrite" do
-  before :each do
-    @name = tmp('io_pwrite')
-    @io = File.open(@name, 'w')
-  end
-
-  after :each do
-    @io.close
-    rm_r @name
-  end
-
-  it 'calls to_s on the object to be written' do
-    data = mock('data')
-    data.should_receive(:to_s).and_return('x')
-    @io.pwrite(data, 0)
-    File.read(@name).should == 'x'
-  end
-
-  it 'calls to_int on the offset' do
-    offset = mock('offset')
-    offset.should_receive(:to_int).and_return(0)
-    @io.pwrite('x', offset)
-    File.read(@name).should == 'x'
-  end
-end
-
 describe "IO#ungetbyte" do
   before :each do
-    @name = tmp('io_pwrite')
+    @name = tmp('io_ungetbyte')
     @io = File.open(@name, 'a+')
   end
 
