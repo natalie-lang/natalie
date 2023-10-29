@@ -63,7 +63,7 @@ module Natalie
           if %i[with_filename autoload_const].include?(node.first)
             # TODO: remove this kludge and change these fake node types to CallNode or something else
             @depth += 1
-            method = "transform_#{node.first}"
+            method = "transform_#{node.first}_fake_node"
             result = send(method, node, used: used)
             @depth -= 1
             Array(result).flatten
@@ -96,7 +96,7 @@ module Natalie
 
       private
 
-      # INDIVIDUAL PRISM NODES = = = = =
+      # INDIVIDUAL NODES = = = = =
       # (in alphabetical order)
 
       def transform_alias_method_node(node, used:)
@@ -135,7 +135,7 @@ module Natalie
         end
 
         if args.any? { |a| a.type == :splat_node }
-          instructions << transform_array_with_splat(args)
+          instructions << transform_array_elements_with_splat(args)
           return {
             instructions: instructions,
             with_block_pass: !!block,
@@ -191,12 +191,38 @@ module Natalie
         end
       end
 
+      def transform_array_elements_with_splat(elements)
+        elements = elements.dup
+        instructions = []
+
+        # create array from items before the splat
+        prior_to_splat_count = 0
+        while elements.any? && elements.first.type != :splat_node
+          instructions << transform_expression(elements.shift, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
+
+        # now add to the array the first splat item and everything after
+        elements.each do |arg|
+          if arg.type == :splat_node
+            instructions << transform_expression(arg.expression, used: true)
+            instructions << ArrayConcatInstruction.new
+          else
+            instructions << transform_expression(arg, used: true)
+            instructions << ArrayPushInstruction.new
+          end
+        end
+
+        instructions
+      end
+
       def transform_array_node(node, used:)
         elements = node.elements
         instructions = []
 
         if node.elements.any? { |a| a.type == :splat_node }
-          instructions += transform_array_with_splat(elements)
+          instructions += transform_array_elements_with_splat(elements)
         else
           elements.each do |element|
             instructions << transform_expression(element, used: true)
@@ -204,6 +230,17 @@ module Natalie
           instructions << CreateArrayInstruction.new(count: elements.size)
         end
 
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_autoload_const_fake_node(exp, used:)
+        _, name, path, *body = exp
+        instructions = [
+          AutoloadConstInstruction.new(name: name, path: path),
+          transform_body(body, used: true),
+          EndInstruction.new(:autoload_const),
+        ]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -265,11 +302,91 @@ module Natalie
         instructions
       end
 
+      def transform_block_args(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: false, used: used)
+      end
+
+      def transform_block_args_for_for(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
+      end
+
+      def transform_block_args_for_lambda(exp, used:)
+        transform_defn_args(exp, for_block: true, check_args: true, used: used)
+      end
+
+      def transform_block_argument_node(node, used:)
+        return [] unless used
+        [transform_expression(node.expression, used: true)]
+      end
+
+      def transform_block_node(node, used:, is_lambda:)
+        arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
+        instructions = []
+        instructions << DefineBlockInstruction.new(arity: arity)
+        if is_lambda
+          instructions << transform_block_args_for_lambda(node.parameters, used: true)
+        else
+          instructions << transform_block_args(node.parameters, used: true)
+        end
+        instructions << transform_expression(node.body || Prism.nil_node, used: true)
+        instructions << EndInstruction.new(:define_block)
+        instructions
+      end
+
       def transform_break_node(node, used:)
         [
           transform_arguments_node_for_returnish(node.arguments, location: node.location),
           BreakInstruction.new
         ]
+      end
+
+      def transform_call_args(args, with_block:, instructions: [])
+        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
+          instructions.unshift(PushBlockInstruction.new)
+          with_block = true
+        end
+
+        if args.any? { |a| a.type == :splat_node }
+          instructions << transform_array_elements_with_splat(args)
+          return {
+            with_block_pass: !!with_block,
+            args_array_on_stack: true,
+            has_keyword_hash: args.last&.type == :keyword_hash_node
+          }
+        end
+
+        # special ... syntax
+        if args.size == 1 && args.first.type == :forwarding_arguments_node
+          instructions << PushArgsInstruction.new(
+            for_block: false,
+            min_count: nil,
+            max_count: nil,
+            spread: false,
+            to_array: false,
+          )
+          return {
+            instructions: instructions,
+            with_block_pass: !!with_block,
+            args_array_on_stack: true,
+            has_keyword_hash: false,
+            forward_args: true,
+          }
+        end
+
+        args.each do |arg|
+          instructions << transform_expression(arg, used: true)
+        end
+
+        has_keyword_hash = args.last&.type == :keyword_hash_node
+
+        instructions << PushArgcInstruction.new(args.size)
+
+        {
+          instructions: instructions,
+          with_block_pass: !!with_block,
+          args_array_on_stack: false,
+          has_keyword_hash: has_keyword_hash,
+        }
       end
 
       def transform_call_node(node, used:, with_block: false)
@@ -689,17 +806,6 @@ module Natalie
         instructions
       end
 
-      def transform_class_variable_read_node(node, used:)
-        return [] unless used
-        ClassVariableGetInstruction.new(node.name)
-      end
-
-      def transform_class_variable_write_node(node, used:)
-        instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
-        instructions << ClassVariableGetInstruction.new(node.name) if used
-        instructions
-      end
-
       def transform_class_variable_and_write_node(node, used:)
         instructions = [
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
@@ -712,21 +818,6 @@ module Natalie
           EndInstruction.new(:if)
         ]
 
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_class_variable_or_write_node(node, used:)
-        instructions = [
-          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
-          IfInstruction.new,
-          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
-          ElseInstruction.new(:if),
-          transform_expression(node.value, used: true),
-          ClassVariableSetInstruction.new(node.name),
-          ClassVariableGetInstruction.new(node.name),
-          EndInstruction.new(:if),
-        ]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -745,6 +836,32 @@ module Natalie
           ),
           ClassVariableSetInstruction.new(node.name)
         ]
+        instructions << ClassVariableGetInstruction.new(node.name) if used
+        instructions
+      end
+
+      def transform_class_variable_or_write_node(node, used:)
+        instructions = [
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          IfInstruction.new,
+          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          ClassVariableSetInstruction.new(node.name),
+          ClassVariableGetInstruction.new(node.name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_class_variable_read_node(node, used:)
+        return [] unless used
+        ClassVariableGetInstruction.new(node.name)
+      end
+
+      def transform_class_variable_write_node(node, used:)
+        instructions = [transform_expression(node.value, used: true), ClassVariableSetInstruction.new(node.name)]
         instructions << ClassVariableGetInstruction.new(node.name) if used
         instructions
       end
@@ -860,6 +977,93 @@ module Natalie
         ]
       end
 
+      def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
+        return [] unless used
+
+        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
+
+        args = case node
+               when nil
+                 []
+               when Prism::ParametersNode
+                 (
+                   node.requireds +
+                   [node.rest] +
+                   node.optionals +
+                   node.posts +
+                   node.keywords +
+                   [node.keyword_rest] +
+                   [node.block]
+                 ).compact
+               else
+                 [node]
+               end
+
+        instructions = []
+
+        # special ... syntax
+        if args.size == 1 && args.first.type == :forwarding_parameter_node
+          # nothing to do
+          return []
+        end
+
+        # &block pass
+        if args.last&.type == :block_parameter_node
+          block_arg = args.pop
+          instructions << PushBlockInstruction.new
+          instructions << VariableSetInstruction.new(block_arg.name, local_only: local_only)
+        end
+
+        has_complicated_args = args.any? do |arg|
+          arg.type != :required_parameter_node
+        end
+
+        if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
+          has_complicated_args = true
+        end
+
+        may_need_to_destructure_args_for_block = for_block && args.size > 1
+
+        if has_complicated_args || may_need_to_destructure_args_for_block
+          min_count = minimum_arg_count(args)
+          max_count = maximum_arg_count(args)
+          required_keywords = required_keywords(args)
+
+          instructions << PopKeywordArgsInstruction.new if any_keyword_args?(args)
+
+          if check_args
+            argc = min_count == max_count ? min_count : min_count..max_count
+            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
+          end
+
+          if required_keywords.any?
+            instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
+          end
+
+          instructions << PushArgsInstruction.new(
+            for_block: for_block,
+            min_count: min_count,
+            max_count: max_count,
+            spread: for_block && args.size > 1,
+          )
+
+          instructions << Args.new(self, local_only: local_only).transform(args)
+
+          return instructions
+        end
+
+        if check_args
+          instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
+        end
+
+        args.each_with_index do |arg, index|
+          instructions << PushArgInstruction.new(index, nil_default: for_block)
+          instructions << VariableSetInstruction.new(arg.name, local_only: local_only)
+        end
+
+        instructions
+      end
+
       def transform_else_node(node, used:)
         raise 'unexpected ElseNode child count' if node.child_nodes.size != 1
 
@@ -880,6 +1084,27 @@ module Natalie
       def transform_float_node(node, used:)
         return [] unless used
         [PushFloatInstruction.new(node.value)]
+      end
+
+      def transform_for_declare_args(args)
+        instructions = []
+
+        case args.type
+        when :class_variable_target_node
+          # Do nothing, no need to declare class variables.
+        when :local_variable_write_node
+          instructions << VariableDeclareInstruction.new(args.name)
+        when :local_variable_target_node
+          instructions << VariableDeclareInstruction.new(args.name)
+        when :multi_target_node
+          args.targets.each do |arg|
+            instructions += transform_for_declare_args(arg)
+          end
+        else
+          raise "I don't yet know how to declare this variable: #{args.inspect}"
+        end
+
+        instructions
       end
 
       def transform_for_node(node, used:)
@@ -1611,6 +1836,18 @@ module Natalie
         [PushTrueInstruction.new]
       end
 
+      def transform_undef_node(node, used:)
+        instructions = node.names.flat_map do |name|
+          [
+            transform_expression(name, used: true),
+            UndefineMethodInstruction.new
+          ]
+        end
+
+        instructions << PushNilInstruction.new if used
+        instructions
+      end
+
       def transform_unless_node(node, used:)
         true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
         false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
@@ -1647,6 +1884,20 @@ module Natalie
         instructions
       end
 
+      def transform_with_filename_fake_node(exp, used:)
+        depth_was = @depth
+        @depth = 0
+        _, filename, require_once, *body = exp
+        instructions = [
+          WithFilenameInstruction.new(filename, require_once: require_once),
+          transform_body(body, used: true),
+          EndInstruction.new(:with_filename),
+        ]
+        instructions << PopInstruction.new unless used
+        @depth = depth_was
+        instructions
+      end
+
       def transform_while_node(node, used:)
         pre = !node.begin_modifier?
         instructions = [
@@ -1676,310 +1927,6 @@ module Natalie
           args_array_on_stack: arg_meta.fetch(:args_array_on_stack),
         )
         instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      # INDIVIDUAL EXPRESSIONS = = = = =
-      # (in alphabetical order)
-
-      def transform_alias(exp, used:)
-        _, new_name, old_name = exp
-        instructions = [transform_expression(new_name, used: true)]
-        instructions << DupInstruction.new if used
-        instructions << transform_expression(old_name, used: true)
-        instructions << AliasInstruction.new
-      end
-
-      def transform_array_with_splat(elements)
-        elements = elements.dup
-        instructions = []
-
-        # create array from items before the splat
-        prior_to_splat_count = 0
-        while elements.any? && elements.first.type != :splat_node
-          instructions << transform_expression(elements.shift, used: true)
-          prior_to_splat_count += 1
-        end
-        instructions << CreateArrayInstruction.new(count: prior_to_splat_count)
-
-        # now add to the array the first splat item and everything after
-        elements.each do |arg|
-          if arg.type == :splat_node
-            instructions << transform_expression(arg.expression, used: true)
-            instructions << ArrayConcatInstruction.new
-          else
-            instructions << transform_expression(arg, used: true)
-            instructions << ArrayPushInstruction.new
-          end
-        end
-
-        instructions
-      end
-
-      def transform_autoload_const(exp, used:)
-        _, name, path, *body = exp
-        instructions = [
-          AutoloadConstInstruction.new(name: name, path: path),
-          transform_body(body, used: true),
-          EndInstruction.new(:autoload_const),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_block_argument_node(node, used:)
-        return [] unless used
-        [transform_expression(node.expression, used: true)]
-      end
-
-      def transform_block_node(node, used:, is_lambda:)
-        arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
-        instructions = []
-        instructions << DefineBlockInstruction.new(arity: arity)
-        if is_lambda
-          instructions << transform_block_args_for_lambda(node.parameters, used: true)
-        else
-          instructions << transform_block_args(node.parameters, used: true)
-        end
-        instructions << transform_expression(node.body || Prism.nil_node, used: true)
-        instructions << EndInstruction.new(:define_block)
-        instructions
-      end
-
-      def transform_block_args(exp, used:)
-        transform_defn_args(exp, for_block: true, check_args: false, used: used)
-      end
-
-      def transform_block_args_for_lambda(exp, used:)
-        transform_defn_args(exp, for_block: true, check_args: true, used: used)
-      end
-
-      def transform_block_args_for_for(exp, used:)
-        transform_defn_args(exp, for_block: true, check_args: false, local_only: false, used: used)
-      end
-
-      def transform_call_args(args, with_block:, instructions: [])
-        if args.size == 1 && args.first.type == :forwarding_arguments_node && !with_block
-          instructions.unshift(PushBlockInstruction.new)
-          with_block = true
-        end
-
-        if args.any? { |a| a.type == :splat_node }
-          instructions << transform_array_with_splat(args)
-          return {
-            with_block_pass: !!with_block,
-            args_array_on_stack: true,
-            has_keyword_hash: args.last&.type == :keyword_hash_node
-          }
-        end
-
-        # special ... syntax
-        if args.size == 1 && args.first.type == :forwarding_arguments_node
-          instructions << PushArgsInstruction.new(
-            for_block: false,
-            min_count: nil,
-            max_count: nil,
-            spread: false,
-            to_array: false,
-          )
-          return {
-            instructions: instructions,
-            with_block_pass: !!with_block,
-            args_array_on_stack: true,
-            has_keyword_hash: false,
-            forward_args: true,
-          }
-        end
-
-        args.each do |arg|
-          instructions << transform_expression(arg, used: true)
-        end
-
-        has_keyword_hash = args.last&.type == :keyword_hash_node
-
-        instructions << PushArgcInstruction.new(args.size)
-
-        {
-          instructions: instructions,
-          with_block_pass: !!with_block,
-          args_array_on_stack: false,
-          has_keyword_hash: has_keyword_hash,
-        }
-      end
-
-      def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
-        return [] unless used
-
-        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
-
-        args = case node
-               when nil
-                 []
-               when Prism::ParametersNode
-                 (
-                   node.requireds +
-                   [node.rest] +
-                   node.optionals +
-                   node.posts +
-                   node.keywords +
-                   [node.keyword_rest] +
-                   [node.block]
-                 ).compact
-               else
-                 [node]
-               end
-
-        instructions = []
-
-        # special ... syntax
-        if args.size == 1 && args.first.type == :forwarding_parameter_node
-          # nothing to do
-          return []
-        end
-
-        # &block pass
-        if args.last&.type == :block_parameter_node
-          block_arg = args.pop
-          instructions << PushBlockInstruction.new
-          instructions << VariableSetInstruction.new(block_arg.name, local_only: local_only)
-        end
-
-        has_complicated_args = args.any? do |arg|
-          arg.type != :required_parameter_node
-        end
-
-        if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
-          has_complicated_args = true
-        end
-
-        may_need_to_destructure_args_for_block = for_block && args.size > 1
-
-        if has_complicated_args || may_need_to_destructure_args_for_block
-          min_count = minimum_arg_count(args)
-          max_count = maximum_arg_count(args)
-          required_keywords = required_keywords(args)
-
-          instructions << PopKeywordArgsInstruction.new if any_keyword_args?(args)
-
-          if check_args
-            argc = min_count == max_count ? min_count : min_count..max_count
-            instructions << CheckArgsInstruction.new(positional: argc, keywords: required_keywords)
-          end
-
-          if required_keywords.any?
-            instructions << CheckRequiredKeywordsInstruction.new(required_keywords)
-          end
-
-          instructions << PushArgsInstruction.new(
-            for_block: for_block,
-            min_count: min_count,
-            max_count: max_count,
-            spread: for_block && args.size > 1,
-          )
-
-          instructions << Args.new(self, local_only: local_only).transform(args)
-
-          return instructions
-        end
-
-        if check_args
-          instructions << CheckArgsInstruction.new(positional: args.size, keywords: [])
-        end
-
-        args.each_with_index do |arg, index|
-          instructions << PushArgInstruction.new(index, nil_default: for_block)
-          instructions << VariableSetInstruction.new(arg.name, local_only: local_only)
-        end
-
-        instructions
-      end
-
-      def transform_for_declare_args(args)
-        instructions = []
-
-        case args.type
-        when :class_variable_target_node
-          # Do nothing, no need to declare class variables.
-        when :local_variable_write_node
-          instructions << VariableDeclareInstruction.new(args.name)
-        when :local_variable_target_node
-          instructions << VariableDeclareInstruction.new(args.name)
-        when :masgn
-          args[1].elements.each do |arg|
-            instructions += transform_for_declare_args(arg)
-          end
-        when :multi_target_node
-          args.targets.each do |arg|
-            instructions += transform_for_declare_args(arg)
-          end
-        else
-          raise "I don't yet know how to declare this variable: #{args.inspect}"
-        end
-
-        instructions
-      end
-
-      def transform_ivar(exp, used:)
-        return [] unless used
-        _, name = exp
-        InstanceVariableGetInstruction.new(name)
-      end
-
-      def transform_not(exp, used:)
-        _, value = exp
-        instructions = [
-          transform_expression(value, used: true),
-          NotInstruction.new,
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_str(exp, used:)
-        return [] unless used
-        _, str = exp
-        PushStringInstruction.new(str)
-      end
-
-      def transform_svalue(exp, used:)
-        _, svalue = exp
-        instructions = []
-        case svalue.type
-        when :splat
-          instructions << transform_expression(svalue, used: true)
-          instructions << ArrayWrapInstruction.new
-        when :array_node
-          instructions << transform_array_node(svalue, used: true)
-        else
-          raise "unexpected svalue type: #{svalue.inspect}"
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_undef_node(node, used:)
-        instructions = node.names.flat_map do |name|
-          [
-            transform_expression(name, used: true),
-            UndefineMethodInstruction.new
-          ]
-        end
-
-        instructions << PushNilInstruction.new if used
-        instructions
-      end
-
-      def transform_with_filename(exp, used:)
-        depth_was = @depth
-        @depth = 0
-        _, filename, require_once, *body = exp
-        instructions = [
-          WithFilenameInstruction.new(filename, require_once: require_once),
-          transform_body(body, used: true),
-          EndInstruction.new(:with_filename),
-        ]
-        instructions << PopInstruction.new unless used
-        @depth = depth_was
         instructions
       end
 
