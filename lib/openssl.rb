@@ -6,6 +6,12 @@ __ld_flags__ '-lcrypto'
 module OpenSSL
   class OpenSSLError < StandardError; end
 
+  def self.secure_compare(a, b)
+    sha1_a = Digest.digest('SHA1', a)
+    sha1_b = Digest.digest('SHA1', b)
+    fixed_length_secure_compare(sha1_a, sha1_b) && a == b
+  end
+
   module Random
     __bind_static_method__ :random_bytes, :OpenSSL_Random_random_bytes
   end
