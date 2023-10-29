@@ -1,4 +1,4 @@
-require_relative '../../spec/spec_helper'
+require_relative '../../../spec_helper'
 require 'openssl'
 
 describe "OpenSSL::KDF.scrypt" do
@@ -37,9 +37,9 @@ describe "OpenSSL::KDF.scrypt" do
   end
 
   it "coerces the N into an Integer using #to_int" do
-    N = mock("N")
-    N.should_receive(:to_int).and_return(2**14)
-    key = OpenSSL::KDF.scrypt("secret", **@defaults, N: N)
+    n = mock("N")
+    n.should_receive(:to_int).and_return(2**14)
+    key = OpenSSL::KDF.scrypt("secret", **@defaults, N: n)
     key.should == "h\xB2k\xDF]\xDA\xE1.-(\xCF\xAC\x91D\x8F\xC2a\x9C\x9D\x17}\xF2\x84T\xD4)\xC2>\xFE\x93\xE3\xF4".b
   end
 
@@ -74,7 +74,7 @@ describe "OpenSSL::KDF.scrypt" do
     key.should == "\x96\xACDl\xCB3/aN\xB0F\x8A#\xD7\x92\xD2O\x1E\v\xBB\xCE\xC0\xAA\xB9\x0F]\xB09\xEA8\xDD\e".b
   end
 
-  it "accepts an empty length" do
+  it "accepts a zero length" do
     key = OpenSSL::KDF.scrypt("secret", **@defaults, length: 0)
     key.should.empty?
   end
