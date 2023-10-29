@@ -9,6 +9,11 @@ if RUBY_ENGINE != 'natalie' && ENV.fetch('DEBUG', false)
   end
 end
 
+if RUBY_ENGINE != 'natalie' && ENV.fetch('COVERAGE', false)
+  require 'coverage'
+  Coverage.start(oneshot_lines: true)
+end
+
 require_relative '../lib/optparse'
 require 'tempfile'
 
@@ -226,6 +231,7 @@ class Runner
         begin
           pid = spawn(env, out.path, *ARGV)
           Process.wait(pid)
+          write_coverage if RUBY_ENGINE != 'natalie' && ENV.fetch('COVERAGE', false)
           exit $?.exitstatus || 1
         ensure
           File.unlink(out.path)
@@ -316,6 +322,26 @@ class Runner
       puts File.read(path)
       puts '-' * 80
       puts path
+    end
+  end
+
+  def write_coverage
+    require 'set'
+    root = File.expand_path('..', __dir__)
+    Coverage.result.each do |path, details|
+      next unless path.start_with?(root)
+      data_path = File.join('.coverage', path[root.size..])
+      folder = File.split(data_path).first
+      File.open('.coverage-lock', File::RDWR | File::CREAT) do |lock|
+        lock.flock(File::LOCK_EX)
+        `mkdir -p #{folder}` # TODO: File.mkdir_p
+        if File.exist?(data_path)
+          lines = Set.new(File.read(data_path).split("\n").map(&:to_i)) + details[:oneshot_lines]
+        else
+          lines = details[:oneshot_lines]
+        end
+        File.write(data_path, lines.sort.join("\n"))
+      end
     end
   end
 end

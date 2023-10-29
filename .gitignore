@@ -2,6 +2,7 @@
 build
 test/tmp
 coverage-report
+.coverage
 .cache
 bin/nat
 /rubyspec_temp
