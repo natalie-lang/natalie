@@ -599,9 +599,8 @@ module Natalie
       end
 
       def transform_case_node(node, used:)
-        return transform_expression(node.consequent, used: used) if node.conditions.empty?
-
         instructions = []
+
         if node.predicate
           instructions << transform_expression(node.predicate, used: true)
           node.conditions.each do |when_statement|
@@ -853,6 +852,18 @@ module Natalie
           body,
           EndInstruction.new(:is_defined),
         ]
+      end
+
+      def transform_else_node(node, used:)
+        raise 'unexpected ElseNode child count' if node.child_nodes.size != 1
+
+        if (n = node.child_nodes.first)
+          transform_expression(n, used: used)
+        elsif used
+          [PushNilInstruction.new]
+        else
+          []
+        end
       end
 
       def transform_false_node(_, used:)
@@ -1346,6 +1357,16 @@ module Natalie
         instructions
       end
 
+      def transform_parentheses_node(node, used:)
+        if node.body
+          transform_expression(node.body, used: used)
+        elsif used
+          [PushNilInstruction.new]
+        else
+          []
+        end
+      end
+
       def transform_range_node(node, used:)
         instructions = [
           transform_expression(node.right || Prism.nil_node, used: true),
@@ -1799,6 +1820,8 @@ module Natalie
 
       def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
+
+        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
 
         args = case node
                when nil

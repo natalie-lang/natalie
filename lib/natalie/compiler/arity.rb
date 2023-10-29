@@ -2,9 +2,10 @@ module Natalie
   class Compiler
     class Arity
       def initialize(args, is_proc:)
+        args = args.parameters if args.is_a?(Prism::BlockParametersNode)
         if args.nil? || args == 0
           @args = []
-        elsif args.is_a?(::Prism::Node) && %i[parameters_node block_parameters_node].include?(args.type)
+        elsif args.type == :parameters_node
           # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
           @args = args.child_nodes.compact.sort_by { |n| n.location.start_offset }.dup
           @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
