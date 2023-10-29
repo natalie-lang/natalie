@@ -240,6 +240,15 @@ describe 'assignment' do
     index.should == 5
   end
 
+  it 'can optionally assign in a when branch' do
+    text = nil
+    case 1
+    when 1
+      text ||= "test"
+    end
+    text.should == "test"
+  end
+
   it 'can optionally call an attr writer with ||=' do
     a = AttrAssign.new
     a.foo ||= 'foo'
