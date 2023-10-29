@@ -736,7 +736,13 @@ module Natalie
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
-          SendInstruction.new(node.operator, receiver_is_self: false, with_block: false, file: node.file, line: node.line),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line
+          ),
           ClassVariableSetInstruction.new(node.name)
         ]
         instructions << ClassVariableGetInstruction.new(node.name) if used
