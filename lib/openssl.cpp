@@ -31,6 +31,17 @@ Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block
     return FalseObject::the();
 }
 
+static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void *arg) {
+    auto result = static_cast<ArrayObject *>(arg);
+    result->push(new StringObject { cipher_meth->name });
+}
+
+Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
+    auto result = new ArrayObject {};
+    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
+    return result;
+}
+
 Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
@@ -195,6 +206,8 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
 }
 
 Value init(Env *env, Value self) {
+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
+
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     if (!OpenSSL) {
         OpenSSL = new ModuleObject { "OpenSSL" };
@@ -213,6 +226,13 @@ Value init(Env *env, Value self) {
     OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
     OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
+
+    auto Cipher = OpenSSL->const_get("Cipher"_s);
+    if (!Cipher) {
+        Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
+        OpenSSL->const_set("Cipher"_s, Cipher);
+    }
+    Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
     if (!Digest) {
