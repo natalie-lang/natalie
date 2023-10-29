@@ -33,7 +33,7 @@ module Natalie
                         receiver: nil,
                         name: :puts,
                         arguments: [
-                          Prism.call_node(receiver: s(:lasgn, :_, last_node), name: :inspect)
+                          Prism.call_node(receiver: Prism.local_variable_write_node(name: :_, value: last_node), name: :inspect)
                         ]
                       )
           temp = Tempfile.create('natalie.so')
@@ -64,10 +64,6 @@ module Natalie
       else
         Natalie::NonTTYRepl
       end
-    end
-
-    def s(*items)
-      Natalie::Parser::Sexp.new(*items)
     end
   end
 end

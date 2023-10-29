@@ -3,18 +3,12 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class UndefineMethodInstruction < BaseInstruction
-      def initialize(name:)
-        @name = name
-      end
-
-      attr_reader :name
-
       def to_s
-        "undefine_method #{@name}"
+        'undefine_method'
       end
 
       def generate(transform)
-        transform.exec("self->undefine_method(env, #{transform.intern(@name)})")
+        transform.exec_and_push(:undef_result, "self->undefine_method(env, #{transform.pop}->to_symbol(env, Object::Conversion::Strict))")
       end
 
       def execute(vm)

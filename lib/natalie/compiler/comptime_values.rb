@@ -10,21 +10,21 @@ module Natalie
       end
 
       def comptime_string(node)
-        unless node.sexp_type == :str
+        unless node.type == :string_node
           raise_comptime_value_error('string', node)
         end
-        node.last
+        node.unescaped
       end
 
       def comptime_symbol(node)
-        unless node.sexp_type == :symbol_node
+        unless node.type == :symbol_node
           raise_comptime_value_error('symbol', node)
         end
         node.unescaped.to_sym
       end
 
       def raise_comptime_value_error(expected, node)
-        raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (#{node.file}##{node.line})"
+        raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (#{node.location.path}##{node.location.start_line})"
       end
     end
   end

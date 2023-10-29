@@ -3,21 +3,14 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class CreateHashInstruction < BaseInstruction
-      def initialize(count:, bare:)
+      def initialize(count:)
         @count = count
-        @bare = bare
       end
 
       attr_reader :count
 
-      def bare?
-        !!@bare
-      end
-
       def to_s
-        s = "create_hash count: #{@count}"
-        s << ' (bare)' if @bare
-        s
+        "create_hash count: #{@count}"
       end
 
       def generate(transform)

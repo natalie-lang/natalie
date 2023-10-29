@@ -763,14 +763,22 @@ describe 'string' do
     s = 'foo' \
         'bar'
     s.should == 'foobar'
+
     s = 'foo' \
         "bar#{1 + 1}"
     s.should == 'foobar2'
+
     s = "foo#{1 + 1}" \
         "bar#{1 + 1}"
     s.should == 'foo2bar2'
+
     s = "foo#{1 + 1}" \
         'bar'
     s.should == 'foo2bar'
+
+    s = 'foo' \
+        'bar' \
+        'baz'
+    s.should == 'foobarbaz'
   end
 end

@@ -49,9 +49,7 @@ describe "The undef keyword" do
       @undef_class.class_eval do
         undef :"me#{'th'}"
       end
-      NATFIXME 'support real dynamic symbol', exception: SpecFailedException do
-        -> { @obj.meth(5) }.should raise_error(NoMethodError)
-      end
+      -> { @obj.meth(5) }.should raise_error(NoMethodError)
     end
   end
 

@@ -79,7 +79,7 @@ module Natalie
       def transform_splat_arg(arg)
         return :reverse if arg.nil? # nameless splat
 
-        case arg.sexp_type
+        case arg.type
         when :call_node
           @instructions << @pass.transform_expression(arg.receiver, used: true)
           @instructions << SwapInstruction.new

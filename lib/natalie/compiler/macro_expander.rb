@@ -31,7 +31,7 @@ module Natalie
 
       def expand(call_node, depth:)
         if (macro_name = get_macro_name(call_node))
-          run_macro(macro_name, call_node, current_path: call_node.file, depth: depth)
+          run_macro(macro_name, call_node, current_path: call_node.location.path, depth: depth)
         else
           call_node
         end
@@ -40,17 +40,6 @@ module Natalie
       private
 
       def get_macro_name(node)
-        return get_macro_name_from_node(node) if node.is_a?(::Prism::Node)
-        return false unless node.is_a?(Sexp)
-
-        if node.sexp_type == :iter
-          get_macro_name(node[1])
-        else
-          get_hidden_macro_name(node)
-        end
-      end
-
-      def get_macro_name_from_node(node)
         if node.type == :call_node && node.receiver.nil?
           if MACROS.include?(node.name)
             node.name
@@ -61,8 +50,6 @@ module Natalie
               :user_macro
             end
           end
-        elsif node.sexp_type == :iter
-          get_macro_name(node[1])
         else
           get_hidden_macro_name(node)
         end
@@ -102,7 +89,7 @@ module Natalie
         begin
           path = comptime_string(path_node)
         rescue ArgumentError
-          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.file}##{expr.line}"
+          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.location.path}##{expr.location.start_line}"
         end
 
         full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
@@ -110,11 +97,11 @@ module Natalie
         end.first
 
         unless full_path
-          return drop_load_error "cannot load such file #{path} at #{expr.file}##{expr.line}"
+          return drop_load_error "cannot load such file #{path} at #{expr.location.path}##{expr.location.start_line}"
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
-        Sexp.new(:autoload_const, const, path, body)
+        [:autoload_const, const, path, body]
       end
 
       def macro_require(expr:, current_path:, depth:)
@@ -130,7 +117,7 @@ module Natalie
             return load_file(full_path, require_once: true, location: location(expr))
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
       def macro_require_relative(expr:, current_path:, depth:)
@@ -143,7 +130,7 @@ module Natalie
             return lf
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.file}##{expr.line}"
+        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
       def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
@@ -158,9 +145,9 @@ module Natalie
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
-        if node.sexp_type == :str
+        if node.type == :string_node
           begin
-            Natalie::Parser.new(node[1], current_path).ast
+            Natalie::Parser.new(node.unescaped, current_path).ast
           rescue SyntaxError => e
             drop_error(:SyntaxError, e.message)
           end
@@ -181,9 +168,9 @@ module Natalie
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
-          s(:str, File.read(full_path))
+          Prism.string_node(unescaped: File.read(full_path))
         else
-          raise IOError, "cannot find file #{name} at #{node.file}##{node.line}"
+          raise IOError, "cannot find file #{name} at #{node.location.path}##{node.location.start_line}"
         end
       end
 
@@ -196,7 +183,7 @@ module Natalie
           else
             name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           end
-          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.file}##{expr.line})")
+          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.location.path}##{expr.location.start_line})")
         end
 
         path_to_add = VM.compile_and_run(
@@ -243,7 +230,7 @@ module Natalie
           @parsed_files[path] = ast
         end
 
-        s(:with_filename, path, require_once, ast)
+        [:with_filename, path, require_once, ast]
       end
 
       def load_cpp_file(path, require_once:, location:)
@@ -265,7 +252,9 @@ module Natalie
             Prism.call_node(
               receiver: nil,
               name: :__internal_inline_code__,
-              arguments: [s(:str, cpp_source)]
+              arguments: [
+                Prism.string_node(unescaped: cpp_source)
+              ]
             ),
             ::Prism.true_node
           ],
@@ -279,20 +268,14 @@ module Natalie
           receiver: nil,
           name: :raise,
           arguments: [
-            s(:const, exception_class),
-            s(:str, message)
+            Prism.constant_read_node(name: exception_class),
+            Prism.string_node(unescaped: message)
           ]
         )
       end
 
       def drop_load_error(message)
         drop_error(:LoadError, message, print_warning: @log_load_error)
-      end
-
-      def s(*items)
-        sexp = Sexp.new
-        items.each { |item| sexp << item }
-        sexp
       end
 
       def false_node
@@ -307,8 +290,6 @@ module Natalie
         case expr
         when ::Prism::Node
           expr.location
-        when Sexp
-          ::Prism::Location.new(::Prism::Source.new(expr.file), 0, 0)
         else
           raise "unknown node type: #{expr.inspect}"
         end

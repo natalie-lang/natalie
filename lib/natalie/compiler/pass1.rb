@@ -51,13 +51,25 @@ module Natalie
 
       def transform_expression(node, used:)
         case node
-        when Sexp, ::Prism::Node
+        when ::Prism::Node
           node = expand_macros(node) if node.type == :call_node
+          return transform_expression(node, used: used) unless node.is_a?(::Prism::Node)
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
           result = send(method, node, used: used)
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
+        when Array
+          if %i[with_filename autoload_const].include?(node.first)
+            # TODO: remove this kludge and change these fake node types to CallNode or something else
+            @depth += 1
+            method = "transform_#{node.first}"
+            result = send(method, node, used: used)
+            @depth -= 1
+            Array(result).flatten
+          else
+            raise "Unknown node type: #{node.inspect}"
+          end
         else
           raise "Unknown node type: #{node.inspect}"
         end
@@ -112,7 +124,7 @@ module Natalie
         args = node&.arguments || []
         instructions = []
 
-        if args.last&.sexp_type == :block_argument_node
+        if args.last&.type == :block_argument_node
           block_arg = args.pop
           instructions.unshift(transform_expression(block_arg.expression, used: true))
         end
@@ -122,13 +134,13 @@ module Natalie
           block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat_node }
+        if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             instructions: instructions,
             with_block_pass: !!block,
             args_array_on_stack: true,
-            has_keyword_hash: args.last&.sexp_type == :bare_hash
+            has_keyword_hash: args.last&.type == :keyword_hash_node
           }
         end
 
@@ -154,7 +166,7 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
 
-        has_keyword_hash = args.last&.sexp_type == :bare_hash
+        has_keyword_hash = args.last&.type == :keyword_hash_node
 
         instructions << PushArgcInstruction.new(args.size)
 
@@ -183,7 +195,7 @@ module Natalie
         elements = node.elements
         instructions = []
 
-        if node.elements.any? { |a| a.sexp_type == :splat_node }
+        if node.elements.any? { |a| a.type == :splat_node }
           instructions += transform_array_with_splat(elements)
         else
           elements.each do |element|
@@ -265,8 +277,8 @@ module Natalie
         message = node.name
         args = node.arguments&.arguments || []
 
-        if repl? && (new_exp = fix_repl_var_that_looks_like_call(node))
-          return transform_expression(new_exp, used: used)
+        if repl? && (instructions = transform_repl_variable_that_looks_like_call(node, used: used))
+          return instructions
         end
 
         if is_inline_macro_call_node?(node)
@@ -587,9 +599,8 @@ module Natalie
       end
 
       def transform_case_node(node, used:)
-        return transform_expression(node.consequent, used: used) if node.conditions.empty?
-
         instructions = []
+
         if node.predicate
           instructions << transform_expression(node.predicate, used: true)
           node.conditions.each do |when_statement|
@@ -597,13 +608,13 @@ module Natalie
             # when b, c, d
             # =>
             # if (b === a || c === a || d === a)
-            _, options_array, *body = when_statement
-            options = options_array.elements
+            options = when_statement.conditions
+            body = when_statement.statements&.body
 
             options.each do |option|
               # Splats are handled in the backend.
               # For C++, it's done in the is_case_equal() function.
-              if option.sexp_type == :splat_node
+              if option.type == :splat_node
                 option = option.expression
                 is_splat = true
               else
@@ -630,12 +641,9 @@ module Natalie
             # when a == b, b == c, c == d
             # =>
             # if (a == b || b == c || c == d)
-            _, options, *body = when_statement
+            options = when_statement.conditions
+            body = when_statement.statements&.body
 
-            # s(:array, option1, option2, ...)
-            # =>
-            # s(:or, option1, s(:or, option2, ...))
-            options = options.elements
             options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
 
             instructions << transform_expression(options, used: true)
@@ -728,7 +736,13 @@ module Natalie
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
           transform_expression(node.value, used: true),
           PushArgcInstruction.new(1),
-          SendInstruction.new(node.operator, receiver_is_self: false, with_block: false, file: node.file, line: node.line),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line
+          ),
           ClassVariableSetInstruction.new(node.name)
         ]
         instructions << ClassVariableGetInstruction.new(node.name) if used
@@ -846,6 +860,18 @@ module Natalie
         ]
       end
 
+      def transform_else_node(node, used:)
+        raise 'unexpected ElseNode child count' if node.child_nodes.size != 1
+
+        if (n = node.child_nodes.first)
+          transform_expression(n, used: used)
+        elsif used
+          [PushNilInstruction.new]
+        else
+          []
+        end
+      end
+
       def transform_false_node(_, used:)
         return [] unless used
         [PushFalseInstruction.new]
@@ -859,7 +885,7 @@ module Natalie
       def transform_for_node(node, used:)
         instructions = transform_for_declare_args(node.index)
         instructions << DefineBlockInstruction.new(arity: 1)
-        instructions += transform_block_args_for_for(s(:args, node.index), used: true)
+        instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true)
         instructions << EndInstruction.new(:define_block)
         call = Prism.call_node(receiver: node.collection, name: :each)
@@ -943,6 +969,57 @@ module Natalie
       def transform_global_variable_read_node(node, used:)
         return [] unless used
         GlobalVariableGetInstruction.new(node.name)
+      end
+
+      def transform_global_variable_write_node(node, used:)
+        [
+          transform_expression(node.value, used: true),
+          used ? DupInstruction.new : nil,
+          GlobalVariableSetInstruction.new(node.name)
+        ].compact
+      end
+
+      def transform_hash_node(node, used:)
+        instructions = []
+
+        # create hash from elements before a splat
+        prior_to_splat_count = 0
+        node.elements.each do |element|
+          break if element.type == :assoc_splat_node
+          instructions << transform_expression(element.key, used: true)
+          instructions << transform_expression(element.value, used: true)
+          prior_to_splat_count += 1
+        end
+        instructions << CreateHashInstruction.new(count: prior_to_splat_count)
+
+        # now, if applicable, add to the hash the splat element and everything after
+        node.elements[prior_to_splat_count..].each do |element|
+          if element.type == :assoc_splat_node
+            instructions << transform_expression(element.value, used: true)
+            instructions << HashMergeInstruction.new
+          else
+            instructions << transform_expression(element.key, used: true)
+            instructions << transform_expression(element.value, used: true)
+            instructions << HashPutInstruction.new
+          end
+        end
+
+        instructions
+      end
+
+      def transform_if_node(node, used:)
+        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        instructions = [
+          transform_expression(node.predicate, used: true),
+          IfInstruction.new,
+          true_instructions,
+          ElseInstruction.new(:if),
+          false_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_imaginary_node(node, used:)
@@ -1033,6 +1110,72 @@ module Natalie
         [PushIntInstruction.new(node.value)]
       end
 
+      def transform_interpolated_regular_expression_node(node, used:)
+        instructions = transform_interpolated_stringish_node(node, used: true, unescaped: false)
+        instructions << StringToRegexpInstruction.new(options: node.options)
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_interpolated_string_node(node, used:)
+        transform_interpolated_stringish_node(node, used: true, unescaped: true)
+      end
+
+      def transform_interpolated_stringish_node(node, used:, unescaped:)
+        parts = node.parts.dup
+
+        starter = if parts.first.type == :string_node
+                    part = parts.shift
+                    PushStringInstruction.new(unescaped ? part.unescaped : part.content)
+                  else
+                    PushStringInstruction.new('')
+                  end
+
+        instructions = [starter]
+
+        parts.each do |part|
+          case part
+          when Prism::StringNode
+            instructions << PushStringInstruction.new(unescaped ? part.unescaped : part.content)
+          when Prism::EmbeddedStatementsNode
+            instructions << transform_expression(part.statements, used: true)
+          else
+            raise "unknown interpolated string segment: #{part.inspect}"
+          end
+          instructions << StringAppendInstruction.new
+        end
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_interpolated_symbol_node(node, used:)
+        instructions = [
+          transform_interpolated_stringish_node(node, used: true, unescaped: false),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :to_sym,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          )
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_interpolated_x_string_node(node, used:)
+        instructions = [
+          transform_interpolated_stringish_node(node, used: true, unescaped: false),
+          ShellInstruction.new
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      alias transform_keyword_hash_node transform_hash_node
+
       def transform_lambda_node(node, used:)
         instructions = transform_block_node(node, used: true, is_lambda: true)
         instructions << CreateLambdaInstruction.new
@@ -1089,6 +1232,58 @@ module Natalie
       def transform_local_variable_read_node(node, used:)
         return [] unless used
         VariableGetInstruction.new(node.name)
+      end
+
+      def transform_local_variable_write_node(node, used:)
+        instructions = [
+          VariableDeclareInstruction.new(node.name),
+          transform_expression(node.value, used: true),
+        ]
+        instructions << DupInstruction.new if used
+        instructions << VariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_match_write_node(node, used:)
+        instructions = []
+        instructions << transform_expression(node.call, used: used)
+        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << IfInstruction.new
+
+        # if match
+        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << PushArgcInstruction.new(0)
+        instructions << SendInstruction.new(
+          :named_captures,
+          receiver_is_self: false,
+          with_block: false,
+          file: node.location.path,
+          line: node.location.start_line,
+        )
+        node.locals.each do |name|
+          instructions << DupInstruction.new
+          instructions << PushStringInstruction.new(name.to_s)
+          instructions << PushArgcInstruction.new(1)
+          instructions << SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          )
+          instructions << VariableSetInstruction.new(name)
+        end
+        instructions << PopInstruction.new # get rid of named captures
+
+        # if no match
+        instructions << ElseInstruction.new(:if)
+        node.locals.each do |name|
+          instructions << PushNilInstruction.new
+          instructions << VariableSetInstruction.new(name)
+        end
+        instructions << EndInstruction.new(:if)
+
+        instructions
       end
 
       def transform_module_node(node, used:)
@@ -1168,6 +1363,16 @@ module Natalie
         instructions
       end
 
+      def transform_parentheses_node(node, used:)
+        if node.body
+          transform_expression(node.body, used: used)
+        elsif used
+          [PushNilInstruction.new]
+        else
+          []
+        end
+      end
+
       def transform_range_node(node, used:)
         instructions = [
           transform_expression(node.right || Prism.nil_node, used: true),
@@ -1197,6 +1402,20 @@ module Natalie
         return [] unless used
         regexp = Regexp.new(node.content, node.options)
         PushRegexpInstruction.new(regexp)
+      end
+
+      # HACK: When using the REPL, the parser doesn't differentiate between method calls
+      # and variable lookup. But we know which variables are defined in the REPL,
+      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
+      # TODO: Can we pass a list of local variables to Prism so this hack can be removed?
+      def transform_repl_variable_that_looks_like_call(node, used:)
+        return unless node.type == :call_node && node.receiver.nil?
+        return unless @compiler_context[:vars].key?(node.name)
+
+        # it is a variable, but it's unused so just return some empty instructions
+        return [] unless used
+
+        [VariableGetInstruction.new(node.name)]
       end
 
       def transform_rescue_modifier_node(node, used:)
@@ -1337,6 +1556,16 @@ module Natalie
         transform_body(node.body, used: used)
       end
 
+      def transform_string_concat_node(node, used:)
+        instructions = [
+          transform_expression(node.left, used: true),
+          transform_expression(node.right, used: true),
+          StringAppendInstruction.new
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_string_node(node, used:)
         return [] unless used
         PushStringInstruction.new(node.unescaped)
@@ -1382,6 +1611,64 @@ module Natalie
         [PushTrueInstruction.new]
       end
 
+      def transform_unless_node(node, used:)
+        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        instructions = [
+          transform_expression(node.predicate, used: true),
+          IfInstruction.new,
+          false_instructions,
+          ElseInstruction.new(:if),
+          true_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_until_node(node, used:)
+        pre = !node.begin_modifier?
+        instructions = [
+          WhileInstruction.new(pre: pre),
+          transform_expression(node.predicate, used: true),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            :!,
+            receiver_is_self: true,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+          WhileBodyInstruction.new,
+          transform_expression(node.statements || Prism.nil_node, used: true),
+          EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_while_node(node, used:)
+        pre = !node.begin_modifier?
+        instructions = [
+          WhileInstruction.new(pre: pre),
+          transform_expression(node.predicate, used: true),
+          WhileBodyInstruction.new,
+          transform_expression(node.statements || Prism.nil_node, used: true),
+          EndInstruction.new(:while),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_x_string_node(node, used:)
+        instructions = [
+          PushStringInstruction.new(node.unescaped),
+          ShellInstruction.new,
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_yield_node(node, used:)
         arg_meta = transform_arguments_node_for_callish(node.arguments)
         instructions = arg_meta.fetch(:instructions)
@@ -1409,7 +1696,7 @@ module Natalie
 
         # create array from items before the splat
         prior_to_splat_count = 0
-        while elements.any? && elements.first.sexp_type != :splat_node
+        while elements.any? && elements.first.type != :splat_node
           instructions << transform_expression(elements.shift, used: true)
           prior_to_splat_count += 1
         end
@@ -1417,7 +1704,7 @@ module Natalie
 
         # now add to the array the first splat item and everything after
         elements.each do |arg|
-          if arg.sexp_type == :splat_node
+          if arg.type == :splat_node
             instructions << transform_expression(arg.expression, used: true)
             instructions << ArrayConcatInstruction.new
           else
@@ -1438,10 +1725,6 @@ module Natalie
         ]
         instructions << PopInstruction.new unless used
         instructions
-      end
-
-      def transform_bare_hash(exp, used:)
-        transform_hash(exp, bare: true, used: used)
       end
 
       def transform_block_argument_node(node, used:)
@@ -1481,12 +1764,12 @@ module Natalie
           with_block = true
         end
 
-        if args.any? { |a| a.sexp_type == :splat_node }
+        if args.any? { |a| a.type == :splat_node }
           instructions << transform_array_with_splat(args)
           return {
             with_block_pass: !!with_block,
             args_array_on_stack: true,
-            has_keyword_hash: args.last&.sexp_type == :bare_hash
+            has_keyword_hash: args.last&.type == :keyword_hash_node
           }
         end
 
@@ -1512,7 +1795,7 @@ module Natalie
           instructions << transform_expression(arg, used: true)
         end
 
-        has_keyword_hash = args.last&.sexp_type == :bare_hash
+        has_keyword_hash = args.last&.type == :keyword_hash_node
 
         instructions << PushArgcInstruction.new(args.size)
 
@@ -1524,18 +1807,27 @@ module Natalie
         }
       end
 
-      def transform_const(exp, used:)
+      def transform_defn_args(node, used:, for_block: false, check_args: true, local_only: true)
         return [] unless used
-        _, name = exp
-        [
-          PushSelfInstruction.new,
-          ConstFindInstruction.new(name, strict: false),
-        ]
-      end
 
-      def transform_defn_args(exp, used:, for_block: false, check_args: true, local_only: true)
-        return [] unless used
-        _, *args = exp
+        node = node.parameters if node.is_a?(Prism::BlockParametersNode)
+
+        args = case node
+               when nil
+                 []
+               when Prism::ParametersNode
+                 (
+                   node.requireds +
+                   [node.rest] +
+                   node.optionals +
+                   node.posts +
+                   node.keywords +
+                   [node.keyword_rest] +
+                   [node.block]
+                 ).compact
+               else
+                 [node]
+               end
 
         instructions = []
 
@@ -1553,11 +1845,7 @@ module Natalie
         end
 
         has_complicated_args = args.any? do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type != :required_parameter_node
-          else
-            arg.is_a?(Sexp) || arg.nil? || arg.start_with?('*')
-          end
+          arg.type != :required_parameter_node
         end
 
         if args.count { |a| a.type == :required_parameter_node && a.name == :_ } > 1
@@ -1589,12 +1877,7 @@ module Natalie
             spread: for_block && args.size > 1,
           )
 
-          instructions << Args.new(
-            self,
-            local_only: local_only,
-            file: exp.file,
-            line: exp.line
-          ).transform(exp.new(:args, *args))
+          instructions << Args.new(self, local_only: local_only).transform(args)
 
           return instructions
         end
@@ -1611,70 +1894,14 @@ module Natalie
         instructions
       end
 
-      def transform_dregx(exp, used:)
-        options = exp.pop if exp.last.is_a?(Integer)
-        instructions = [
-          transform_dstr(exp, used: true),
-          StringToRegexpInstruction.new(options: options),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dstr(exp, used:)
-        _, start, *rest = exp
-        instructions = [PushStringInstruction.new(start)]
-        rest.each do |segment|
-          case segment.sexp_type
-          when :evstr
-            _, value = segment
-            instructions << transform_expression(value, used: true)
-            instructions << StringAppendInstruction.new
-          when :str
-            instructions << transform_expression(segment, used: true)
-            instructions << StringAppendInstruction.new
-          else
-            raise "unknown dstr segment: #{segment.inspect}"
-          end
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dsym(exp, used:)
-        instructions = [
-          transform_dstr(exp, used: true),
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :to_sym,
-            receiver_is_self: false,
-            with_block: false,
-            file: exp.file,
-            line: exp.line,
-          ),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_dxstr(exp, used:)
-        _, *parts = exp
-        instructions = [
-          transform_dstr(exp.new(:dstr, *parts), used: true),
-          ShellInstruction.new,
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_for_declare_args(args)
         instructions = []
 
-        case args.sexp_type
+        case args.type
         when :class_variable_target_node
           # Do nothing, no need to declare class variables.
-        when :lasgn
-          instructions << VariableDeclareInstruction.new(args[1])
+        when :local_variable_write_node
+          instructions << VariableDeclareInstruction.new(args.name)
         when :local_variable_target_node
           instructions << VariableDeclareInstruction.new(args.name)
         when :masgn
@@ -1692,166 +1919,10 @@ module Natalie
         instructions
       end
 
-      def transform_gasgn(exp, used:)
-        _, name, value = exp
-        instructions = [transform_expression(value, used: true), GlobalVariableSetInstruction.new(name)]
-        instructions << GlobalVariableGetInstruction.new(name) if used
-        instructions
-      end
-
-      def transform_hash(exp, used:, bare: false)
-        _, *items = exp
-        instructions = []
-        if items.any? { |a| a.sexp_type == :assoc_splat_node }
-          instructions += transform_hash_with_assoc_splat(items, bare: bare)
-        else
-          items.each do |item|
-            instructions << transform_expression(item, used: true)
-          end
-          instructions << CreateHashInstruction.new(count: items.size / 2, bare: bare)
-        end
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_hash_with_assoc_splat(items, bare:)
-        items = items.dup
-        instructions = []
-
-        # create hash from items before the splat
-        prior_to_splat_count = 0
-        while items.any? && items.first.sexp_type != :assoc_splat_node
-          instructions << transform_expression(items.shift, used: true)
-          prior_to_splat_count += 1
-        end
-        instructions << CreateHashInstruction.new(count: prior_to_splat_count / 2, bare: bare)
-
-        # now add to the hash the first splat item and everything after
-        while items.any?
-          key = items.shift
-          if key.sexp_type == :assoc_splat_node
-            instructions << transform_expression(key.value, used: true)
-            instructions << HashMergeInstruction.new
-          else
-            value = items.shift
-            instructions << transform_expression(key, used: true)
-            instructions << transform_expression(value, used: true)
-            instructions << HashPutInstruction.new
-          end
-        end
-
-        instructions
-      end
-
-      def transform_if(exp, used:)
-        _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression || Prism.nil_node, used: true)
-        false_instructions = transform_expression(false_expression || Prism.nil_node, used: true)
-        instructions = [
-          transform_expression(condition, used: true),
-          IfInstruction.new,
-          true_instructions,
-          ElseInstruction.new(:if),
-          false_instructions,
-          EndInstruction.new(:if),
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       def transform_ivar(exp, used:)
         return [] unless used
         _, name = exp
         InstanceVariableGetInstruction.new(name)
-      end
-
-      def transform_lasgn(exp, used:)
-        _, name, value = exp
-        instructions = [
-          VariableDeclareInstruction.new(name),
-          transform_expression(value, used: true),
-          VariableSetInstruction.new(name),
-        ]
-        instructions << VariableGetInstruction.new(name) if used
-        instructions
-      end
-
-      def transform_lit(exp, used:)
-        return [] unless used
-        lit = if exp.is_a?(Sexp)
-                exp[1]
-              else
-                exp
-              end
-        case lit
-        when Integer
-          PushIntInstruction.new(lit)
-        when Float
-          PushFloatInstruction.new(lit)
-        when Rational
-          [
-            transform_lit(lit.numerator, used: true),
-            transform_lit(lit.denominator, used: true),
-            PushRationalInstruction.new,
-          ]
-        when Complex
-          [
-            transform_lit(lit.real, used: true),
-            transform_lit(lit.imaginary, used: true),
-            PushComplexInstruction.new,
-          ]
-        else
-          raise "I don't yet know how to handle lit: \"#{lit.inspect}\" (#{exp.file}:#{exp.line}:#{exp.column})"
-        end
-      end
-
-      def transform_lvar(exp, used:)
-        return [] unless used
-        _, name = exp
-        VariableGetInstruction.new(name)
-      end
-
-      def transform_match_write(exp, used:)
-        _, call, *locals = exp
-        instructions = []
-        instructions << transform_expression(call, used: used)
-        instructions << PushLastMatchInstruction.new(to_s: false)
-        instructions << IfInstruction.new
-
-        # if match
-        instructions << PushLastMatchInstruction.new(to_s: false)
-        instructions << PushArgcInstruction.new(0)
-        instructions << SendInstruction.new(
-          :named_captures,
-          receiver_is_self: false,
-          with_block: false,
-          file: exp.file,
-          line: exp.line,
-        )
-        locals.each do |name|
-          instructions << DupInstruction.new
-          instructions << PushStringInstruction.new(name.to_s)
-          instructions << PushArgcInstruction.new(1)
-          instructions << SendInstruction.new(
-            :[],
-            receiver_is_self: false,
-            with_block: false,
-            file: exp.file,
-            line: exp.line,
-          )
-          instructions << VariableSetInstruction.new(name)
-        end
-        instructions << PopInstruction.new # get rid of named captures
-
-        # if no match
-        instructions << ElseInstruction.new(:if)
-        locals.each do |name|
-          instructions << PushNilInstruction.new
-          instructions << VariableSetInstruction.new(name)
-        end
-        instructions << EndInstruction.new(:if)
-
-        instructions
       end
 
       def transform_not(exp, used:)
@@ -1873,7 +1944,7 @@ module Natalie
       def transform_svalue(exp, used:)
         _, svalue = exp
         instructions = []
-        case svalue.sexp_type
+        case svalue.type
         when :splat
           instructions << transform_expression(svalue, used: true)
           instructions << ArrayWrapInstruction.new
@@ -1886,48 +1957,15 @@ module Natalie
         instructions
       end
 
-      def transform_undef(exp, used:)
-        _, name = exp
-        name = if name.type == :symbol_node
-                 name.unescaped.to_sym
-               else
-                 # FIXME: doesn't work with real dynamic symbol :-(
-                 # only works with: s(:dsym, "simple")
-                 # We'll need UndefineMethodInstruction to pop its argument from the stack to fix this.
-                 name.last
-               end
-        instructions = [
-          UndefineMethodInstruction.new(name: name),
-        ]
+      def transform_undef_node(node, used:)
+        instructions = node.names.flat_map do |name|
+          [
+            transform_expression(name, used: true),
+            UndefineMethodInstruction.new
+          ]
+        end
+
         instructions << PushNilInstruction.new if used
-        instructions
-      end
-
-      def transform_until(exp, used:)
-        _, condition, body, pre = exp
-        transform_while(
-          exp.new(
-            :while,
-            Prism.call_node(receiver: condition, name: :!),
-            body,
-            pre
-          ),
-          used: used
-        )
-      end
-
-      def transform_while(exp, used:)
-        _, condition, body, pre = exp
-        body ||= Prism.nil_node
-
-        instructions = [
-          WhileInstruction.new(pre: pre),
-          transform_expression(condition, used: true),
-          WhileBodyInstruction.new,
-          transform_expression(body, used: true),
-          EndInstruction.new(:while),
-        ]
-        instructions << PopInstruction.new unless used
         instructions
       end
 
@@ -1945,16 +1983,6 @@ module Natalie
         instructions
       end
 
-      def transform_xstr(exp, used:)
-        _, command = exp
-        instructions = [
-          transform_str(exp.new(:str, command), used: true),
-          ShellInstruction.new,
-        ]
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
       # HELPERS = = = = = = = = = = = = =
 
       # returns a set of [name, is_private, prep_instruction]
@@ -1965,8 +1993,7 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        exp == s(:lambda) ||
-          (exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda)
+        exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda
       end
 
       def is_inline_macro_call_node?(node)
@@ -2015,22 +2042,6 @@ module Natalie
 
       def repl?
         @compiler_context[:repl]
-      end
-
-      # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. But we know which variables are defined in the REPL,
-      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
-      def fix_repl_var_that_looks_like_call(node)
-        return false unless node.type == :call_node && node.receiver.nil?
-        return false unless @compiler_context[:vars].key?(node.name)
-
-        return Sexp.new(:lvar, node.name)
-      end
-
-      def s(*items)
-        sexp = Sexp.new
-        items.each { |item| sexp << item }
-        sexp
       end
 
       class << self
