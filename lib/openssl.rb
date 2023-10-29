@@ -16,6 +16,10 @@ module OpenSSL
     __bind_static_method__ :random_bytes, :OpenSSL_Random_random_bytes
   end
 
+  class Cipher
+    class CipherError < OpenSSLError; end
+  end
+
   class Digest
     attr_reader :name
 
