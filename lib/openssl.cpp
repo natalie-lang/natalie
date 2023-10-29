@@ -1,3 +1,4 @@
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
@@ -16,6 +17,18 @@ static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass =
     static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
     if (!klass) klass = OpenSSLError;
     env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
+}
+
+Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 2);
+    auto a = args[0]->to_str(env);
+    auto b = args[1]->to_str(env);
+    const auto len = a->bytesize();
+    if (b->bytesize() != len)
+        env->raise("ArgumentError", "inputs must be of equal length");
+    if (CRYPTO_memcmp(a->c_str(), b->c_str(), len) == 0)
+        return TrueObject::the();
+    return FalseObject::the();
 }
 
 Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
@@ -200,6 +213,7 @@ Value init(Env *env, Value self) {
 
     OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
+    OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
     if (!Digest) {
