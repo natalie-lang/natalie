@@ -171,21 +171,23 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
         return constant;
     }
 
-    // search in superclass hierarchy
-    search_parent = this;
-    ModuleObject *found = nullptr;
-    do {
-        search_parent = search_parent->m_superclass;
-        if (!valid_search_module(search_parent))
-            break;
-        constant = search_parent->find_constant(env, name, &found, search_mode);
-    } while (!constant);
+    if (search_mode != ConstLookupSearchMode::StrictPrivate) {
+        // search in superclass hierarchy
+        search_parent = this;
+        ModuleObject *found = nullptr;
+        do {
+            search_parent = search_parent->m_superclass;
+            if (!valid_search_module(search_parent))
+                break;
+            constant = search_parent->find_constant(env, name, &found, search_mode);
+        } while (!constant);
 
-    if (constant) {
-        search_parent = found;
-        if (found_in_module) *found_in_module = search_parent;
-        check_valid(constant);
-        return constant;
+        if (constant) {
+            search_parent = found;
+            if (found_in_module) *found_in_module = search_parent;
+            check_valid(constant);
+            return constant;
+        }
     }
 
     if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {

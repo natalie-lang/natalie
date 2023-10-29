@@ -368,3 +368,33 @@ describe 'break inside new block' do
     BrokenClass.should be_nil
   end
 end
+
+class Foo2
+  class SameName
+  end
+end
+
+class Foo3 < Foo2
+  module M1
+    def m1
+      'my-m1'
+    end
+  end
+
+  include M1
+
+  class SameName
+    include M1
+  end
+end
+
+describe 'including a module from the parent namespace' do
+  it 'includes the correct module' do
+    Foo3.new.m1.should == 'my-m1'
+    Foo3::SameName.new.m1.should == 'my-m1'
+  end
+
+  it 'does not reopen a class from the namespace of a superclass' do
+    Foo2::SameName.should_not equal(Foo3::SameName)
+  end
+end
