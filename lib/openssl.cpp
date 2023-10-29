@@ -35,10 +35,9 @@ Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
-    Value data = args[0];
-    data->assert_type(env, Object::Type::String, "String");
+    auto data = args[0]->to_str(env);
 
-    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->as_string()->c_str()), data->as_string()->string().size()))
+    if (!EVP_DigestUpdate(mdctx, reinterpret_cast<const unsigned char *>(data->c_str()), data->string().size()))
         OpenSSL_raise_error(env, "EVP_DigestUpdate");
 
     return self;

@@ -56,4 +56,68 @@ describe :openssl_digest_update, shared: true do
       digest.digest.should == SHA512Constants::Digest
     end
   end
+
+  context "it converts input using #to_str" do
+    it "returns a SHA1 digest" do
+      str = mock('str')
+      str.should_receive(:to_str).and_return(SHA1Constants::Contents)
+      digest = OpenSSL::Digest.new('sha1')
+      digest.send(@method, str)
+      digest.digest.should == SHA1Constants::Digest
+    end
+
+    it "returns a SHA256 digest" do
+      str = mock('str')
+      str.should_receive(:to_str).and_return(SHA256Constants::Contents)
+      digest = OpenSSL::Digest.new('sha256')
+      digest.send(@method, str)
+      digest.digest.should == SHA256Constants::Digest
+    end
+
+    it "returns a SHA384 digest" do
+      str = mock('str')
+      str.should_receive(:to_str).and_return(SHA384Constants::Contents)
+      digest = OpenSSL::Digest.new('sha384')
+      digest.send(@method, str)
+      digest.digest.should == SHA384Constants::Digest
+    end
+
+    it "returns a SHA512 digest" do
+      str = mock('str')
+      str.should_receive(:to_str).and_return(SHA512Constants::Contents)
+      digest = OpenSSL::Digest.new('sha512')
+      digest.send(@method, str)
+      digest.digest.should == SHA512Constants::Digest
+    end
+  end
+
+  context "it raises a TypeError for input that cannot be coerced into a String" do
+    it "raises a TypeError with SHA1" do
+      digest = OpenSSL::Digest.new('sha1')
+      -> {
+        digest.send(@method, Object.new)
+      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+    end
+
+    it "raises a TypeError with SHA256" do
+      digest = OpenSSL::Digest.new('sha256')
+      -> {
+        digest.send(@method, Object.new)
+      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+    end
+
+    it "raises a TypeError with SHA384" do
+      digest = OpenSSL::Digest.new('sha384')
+      -> {
+        digest.send(@method, Object.new)
+      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+    end
+
+    it "raises a TypeError with SHA512" do
+      digest = OpenSSL::Digest.new('sha512')
+      -> {
+        digest.send(@method, Object.new)
+      }.should raise_error(TypeError, 'no implicit conversion of Object into String')
+    end
+  end
 end
