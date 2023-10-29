@@ -140,6 +140,7 @@ public:
 #endif
     }
 
+    Value hash(Env *);
     Value inspect(Env *);
     bool is_alive() const;
     bool is_blocking() const;
