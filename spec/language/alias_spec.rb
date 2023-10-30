@@ -52,6 +52,17 @@ describe "The alias keyword" do
     @obj.a.should == 5
   end
 
+  it "works with an interpolated symbol with non-literal embedded expression on the left-hand side" do
+    NATFIXME 'implement class_eval with string (maybe)', exception: SyntaxError, message: 'eval() only works on static strings' do
+      @meta.class_eval do
+        eval %Q{
+          alias :"#{'a' + ''.to_s}" value
+        }
+      end
+      @obj.a.should == 5
+    end
+  end
+
   it "works with a simple symbol on the right-hand side" do
     @meta.class_eval do
       alias a :value
@@ -78,6 +89,17 @@ describe "The alias keyword" do
       alias a :"#{'value'}"
     end
     @obj.a.should == 5
+  end
+
+  it "works with an interpolated symbol with non-literal embedded expression on the right-hand side" do
+    NATFIXME 'implement class_eval with string (maybe)', exception: SyntaxError, message: 'eval() only works on static strings' do
+      @meta.class_eval do
+        eval %Q{
+          alias a :"#{'value' + ''.to_s}"
+        }
+      end
+      @obj.a.should == 5
+    end
   end
 
   it "adds the new method to the list of methods" do
@@ -237,7 +259,8 @@ describe "The alias keyword" do
   end
 
   it "on top level defines the alias on Object" do
-    ruby_exe("def foo; end; alias bla foo; print method(:bla).owner", escape: true).should == "Object"
+    # because it defines on the default definee / current module
+    ruby_exe("def foo; end; alias bla foo; print method(:bla).owner").should == "Object"
   end
 
   it "raises a NameError when passed a missing name" do
@@ -245,6 +268,21 @@ describe "The alias keyword" do
       # a NameError and not a NoMethodError
       e.class.should == NameError
     }
+  end
+
+  it "defines the method on the aliased class when the original method is from a parent class" do
+    NATFIXME 'defines the method on the aliased class when the original method is from a parent class', exception: SpecFailedException do
+      parent = Class.new do
+        def parent_method
+        end
+      end
+      child = Class.new(parent) do
+        alias parent_method_alias parent_method
+      end
+
+      child.instance_method(:parent_method_alias).owner.should == child
+      child.instance_methods(false).should include(:parent_method_alias)
+    end
   end
 end
 
@@ -258,5 +296,10 @@ describe "The alias keyword" do
   xit "can override an existing global variable and make them synonyms" do
     code = '$a = 1; $b = 2; alias $b $a; p [$a, $b]; $b = 3; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n[3, 3]\n"
+  end
+
+  xit "supports aliasing twice the same global variables" do
+    code = '$a = 1; alias $b $a; alias $b $a; p [$a, $b]'
+    ruby_exe(code).should == "[1, 1]\n"
   end
 end

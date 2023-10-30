@@ -14,11 +14,27 @@ describe :tcpsocket_new, shared: true do
     }
   end
 
-  it 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
-      NATFIXME "TypeError: Hash can't be coerced into String", exception: SpecFailedException do
-      -> {
-        TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
-      }.should raise_error(Errno::ETIMEDOUT)
+  ruby_version_is ""..."3.2" do
+    it 'raises Errno::ETIMEDOUT with :connect_timeout when no server is listening on the given address' do
+        -> {
+          TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
+        }.should raise_error(Errno::ETIMEDOUT)
+      rescue Errno::ENETUNREACH
+        # In the case all network interfaces down.
+        # raise_error cannot deal with multiple expected exceptions
+      end
+  end
+
+  ruby_version_is "3.2" do
+    it 'raises IO::TimeoutError with :connect_timeout when no server is listening on the given address' do
+      NATFIXME 'Add IO::TimeoutError', exception: NameError, message: 'uninitialized constant IO::TimeoutError' do
+        -> {
+          TCPSocket.send(@method, "192.0.2.1", 80, connect_timeout: 0)
+        }.should raise_error(IO::TimeoutError)
+      rescue Errno::ENETUNREACH
+        # In the case all network interfaces down.
+        # raise_error cannot deal with multiple expected exceptions
+      end
     end
   end
 
