@@ -1,8 +1,8 @@
-require_relative '../../../spec/spec_helper'
+require_relative '../../../spec_helper'
 require 'openssl'
 
 describe "OpenSSL::Digest#name" do
-  it "returns the name of digest when called on an instance" do
+  it "returns the name of digest" do
     OpenSSL::Digest.new('SHA1').name.should == 'SHA1'
   end
 

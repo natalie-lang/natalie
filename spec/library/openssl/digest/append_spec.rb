@@ -1,4 +1,4 @@
-require_relative '../../../spec/spec_helper'
+require_relative '../../../spec_helper'
 require_relative 'shared/update'
 
 describe "OpenSSL::Digest#<<" do

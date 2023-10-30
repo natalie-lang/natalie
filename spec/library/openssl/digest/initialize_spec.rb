@@ -1,11 +1,11 @@
-require_relative '../../../spec/spec_helper'
-require_relative '../../../spec/library/digest/sha1/shared/constants'
-require_relative '../../../spec/library/digest/sha256/shared/constants'
-require_relative '../../../spec/library/digest/sha384/shared/constants'
-require_relative '../../../spec/library/digest/sha512/shared/constants'
+require_relative '../../../spec_helper'
+require_relative '../../../library/digest/sha1/shared/constants'
+require_relative '../../../library/digest/sha256/shared/constants'
+require_relative '../../../library/digest/sha384/shared/constants'
+require_relative '../../../library/digest/sha512/shared/constants'
 require 'openssl'
 
-describe "OpenSSL::Digest initialization" do
+describe "OpenSSL::Digest#initialize" do
   describe "can be called with a digest name" do
     it "returns a SHA1 object" do
       OpenSSL::Digest.new("sha1").name.should == "SHA1"
@@ -31,7 +31,7 @@ describe "OpenSSL::Digest initialization" do
       -> { OpenSSL::Digest.new(:SHA1) }.should raise_error(TypeError, /wrong argument type Symbol/)
     end
 
-    it "doest not call #to_str on the argument" do
+    it "does not call #to_str on the argument" do
       name = mock("digest name")
       name.should_not_receive(:to_str)
       -> { OpenSSL::Digest.new(name) }.should raise_error(TypeError, /wrong argument type/)
@@ -55,17 +55,17 @@ describe "OpenSSL::Digest initialization" do
       OpenSSL::Digest.new(OpenSSL::Digest::SHA512.new).name.should ==  "SHA512"
     end
 
-    it "cannot be called with a digest class" do
-      -> { OpenSSL::Digest.new(OpenSSL::Digest::SHA1) }.should raise_error(TypeError, /wrong argument type Class/)
-    end
-
-    it "ignores the state of the name object" do
+    it "ignores the state of the digest object" do
       sha1 = OpenSSL::Digest.new('sha1', SHA1Constants::Contents)
       OpenSSL::Digest.new(sha1).digest.should == SHA1Constants::BlankDigest
     end
   end
 
-  describe "ititialization with an empty string" do
+  it "cannot be called with a digest class" do
+    -> { OpenSSL::Digest.new(OpenSSL::Digest::SHA1) }.should raise_error(TypeError, /wrong argument type Class/)
+  end
+
+  context "when called without an initial String argument" do
     it "returns a SHA1 digest" do
       OpenSSL::Digest.new("sha1").digest.should == SHA1Constants::BlankDigest
     end
@@ -83,26 +83,26 @@ describe "OpenSSL::Digest initialization" do
     end
   end
 
-  describe "can be called with a digest name and data" do
-    it "returns a SHA1 digest" do
+  context "when called with an initial String argument" do
+    it "returns a SHA1 digest of that argument" do
       OpenSSL::Digest.new("sha1", SHA1Constants::Contents).digest.should == SHA1Constants::Digest
     end
 
-    it "returns a SHA256 digest" do
+    it "returns a SHA256 digest of that argument" do
       OpenSSL::Digest.new("sha256", SHA256Constants::Contents).digest.should == SHA256Constants::Digest
     end
 
-    it "returns a SHA384 digest" do
+    it "returns a SHA384 digest of that argument" do
       OpenSSL::Digest.new("sha384", SHA384Constants::Contents).digest.should == SHA384Constants::Digest
     end
 
-    it "returns a SHA512 digest" do
+    it "returns a SHA512 digest of that argument" do
       OpenSSL::Digest.new("sha512", SHA512Constants::Contents).digest.should == SHA512Constants::Digest
     end
   end
 
   context "can be called on subclasses" do
-    describe "can be called without data on subclasses" do
+    describe "can be called without an initial String argument on subclasses" do
       it "returns a SHA1 digest" do
         OpenSSL::Digest::SHA1.new.digest.should == SHA1Constants::BlankDigest
       end
@@ -120,7 +120,7 @@ describe "OpenSSL::Digest initialization" do
       end
     end
 
-    describe "can be called with data on subclasses" do
+    describe "can be called with an initial String argument on subclasses" do
       it "returns a SHA1 digest" do
         OpenSSL::Digest::SHA1.new(SHA1Constants::Contents).digest.should == SHA1Constants::Digest
       end
