@@ -8,7 +8,7 @@ class Hash
       elsif obj.respond_to?(:to_hash)
         obj.to_hash.tap do |hash|
           unless hash.nil? || hash.is_a?(Hash)
-            raise TypeError, "can't convert #{obj.inspect} to Hash (#{obj.inspect}#to_hash gives #{hash.inspect})"
+            raise TypeError, "can't convert #{obj.class.inspect} to Hash (#{obj.class.inspect}#to_hash gives #{hash.class.inspect})"
           end
         end
       end
