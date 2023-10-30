@@ -107,7 +107,7 @@ class Hash
   def shift
     raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
 
-    return default(nil) if empty?
+    return nil if empty?
 
     first.tap { |key, _| delete(key) }
   end
