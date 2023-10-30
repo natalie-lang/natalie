@@ -459,7 +459,8 @@ module Natalie
           instructions << DupInstruction.new # duplicate receiver for IsNil below
           instructions << IsNilInstruction.new
           instructions << IfInstruction.new
-          instructions << PopInstruction.new # pop duplicated receiver since it is unused
+          instructions << PopInstruction.new # pop receiver since it is unused
+          instructions << PopInstruction.new if with_block # pop block since it is unused
           instructions << PushNilInstruction.new
           instructions << ElseInstruction.new(:if)
         end
@@ -611,20 +612,24 @@ module Natalie
 
         if node.read_name == :[]
           instructions = [
-            # stack: [obj]
+            # stack before: []
+            #  stack after: [obj]
             transform_expression(obj, used: true),
 
-            # stack: [obj, *keys]
+            # stack before: [obj]
+            #  stack after: [obj, *keys]
             key_args.map { |arg| transform_expression(arg, used: true) },
 
-            # stack: [obj, *keys, obj]
+            # stack before: [obj, *keys]
+            #  stack after: [obj, *keys, obj]
             DupRelInstruction.new(key_args.size),
 
-            # stack: [obj, *keys, obj, *keys]
+            # stack before: [obj, *keys, obj]
+            #  stack after: [obj, *keys, obj, *keys]
             key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
 
-            # old_value = obj[*keys]
-            # stack: [obj, *keys, old_value]
+            # stack before: [obj, *keys, obj, *keys]
+            #  stack after: [obj, *keys, old_value]
             PushArgcInstruction.new(key_args.size),
             SendInstruction.new(
               :[],
@@ -634,14 +639,18 @@ module Natalie
               line: node.location.start_line,
             ),
 
-            # stack: [obj, *keys, old_value, old_value]
+            # stack before: [obj, *keys, old_value]
+            #  stack after: [obj, *keys, old_value, old_value]
             DupInstruction.new,
 
             # if old_value
-            # stack: [obj, *keys, old_value]
+            # stack before: [obj, *keys, old_value, old_value]
+            #  stack after: [obj, *keys, old_value]
             IfInstruction.new,
 
-            # didn't need the extra key(s) after all :-)
+            # don't need the extra key(s) after all :-)
+            # stack before: [obj, *keys, old_value]
+            #  stack after: [obj, old_value]
             key_args.map do
               [
                 SwapInstruction.new, # move value above duplicated key
@@ -649,14 +658,26 @@ module Natalie
               ]
             end,
 
-            ElseInstruction.new(:if),
-
-            # stack: [obj, *keys]
+            # don't need the obj now
+            # stack before: [obj, old_value]
+            #  stack after: [old_value]
+            SwapInstruction.new,
             PopInstruction.new,
 
-            # obj[*keys] = new_value
-            # stack: [obj, *keys, new_value]
+            # old_value is falsey...
+            ElseInstruction.new(:if),
+
+            # stack before: [obj, *keys, old_value]
+            #  stack after: [obj, *keys]
+            PopInstruction.new,
+
+            # stack before: [obj, *keys]
+            #  stack after: [obj, *keys, new_value]
             transform_expression(node.value, used: true),
+
+            # obj[*keys] = new_value
+            # stack before: [obj, *keys, new_value]
+            #  stack after: [result_of_send]
             PushArgcInstruction.new(key_args.size + 1),
             SendInstruction.new(
               :[]=,
@@ -1185,7 +1206,6 @@ module Natalie
           GlobalVariableGetInstruction.new(node.name),
           DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
-          GlobalVariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
           PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
@@ -1315,7 +1335,6 @@ module Natalie
           InstanceVariableGetInstruction.new(node.name),
           DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
-          InstanceVariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
           PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
@@ -1734,7 +1753,6 @@ module Natalie
         when ::Prism::ConstantTargetNode, ::Prism::ConstantPathTargetNode
           prepper = ConstPrepper.new(node, pass: self)
           instructions << [
-            GlobalVariableGetInstruction.new(:$!),
             prepper.namespace,
             ConstSetInstruction.new(prepper.name)
           ]

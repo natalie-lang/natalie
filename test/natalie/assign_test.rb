@@ -295,12 +295,43 @@ describe 'assignment' do
 
   it 'can optionally call an attr writer with ||=' do
     a = AttrAssign.new
-    a.foo ||= 'foo'
+    (a.foo ||= 'foo').should == 'foo'
     a.foo.should == 'foo'
 
-    a.foo ||= 'bar'
+    (a.foo ||= 'bar').should == 'foo'
     a.foo.should == 'foo'
   end
+
+  # NATFIXME: implement CallAndWriteNode
+  #it 'can optionally call an attr writer with &&=' do
+    #a = AttrAssign.new
+    #(a.foo &&= 'foo').should == nil
+    #a.foo.should == nil
+
+    #a.foo == 'foo'
+
+    #(a.foo &&= 'bar').should == 'bar'
+    #a.foo.should == 'bar'
+  #end
+
+  it 'can optionally update a ref with ||=' do
+    a = [1]
+    (a[0] ||= 'foo').should == 1
+    a[0].should == 1
+
+    (a[10] ||= 'bar').should == 'bar'
+    a[10].should == 'bar'
+  end
+
+  # NATFIXME: implement CallAndWriteNode
+  #it 'can optionally update a ref with &&=' do
+    #a = [1]
+    #(a[0] &&= 'foo').should == 'foo'
+    #a[0].should == 'foo'
+
+    #(a[1] &&= 'bar').should == nil
+    #a[1].should == nil
+  #end
 
   it 'can optionally override a variable with &&=' do
     (a &&= 1).should == nil
