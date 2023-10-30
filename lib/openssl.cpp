@@ -165,7 +165,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     auto KDF = OpenSSL->const_get("KDF"_s);
     auto KDFError = KDF->const_get("KDFError"_s);
-    auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, NULL);
+    auto pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, nullptr);
     Defer pctx_free { [&pctx]() { EVP_PKEY_CTX_free(pctx); } };
     unsigned char out[length->to_nat_int_t()];
     size_t outlen = sizeof(out);
