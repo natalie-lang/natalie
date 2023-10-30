@@ -809,15 +809,15 @@ module Natalie
       def transform_class_variable_and_write_node(node, used:)
         instructions = [
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          DupInstruction.new, # duplicate for falsey case
           IfInstruction.new,
+          PopInstruction.new, # remove duplicated truthy value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           ClassVariableSetInstruction.new(node.name),
-          ClassVariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
           EndInstruction.new(:if)
         ]
-
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -843,12 +843,13 @@ module Natalie
       def transform_class_variable_or_write_node(node, used:)
         instructions = [
           ClassVariableGetInstruction.new(node.name, default_to_nil: true),
+          DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
-          ClassVariableGetInstruction.new(node.name, default_to_nil: true),
           ElseInstruction.new(:if),
+          PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           ClassVariableSetInstruction.new(node.name),
-          ClassVariableGetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
@@ -1148,11 +1149,13 @@ module Natalie
       def transform_global_variable_and_write_node(node, used:)
         instructions = [
           GlobalVariableGetInstruction.new(node.name),
+          DupInstruction.new, # duplicate for falsey case
           IfInstruction.new,
+          PopInstruction.new, # remove duplicated truthy value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           GlobalVariableSetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          GlobalVariableGetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
@@ -1180,10 +1183,13 @@ module Natalie
       def transform_global_variable_or_write_node(node, used:)
         instructions = [
           GlobalVariableGetInstruction.new(node.name),
+          DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
           GlobalVariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
+          PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           GlobalVariableSetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
@@ -1273,12 +1279,14 @@ module Natalie
       def transform_instance_variable_and_write_node(node, used:)
         instructions = [
           InstanceVariableGetInstruction.new(node.name),
+          DupInstruction.new, # duplicate for falsey case
           IfInstruction.new,
+          PopInstruction.new, # remove duplicated truthy value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           InstanceVariableSetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          InstanceVariableGetInstruction.new(node.name),
-          EndInstruction.new(:if),
+          EndInstruction.new(:if)
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -1305,10 +1313,13 @@ module Natalie
       def transform_instance_variable_or_write_node(node, used:)
         instructions = [
           InstanceVariableGetInstruction.new(node.name),
+          DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
           InstanceVariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
+          PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           InstanceVariableSetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
@@ -1411,11 +1422,13 @@ module Natalie
       def transform_local_variable_and_write_node(node, used:)
         instructions = [
           VariableGetInstruction.new(node.name, default_to_nil: true),
+          DupInstruction.new, # duplicate for falsey case
           IfInstruction.new,
+          PopInstruction.new, # remove duplicated truthy value
           transform_expression(node.value, used: true),
+          DupInstruction.new, # duplicate value for return
           VariableSetInstruction.new(node.name),
           ElseInstruction.new(:if),
-          VariableGetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
@@ -1443,11 +1456,12 @@ module Natalie
       def transform_local_variable_or_write_node(node, used:)
         instructions = [
           VariableGetInstruction.new(node.name, default_to_nil: true),
+          DupInstruction.new, # duplicate for truthy case
           IfInstruction.new,
-          VariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
+          PopInstruction.new, # remove duplicated falsey value
           transform_expression(node.value, used: true),
-          DupInstruction.new,
+          DupInstruction.new, # duplicate value for return
           VariableSetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]

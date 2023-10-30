@@ -190,9 +190,9 @@ describe 'assignment' do
   it 'can optionally assign a variable with ||=' do
     a ||= 1
     a.should == 1
-    a ||= 2
+    (a ||= 2).should == 1
     a.should == 1
-    a += 1
+    (a += 1).should == 2
     a.should == 2
 
     b = nil
@@ -220,11 +220,11 @@ describe 'assignment' do
     def e; :e; end
 
     h = {}
-    h[e] ||= 5
+    (h[e] ||= 5).should == 5
     h[e].should == 5
     h[e] ||= 6
     h[e].should == 5
-    h[e] += 1
+    (h[e] += 1).should == 6
     h[e].should == 6
     h[e] -= 1
     h[e].should == 5
@@ -238,6 +238,50 @@ describe 'assignment' do
 
     index = h[:e] ||= h.size
     index.should == 5
+
+    (@i ||= 1).should == 1
+    @i.should == 1
+    (@i ||= 2).should == 1
+    @i.should == 1
+    (@i &&= 3).should == 3
+    @i.should == 3
+    @i = nil
+    (@i &&= 3).should == nil
+    @i.should == nil
+    @i = 3
+    (@i += 1).should == 4
+    @i.should == 4
+
+    ($j ||= 1).should == 1
+    $j.should == 1
+    ($j ||= 2).should == 1
+    $j.should == 1
+    ($j &&= 3).should == 3
+    $j.should == 3
+    $j = nil
+    ($j &&= 3).should == nil
+    $j.should == nil
+    $j = 3
+    ($j += 1).should == 4
+    $j.should == 4
+
+    class ClassVariableHolder
+      def test
+        (@@k ||= 1).should == 1
+        @@k.should == 1
+        (@@k ||= 2).should == 1
+        @@k.should == 1
+        (@@k &&= 3).should == 3
+        @@k.should == 3
+        @@k = nil
+        (@@k &&= 3).should == nil
+        @@k.should == nil
+        @@k = 3
+        (@@k += 1).should == 4
+        @@k.should == 4
+      end
+    end
+    ClassVariableHolder.new.test
   end
 
   it 'can optionally assign in a when branch' do
@@ -259,18 +303,18 @@ describe 'assignment' do
   end
 
   it 'can optionally override a variable with &&=' do
-    a &&= 1
+    (a &&= 1).should == nil
     a.should == nil
 
     b = 1
-    b &&= 2
+    (b &&= 2).should == 2
     b.should == 2
   end
 
   it 'can add to an attr with +=' do
     a = AttrAssign.new
     a.foo = 1
-    a.foo += 2
+    (a.foo += 2).should == 3
     a.foo.should == 3
   end
 
