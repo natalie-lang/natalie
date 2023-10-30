@@ -131,6 +131,7 @@ module Natalie
           )
           yield(t)
           @stack_sizes << stack.size if @stack_sizes
+          stack.size
         end
 
         # truncate resulting stack to minimum size of any
@@ -138,7 +139,6 @@ module Natalie
         def normalize_stack
           @stack_sizes = []
           yield
-          @stack_sizes << stack.size
           @stack[@stack_sizes.min..] = []
           @stack_sizes = nil
         end

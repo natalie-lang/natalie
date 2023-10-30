@@ -28,15 +28,20 @@ module Natalie
 
         transform.normalize_stack do
           code << "if (#{condition}->is_truthy()) {"
-          transform.with_same_scope(true_body) do |t|
+          if_size = transform.with_same_scope(true_body) do |t|
             code << t.transform("#{result} =")
           end
 
           code << '} else {'
-          transform.with_same_scope(false_body) do |t|
+          else_size = transform.with_same_scope(false_body) do |t|
             code << t.transform("#{result} =")
           end
           code << '}'
+
+          if if_size != else_size
+            puts code
+            raise "branch sizes uneven! #{if_size} != #{else_size}"
+          end
         end
 
         transform.exec(code)
