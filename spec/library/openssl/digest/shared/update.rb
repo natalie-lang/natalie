@@ -1,11 +1,11 @@
-require_relative '../../../../spec/library/digest/sha1/shared/constants'
-require_relative '../../../../spec/library/digest/sha256/shared/constants'
-require_relative '../../../../spec/library/digest/sha384/shared/constants'
-require_relative '../../../../spec/library/digest/sha512/shared/constants'
+require_relative '../../../../library/digest/sha1/shared/constants'
+require_relative '../../../../library/digest/sha256/shared/constants'
+require_relative '../../../../library/digest/sha384/shared/constants'
+require_relative '../../../../library/digest/sha512/shared/constants'
 require 'openssl'
 
 describe :openssl_digest_update, shared: true do
-  context "it supports full data chunks" do
+  context "when given input as a single string" do
     it "returns a SHA1 digest" do
       digest = OpenSSL::Digest.new('sha1')
       digest.send(@method, SHA1Constants::Contents)
@@ -31,7 +31,7 @@ describe :openssl_digest_update, shared: true do
     end
   end
 
-  context "it support smaller chunks" do
+  context "when given input as multiple smaller substrings" do
     it "returns a SHA1 digest" do
       digest = OpenSSL::Digest.new('sha1')
       SHA1Constants::Contents.each_char { |b| digest.send(@method, b) }
@@ -57,7 +57,7 @@ describe :openssl_digest_update, shared: true do
     end
   end
 
-  context "it converts input using #to_str" do
+  context "when input is not a String and responds to #to_str" do
     it "returns a SHA1 digest" do
       str = mock('str')
       str.should_receive(:to_str).and_return(SHA1Constants::Contents)
@@ -91,7 +91,7 @@ describe :openssl_digest_update, shared: true do
     end
   end
 
-  context "it raises a TypeError for input that cannot be coerced into a String" do
+  context "when input is not a String and does not respond to #to_str" do
     it "raises a TypeError with SHA1" do
       digest = OpenSSL::Digest.new('sha1')
       -> {

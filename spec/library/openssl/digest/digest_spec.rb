@@ -1,8 +1,8 @@
-require_relative '../../../spec/spec_helper'
-require_relative '../../../spec/library/digest/sha1/shared/constants'
-require_relative '../../../spec/library/digest/sha256/shared/constants'
-require_relative '../../../spec/library/digest/sha384/shared/constants'
-require_relative '../../../spec/library/digest/sha512/shared/constants'
+require_relative '../../../spec_helper'
+require_relative '../../../library/digest/sha1/shared/constants'
+require_relative '../../../library/digest/sha256/shared/constants'
+require_relative '../../../library/digest/sha384/shared/constants'
+require_relative '../../../library/digest/sha512/shared/constants'
 require 'openssl'
 
 describe "OpenSSL::Digest class methods" do
