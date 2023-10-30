@@ -1447,6 +1447,7 @@ module Natalie
           VariableGetInstruction.new(node.name),
           ElseInstruction.new(:if),
           transform_expression(node.value, used: true),
+          DupInstruction.new,
           VariableSetInstruction.new(node.name),
           EndInstruction.new(:if),
         ]
