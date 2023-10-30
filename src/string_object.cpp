@@ -1899,6 +1899,8 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
             match = nullptr;
             result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index, block);
             if (match) {
+                Env *caller_env = env->caller();
+                caller_env->set_last_match(match);
                 start_index = match->beg_byte_index(0) + expanded_replacement->length();
                 if (match->group(0)->as_string()->is_empty() && start_index >= result->bytesize())
                     break;
