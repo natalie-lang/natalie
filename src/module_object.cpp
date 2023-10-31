@@ -304,18 +304,18 @@ Value ModuleObject::const_missing(Env *env, Value name) {
     env->raise_name_error(name_str, "uninitialized constant {}::{}", inspect_str(), name_str->string());
 }
 
-void ModuleObject::make_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+void ModuleObject::make_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     auto method_info = find_method(env, old_name);
     assert_method_defined(env, old_name, method_info);
     define_method(env, new_name, method_info.method(), method_info.visibility());
 };
 
-void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+void ModuleObject::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     if (GlobalEnv::the()->instance_evaling()) {
-        singleton_class(env)->make_alias(env, new_name, old_name);
+        singleton_class(env)->make_method_alias(env, new_name, old_name);
         return;
     }
-    make_alias(env, new_name, old_name);
+    make_method_alias(env, new_name, old_name);
 }
 
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
@@ -915,7 +915,7 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
     if (!old_name) {
         env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
     }
-    make_alias(env, new_name, old_name);
+    make_method_alias(env, new_name, old_name);
     return new_name;
 }
 

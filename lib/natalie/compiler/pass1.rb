@@ -103,7 +103,7 @@ module Natalie
         instructions = [transform_expression(node.new_name, used: true)]
         instructions << DupInstruction.new if used
         instructions << transform_expression(node.old_name, used: true)
-        instructions << AliasInstruction.new
+        instructions << AliasMethodInstruction.new
       end
 
       def transform_and_node(node, used:)

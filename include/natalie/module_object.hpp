@@ -61,8 +61,8 @@ public:
     Value constants(Env *, Value) const;
     Value const_missing(Env *, Value);
 
-    void make_alias(Env *, SymbolObject *, SymbolObject *);
-    virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
+    void make_method_alias(Env *, SymbolObject *, SymbolObject *);
+    virtual void method_alias(Env *, SymbolObject *, SymbolObject *) override;
 
     Value eval_body(Env *, Value (*)(Env *, Value));
 
