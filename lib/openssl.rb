@@ -52,6 +52,12 @@ module OpenSSL
     end
   end
 
+  class HMAC
+    def self.hexdigest(digest, key, data)
+      digest(digest, key, data).unpack1('H*')
+    end
+  end
+
   module KDF
     class KDFError < OpenSSLError; end
   end
