@@ -1,3 +1,4 @@
+require_relative './instructions/alias_global_instruction'
 require_relative './instructions/alias_method_instruction'
 require_relative './instructions/array_concat_instruction'
 require_relative './instructions/array_pop_instruction'

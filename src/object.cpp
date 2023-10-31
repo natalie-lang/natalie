@@ -723,9 +723,9 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 void Object::method_alias(Env *env, Value new_name, Value old_name) {
-    new_name->assert_type(env, Object::Type::Symbol, "Symbol");
-    old_name->assert_type(env, Object::Type::Symbol, "Symbol");
-    method_alias(env, static_cast<SymbolObject *>(new_name.object()), static_cast<SymbolObject *>(old_name.object()));
+    new_name->assert_type(env, Type::Symbol, "Symbol");
+    old_name->assert_type(env, Type::Symbol, "Symbol");
+    method_alias(env, new_name->as_symbol(), old_name->as_symbol());
 }
 
 void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
