@@ -36,6 +36,16 @@ static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void 
     result->push(new StringObject { cipher_meth->name });
 }
 
+Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto name = args[0]->to_str(env);
+    const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
+    if (!cipher)
+        env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
+
+    return self;
+}
+
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
     auto result = new ArrayObject {};
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
@@ -232,6 +242,7 @@ Value init(Env *env, Value self) {
         Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
+    Cipher->define_method(env, "initialize"_s, OpenSSL_Cipher_initialize, 1);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
