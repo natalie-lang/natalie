@@ -386,6 +386,7 @@ Env *build_top_env() {
 
     Value _stdout = new IoObject { STDOUT_FILENO };
     env->global_set("$stdout"_s, _stdout);
+    env->global_alias("$>"_s, "$stdout"_s);
     Object->const_set("STDOUT"_s, _stdout);
 
     Value _stderr = new IoObject { STDERR_FILENO };
