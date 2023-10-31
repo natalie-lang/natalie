@@ -31,12 +31,12 @@ module OpenSSL
       new(name).hexdigest(data)
     end
 
-    def base64digest(data)
-      [digest(data)].pack('m0')
+    def base64digest(...)
+      [digest(...)].pack('m0')
     end
 
-    def hexdigest(data)
-      digest(data).unpack1('H*')
+    def hexdigest(...)
+      digest(...).unpack1('H*')
     end
 
     def self.const_missing(name)
