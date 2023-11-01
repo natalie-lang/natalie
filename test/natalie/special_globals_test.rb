@@ -25,15 +25,18 @@ describe 'special globals' do
 
     it 'points to $stdout even if $stdout is changed' do
       stdout_was = $stdout
-      file = File.open(tmp('stdout.log'), 'w')
-      $stdout = file
-      $>.should == file
-      # reset
-      $stdout = stdout_was
-      $> = file
-      $stdout.should == file
-      $>.should == file
+      filename = tmp('stdout.log')
+      File.open(filename, 'w') do |file|
+        $stdout = file
+        $>.should == file
+        # reset
+        $stdout = stdout_was
+        $> = file
+        $stdout.should == file
+        $>.should == file
+      end
     ensure
+      rm_r filename
       $stdout = stdout_was
     end
   end
