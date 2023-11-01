@@ -8,6 +8,11 @@
 
 using namespace Natalie;
 
+static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->void_ptr());
+    EVP_CIPHER_CTX_free(ctx);
+}
+
 static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->void_ptr());
     EVP_MD_CTX_free(mdctx);
@@ -42,7 +47,24 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
     const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
     if (!cipher)
         env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx)
+        OpenSSL_raise_error(env, "EVP_CIPHER_CTX");
+    if (!EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr)) {
+        EVP_CIPHER_CTX_free(ctx);
+        OpenSSL_raise_error(env, "EVP_EncryptInit_ex");
+    }
+    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
 
+    return self;
+}
+
+Value OpenSSL_Cipher_encrypt(Env *env, Value self, Args args, Block *) {
+    // NATFIXME: There is deprecated behaviour when calling with arguments. Let's not try to reproduce that for now
+    // warning: arguments for OpenSSL::Cipher#encrypt and OpenSSL::Cipher#decrypt were deprecated; use OpenSSL::Cipher#pkcs5_keyivgen to derive key and IV
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, nullptr, 1);
     return self;
 }
 
@@ -243,6 +265,7 @@ Value init(Env *env, Value self) {
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
     Cipher->define_method(env, "initialize"_s, OpenSSL_Cipher_initialize, 1);
+    Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
