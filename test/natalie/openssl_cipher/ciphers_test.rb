@@ -11,6 +11,7 @@ describe "OpenSSL::Cipher.ciphers" do
   end
 
   it "includes all the ciphers we use for testing" do
+    OpenSSL::Cipher.ciphers.should.include?("aes-128-cbc")
     OpenSSL::Cipher.ciphers.should.include?("aes-256-cbc")
     OpenSSL::Cipher.ciphers.should.include?("chacha20")
   end
