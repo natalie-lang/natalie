@@ -722,22 +722,22 @@ Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
     return m_klass->cvar_set(env, name, val);
 }
 
-void Object::alias(Env *env, Value new_name, Value old_name) {
-    new_name->assert_type(env, Object::Type::Symbol, "Symbol");
-    old_name->assert_type(env, Object::Type::Symbol, "Symbol");
-    alias(env, static_cast<SymbolObject *>(new_name.object()), static_cast<SymbolObject *>(old_name.object()));
+void Object::method_alias(Env *env, Value new_name, Value old_name) {
+    new_name->assert_type(env, Type::Symbol, "Symbol");
+    old_name->assert_type(env, Type::Symbol, "Symbol");
+    method_alias(env, new_name->as_symbol(), old_name->as_symbol());
 }
 
-void Object::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     if (is_integer() || is_symbol()) {
         env->raise("TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
-        m_klass->make_alias(env, new_name, old_name);
+        m_klass->make_method_alias(env, new_name, old_name);
     } else if (is_module()) {
-        as_module()->alias(env, new_name, old_name);
+        as_module()->method_alias(env, new_name, old_name);
     } else {
-        singleton_class(env)->make_alias(env, new_name, old_name);
+        singleton_class(env)->make_method_alias(env, new_name, old_name);
     }
 }
 

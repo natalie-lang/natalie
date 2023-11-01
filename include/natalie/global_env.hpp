@@ -16,6 +16,20 @@ extern "C" {
 
 class GlobalEnv : public Cell {
 public:
+    class GlobalVariableInfo : public Cell {
+    public:
+        GlobalVariableInfo(Object *object)
+            : m_object { object } { }
+
+        void set_object(Object *object) { m_object = object; }
+        Object *object() { return m_object; }
+
+        virtual void visit_children(Visitor &visitor) override final;
+
+    private:
+        class Object *m_object { nullptr };
+    };
+
     static GlobalEnv *the() {
         if (s_instance)
             return s_instance;
@@ -79,6 +93,7 @@ public:
     bool global_defined(Env *, SymbolObject *);
     Value global_get(Env *, SymbolObject *);
     Value global_set(Env *, SymbolObject *, Value);
+    Value global_alias(Env *, SymbolObject *, SymbolObject *);
 
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
@@ -105,7 +120,7 @@ private:
 
     inline static GlobalEnv *s_instance = nullptr;
 
-    TM::Hashmap<SymbolObject *, Value> m_globals {};
+    TM::Hashmap<SymbolObject *, GlobalVariableInfo *> m_global_variables {};
 
     ClassObject *m_Array { nullptr };
     ClassObject *m_BasicObject { nullptr };

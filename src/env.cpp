@@ -23,6 +23,10 @@ Value Env::global_set(SymbolObject *name, Value val) {
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
+Value Env::global_alias(SymbolObject *new_name, SymbolObject *old_name) {
+    return GlobalEnv::the()->global_alias(this, new_name, old_name);
+}
+
 // Return the file separator `$,` or nil
 Value Env::output_file_separator() {
     Value fsep = global_get("$,"_s);

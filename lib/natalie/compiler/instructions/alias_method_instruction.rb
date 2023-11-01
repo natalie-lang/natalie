@@ -6,15 +6,15 @@ module Natalie
     # push(new_name)
     # push(old_name)
     # alias
-    class AliasInstruction < BaseInstruction
+    class AliasMethodInstruction < BaseInstruction
       def to_s
-        'alias'
+        'alias_method'
       end
 
       def generate(transform)
         old_name = transform.pop
         new_name = transform.pop
-        transform.exec("self->alias(env, #{new_name}, #{old_name})")
+        transform.exec("self->method_alias(env, #{new_name}, #{old_name})")
       end
 
       def execute(vm)

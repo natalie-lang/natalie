@@ -287,18 +287,17 @@ describe "The alias keyword" do
 end
 
 describe "The alias keyword" do
-  # NATFIXME: Parse global variable aliases
-  xit "can create a new global variable, synonym of the original" do
+  it "can create a new global variable, synonym of the original" do
     code = '$a = 1; alias $b $a; p [$a, $b]; $b = 2; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n[2, 2]\n"
   end
 
-  xit "can override an existing global variable and make them synonyms" do
+  it "can override an existing global variable and make them synonyms" do
     code = '$a = 1; $b = 2; alias $b $a; p [$a, $b]; $b = 3; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n[3, 3]\n"
   end
 
-  xit "supports aliasing twice the same global variables" do
+  it "supports aliasing twice the same global variables" do
     code = '$a = 1; alias $b $a; alias $b $a; p [$a, $b]'
     ruby_exe(code).should == "[1, 1]\n"
   end

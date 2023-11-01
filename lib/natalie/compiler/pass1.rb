@@ -99,11 +99,18 @@ module Natalie
       # INDIVIDUAL NODES = = = = =
       # (in alphabetical order)
 
+      def transform_alias_global_variable_node(node, used:)
+        instructions = [PushSymbolInstruction.new(node.new_name.name)]
+        instructions << DupInstruction.new if used
+        instructions << PushSymbolInstruction.new(node.old_name.name)
+        instructions << AliasGlobalInstruction.new
+      end
+
       def transform_alias_method_node(node, used:)
         instructions = [transform_expression(node.new_name, used: true)]
         instructions << DupInstruction.new if used
         instructions << transform_expression(node.old_name, used: true)
-        instructions << AliasInstruction.new
+        instructions << AliasMethodInstruction.new
       end
 
       def transform_and_node(node, used:)
