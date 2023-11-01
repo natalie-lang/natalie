@@ -95,6 +95,23 @@ Value OpenSSL_Cipher_iv_len(Env *env, Value self, Args args, Block *) {
     return Value::integer(iv_len);
 }
 
+Value OpenSSL_Cipher_key_set(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto key = args[0]->to_str(env);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const size_t key_len = EVP_CIPHER_key_length(e);
+    if (key->bytesize() != key_len)
+        env->raise("ArgumentError", "key must be {} bytes", key_len);
+    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, reinterpret_cast<const unsigned char *>(key->c_str()), nullptr, -1)) {
+        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+        auto Cipher = OpenSSL->const_get("Cipher"_s);
+        auto CipherError = Cipher->const_get("CipherError"_s);
+        OpenSSL_raise_error(env, "EVP_CipherInit_ex", CipherError->as_class());
+    }
+    return key;
+}
+
 Value OpenSSL_Cipher_key_len(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
@@ -304,6 +321,7 @@ Value init(Env *env, Value self) {
     Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
     Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
     Cipher->define_method(env, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
+    Cipher->define_method(env, "key="_s, OpenSSL_Cipher_key_set, 1);
     Cipher->define_method(env, "key_len"_s, OpenSSL_Cipher_key_len, 0);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
