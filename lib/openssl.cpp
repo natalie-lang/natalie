@@ -1,6 +1,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
 
@@ -110,6 +111,21 @@ Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
     const int digest_length = EVP_MD_CTX_size(mdctx);
     return IntegerObject::create(digest_length);
+}
+
+Value OpenSSL_HMAC_digest(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 3);
+    auto digest_klass = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("Digest"_s);
+    auto digest = Object::_new(env, digest_klass, { args[0] }, nullptr);
+    auto key = args[1]->to_str(env);
+    auto data = args[2]->to_str(env);
+    const EVP_MD *evp_md = EVP_get_digestbyname(digest->send(env, "name"_s)->as_string()->c_str());
+    unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned int md_len;
+    auto res = HMAC(evp_md, key->c_str(), key->bytesize(), reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize(), md, &md_len);
+    if (!res)
+        OpenSSL_raise_error(env, "HMAC");
+    return new StringObject { reinterpret_cast<const char *>(md), md_len };
 }
 
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
@@ -226,6 +242,13 @@ Value init(Env *env, Value self) {
     Digest->define_method(env, "reset"_s, OpenSSL_Digest_reset, 0);
     Digest->define_method(env, "update"_s, OpenSSL_Digest_update, 1);
     Digest->define_method(env, "<<"_s, OpenSSL_Digest_update, 1);
+
+    auto HMAC = OpenSSL->const_get("HMAC"_s);
+    if (!HMAC) {
+        HMAC = GlobalEnv::the()->Object()->subclass(env, "HMAC");
+        OpenSSL->const_set("HMAC"_s, HMAC);
+    }
+    HMAC->define_singleton_method(env, "digest"_s, OpenSSL_HMAC_digest, 3);
 
     auto KDF = OpenSSL->const_get("KDF"_s);
     if (!KDF) {
