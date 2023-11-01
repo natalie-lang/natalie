@@ -87,6 +87,14 @@ Value OpenSSL_Cipher_encrypt(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_Cipher_key_len(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const nat_int_t key_len = EVP_CIPHER_key_length(e);
+    return Value::integer(key_len);
+}
+
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
     auto result = new ArrayObject {};
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
@@ -287,6 +295,7 @@ Value init(Env *env, Value self) {
     Cipher->define_method(env, "block_size"_s, OpenSSL_Cipher_block_size, 0);
     Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
     Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
+    Cipher->define_method(env, "key_len"_s, OpenSSL_Cipher_key_len, 0);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
