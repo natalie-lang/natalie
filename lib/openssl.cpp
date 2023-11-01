@@ -62,6 +62,13 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_Cipher_block_size(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const nat_int_t block_size = EVP_CIPHER_CTX_block_size(ctx);
+    return Value::integer(block_size);
+}
+
 Value OpenSSL_Cipher_decrypt(Env *env, Value self, Args args, Block *) {
     // NATFIXME: There is deprecated behaviour when calling with arguments. Let's not try to reproduce that for now
     // warning: arguments for OpenSSL::Cipher#encrypt and OpenSSL::Cipher#decrypt were deprecated; use OpenSSL::Cipher#pkcs5_keyivgen to derive key and IV
@@ -277,6 +284,7 @@ Value init(Env *env, Value self) {
         OpenSSL->const_set("Cipher"_s, Cipher);
     }
     Cipher->define_method(env, "initialize"_s, OpenSSL_Cipher_initialize, 1);
+    Cipher->define_method(env, "block_size"_s, OpenSSL_Cipher_block_size, 0);
     Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
     Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
