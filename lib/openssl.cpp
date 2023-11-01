@@ -48,11 +48,14 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
     if (!cipher)
         env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    auto Cipher = OpenSSL->const_get("Cipher"_s);
+    auto CipherError = Cipher->const_get("CipherError"_s);
     if (!ctx)
-        OpenSSL_raise_error(env, "EVP_CIPHER_CTX");
+        OpenSSL_raise_error(env, "EVP_CIPHER_CTX", CipherError->as_class());
     if (!EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr)) {
         EVP_CIPHER_CTX_free(ctx);
-        OpenSSL_raise_error(env, "EVP_EncryptInit_ex");
+        OpenSSL_raise_error(env, "EVP_EncryptInit_ex", CipherError->as_class());
     }
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
 
