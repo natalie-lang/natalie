@@ -19,6 +19,10 @@ module OpenSSL
   class Cipher
     class CipherError < OpenSSLError; end
 
+    def random_iv
+      self.iv = Random.random_bytes(iv_len)
+    end
+
     def random_key
       self.key = Random.random_bytes(key_len)
     end
