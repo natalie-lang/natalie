@@ -29,9 +29,9 @@ module Natalie
         require_relative
       ].freeze
 
-      def expand(call_node, depth:)
+      def expand(call_node, locals:, depth:)
         if (macro_name = get_macro_name(call_node))
-          run_macro(macro_name, call_node, current_path: call_node.location.path, depth: depth)
+          run_macro(macro_name, call_node, current_path: call_node.location.path, locals: locals, depth: depth)
         else
           call_node
         end
@@ -63,17 +63,17 @@ module Natalie
         end
       end
 
-      def run_macro(macro_name, expr, current_path:, depth:)
-        send("macro_#{macro_name}", expr: expr, current_path: current_path, depth: depth)
+      def run_macro(macro_name, expr, current_path:, locals:, depth:)
+        send("macro_#{macro_name}", expr: expr, current_path: current_path, locals: locals, depth: depth)
       end
 
-      def macro_user_macro(expr:, current_path:)
+      def macro_user_macro(expr:, **)
         _, _, name = expr
         macro = @macros[name]
         VM.compile_and_run(macro, path: 'macro')
       end
 
-      def macro_macro!(expr:, current_path:)
+      def macro_macro!(expr:, **)
         _, call, _, block = expr
         _, name = call.last
         @macros[name] = block
@@ -82,7 +82,7 @@ module Natalie
 
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
 
-      def macro_autoload(expr:, current_path:, depth:)
+      def macro_autoload(expr:, **)
         args = expr.arguments&.arguments || []
         const_node, path_node = args
         const = comptime_symbol(const_node)
@@ -104,7 +104,7 @@ module Natalie
         [:autoload_const, const, path, body]
       end
 
-      def macro_require(expr:, current_path:, depth:)
+      def macro_require(expr:, current_path:, **)
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         return nothing(expr) if name == 'tempfile' && interpret? # FIXME: not sure how to handle this actually
@@ -120,7 +120,7 @@ module Natalie
         drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
-      def macro_require_relative(expr:, current_path:, depth:)
+      def macro_require_relative(expr:, current_path:, **)
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         base = File.dirname(current_path)
@@ -133,7 +133,7 @@ module Natalie
         drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
       end
 
-      def macro_load(expr:, current_path:, depth:) # rubocop:disable Lint/UnusedMethodArgument
+      def macro_load(expr:, **)
         args = expr.arguments&.arguments || []
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
@@ -141,18 +141,18 @@ module Natalie
         drop_load_error "cannot load such file -- #{path}"
       end
 
-      def macro_eval(expr:, current_path:, depth:)
+      def macro_eval(expr:, current_path:, locals:, **)
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
         if node.type == :string_node
           begin
-            Natalie::Parser.new(node.unescaped, current_path).ast
+            Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
           rescue SyntaxError => e
             drop_error(:SyntaxError, e.message)
           end
         else
-          drop_error(:SyntaxError, 'eval() only works on static strings')
+          drop_error(:TypeError, 'eval() only works on static strings')
         end
       end
 
@@ -164,7 +164,7 @@ module Natalie
         false_node # Script has not been loaded
       end
 
-      def macro_include_str!(expr:, current_path:)
+      def macro_include_str!(expr:, current_path:, **)
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
@@ -176,7 +176,7 @@ module Natalie
 
       # $LOAD_PATH << some_expression
       # $LOAD_PATH.unshift(some_expression)
-      def macro_update_load_path(expr:, current_path:, depth:)
+      def macro_update_load_path(expr:, current_path:, depth:, **)
         if depth > 1
           if expr.is_a?(::Prism::Node)
             name = expr.receiver.name

@@ -53,7 +53,7 @@ describe "The alias keyword" do
   end
 
   it "works with an interpolated symbol with non-literal embedded expression on the left-hand side" do
-    NATFIXME 'implement class_eval with string (maybe)', exception: SyntaxError, message: 'eval() only works on static strings' do
+    NATFIXME 'implement class_eval with string (maybe)', exception: TypeError, message: 'eval() only works on static strings' do
       @meta.class_eval do
         eval %Q{
           alias :"#{'a' + ''.to_s}" value
@@ -92,7 +92,7 @@ describe "The alias keyword" do
   end
 
   it "works with an interpolated symbol with non-literal embedded expression on the right-hand side" do
-    NATFIXME 'implement class_eval with string (maybe)', exception: SyntaxError, message: 'eval() only works on static strings' do
+    NATFIXME 'implement class_eval with string (maybe)', exception: TypeError, message: 'eval() only works on static strings' do
       @meta.class_eval do
         eval %Q{
           alias a :"#{'value' + ''.to_s}"

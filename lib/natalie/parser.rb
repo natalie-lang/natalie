@@ -116,16 +116,16 @@ module Natalie
       end
     end
 
-    def initialize(code_str, path)
+    def initialize(code_str, path, locals: [])
       @code_str = code_str
       @path = path
+      @locals = locals
     end
 
     def ast
       Prism
-        .parse(@code_str, filepath: @path)
+        .parse(@code_str, filepath: @path, scopes: [@locals])
         .value
-        .statements
         .accept(PathVisitor.new(@path))
     end
   end
