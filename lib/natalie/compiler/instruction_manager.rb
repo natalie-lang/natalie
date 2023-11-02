@@ -44,6 +44,12 @@ module Natalie
         @instructions[@ip]
       end
 
+      # If you've already grabbed an instruction with `next` and you're working on it,
+      # you will need to use an offset of 2 to get back to the previous one.
+      def peek_back(offset = 1)
+        @instructions[@ip - offset]
+      end
+
       def replace_at(ip, instruction)
         raise 'expected instruction' unless instruction.is_a?(BaseInstruction)
         @instructions[ip] = instruction
