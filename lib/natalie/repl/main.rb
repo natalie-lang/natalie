@@ -19,7 +19,7 @@ module Natalie
               cmd = requires.join + cmd
             end
 
-            ast = Natalie::Parser.new(cmd, '(repl)').ast
+            ast = Natalie::Parser.new(cmd, '(repl)', locals: vars.keys).ast
           rescue Parser::IncompleteExpression
             next :continue
           rescue SyntaxError => e

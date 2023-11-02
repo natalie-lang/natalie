@@ -423,10 +423,6 @@ module Natalie
         message = node.name
         args = node.arguments&.arguments || []
 
-        if repl? && (instructions = transform_repl_variable_that_looks_like_call(node, used: used))
-          return instructions
-        end
-
         if is_inline_macro_call_node?(node)
           instructions = []
           if message == :__call__
@@ -1844,20 +1840,6 @@ module Natalie
         PushRegexpInstruction.new(regexp)
       end
 
-      # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. But we know which variables are defined in the REPL,
-      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
-      # TODO: Can we pass a list of local variables to Prism so this hack can be removed?
-      def transform_repl_variable_that_looks_like_call(node, used:)
-        return unless node.type == :call_node && node.receiver.nil?
-        return unless @compiler_context[:vars].key?(node.name)
-
-        # it is a variable, but it's unused so just return some empty instructions
-        return [] unless used
-
-        [VariableGetInstruction.new(node.name)]
-      end
-
       def transform_rescue_modifier_node(node, used:)
         instructions = [
           TryInstruction.new,
@@ -2200,10 +2182,6 @@ module Natalie
             arg.name
           end
         end
-      end
-
-      def repl?
-        @compiler_context[:repl]
       end
 
       def with_locals(locals)
