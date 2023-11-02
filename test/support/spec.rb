@@ -235,7 +235,11 @@ end
 
 def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0, env: {})
   env = env.map { |key, value| "#{key}=#{value} " }.join
-  binary = ENV['NAT_BINARY'] || 'bin/natalie'
+  binary = if RUBY_ENGINE == 'ruby'
+             'ruby'
+           else
+             ENV.fetch('NAT_BINARY', 'bin/natalie')
+           end
   if code.nil?
     return binary if args.nil?
 
