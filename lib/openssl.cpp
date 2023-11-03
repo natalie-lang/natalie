@@ -9,6 +9,11 @@
 
 using namespace Natalie;
 
+static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->void_ptr());
+    EVP_CIPHER_CTX_free(ctx);
+}
+
 static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->void_ptr());
     EVP_MD_CTX_free(mdctx);
@@ -18,6 +23,13 @@ static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass =
     static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
     if (!klass) klass = OpenSSLError;
     env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
+}
+
+static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
+    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    static auto Cipher = OpenSSL->const_get("Cipher"_s);
+    static auto CipherError = Cipher->const_get("CipherError"_s);
+    OpenSSL_raise_error(env, func, CipherError->as_class());
 }
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
@@ -30,6 +42,126 @@ Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block
     if (CRYPTO_memcmp(a->c_str(), b->c_str(), len) == 0)
         return TrueObject::the();
     return FalseObject::the();
+}
+
+static void OpenSSL_Cipher_ciphers_add_cipher(const OBJ_NAME *cipher_meth, void *arg) {
+    auto result = static_cast<ArrayObject *>(arg);
+    result->push(new StringObject { cipher_meth->name });
+}
+
+Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto name = args[0]->to_str(env);
+    const EVP_CIPHER *cipher = EVP_get_cipherbyname(name->c_str());
+    if (!cipher)
+        env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx)
+        OpenSSL_Cipher_raise_error(env, "EVP_CIPHER_CTX");
+    if (!EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr)) {
+        EVP_CIPHER_CTX_free(ctx);
+        OpenSSL_Cipher_raise_error(env, "EVP_EncryptInit_ex");
+    }
+    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
+
+    return self;
+}
+
+Value OpenSSL_Cipher_block_size(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const nat_int_t block_size = EVP_CIPHER_CTX_block_size(ctx);
+    return Value::integer(block_size);
+}
+
+Value OpenSSL_Cipher_decrypt(Env *env, Value self, Args args, Block *) {
+    // NATFIXME: There is deprecated behaviour when calling with arguments. Let's not try to reproduce that for now
+    // warning: arguments for OpenSSL::Cipher#encrypt and OpenSSL::Cipher#decrypt were deprecated; use OpenSSL::Cipher#pkcs5_keyivgen to derive key and IV
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, nullptr, 0);
+    return self;
+}
+
+Value OpenSSL_Cipher_encrypt(Env *env, Value self, Args args, Block *) {
+    // NATFIXME: There is deprecated behaviour when calling with arguments. Let's not try to reproduce that for now
+    // warning: arguments for OpenSSL::Cipher#encrypt and OpenSSL::Cipher#decrypt were deprecated; use OpenSSL::Cipher#pkcs5_keyivgen to derive key and IV
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, nullptr, 1);
+    return self;
+}
+
+Value OpenSSL_Cipher_final(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    int size = EVP_CIPHER_CTX_block_size(ctx);
+    TM::String buf(size, '\0');
+    if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherFinal_ex");
+    buf.truncate(size);
+    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
+Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto iv = args[0]->to_str(env);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const size_t iv_len = EVP_CIPHER_iv_length(e);
+    if (iv->bytesize() != iv_len)
+        env->raise("ArgumentError", "iv must be {} bytes", iv_len);
+    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, reinterpret_cast<const unsigned char *>(iv->c_str()), -1))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherInit_ex");
+    return iv;
+}
+
+Value OpenSSL_Cipher_iv_len(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const nat_int_t iv_len = EVP_CIPHER_iv_length(e);
+    return Value::integer(iv_len);
+}
+
+Value OpenSSL_Cipher_key_set(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto key = args[0]->to_str(env);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const size_t key_len = EVP_CIPHER_key_length(e);
+    if (key->bytesize() != key_len)
+        env->raise("ArgumentError", "key must be {} bytes", key_len);
+    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, reinterpret_cast<const unsigned char *>(key->c_str()), nullptr, -1))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherInit_ex");
+    return key;
+}
+
+Value OpenSSL_Cipher_key_len(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const EVP_CIPHER *e = EVP_CIPHER_CTX_cipher(ctx);
+    const nat_int_t key_len = EVP_CIPHER_key_length(e);
+    return Value::integer(key_len);
+}
+
+Value OpenSSL_Cipher_update(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1); // NATFXIME: Support buffer argument
+    auto data = args[0]->to_str(env);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const auto block_size = EVP_CIPHER_CTX_block_size(ctx);
+    TM::String buf(data->bytesize() + block_size, '\0'); // Overallocation, so it should always fit
+    int size = buf.size();
+    if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize()))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherUpdate");
+    buf.truncate(size);
+    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
+Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
+    auto result = new ArrayObject {};
+    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
+    return result;
 }
 
 Value OpenSSL_Digest_update(Env *env, Value self, Args args, Block *) {
@@ -211,6 +343,8 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
 }
 
 Value init(Env *env, Value self) {
+    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
+
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     if (!OpenSSL) {
         OpenSSL = new ModuleObject { "OpenSSL" };
@@ -229,6 +363,23 @@ Value init(Env *env, Value self) {
     OpenSSL->const_set("OPENSSL_VERSION"_s, new StringObject { OPENSSL_VERSION_TEXT });
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
     OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
+
+    auto Cipher = OpenSSL->const_get("Cipher"_s);
+    if (!Cipher) {
+        Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");
+        OpenSSL->const_set("Cipher"_s, Cipher);
+    }
+    Cipher->define_method(env, "initialize"_s, OpenSSL_Cipher_initialize, 1);
+    Cipher->define_method(env, "block_size"_s, OpenSSL_Cipher_block_size, 0);
+    Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
+    Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
+    Cipher->define_method(env, "final"_s, OpenSSL_Cipher_final, 0);
+    Cipher->define_method(env, "iv="_s, OpenSSL_Cipher_iv_set, 1);
+    Cipher->define_method(env, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
+    Cipher->define_method(env, "key="_s, OpenSSL_Cipher_key_set, 1);
+    Cipher->define_method(env, "key_len"_s, OpenSSL_Cipher_key_len, 0);
+    Cipher->define_method(env, "update"_s, OpenSSL_Cipher_update, 1);
+    Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
     if (!Digest) {
