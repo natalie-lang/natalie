@@ -21,6 +21,10 @@ class Greeter
     "Hello, #{name}."
   end
 
+  def greet_by_name_with_splat(*names)
+    "Hello, #{names.join(' and ')}."
+  end
+
   def greet_by_name_implicitly(name)
     "Hello, #{name}."
   end
@@ -67,6 +71,10 @@ class PirateGreeter < Greeter
 
   def greet_by_name(name)
     "ARRRR. #{super name}"
+  end
+
+  def greet_by_name_with_splat(*names)
+    "ARRRR. #{super *names, **{}}"
   end
 
   def greet_by_name_implicitly(name)
@@ -116,6 +124,11 @@ describe 'super' do
   it 'works with args' do
     greeter = PirateGreeter.new
     greeter.greet_by_name('Tim').should == 'ARRRR. Hello, Tim.'
+  end
+
+  it 'works with splat and empty keyword args' do
+    greeter = PirateGreeter.new
+    greeter.greet_by_name_with_splat('Tim', 'Herwin').should == 'ARRRR. Hello, Tim and Herwin.'
   end
 
   it 'works with implicit args' do

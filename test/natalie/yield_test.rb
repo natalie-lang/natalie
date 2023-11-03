@@ -8,6 +8,10 @@ def method_that_yields_keyword_args(args)
   yield **args
 end
 
+def method_that_yields_empty_keyword_args(*args)
+  yield *args, **{}
+end
+
 def method_containing_a_block_that_yields(n)
   [n].each { |i| yield i }
 end
@@ -26,6 +30,12 @@ describe 'yield' do
   it 'calls the block with keyword args' do
     method_that_yields_keyword_args(foo: :bar) do |foo:|
       foo.should == :bar
+    end
+  end
+
+  it 'does not append empty keyword hash to args array' do
+    method_that_yields_empty_keyword_args(:foo, :bar) do |*args|
+      args.should == [:foo, :bar]
     end
   end
 

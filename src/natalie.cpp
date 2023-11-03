@@ -764,6 +764,7 @@ Value super(Env *env, Value self, Args args, Block *block) {
         }
     }
     assert(super_method.method() != current_method);
+    args.pop_empty_keyword_hash();
     return super_method.method()->call(env, self, args, block);
 }
 

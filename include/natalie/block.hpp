@@ -30,6 +30,7 @@ public:
         Env e { m_env };
         e.set_caller(env);
         e.set_this_block(this);
+        args.pop_empty_keyword_hash();
         auto result = m_fn(&e, m_self, args, block);
         return result;
     }
