@@ -33,7 +33,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
     if (info) {
         info->set_object(val.object());
     } else {
-        auto info = new GlobalEnv::GlobalVariableInfo { val.object() };
+        auto info = new GlobalVariableInfo { val.object() };
         m_global_variables.put(name, info, env);
     }
     return val;
@@ -76,10 +76,6 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     visitor.visit(m_Time);
     visitor.visit(m_main_obj);
     visitor.visit(m_main_env);
-}
-
-void GlobalEnv::GlobalVariableInfo::visit_children(Visitor &visitor) {
-    visitor.visit(m_object);
 }
 
 }
