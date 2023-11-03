@@ -24,6 +24,13 @@ static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass =
     env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
 }
 
+static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
+    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    static auto Cipher = OpenSSL->const_get("Cipher"_s);
+    static auto CipherError = Cipher->const_get("CipherError"_s);
+    OpenSSL_raise_error(env, func, CipherError->as_class());
+}
+
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 2);
     auto a = args[0]->to_str(env);
@@ -48,14 +55,11 @@ Value OpenSSL_Cipher_initialize(Env *env, Value self, Args args, Block *) {
     if (!cipher)
         env->raise("RuntimeError", "unsupported cipher algorithm ({})", name->string());
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    auto Cipher = OpenSSL->const_get("Cipher"_s);
-    auto CipherError = Cipher->const_get("CipherError"_s);
     if (!ctx)
-        OpenSSL_raise_error(env, "EVP_CIPHER_CTX", CipherError->as_class());
+        OpenSSL_Cipher_raise_error(env, "EVP_CIPHER_CTX");
     if (!EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr)) {
         EVP_CIPHER_CTX_free(ctx);
-        OpenSSL_raise_error(env, "EVP_EncryptInit_ex", CipherError->as_class());
+        OpenSSL_Cipher_raise_error(env, "EVP_EncryptInit_ex");
     }
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_CIPHER_CTX_cleanup });
 
@@ -92,12 +96,8 @@ Value OpenSSL_Cipher_final(Env *env, Value self, Args args, Block *) {
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     int size = EVP_CIPHER_CTX_block_size(ctx);
     TM::String buf(size, '\0');
-    if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size)) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-        auto Cipher = OpenSSL->const_get("Cipher"_s);
-        auto CipherError = Cipher->const_get("CipherError"_s);
-        OpenSSL_raise_error(env, "EVP_CipherFinal_ex", CipherError->as_class());
-    }
+    if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherFinal_ex");
     buf.truncate(size);
     return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
@@ -110,12 +110,8 @@ Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args args, Block *) {
     const size_t iv_len = EVP_CIPHER_iv_length(e);
     if (iv->bytesize() != iv_len)
         env->raise("ArgumentError", "iv must be {} bytes", iv_len);
-    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, reinterpret_cast<const unsigned char *>(iv->c_str()), -1)) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-        auto Cipher = OpenSSL->const_get("Cipher"_s);
-        auto CipherError = Cipher->const_get("CipherError"_s);
-        OpenSSL_raise_error(env, "EVP_CipherInit_ex", CipherError->as_class());
-    }
+    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, nullptr, reinterpret_cast<const unsigned char *>(iv->c_str()), -1))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherInit_ex");
     return iv;
 }
 
@@ -135,12 +131,8 @@ Value OpenSSL_Cipher_key_set(Env *env, Value self, Args args, Block *) {
     const size_t key_len = EVP_CIPHER_key_length(e);
     if (key->bytesize() != key_len)
         env->raise("ArgumentError", "key must be {} bytes", key_len);
-    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, reinterpret_cast<const unsigned char *>(key->c_str()), nullptr, -1)) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-        auto Cipher = OpenSSL->const_get("Cipher"_s);
-        auto CipherError = Cipher->const_get("CipherError"_s);
-        OpenSSL_raise_error(env, "EVP_CipherInit_ex", CipherError->as_class());
-    }
+    if (!EVP_CipherInit_ex(ctx, nullptr, nullptr, reinterpret_cast<const unsigned char *>(key->c_str()), nullptr, -1))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherInit_ex");
     return key;
 }
 
@@ -159,12 +151,8 @@ Value OpenSSL_Cipher_update(Env *env, Value self, Args args, Block *) {
     const auto block_size = EVP_CIPHER_CTX_block_size(ctx);
     TM::String buf(data->bytesize() + block_size, '\0'); // Overallocation, so it should always fit
     int size = buf.size();
-    if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize())) {
-        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-        auto Cipher = OpenSSL->const_get("Cipher"_s);
-        auto CipherError = Cipher->const_get("CipherError"_s);
-        OpenSSL_raise_error(env, "EVP_CipherUpdate", CipherError->as_class());
-    }
+    if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize()))
+        OpenSSL_Cipher_raise_error(env, "EVP_CipherUpdate");
     buf.truncate(size);
     return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
