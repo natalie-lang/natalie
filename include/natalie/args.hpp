@@ -68,6 +68,7 @@ public:
     bool has_keyword_hash() const { return m_has_keyword_hash; }
     HashObject *keyword_hash() const;
     HashObject *pop_keyword_hash();
+    void pop_empty_keyword_hash();
     Value keyword_arg(Env *, SymbolObject *) const;
 
 private:

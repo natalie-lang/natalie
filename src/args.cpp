@@ -127,6 +127,14 @@ HashObject *Args::pop_keyword_hash() {
     return hash;
 }
 
+void Args::pop_empty_keyword_hash() {
+    if (!m_has_keyword_hash)
+        return;
+    auto hash = keyword_hash();
+    if (hash && hash->is_empty())
+        pop_keyword_hash();
+}
+
 Value Args::keyword_arg(Env *env, SymbolObject *name) const {
     auto hash = keyword_hash();
     if (!hash)
