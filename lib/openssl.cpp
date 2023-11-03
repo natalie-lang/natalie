@@ -87,6 +87,21 @@ Value OpenSSL_Cipher_encrypt(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_Cipher_final(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    int size = EVP_CIPHER_CTX_block_size(ctx);
+    TM::String buf(size, '\0');
+    if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size)) {
+        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+        auto Cipher = OpenSSL->const_get("Cipher"_s);
+        auto CipherError = Cipher->const_get("CipherError"_s);
+        OpenSSL_raise_error(env, "EVP_CipherFinal_ex", CipherError->as_class());
+    }
+    buf.truncate(size);
+    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
 Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto iv = args[0]->to_str(env);
@@ -354,6 +369,7 @@ Value init(Env *env, Value self) {
     Cipher->define_method(env, "block_size"_s, OpenSSL_Cipher_block_size, 0);
     Cipher->define_method(env, "decrypt"_s, OpenSSL_Cipher_decrypt, 0);
     Cipher->define_method(env, "encrypt"_s, OpenSSL_Cipher_encrypt, 0);
+    Cipher->define_method(env, "final"_s, OpenSSL_Cipher_final, 0);
     Cipher->define_method(env, "iv="_s, OpenSSL_Cipher_iv_set, 1);
     Cipher->define_method(env, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
     Cipher->define_method(env, "key="_s, OpenSSL_Cipher_key_set, 1);
