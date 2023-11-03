@@ -51,6 +51,7 @@ module Natalie
         s << ' to self' if @receiver_is_self
         s << ' with block' if @with_block
         s << ' (args array on stack)' if @args_array_on_stack
+        s << ' (has keyword hash)' if @has_keyword_hash
         s
       end
 
