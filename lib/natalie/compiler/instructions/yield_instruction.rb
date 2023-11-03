@@ -3,14 +3,18 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class YieldInstruction < BaseInstruction
-      def initialize(args_array_on_stack:)
+      def initialize(args_array_on_stack:, has_keyword_hash:)
         @args_array_on_stack = args_array_on_stack
-        # TODO: @has_keyword_hash
+        @has_keyword_hash = has_keyword_hash
       end
+
+      attr_reader :args_array_on_stack,
+                  :has_keyword_hash
 
       def to_s
         s = 'yield'
         s << ' (args array on stack)' if @args_array_on_stack
+        s << ' (has keyword hash)' if @has_keyword_hash
         s
       end
 

@@ -2095,6 +2095,7 @@ module Natalie
         instructions = arg_meta.fetch(:instructions)
         instructions << YieldInstruction.new(
           args_array_on_stack: arg_meta.fetch(:args_array_on_stack),
+          has_keyword_hash: arg_meta.fetch(:has_keyword_hash),
         )
         instructions << PopInstruction.new unless used
         instructions
