@@ -137,6 +137,23 @@ Value OpenSSL_Cipher_key_len(Env *env, Value self, Args args, Block *) {
     return Value::integer(key_len);
 }
 
+Value OpenSSL_Cipher_update(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1); // NATFXIME: Support buffer argument
+    auto data = args[0]->to_str(env);
+    auto ctx = static_cast<EVP_CIPHER_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const auto block_size = EVP_CIPHER_CTX_block_size(ctx);
+    TM::String buf(data->bytesize() + block_size, '\0'); // Overallocation, so it should always fit
+    int size = buf.size();
+    if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize())) {
+        auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+        auto Cipher = OpenSSL->const_get("Cipher"_s);
+        auto CipherError = Cipher->const_get("CipherError"_s);
+        OpenSSL_raise_error(env, "EVP_CipherUpdate", CipherError->as_class());
+    }
+    buf.truncate(size);
+    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
     auto result = new ArrayObject {};
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, OpenSSL_Cipher_ciphers_add_cipher, result);
@@ -341,6 +358,7 @@ Value init(Env *env, Value self) {
     Cipher->define_method(env, "iv_len"_s, OpenSSL_Cipher_iv_len, 0);
     Cipher->define_method(env, "key="_s, OpenSSL_Cipher_key_set, 1);
     Cipher->define_method(env, "key_len"_s, OpenSSL_Cipher_key_len, 0);
+    Cipher->define_method(env, "update"_s, OpenSSL_Cipher_update, 1);
     Cipher->define_singleton_method(env, "ciphers"_s, OpenSSL_Cipher_ciphers, 0);
 
     auto Digest = OpenSSL->const_get("Digest"_s);
