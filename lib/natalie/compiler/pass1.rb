@@ -831,7 +831,12 @@ module Natalie
       def transform_constant_read_node(node, used:)
         instructions = [
           PushSelfInstruction.new,
-          ConstFindInstruction.new(node.name, strict: false),
+          ConstFindInstruction.new(
+            node.name,
+            strict: false,
+            file: node.location.path,
+            line: node.location.start_line
+          ),
         ]
         instructions << PopInstruction.new unless used
         instructions

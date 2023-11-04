@@ -6,7 +6,7 @@ describe 'backtrace' do
     lambda {
       module Foo
         class Bar
-          class Baz < Buz # Baz is undefined
+          class Baz < Buz # Buz is undefined
           end
         end
       end

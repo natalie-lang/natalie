@@ -3,12 +3,16 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class ConstFindInstruction < BaseInstruction
-      def initialize(name, strict:)
+      def initialize(name, strict:, file: nil, line: nil)
         @name = name.to_sym
         @strict = strict
+
+        # source location info
+        @file = file
+        @line = line
       end
 
-      attr_reader :name, :strict
+      attr_reader :name, :strict, :file, :line
 
       def to_s
         s = "const_find #{@name}"
@@ -17,6 +21,9 @@ module Natalie
       end
 
       def generate(transform)
+        transform.set_file(@file)
+        transform.set_line(@line)
+
         namespace = transform.pop
         search_mode = @strict ? 'Strict' : 'NotStrict'
         transform.exec_and_push(:const, "#{namespace}->const_find_with_autoload(env, self, #{transform.intern(name)}, Object::ConstLookupSearchMode::#{search_mode})")
