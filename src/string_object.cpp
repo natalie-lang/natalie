@@ -2017,6 +2017,27 @@ Value StringObject::to_f(Env *env) const {
 }
 
 Value StringObject::to_i(Env *env, Value base_obj) const {
+    size_t start = 0;
+
+    // strip leading whitespace
+    while (start < m_string.size() && isspace(m_string.at(start)))
+        start++;
+
+    // skip leading minus sign
+    bool negative = false;
+    if (start < m_string.size() && m_string.at(start) == '-') {
+        negative = true;
+        start++;
+    }
+
+    // skip leading positive sign
+    if (start < m_string.size() && m_string.at(start) == '+' && !negative)
+        start++;
+
+    // return 0 for strings with leading underscore
+    if (start < m_string.size() && m_string.at(0) == '_')
+        return Value::integer(0);
+
     int base = 10;
     if (base_obj) {
         if (!base_obj->is_integer() && base_obj->respond_to(env, "to_int"_s))
@@ -2024,13 +2045,72 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
         base_obj->assert_type(env, Object::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_nat_int_t();
+
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
         }
+
+        if (base == 0) {
+            if (m_string.size() - start >= 2) {
+                if (m_string.at(start) == '0') {
+                    switch (m_string.at(start + 1)) {
+                    case 'b':
+                        base = 2;
+                        start += 2;
+                        break;
+                    case 'd':
+                        base = 10;
+                        start += 2;
+                        break;
+                    case 'o':
+                        base = 8;
+                        start += 2;
+                        break;
+                    case 'x':
+                        base = 16;
+                        start += 2;
+                        break;
+                    }
+                }
+            }
+        }
     }
-    nat_int_t number = strtoll(c_str(), nullptr, base);
+
+    if (m_string.size() - start >= 2 && m_string.at(start) == '0') {
+        auto specifier = m_string.at(start + 1);
+        if (specifier == 'b' && base == 2)
+            start += 2;
+        else if (specifier == 'd' && base == 10)
+            start += 2;
+        else if (specifier == 'o' && base == 8)
+            start += 2;
+        else if (specifier == 'x' && base == 16)
+            start += 2;
+    }
+
+    String digits_only;
+    if (negative) digits_only.append_char('-');
+    char highest_lower_alpha = 'a' - 1 + (base - 10);
+    char highest_upper_alpha = 'A' - 1 + (base - 10);
+    for (size_t i = start; i < m_string.size(); ++i) {
+        auto c = m_string[i];
+        if (isdigit(c)) {
+            digits_only.append_char(c);
+        } else if (c == '_') {
+            // ignore
+        } else if (base > 10) {
+            if ((c >= 'a' && c <= highest_lower_alpha) || (c >= 'A' && c <= highest_upper_alpha))
+                digits_only.append_char(c);
+            else
+                break;
+        } else {
+            break;
+        }
+    }
+
+    nat_int_t number = strtoll(digits_only.c_str(), nullptr, base);
     if (number == NAT_INT_MIN || number == NAT_INT_MAX) {
-        return IntegerObject::create(BigInt(string(), base));
+        return IntegerObject::create(BigInt(std::move(digits_only), base));
     }
     return Value::integer(number);
 }
