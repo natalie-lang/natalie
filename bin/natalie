@@ -145,13 +145,8 @@ class Runner
       repl = Natalie::REPL.new
       repl.go(options)
     elsif options[:ast]
-      if RUBY_ENGINE == 'natalie'
-        # FIXME: implement PrettyPrinter
-        p ast
-      else
-        require 'pp'
-        pp ast
-      end
+      require 'pp'
+      pp ast
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
