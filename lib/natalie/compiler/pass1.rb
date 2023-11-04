@@ -829,11 +829,12 @@ module Natalie
       end
 
       def transform_constant_read_node(node, used:)
-        return [] unless used
-        [
+        instructions = [
           PushSelfInstruction.new,
           ConstFindInstruction.new(node.name, strict: false),
         ]
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_constant_write_node(node, used:)
