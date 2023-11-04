@@ -283,13 +283,7 @@ Value KernelModule::Hash(Env *env, Value value) {
         return new HashObject;
     }
 
-    if (!value->respond_to(env, "to_hash"_s)) {
-        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str());
-    }
-
-    value = value.send(env, "to_hash"_s);
-    value->assert_type(env, Object::Type::Hash, "Hash");
-    return value;
+    return value->to_hash(env);
 }
 
 Value KernelModule::hash(Env *env) {
