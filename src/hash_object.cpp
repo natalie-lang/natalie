@@ -215,14 +215,14 @@ Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
     } else if (args.size() == 1) {
         Value value = args[0];
         if (!value->is_hash() && value->respond_to(env, "to_hash"_s))
-            value = value.send(env, "to_hash"_s);
+            value = value->to_hash(env);
         if (value->is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
             hash->m_klass = klass;
             return hash;
         } else {
             if (!value->is_array() && value->respond_to(env, "to_ary"_s))
-                value = value.send(env, "to_ary"_s);
+                value = value->to_ary(env);
             if (value->is_array()) {
                 HashObject *hash = new HashObject { klass };
                 for (auto &pair : *value->as_array()) {
