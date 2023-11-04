@@ -505,129 +505,47 @@ module Natalie
 
       def transform_call_and_write_node(node, used:)
         obj = node.receiver
-        key_args = node.arguments&.arguments || []
 
-        if node.read_name == :[]
-          instructions = [
-            # stack before: []
-            #  stack after: [obj]
-            transform_expression(obj, used: true),
+        # a.foo &&= 'bar'
+        instructions = [
 
-            # stack before: [obj]
-            #  stack after: [obj, *keys]
-            key_args.map { |arg| transform_expression(arg, used: true) },
+          # a.foo
+          transform_expression(node.receiver, used: true),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            node.read_name,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # stack before: [obj, *keys]
-            #  stack after: [obj, *keys, obj]
-            DupRelInstruction.new(key_args.size),
+          # duplicate for use by the if falsey case
+          DupInstruction.new,
 
-            # stack before: [obj, *keys, obj]
-            #  stack after: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+          # if a.foo
+          IfInstruction.new,
 
-            # stack before: [obj, *keys, obj, *keys]
-            #  stack after: [obj, *keys, old_value]
-            PushArgcInstruction.new(key_args.size),
-            SendInstruction.new(
-              :[],
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
+          # remove duplicated value that was truthy
+          PopInstruction.new,
 
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, *keys, old_value, old_value]
-            DupInstruction.new,
+          # a.foo=('bar')
+          transform_expression(node.receiver, used: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.write_name,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # if old_value
-            # stack before: [obj, *keys, old_value, old_value]
-            #  stack after: [obj, *keys, old_value]
-            IfInstruction.new,
+          ElseInstruction.new(:if),
+          # if !a.foo, return duplicated value
 
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, *keys]
-            PopInstruction.new,
-
-            # stack before: [obj, *keys]
-            #  stack after: [obj, *keys, new_value]
-            transform_expression(node.value, used: true),
-
-            # obj[*keys] = new_value
-            # stack before: [obj, *keys, new_value]
-            #  stack after: [result_of_send]
-            PushArgcInstruction.new(key_args.size + 1),
-            SendInstruction.new(
-              :[]=,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # old_value is falsey...
-            ElseInstruction.new(:if),
-
-            # don't need the extra key(s) after all :-)
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, old_value]
-            key_args.map do
-              [
-                SwapInstruction.new, # move value above duplicated key
-                PopInstruction.new, # get rid of duplicated key
-              ]
-            end,
-
-            # don't need the obj now
-            # stack before: [obj, old_value]
-            #  stack after: [old_value]
-            SwapInstruction.new,
-            PopInstruction.new,
-
-            EndInstruction.new(:if),
-          ]
-        else
-          # a.foo &&= 'bar'
-          instructions = [
-
-            # a.foo
-            transform_expression(node.receiver, used: true),
-            PushArgcInstruction.new(0),
-            SendInstruction.new(
-              node.read_name,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # duplicate for use by the if falsey case
-            DupInstruction.new,
-
-            # if a.foo
-            IfInstruction.new,
-
-            # remove duplicated value that was truthy
-            PopInstruction.new,
-
-            # a.foo=('bar')
-            transform_expression(node.receiver, used: true),
-            transform_expression(node.value, used: true),
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              node.write_name,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            ElseInstruction.new(:if),
-            # if !a.foo, return duplicated value
-
-            EndInstruction.new(:if),
-          ]
-        end
+          EndInstruction.new(:if),
+        ]
 
         instructions << PopInstruction.new unless used
         instructions
@@ -635,109 +553,56 @@ module Natalie
 
       def transform_call_operator_write_node(node, used:)
         obj = node.receiver
-        key_args = node.arguments&.arguments || []
 
-        if node.write_name.to_sym == :[]=
-          instructions = [
-            # old_value = obj[key]
-            # stack: [obj]
-            transform_expression(obj, used: true),
+        writer = node.write_name
+        raise 'expected writer=' unless writer =~ /=$/
+        reader = writer.to_s.chop
+        # given: obj.foo += value
+        instructions = [
+          # stack: [obj]
+          transform_expression(obj, used: true),
 
-            # stack: [obj, *keys]
-            key_args.map { |arg| transform_expression(arg, used: true) },
+          # stack: [obj, value]
+          transform_expression(node.value, used: true),
 
-            # stack: [obj, *keys, obj]
-            DupRelInstruction.new(key_args.size),
+          # stack: [obj, value, obj]
+          DupRelInstruction.new(1),
 
-            # stack: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+          # temp = obj.foo
+          # stack: [obj, value, temp]
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            reader,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # old_value = obj[*keys]
-            # stack: [obj, *keys, old_value]
-            PushArgcInstruction.new(key_args.size),
-            SendInstruction.new(
-              :[],
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
+          # stack: [obj, temp, value]
+          MoveRelInstruction.new(1),
 
-            # stack: [obj, *keys, old_value, value]
-            transform_expression(node.value, used: true),
+          # result = temp + value
+          # stack: [obj, new_value]
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # new_value = old_value + value
-            # stack: [obj, *keys, new_value]
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              node.operator,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # obj[*keys] = new_value
-            PushArgcInstruction.new(key_args.size + 1),
-            SendInstruction.new(
-              :[]=,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-          ]
-        else
-          writer = node.write_name
-          raise 'expected writer=' unless writer =~ /=$/
-          reader = writer.to_s.chop
-          # given: obj.foo += value
-          instructions = [
-            # stack: [obj]
-            transform_expression(obj, used: true),
-
-            # stack: [obj, value]
-            transform_expression(node.value, used: true),
-
-            # stack: [obj, value, obj]
-            DupRelInstruction.new(1),
-
-            # temp = obj.foo
-            # stack: [obj, value, temp]
-            PushArgcInstruction.new(0),
-            SendInstruction.new(
-              reader,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # stack: [obj, temp, value]
-            MoveRelInstruction.new(1),
-
-            # result = temp + value
-            # stack: [obj, new_value]
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              node.operator,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # obj.foo = new_value
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              writer,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-          ]
-        end
+          # obj.foo = new_value
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            writer,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
 
         instructions << PopInstruction.new unless used
         instructions
@@ -745,129 +610,47 @@ module Natalie
 
       def transform_call_or_write_node(node, used:)
         obj = node.receiver
-        key_args = node.arguments&.arguments || []
 
-        if node.read_name == :[]
-          instructions = [
-            # stack before: []
-            #  stack after: [obj]
-            transform_expression(obj, used: true),
+        # a.foo ||= 'bar'
+        instructions = [
 
-            # stack before: [obj]
-            #  stack after: [obj, *keys]
-            key_args.map { |arg| transform_expression(arg, used: true) },
+          # a.foo
+          transform_expression(node.receiver, used: true),
+          PushArgcInstruction.new(0),
+          SendInstruction.new(
+            node.read_name,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # stack before: [obj, *keys]
-            #  stack after: [obj, *keys, obj]
-            DupRelInstruction.new(key_args.size),
+          # duplicate for use by the if truthy case
+          DupInstruction.new,
 
-            # stack before: [obj, *keys, obj]
-            #  stack after: [obj, *keys, obj, *keys]
-            key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+          # if a.foo
+          IfInstruction.new,
+          # if a.foo, return duplicated value
 
-            # stack before: [obj, *keys, obj, *keys]
-            #  stack after: [obj, *keys, old_value]
-            PushArgcInstruction.new(key_args.size),
-            SendInstruction.new(
-              :[],
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
+          ElseInstruction.new(:if),
 
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, *keys, old_value, old_value]
-            DupInstruction.new,
+          # remove duplicated value that was falsey
+          PopInstruction.new,
 
-            # if old_value
-            # stack before: [obj, *keys, old_value, old_value]
-            #  stack after: [obj, *keys, old_value]
-            IfInstruction.new,
+          # a.foo=('bar')
+          transform_expression(node.receiver, used: true),
+          transform_expression(node.value, used: true),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.write_name,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
 
-            # don't need the extra key(s) after all :-)
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, old_value]
-            key_args.map do
-              [
-                SwapInstruction.new, # move value above duplicated key
-                PopInstruction.new, # get rid of duplicated key
-              ]
-            end,
-
-            # don't need the obj now
-            # stack before: [obj, old_value]
-            #  stack after: [old_value]
-            SwapInstruction.new,
-            PopInstruction.new,
-
-            # old_value is falsey...
-            ElseInstruction.new(:if),
-
-            # stack before: [obj, *keys, old_value]
-            #  stack after: [obj, *keys]
-            PopInstruction.new,
-
-            # stack before: [obj, *keys]
-            #  stack after: [obj, *keys, new_value]
-            transform_expression(node.value, used: true),
-
-            # obj[*keys] = new_value
-            # stack before: [obj, *keys, new_value]
-            #  stack after: [result_of_send]
-            PushArgcInstruction.new(key_args.size + 1),
-            SendInstruction.new(
-              :[]=,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            EndInstruction.new(:if),
-          ]
-        else
-          # a.foo ||= 'bar'
-          instructions = [
-
-            # a.foo
-            transform_expression(node.receiver, used: true),
-            PushArgcInstruction.new(0),
-            SendInstruction.new(
-              node.read_name,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            # duplicate for use by the if truthy case
-            DupInstruction.new,
-
-            # if a.foo
-            IfInstruction.new,
-            # if a.foo, return duplicated value
-
-            ElseInstruction.new(:if),
-
-            # remove duplicated value that was falsey
-            PopInstruction.new,
-
-            # a.foo=('bar')
-            transform_expression(node.receiver, used: true),
-            transform_expression(node.value, used: true),
-            PushArgcInstruction.new(1),
-            SendInstruction.new(
-              node.write_name,
-              receiver_is_self: false,
-              with_block: false,
-              file: node.location.path,
-              line: node.location.start_line,
-            ),
-
-            EndInstruction.new(:if),
-          ]
-        end
+          EndInstruction.new(:if),
+        ]
 
         instructions << PopInstruction.new unless used
         instructions
@@ -1256,7 +1039,8 @@ module Natalie
         when :local_variable_target_node
           instructions << VariableDeclareInstruction.new(args.name)
         when :multi_target_node
-          args.targets.each do |arg|
+          targets = args.lefts + [args.rest].compact + args.rights
+          targets.each do |arg|
             instructions += transform_for_declare_args(arg)
           end
         else
@@ -1431,6 +1215,238 @@ module Natalie
           instruction,
           PushComplexInstruction.new,
         ]
+      end
+
+      def transform_index_and_write_node(node, used:)
+        obj = node.receiver
+        key_args = node.arguments&.arguments || []
+
+        instructions = [
+          # stack before: []
+          #  stack after: [obj]
+          transform_expression(obj, used: true),
+
+          # stack before: [obj]
+          #  stack after: [obj, *keys]
+          key_args.map { |arg| transform_expression(arg, used: true) },
+
+          # stack before: [obj, *keys]
+          #  stack after: [obj, *keys, obj]
+          DupRelInstruction.new(key_args.size),
+
+          # stack before: [obj, *keys, obj]
+          #  stack after: [obj, *keys, obj, *keys]
+          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+          # stack before: [obj, *keys, obj, *keys]
+          #  stack after: [obj, *keys, old_value]
+          PushArgcInstruction.new(key_args.size),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, *keys, old_value, old_value]
+          DupInstruction.new,
+
+          # if old_value
+          # stack before: [obj, *keys, old_value, old_value]
+          #  stack after: [obj, *keys, old_value]
+          IfInstruction.new,
+
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, *keys]
+          PopInstruction.new,
+
+          # stack before: [obj, *keys]
+          #  stack after: [obj, *keys, new_value]
+          transform_expression(node.value, used: true),
+
+          # obj[*keys] = new_value
+          # stack before: [obj, *keys, new_value]
+          #  stack after: [result_of_send]
+          PushArgcInstruction.new(key_args.size + 1),
+          SendInstruction.new(
+            :[]=,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          # old_value is falsey...
+          ElseInstruction.new(:if),
+
+          # don't need the extra key(s) after all :-)
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, old_value]
+          key_args.map do
+            [
+              SwapInstruction.new, # move value above duplicated key
+              PopInstruction.new, # get rid of duplicated key
+            ]
+          end,
+
+          # don't need the obj now
+          # stack before: [obj, old_value]
+          #  stack after: [old_value]
+          SwapInstruction.new,
+          PopInstruction.new,
+
+          EndInstruction.new(:if),
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_index_operator_write_node(node, used:)
+        obj = node.receiver
+        key_args = node.arguments&.arguments || []
+
+        instructions = [
+          # old_value = obj[key]
+          # stack: [obj]
+          transform_expression(obj, used: true),
+
+          # stack: [obj, *keys]
+          key_args.map { |arg| transform_expression(arg, used: true) },
+
+          # stack: [obj, *keys, obj]
+          DupRelInstruction.new(key_args.size),
+
+          # stack: [obj, *keys, obj, *keys]
+          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+          # old_value = obj[*keys]
+          # stack: [obj, *keys, old_value]
+          PushArgcInstruction.new(key_args.size),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          # stack: [obj, *keys, old_value, value]
+          transform_expression(node.value, used: true),
+
+          # new_value = old_value + value
+          # stack: [obj, *keys, new_value]
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            node.operator,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          # obj[*keys] = new_value
+          PushArgcInstruction.new(key_args.size + 1),
+          SendInstruction.new(
+            :[]=,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_index_or_write_node(node, used:)
+        obj = node.receiver
+        key_args = node.arguments&.arguments || []
+
+        instructions = [
+          # stack before: []
+          #  stack after: [obj]
+          transform_expression(obj, used: true),
+
+          # stack before: [obj]
+          #  stack after: [obj, *keys]
+          key_args.map { |arg| transform_expression(arg, used: true) },
+
+          # stack before: [obj, *keys]
+          #  stack after: [obj, *keys, obj]
+          DupRelInstruction.new(key_args.size),
+
+          # stack before: [obj, *keys, obj]
+          #  stack after: [obj, *keys, obj, *keys]
+          key_args.each_with_index.map { |_, index| DupRelInstruction.new(index + key_args.size) },
+
+          # stack before: [obj, *keys, obj, *keys]
+          #  stack after: [obj, *keys, old_value]
+          PushArgcInstruction.new(key_args.size),
+          SendInstruction.new(
+            :[],
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, *keys, old_value, old_value]
+          DupInstruction.new,
+
+          # if old_value
+          # stack before: [obj, *keys, old_value, old_value]
+          #  stack after: [obj, *keys, old_value]
+          IfInstruction.new,
+
+          # don't need the extra key(s) after all :-)
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, old_value]
+          key_args.map do
+            [
+              SwapInstruction.new, # move value above duplicated key
+              PopInstruction.new, # get rid of duplicated key
+            ]
+          end,
+
+          # don't need the obj now
+          # stack before: [obj, old_value]
+          #  stack after: [old_value]
+          SwapInstruction.new,
+          PopInstruction.new,
+
+          # old_value is falsey...
+          ElseInstruction.new(:if),
+
+          # stack before: [obj, *keys, old_value]
+          #  stack after: [obj, *keys]
+          PopInstruction.new,
+
+          # stack before: [obj, *keys]
+          #  stack after: [obj, *keys, new_value]
+          transform_expression(node.value, used: true),
+
+          # obj[*keys] = new_value
+          # stack before: [obj, *keys, new_value]
+          #  stack after: [result_of_send]
+          PushArgcInstruction.new(key_args.size + 1),
+          SendInstruction.new(
+            :[]=,
+            receiver_is_self: false,
+            with_block: false,
+            file: node.location.path,
+            line: node.location.start_line,
+          ),
+
+          EndInstruction.new(:if),
+        ]
+
+        instructions << PopInstruction.new unless used
+        instructions
       end
 
       def transform_instance_variable_and_write_node(node, used:)
@@ -2137,7 +2153,6 @@ module Natalie
             local_variable_target_node
             multi_target_node
             optional_parameter_node
-            required_destructured_parameter_node
             required_parameter_node
           ].include?(arg.type)
         end
@@ -2145,14 +2160,15 @@ module Natalie
 
       def any_keyword_args?(args)
         args.any? do |arg|
-          arg.type == :keyword_parameter_node ||
-            arg.type == :keyword_rest_parameter_node
+          arg.is_a?(::Prism::RequiredKeywordParameterNode) ||
+            arg.is_a?(::Prism::OptionalKeywordParameterNode) ||
+            arg.is_a?(::Prism::KeywordRestParameterNode)
         end
       end
 
       def required_keywords(args)
         args.filter_map do |arg|
-          if arg.type == :keyword_parameter_node && !arg.value
+          if arg.is_a?(::Prism::RequiredKeywordParameterNode)
             arg.name
           end
         end

@@ -3,13 +3,21 @@ module Natalie
     class Arity
       def initialize(args, is_proc:)
         args = args.parameters if args.is_a?(Prism::BlockParametersNode)
-        if args.nil? || args == 0
+
+        @node = args
+
+        case args
+        when nil
           @args = []
-        elsif args.type == :parameters_node
-          # NOTE: More info about sorted parameters: https://github.com/ruby/prism/issues/1436
-          @args = args.child_nodes.compact.sort_by { |n| n.location.start_offset }.dup
-          @args.pop if @args.last.is_a?(Symbol) && @args.last.start_with?('&')
-          @args.pop if @args.last&.type == :block_parameter_node
+        when ::Prism::ParametersNode
+          @args = (
+            args.requireds +
+            [args.rest] +
+            args.optionals +
+            args.posts +
+            args.keywords +
+            [args.keyword_rest]
+          ).compact
         else
           raise "expected args node, but got: #{args.inspect}"
         end
@@ -34,19 +42,15 @@ module Natalie
 
       def splat_count
         args.count do |arg|
-          if arg.is_a?(::Prism::Node)
-            arg.type == :rest_parameter_node ||
-              arg.type == :keyword_rest_parameter_node
-          else
-            arg.is_a?(Symbol) && arg.start_with?('*')
-          end
+          arg.is_a?(::Prism::RestParameterNode) ||
+            arg.is_a?(::Prism::KeywordRestParameterNode)
         end
       end
 
       def required_count
         args.count do |arg|
-          arg.type == :required_parameter_node ||
-            arg.type == :required_destructured_parameter_node
+          arg.is_a?(::Prism::RequiredParameterNode) ||
+            arg.is_a?(::Prism::MultiTargetNode)
         end
       end
 
@@ -56,21 +60,23 @@ module Natalie
 
       def optional_named_count
         return 0 if @is_proc
+
         args.count do |arg|
-          arg.type == :optional_parameter_node
+          arg.is_a?(::Prism::OptionalParameterNode)
         end
       end
 
       def required_keyword_count
         args.count do |arg|
-          arg.type == :keyword_parameter_node && !arg.value
+          arg.is_a?(::Prism::RequiredKeywordParameterNode)
         end
       end
 
       def optional_keyword_count
         return 0 if @is_proc
+
         args.count do |arg|
-          arg.type == :keyword_parameter_node && arg.value
+          arg.is_a?(::Prism::OptionalKeywordParameterNode)
         end
       end
     end

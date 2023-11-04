@@ -12,10 +12,8 @@ module Natalie
         @instructions = []
         if node.instance_of?(Array)
           @args = node
-        elsif node.is_a?(::Prism::RequiredDestructuredParameterNode)
-          @args = node.parameters
         elsif node.is_a?(::Prism::MultiTargetNode)
-          @args = node.targets
+          @args = node.lefts + [node.rest].compact + node.rights
         else
           raise "unhandled node: #{node.inspect}"
         end
@@ -35,7 +33,7 @@ module Natalie
         when ::Prism::LocalVariableTargetNode
           clean_up_keyword_args
           transform_required_arg(arg)
-        when ::Prism::MultiTargetNode, ::Prism::RequiredDestructuredParameterNode
+        when ::Prism::MultiTargetNode
           clean_up_keyword_args
           transform_destructured_arg(arg)
         when ::Prism::OptionalParameterNode
@@ -55,8 +53,10 @@ module Natalie
           transform_splat_arg(arg)
         when ::Prism::KeywordRestParameterNode
           transform_keyword_splat_arg(arg)
-        when ::Prism::KeywordParameterNode
-          transform_keyword_arg(arg)
+        when ::Prism::RequiredKeywordParameterNode
+          transform_required_keyword_arg(arg)
+        when ::Prism::OptionalKeywordParameterNode
+          transform_optional_keyword_arg(arg)
         else
           raise "unhandled node: #{arg.inspect}"
         end
@@ -64,19 +64,20 @@ module Natalie
 
       def remaining_required_args
         @args.select do |arg|
-          arg.type == :required_parameter_node
+          arg.is_a?(::Prism::RequiredParameterNode)
         end
       end
 
       def remaining_keyword_args
         @args.select do |arg|
-          arg.type == :keyword_parameter_node
+          arg.is_a?(::Prism::RequiredKeywordParameterNode) ||
+          arg.is_a?(::Prism::OptionalKeywordParameterNode)
         end
       end
 
       def kwsplat?
         @args.any? do |arg|
-          arg.type == :keyword_rest_parameter_node
+          arg.is_a?(::Prism::KeywordRestParameterNode)
         end
       end
 
@@ -116,14 +117,16 @@ module Natalie
         @instructions << variable_set(name)
       end
 
-      def transform_keyword_arg(arg)
+      def transform_required_keyword_arg(arg)
         move_keyword_arg_hash_from_args_array_to_stack
-        if arg.value
-          @instructions << @pass.transform_expression(arg.value, used: true)
-          @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
-        else
-          @instructions << HashDeleteInstruction.new(arg.name)
-        end
+        @instructions << HashDeleteInstruction.new(arg.name)
+        @instructions << variable_set(arg.name)
+      end
+
+      def transform_optional_keyword_arg(arg)
+        move_keyword_arg_hash_from_args_array_to_stack
+        @instructions << @pass.transform_expression(arg.value, used: true)
+        @instructions << HashDeleteWithDefaultInstruction.new(arg.name)
         @instructions << variable_set(arg.name)
       end
 
@@ -206,6 +209,7 @@ module Natalie
 
       def move_keyword_arg_hash_from_args_array_to_stack
         return if @keyword_arg_hash_on_stack
+
         @instructions << SwapInstruction.new
         @keyword_arg_hash_on_stack = true
       end

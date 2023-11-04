@@ -9,7 +9,7 @@ module Natalie
 
       def consume(exp)
         raise 'do not pass an Array to ArgConsumer' if exp.instance_of?(Array)
-        args = exp.targets
+        args = exp.lefts + [exp.rest].compact + exp.rights
         while args.any?
           if @from_side == :left
             arg = args.shift

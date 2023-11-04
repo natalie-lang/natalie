@@ -27,7 +27,7 @@ module Prism
 
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
-    arguments = ArgumentsNode.new(arguments, location)
+    arguments = ArgumentsNode.new(arguments, 0, location)
     CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
   end
 
@@ -123,7 +123,7 @@ module Natalie
 
     def ast
       Prism
-        .parse(@code_str, @path)
+        .parse(@code_str, filepath: @path)
         .value
         .statements
         .accept(PathVisitor.new(@path))
