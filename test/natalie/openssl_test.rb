@@ -88,3 +88,22 @@ describe "OpenSSL.secure_compare" do
     }.should raise_error(TypeError, 'no implicit conversion of Object into String')
   end
 end
+
+describe "OpenSSL::X509::Name#to_s" do
+  it "returns the correct string" do
+    name = OpenSSL::X509::Name.new
+    name.add_entry("DC", "org")
+    name.add_entry("DC", "ruby-lang")
+    name.add_entry("CN", "www.ruby-lang.org")
+
+    name.to_s.should == "/DC=org/DC=ruby-lang/CN=www.ruby-lang.org"
+    name.to_s(OpenSSL::X509::Name::COMPAT).should == "DC=org, DC=ruby-lang, CN=www.ruby-lang.org"
+    name.to_s(OpenSSL::X509::Name::RFC2253).should == "CN=www.ruby-lang.org,DC=ruby-lang,DC=org"
+    name.to_s(OpenSSL::X509::Name::ONELINE).should == "DC = org, DC = ruby-lang, CN = www.ruby-lang.org"
+    name.to_s(OpenSSL::X509::Name::MULTILINE).should == <<~NAME.chomp
+      domainComponent           = org
+      domainComponent           = ruby-lang
+      commonName                = www.ruby-lang.org
+    NAME
+  end
+end

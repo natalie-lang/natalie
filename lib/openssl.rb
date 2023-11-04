@@ -117,8 +117,14 @@ module OpenSSL
         'emailAddress' => ASN1::IA5STRING
       }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
 
+      __constant__('COMPAT', 'int', 'XN_FLAG_COMPAT')
+      __constant__('RFC2253', 'int', 'XN_FLAG_RFC2253')
+      __constant__('ONELINE', 'int', 'XN_FLAG_ONELINE')
+      __constant__('MULTILINE', 'int', 'XN_FLAG_MULTILINE')
+
       __bind_method__ :initialize, :OpenSSL_X509_Name_initialize
       __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
+      __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
     end
   end
 end

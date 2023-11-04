@@ -475,3 +475,29 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
     return self;
 }
+
+Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto format = args.at(0, nullptr);
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    if (!format || format->is_nil()) {
+        char *str = X509_NAME_oneline(name, nullptr, 0);
+        if (!str)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_oneline");
+        auto result = new StringObject { str };
+        free(str);
+        return result;
+    }
+    int flags = IntegerObject::convert_to_nat_int_t(env, format);
+    BIO *bio = BIO_new(BIO_s_mem());
+    if (!bio)
+        OpenSSL_raise_error(env, "BIO_new_mem_buf");
+    Defer bio_free { [&bio]() { BIO_vfree(bio); } };
+    if (!X509_NAME_print_ex(bio, name, 0, flags))
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_print_ex");
+    char *mem;
+    auto size = BIO_get_mem_data(bio, &mem);
+    if (size < 0)
+        OpenSSL_X509_Name_raise_error(env, "BIO_get_mem_data");
+    return new StringObject { mem, static_cast<size_t>(size) };
+}
