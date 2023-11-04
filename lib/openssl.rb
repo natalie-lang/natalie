@@ -124,6 +124,7 @@ module OpenSSL
 
       __bind_method__ :initialize, :OpenSSL_X509_Name_initialize
       __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
+      __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
       __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
     end
   end

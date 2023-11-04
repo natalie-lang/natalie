@@ -14,19 +14,17 @@ describe "OpenSSL::X509::Name.parse" do
 
     name.to_s.should == dn
 
-    NATFIXME 'Implement OpenSSL::X509::Name#to_a', exception: NoMethodError, message: "undefined method `to_a'" do
-      ary = name.to_a
+    ary = name.to_a
 
-      ary[0][0].should == "DC"
-      ary[1][0].should == "DC"
-      ary[2][0].should == "CN"
-      ary[0][1].should == "org"
-      ary[1][1].should == "ruby-lang"
-      ary[2][1].should == "www.ruby-lang.org"
-      ary[0][2].should == OpenSSL::ASN1::IA5STRING
-      ary[1][2].should == OpenSSL::ASN1::IA5STRING
-      ary[2][2].should == OpenSSL::ASN1::UTF8STRING
-    end
+    ary[0][0].should == "DC"
+    ary[1][0].should == "DC"
+    ary[2][0].should == "CN"
+    ary[0][1].should == "org"
+    ary[1][1].should == "ruby-lang"
+    ary[2][1].should == "www.ruby-lang.org"
+    ary[0][2].should == OpenSSL::ASN1::IA5STRING
+    ary[1][2].should == OpenSSL::ASN1::IA5STRING
+    ary[2][2].should == OpenSSL::ASN1::UTF8STRING
   end
 
   it "parses a comma-delimited string of key-value pairs into a name" do
@@ -41,13 +39,11 @@ describe "OpenSSL::X509::Name.parse" do
 
     name.to_s.should == "/DC=org/DC=ruby-lang/CN=www.ruby-lang.org"
 
-    NATFIXME 'Implement OpenSSL::X509::Name#to_a', exception: NoMethodError, message: "undefined method `to_a'" do
-      ary = name.to_a
+    ary = name.to_a
 
-      ary[0][1].should == "org"
-      ary[1][1].should == "ruby-lang"
-      ary[2][1].should == "www.ruby-lang.org"
-    end
+    ary[0][1].should == "org"
+    ary[1][1].should == "ruby-lang"
+    ary[2][1].should == "www.ruby-lang.org"
   end
 
   it "raises TypeError if the given string contains no key/value pairs" do

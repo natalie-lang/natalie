@@ -1,3 +1,4 @@
+#include <openssl/asn1.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -474,6 +475,38 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
     if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
     return self;
+}
+
+Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    const size_t size = X509_NAME_entry_count(name);
+    auto result = new ArrayObject { size };
+    for (size_t i = 0; i < size; i++) {
+        X509_NAME_ENTRY *name_entry = X509_NAME_get_entry(name, i);
+        auto entry_result = new ArrayObject { 3 };
+
+        ASN1_OBJECT *obj = X509_NAME_ENTRY_get_object(name_entry);
+        if (!obj)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_object");
+        const auto nid = OBJ_obj2nid(obj);
+        if (nid == NID_undef)
+            OpenSSL_X509_Name_raise_error(env, "OBJ_obj2nid");
+        const char *sn = OBJ_nid2sn(nid);
+        if (!sn)
+            OpenSSL_X509_Name_raise_error(env, "OBJ_nid2sn");
+        entry_result->push(new StringObject { sn });
+
+        ASN1_STRING *data = X509_NAME_ENTRY_get_data(name_entry);
+        if (!data)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_data");
+        entry_result->push(new StringObject { reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data)) });
+
+        entry_result->push(IntegerObject::create(ASN1_STRING_type(data)));
+
+        result->push(entry_result);
+    }
+    return result;
 }
 
 Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args args, Block *) {
