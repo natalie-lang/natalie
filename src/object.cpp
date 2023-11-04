@@ -1308,6 +1308,35 @@ FloatObject *Object::to_f(Env *env) {
     return result->as_float();
 }
 
+HashObject *Object::to_hash(Env *env) {
+    if (is_hash()) {
+        return as_hash();
+    }
+
+    auto original_class = klass()->inspect_str();
+
+    auto to_hash = "to_hash"_s;
+
+    if (!respond_to(env, to_hash)) {
+        if (is_nil()) {
+            env->raise("TypeError", "no implicit conversion of nil into Hash");
+        }
+        env->raise("TypeError", "no implicit conversion of {} into Hash", original_class);
+    }
+
+    Value val = send(env, to_hash);
+
+    if (val->is_hash()) {
+        return val->as_hash();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Hash ({}#to_hash gives {})",
+        original_class,
+        original_class,
+        val->klass()->inspect_str());
+}
+
 StringObject *Object::to_s(Env *env) {
     auto str = send(env, "to_s"_s);
     if (!str->is_string())

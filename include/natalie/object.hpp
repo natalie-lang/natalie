@@ -353,6 +353,7 @@ public:
 
     ArrayObject *to_ary(Env *env);
     FloatObject *to_f(Env *env);
+    HashObject *to_hash(Env *env);
     IoObject *to_io(Env *env);
     IntegerObject *to_int(Env *env);
     StringObject *to_s(Env *env);
