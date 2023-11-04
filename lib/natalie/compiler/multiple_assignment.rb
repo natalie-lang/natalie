@@ -63,9 +63,10 @@ module Natalie
       end
 
       def transform_destructured_arg(arg)
-        if arg.targets.size == 1 && arg.targets.first.is_a?(::Prism::SplatNode)
+        targets = arg.lefts + [arg.rest].compact + arg.rights
+        if targets.size == 1 && targets.first.is_a?(::Prism::SplatNode)
           # Prism always wraps a SplatNode in a MultiTargetNode?
-          return transform_splat_arg(arg.targets.first.expression)
+          return transform_splat_arg(targets.first.expression)
         end
 
         @instructions << ArrayShiftInstruction.new

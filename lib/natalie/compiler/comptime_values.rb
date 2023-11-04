@@ -10,9 +10,19 @@ module Natalie
       end
 
       def comptime_string(node)
+        if node.is_a?(::Prism::InterpolatedStringNode) && node.parts.all?(::Prism::StringNode)
+          string_node = node.parts.first
+          node.parts[1..].each do |next_node|
+            string_node.content << next_node.content
+            string_node.unescaped << next_node.unescaped
+          end
+          node = string_node
+        end
+
         unless node.type == :string_node
           raise_comptime_value_error('string', node)
         end
+
         node.unescaped
       end
 
