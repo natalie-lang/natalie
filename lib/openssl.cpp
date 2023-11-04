@@ -468,14 +468,23 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
 }
 
 Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_between(env, 0, 1);
+    args.ensure_argc_between(env, 0, 2);
     X509_NAME *name = X509_NAME_new();
     if (!name)
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
     self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
-    if (args.size() == 1) {
-        for (auto entry : *args.at(0)->to_ary(env))
-            OpenSSL_X509_Name_add_entry(env, self, Args(entry->to_ary(env)), nullptr);
+    if (args.size() > 0) {
+        HashObject *lookup = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        if (args.size() >= 2 && !args.at(1)->is_nil())
+            lookup = args.at(1)->to_hash(env);
+        for (auto entry : *args.at(0)->to_ary(env)) {
+            ArrayObject *add_entry_args = entry->to_ary(env);
+            if (args.size() >= 2 && add_entry_args->size() == 2) {
+                add_entry_args = add_entry_args->dup(env)->as_array();
+                add_entry_args->push(lookup->ref(env, add_entry_args->at(0)));
+            }
+            OpenSSL_X509_Name_add_entry(env, self, Args(add_entry_args), nullptr);
+        }
     }
     return self;
 }

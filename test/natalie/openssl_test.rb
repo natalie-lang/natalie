@@ -131,6 +131,29 @@ describe "OpenSSL::X509::Name#initialize" do
     ary[1][2].should == OpenSSL::ASN1::IA5STRING
     ary[2][2].should == OpenSSL::ASN1::UTF8STRING
   end
+
+  it "can use a custom template" do
+    template = { "DC" => OpenSSL::ASN1::UTF8STRING}
+    template.default = OpenSSL::ASN1::IA5STRING
+    input = [
+      ["DC", "org"],
+      ["DC", "ruby-lang"],
+      ["CN", "www.ruby-lang.org"]
+    ]
+    name = OpenSSL::X509::Name.new(input, template)
+
+    ary = name.to_a
+
+    ary[0][0].should == "DC"
+    ary[1][0].should == "DC"
+    ary[2][0].should == "CN"
+    ary[0][1].should == "org"
+    ary[1][1].should == "ruby-lang"
+    ary[2][1].should == "www.ruby-lang.org"
+    ary[0][2].should == OpenSSL::ASN1::UTF8STRING
+    ary[1][2].should == OpenSSL::ASN1::UTF8STRING
+    ary[2][2].should == OpenSSL::ASN1::IA5STRING
+  end
 end
 
 describe "OpenSSL::X509::Name#to_s" do
