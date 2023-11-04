@@ -30,6 +30,10 @@ module Natalie
 
         # Our MacroExpander and our REPL need to know local variables.
         @locals_stack = []
+
+        # `next` needs to know its enclosing scope type,
+        # e.g. block vs while loop, so we'll use a stack to keep track.
+        @next_context = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -72,7 +76,9 @@ module Natalie
           return transform_expression(node, used: used) unless node.is_a?(::Prism::Node)
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
-          result = send(method, node, used: used)
+          result = track_scope(node) do
+            send(method, node, used: used)
+          end
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         when Array
@@ -102,13 +108,6 @@ module Natalie
         instructions = body.map { |exp| transform_expression(exp, used: false) }
         instructions << transform_expression(last || Prism.nil_node, used: used)
         instructions
-      end
-
-      def retry_context(id)
-        @retry_context << id
-        yield
-      ensure
-        @retry_context.pop
       end
 
       private
@@ -1752,6 +1751,10 @@ module Natalie
       end
 
       def transform_next_node(node, used:)
+        if %i[while_node until_node].include?(@next_context.last)
+          return [ContinueInstruction.new]
+        end
+
         [
           transform_arguments_node_for_returnish(node.arguments, location: node.location),
           NextInstruction.new
@@ -2128,6 +2131,30 @@ module Natalie
       end
 
       # HELPERS = = = = = = = = = = = = =
+
+      def retry_context(id)
+        @retry_context << id
+        yield
+      ensure
+        @retry_context.pop
+      end
+
+      def next_context(node)
+        case node
+        when ::Prism::WhileNode, ::Prism::UntilNode, ::Prism::BlockNode, ::Prism::DefNode
+          @next_context << node.type
+          result = yield
+          @next_context.pop
+          result
+        else
+          yield
+        end
+      end
+
+      def track_scope(...)
+        # NOTE: we may have other contexts to track here later
+        next_context(...)
+      end
 
       # returns a set of [name, is_private, prep_instruction]
       # prep_instruction being the instruction(s) needed to get the owner of the constant
