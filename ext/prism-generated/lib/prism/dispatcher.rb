@@ -41,23 +41,24 @@ module Prism
     # attr_reader listeners: Hash[Symbol, Array[Listener]]
     attr_reader :listeners
 
+    # Initialize a new dispatcher.
     def initialize
       @listeners = {}
     end
 
-    # Register a listener for one or more events
+    # Register a listener for one or more events.
     #
     # def register: (Listener, *Symbol) -> void
     def register(listener, *events)
       events.each { |event| (listeners[event] ||= []) << listener }
     end
 
-    # Walks `root` dispatching events to all registered listeners
+    # Walks `root` dispatching events to all registered listeners.
     #
     # def dispatch: (Node) -> void
     alias dispatch visit
 
-    # Dispatches a single event for `node` to all registered listeners
+    # Dispatches a single event for `node` to all registered listeners.
     #
     # def dispatch_once: (Node) -> void
     def dispatch_once(node)
@@ -608,6 +609,30 @@ module Prism
       listeners[:on_in_node_leave]&.each { |listener| listener.on_in_node_leave(node) }
     end
 
+    # Dispatch enter and leave events for IndexAndWriteNode nodes and continue
+    # walking the tree.
+    def visit_index_and_write_node(node)
+      listeners[:on_index_and_write_node_enter]&.each { |listener| listener.on_index_and_write_node_enter(node) }
+      super
+      listeners[:on_index_and_write_node_leave]&.each { |listener| listener.on_index_and_write_node_leave(node) }
+    end
+
+    # Dispatch enter and leave events for IndexOperatorWriteNode nodes and continue
+    # walking the tree.
+    def visit_index_operator_write_node(node)
+      listeners[:on_index_operator_write_node_enter]&.each { |listener| listener.on_index_operator_write_node_enter(node) }
+      super
+      listeners[:on_index_operator_write_node_leave]&.each { |listener| listener.on_index_operator_write_node_leave(node) }
+    end
+
+    # Dispatch enter and leave events for IndexOrWriteNode nodes and continue
+    # walking the tree.
+    def visit_index_or_write_node(node)
+      listeners[:on_index_or_write_node_enter]&.each { |listener| listener.on_index_or_write_node_enter(node) }
+      super
+      listeners[:on_index_or_write_node_leave]&.each { |listener| listener.on_index_or_write_node_leave(node) }
+    end
+
     # Dispatch enter and leave events for InstanceVariableAndWriteNode nodes and continue
     # walking the tree.
     def visit_instance_variable_and_write_node(node)
@@ -710,14 +735,6 @@ module Prism
       listeners[:on_keyword_hash_node_enter]&.each { |listener| listener.on_keyword_hash_node_enter(node) }
       super
       listeners[:on_keyword_hash_node_leave]&.each { |listener| listener.on_keyword_hash_node_leave(node) }
-    end
-
-    # Dispatch enter and leave events for KeywordParameterNode nodes and continue
-    # walking the tree.
-    def visit_keyword_parameter_node(node)
-      listeners[:on_keyword_parameter_node_enter]&.each { |listener| listener.on_keyword_parameter_node_enter(node) }
-      super
-      listeners[:on_keyword_parameter_node_leave]&.each { |listener| listener.on_keyword_parameter_node_leave(node) }
     end
 
     # Dispatch enter and leave events for KeywordRestParameterNode nodes and continue
@@ -880,6 +897,14 @@ module Prism
       listeners[:on_numbered_reference_read_node_leave]&.each { |listener| listener.on_numbered_reference_read_node_leave(node) }
     end
 
+    # Dispatch enter and leave events for OptionalKeywordParameterNode nodes and continue
+    # walking the tree.
+    def visit_optional_keyword_parameter_node(node)
+      listeners[:on_optional_keyword_parameter_node_enter]&.each { |listener| listener.on_optional_keyword_parameter_node_enter(node) }
+      super
+      listeners[:on_optional_keyword_parameter_node_leave]&.each { |listener| listener.on_optional_keyword_parameter_node_leave(node) }
+    end
+
     # Dispatch enter and leave events for OptionalParameterNode nodes and continue
     # walking the tree.
     def visit_optional_parameter_node(node)
@@ -984,12 +1009,12 @@ module Prism
       listeners[:on_regular_expression_node_leave]&.each { |listener| listener.on_regular_expression_node_leave(node) }
     end
 
-    # Dispatch enter and leave events for RequiredDestructuredParameterNode nodes and continue
+    # Dispatch enter and leave events for RequiredKeywordParameterNode nodes and continue
     # walking the tree.
-    def visit_required_destructured_parameter_node(node)
-      listeners[:on_required_destructured_parameter_node_enter]&.each { |listener| listener.on_required_destructured_parameter_node_enter(node) }
+    def visit_required_keyword_parameter_node(node)
+      listeners[:on_required_keyword_parameter_node_enter]&.each { |listener| listener.on_required_keyword_parameter_node_enter(node) }
       super
-      listeners[:on_required_destructured_parameter_node_leave]&.each { |listener| listener.on_required_destructured_parameter_node_leave(node) }
+      listeners[:on_required_keyword_parameter_node_leave]&.each { |listener| listener.on_required_keyword_parameter_node_leave(node) }
     end
 
     # Dispatch enter and leave events for RequiredParameterNode nodes and continue
@@ -1192,7 +1217,7 @@ module Prism
       listeners[:on_yield_node_leave]&.each { |listener| listener.on_yield_node_leave(node) }
     end
 
-    class DispatchOnce < Visitor
+    class DispatchOnce < Visitor # :nodoc:
       attr_reader :listeners
 
       def initialize(listeners)
@@ -1607,6 +1632,24 @@ module Prism
         listeners[:on_in_node_leave]&.each { |listener| listener.on_in_node_leave(node) }
       end
 
+      # Dispatch enter and leave events for IndexAndWriteNode nodes.
+      def visit_index_and_write_node(node)
+        listeners[:on_index_and_write_node_enter]&.each { |listener| listener.on_index_and_write_node_enter(node) }
+        listeners[:on_index_and_write_node_leave]&.each { |listener| listener.on_index_and_write_node_leave(node) }
+      end
+
+      # Dispatch enter and leave events for IndexOperatorWriteNode nodes.
+      def visit_index_operator_write_node(node)
+        listeners[:on_index_operator_write_node_enter]&.each { |listener| listener.on_index_operator_write_node_enter(node) }
+        listeners[:on_index_operator_write_node_leave]&.each { |listener| listener.on_index_operator_write_node_leave(node) }
+      end
+
+      # Dispatch enter and leave events for IndexOrWriteNode nodes.
+      def visit_index_or_write_node(node)
+        listeners[:on_index_or_write_node_enter]&.each { |listener| listener.on_index_or_write_node_enter(node) }
+        listeners[:on_index_or_write_node_leave]&.each { |listener| listener.on_index_or_write_node_leave(node) }
+      end
+
       # Dispatch enter and leave events for InstanceVariableAndWriteNode nodes.
       def visit_instance_variable_and_write_node(node)
         listeners[:on_instance_variable_and_write_node_enter]&.each { |listener| listener.on_instance_variable_and_write_node_enter(node) }
@@ -1683,12 +1726,6 @@ module Prism
       def visit_keyword_hash_node(node)
         listeners[:on_keyword_hash_node_enter]&.each { |listener| listener.on_keyword_hash_node_enter(node) }
         listeners[:on_keyword_hash_node_leave]&.each { |listener| listener.on_keyword_hash_node_leave(node) }
-      end
-
-      # Dispatch enter and leave events for KeywordParameterNode nodes.
-      def visit_keyword_parameter_node(node)
-        listeners[:on_keyword_parameter_node_enter]&.each { |listener| listener.on_keyword_parameter_node_enter(node) }
-        listeners[:on_keyword_parameter_node_leave]&.each { |listener| listener.on_keyword_parameter_node_leave(node) }
       end
 
       # Dispatch enter and leave events for KeywordRestParameterNode nodes.
@@ -1811,6 +1848,12 @@ module Prism
         listeners[:on_numbered_reference_read_node_leave]&.each { |listener| listener.on_numbered_reference_read_node_leave(node) }
       end
 
+      # Dispatch enter and leave events for OptionalKeywordParameterNode nodes.
+      def visit_optional_keyword_parameter_node(node)
+        listeners[:on_optional_keyword_parameter_node_enter]&.each { |listener| listener.on_optional_keyword_parameter_node_enter(node) }
+        listeners[:on_optional_keyword_parameter_node_leave]&.each { |listener| listener.on_optional_keyword_parameter_node_leave(node) }
+      end
+
       # Dispatch enter and leave events for OptionalParameterNode nodes.
       def visit_optional_parameter_node(node)
         listeners[:on_optional_parameter_node_enter]&.each { |listener| listener.on_optional_parameter_node_enter(node) }
@@ -1889,10 +1932,10 @@ module Prism
         listeners[:on_regular_expression_node_leave]&.each { |listener| listener.on_regular_expression_node_leave(node) }
       end
 
-      # Dispatch enter and leave events for RequiredDestructuredParameterNode nodes.
-      def visit_required_destructured_parameter_node(node)
-        listeners[:on_required_destructured_parameter_node_enter]&.each { |listener| listener.on_required_destructured_parameter_node_enter(node) }
-        listeners[:on_required_destructured_parameter_node_leave]&.each { |listener| listener.on_required_destructured_parameter_node_leave(node) }
+      # Dispatch enter and leave events for RequiredKeywordParameterNode nodes.
+      def visit_required_keyword_parameter_node(node)
+        listeners[:on_required_keyword_parameter_node_enter]&.each { |listener| listener.on_required_keyword_parameter_node_enter(node) }
+        listeners[:on_required_keyword_parameter_node_leave]&.each { |listener| listener.on_required_keyword_parameter_node_leave(node) }
       end
 
       # Dispatch enter and leave events for RequiredParameterNode nodes.

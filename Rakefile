@@ -1,4 +1,5 @@
 require_relative './lib/natalie/compiler/flags'
+require 'date'
 
 task default: :build
 
@@ -150,6 +151,19 @@ task prism_templated_sources: :build_dir do
   END
   gen_dir = File.join(__dir__, 'ext/prism-generated')
   rm_rf gen_dir
+  mkdir_p gen_dir
+  File.open(File.join(gen_dir, 'README.md'), 'w') do |readme|
+    readme.puts "The files in this directory are generated from the Prism sources."
+    readme.puts "We have a rake task that does this for us:"
+    readme.puts
+    readme.puts "    rake prism_templated_sources"
+    readme.puts
+    readme.puts "The license for Prism as of the date (#{Date.today.strftime('%Y-%m-%d')}) these were generated is copied below:"
+    readme.puts
+    readme.puts '---------------------------------------------'
+    readme.puts
+    readme.puts File.read(File.join(build_dir, 'LICENSE.md'))
+  end
   files = (
     File.read('/tmp/prism_after.txt').split("\n") - File.read('/tmp/prism_before.txt').split("\n")
   ).grep_v(/\.java/)

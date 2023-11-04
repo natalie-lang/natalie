@@ -152,15 +152,16 @@ Some parts of this program are copied from other sources, and the copyright
 belongs to the respective owner. Such copyright notices are either at the top of
 the respective file, in the same directory with a name like `LICENSE`, or both.
 
-| file(s)          | copyright                         | license           |
-| ---------------- | --------------------------------- | ----------------- |
-| `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
-| `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
-| `fiber_object.*` | Evan Jones                        | MIT               |
-| `pp.rb`          | Yukihiro Matsumoto                | BSD               |
-| `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
-| `spec/*`         | Engine Yard, Inc.                 | MIT               |
-| `version.rb`     | Engine Yard, Inc.                 | MIT               |
-| `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
+| file(s)             | copyright                         | license           |
+| ------------------- | --------------------------------- | ----------------- |
+| `big_int.*`         | Syed Faheel Ahmad                 | MIT               |
+| `dtoa.c`            | David M. Gay, Lucent Technologies | custom permissive |
+| `fiber_object.*`    | Evan Jones                        | MIT               |
+| `pp.rb`             | Yukihiro Matsumoto                | BSD               |
+| `prettyprint.rb`    | Yukihiro Matsumoto                | BSD               |
+| `prism-generated/*` | Shopify Inc.                      | MIT               |
+| `spec/*`            | Engine Yard, Inc.                 | MIT               |
+| `version.rb`        | Engine Yard, Inc.                 | MIT               |
+| `zlib`              | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.

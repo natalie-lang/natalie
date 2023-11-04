@@ -82,6 +82,9 @@ static VALUE rb_cPrismIfNode;
 static VALUE rb_cPrismImaginaryNode;
 static VALUE rb_cPrismImplicitNode;
 static VALUE rb_cPrismInNode;
+static VALUE rb_cPrismIndexAndWriteNode;
+static VALUE rb_cPrismIndexOperatorWriteNode;
+static VALUE rb_cPrismIndexOrWriteNode;
 static VALUE rb_cPrismInstanceVariableAndWriteNode;
 static VALUE rb_cPrismInstanceVariableOperatorWriteNode;
 static VALUE rb_cPrismInstanceVariableOrWriteNode;
@@ -95,7 +98,6 @@ static VALUE rb_cPrismInterpolatedStringNode;
 static VALUE rb_cPrismInterpolatedSymbolNode;
 static VALUE rb_cPrismInterpolatedXStringNode;
 static VALUE rb_cPrismKeywordHashNode;
-static VALUE rb_cPrismKeywordParameterNode;
 static VALUE rb_cPrismKeywordRestParameterNode;
 static VALUE rb_cPrismLambdaNode;
 static VALUE rb_cPrismLocalVariableAndWriteNode;
@@ -116,6 +118,7 @@ static VALUE rb_cPrismNextNode;
 static VALUE rb_cPrismNilNode;
 static VALUE rb_cPrismNoKeywordsParameterNode;
 static VALUE rb_cPrismNumberedReferenceReadNode;
+static VALUE rb_cPrismOptionalKeywordParameterNode;
 static VALUE rb_cPrismOptionalParameterNode;
 static VALUE rb_cPrismOrNode;
 static VALUE rb_cPrismParametersNode;
@@ -129,7 +132,7 @@ static VALUE rb_cPrismRangeNode;
 static VALUE rb_cPrismRationalNode;
 static VALUE rb_cPrismRedoNode;
 static VALUE rb_cPrismRegularExpressionNode;
-static VALUE rb_cPrismRequiredDestructuredParameterNode;
+static VALUE rb_cPrismRequiredKeywordParameterNode;
 static VALUE rb_cPrismRequiredParameterNode;
 static VALUE rb_cPrismRescueModifierNode;
 static VALUE rb_cPrismRescueNode;
@@ -191,8 +194,8 @@ pm_source_new(pm_parser_t *parser, rb_encoding *encoding) {
         rb_ary_push(offsets, INT2FIX(parser->newline_list.offsets[index]));
     }
 
-    VALUE source_argv[] = { source, offsets };
-    return rb_class_new_instance(2, source_argv, rb_cPrismSource);
+    VALUE source_argv[] = { source, ULONG2NUM(parser->start_line), offsets };
+    return rb_class_new_instance(3, source_argv, rb_cPrismSource);
 }
 
 typedef struct pm_node_stack_node {
@@ -228,7 +231,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
 
     for (uint32_t index = 0; index < parser->constant_pool.size; index++) {
         pm_constant_t *constant = &parser->constant_pool.constants[index];
-        constants[index] = rb_intern3((const char *) constant->start, constant->length, encoding);
+        int state = 0;
+
+        VALUE string = rb_enc_str_new((const char *) constant->start, constant->length, encoding);
+        ID value = rb_protect(rb_intern_str, string, &state);
+
+        if (state != 0) {
+            value = rb_intern_const("?");
+            rb_set_errinfo(Qnil);
+        }
+
+        constants[index] = value;
     }
 
     pm_node_stack_node_t *node_stack = NULL;
@@ -247,35 +260,35 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
             node_stack->visited = true;
 
             switch (PM_NODE_TYPE(node)) {
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ALIAS_GLOBAL_VARIABLE_NODE: {
                     pm_alias_global_variable_node_t *cast = (pm_alias_global_variable_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->new_name);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->old_name);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ALIAS_METHOD_NODE: {
                     pm_alias_method_node_t *cast = (pm_alias_method_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->new_name);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->old_name);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ALTERNATION_PATTERN_NODE: {
                     pm_alternation_pattern_node_t *cast = (pm_alternation_pattern_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_AND_NODE: {
                     pm_and_node_t *cast = (pm_and_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ARGUMENTS_NODE: {
                     pm_arguments_node_t *cast = (pm_arguments_node_t *) node;
                     for (size_t index = 0; index < cast->arguments.size; index++) {
@@ -283,7 +296,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ARRAY_NODE: {
                     pm_array_node_t *cast = (pm_array_node_t *) node;
                     for (size_t index = 0; index < cast->elements.size; index++) {
@@ -291,7 +304,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ARRAY_PATTERN_NODE: {
                     pm_array_pattern_node_t *cast = (pm_array_pattern_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->constant);
@@ -304,20 +317,20 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ASSOC_NODE: {
                     pm_assoc_node_t *cast = (pm_assoc_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->key);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ASSOC_SPLAT_NODE: {
                     pm_assoc_splat_node_t *cast = (pm_assoc_splat_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_BEGIN_NODE: {
                     pm_begin_node_t *cast = (pm_begin_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
@@ -326,20 +339,20 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->ensure_clause);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_BLOCK_ARGUMENT_NODE: {
                     pm_block_argument_node_t *cast = (pm_block_argument_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->expression);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_BLOCK_NODE: {
                     pm_block_node_t *cast = (pm_block_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->parameters);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_BLOCK_PARAMETERS_NODE: {
                     pm_block_parameters_node_t *cast = (pm_block_parameters_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->parameters);
@@ -348,21 +361,20 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_BREAK_NODE: {
                     pm_break_node_t *cast = (pm_break_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CALL_AND_WRITE_NODE: {
                     pm_call_and_write_node_t *cast = (pm_call_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
-                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CALL_NODE: {
                     pm_call_node_t *cast = (pm_call_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
@@ -370,30 +382,28 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CALL_OPERATOR_WRITE_NODE: {
                     pm_call_operator_write_node_t *cast = (pm_call_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
-                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CALL_OR_WRITE_NODE: {
                     pm_call_or_write_node_t *cast = (pm_call_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
-                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CAPTURE_PATTERN_NODE: {
                     pm_capture_pattern_node_t *cast = (pm_capture_pattern_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->target);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CASE_NODE: {
                     pm_case_node_t *cast = (pm_case_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->predicate);
@@ -403,7 +413,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->consequent);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CLASS_NODE: {
                     pm_class_node_t *cast = (pm_class_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->constant_path);
@@ -411,97 +421,97 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_AND_WRITE_NODE: {
                     pm_class_variable_and_write_node_t *cast = (pm_class_variable_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_class_variable_operator_write_node_t *cast = (pm_class_variable_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
                     pm_class_variable_or_write_node_t *cast = (pm_class_variable_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_WRITE_NODE: {
                     pm_class_variable_write_node_t *cast = (pm_class_variable_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_AND_WRITE_NODE: {
                     pm_constant_and_write_node_t *cast = (pm_constant_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_OPERATOR_WRITE_NODE: {
                     pm_constant_operator_write_node_t *cast = (pm_constant_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_OR_WRITE_NODE: {
                     pm_constant_or_write_node_t *cast = (pm_constant_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_AND_WRITE_NODE: {
                     pm_constant_path_and_write_node_t *cast = (pm_constant_path_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->target);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_NODE: {
                     pm_constant_path_node_t *cast = (pm_constant_path_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->parent);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->child);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
                     pm_constant_path_operator_write_node_t *cast = (pm_constant_path_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->target);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_OR_WRITE_NODE: {
                     pm_constant_path_or_write_node_t *cast = (pm_constant_path_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->target);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_TARGET_NODE: {
                     pm_constant_path_target_node_t *cast = (pm_constant_path_target_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->parent);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->child);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_PATH_WRITE_NODE: {
                     pm_constant_path_write_node_t *cast = (pm_constant_path_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->target);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_CONSTANT_WRITE_NODE: {
                     pm_constant_write_node_t *cast = (pm_constant_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_DEF_NODE: {
                     pm_def_node_t *cast = (pm_def_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
@@ -509,37 +519,37 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_DEFINED_NODE: {
                     pm_defined_node_t *cast = (pm_defined_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ELSE_NODE: {
                     pm_else_node_t *cast = (pm_else_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_EMBEDDED_STATEMENTS_NODE: {
                     pm_embedded_statements_node_t *cast = (pm_embedded_statements_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_EMBEDDED_VARIABLE_NODE: {
                     pm_embedded_variable_node_t *cast = (pm_embedded_variable_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->variable);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_ENSURE_NODE: {
                     pm_ensure_node_t *cast = (pm_ensure_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_FIND_PATTERN_NODE: {
                     pm_find_pattern_node_t *cast = (pm_find_pattern_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->constant);
@@ -550,14 +560,14 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_FLIP_FLOP_NODE: {
                     pm_flip_flop_node_t *cast = (pm_flip_flop_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_FOR_NODE: {
                     pm_for_node_t *cast = (pm_for_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->index);
@@ -565,37 +575,37 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_FORWARDING_SUPER_NODE: {
                     pm_forwarding_super_node_t *cast = (pm_forwarding_super_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_AND_WRITE_NODE: {
                     pm_global_variable_and_write_node_t *cast = (pm_global_variable_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_global_variable_operator_write_node_t *cast = (pm_global_variable_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
                     pm_global_variable_or_write_node_t *cast = (pm_global_variable_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_WRITE_NODE: {
                     pm_global_variable_write_node_t *cast = (pm_global_variable_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_HASH_NODE: {
                     pm_hash_node_t *cast = (pm_hash_node_t *) node;
                     for (size_t index = 0; index < cast->elements.size; index++) {
@@ -603,17 +613,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_HASH_PATTERN_NODE: {
                     pm_hash_pattern_node_t *cast = (pm_hash_pattern_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->constant);
-                    for (size_t index = 0; index < cast->assocs.size; index++) {
-                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->assocs.nodes[index]);
+                    for (size_t index = 0; index < cast->elements.size; index++) {
+                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->elements.nodes[index]);
                     }
-                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->kwrest);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->rest);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_IF_NODE: {
                     pm_if_node_t *cast = (pm_if_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->predicate);
@@ -621,50 +631,77 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->consequent);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_IMAGINARY_NODE: {
                     pm_imaginary_node_t *cast = (pm_imaginary_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->numeric);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_IMPLICIT_NODE: {
                     pm_implicit_node_t *cast = (pm_implicit_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_IN_NODE: {
                     pm_in_node_t *cast = (pm_in_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->pattern);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
+                case PM_INDEX_AND_WRITE_NODE: {
+                    pm_index_and_write_node_t *cast = (pm_index_and_write_node_t *) node;
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
+                    break;
+                }
+#line 118 "api_node.c.erb"
+                case PM_INDEX_OPERATOR_WRITE_NODE: {
+                    pm_index_operator_write_node_t *cast = (pm_index_operator_write_node_t *) node;
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
+                    break;
+                }
+#line 118 "api_node.c.erb"
+                case PM_INDEX_OR_WRITE_NODE: {
+                    pm_index_or_write_node_t *cast = (pm_index_or_write_node_t *) node;
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->receiver);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
+                    break;
+                }
+#line 118 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_AND_WRITE_NODE: {
                     pm_instance_variable_and_write_node_t *cast = (pm_instance_variable_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_instance_variable_operator_write_node_t *cast = (pm_instance_variable_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
                     pm_instance_variable_or_write_node_t *cast = (pm_instance_variable_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_WRITE_NODE: {
                     pm_instance_variable_write_node_t *cast = (pm_instance_variable_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
                     pm_interpolated_match_last_line_node_t *cast = (pm_interpolated_match_last_line_node_t *) node;
                     for (size_t index = 0; index < cast->parts.size; index++) {
@@ -672,7 +709,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
                     pm_interpolated_regular_expression_node_t *cast = (pm_interpolated_regular_expression_node_t *) node;
                     for (size_t index = 0; index < cast->parts.size; index++) {
@@ -680,7 +717,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INTERPOLATED_STRING_NODE: {
                     pm_interpolated_string_node_t *cast = (pm_interpolated_string_node_t *) node;
                     for (size_t index = 0; index < cast->parts.size; index++) {
@@ -688,7 +725,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INTERPOLATED_SYMBOL_NODE: {
                     pm_interpolated_symbol_node_t *cast = (pm_interpolated_symbol_node_t *) node;
                     for (size_t index = 0; index < cast->parts.size; index++) {
@@ -696,7 +733,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_INTERPOLATED_X_STRING_NODE: {
                     pm_interpolated_x_string_node_t *cast = (pm_interpolated_x_string_node_t *) node;
                     for (size_t index = 0; index < cast->parts.size; index++) {
@@ -704,7 +741,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_KEYWORD_HASH_NODE: {
                     pm_keyword_hash_node_t *cast = (pm_keyword_hash_node_t *) node;
                     for (size_t index = 0; index < cast->elements.size; index++) {
@@ -712,107 +749,115 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
-                case PM_KEYWORD_PARAMETER_NODE: {
-                    pm_keyword_parameter_node_t *cast = (pm_keyword_parameter_node_t *) node;
-                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
-                    break;
-                }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_LAMBDA_NODE: {
                     pm_lambda_node_t *cast = (pm_lambda_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->parameters);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_AND_WRITE_NODE: {
                     pm_local_variable_and_write_node_t *cast = (pm_local_variable_and_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_local_variable_operator_write_node_t *cast = (pm_local_variable_operator_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_OR_WRITE_NODE: {
                     pm_local_variable_or_write_node_t *cast = (pm_local_variable_or_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_WRITE_NODE: {
                     pm_local_variable_write_node_t *cast = (pm_local_variable_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MATCH_PREDICATE_NODE: {
                     pm_match_predicate_node_t *cast = (pm_match_predicate_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->pattern);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MATCH_REQUIRED_NODE: {
                     pm_match_required_node_t *cast = (pm_match_required_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->pattern);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MATCH_WRITE_NODE: {
                     pm_match_write_node_t *cast = (pm_match_write_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->call);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MODULE_NODE: {
                     pm_module_node_t *cast = (pm_module_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->constant_path);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MULTI_TARGET_NODE: {
                     pm_multi_target_node_t *cast = (pm_multi_target_node_t *) node;
-                    for (size_t index = 0; index < cast->targets.size; index++) {
-                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->targets.nodes[index]);
+                    for (size_t index = 0; index < cast->lefts.size; index++) {
+                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->lefts.nodes[index]);
+                    }
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->rest);
+                    for (size_t index = 0; index < cast->rights.size; index++) {
+                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->rights.nodes[index]);
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_MULTI_WRITE_NODE: {
                     pm_multi_write_node_t *cast = (pm_multi_write_node_t *) node;
-                    for (size_t index = 0; index < cast->targets.size; index++) {
-                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->targets.nodes[index]);
+                    for (size_t index = 0; index < cast->lefts.size; index++) {
+                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->lefts.nodes[index]);
+                    }
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->rest);
+                    for (size_t index = 0; index < cast->rights.size; index++) {
+                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->rights.nodes[index]);
                     }
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_NEXT_NODE: {
                     pm_next_node_t *cast = (pm_next_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
+                case PM_OPTIONAL_KEYWORD_PARAMETER_NODE: {
+                    pm_optional_keyword_parameter_node_t *cast = (pm_optional_keyword_parameter_node_t *) node;
+                    pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
+                    break;
+                }
+#line 118 "api_node.c.erb"
                 case PM_OPTIONAL_PARAMETER_NODE: {
                     pm_optional_parameter_node_t *cast = (pm_optional_parameter_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->value);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_OR_NODE: {
                     pm_or_node_t *cast = (pm_or_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PARAMETERS_NODE: {
                     pm_parameters_node_t *cast = (pm_parameters_node_t *) node;
                     for (size_t index = 0; index < cast->requireds.size; index++) {
@@ -832,71 +877,63 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PARENTHESES_NODE: {
                     pm_parentheses_node_t *cast = (pm_parentheses_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PINNED_EXPRESSION_NODE: {
                     pm_pinned_expression_node_t *cast = (pm_pinned_expression_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->expression);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PINNED_VARIABLE_NODE: {
                     pm_pinned_variable_node_t *cast = (pm_pinned_variable_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->variable);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_POST_EXECUTION_NODE: {
                     pm_post_execution_node_t *cast = (pm_post_execution_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PRE_EXECUTION_NODE: {
                     pm_pre_execution_node_t *cast = (pm_pre_execution_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_PROGRAM_NODE: {
                     pm_program_node_t *cast = (pm_program_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_RANGE_NODE: {
                     pm_range_node_t *cast = (pm_range_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_RATIONAL_NODE: {
                     pm_rational_node_t *cast = (pm_rational_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->numeric);
                     break;
                 }
-#line 108 "api_node.c.erb"
-                case PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
-                    pm_required_destructured_parameter_node_t *cast = (pm_required_destructured_parameter_node_t *) node;
-                    for (size_t index = 0; index < cast->parameters.size; index++) {
-                        pm_node_stack_push(&node_stack, (pm_node_t *) cast->parameters.nodes[index]);
-                    }
-                    break;
-                }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_RESCUE_MODIFIER_NODE: {
                     pm_rescue_modifier_node_t *cast = (pm_rescue_modifier_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->expression);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->rescue_expression);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_RESCUE_NODE: {
                     pm_rescue_node_t *cast = (pm_rescue_node_t *) node;
                     for (size_t index = 0; index < cast->exceptions.size; index++) {
@@ -907,26 +944,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->consequent);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_RETURN_NODE: {
                     pm_return_node_t *cast = (pm_return_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_SINGLETON_CLASS_NODE: {
                     pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->expression);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->body);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_SPLAT_NODE: {
                     pm_splat_node_t *cast = (pm_splat_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->expression);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_STATEMENTS_NODE: {
                     pm_statements_node_t *cast = (pm_statements_node_t *) node;
                     for (size_t index = 0; index < cast->body.size; index++) {
@@ -934,21 +971,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_STRING_CONCAT_NODE: {
                     pm_string_concat_node_t *cast = (pm_string_concat_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->left);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->right);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_SUPER_NODE: {
                     pm_super_node_t *cast = (pm_super_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->block);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_UNDEF_NODE: {
                     pm_undef_node_t *cast = (pm_undef_node_t *) node;
                     for (size_t index = 0; index < cast->names.size; index++) {
@@ -956,7 +993,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_UNLESS_NODE: {
                     pm_unless_node_t *cast = (pm_unless_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->predicate);
@@ -964,14 +1001,14 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->consequent);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_UNTIL_NODE: {
                     pm_until_node_t *cast = (pm_until_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->predicate);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_WHEN_NODE: {
                     pm_when_node_t *cast = (pm_when_node_t *) node;
                     for (size_t index = 0; index < cast->conditions.size; index++) {
@@ -980,14 +1017,14 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_WHILE_NODE: {
                     pm_while_node_t *cast = (pm_while_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->predicate);
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->statements);
                     break;
                 }
-#line 108 "api_node.c.erb"
+#line 118 "api_node.c.erb"
                 case PM_YIELD_NODE: {
                     pm_yield_node_t *cast = (pm_yield_node_t *) node;
                     pm_node_stack_push(&node_stack, (pm_node_t *) cast->arguments);
@@ -996,26 +1033,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                 default:
                     break;
             }
-#line 128 "api_node.c.erb"
+#line 138 "api_node.c.erb"
         } else {
             pm_node_t *node = pm_node_stack_pop(&node_stack);
 
             switch (PM_NODE_TYPE(node)) {
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ALIAS_GLOBAL_VARIABLE_NODE: {
                     pm_alias_global_variable_node_t *cast = (pm_alias_global_variable_node_t *) node;
                     VALUE argv[4];
 
                     // new_name
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // old_name
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -1024,21 +1061,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismAliasGlobalVariableNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ALIAS_METHOD_NODE: {
                     pm_alias_method_node_t *cast = (pm_alias_method_node_t *) node;
                     VALUE argv[4];
 
                     // new_name
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // old_name
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -1047,21 +1084,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismAliasMethodNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ALTERNATION_PATTERN_NODE: {
                     pm_alternation_pattern_node_t *cast = (pm_alternation_pattern_node_t *) node;
                     VALUE argv[4];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1070,21 +1107,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismAlternationPatternNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_AND_NODE: {
                     pm_and_node_t *cast = (pm_and_node_t *) node;
                     VALUE argv[4];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1093,42 +1130,46 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismAndNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ARGUMENTS_NODE: {
                     pm_arguments_node_t *cast = (pm_arguments_node_t *) node;
-                    VALUE argv[2];
+                    VALUE argv[3];
 
                     // arguments
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->arguments.size);
                     for (size_t index = 0; index < cast->arguments.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
                     }
 
-                    // location
-                    argv[1] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    // flags
+#line 189 "api_node.c.erb"
+                    argv[1] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismArgumentsNode));
+                    // location
+                    argv[2] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismArgumentsNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ARRAY_NODE: {
                     pm_array_node_t *cast = (pm_array_node_t *) node;
                     VALUE argv[4];
 
                     // elements
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->elements.size);
                     for (size_t index = 0; index < cast->elements.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
                     }
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -1137,39 +1178,39 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismArrayNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ARRAY_PATTERN_NODE: {
                     pm_array_pattern_node_t *cast = (pm_array_pattern_node_t *) node;
                     VALUE argv[7];
 
                     // constant
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // requireds
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->requireds.size);
                     for (size_t index = 0; index < cast->requireds.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // rest
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // posts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[3] = rb_ary_new_capa(cast->posts.size);
                     for (size_t index = 0; index < cast->posts.size; index++) {
                         rb_ary_push(argv[3], rb_ary_pop(value_stack));
                     }
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[4] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -1178,21 +1219,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismArrayPatternNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ASSOC_NODE: {
                     pm_assoc_node_t *cast = (pm_assoc_node_t *) node;
                     VALUE argv[4];
 
                     // key
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1201,17 +1242,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismAssocNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ASSOC_SPLAT_NODE: {
                     pm_assoc_splat_node_t *cast = (pm_assoc_splat_node_t *) node;
                     VALUE argv[3];
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1220,43 +1261,49 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismAssocSplatNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BACK_REFERENCE_READ_NODE: {
-                    VALUE argv[1];
+                    pm_back_reference_read_node_t *cast = (pm_back_reference_read_node_t *) node;
+                    VALUE argv[2];
+
+                    // name
+#line 167 "api_node.c.erb"
+                    assert(cast->name != 0);
+                    argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // location
-                    argv[0] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    argv[1] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismBackReferenceReadNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismBackReferenceReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BEGIN_NODE: {
                     pm_begin_node_t *cast = (pm_begin_node_t *) node;
                     VALUE argv[7];
 
                     // begin_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->begin_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->begin_keyword_loc.start, cast->begin_keyword_loc.end, source);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // rescue_clause
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // else_clause
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // ensure_clause
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[5] = cast->end_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -1265,17 +1312,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismBeginNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BLOCK_ARGUMENT_NODE: {
                     pm_block_argument_node_t *cast = (pm_block_argument_node_t *) node;
                     VALUE argv[3];
 
                     // expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1284,13 +1331,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismBlockArgumentNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BLOCK_LOCAL_VARIABLE_NODE: {
                     pm_block_local_variable_node_t *cast = (pm_block_local_variable_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -1300,13 +1347,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismBlockLocalVariableNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BLOCK_NODE: {
                     pm_block_node_t *cast = (pm_block_node_t *) node;
                     VALUE argv[6];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -1314,19 +1361,19 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // parameters
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[4] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -1335,7 +1382,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismBlockNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BLOCK_PARAMETER_NODE: {
                     pm_block_parameter_node_t *cast = (pm_block_parameter_node_t *) node;
                     VALUE argv[4];
@@ -1344,11 +1391,11 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     argv[0] = cast->name == 0 ? Qnil : rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->name_loc.start == NULL ? Qnil : pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1357,28 +1404,28 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismBlockParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BLOCK_PARAMETERS_NODE: {
                     pm_block_parameters_node_t *cast = (pm_block_parameters_node_t *) node;
                     VALUE argv[5];
 
                     // parameters
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // locals
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -1387,17 +1434,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismBlockParametersNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_BREAK_NODE: {
                     pm_break_node_t *cast = (pm_break_node_t *) node;
                     VALUE argv[3];
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -1406,102 +1453,90 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismBreakNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CALL_AND_WRITE_NODE: {
                     pm_call_and_write_node_t *cast = (pm_call_and_write_node_t *) node;
-                    VALUE argv[12];
+                    VALUE argv[9];
 
                     // receiver
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // call_operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
 
                     // message_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->message_loc.start == NULL ? Qnil : pm_location_new(parser, cast->message_loc.start, cast->message_loc.end, source);
 
-                    // opening_loc
-#line 173 "api_node.c.erb"
-                    argv[3] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
-
-                    // arguments
-#line 145 "api_node.c.erb"
-                    argv[4] = rb_ary_pop(value_stack);
-
-                    // closing_loc
-#line 173 "api_node.c.erb"
-                    argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
-
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // read_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->read_name != 0);
-                    argv[7] = rb_id2sym(constants[cast->read_name - 1]);
+                    argv[4] = rb_id2sym(constants[cast->read_name - 1]);
 
                     // write_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->write_name != 0);
-                    argv[8] = rb_id2sym(constants[cast->write_name - 1]);
+                    argv[5] = rb_id2sym(constants[cast->write_name - 1]);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
-                    argv[9] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+#line 180 "api_node.c.erb"
+                    argv[6] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
-                    argv[10] = rb_ary_pop(value_stack);
+#line 155 "api_node.c.erb"
+                    argv[7] = rb_ary_pop(value_stack);
 
                     // location
-                    argv[11] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    argv[8] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(12, argv, rb_cPrismCallAndWriteNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(9, argv, rb_cPrismCallAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CALL_NODE: {
                     pm_call_node_t *cast = (pm_call_node_t *) node;
                     VALUE argv[10];
 
                     // receiver
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // call_operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
 
                     // message_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->message_loc.start == NULL ? Qnil : pm_location_new(parser, cast->message_loc.start, cast->message_loc.end, source);
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // block
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[6] = rb_ary_pop(value_stack);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[7] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[7] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[8] = rb_id2sym(constants[cast->name - 1]);
 
@@ -1511,140 +1546,116 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(10, argv, rb_cPrismCallNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CALL_OPERATOR_WRITE_NODE: {
                     pm_call_operator_write_node_t *cast = (pm_call_operator_write_node_t *) node;
-                    VALUE argv[13];
+                    VALUE argv[10];
 
                     // receiver
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // call_operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
 
                     // message_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->message_loc.start == NULL ? Qnil : pm_location_new(parser, cast->message_loc.start, cast->message_loc.end, source);
 
-                    // opening_loc
-#line 173 "api_node.c.erb"
-                    argv[3] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
-
-                    // arguments
-#line 145 "api_node.c.erb"
-                    argv[4] = rb_ary_pop(value_stack);
-
-                    // closing_loc
-#line 173 "api_node.c.erb"
-                    argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
-
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // read_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->read_name != 0);
-                    argv[7] = rb_id2sym(constants[cast->read_name - 1]);
+                    argv[4] = rb_id2sym(constants[cast->read_name - 1]);
 
                     // write_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->write_name != 0);
-                    argv[8] = rb_id2sym(constants[cast->write_name - 1]);
+                    argv[5] = rb_id2sym(constants[cast->write_name - 1]);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
-                    argv[9] = rb_id2sym(constants[cast->operator - 1]);
+                    argv[6] = rb_id2sym(constants[cast->operator - 1]);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
-                    argv[10] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+#line 180 "api_node.c.erb"
+                    argv[7] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
-                    argv[11] = rb_ary_pop(value_stack);
+#line 155 "api_node.c.erb"
+                    argv[8] = rb_ary_pop(value_stack);
 
                     // location
-                    argv[12] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    argv[9] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(13, argv, rb_cPrismCallOperatorWriteNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(10, argv, rb_cPrismCallOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CALL_OR_WRITE_NODE: {
                     pm_call_or_write_node_t *cast = (pm_call_or_write_node_t *) node;
-                    VALUE argv[12];
+                    VALUE argv[9];
 
                     // receiver
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // call_operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
 
                     // message_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->message_loc.start == NULL ? Qnil : pm_location_new(parser, cast->message_loc.start, cast->message_loc.end, source);
 
-                    // opening_loc
-#line 173 "api_node.c.erb"
-                    argv[3] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
-
-                    // arguments
-#line 145 "api_node.c.erb"
-                    argv[4] = rb_ary_pop(value_stack);
-
-                    // closing_loc
-#line 173 "api_node.c.erb"
-                    argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
-
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[6] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // read_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->read_name != 0);
-                    argv[7] = rb_id2sym(constants[cast->read_name - 1]);
+                    argv[4] = rb_id2sym(constants[cast->read_name - 1]);
 
                     // write_name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->write_name != 0);
-                    argv[8] = rb_id2sym(constants[cast->write_name - 1]);
+                    argv[5] = rb_id2sym(constants[cast->write_name - 1]);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
-                    argv[9] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+#line 180 "api_node.c.erb"
+                    argv[6] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
-                    argv[10] = rb_ary_pop(value_stack);
+#line 155 "api_node.c.erb"
+                    argv[7] = rb_ary_pop(value_stack);
 
                     // location
-                    argv[11] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    argv[8] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(12, argv, rb_cPrismCallOrWriteNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(9, argv, rb_cPrismCallOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CAPTURE_PATTERN_NODE: {
                     pm_capture_pattern_node_t *cast = (pm_capture_pattern_node_t *) node;
                     VALUE argv[4];
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // target
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1653,32 +1664,32 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismCapturePatternNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CASE_NODE: {
                     pm_case_node_t *cast = (pm_case_node_t *) node;
                     VALUE argv[6];
 
                     // predicate
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // conditions
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->conditions.size);
                     for (size_t index = 0; index < cast->conditions.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // consequent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // case_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->case_keyword_loc.start, cast->case_keyword_loc.end, source);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[4] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -1687,13 +1698,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismCaseNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_NODE: {
                     pm_class_node_t *cast = (pm_class_node_t *) node;
                     VALUE argv[9];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -1701,31 +1712,31 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // class_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->class_keyword_loc.start, cast->class_keyword_loc.end, source);
 
                     // constant_path
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // inheritance_operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->inheritance_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->inheritance_operator_loc.start, cast->inheritance_operator_loc.end, source);
 
                     // superclass
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[5] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[6] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[7] = rb_id2sym(constants[cast->name - 1]);
 
@@ -1735,26 +1746,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(9, argv, rb_cPrismClassNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_AND_WRITE_NODE: {
                     pm_class_variable_and_write_node_t *cast = (pm_class_variable_and_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -1763,30 +1774,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismClassVariableAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_class_variable_operator_write_node_t *cast = (pm_class_variable_operator_write_node_t *) node;
                     VALUE argv[6];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[4] = rb_id2sym(constants[cast->operator - 1]);
 
@@ -1796,26 +1807,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismClassVariableOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
                     pm_class_variable_or_write_node_t *cast = (pm_class_variable_or_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -1824,13 +1835,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismClassVariableOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_READ_NODE: {
                     pm_class_variable_read_node_t *cast = (pm_class_variable_read_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -1840,13 +1851,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismClassVariableReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_TARGET_NODE: {
                     pm_class_variable_target_node_t *cast = (pm_class_variable_target_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -1856,26 +1867,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismClassVariableTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CLASS_VARIABLE_WRITE_NODE: {
                     pm_class_variable_write_node_t *cast = (pm_class_variable_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -1884,26 +1895,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismClassVariableWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_AND_WRITE_NODE: {
                     pm_constant_and_write_node_t *cast = (pm_constant_and_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -1912,30 +1923,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismConstantAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_OPERATOR_WRITE_NODE: {
                     pm_constant_operator_write_node_t *cast = (pm_constant_operator_write_node_t *) node;
                     VALUE argv[6];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[4] = rb_id2sym(constants[cast->operator - 1]);
 
@@ -1945,26 +1956,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismConstantOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_OR_WRITE_NODE: {
                     pm_constant_or_write_node_t *cast = (pm_constant_or_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -1973,21 +1984,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismConstantOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_AND_WRITE_NODE: {
                     pm_constant_path_and_write_node_t *cast = (pm_constant_path_and_write_node_t *) node;
                     VALUE argv[4];
 
                     // target
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // location
@@ -1996,21 +2007,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismConstantPathAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_NODE: {
                     pm_constant_path_node_t *cast = (pm_constant_path_node_t *) node;
                     VALUE argv[4];
 
                     // parent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // child
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // delimiter_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->delimiter_loc.start, cast->delimiter_loc.end, source);
 
                     // location
@@ -2019,25 +2030,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismConstantPathNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
                     pm_constant_path_operator_write_node_t *cast = (pm_constant_path_operator_write_node_t *) node;
                     VALUE argv[5];
 
                     // target
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[3] = rb_id2sym(constants[cast->operator - 1]);
 
@@ -2047,21 +2058,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismConstantPathOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_OR_WRITE_NODE: {
                     pm_constant_path_or_write_node_t *cast = (pm_constant_path_or_write_node_t *) node;
                     VALUE argv[4];
 
                     // target
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // location
@@ -2070,21 +2081,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismConstantPathOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_TARGET_NODE: {
                     pm_constant_path_target_node_t *cast = (pm_constant_path_target_node_t *) node;
                     VALUE argv[4];
 
                     // parent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // child
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // delimiter_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->delimiter_loc.start, cast->delimiter_loc.end, source);
 
                     // location
@@ -2093,21 +2104,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismConstantPathTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_PATH_WRITE_NODE: {
                     pm_constant_path_write_node_t *cast = (pm_constant_path_write_node_t *) node;
                     VALUE argv[4];
 
                     // target
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // location
@@ -2116,13 +2127,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismConstantPathWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_READ_NODE: {
                     pm_constant_read_node_t *cast = (pm_constant_read_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2132,13 +2143,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismConstantReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_TARGET_NODE: {
                     pm_constant_target_node_t *cast = (pm_constant_target_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2148,26 +2159,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismConstantTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_CONSTANT_WRITE_NODE: {
                     pm_constant_write_node_t *cast = (pm_constant_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -2176,34 +2187,34 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismConstantWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_DEF_NODE: {
                     pm_def_node_t *cast = (pm_def_node_t *) node;
                     VALUE argv[13];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // receiver
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // parameters
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[5] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -2211,27 +2222,27 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // def_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[6] = pm_location_new(parser, cast->def_keyword_loc.start, cast->def_keyword_loc.end, source);
 
                     // operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[7] = cast->operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // lparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[8] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // rparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[9] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // equal_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[10] = cast->equal_loc.start == NULL ? Qnil : pm_location_new(parser, cast->equal_loc.start, cast->equal_loc.end, source);
 
                     // end_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[11] = cast->end_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -2240,25 +2251,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(13, argv, rb_cPrismDefNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_DEFINED_NODE: {
                     pm_defined_node_t *cast = (pm_defined_node_t *) node;
                     VALUE argv[5];
 
                     // lparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // rparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -2267,21 +2278,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismDefinedNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ELSE_NODE: {
                     pm_else_node_t *cast = (pm_else_node_t *) node;
                     VALUE argv[4];
 
                     // else_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->else_keyword_loc.start, cast->else_keyword_loc.end, source);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->end_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -2290,21 +2301,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismElseNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_EMBEDDED_STATEMENTS_NODE: {
                     pm_embedded_statements_node_t *cast = (pm_embedded_statements_node_t *) node;
                     VALUE argv[4];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -2313,17 +2324,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismEmbeddedStatementsNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_EMBEDDED_VARIABLE_NODE: {
                     pm_embedded_variable_node_t *cast = (pm_embedded_variable_node_t *) node;
                     VALUE argv[3];
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // variable
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // location
@@ -2332,21 +2343,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismEmbeddedVariableNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_ENSURE_NODE: {
                     pm_ensure_node_t *cast = (pm_ensure_node_t *) node;
                     VALUE argv[4];
 
                     // ensure_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->ensure_keyword_loc.start, cast->ensure_keyword_loc.end, source);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -2355,7 +2366,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismEnsureNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FALSE_NODE: {
                     VALUE argv[1];
 
@@ -2365,36 +2376,36 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismFalseNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FIND_PATTERN_NODE: {
                     pm_find_pattern_node_t *cast = (pm_find_pattern_node_t *) node;
                     VALUE argv[7];
 
                     // constant
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // requireds
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[2] = rb_ary_new_capa(cast->requireds.size);
                     for (size_t index = 0; index < cast->requireds.size; index++) {
                         rb_ary_push(argv[2], rb_ary_pop(value_stack));
                     }
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[4] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[5] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -2403,26 +2414,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismFindPatternNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FLIP_FLOP_NODE: {
                     pm_flip_flop_node_t *cast = (pm_flip_flop_node_t *) node;
                     VALUE argv[5];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[4] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -2430,7 +2441,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismFlipFlopNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FLOAT_NODE: {
                     VALUE argv[1];
 
@@ -2440,37 +2451,37 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismFloatNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FOR_NODE: {
                     pm_for_node_t *cast = (pm_for_node_t *) node;
                     VALUE argv[8];
 
                     // index
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // collection
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // for_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->for_keyword_loc.start, cast->for_keyword_loc.end, source);
 
                     // in_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[4] = pm_location_new(parser, cast->in_keyword_loc.start, cast->in_keyword_loc.end, source);
 
                     // do_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[5] = cast->do_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->do_keyword_loc.start, cast->do_keyword_loc.end, source);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[6] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -2479,7 +2490,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(8, argv, rb_cPrismForNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FORWARDING_ARGUMENTS_NODE: {
                     VALUE argv[1];
 
@@ -2489,7 +2500,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismForwardingArgumentsNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FORWARDING_PARAMETER_NODE: {
                     VALUE argv[1];
 
@@ -2499,12 +2510,12 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismForwardingParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_FORWARDING_SUPER_NODE: {
                     VALUE argv[2];
 
                     // block
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // location
@@ -2513,26 +2524,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismForwardingSuperNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_AND_WRITE_NODE: {
                     pm_global_variable_and_write_node_t *cast = (pm_global_variable_and_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -2541,30 +2552,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismGlobalVariableAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_global_variable_operator_write_node_t *cast = (pm_global_variable_operator_write_node_t *) node;
                     VALUE argv[6];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[4] = rb_id2sym(constants[cast->operator - 1]);
 
@@ -2574,26 +2585,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismGlobalVariableOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
                     pm_global_variable_or_write_node_t *cast = (pm_global_variable_or_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -2602,13 +2613,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismGlobalVariableOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_READ_NODE: {
                     pm_global_variable_read_node_t *cast = (pm_global_variable_read_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2618,13 +2629,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismGlobalVariableReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_TARGET_NODE: {
                     pm_global_variable_target_node_t *cast = (pm_global_variable_target_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2634,26 +2645,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismGlobalVariableTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_GLOBAL_VARIABLE_WRITE_NODE: {
                     pm_global_variable_write_node_t *cast = (pm_global_variable_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -2662,24 +2673,24 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismGlobalVariableWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_HASH_NODE: {
                     pm_hash_node_t *cast = (pm_hash_node_t *) node;
                     VALUE argv[4];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // elements
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->elements.size);
                     for (size_t index = 0; index < cast->elements.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -2688,32 +2699,32 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismHashNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_HASH_PATTERN_NODE: {
                     pm_hash_pattern_node_t *cast = (pm_hash_pattern_node_t *) node;
                     VALUE argv[6];
 
                     // constant
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
-                    // assocs
-#line 148 "api_node.c.erb"
-                    argv[1] = rb_ary_new_capa(cast->assocs.size);
-                    for (size_t index = 0; index < cast->assocs.size; index++) {
+                    // elements
+#line 158 "api_node.c.erb"
+                    argv[1] = rb_ary_new_capa(cast->elements.size);
+                    for (size_t index = 0; index < cast->elements.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
-                    // kwrest
-#line 145 "api_node.c.erb"
+                    // rest
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[4] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -2722,29 +2733,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismHashPatternNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_IF_NODE: {
                     pm_if_node_t *cast = (pm_if_node_t *) node;
                     VALUE argv[6];
 
                     // if_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->if_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->if_keyword_loc.start, cast->if_keyword_loc.end, source);
 
                     // predicate
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // consequent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[4] = cast->end_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -2753,12 +2764,12 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismIfNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_IMAGINARY_NODE: {
                     VALUE argv[2];
 
                     // numeric
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // location
@@ -2767,12 +2778,12 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismImaginaryNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_IMPLICIT_NODE: {
                     VALUE argv[2];
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // location
@@ -2781,25 +2792,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismImplicitNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_IN_NODE: {
                     pm_in_node_t *cast = (pm_in_node_t *) node;
                     VALUE argv[5];
 
                     // pattern
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // in_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->in_loc.start, cast->in_loc.end, source);
 
                     // then_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->then_loc.start == NULL ? Qnil : pm_location_new(parser, cast->then_loc.start, cast->then_loc.end, source);
 
                     // location
@@ -2808,26 +2819,172 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
+                case PM_INDEX_AND_WRITE_NODE: {
+                    pm_index_and_write_node_t *cast = (pm_index_and_write_node_t *) node;
+                    VALUE argv[10];
+
+                    // receiver
+#line 155 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // call_operator_loc
+#line 183 "api_node.c.erb"
+                    argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
+
+                    // opening_loc
+#line 180 "api_node.c.erb"
+                    argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
+
+                    // arguments
+#line 155 "api_node.c.erb"
+                    argv[3] = rb_ary_pop(value_stack);
+
+                    // closing_loc
+#line 180 "api_node.c.erb"
+                    argv[4] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
+
+                    // block
+#line 155 "api_node.c.erb"
+                    argv[5] = rb_ary_pop(value_stack);
+
+                    // flags
+#line 189 "api_node.c.erb"
+                    argv[6] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
+
+                    // operator_loc
+#line 180 "api_node.c.erb"
+                    argv[7] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+
+                    // value
+#line 155 "api_node.c.erb"
+                    argv[8] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[9] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(10, argv, rb_cPrismIndexAndWriteNode));
+                    break;
+                }
+#line 144 "api_node.c.erb"
+                case PM_INDEX_OPERATOR_WRITE_NODE: {
+                    pm_index_operator_write_node_t *cast = (pm_index_operator_write_node_t *) node;
+                    VALUE argv[11];
+
+                    // receiver
+#line 155 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // call_operator_loc
+#line 183 "api_node.c.erb"
+                    argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
+
+                    // opening_loc
+#line 180 "api_node.c.erb"
+                    argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
+
+                    // arguments
+#line 155 "api_node.c.erb"
+                    argv[3] = rb_ary_pop(value_stack);
+
+                    // closing_loc
+#line 180 "api_node.c.erb"
+                    argv[4] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
+
+                    // block
+#line 155 "api_node.c.erb"
+                    argv[5] = rb_ary_pop(value_stack);
+
+                    // flags
+#line 189 "api_node.c.erb"
+                    argv[6] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
+
+                    // operator
+#line 167 "api_node.c.erb"
+                    assert(cast->operator != 0);
+                    argv[7] = rb_id2sym(constants[cast->operator - 1]);
+
+                    // operator_loc
+#line 180 "api_node.c.erb"
+                    argv[8] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+
+                    // value
+#line 155 "api_node.c.erb"
+                    argv[9] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[10] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(11, argv, rb_cPrismIndexOperatorWriteNode));
+                    break;
+                }
+#line 144 "api_node.c.erb"
+                case PM_INDEX_OR_WRITE_NODE: {
+                    pm_index_or_write_node_t *cast = (pm_index_or_write_node_t *) node;
+                    VALUE argv[10];
+
+                    // receiver
+#line 155 "api_node.c.erb"
+                    argv[0] = rb_ary_pop(value_stack);
+
+                    // call_operator_loc
+#line 183 "api_node.c.erb"
+                    argv[1] = cast->call_operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->call_operator_loc.start, cast->call_operator_loc.end, source);
+
+                    // opening_loc
+#line 180 "api_node.c.erb"
+                    argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
+
+                    // arguments
+#line 155 "api_node.c.erb"
+                    argv[3] = rb_ary_pop(value_stack);
+
+                    // closing_loc
+#line 180 "api_node.c.erb"
+                    argv[4] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
+
+                    // block
+#line 155 "api_node.c.erb"
+                    argv[5] = rb_ary_pop(value_stack);
+
+                    // flags
+#line 189 "api_node.c.erb"
+                    argv[6] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
+
+                    // operator_loc
+#line 180 "api_node.c.erb"
+                    argv[7] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+
+                    // value
+#line 155 "api_node.c.erb"
+                    argv[8] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[9] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(10, argv, rb_cPrismIndexOrWriteNode));
+                    break;
+                }
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_AND_WRITE_NODE: {
                     pm_instance_variable_and_write_node_t *cast = (pm_instance_variable_and_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -2836,30 +2993,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInstanceVariableAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_instance_variable_operator_write_node_t *cast = (pm_instance_variable_operator_write_node_t *) node;
                     VALUE argv[6];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[4] = rb_id2sym(constants[cast->operator - 1]);
 
@@ -2869,26 +3026,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismInstanceVariableOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
                     pm_instance_variable_or_write_node_t *cast = (pm_instance_variable_or_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -2897,13 +3054,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInstanceVariableOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_READ_NODE: {
                     pm_instance_variable_read_node_t *cast = (pm_instance_variable_read_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2913,13 +3070,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismInstanceVariableReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_TARGET_NODE: {
                     pm_instance_variable_target_node_t *cast = (pm_instance_variable_target_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -2929,26 +3086,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismInstanceVariableTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INSTANCE_VARIABLE_WRITE_NODE: {
                     pm_instance_variable_write_node_t *cast = (pm_instance_variable_write_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -2957,13 +3114,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInstanceVariableWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTEGER_NODE: {
                     VALUE argv[2];
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[0] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[0] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[1] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -2971,29 +3128,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismIntegerNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
                     pm_interpolated_match_last_line_node_t *cast = (pm_interpolated_match_last_line_node_t *) node;
                     VALUE argv[5];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // parts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->parts.size);
                     for (size_t index = 0; index < cast->parts.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[4] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -3001,29 +3158,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInterpolatedMatchLastLineNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
                     pm_interpolated_regular_expression_node_t *cast = (pm_interpolated_regular_expression_node_t *) node;
                     VALUE argv[5];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // parts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->parts.size);
                     for (size_t index = 0; index < cast->parts.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[4] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -3031,24 +3188,24 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismInterpolatedRegularExpressionNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTERPOLATED_STRING_NODE: {
                     pm_interpolated_string_node_t *cast = (pm_interpolated_string_node_t *) node;
                     VALUE argv[4];
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // parts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->parts.size);
                     for (size_t index = 0; index < cast->parts.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3057,24 +3214,24 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismInterpolatedStringNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTERPOLATED_SYMBOL_NODE: {
                     pm_interpolated_symbol_node_t *cast = (pm_interpolated_symbol_node_t *) node;
                     VALUE argv[4];
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // parts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->parts.size);
                     for (size_t index = 0; index < cast->parts.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3083,24 +3240,24 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismInterpolatedSymbolNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_INTERPOLATED_X_STRING_NODE: {
                     pm_interpolated_x_string_node_t *cast = (pm_interpolated_x_string_node_t *) node;
                     VALUE argv[4];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // parts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->parts.size);
                     for (size_t index = 0; index < cast->parts.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3109,13 +3266,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismInterpolatedXStringNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_KEYWORD_HASH_NODE: {
                     pm_keyword_hash_node_t *cast = (pm_keyword_hash_node_t *) node;
                     VALUE argv[2];
 
                     // elements
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->elements.size);
                     for (size_t index = 0; index < cast->elements.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
@@ -3127,31 +3284,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismKeywordHashNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
-                case PM_KEYWORD_PARAMETER_NODE: {
-                    pm_keyword_parameter_node_t *cast = (pm_keyword_parameter_node_t *) node;
-                    VALUE argv[4];
-
-                    // name
-#line 157 "api_node.c.erb"
-                    assert(cast->name != 0);
-                    argv[0] = rb_id2sym(constants[cast->name - 1]);
-
-                    // name_loc
-#line 170 "api_node.c.erb"
-                    argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
-
-                    // value
-#line 145 "api_node.c.erb"
-                    argv[2] = rb_ary_pop(value_stack);
-
-                    // location
-                    argv[3] = pm_location_new(parser, node->location.start, node->location.end, source);
-
-                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismKeywordParameterNode));
-                    break;
-                }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_KEYWORD_REST_PARAMETER_NODE: {
                     pm_keyword_rest_parameter_node_t *cast = (pm_keyword_rest_parameter_node_t *) node;
                     VALUE argv[4];
@@ -3160,11 +3293,11 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     argv[0] = cast->name == 0 ? Qnil : rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->name_loc.start == NULL ? Qnil : pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3173,13 +3306,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismKeywordRestParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LAMBDA_NODE: {
                     pm_lambda_node_t *cast = (pm_lambda_node_t *) node;
                     VALUE argv[7];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -3187,23 +3320,23 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // parameters
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[5] = rb_ary_pop(value_stack);
 
                     // location
@@ -3212,30 +3345,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismLambdaNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_AND_WRITE_NODE: {
                     pm_local_variable_and_write_node_t *cast = (pm_local_variable_and_write_node_t *) node;
                     VALUE argv[6];
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[3] = rb_id2sym(constants[cast->name - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[4] = ULONG2NUM(cast->depth);
 
                     // location
@@ -3244,35 +3377,35 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismLocalVariableAndWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
                     pm_local_variable_operator_write_node_t *cast = (pm_local_variable_operator_write_node_t *) node;
                     VALUE argv[7];
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[3] = rb_id2sym(constants[cast->name - 1]);
 
                     // operator
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->operator != 0);
                     argv[4] = rb_id2sym(constants[cast->operator - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[5] = ULONG2NUM(cast->depth);
 
                     // location
@@ -3281,30 +3414,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismLocalVariableOperatorWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_OR_WRITE_NODE: {
                     pm_local_variable_or_write_node_t *cast = (pm_local_variable_or_write_node_t *) node;
                     VALUE argv[6];
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[3] = rb_id2sym(constants[cast->name - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[4] = ULONG2NUM(cast->depth);
 
                     // location
@@ -3313,18 +3446,18 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismLocalVariableOrWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_READ_NODE: {
                     pm_local_variable_read_node_t *cast = (pm_local_variable_read_node_t *) node;
                     VALUE argv[3];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[1] = ULONG2NUM(cast->depth);
 
                     // location
@@ -3333,18 +3466,18 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismLocalVariableReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_TARGET_NODE: {
                     pm_local_variable_target_node_t *cast = (pm_local_variable_target_node_t *) node;
                     VALUE argv[3];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[1] = ULONG2NUM(cast->depth);
 
                     // location
@@ -3353,30 +3486,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismLocalVariableTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_LOCAL_VARIABLE_WRITE_NODE: {
                     pm_local_variable_write_node_t *cast = (pm_local_variable_write_node_t *) node;
                     VALUE argv[6];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // depth
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[1] = ULONG2NUM(cast->depth);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[4] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3385,30 +3518,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismLocalVariableWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MATCH_LAST_LINE_NODE: {
                     pm_match_last_line_node_t *cast = (pm_match_last_line_node_t *) node;
                     VALUE argv[6];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // content_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[3] = pm_string_new(&cast->unescaped, encoding);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[4] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[5] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -3416,21 +3549,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismMatchLastLineNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MATCH_PREDICATE_NODE: {
                     pm_match_predicate_node_t *cast = (pm_match_predicate_node_t *) node;
                     VALUE argv[4];
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // pattern
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3439,21 +3572,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismMatchPredicateNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MATCH_REQUIRED_NODE: {
                     pm_match_required_node_t *cast = (pm_match_required_node_t *) node;
                     VALUE argv[4];
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // pattern
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3462,17 +3595,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismMatchRequiredNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MATCH_WRITE_NODE: {
                     pm_match_write_node_t *cast = (pm_match_write_node_t *) node;
                     VALUE argv[3];
 
                     // call
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -3485,7 +3618,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismMatchWriteNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MISSING_NODE: {
                     VALUE argv[1];
 
@@ -3495,13 +3628,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismMissingNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MODULE_NODE: {
                     pm_module_node_t *cast = (pm_module_node_t *) node;
                     VALUE argv[7];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -3509,23 +3642,23 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // module_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->module_keyword_loc.start, cast->module_keyword_loc.end, source);
 
                     // constant_path
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[4] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[5] = rb_id2sym(constants[cast->name - 1]);
 
@@ -3535,77 +3668,99 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismModuleNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_MULTI_TARGET_NODE: {
                     pm_multi_target_node_t *cast = (pm_multi_target_node_t *) node;
-                    VALUE argv[4];
-
-                    // targets
-#line 148 "api_node.c.erb"
-                    argv[0] = rb_ary_new_capa(cast->targets.size);
-                    for (size_t index = 0; index < cast->targets.size; index++) {
-                        rb_ary_push(argv[0], rb_ary_pop(value_stack));
-                    }
-
-                    // lparen_loc
-#line 173 "api_node.c.erb"
-                    argv[1] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
-
-                    // rparen_loc
-#line 173 "api_node.c.erb"
-                    argv[2] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
-
-                    // location
-                    argv[3] = pm_location_new(parser, node->location.start, node->location.end, source);
-
-                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismMultiTargetNode));
-                    break;
-                }
-#line 134 "api_node.c.erb"
-                case PM_MULTI_WRITE_NODE: {
-                    pm_multi_write_node_t *cast = (pm_multi_write_node_t *) node;
                     VALUE argv[6];
 
-                    // targets
-#line 148 "api_node.c.erb"
-                    argv[0] = rb_ary_new_capa(cast->targets.size);
-                    for (size_t index = 0; index < cast->targets.size; index++) {
+                    // lefts
+#line 158 "api_node.c.erb"
+                    argv[0] = rb_ary_new_capa(cast->lefts.size);
+                    for (size_t index = 0; index < cast->lefts.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
                     }
 
+                    // rest
+#line 155 "api_node.c.erb"
+                    argv[1] = rb_ary_pop(value_stack);
+
+                    // rights
+#line 158 "api_node.c.erb"
+                    argv[2] = rb_ary_new_capa(cast->rights.size);
+                    for (size_t index = 0; index < cast->rights.size; index++) {
+                        rb_ary_push(argv[2], rb_ary_pop(value_stack));
+                    }
+
                     // lparen_loc
-#line 173 "api_node.c.erb"
-                    argv[1] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
+#line 183 "api_node.c.erb"
+                    argv[3] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // rparen_loc
-#line 173 "api_node.c.erb"
-                    argv[2] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
-
-                    // operator_loc
-#line 170 "api_node.c.erb"
-                    argv[3] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
-
-                    // value
-#line 145 "api_node.c.erb"
-                    argv[4] = rb_ary_pop(value_stack);
+#line 183 "api_node.c.erb"
+                    argv[4] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // location
                     argv[5] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismMultiWriteNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismMultiTargetNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
+                case PM_MULTI_WRITE_NODE: {
+                    pm_multi_write_node_t *cast = (pm_multi_write_node_t *) node;
+                    VALUE argv[8];
+
+                    // lefts
+#line 158 "api_node.c.erb"
+                    argv[0] = rb_ary_new_capa(cast->lefts.size);
+                    for (size_t index = 0; index < cast->lefts.size; index++) {
+                        rb_ary_push(argv[0], rb_ary_pop(value_stack));
+                    }
+
+                    // rest
+#line 155 "api_node.c.erb"
+                    argv[1] = rb_ary_pop(value_stack);
+
+                    // rights
+#line 158 "api_node.c.erb"
+                    argv[2] = rb_ary_new_capa(cast->rights.size);
+                    for (size_t index = 0; index < cast->rights.size; index++) {
+                        rb_ary_push(argv[2], rb_ary_pop(value_stack));
+                    }
+
+                    // lparen_loc
+#line 183 "api_node.c.erb"
+                    argv[3] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
+
+                    // rparen_loc
+#line 183 "api_node.c.erb"
+                    argv[4] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
+
+                    // operator_loc
+#line 180 "api_node.c.erb"
+                    argv[5] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
+
+                    // value
+#line 155 "api_node.c.erb"
+                    argv[6] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[7] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(8, argv, rb_cPrismMultiWriteNode));
+                    break;
+                }
+#line 144 "api_node.c.erb"
                 case PM_NEXT_NODE: {
                     pm_next_node_t *cast = (pm_next_node_t *) node;
                     VALUE argv[3];
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -3614,7 +3769,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismNextNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_NIL_NODE: {
                     VALUE argv[1];
 
@@ -3624,17 +3779,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismNilNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_NO_KEYWORDS_PARAMETER_NODE: {
                     pm_no_keywords_parameter_node_t *cast = (pm_no_keywords_parameter_node_t *) node;
                     VALUE argv[3];
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -3643,13 +3798,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismNoKeywordsParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_NUMBERED_REFERENCE_READ_NODE: {
                     pm_numbered_reference_read_node_t *cast = (pm_numbered_reference_read_node_t *) node;
                     VALUE argv[2];
 
                     // number
-#line 176 "api_node.c.erb"
+#line 186 "api_node.c.erb"
                     argv[0] = ULONG2NUM(cast->number);
 
                     // location
@@ -3658,26 +3813,50 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismNumberedReferenceReadNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
+                case PM_OPTIONAL_KEYWORD_PARAMETER_NODE: {
+                    pm_optional_keyword_parameter_node_t *cast = (pm_optional_keyword_parameter_node_t *) node;
+                    VALUE argv[4];
+
+                    // name
+#line 167 "api_node.c.erb"
+                    assert(cast->name != 0);
+                    argv[0] = rb_id2sym(constants[cast->name - 1]);
+
+                    // name_loc
+#line 180 "api_node.c.erb"
+                    argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
+
+                    // value
+#line 155 "api_node.c.erb"
+                    argv[2] = rb_ary_pop(value_stack);
+
+                    // location
+                    argv[3] = pm_location_new(parser, node->location.start, node->location.end, source);
+
+                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismOptionalKeywordParameterNode));
+                    break;
+                }
+#line 144 "api_node.c.erb"
                 case PM_OPTIONAL_PARAMETER_NODE: {
                     pm_optional_parameter_node_t *cast = (pm_optional_parameter_node_t *) node;
                     VALUE argv[5];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // value
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // location
@@ -3686,21 +3865,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismOptionalParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_OR_NODE: {
                     pm_or_node_t *cast = (pm_or_node_t *) node;
                     VALUE argv[4];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3709,49 +3888,49 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismOrNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PARAMETERS_NODE: {
                     pm_parameters_node_t *cast = (pm_parameters_node_t *) node;
                     VALUE argv[8];
 
                     // requireds
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->requireds.size);
                     for (size_t index = 0; index < cast->requireds.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
                     }
 
                     // optionals
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->optionals.size);
                     for (size_t index = 0; index < cast->optionals.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // rest
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // posts
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[3] = rb_ary_new_capa(cast->posts.size);
                     for (size_t index = 0; index < cast->posts.size; index++) {
                         rb_ary_push(argv[3], rb_ary_pop(value_stack));
                     }
 
                     // keywords
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[4] = rb_ary_new_capa(cast->keywords.size);
                     for (size_t index = 0; index < cast->keywords.size; index++) {
                         rb_ary_push(argv[4], rb_ary_pop(value_stack));
                     }
 
                     // keyword_rest
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[5] = rb_ary_pop(value_stack);
 
                     // block
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[6] = rb_ary_pop(value_stack);
 
                     // location
@@ -3760,21 +3939,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(8, argv, rb_cPrismParametersNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PARENTHESES_NODE: {
                     pm_parentheses_node_t *cast = (pm_parentheses_node_t *) node;
                     VALUE argv[4];
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3783,25 +3962,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismParenthesesNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PINNED_EXPRESSION_NODE: {
                     pm_pinned_expression_node_t *cast = (pm_pinned_expression_node_t *) node;
                     VALUE argv[5];
 
                     // expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // lparen_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // rparen_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // location
@@ -3810,17 +3989,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismPinnedExpressionNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PINNED_VARIABLE_NODE: {
                     pm_pinned_variable_node_t *cast = (pm_pinned_variable_node_t *) node;
                     VALUE argv[3];
 
                     // variable
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -3829,25 +4008,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismPinnedVariableNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_POST_EXECUTION_NODE: {
                     pm_post_execution_node_t *cast = (pm_post_execution_node_t *) node;
                     VALUE argv[5];
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3856,25 +4035,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismPostExecutionNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PRE_EXECUTION_NODE: {
                     pm_pre_execution_node_t *cast = (pm_pre_execution_node_t *) node;
                     VALUE argv[5];
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[3] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // location
@@ -3883,13 +4062,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismPreExecutionNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_PROGRAM_NODE: {
                     pm_program_node_t *cast = (pm_program_node_t *) node;
                     VALUE argv[3];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -3897,7 +4076,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // location
@@ -3906,26 +4085,26 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismProgramNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RANGE_NODE: {
                     pm_range_node_t *cast = (pm_range_node_t *) node;
                     VALUE argv[5];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[3] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[3] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[4] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -3933,12 +4112,12 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismRangeNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RATIONAL_NODE: {
                     VALUE argv[2];
 
                     // numeric
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // location
@@ -3947,7 +4126,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismRationalNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_REDO_NODE: {
                     VALUE argv[1];
 
@@ -3957,30 +4136,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismRedoNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_REGULAR_EXPRESSION_NODE: {
                     pm_regular_expression_node_t *cast = (pm_regular_expression_node_t *) node;
                     VALUE argv[6];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // content_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[3] = pm_string_new(&cast->unescaped, encoding);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[4] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[5] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -3988,39 +4167,33 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismRegularExpressionNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
-                case PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
-                    pm_required_destructured_parameter_node_t *cast = (pm_required_destructured_parameter_node_t *) node;
-                    VALUE argv[4];
+#line 144 "api_node.c.erb"
+                case PM_REQUIRED_KEYWORD_PARAMETER_NODE: {
+                    pm_required_keyword_parameter_node_t *cast = (pm_required_keyword_parameter_node_t *) node;
+                    VALUE argv[3];
 
-                    // parameters
-#line 148 "api_node.c.erb"
-                    argv[0] = rb_ary_new_capa(cast->parameters.size);
-                    for (size_t index = 0; index < cast->parameters.size; index++) {
-                        rb_ary_push(argv[0], rb_ary_pop(value_stack));
-                    }
+                    // name
+#line 167 "api_node.c.erb"
+                    assert(cast->name != 0);
+                    argv[0] = rb_id2sym(constants[cast->name - 1]);
 
-                    // opening_loc
-#line 170 "api_node.c.erb"
-                    argv[1] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
-
-                    // closing_loc
-#line 170 "api_node.c.erb"
-                    argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
+                    // name_loc
+#line 180 "api_node.c.erb"
+                    argv[1] = pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // location
-                    argv[3] = pm_location_new(parser, node->location.start, node->location.end, source);
+                    argv[2] = pm_location_new(parser, node->location.start, node->location.end, source);
 
-                    rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismRequiredDestructuredParameterNode));
+                    rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismRequiredKeywordParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_REQUIRED_PARAMETER_NODE: {
                     pm_required_parameter_node_t *cast = (pm_required_parameter_node_t *) node;
                     VALUE argv[2];
 
                     // name
-#line 157 "api_node.c.erb"
+#line 167 "api_node.c.erb"
                     assert(cast->name != 0);
                     argv[0] = rb_id2sym(constants[cast->name - 1]);
 
@@ -4030,21 +4203,21 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismRequiredParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RESCUE_MODIFIER_NODE: {
                     pm_rescue_modifier_node_t *cast = (pm_rescue_modifier_node_t *) node;
                     VALUE argv[4];
 
                     // expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // rescue_expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // location
@@ -4053,36 +4226,36 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismRescueModifierNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RESCUE_NODE: {
                     pm_rescue_node_t *cast = (pm_rescue_node_t *) node;
                     VALUE argv[7];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // exceptions
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->exceptions.size);
                     for (size_t index = 0; index < cast->exceptions.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // operator_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->operator_loc.start == NULL ? Qnil : pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // reference
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // consequent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[5] = rb_ary_pop(value_stack);
 
                     // location
@@ -4091,7 +4264,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismRescueNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_REST_PARAMETER_NODE: {
                     pm_rest_parameter_node_t *cast = (pm_rest_parameter_node_t *) node;
                     VALUE argv[4];
@@ -4100,11 +4273,11 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     argv[0] = cast->name == 0 ? Qnil : rb_id2sym(constants[cast->name - 1]);
 
                     // name_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->name_loc.start == NULL ? Qnil : pm_location_new(parser, cast->name_loc.start, cast->name_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // location
@@ -4113,7 +4286,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismRestParameterNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RETRY_NODE: {
                     VALUE argv[1];
 
@@ -4123,17 +4296,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismRetryNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_RETURN_NODE: {
                     pm_return_node_t *cast = (pm_return_node_t *) node;
                     VALUE argv[3];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // location
@@ -4142,7 +4315,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismReturnNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SELF_NODE: {
                     VALUE argv[1];
 
@@ -4152,13 +4325,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismSelfNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SINGLETON_CLASS_NODE: {
                     pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
                     VALUE argv[7];
 
                     // locals
-#line 163 "api_node.c.erb"
+#line 173 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->locals.size);
                     for (size_t index = 0; index < cast->locals.size; index++) {
                         assert(cast->locals.ids[index] != 0);
@@ -4166,23 +4339,23 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     }
 
                     // class_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->class_keyword_loc.start, cast->class_keyword_loc.end, source);
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // body
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[5] = pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -4191,7 +4364,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(7, argv, rb_cPrismSingletonClassNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SOURCE_ENCODING_NODE: {
                     VALUE argv[1];
 
@@ -4201,13 +4374,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismSourceEncodingNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SOURCE_FILE_NODE: {
                     pm_source_file_node_t *cast = (pm_source_file_node_t *) node;
                     VALUE argv[2];
 
                     // filepath
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[0] = pm_string_new(&cast->filepath, encoding);
 
                     // location
@@ -4216,7 +4389,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismSourceFileNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SOURCE_LINE_NODE: {
                     VALUE argv[1];
 
@@ -4226,17 +4399,17 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismSourceLineNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SPLAT_NODE: {
                     pm_splat_node_t *cast = (pm_splat_node_t *) node;
                     VALUE argv[3];
 
                     // operator_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->operator_loc.start, cast->operator_loc.end, source);
 
                     // expression
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // location
@@ -4245,13 +4418,13 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismSplatNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_STATEMENTS_NODE: {
                     pm_statements_node_t *cast = (pm_statements_node_t *) node;
                     VALUE argv[2];
 
                     // body
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->body.size);
                     for (size_t index = 0; index < cast->body.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
@@ -4263,16 +4436,16 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(2, argv, rb_cPrismStatementsNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_STRING_CONCAT_NODE: {
                     VALUE argv[3];
 
                     // left
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[0] = rb_ary_pop(value_stack);
 
                     // right
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // location
@@ -4281,29 +4454,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismStringConcatNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_STRING_NODE: {
                     pm_string_node_t *cast = (pm_string_node_t *) node;
                     VALUE argv[6];
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[0] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[0] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // content_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[4] = pm_string_new(&cast->unescaped, encoding);
 
                     // location
@@ -4312,29 +4485,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismStringNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SUPER_NODE: {
                     pm_super_node_t *cast = (pm_super_node_t *) node;
                     VALUE argv[6];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // lparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // rparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // block
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[4] = rb_ary_pop(value_stack);
 
                     // location
@@ -4343,25 +4516,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismSuperNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_SYMBOL_NODE: {
                     pm_symbol_node_t *cast = (pm_symbol_node_t *) node;
                     VALUE argv[5];
 
                     // opening_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[0] = cast->opening_loc.start == NULL ? Qnil : pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // value_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->value_loc.start == NULL ? Qnil : pm_location_new(parser, cast->value_loc.start, cast->value_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[2] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[3] = pm_string_new(&cast->unescaped, encoding);
 
                     // location
@@ -4370,7 +4543,7 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismSymbolNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_TRUE_NODE: {
                     VALUE argv[1];
 
@@ -4380,20 +4553,20 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(1, argv, rb_cPrismTrueNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_UNDEF_NODE: {
                     pm_undef_node_t *cast = (pm_undef_node_t *) node;
                     VALUE argv[3];
 
                     // names
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[0] = rb_ary_new_capa(cast->names.size);
                     for (size_t index = 0; index < cast->names.size; index++) {
                         rb_ary_push(argv[0], rb_ary_pop(value_stack));
                     }
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // location
@@ -4402,29 +4575,29 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(3, argv, rb_cPrismUndefNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_UNLESS_NODE: {
                     pm_unless_node_t *cast = (pm_unless_node_t *) node;
                     VALUE argv[6];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // predicate
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[1] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // consequent
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // end_keyword_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[4] = cast->end_keyword_loc.start == NULL ? Qnil : pm_location_new(parser, cast->end_keyword_loc.start, cast->end_keyword_loc.end, source);
 
                     // location
@@ -4433,30 +4606,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismUnlessNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_UNTIL_NODE: {
                     pm_until_node_t *cast = (pm_until_node_t *) node;
                     VALUE argv[6];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // predicate
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[4] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[5] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -4464,24 +4637,24 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismUntilNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_WHEN_NODE: {
                     pm_when_node_t *cast = (pm_when_node_t *) node;
                     VALUE argv[4];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // conditions
-#line 148 "api_node.c.erb"
+#line 158 "api_node.c.erb"
                     argv[1] = rb_ary_new_capa(cast->conditions.size);
                     for (size_t index = 0; index < cast->conditions.size; index++) {
                         rb_ary_push(argv[1], rb_ary_pop(value_stack));
                     }
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // location
@@ -4490,30 +4663,30 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(4, argv, rb_cPrismWhenNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_WHILE_NODE: {
                     pm_while_node_t *cast = (pm_while_node_t *) node;
                     VALUE argv[6];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // closing_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->closing_loc.start == NULL ? Qnil : pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // predicate
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // statements
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[3] = rb_ary_pop(value_stack);
 
                     // flags
-#line 179 "api_node.c.erb"
-                    argv[4] = ULONG2NUM(node->flags >> 2);
+#line 189 "api_node.c.erb"
+                    argv[4] = ULONG2NUM(node->flags & ~PM_NODE_FLAG_COMMON_MASK);
 
                     // location
                     argv[5] = pm_location_new(parser, node->location.start, node->location.end, source);
@@ -4521,25 +4694,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(6, argv, rb_cPrismWhileNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_X_STRING_NODE: {
                     pm_x_string_node_t *cast = (pm_x_string_node_t *) node;
                     VALUE argv[5];
 
                     // opening_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->opening_loc.start, cast->opening_loc.end, source);
 
                     // content_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[1] = pm_location_new(parser, cast->content_loc.start, cast->content_loc.end, source);
 
                     // closing_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[2] = pm_location_new(parser, cast->closing_loc.start, cast->closing_loc.end, source);
 
                     // unescaped
-#line 154 "api_node.c.erb"
+#line 164 "api_node.c.erb"
                     argv[3] = pm_string_new(&cast->unescaped, encoding);
 
                     // location
@@ -4548,25 +4721,25 @@ pm_ast_new(pm_parser_t *parser, pm_node_t *node, rb_encoding *encoding) {
                     rb_ary_push(value_stack, rb_class_new_instance(5, argv, rb_cPrismXStringNode));
                     break;
                 }
-#line 134 "api_node.c.erb"
+#line 144 "api_node.c.erb"
                 case PM_YIELD_NODE: {
                     pm_yield_node_t *cast = (pm_yield_node_t *) node;
                     VALUE argv[5];
 
                     // keyword_loc
-#line 170 "api_node.c.erb"
+#line 180 "api_node.c.erb"
                     argv[0] = pm_location_new(parser, cast->keyword_loc.start, cast->keyword_loc.end, source);
 
                     // lparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[1] = cast->lparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->lparen_loc.start, cast->lparen_loc.end, source);
 
                     // arguments
-#line 145 "api_node.c.erb"
+#line 155 "api_node.c.erb"
                     argv[2] = rb_ary_pop(value_stack);
 
                     // rparen_loc
-#line 173 "api_node.c.erb"
+#line 183 "api_node.c.erb"
                     argv[3] = cast->rparen_loc.start == NULL ? Qnil : pm_location_new(parser, cast->rparen_loc.start, cast->rparen_loc.end, source);
 
                     // location
@@ -4656,6 +4829,9 @@ Init_prism_api_node(void) {
     rb_cPrismImaginaryNode = rb_define_class_under(rb_cPrism, "ImaginaryNode", rb_cPrismNode);
     rb_cPrismImplicitNode = rb_define_class_under(rb_cPrism, "ImplicitNode", rb_cPrismNode);
     rb_cPrismInNode = rb_define_class_under(rb_cPrism, "InNode", rb_cPrismNode);
+    rb_cPrismIndexAndWriteNode = rb_define_class_under(rb_cPrism, "IndexAndWriteNode", rb_cPrismNode);
+    rb_cPrismIndexOperatorWriteNode = rb_define_class_under(rb_cPrism, "IndexOperatorWriteNode", rb_cPrismNode);
+    rb_cPrismIndexOrWriteNode = rb_define_class_under(rb_cPrism, "IndexOrWriteNode", rb_cPrismNode);
     rb_cPrismInstanceVariableAndWriteNode = rb_define_class_under(rb_cPrism, "InstanceVariableAndWriteNode", rb_cPrismNode);
     rb_cPrismInstanceVariableOperatorWriteNode = rb_define_class_under(rb_cPrism, "InstanceVariableOperatorWriteNode", rb_cPrismNode);
     rb_cPrismInstanceVariableOrWriteNode = rb_define_class_under(rb_cPrism, "InstanceVariableOrWriteNode", rb_cPrismNode);
@@ -4669,7 +4845,6 @@ Init_prism_api_node(void) {
     rb_cPrismInterpolatedSymbolNode = rb_define_class_under(rb_cPrism, "InterpolatedSymbolNode", rb_cPrismNode);
     rb_cPrismInterpolatedXStringNode = rb_define_class_under(rb_cPrism, "InterpolatedXStringNode", rb_cPrismNode);
     rb_cPrismKeywordHashNode = rb_define_class_under(rb_cPrism, "KeywordHashNode", rb_cPrismNode);
-    rb_cPrismKeywordParameterNode = rb_define_class_under(rb_cPrism, "KeywordParameterNode", rb_cPrismNode);
     rb_cPrismKeywordRestParameterNode = rb_define_class_under(rb_cPrism, "KeywordRestParameterNode", rb_cPrismNode);
     rb_cPrismLambdaNode = rb_define_class_under(rb_cPrism, "LambdaNode", rb_cPrismNode);
     rb_cPrismLocalVariableAndWriteNode = rb_define_class_under(rb_cPrism, "LocalVariableAndWriteNode", rb_cPrismNode);
@@ -4690,6 +4865,7 @@ Init_prism_api_node(void) {
     rb_cPrismNilNode = rb_define_class_under(rb_cPrism, "NilNode", rb_cPrismNode);
     rb_cPrismNoKeywordsParameterNode = rb_define_class_under(rb_cPrism, "NoKeywordsParameterNode", rb_cPrismNode);
     rb_cPrismNumberedReferenceReadNode = rb_define_class_under(rb_cPrism, "NumberedReferenceReadNode", rb_cPrismNode);
+    rb_cPrismOptionalKeywordParameterNode = rb_define_class_under(rb_cPrism, "OptionalKeywordParameterNode", rb_cPrismNode);
     rb_cPrismOptionalParameterNode = rb_define_class_under(rb_cPrism, "OptionalParameterNode", rb_cPrismNode);
     rb_cPrismOrNode = rb_define_class_under(rb_cPrism, "OrNode", rb_cPrismNode);
     rb_cPrismParametersNode = rb_define_class_under(rb_cPrism, "ParametersNode", rb_cPrismNode);
@@ -4703,7 +4879,7 @@ Init_prism_api_node(void) {
     rb_cPrismRationalNode = rb_define_class_under(rb_cPrism, "RationalNode", rb_cPrismNode);
     rb_cPrismRedoNode = rb_define_class_under(rb_cPrism, "RedoNode", rb_cPrismNode);
     rb_cPrismRegularExpressionNode = rb_define_class_under(rb_cPrism, "RegularExpressionNode", rb_cPrismNode);
-    rb_cPrismRequiredDestructuredParameterNode = rb_define_class_under(rb_cPrism, "RequiredDestructuredParameterNode", rb_cPrismNode);
+    rb_cPrismRequiredKeywordParameterNode = rb_define_class_under(rb_cPrism, "RequiredKeywordParameterNode", rb_cPrismNode);
     rb_cPrismRequiredParameterNode = rb_define_class_under(rb_cPrism, "RequiredParameterNode", rb_cPrismNode);
     rb_cPrismRescueModifierNode = rb_define_class_under(rb_cPrism, "RescueModifierNode", rb_cPrismNode);
     rb_cPrismRescueNode = rb_define_class_under(rb_cPrism, "RescueNode", rb_cPrismNode);

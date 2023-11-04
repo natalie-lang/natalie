@@ -11,14 +11,18 @@ module Prism
   # implement each one that they need. For a default implementation that
   # continues walking the tree, see the Visitor class.
   class BasicVisitor
+    # Calls `accept` on the given node if it is not `nil`, which in turn should
+    # call back into this visitor by calling the appropriate `visit_*` method.
     def visit(node)
       node&.accept(self)
     end
 
+    # Visits each node in `nodes` by calling `accept` on each one.
     def visit_all(nodes)
       nodes.each { |node| node&.accept(self) }
     end
 
+    # Visits the child nodes of `node` by calling `accept` on each one.
     def visit_child_nodes(node)
       node.compact_child_nodes.each { |node| node.accept(self) }
     end
@@ -248,6 +252,15 @@ module Prism
     # Visit a InNode node
     alias visit_in_node visit_child_nodes
 
+    # Visit a IndexAndWriteNode node
+    alias visit_index_and_write_node visit_child_nodes
+
+    # Visit a IndexOperatorWriteNode node
+    alias visit_index_operator_write_node visit_child_nodes
+
+    # Visit a IndexOrWriteNode node
+    alias visit_index_or_write_node visit_child_nodes
+
     # Visit a InstanceVariableAndWriteNode node
     alias visit_instance_variable_and_write_node visit_child_nodes
 
@@ -286,9 +299,6 @@ module Prism
 
     # Visit a KeywordHashNode node
     alias visit_keyword_hash_node visit_child_nodes
-
-    # Visit a KeywordParameterNode node
-    alias visit_keyword_parameter_node visit_child_nodes
 
     # Visit a KeywordRestParameterNode node
     alias visit_keyword_rest_parameter_node visit_child_nodes
@@ -350,6 +360,9 @@ module Prism
     # Visit a NumberedReferenceReadNode node
     alias visit_numbered_reference_read_node visit_child_nodes
 
+    # Visit a OptionalKeywordParameterNode node
+    alias visit_optional_keyword_parameter_node visit_child_nodes
+
     # Visit a OptionalParameterNode node
     alias visit_optional_parameter_node visit_child_nodes
 
@@ -389,8 +402,8 @@ module Prism
     # Visit a RegularExpressionNode node
     alias visit_regular_expression_node visit_child_nodes
 
-    # Visit a RequiredDestructuredParameterNode node
-    alias visit_required_destructured_parameter_node visit_child_nodes
+    # Visit a RequiredKeywordParameterNode node
+    alias visit_required_keyword_parameter_node visit_child_nodes
 
     # Visit a RequiredParameterNode node
     alias visit_required_parameter_node visit_child_nodes

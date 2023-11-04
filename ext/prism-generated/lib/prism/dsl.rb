@@ -63,8 +63,8 @@ module Prism
     end
 
     # Create a new ArgumentsNode node
-    def ArgumentsNode(arguments, location = Location())
-      ArgumentsNode.new(arguments, location)
+    def ArgumentsNode(arguments, flags, location = Location())
+      ArgumentsNode.new(arguments, flags, location)
     end
 
     # Create a new ArrayNode node
@@ -88,8 +88,8 @@ module Prism
     end
 
     # Create a new BackReferenceReadNode node
-    def BackReferenceReadNode(location = Location())
-      BackReferenceReadNode.new(location)
+    def BackReferenceReadNode(name, location = Location())
+      BackReferenceReadNode.new(name, location)
     end
 
     # Create a new BeginNode node
@@ -128,8 +128,8 @@ module Prism
     end
 
     # Create a new CallAndWriteNode node
-    def CallAndWriteNode(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location = Location())
-      CallAndWriteNode.new(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location)
+    def CallAndWriteNode(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location = Location())
+      CallAndWriteNode.new(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location)
     end
 
     # Create a new CallNode node
@@ -138,13 +138,13 @@ module Prism
     end
 
     # Create a new CallOperatorWriteNode node
-    def CallOperatorWriteNode(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator, operator_loc, value, location = Location())
-      CallOperatorWriteNode.new(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator, operator_loc, value, location)
+    def CallOperatorWriteNode(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator, operator_loc, value, location = Location())
+      CallOperatorWriteNode.new(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator, operator_loc, value, location)
     end
 
     # Create a new CallOrWriteNode node
-    def CallOrWriteNode(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location = Location())
-      CallOrWriteNode.new(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location)
+    def CallOrWriteNode(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location = Location())
+      CallOrWriteNode.new(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location)
     end
 
     # Create a new CapturePatternNode node
@@ -358,8 +358,8 @@ module Prism
     end
 
     # Create a new HashPatternNode node
-    def HashPatternNode(constant, assocs, kwrest, opening_loc, closing_loc, location = Location())
-      HashPatternNode.new(constant, assocs, kwrest, opening_loc, closing_loc, location)
+    def HashPatternNode(constant, elements, rest, opening_loc, closing_loc, location = Location())
+      HashPatternNode.new(constant, elements, rest, opening_loc, closing_loc, location)
     end
 
     # Create a new IfNode node
@@ -380,6 +380,21 @@ module Prism
     # Create a new InNode node
     def InNode(pattern, statements, in_loc, then_loc, location = Location())
       InNode.new(pattern, statements, in_loc, then_loc, location)
+    end
+
+    # Create a new IndexAndWriteNode node
+    def IndexAndWriteNode(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location = Location())
+      IndexAndWriteNode.new(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location)
+    end
+
+    # Create a new IndexOperatorWriteNode node
+    def IndexOperatorWriteNode(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator, operator_loc, value, location = Location())
+      IndexOperatorWriteNode.new(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator, operator_loc, value, location)
+    end
+
+    # Create a new IndexOrWriteNode node
+    def IndexOrWriteNode(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location = Location())
+      IndexOrWriteNode.new(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location)
     end
 
     # Create a new InstanceVariableAndWriteNode node
@@ -445,11 +460,6 @@ module Prism
     # Create a new KeywordHashNode node
     def KeywordHashNode(elements, location = Location())
       KeywordHashNode.new(elements, location)
-    end
-
-    # Create a new KeywordParameterNode node
-    def KeywordParameterNode(name, name_loc, value, location = Location())
-      KeywordParameterNode.new(name, name_loc, value, location)
     end
 
     # Create a new KeywordRestParameterNode node
@@ -523,13 +533,13 @@ module Prism
     end
 
     # Create a new MultiTargetNode node
-    def MultiTargetNode(targets, lparen_loc, rparen_loc, location = Location())
-      MultiTargetNode.new(targets, lparen_loc, rparen_loc, location)
+    def MultiTargetNode(lefts, rest, rights, lparen_loc, rparen_loc, location = Location())
+      MultiTargetNode.new(lefts, rest, rights, lparen_loc, rparen_loc, location)
     end
 
     # Create a new MultiWriteNode node
-    def MultiWriteNode(targets, lparen_loc, rparen_loc, operator_loc, value, location = Location())
-      MultiWriteNode.new(targets, lparen_loc, rparen_loc, operator_loc, value, location)
+    def MultiWriteNode(lefts, rest, rights, lparen_loc, rparen_loc, operator_loc, value, location = Location())
+      MultiWriteNode.new(lefts, rest, rights, lparen_loc, rparen_loc, operator_loc, value, location)
     end
 
     # Create a new NextNode node
@@ -550,6 +560,11 @@ module Prism
     # Create a new NumberedReferenceReadNode node
     def NumberedReferenceReadNode(number, location = Location())
       NumberedReferenceReadNode.new(number, location)
+    end
+
+    # Create a new OptionalKeywordParameterNode node
+    def OptionalKeywordParameterNode(name, name_loc, value, location = Location())
+      OptionalKeywordParameterNode.new(name, name_loc, value, location)
     end
 
     # Create a new OptionalParameterNode node
@@ -617,9 +632,9 @@ module Prism
       RegularExpressionNode.new(opening_loc, content_loc, closing_loc, unescaped, flags, location)
     end
 
-    # Create a new RequiredDestructuredParameterNode node
-    def RequiredDestructuredParameterNode(parameters, opening_loc, closing_loc, location = Location())
-      RequiredDestructuredParameterNode.new(parameters, opening_loc, closing_loc, location)
+    # Create a new RequiredKeywordParameterNode node
+    def RequiredKeywordParameterNode(name, name_loc, location = Location())
+      RequiredKeywordParameterNode.new(name, name_loc, location)
     end
 
     # Create a new RequiredParameterNode node

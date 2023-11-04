@@ -97,7 +97,7 @@ module Prism
 
     # Copy a CallAndWriteNode node
     def visit_call_and_write_node(node)
-      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), value: visit(node.value))
+      node.copy(receiver: visit(node.receiver), value: visit(node.value))
     end
 
     # Copy a CallNode node
@@ -107,12 +107,12 @@ module Prism
 
     # Copy a CallOperatorWriteNode node
     def visit_call_operator_write_node(node)
-      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), value: visit(node.value))
+      node.copy(receiver: visit(node.receiver), value: visit(node.value))
     end
 
     # Copy a CallOrWriteNode node
     def visit_call_or_write_node(node)
-      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), value: visit(node.value))
+      node.copy(receiver: visit(node.receiver), value: visit(node.value))
     end
 
     # Copy a CapturePatternNode node
@@ -327,7 +327,7 @@ module Prism
 
     # Copy a HashPatternNode node
     def visit_hash_pattern_node(node)
-      node.copy(constant: visit(node.constant), assocs: visit_all(node.assocs), kwrest: visit(node.kwrest))
+      node.copy(constant: visit(node.constant), elements: visit_all(node.elements), rest: visit(node.rest))
     end
 
     # Copy a IfNode node
@@ -348,6 +348,21 @@ module Prism
     # Copy a InNode node
     def visit_in_node(node)
       node.copy(pattern: visit(node.pattern), statements: visit(node.statements))
+    end
+
+    # Copy a IndexAndWriteNode node
+    def visit_index_and_write_node(node)
+      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), block: visit(node.block), value: visit(node.value))
+    end
+
+    # Copy a IndexOperatorWriteNode node
+    def visit_index_operator_write_node(node)
+      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), block: visit(node.block), value: visit(node.value))
+    end
+
+    # Copy a IndexOrWriteNode node
+    def visit_index_or_write_node(node)
+      node.copy(receiver: visit(node.receiver), arguments: visit(node.arguments), block: visit(node.block), value: visit(node.value))
     end
 
     # Copy a InstanceVariableAndWriteNode node
@@ -413,11 +428,6 @@ module Prism
     # Copy a KeywordHashNode node
     def visit_keyword_hash_node(node)
       node.copy(elements: visit_all(node.elements))
-    end
-
-    # Copy a KeywordParameterNode node
-    def visit_keyword_parameter_node(node)
-      node.copy(value: visit(node.value))
     end
 
     # Copy a KeywordRestParameterNode node
@@ -492,12 +502,12 @@ module Prism
 
     # Copy a MultiTargetNode node
     def visit_multi_target_node(node)
-      node.copy(targets: visit_all(node.targets))
+      node.copy(lefts: visit_all(node.lefts), rest: visit(node.rest), rights: visit_all(node.rights))
     end
 
     # Copy a MultiWriteNode node
     def visit_multi_write_node(node)
-      node.copy(targets: visit_all(node.targets), value: visit(node.value))
+      node.copy(lefts: visit_all(node.lefts), rest: visit(node.rest), rights: visit_all(node.rights), value: visit(node.value))
     end
 
     # Copy a NextNode node
@@ -518,6 +528,11 @@ module Prism
     # Copy a NumberedReferenceReadNode node
     def visit_numbered_reference_read_node(node)
       node.copy
+    end
+
+    # Copy a OptionalKeywordParameterNode node
+    def visit_optional_keyword_parameter_node(node)
+      node.copy(value: visit(node.value))
     end
 
     # Copy a OptionalParameterNode node
@@ -585,9 +600,9 @@ module Prism
       node.copy
     end
 
-    # Copy a RequiredDestructuredParameterNode node
-    def visit_required_destructured_parameter_node(node)
-      node.copy(parameters: visit_all(node.parameters))
+    # Copy a RequiredKeywordParameterNode node
+    def visit_required_keyword_parameter_node(node)
+      node.copy
     end
 
     # Copy a RequiredParameterNode node

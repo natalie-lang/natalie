@@ -9,13 +9,15 @@ module Prism
   # This represents a node in the tree. It is the parent class of all of the
   # various node types.
   class Node
+    # A Location instance that represents the location of this node in the
+    # source.
     attr_reader :location
 
-    def newline?
+    def newline? # :nodoc:
       @newline ? true : false
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       line = location.start_line
       unless newline_marked[line]
         newline_marked[line] = true
@@ -103,6 +105,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── new_name:\n"
@@ -128,6 +131,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :alias_global_variable_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :alias_global_variable_node
     end
   end
@@ -197,6 +210,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── new_name:\n"
@@ -222,6 +236,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :alias_method_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :alias_method_node
     end
   end
@@ -291,6 +315,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── left:\n"
@@ -316,6 +341,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :alternation_pattern_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :alternation_pattern_node
     end
   end
@@ -385,6 +420,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── left:\n"
@@ -412,6 +448,16 @@ module Prism
     def type
       :and_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :and_node
+    end
   end
 
   # Represents a set of arguments to a method or a keyword.
@@ -422,9 +468,13 @@ module Prism
     # attr_reader arguments: Array[Node]
     attr_reader :arguments
 
-    # def initialize: (arguments: Array[Node], location: Location) -> void
-    def initialize(arguments, location)
+    # attr_reader flags: Integer
+    private attr_reader :flags
+
+    # def initialize: (arguments: Array[Node], flags: Integer, location: Location) -> void
+    def initialize(arguments, flags, location)
       @arguments = arguments
+      @flags = flags
       @location = location
     end
 
@@ -452,6 +502,7 @@ module Prism
     def copy(**params)
       ArgumentsNode.new(
         params.fetch(:arguments) { arguments },
+        params.fetch(:flags) { flags },
         params.fetch(:location) { location },
       )
     end
@@ -461,12 +512,20 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { arguments: arguments, location: location }
+      { arguments: arguments, flags: flags, location: location }
     end
 
+    # def keyword_splat?: () -> bool
+    def keyword_splat?
+      flags.anybits?(ArgumentsNodeFlags::KEYWORD_SPLAT)
+    end
+
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "└── arguments: #{inspector.list("#{inspector.prefix}    ", arguments)}"
+      inspector << "├── arguments: #{inspector.list("#{inspector.prefix}│   ", arguments)}"
+      flags = [("keyword_splat" if keyword_splat?)].compact
+      inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
 
@@ -485,6 +544,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :arguments_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :arguments_node
     end
   end
@@ -560,6 +629,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── elements: #{inspector.list("#{inspector.prefix}│   ", elements)}"
@@ -583,6 +653,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :array_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :array_node
     end
   end
@@ -689,6 +769,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (constant = self.constant).nil?
@@ -725,6 +806,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :array_pattern_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :array_pattern_node
     end
   end
@@ -797,6 +888,7 @@ module Prism
       operator_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── key:\n"
@@ -826,6 +918,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :assoc_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :assoc_node
     end
   end
@@ -892,6 +994,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (value = self.value).nil?
@@ -921,6 +1024,16 @@ module Prism
     def type
       :assoc_splat_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :assoc_splat_node
+    end
   end
 
   # Represents reading a reference to a field in the previous match.
@@ -928,8 +1041,12 @@ module Prism
   #     $'
   #     ^^
   class BackReferenceReadNode < Node
-    # def initialize: (location: Location) -> void
-    def initialize(location)
+    # attr_reader name: Symbol
+    attr_reader :name
+
+    # def initialize: (name: Symbol, location: Location) -> void
+    def initialize(name, location)
+      @name = name
       @location = location
     end
 
@@ -956,6 +1073,7 @@ module Prism
     # def copy: (**params) -> BackReferenceReadNode
     def copy(**params)
       BackReferenceReadNode.new(
+        params.fetch(:name) { name },
         params.fetch(:location) { location },
       )
     end
@@ -965,11 +1083,13 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { location: location }
+      { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
+      inspector << "└── name: #{name.inspect}\n"
       inspector.to_str
     end
 
@@ -988,6 +1108,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :back_reference_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :back_reference_read_node
     end
   end
@@ -1033,7 +1163,7 @@ module Prism
       visitor.visit_begin_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       # Never mark BeginNode with a newline flag, mark children instead
     end
 
@@ -1088,6 +1218,7 @@ module Prism
       end_keyword_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── begin_keyword_loc: #{inspector.location(begin_keyword_loc)}\n"
@@ -1134,6 +1265,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :begin_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :begin_node
     end
   end
@@ -1200,6 +1341,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (expression = self.expression).nil?
@@ -1227,6 +1369,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :block_argument_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :block_argument_node
     end
   end
@@ -1281,6 +1433,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -1302,6 +1455,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :block_local_variable_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :block_local_variable_node
     end
   end
@@ -1389,6 +1552,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -1424,6 +1588,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :block_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :block_node
     end
   end
@@ -1494,9 +1668,14 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── name: #{name.inspect}\n"
+      if (name = self.name).nil?
+        inspector << "├── name: ∅\n"
+      else
+        inspector << "├── name: #{name.inspect}\n"
+      end
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
@@ -1517,6 +1696,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :block_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :block_parameter_node
     end
   end
@@ -1603,6 +1792,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (parameters = self.parameters).nil?
@@ -1632,6 +1822,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :block_parameters_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :block_parameters_node
     end
   end
@@ -1698,6 +1898,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (arguments = self.arguments).nil?
@@ -1727,6 +1928,16 @@ module Prism
     def type
       :break_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :break_node
+    end
   end
 
   # Represents the use of the `&&=` operator on a call.
@@ -1743,15 +1954,6 @@ module Prism
     # attr_reader message_loc: Location?
     attr_reader :message_loc
 
-    # attr_reader opening_loc: Location?
-    attr_reader :opening_loc
-
-    # attr_reader arguments: ArgumentsNode?
-    attr_reader :arguments
-
-    # attr_reader closing_loc: Location?
-    attr_reader :closing_loc
-
     # attr_reader flags: Integer
     private attr_reader :flags
 
@@ -1767,14 +1969,11 @@ module Prism
     # attr_reader value: Node
     attr_reader :value
 
-    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, opening_loc: Location?, arguments: ArgumentsNode?, closing_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator_loc: Location, value: Node, location: Location) -> void
-    def initialize(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location)
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location)
       @receiver = receiver
       @call_operator_loc = call_operator_loc
       @message_loc = message_loc
-      @opening_loc = opening_loc
-      @arguments = arguments
-      @closing_loc = closing_loc
       @flags = flags
       @read_name = read_name
       @write_name = write_name
@@ -1790,21 +1989,20 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [receiver, arguments, value]
+      [receiver, value]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
       compact = []
       compact << receiver if receiver
-      compact << arguments if arguments
       compact << value
       compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*receiver, *call_operator_loc, *message_loc, *opening_loc, *arguments, *closing_loc, operator_loc, value]
+      [*receiver, *call_operator_loc, *message_loc, operator_loc, value]
     end
 
     # def copy: (**params) -> CallAndWriteNode
@@ -1813,9 +2011,6 @@ module Prism
         params.fetch(:receiver) { receiver },
         params.fetch(:call_operator_loc) { call_operator_loc },
         params.fetch(:message_loc) { message_loc },
-        params.fetch(:opening_loc) { opening_loc },
-        params.fetch(:arguments) { arguments },
-        params.fetch(:closing_loc) { closing_loc },
         params.fetch(:flags) { flags },
         params.fetch(:read_name) { read_name },
         params.fetch(:write_name) { write_name },
@@ -1830,7 +2025,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, flags: flags, read_name: read_name, write_name: write_name, operator_loc: operator_loc, value: value, location: location }
+      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, flags: flags, read_name: read_name, write_name: write_name, operator_loc: operator_loc, value: value, location: location }
     end
 
     # def call_operator: () -> String?
@@ -1841,16 +2036,6 @@ module Prism
     # def message: () -> String?
     def message
       message_loc&.slice
-    end
-
-    # def opening: () -> String?
-    def opening
-      opening_loc&.slice
-    end
-
-    # def closing: () -> String?
-    def closing
-      closing_loc&.slice
     end
 
     # def safe_navigation?: () -> bool
@@ -1868,6 +2053,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (receiver = self.receiver).nil?
@@ -1878,14 +2064,6 @@ module Prism
       end
       inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
       inspector << "├── message_loc: #{inspector.location(message_loc)}\n"
-      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
-      if (arguments = self.arguments).nil?
-        inspector << "├── arguments: ∅\n"
-      else
-        inspector << "├── arguments:\n"
-        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
-      end
-      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
       inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
@@ -1911,6 +2089,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :call_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :call_and_write_node
     end
   end
@@ -2054,6 +2242,7 @@ module Prism
       flags.anybits?(CallNodeFlags::VARIABLE_CALL)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (receiver = self.receiver).nil?
@@ -2101,6 +2290,16 @@ module Prism
     def type
       :call_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :call_node
+    end
   end
 
   # Represents the use of an assignment operator on a call.
@@ -2116,15 +2315,6 @@ module Prism
 
     # attr_reader message_loc: Location?
     attr_reader :message_loc
-
-    # attr_reader opening_loc: Location?
-    attr_reader :opening_loc
-
-    # attr_reader arguments: ArgumentsNode?
-    attr_reader :arguments
-
-    # attr_reader closing_loc: Location?
-    attr_reader :closing_loc
 
     # attr_reader flags: Integer
     private attr_reader :flags
@@ -2144,14 +2334,11 @@ module Prism
     # attr_reader value: Node
     attr_reader :value
 
-    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, opening_loc: Location?, arguments: ArgumentsNode?, closing_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator: Symbol, operator_loc: Location, value: Node, location: Location) -> void
-    def initialize(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator, operator_loc, value, location)
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator: Symbol, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator, operator_loc, value, location)
       @receiver = receiver
       @call_operator_loc = call_operator_loc
       @message_loc = message_loc
-      @opening_loc = opening_loc
-      @arguments = arguments
-      @closing_loc = closing_loc
       @flags = flags
       @read_name = read_name
       @write_name = write_name
@@ -2168,21 +2355,20 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [receiver, arguments, value]
+      [receiver, value]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
       compact = []
       compact << receiver if receiver
-      compact << arguments if arguments
       compact << value
       compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*receiver, *call_operator_loc, *message_loc, *opening_loc, *arguments, *closing_loc, operator_loc, value]
+      [*receiver, *call_operator_loc, *message_loc, operator_loc, value]
     end
 
     # def copy: (**params) -> CallOperatorWriteNode
@@ -2191,9 +2377,6 @@ module Prism
         params.fetch(:receiver) { receiver },
         params.fetch(:call_operator_loc) { call_operator_loc },
         params.fetch(:message_loc) { message_loc },
-        params.fetch(:opening_loc) { opening_loc },
-        params.fetch(:arguments) { arguments },
-        params.fetch(:closing_loc) { closing_loc },
         params.fetch(:flags) { flags },
         params.fetch(:read_name) { read_name },
         params.fetch(:write_name) { write_name },
@@ -2209,7 +2392,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, flags: flags, read_name: read_name, write_name: write_name, operator: operator, operator_loc: operator_loc, value: value, location: location }
+      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, flags: flags, read_name: read_name, write_name: write_name, operator: operator, operator_loc: operator_loc, value: value, location: location }
     end
 
     # def call_operator: () -> String?
@@ -2222,16 +2405,6 @@ module Prism
       message_loc&.slice
     end
 
-    # def opening: () -> String?
-    def opening
-      opening_loc&.slice
-    end
-
-    # def closing: () -> String?
-    def closing
-      closing_loc&.slice
-    end
-
     # def safe_navigation?: () -> bool
     def safe_navigation?
       flags.anybits?(CallNodeFlags::SAFE_NAVIGATION)
@@ -2242,6 +2415,7 @@ module Prism
       flags.anybits?(CallNodeFlags::VARIABLE_CALL)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (receiver = self.receiver).nil?
@@ -2252,14 +2426,6 @@ module Prism
       end
       inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
       inspector << "├── message_loc: #{inspector.location(message_loc)}\n"
-      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
-      if (arguments = self.arguments).nil?
-        inspector << "├── arguments: ∅\n"
-      else
-        inspector << "├── arguments:\n"
-        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
-      end
-      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
       inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
@@ -2288,6 +2454,16 @@ module Prism
     def type
       :call_operator_write_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :call_operator_write_node
+    end
   end
 
   # Represents the use of the `||=` operator on a call.
@@ -2304,15 +2480,6 @@ module Prism
     # attr_reader message_loc: Location?
     attr_reader :message_loc
 
-    # attr_reader opening_loc: Location?
-    attr_reader :opening_loc
-
-    # attr_reader arguments: ArgumentsNode?
-    attr_reader :arguments
-
-    # attr_reader closing_loc: Location?
-    attr_reader :closing_loc
-
     # attr_reader flags: Integer
     private attr_reader :flags
 
@@ -2328,14 +2495,11 @@ module Prism
     # attr_reader value: Node
     attr_reader :value
 
-    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, opening_loc: Location?, arguments: ArgumentsNode?, closing_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator_loc: Location, value: Node, location: Location) -> void
-    def initialize(receiver, call_operator_loc, message_loc, opening_loc, arguments, closing_loc, flags, read_name, write_name, operator_loc, value, location)
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, message_loc: Location?, flags: Integer, read_name: Symbol, write_name: Symbol, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, message_loc, flags, read_name, write_name, operator_loc, value, location)
       @receiver = receiver
       @call_operator_loc = call_operator_loc
       @message_loc = message_loc
-      @opening_loc = opening_loc
-      @arguments = arguments
-      @closing_loc = closing_loc
       @flags = flags
       @read_name = read_name
       @write_name = write_name
@@ -2351,21 +2515,20 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [receiver, arguments, value]
+      [receiver, value]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
       compact = []
       compact << receiver if receiver
-      compact << arguments if arguments
       compact << value
       compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*receiver, *call_operator_loc, *message_loc, *opening_loc, *arguments, *closing_loc, operator_loc, value]
+      [*receiver, *call_operator_loc, *message_loc, operator_loc, value]
     end
 
     # def copy: (**params) -> CallOrWriteNode
@@ -2374,9 +2537,6 @@ module Prism
         params.fetch(:receiver) { receiver },
         params.fetch(:call_operator_loc) { call_operator_loc },
         params.fetch(:message_loc) { message_loc },
-        params.fetch(:opening_loc) { opening_loc },
-        params.fetch(:arguments) { arguments },
-        params.fetch(:closing_loc) { closing_loc },
         params.fetch(:flags) { flags },
         params.fetch(:read_name) { read_name },
         params.fetch(:write_name) { write_name },
@@ -2391,7 +2551,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, flags: flags, read_name: read_name, write_name: write_name, operator_loc: operator_loc, value: value, location: location }
+      { receiver: receiver, call_operator_loc: call_operator_loc, message_loc: message_loc, flags: flags, read_name: read_name, write_name: write_name, operator_loc: operator_loc, value: value, location: location }
     end
 
     # def call_operator: () -> String?
@@ -2402,16 +2562,6 @@ module Prism
     # def message: () -> String?
     def message
       message_loc&.slice
-    end
-
-    # def opening: () -> String?
-    def opening
-      opening_loc&.slice
-    end
-
-    # def closing: () -> String?
-    def closing
-      closing_loc&.slice
     end
 
     # def safe_navigation?: () -> bool
@@ -2429,6 +2579,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (receiver = self.receiver).nil?
@@ -2439,14 +2590,6 @@ module Prism
       end
       inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
       inspector << "├── message_loc: #{inspector.location(message_loc)}\n"
-      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
-      if (arguments = self.arguments).nil?
-        inspector << "├── arguments: ∅\n"
-      else
-        inspector << "├── arguments:\n"
-        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
-      end
-      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
       inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector << "├── read_name: #{read_name.inspect}\n"
@@ -2472,6 +2615,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :call_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :call_or_write_node
     end
   end
@@ -2541,6 +2694,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── value:\n"
@@ -2568,14 +2722,24 @@ module Prism
     def type
       :capture_pattern_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :capture_pattern_node
+    end
   end
 
   # Represents the use of a case statement.
   #
-  # case true
-  # ^^^^^^^^^
-  # when false
-  # end
+  #     case true
+  #     when false
+  #     end
+  #     ^^^^^^^^^^
   class CaseNode < Node
     # attr_reader predicate: Node?
     attr_reader :predicate
@@ -2656,6 +2820,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (predicate = self.predicate).nil?
@@ -2691,6 +2856,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :case_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :case_node
     end
   end
@@ -2799,6 +2974,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -2840,12 +3016,22 @@ module Prism
     def type
       :class_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :class_node
+    end
   end
 
   # Represents the use of the `&&=` operator for assignment to a class variable.
   #
   #     @@target &&= value
-  #     ^^^^^^^^^^^^^^^^
+  #     ^^^^^^^^^^^^^^^^^^
   class ClassVariableAndWriteNode < Node
     # attr_reader name: Symbol
     attr_reader :name
@@ -2912,6 +3098,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -2937,6 +3124,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_and_write_node
     end
   end
@@ -3011,6 +3208,7 @@ module Prism
       { name: name, name_loc: name_loc, operator_loc: operator_loc, value: value, operator: operator, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3037,6 +3235,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_operator_write_node
     end
   end
@@ -3111,6 +3319,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3136,6 +3345,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_or_write_node
     end
   end
@@ -3190,6 +3409,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -3211,6 +3431,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_read_node
     end
   end
@@ -3265,6 +3495,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -3286,6 +3517,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_target_node
     end
   end
@@ -3360,6 +3601,7 @@ module Prism
       operator_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3385,6 +3627,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :class_variable_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :class_variable_write_node
     end
   end
@@ -3459,6 +3711,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3484,6 +3737,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_and_write_node
     end
   end
@@ -3558,6 +3821,7 @@ module Prism
       { name: name, name_loc: name_loc, operator_loc: operator_loc, value: value, operator: operator, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3584,6 +3848,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_operator_write_node
     end
   end
@@ -3658,6 +3932,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -3683,6 +3958,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_or_write_node
     end
   end
@@ -3752,6 +4037,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── target:\n"
@@ -3777,6 +4063,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_and_write_node
     end
   end
@@ -3849,6 +4145,7 @@ module Prism
       delimiter_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (parent = self.parent).nil?
@@ -3878,6 +4175,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_node
     end
   end
@@ -3947,6 +4254,7 @@ module Prism
       { target: target, operator_loc: operator_loc, value: value, operator: operator, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── target:\n"
@@ -3973,6 +4281,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_operator_write_node
     end
   end
@@ -4042,6 +4360,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── target:\n"
@@ -4067,6 +4386,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_or_write_node
     end
   end
@@ -4139,6 +4468,7 @@ module Prism
       delimiter_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (parent = self.parent).nil?
@@ -4168,6 +4498,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_target_node
     end
   end
@@ -4243,6 +4583,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── target:\n"
@@ -4268,6 +4609,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_path_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_path_write_node
     end
   end
@@ -4322,6 +4673,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -4343,6 +4695,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_read_node
     end
   end
@@ -4397,6 +4759,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -4418,6 +4781,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_target_node
     end
   end
@@ -4492,6 +4865,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -4517,6 +4891,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :constant_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :constant_write_node
     end
   end
@@ -4661,6 +5045,7 @@ module Prism
       end_keyword_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -4708,6 +5093,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :def_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :def_node
     end
   end
@@ -4792,6 +5187,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── lparen_loc: #{inspector.location(lparen_loc)}\n"
@@ -4817,6 +5213,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :defined_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :defined_node
     end
   end
@@ -4893,6 +5299,7 @@ module Prism
       end_keyword_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── else_keyword_loc: #{inspector.location(else_keyword_loc)}\n"
@@ -4921,6 +5328,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :else_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :else_node
     end
   end
@@ -4997,6 +5414,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -5025,6 +5443,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :embedded_statements_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :embedded_statements_node
     end
   end
@@ -5089,6 +5517,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -5112,6 +5541,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :embedded_variable_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :embedded_variable_node
     end
   end
@@ -5192,6 +5631,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── ensure_keyword_loc: #{inspector.location(ensure_keyword_loc)}\n"
@@ -5220,6 +5660,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :ensure_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :ensure_node
     end
   end
@@ -5269,6 +5719,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -5291,18 +5742,28 @@ module Prism
     def type
       :false_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :false_node
+    end
   end
 
   # Represents a find pattern in pattern matching.
   #
   #     foo in *bar, baz, *qux
-  #     ^^^^^^^^^^^^^^^^^^^^^^
+  #            ^^^^^^^^^^^^^^^
   #
   #     foo in [*bar, baz, *qux]
-  #     ^^^^^^^^^^^^^^^^^^^^^^^^
+  #            ^^^^^^^^^^^^^^^^^
   #
   #     foo in Foo(*bar, baz, *qux)
-  #     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  #            ^^^^^^^^^^^^^^^^^^^^
   class FindPatternNode < Node
     # attr_reader constant: Node?
     attr_reader :constant
@@ -5389,6 +5850,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (constant = self.constant).nil?
@@ -5422,6 +5884,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :find_pattern_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :find_pattern_node
     end
   end
@@ -5504,6 +5976,7 @@ module Prism
       flags.anybits?(RangeFlags::EXCLUDE_END)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (left = self.left).nil?
@@ -5539,6 +6012,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :flip_flop_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :flip_flop_node
     end
   end
@@ -5588,6 +6071,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -5608,6 +6092,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :float_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :float_node
     end
   end
@@ -5716,6 +6210,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── index:\n"
@@ -5752,13 +6247,23 @@ module Prism
     def type
       :for_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :for_node
+    end
   end
 
   # Represents forwarding all arguments to this method to another method.
   #
   #     def foo(...)
   #       bar(...)
-  #       ^^^^^^^^
+  #           ^^^
   #     end
   class ForwardingArgumentsNode < Node
     # def initialize: (location: Location) -> void
@@ -5801,6 +6306,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -5821,6 +6327,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :forwarding_arguments_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :forwarding_arguments_node
     end
   end
@@ -5871,6 +6387,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -5891,6 +6408,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :forwarding_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :forwarding_parameter_node
     end
   end
@@ -5947,6 +6474,7 @@ module Prism
       { block: block, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (block = self.block).nil?
@@ -5973,6 +6501,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :forwarding_super_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :forwarding_super_node
     end
   end
@@ -6047,6 +6585,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -6072,6 +6611,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_and_write_node
     end
   end
@@ -6146,6 +6695,7 @@ module Prism
       { name: name, name_loc: name_loc, operator_loc: operator_loc, value: value, operator: operator, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -6172,6 +6722,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_operator_write_node
     end
   end
@@ -6246,6 +6806,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -6271,6 +6832,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_or_write_node
     end
   end
@@ -6325,6 +6896,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -6346,6 +6918,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_read_node
     end
   end
@@ -6400,6 +6982,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -6421,6 +7004,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_target_node
     end
   end
@@ -6495,6 +7088,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -6520,6 +7114,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :global_variable_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :global_variable_write_node
     end
   end
@@ -6594,6 +7198,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -6619,6 +7224,16 @@ module Prism
     def type
       :hash_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :hash_node
+    end
   end
 
   # Represents a hash pattern in pattern matching.
@@ -6632,11 +7247,11 @@ module Prism
     # attr_reader constant: Node?
     attr_reader :constant
 
-    # attr_reader assocs: Array[Node]
-    attr_reader :assocs
+    # attr_reader elements: Array[Node]
+    attr_reader :elements
 
-    # attr_reader kwrest: Node?
-    attr_reader :kwrest
+    # attr_reader rest: Node?
+    attr_reader :rest
 
     # attr_reader opening_loc: Location?
     attr_reader :opening_loc
@@ -6644,11 +7259,11 @@ module Prism
     # attr_reader closing_loc: Location?
     attr_reader :closing_loc
 
-    # def initialize: (constant: Node?, assocs: Array[Node], kwrest: Node?, opening_loc: Location?, closing_loc: Location?, location: Location) -> void
-    def initialize(constant, assocs, kwrest, opening_loc, closing_loc, location)
+    # def initialize: (constant: Node?, elements: Array[Node], rest: Node?, opening_loc: Location?, closing_loc: Location?, location: Location) -> void
+    def initialize(constant, elements, rest, opening_loc, closing_loc, location)
       @constant = constant
-      @assocs = assocs
-      @kwrest = kwrest
+      @elements = elements
+      @rest = rest
       @opening_loc = opening_loc
       @closing_loc = closing_loc
       @location = location
@@ -6661,29 +7276,29 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [constant, *assocs, kwrest]
+      [constant, *elements, rest]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
       compact = []
       compact << constant if constant
-      compact.concat(assocs)
-      compact << kwrest if kwrest
+      compact.concat(elements)
+      compact << rest if rest
       compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*constant, *assocs, *kwrest, *opening_loc, *closing_loc]
+      [*constant, *elements, *rest, *opening_loc, *closing_loc]
     end
 
     # def copy: (**params) -> HashPatternNode
     def copy(**params)
       HashPatternNode.new(
         params.fetch(:constant) { constant },
-        params.fetch(:assocs) { assocs },
-        params.fetch(:kwrest) { kwrest },
+        params.fetch(:elements) { elements },
+        params.fetch(:rest) { rest },
         params.fetch(:opening_loc) { opening_loc },
         params.fetch(:closing_loc) { closing_loc },
         params.fetch(:location) { location },
@@ -6695,7 +7310,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { constant: constant, assocs: assocs, kwrest: kwrest, opening_loc: opening_loc, closing_loc: closing_loc, location: location }
+      { constant: constant, elements: elements, rest: rest, opening_loc: opening_loc, closing_loc: closing_loc, location: location }
     end
 
     # def opening: () -> String?
@@ -6708,6 +7323,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (constant = self.constant).nil?
@@ -6716,12 +7332,12 @@ module Prism
         inspector << "├── constant:\n"
         inspector << constant.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
-      inspector << "├── assocs: #{inspector.list("#{inspector.prefix}│   ", assocs)}"
-      if (kwrest = self.kwrest).nil?
-        inspector << "├── kwrest: ∅\n"
+      inspector << "├── elements: #{inspector.list("#{inspector.prefix}│   ", elements)}"
+      if (rest = self.rest).nil?
+        inspector << "├── rest: ∅\n"
       else
-        inspector << "├── kwrest:\n"
-        inspector << kwrest.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+        inspector << "├── rest:\n"
+        inspector << rest.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
       end
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
@@ -6743,6 +7359,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :hash_pattern_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :hash_pattern_node
     end
   end
@@ -6785,7 +7411,7 @@ module Prism
       visitor.visit_if_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       predicate.set_newline_flag(newline_marked)
     end
 
@@ -6838,6 +7464,7 @@ module Prism
       end_keyword_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── if_keyword_loc: #{inspector.location(if_keyword_loc)}\n"
@@ -6874,6 +7501,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :if_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :if_node
     end
   end
@@ -6928,6 +7565,7 @@ module Prism
       { numeric: numeric, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── numeric:\n"
@@ -6950,6 +7588,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :imaginary_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :imaginary_node
     end
   end
@@ -7008,6 +7656,7 @@ module Prism
       { value: value, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── value:\n"
@@ -7030,6 +7679,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :implicit_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :implicit_node
     end
   end
@@ -7112,6 +7771,7 @@ module Prism
       then_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── pattern:\n"
@@ -7143,6 +7803,575 @@ module Prism
     # def type: () -> Symbol
     def type
       :in_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :in_node
+    end
+  end
+
+  # Represents the use of the `&&=` operator on a call to the `[]` method.
+  #
+  #     foo.bar[baz] &&= value
+  #     ^^^^^^^^^^^^^^^^^^^^^^
+  class IndexAndWriteNode < Node
+    # attr_reader receiver: Node?
+    attr_reader :receiver
+
+    # attr_reader call_operator_loc: Location?
+    attr_reader :call_operator_loc
+
+    # attr_reader opening_loc: Location
+    attr_reader :opening_loc
+
+    # attr_reader arguments: ArgumentsNode?
+    attr_reader :arguments
+
+    # attr_reader closing_loc: Location
+    attr_reader :closing_loc
+
+    # attr_reader block: Node?
+    attr_reader :block
+
+    # attr_reader flags: Integer
+    private attr_reader :flags
+
+    # attr_reader operator_loc: Location
+    attr_reader :operator_loc
+
+    # attr_reader value: Node
+    attr_reader :value
+
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, opening_loc: Location, arguments: ArgumentsNode?, closing_loc: Location, block: Node?, flags: Integer, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location)
+      @receiver = receiver
+      @call_operator_loc = call_operator_loc
+      @opening_loc = opening_loc
+      @arguments = arguments
+      @closing_loc = closing_loc
+      @block = block
+      @flags = flags
+      @operator_loc = operator_loc
+      @value = value
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_index_and_write_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [receiver, arguments, block, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << block if block
+      compact << value
+      compact
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [*receiver, *call_operator_loc, opening_loc, *arguments, closing_loc, *block, operator_loc, value]
+    end
+
+    # def copy: (**params) -> IndexAndWriteNode
+    def copy(**params)
+      IndexAndWriteNode.new(
+        params.fetch(:receiver) { receiver },
+        params.fetch(:call_operator_loc) { call_operator_loc },
+        params.fetch(:opening_loc) { opening_loc },
+        params.fetch(:arguments) { arguments },
+        params.fetch(:closing_loc) { closing_loc },
+        params.fetch(:block) { block },
+        params.fetch(:flags) { flags },
+        params.fetch(:operator_loc) { operator_loc },
+        params.fetch(:value) { value },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { receiver: receiver, call_operator_loc: call_operator_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, block: block, flags: flags, operator_loc: operator_loc, value: value, location: location }
+    end
+
+    # def call_operator: () -> String?
+    def call_operator
+      call_operator_loc&.slice
+    end
+
+    # def opening: () -> String
+    def opening
+      opening_loc.slice
+    end
+
+    # def closing: () -> String
+    def closing
+      closing_loc.slice
+    end
+
+    # def safe_navigation?: () -> bool
+    def safe_navigation?
+      flags.anybits?(CallNodeFlags::SAFE_NAVIGATION)
+    end
+
+    # def variable_call?: () -> bool
+    def variable_call?
+      flags.anybits?(CallNodeFlags::VARIABLE_CALL)
+    end
+
+    # def operator: () -> String
+    def operator
+      operator_loc.slice
+    end
+
+    # def inspect(inspector: NodeInspector) -> String
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      if (receiver = self.receiver).nil?
+        inspector << "├── receiver: ∅\n"
+      else
+        inspector << "├── receiver:\n"
+        inspector << receiver.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
+      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
+      if (arguments = self.arguments).nil?
+        inspector << "├── arguments: ∅\n"
+      else
+        inspector << "├── arguments:\n"
+        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
+      if (block = self.block).nil?
+        inspector << "├── block: ∅\n"
+      else
+        inspector << "├── block:\n"
+        inspector << block.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
+      inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
+      inspector << "└── value:\n"
+      inspector << inspector.child_node(value, "    ")
+      inspector.to_str
+    end
+
+    # Sometimes you want to check an instance of a node against a list of
+    # classes to see what kind of behavior to perform. Usually this is done by
+    # calling `[cls1, cls2].include?(node.class)` or putting the node into a
+    # case statement and doing `case node; when cls1; when cls2; end`. Both of
+    # these approaches are relatively slow because of the constant lookups,
+    # method calls, and/or array allocations.
+    #
+    # Instead, you can call #type, which will return to you a symbol that you
+    # can use for comparison. This is faster than the other approaches because
+    # it uses a single integer comparison, but also because if you're on CRuby
+    # you can take advantage of the fact that case statements with all symbol
+    # keys will use a jump table.
+    #
+    # def type: () -> Symbol
+    def type
+      :index_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :index_and_write_node
+    end
+  end
+
+  # Represents the use of an assignment operator on a call to `[]`.
+  #
+  #     foo.bar[baz] += value
+  #     ^^^^^^^^^^^^^^^^^^^^^
+  class IndexOperatorWriteNode < Node
+    # attr_reader receiver: Node?
+    attr_reader :receiver
+
+    # attr_reader call_operator_loc: Location?
+    attr_reader :call_operator_loc
+
+    # attr_reader opening_loc: Location
+    attr_reader :opening_loc
+
+    # attr_reader arguments: ArgumentsNode?
+    attr_reader :arguments
+
+    # attr_reader closing_loc: Location
+    attr_reader :closing_loc
+
+    # attr_reader block: Node?
+    attr_reader :block
+
+    # attr_reader flags: Integer
+    private attr_reader :flags
+
+    # attr_reader operator: Symbol
+    attr_reader :operator
+
+    # attr_reader operator_loc: Location
+    attr_reader :operator_loc
+
+    # attr_reader value: Node
+    attr_reader :value
+
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, opening_loc: Location, arguments: ArgumentsNode?, closing_loc: Location, block: Node?, flags: Integer, operator: Symbol, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator, operator_loc, value, location)
+      @receiver = receiver
+      @call_operator_loc = call_operator_loc
+      @opening_loc = opening_loc
+      @arguments = arguments
+      @closing_loc = closing_loc
+      @block = block
+      @flags = flags
+      @operator = operator
+      @operator_loc = operator_loc
+      @value = value
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_index_operator_write_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [receiver, arguments, block, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << block if block
+      compact << value
+      compact
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [*receiver, *call_operator_loc, opening_loc, *arguments, closing_loc, *block, operator_loc, value]
+    end
+
+    # def copy: (**params) -> IndexOperatorWriteNode
+    def copy(**params)
+      IndexOperatorWriteNode.new(
+        params.fetch(:receiver) { receiver },
+        params.fetch(:call_operator_loc) { call_operator_loc },
+        params.fetch(:opening_loc) { opening_loc },
+        params.fetch(:arguments) { arguments },
+        params.fetch(:closing_loc) { closing_loc },
+        params.fetch(:block) { block },
+        params.fetch(:flags) { flags },
+        params.fetch(:operator) { operator },
+        params.fetch(:operator_loc) { operator_loc },
+        params.fetch(:value) { value },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { receiver: receiver, call_operator_loc: call_operator_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, block: block, flags: flags, operator: operator, operator_loc: operator_loc, value: value, location: location }
+    end
+
+    # def call_operator: () -> String?
+    def call_operator
+      call_operator_loc&.slice
+    end
+
+    # def opening: () -> String
+    def opening
+      opening_loc.slice
+    end
+
+    # def closing: () -> String
+    def closing
+      closing_loc.slice
+    end
+
+    # def safe_navigation?: () -> bool
+    def safe_navigation?
+      flags.anybits?(CallNodeFlags::SAFE_NAVIGATION)
+    end
+
+    # def variable_call?: () -> bool
+    def variable_call?
+      flags.anybits?(CallNodeFlags::VARIABLE_CALL)
+    end
+
+    # def inspect(inspector: NodeInspector) -> String
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      if (receiver = self.receiver).nil?
+        inspector << "├── receiver: ∅\n"
+      else
+        inspector << "├── receiver:\n"
+        inspector << receiver.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
+      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
+      if (arguments = self.arguments).nil?
+        inspector << "├── arguments: ∅\n"
+      else
+        inspector << "├── arguments:\n"
+        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
+      if (block = self.block).nil?
+        inspector << "├── block: ∅\n"
+      else
+        inspector << "├── block:\n"
+        inspector << block.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
+      inspector << "├── operator: #{operator.inspect}\n"
+      inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
+      inspector << "└── value:\n"
+      inspector << inspector.child_node(value, "    ")
+      inspector.to_str
+    end
+
+    # Sometimes you want to check an instance of a node against a list of
+    # classes to see what kind of behavior to perform. Usually this is done by
+    # calling `[cls1, cls2].include?(node.class)` or putting the node into a
+    # case statement and doing `case node; when cls1; when cls2; end`. Both of
+    # these approaches are relatively slow because of the constant lookups,
+    # method calls, and/or array allocations.
+    #
+    # Instead, you can call #type, which will return to you a symbol that you
+    # can use for comparison. This is faster than the other approaches because
+    # it uses a single integer comparison, but also because if you're on CRuby
+    # you can take advantage of the fact that case statements with all symbol
+    # keys will use a jump table.
+    #
+    # def type: () -> Symbol
+    def type
+      :index_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :index_operator_write_node
+    end
+  end
+
+  # Represents the use of the `||=` operator on a call to `[]`.
+  #
+  #     foo.bar[baz] ||= value
+  #     ^^^^^^^^^^^^^^^^^^^^^^
+  class IndexOrWriteNode < Node
+    # attr_reader receiver: Node?
+    attr_reader :receiver
+
+    # attr_reader call_operator_loc: Location?
+    attr_reader :call_operator_loc
+
+    # attr_reader opening_loc: Location
+    attr_reader :opening_loc
+
+    # attr_reader arguments: ArgumentsNode?
+    attr_reader :arguments
+
+    # attr_reader closing_loc: Location
+    attr_reader :closing_loc
+
+    # attr_reader block: Node?
+    attr_reader :block
+
+    # attr_reader flags: Integer
+    private attr_reader :flags
+
+    # attr_reader operator_loc: Location
+    attr_reader :operator_loc
+
+    # attr_reader value: Node
+    attr_reader :value
+
+    # def initialize: (receiver: Node?, call_operator_loc: Location?, opening_loc: Location, arguments: ArgumentsNode?, closing_loc: Location, block: Node?, flags: Integer, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(receiver, call_operator_loc, opening_loc, arguments, closing_loc, block, flags, operator_loc, value, location)
+      @receiver = receiver
+      @call_operator_loc = call_operator_loc
+      @opening_loc = opening_loc
+      @arguments = arguments
+      @closing_loc = closing_loc
+      @block = block
+      @flags = flags
+      @operator_loc = operator_loc
+      @value = value
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_index_or_write_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [receiver, arguments, block, value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      compact = []
+      compact << receiver if receiver
+      compact << arguments if arguments
+      compact << block if block
+      compact << value
+      compact
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [*receiver, *call_operator_loc, opening_loc, *arguments, closing_loc, *block, operator_loc, value]
+    end
+
+    # def copy: (**params) -> IndexOrWriteNode
+    def copy(**params)
+      IndexOrWriteNode.new(
+        params.fetch(:receiver) { receiver },
+        params.fetch(:call_operator_loc) { call_operator_loc },
+        params.fetch(:opening_loc) { opening_loc },
+        params.fetch(:arguments) { arguments },
+        params.fetch(:closing_loc) { closing_loc },
+        params.fetch(:block) { block },
+        params.fetch(:flags) { flags },
+        params.fetch(:operator_loc) { operator_loc },
+        params.fetch(:value) { value },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { receiver: receiver, call_operator_loc: call_operator_loc, opening_loc: opening_loc, arguments: arguments, closing_loc: closing_loc, block: block, flags: flags, operator_loc: operator_loc, value: value, location: location }
+    end
+
+    # def call_operator: () -> String?
+    def call_operator
+      call_operator_loc&.slice
+    end
+
+    # def opening: () -> String
+    def opening
+      opening_loc.slice
+    end
+
+    # def closing: () -> String
+    def closing
+      closing_loc.slice
+    end
+
+    # def safe_navigation?: () -> bool
+    def safe_navigation?
+      flags.anybits?(CallNodeFlags::SAFE_NAVIGATION)
+    end
+
+    # def variable_call?: () -> bool
+    def variable_call?
+      flags.anybits?(CallNodeFlags::VARIABLE_CALL)
+    end
+
+    # def operator: () -> String
+    def operator
+      operator_loc.slice
+    end
+
+    # def inspect(inspector: NodeInspector) -> String
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      if (receiver = self.receiver).nil?
+        inspector << "├── receiver: ∅\n"
+      else
+        inspector << "├── receiver:\n"
+        inspector << receiver.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── call_operator_loc: #{inspector.location(call_operator_loc)}\n"
+      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
+      if (arguments = self.arguments).nil?
+        inspector << "├── arguments: ∅\n"
+      else
+        inspector << "├── arguments:\n"
+        inspector << arguments.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
+      if (block = self.block).nil?
+        inspector << "├── block: ∅\n"
+      else
+        inspector << "├── block:\n"
+        inspector << block.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      flags = [("safe_navigation" if safe_navigation?), ("variable_call" if variable_call?)].compact
+      inspector << "├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
+      inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
+      inspector << "└── value:\n"
+      inspector << inspector.child_node(value, "    ")
+      inspector.to_str
+    end
+
+    # Sometimes you want to check an instance of a node against a list of
+    # classes to see what kind of behavior to perform. Usually this is done by
+    # calling `[cls1, cls2].include?(node.class)` or putting the node into a
+    # case statement and doing `case node; when cls1; when cls2; end`. Both of
+    # these approaches are relatively slow because of the constant lookups,
+    # method calls, and/or array allocations.
+    #
+    # Instead, you can call #type, which will return to you a symbol that you
+    # can use for comparison. This is faster than the other approaches because
+    # it uses a single integer comparison, but also because if you're on CRuby
+    # you can take advantage of the fact that case statements with all symbol
+    # keys will use a jump table.
+    #
+    # def type: () -> Symbol
+    def type
+      :index_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :index_or_write_node
     end
   end
 
@@ -7216,6 +8445,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -7241,6 +8471,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_and_write_node
     end
   end
@@ -7315,6 +8555,7 @@ module Prism
       { name: name, name_loc: name_loc, operator_loc: operator_loc, value: value, operator: operator, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -7341,6 +8582,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_operator_write_node
     end
   end
@@ -7415,6 +8666,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -7440,6 +8692,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_or_write_node
     end
   end
@@ -7494,6 +8756,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -7515,6 +8778,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_read_node
     end
   end
@@ -7569,6 +8842,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -7590,6 +8864,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_target_node
     end
   end
@@ -7664,6 +8948,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -7689,6 +8974,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :instance_variable_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :instance_variable_write_node
     end
   end
@@ -7763,6 +9058,7 @@ module Prism
       flags.anybits?(IntegerBaseFlags::HEXADECIMAL)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       flags = [("binary" if binary?), ("octal" if octal?), ("decimal" if decimal?), ("hexadecimal" if hexadecimal?)].compact
@@ -7785,6 +9081,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :integer_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :integer_node
     end
   end
@@ -7822,7 +9128,7 @@ module Prism
       visitor.visit_interpolated_match_last_line_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       first = parts.first
       first.set_newline_flag(newline_marked) if first
     end
@@ -7886,6 +9192,11 @@ module Prism
       flags.anybits?(RegularExpressionFlags::MULTI_LINE)
     end
 
+    # def once?: () -> bool
+    def once?
+      flags.anybits?(RegularExpressionFlags::ONCE)
+    end
+
     # def euc_jp?: () -> bool
     def euc_jp?
       flags.anybits?(RegularExpressionFlags::EUC_JP)
@@ -7906,17 +9217,13 @@ module Prism
       flags.anybits?(RegularExpressionFlags::UTF_8)
     end
 
-    # def once?: () -> bool
-    def once?
-      flags.anybits?(RegularExpressionFlags::ONCE)
-    end
-
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── parts: #{inspector.list("#{inspector.prefix}│   ", parts)}"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("once" if once?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?)].compact
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
@@ -7936,6 +9243,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :interpolated_match_last_line_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :interpolated_match_last_line_node
     end
   end
@@ -7971,7 +9288,7 @@ module Prism
       visitor.visit_interpolated_regular_expression_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       first = parts.first
       first.set_newline_flag(newline_marked) if first
     end
@@ -8035,6 +9352,11 @@ module Prism
       flags.anybits?(RegularExpressionFlags::MULTI_LINE)
     end
 
+    # def once?: () -> bool
+    def once?
+      flags.anybits?(RegularExpressionFlags::ONCE)
+    end
+
     # def euc_jp?: () -> bool
     def euc_jp?
       flags.anybits?(RegularExpressionFlags::EUC_JP)
@@ -8055,17 +9377,13 @@ module Prism
       flags.anybits?(RegularExpressionFlags::UTF_8)
     end
 
-    # def once?: () -> bool
-    def once?
-      flags.anybits?(RegularExpressionFlags::ONCE)
-    end
-
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── parts: #{inspector.list("#{inspector.prefix}│   ", parts)}"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
-      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("once" if once?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?)].compact
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
@@ -8085,6 +9403,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :interpolated_regular_expression_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :interpolated_regular_expression_node
     end
   end
@@ -8116,7 +9444,7 @@ module Prism
       visitor.visit_interpolated_string_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       first = parts.first
       first.set_newline_flag(newline_marked) if first
     end
@@ -8164,6 +9492,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -8187,6 +9516,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :interpolated_string_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :interpolated_string_node
     end
   end
@@ -8218,7 +9557,7 @@ module Prism
       visitor.visit_interpolated_symbol_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       first = parts.first
       first.set_newline_flag(newline_marked) if first
     end
@@ -8266,6 +9605,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -8289,6 +9629,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :interpolated_symbol_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :interpolated_symbol_node
     end
   end
@@ -8320,7 +9670,7 @@ module Prism
       visitor.visit_interpolated_x_string_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       first = parts.first
       first.set_newline_flag(newline_marked) if first
     end
@@ -8368,6 +9718,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -8391,6 +9742,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :interpolated_x_string_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :interpolated_x_string_node
     end
   end
@@ -8445,6 +9806,7 @@ module Prism
       { elements: elements, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── elements: #{inspector.list("#{inspector.prefix}    ", elements)}"
@@ -8468,104 +9830,15 @@ module Prism
     def type
       :keyword_hash_node
     end
-  end
 
-  # Represents a keyword parameter to a method, block, or lambda definition.
-  #
-  #     def a(b:)
-  #           ^^
-  #     end
-  #
-  #     def a(b: 1)
-  #           ^^^^
-  #     end
-  class KeywordParameterNode < Node
-    # attr_reader name: Symbol
-    attr_reader :name
-
-    # attr_reader name_loc: Location
-    attr_reader :name_loc
-
-    # attr_reader value: Node?
-    attr_reader :value
-
-    # def initialize: (name: Symbol, name_loc: Location, value: Node?, location: Location) -> void
-    def initialize(name, name_loc, value, location)
-      @name = name
-      @name_loc = name_loc
-      @value = value
-      @location = location
-    end
-
-    # def accept: (visitor: Visitor) -> void
-    def accept(visitor)
-      visitor.visit_keyword_parameter_node(self)
-    end
-
-    # def child_nodes: () -> Array[nil | Node]
-    def child_nodes
-      [value]
-    end
-
-    # def compact_child_nodes: () -> Array[Node]
-    def compact_child_nodes
-      compact = []
-      compact << value if value
-      compact
-    end
-
-    # def comment_targets: () -> Array[Node | Location]
-    def comment_targets
-      [name_loc, *value]
-    end
-
-    # def copy: (**params) -> KeywordParameterNode
-    def copy(**params)
-      KeywordParameterNode.new(
-        params.fetch(:name) { name },
-        params.fetch(:name_loc) { name_loc },
-        params.fetch(:value) { value },
-        params.fetch(:location) { location },
-      )
-    end
-
-    # def deconstruct: () -> Array[nil | Node]
-    alias deconstruct child_nodes
-
-    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
-    def deconstruct_keys(keys)
-      { name: name, name_loc: name_loc, value: value, location: location }
-    end
-
-    def inspect(inspector = NodeInspector.new)
-      inspector << inspector.header(self)
-      inspector << "├── name: #{name.inspect}\n"
-      inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
-      if (value = self.value).nil?
-        inspector << "└── value: ∅\n"
-      else
-        inspector << "└── value:\n"
-        inspector << value.inspect(inspector.child_inspector("    ")).delete_prefix(inspector.prefix)
-      end
-      inspector.to_str
-    end
-
-    # Sometimes you want to check an instance of a node against a list of
-    # classes to see what kind of behavior to perform. Usually this is done by
-    # calling `[cls1, cls2].include?(node.class)` or putting the node into a
-    # case statement and doing `case node; when cls1; when cls2; end`. Both of
-    # these approaches are relatively slow because of the constant lookups,
-    # method calls, and/or array allocations.
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
     #
-    # Instead, you can call #type, which will return to you a symbol that you
-    # can use for comparison. This is faster than the other approaches because
-    # it uses a single integer comparison, but also because if you're on CRuby
-    # you can take advantage of the fact that case statements with all symbol
-    # keys will use a jump table.
-    #
-    # def type: () -> Symbol
-    def type
-      :keyword_parameter_node
+    # def self.type: () -> Symbol
+    def self.type
+      :keyword_hash_node
     end
   end
 
@@ -8635,9 +9908,14 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── name: #{name.inspect}\n"
+      if (name = self.name).nil?
+        inspector << "├── name: ∅\n"
+      else
+        inspector << "├── name: #{name.inspect}\n"
+      end
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
@@ -8658,6 +9936,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :keyword_rest_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :keyword_rest_parameter_node
     end
   end
@@ -8755,6 +10043,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -8791,6 +10080,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :lambda_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :lambda_node
     end
   end
@@ -8870,6 +10169,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
@@ -8896,6 +10196,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_and_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_and_write_node
     end
   end
@@ -8975,6 +10285,7 @@ module Prism
       { name_loc: name_loc, operator_loc: operator_loc, value: value, name: name, operator: operator, depth: depth, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
@@ -9002,6 +10313,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_operator_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_operator_write_node
     end
   end
@@ -9081,6 +10402,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
@@ -9107,6 +10429,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_or_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_or_write_node
     end
   end
@@ -9168,6 +10500,7 @@ module Prism
       { name: name, depth: depth, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -9190,6 +10523,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_read_node
     end
   end
@@ -9249,6 +10592,7 @@ module Prism
       { name: name, depth: depth, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -9271,6 +10615,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_target_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_target_node
     end
   end
@@ -9350,6 +10704,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -9376,6 +10731,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :local_variable_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :local_variable_write_node
     end
   end
@@ -9482,6 +10847,11 @@ module Prism
       flags.anybits?(RegularExpressionFlags::MULTI_LINE)
     end
 
+    # def once?: () -> bool
+    def once?
+      flags.anybits?(RegularExpressionFlags::ONCE)
+    end
+
     # def euc_jp?: () -> bool
     def euc_jp?
       flags.anybits?(RegularExpressionFlags::EUC_JP)
@@ -9502,18 +10872,14 @@ module Prism
       flags.anybits?(RegularExpressionFlags::UTF_8)
     end
 
-    # def once?: () -> bool
-    def once?
-      flags.anybits?(RegularExpressionFlags::ONCE)
-    end
-
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── content_loc: #{inspector.location(content_loc)}\n"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector << "├── unescaped: #{unescaped.inspect}\n"
-      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("once" if once?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?)].compact
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
@@ -9533,6 +10899,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :match_last_line_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :match_last_line_node
     end
   end
@@ -9602,6 +10978,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── value:\n"
@@ -9627,6 +11004,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :match_predicate_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :match_predicate_node
     end
   end
@@ -9696,6 +11083,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── value:\n"
@@ -9721,6 +11109,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :match_required_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :match_required_node
     end
   end
@@ -9781,6 +11179,7 @@ module Prism
       { call: call, locals: locals, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── call:\n"
@@ -9804,6 +11203,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :match_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :match_write_node
     end
   end
@@ -9851,6 +11260,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -9871,6 +11281,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :missing_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :missing_node
     end
   end
@@ -9963,6 +11383,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -9997,15 +11418,31 @@ module Prism
     def type
       :module_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :module_node
+    end
   end
 
   # Represents a multi-target expression.
   #
-  #     a, b, c = 1, 2, 3
-  #     ^^^^^^^
+  #     a, (b, c) = 1, 2, 3
+  #        ^^^^^^
   class MultiTargetNode < Node
-    # attr_reader targets: Array[Node]
-    attr_reader :targets
+    # attr_reader lefts: Array[Node]
+    attr_reader :lefts
+
+    # attr_reader rest: Node?
+    attr_reader :rest
+
+    # attr_reader rights: Array[Node]
+    attr_reader :rights
 
     # attr_reader lparen_loc: Location?
     attr_reader :lparen_loc
@@ -10013,9 +11450,11 @@ module Prism
     # attr_reader rparen_loc: Location?
     attr_reader :rparen_loc
 
-    # def initialize: (targets: Array[Node], lparen_loc: Location?, rparen_loc: Location?, location: Location) -> void
-    def initialize(targets, lparen_loc, rparen_loc, location)
-      @targets = targets
+    # def initialize: (lefts: Array[Node], rest: Node?, rights: Array[Node], lparen_loc: Location?, rparen_loc: Location?, location: Location) -> void
+    def initialize(lefts, rest, rights, lparen_loc, rparen_loc, location)
+      @lefts = lefts
+      @rest = rest
+      @rights = rights
       @lparen_loc = lparen_loc
       @rparen_loc = rparen_loc
       @location = location
@@ -10028,23 +11467,29 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [*targets]
+      [*lefts, rest, *rights]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
-      [*targets]
+      compact = []
+      compact.concat(lefts)
+      compact << rest if rest
+      compact.concat(rights)
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*targets, *lparen_loc, *rparen_loc]
+      [*lefts, *rest, *rights, *lparen_loc, *rparen_loc]
     end
 
     # def copy: (**params) -> MultiTargetNode
     def copy(**params)
       MultiTargetNode.new(
-        params.fetch(:targets) { targets },
+        params.fetch(:lefts) { lefts },
+        params.fetch(:rest) { rest },
+        params.fetch(:rights) { rights },
         params.fetch(:lparen_loc) { lparen_loc },
         params.fetch(:rparen_loc) { rparen_loc },
         params.fetch(:location) { location },
@@ -10056,7 +11501,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { targets: targets, lparen_loc: lparen_loc, rparen_loc: rparen_loc, location: location }
+      { lefts: lefts, rest: rest, rights: rights, lparen_loc: lparen_loc, rparen_loc: rparen_loc, location: location }
     end
 
     # def lparen: () -> String?
@@ -10069,9 +11514,17 @@ module Prism
       rparen_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── targets: #{inspector.list("#{inspector.prefix}│   ", targets)}"
+      inspector << "├── lefts: #{inspector.list("#{inspector.prefix}│   ", lefts)}"
+      if (rest = self.rest).nil?
+        inspector << "├── rest: ∅\n"
+      else
+        inspector << "├── rest:\n"
+        inspector << rest.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── rights: #{inspector.list("#{inspector.prefix}│   ", rights)}"
       inspector << "├── lparen_loc: #{inspector.location(lparen_loc)}\n"
       inspector << "└── rparen_loc: #{inspector.location(rparen_loc)}\n"
       inspector.to_str
@@ -10094,6 +11547,16 @@ module Prism
     def type
       :multi_target_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :multi_target_node
+    end
   end
 
   # Represents a write to a multi-target expression.
@@ -10101,8 +11564,14 @@ module Prism
   #     a, b, c = 1, 2, 3
   #     ^^^^^^^^^^^^^^^^^
   class MultiWriteNode < Node
-    # attr_reader targets: Array[Node]
-    attr_reader :targets
+    # attr_reader lefts: Array[Node]
+    attr_reader :lefts
+
+    # attr_reader rest: Node?
+    attr_reader :rest
+
+    # attr_reader rights: Array[Node]
+    attr_reader :rights
 
     # attr_reader lparen_loc: Location?
     attr_reader :lparen_loc
@@ -10116,9 +11585,11 @@ module Prism
     # attr_reader value: Node
     attr_reader :value
 
-    # def initialize: (targets: Array[Node], lparen_loc: Location?, rparen_loc: Location?, operator_loc: Location, value: Node, location: Location) -> void
-    def initialize(targets, lparen_loc, rparen_loc, operator_loc, value, location)
-      @targets = targets
+    # def initialize: (lefts: Array[Node], rest: Node?, rights: Array[Node], lparen_loc: Location?, rparen_loc: Location?, operator_loc: Location, value: Node, location: Location) -> void
+    def initialize(lefts, rest, rights, lparen_loc, rparen_loc, operator_loc, value, location)
+      @lefts = lefts
+      @rest = rest
+      @rights = rights
       @lparen_loc = lparen_loc
       @rparen_loc = rparen_loc
       @operator_loc = operator_loc
@@ -10133,23 +11604,30 @@ module Prism
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [*targets, value]
+      [*lefts, rest, *rights, value]
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
-      [*targets, value]
+      compact = []
+      compact.concat(lefts)
+      compact << rest if rest
+      compact.concat(rights)
+      compact << value
+      compact
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*targets, *lparen_loc, *rparen_loc, operator_loc, value]
+      [*lefts, *rest, *rights, *lparen_loc, *rparen_loc, operator_loc, value]
     end
 
     # def copy: (**params) -> MultiWriteNode
     def copy(**params)
       MultiWriteNode.new(
-        params.fetch(:targets) { targets },
+        params.fetch(:lefts) { lefts },
+        params.fetch(:rest) { rest },
+        params.fetch(:rights) { rights },
         params.fetch(:lparen_loc) { lparen_loc },
         params.fetch(:rparen_loc) { rparen_loc },
         params.fetch(:operator_loc) { operator_loc },
@@ -10163,7 +11641,7 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { targets: targets, lparen_loc: lparen_loc, rparen_loc: rparen_loc, operator_loc: operator_loc, value: value, location: location }
+      { lefts: lefts, rest: rest, rights: rights, lparen_loc: lparen_loc, rparen_loc: rparen_loc, operator_loc: operator_loc, value: value, location: location }
     end
 
     # def lparen: () -> String?
@@ -10181,9 +11659,17 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── targets: #{inspector.list("#{inspector.prefix}│   ", targets)}"
+      inspector << "├── lefts: #{inspector.list("#{inspector.prefix}│   ", lefts)}"
+      if (rest = self.rest).nil?
+        inspector << "├── rest: ∅\n"
+      else
+        inspector << "├── rest:\n"
+        inspector << rest.inspect(inspector.child_inspector("│   ")).delete_prefix(inspector.prefix)
+      end
+      inspector << "├── rights: #{inspector.list("#{inspector.prefix}│   ", rights)}"
       inspector << "├── lparen_loc: #{inspector.location(lparen_loc)}\n"
       inspector << "├── rparen_loc: #{inspector.location(rparen_loc)}\n"
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -10207,6 +11693,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :multi_write_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :multi_write_node
     end
   end
@@ -10273,6 +11769,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (arguments = self.arguments).nil?
@@ -10300,6 +11797,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :next_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :next_node
     end
   end
@@ -10349,6 +11856,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -10369,6 +11877,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :nil_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :nil_node
     end
   end
@@ -10439,6 +11957,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -10461,6 +11980,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :no_keywords_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :no_keywords_parameter_node
     end
   end
@@ -10515,6 +12044,7 @@ module Prism
       { number: number, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── number: #{number.inspect}\n"
@@ -10537,6 +12067,116 @@ module Prism
     # def type: () -> Symbol
     def type
       :numbered_reference_read_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :numbered_reference_read_node
+    end
+  end
+
+  # Represents an optional keyword parameter to a method, block, or lambda definition.
+  #
+  #     def a(b: 1)
+  #           ^^^^
+  #     end
+  class OptionalKeywordParameterNode < Node
+    # attr_reader name: Symbol
+    attr_reader :name
+
+    # attr_reader name_loc: Location
+    attr_reader :name_loc
+
+    # attr_reader value: Node
+    attr_reader :value
+
+    # def initialize: (name: Symbol, name_loc: Location, value: Node, location: Location) -> void
+    def initialize(name, name_loc, value, location)
+      @name = name
+      @name_loc = name_loc
+      @value = value
+      @location = location
+    end
+
+    # def accept: (visitor: Visitor) -> void
+    def accept(visitor)
+      visitor.visit_optional_keyword_parameter_node(self)
+    end
+
+    # def child_nodes: () -> Array[nil | Node]
+    def child_nodes
+      [value]
+    end
+
+    # def compact_child_nodes: () -> Array[Node]
+    def compact_child_nodes
+      [value]
+    end
+
+    # def comment_targets: () -> Array[Node | Location]
+    def comment_targets
+      [name_loc, value]
+    end
+
+    # def copy: (**params) -> OptionalKeywordParameterNode
+    def copy(**params)
+      OptionalKeywordParameterNode.new(
+        params.fetch(:name) { name },
+        params.fetch(:name_loc) { name_loc },
+        params.fetch(:value) { value },
+        params.fetch(:location) { location },
+      )
+    end
+
+    # def deconstruct: () -> Array[nil | Node]
+    alias deconstruct child_nodes
+
+    # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
+    def deconstruct_keys(keys)
+      { name: name, name_loc: name_loc, value: value, location: location }
+    end
+
+    # def inspect(inspector: NodeInspector) -> String
+    def inspect(inspector = NodeInspector.new)
+      inspector << inspector.header(self)
+      inspector << "├── name: #{name.inspect}\n"
+      inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
+      inspector << "└── value:\n"
+      inspector << inspector.child_node(value, "    ")
+      inspector.to_str
+    end
+
+    # Sometimes you want to check an instance of a node against a list of
+    # classes to see what kind of behavior to perform. Usually this is done by
+    # calling `[cls1, cls2].include?(node.class)` or putting the node into a
+    # case statement and doing `case node; when cls1; when cls2; end`. Both of
+    # these approaches are relatively slow because of the constant lookups,
+    # method calls, and/or array allocations.
+    #
+    # Instead, you can call #type, which will return to you a symbol that you
+    # can use for comparison. This is faster than the other approaches because
+    # it uses a single integer comparison, but also because if you're on CRuby
+    # you can take advantage of the fact that case statements with all symbol
+    # keys will use a jump table.
+    #
+    # def type: () -> Symbol
+    def type
+      :optional_keyword_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :optional_keyword_parameter_node
     end
   end
 
@@ -10611,6 +12251,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── name: #{name.inspect}\n"
@@ -10636,6 +12277,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :optional_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :optional_parameter_node
     end
   end
@@ -10705,6 +12356,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── left:\n"
@@ -10730,6 +12382,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :or_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :or_node
     end
   end
@@ -10823,6 +12485,7 @@ module Prism
       { requireds: requireds, optionals: optionals, rest: rest, posts: posts, keywords: keywords, keyword_rest: keyword_rest, block: block, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── requireds: #{inspector.list("#{inspector.prefix}│   ", requireds)}"
@@ -10867,6 +12530,16 @@ module Prism
     def type
       :parameters_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :parameters_node
+    end
   end
 
   # Represents a parenthesized expression
@@ -10896,7 +12569,7 @@ module Prism
       visitor.visit_parentheses_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       # Never mark ParenthesesNode with a newline flag, mark children instead
     end
 
@@ -10945,6 +12618,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (body = self.body).nil?
@@ -10973,6 +12647,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :parentheses_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :parentheses_node
     end
   end
@@ -11058,6 +12742,7 @@ module Prism
       rparen_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── expression:\n"
@@ -11083,6 +12768,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :pinned_expression_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :pinned_expression_node
     end
   end
@@ -11148,6 +12843,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── variable:\n"
@@ -11171,6 +12867,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :pinned_variable_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :pinned_variable_node
     end
   end
@@ -11257,6 +12963,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (statements = self.statements).nil?
@@ -11286,6 +12993,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :post_execution_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :post_execution_node
     end
   end
@@ -11372,6 +13089,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (statements = self.statements).nil?
@@ -11401,6 +13119,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :pre_execution_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :pre_execution_node
     end
   end
@@ -11457,6 +13185,7 @@ module Prism
       { locals: locals, statements: statements, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -11480,6 +13209,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :program_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :program_node
     end
   end
@@ -11565,6 +13304,7 @@ module Prism
       flags.anybits?(RangeFlags::EXCLUDE_END)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       if (left = self.left).nil?
@@ -11600,6 +13340,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :range_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :range_node
     end
   end
@@ -11654,6 +13404,7 @@ module Prism
       { numeric: numeric, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── numeric:\n"
@@ -11676,6 +13427,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :rational_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :rational_node
     end
   end
@@ -11725,6 +13486,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -11745,6 +13507,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :redo_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :redo_node
     end
   end
@@ -11849,6 +13621,11 @@ module Prism
       flags.anybits?(RegularExpressionFlags::MULTI_LINE)
     end
 
+    # def once?: () -> bool
+    def once?
+      flags.anybits?(RegularExpressionFlags::ONCE)
+    end
+
     # def euc_jp?: () -> bool
     def euc_jp?
       flags.anybits?(RegularExpressionFlags::EUC_JP)
@@ -11869,18 +13646,14 @@ module Prism
       flags.anybits?(RegularExpressionFlags::UTF_8)
     end
 
-    # def once?: () -> bool
-    def once?
-      flags.anybits?(RegularExpressionFlags::ONCE)
-    end
-
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
       inspector << "├── content_loc: #{inspector.location(content_loc)}\n"
       inspector << "├── closing_loc: #{inspector.location(closing_loc)}\n"
       inspector << "├── unescaped: #{unescaped.inspect}\n"
-      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?), ("once" if once?)].compact
+      flags = [("ignore_case" if ignore_case?), ("extended" if extended?), ("multi_line" if multi_line?), ("once" if once?), ("euc_jp" if euc_jp?), ("ascii_8bit" if ascii_8bit?), ("windows_31j" if windows_31j?), ("utf_8" if utf_8?)].compact
       inspector << "└── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n"
       inspector.to_str
     end
@@ -11902,57 +13675,62 @@ module Prism
     def type
       :regular_expression_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :regular_expression_node
+    end
   end
 
-  # Represents a destructured required parameter node.
+  # Represents a required keyword parameter to a method, block, or lambda definition.
   #
-  #     def foo((bar, baz))
-  #             ^^^^^^^^^^
+  #     def a(b: )
+  #           ^^
   #     end
-  class RequiredDestructuredParameterNode < Node
-    # attr_reader parameters: Array[Node]
-    attr_reader :parameters
+  class RequiredKeywordParameterNode < Node
+    # attr_reader name: Symbol
+    attr_reader :name
 
-    # attr_reader opening_loc: Location
-    attr_reader :opening_loc
+    # attr_reader name_loc: Location
+    attr_reader :name_loc
 
-    # attr_reader closing_loc: Location
-    attr_reader :closing_loc
-
-    # def initialize: (parameters: Array[Node], opening_loc: Location, closing_loc: Location, location: Location) -> void
-    def initialize(parameters, opening_loc, closing_loc, location)
-      @parameters = parameters
-      @opening_loc = opening_loc
-      @closing_loc = closing_loc
+    # def initialize: (name: Symbol, name_loc: Location, location: Location) -> void
+    def initialize(name, name_loc, location)
+      @name = name
+      @name_loc = name_loc
       @location = location
     end
 
     # def accept: (visitor: Visitor) -> void
     def accept(visitor)
-      visitor.visit_required_destructured_parameter_node(self)
+      visitor.visit_required_keyword_parameter_node(self)
     end
 
     # def child_nodes: () -> Array[nil | Node]
     def child_nodes
-      [*parameters]
+      []
     end
 
     # def compact_child_nodes: () -> Array[Node]
     def compact_child_nodes
-      [*parameters]
+      []
     end
 
     # def comment_targets: () -> Array[Node | Location]
     def comment_targets
-      [*parameters, opening_loc, closing_loc]
+      [name_loc]
     end
 
-    # def copy: (**params) -> RequiredDestructuredParameterNode
+    # def copy: (**params) -> RequiredKeywordParameterNode
     def copy(**params)
-      RequiredDestructuredParameterNode.new(
-        params.fetch(:parameters) { parameters },
-        params.fetch(:opening_loc) { opening_loc },
-        params.fetch(:closing_loc) { closing_loc },
+      RequiredKeywordParameterNode.new(
+        params.fetch(:name) { name },
+        params.fetch(:name_loc) { name_loc },
         params.fetch(:location) { location },
       )
     end
@@ -11962,24 +13740,14 @@ module Prism
 
     # def deconstruct_keys: (keys: Array[Symbol]) -> Hash[Symbol, nil | Node | Array[Node] | String | Token | Array[Token] | Location]
     def deconstruct_keys(keys)
-      { parameters: parameters, opening_loc: opening_loc, closing_loc: closing_loc, location: location }
+      { name: name, name_loc: name_loc, location: location }
     end
 
-    # def opening: () -> String
-    def opening
-      opening_loc.slice
-    end
-
-    # def closing: () -> String
-    def closing
-      closing_loc.slice
-    end
-
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── parameters: #{inspector.list("#{inspector.prefix}│   ", parameters)}"
-      inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
-      inspector << "└── closing_loc: #{inspector.location(closing_loc)}\n"
+      inspector << "├── name: #{name.inspect}\n"
+      inspector << "└── name_loc: #{inspector.location(name_loc)}\n"
       inspector.to_str
     end
 
@@ -11998,7 +13766,17 @@ module Prism
     #
     # def type: () -> Symbol
     def type
-      :required_destructured_parameter_node
+      :required_keyword_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :required_keyword_parameter_node
     end
   end
 
@@ -12053,6 +13831,7 @@ module Prism
       { name: name, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── name: #{name.inspect}\n"
@@ -12076,12 +13855,22 @@ module Prism
     def type
       :required_parameter_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :required_parameter_node
+    end
   end
 
   # Represents an expression modified with a rescue.
   #
-  #   foo rescue nil
-  #   ^^^^^^^^^^^^^^
+  #     foo rescue nil
+  #     ^^^^^^^^^^^^^^
   class RescueModifierNode < Node
     # attr_reader expression: Node
     attr_reader :expression
@@ -12105,7 +13894,7 @@ module Prism
       visitor.visit_rescue_modifier_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       expression.set_newline_flag(newline_marked)
     end
 
@@ -12147,6 +13936,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── expression:\n"
@@ -12174,14 +13964,24 @@ module Prism
     def type
       :rescue_modifier_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :rescue_modifier_node
+    end
   end
 
   # Represents a rescue statement.
   #
   #     begin
   #     rescue Foo, *splat, Bar => ex
-  #     ^^^^^^
   #       foo
+  #     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   #     end
   #
   # `Foo, *splat, Bar` are in the `exceptions` field.
@@ -12272,6 +14072,7 @@ module Prism
       operator_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -12313,6 +14114,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :rescue_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :rescue_node
     end
   end
@@ -12383,9 +14194,14 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
-      inspector << "├── name: #{name.inspect}\n"
+      if (name = self.name).nil?
+        inspector << "├── name: ∅\n"
+      else
+        inspector << "├── name: #{name.inspect}\n"
+      end
       inspector << "├── name_loc: #{inspector.location(name_loc)}\n"
       inspector << "└── operator_loc: #{inspector.location(operator_loc)}\n"
       inspector.to_str
@@ -12406,6 +14222,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :rest_parameter_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :rest_parameter_node
     end
   end
@@ -12455,6 +14281,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -12475,6 +14302,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :retry_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :retry_node
     end
   end
@@ -12541,6 +14378,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -12568,6 +14406,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :return_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :return_node
     end
   end
@@ -12617,6 +14465,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -12637,6 +14486,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :self_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :self_node
     end
   end
@@ -12734,6 +14593,7 @@ module Prism
       end_keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── locals: #{locals.inspect}\n"
@@ -12766,6 +14626,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :singleton_class_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :singleton_class_node
     end
   end
@@ -12815,6 +14685,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -12835,6 +14706,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :source_encoding_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :source_encoding_node
     end
   end
@@ -12889,6 +14770,7 @@ module Prism
       { filepath: filepath, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── filepath: #{filepath.inspect}\n"
@@ -12910,6 +14792,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :source_file_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :source_file_node
     end
   end
@@ -12959,6 +14851,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -12979,6 +14872,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :source_line_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :source_line_node
     end
   end
@@ -13045,6 +14948,7 @@ module Prism
       operator_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── operator_loc: #{inspector.location(operator_loc)}\n"
@@ -13072,6 +14976,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :splat_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :splat_node
     end
   end
@@ -13126,6 +15040,7 @@ module Prism
       { body: body, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "└── body: #{inspector.list("#{inspector.prefix}    ", body)}"
@@ -13147,6 +15062,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :statements_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :statements_node
     end
   end
@@ -13206,6 +15131,7 @@ module Prism
       { left: left, right: right, location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── left:\n"
@@ -13230,6 +15156,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :string_concat_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :string_concat_node
     end
   end
@@ -13331,6 +15267,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       flags = [("frozen" if frozen?)].compact
@@ -13357,6 +15294,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :string_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :string_node
     end
   end
@@ -13452,6 +15399,7 @@ module Prism
       rparen_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -13487,6 +15435,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :super_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :super_node
     end
   end
@@ -13574,6 +15532,7 @@ module Prism
       closing_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -13598,6 +15557,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :symbol_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :symbol_node
     end
   end
@@ -13647,6 +15616,7 @@ module Prism
       { location: location }
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector.to_str
@@ -13667,6 +15637,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :true_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :true_node
     end
   end
@@ -13731,6 +15711,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── names: #{inspector.list("#{inspector.prefix}│   ", names)}"
@@ -13753,6 +15734,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :undef_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :undef_node
     end
   end
@@ -13795,7 +15786,7 @@ module Prism
       visitor.visit_unless_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       predicate.set_newline_flag(newline_marked)
     end
 
@@ -13848,6 +15839,7 @@ module Prism
       end_keyword_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -13884,6 +15876,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :unless_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :unless_node
     end
   end
@@ -13926,7 +15928,7 @@ module Prism
       visitor.visit_until_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       predicate.set_newline_flag(newline_marked)
     end
 
@@ -13983,6 +15985,7 @@ module Prism
       flags.anybits?(LoopFlags::BEGIN_MODIFIER)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -14015,6 +16018,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :until_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :until_node
     end
   end
@@ -14089,6 +16102,7 @@ module Prism
       keyword_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -14117,6 +16131,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :when_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :when_node
     end
   end
@@ -14159,7 +16183,7 @@ module Prism
       visitor.visit_while_node(self)
     end
 
-    def set_newline_flag(newline_marked)
+    def set_newline_flag(newline_marked) # :nodoc:
       predicate.set_newline_flag(newline_marked)
     end
 
@@ -14216,6 +16240,7 @@ module Prism
       flags.anybits?(LoopFlags::BEGIN_MODIFIER)
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -14248,6 +16273,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :while_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :while_node
     end
   end
@@ -14332,6 +16367,7 @@ module Prism
       closing_loc.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── opening_loc: #{inspector.location(opening_loc)}\n"
@@ -14356,6 +16392,16 @@ module Prism
     #
     # def type: () -> Symbol
     def type
+      :x_string_node
+    end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
       :x_string_node
     end
   end
@@ -14442,6 +16488,7 @@ module Prism
       rparen_loc&.slice
     end
 
+    # def inspect(inspector: NodeInspector) -> String
     def inspect(inspector = NodeInspector.new)
       inspector << inspector.header(self)
       inspector << "├── keyword_loc: #{inspector.location(keyword_loc)}\n"
@@ -14473,8 +16520,25 @@ module Prism
     def type
       :yield_node
     end
+
+    # Similar to #type, this method returns a symbol that you can use for
+    # splitting on the type of the node without having to do a long === chain.
+    # Note that like #type, it will still be slower than using == for a single
+    # class, but should be faster in a case statement or an array comparison.
+    #
+    # def self.type: () -> Symbol
+    def self.type
+      :yield_node
+    end
   end
 
+  # Flags for arguments nodes.
+  module ArgumentsNodeFlags
+    # if arguments contain keyword splat
+    KEYWORD_SPLAT = 1 << 0
+  end
+
+  # Flags for call nodes.
   module CallNodeFlags
     # &. operator
     SAFE_NAVIGATION = 1 << 0
@@ -14483,6 +16547,7 @@ module Prism
     VARIABLE_CALL = 1 << 1
   end
 
+  # Flags for integer nodes that correspond to the base of the integer.
   module IntegerBaseFlags
     # 0b prefix
     BINARY = 1 << 0
@@ -14497,16 +16562,19 @@ module Prism
     HEXADECIMAL = 1 << 3
   end
 
+  # Flags for while and until loop nodes.
   module LoopFlags
     # a loop after a begin statement, so the body is executed first before the condition
     BEGIN_MODIFIER = 1 << 0
   end
 
+  # Flags for range and flip-flop nodes.
   module RangeFlags
     # ... operator
     EXCLUDE_END = 1 << 0
   end
 
+  # Flags for regular expression and match last line nodes.
   module RegularExpressionFlags
     # i - ignores the case of characters when matching
     IGNORE_CASE = 1 << 0
@@ -14517,24 +16585,25 @@ module Prism
     # m - allows $ to match the end of lines within strings
     MULTI_LINE = 1 << 2
 
+    # o - only interpolates values into the regular expression once
+    ONCE = 1 << 3
+
     # e - forces the EUC-JP encoding
-    EUC_JP = 1 << 3
+    EUC_JP = 1 << 4
 
     # n - forces the ASCII-8BIT encoding
-    ASCII_8BIT = 1 << 4
+    ASCII_8BIT = 1 << 5
 
     # s - forces the Windows-31J encoding
-    WINDOWS_31J = 1 << 5
+    WINDOWS_31J = 1 << 6
 
     # u - forces the UTF-8 encoding
-    UTF_8 = 1 << 6
-
-    # o - only interpolates values into the regular expression once
-    ONCE = 1 << 7
+    UTF_8 = 1 << 7
   end
 
+  # Flags for string nodes.
   module StringFlags
-    # frozen by virtue of a frozen_string_literal comment
+    # frozen by virtue of a `frozen_string_literal` comment
     FROZEN = 1 << 0
   end
 end
