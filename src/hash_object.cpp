@@ -331,11 +331,7 @@ Value HashObject::rehash(Env *env) {
 }
 
 Value HashObject::replace(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
-        other = other->send(env, "to_hash"_s);
-    other->assert_type(env, Type::Hash, "Hash");
-
-    auto other_hash = other->as_hash();
+    auto other_hash = other->to_hash(env);
 
     clear(env);
     for (auto node : *other_hash) {
@@ -434,11 +430,7 @@ bool HashObject::eql(Env *env, Value other_value) {
 }
 
 bool HashObject::gte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
-        other = other->send(env, "to_hash"_s);
-
-    other->assert_type(env, Object::Type::Hash, "Hash");
-    auto other_hash = other->as_hash();
+    auto other_hash = other->to_hash(env);
 
     for (auto &node : *other_hash) {
         Value value = get(env, node.key);
@@ -450,20 +442,13 @@ bool HashObject::gte(Env *env, Value other) {
 }
 
 bool HashObject::gt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
-        other = other->send(env, "to_hash"_s);
+    auto other_hash = other->to_hash(env);
 
-    other->assert_type(env, Object::Type::Hash, "Hash");
-
-    return gte(env, other) && other->as_hash()->size() != size();
+    return gte(env, other) && other_hash->size() != size();
 }
 
 bool HashObject::lte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
-        other = other->send(env, "to_hash"_s);
-
-    other->assert_type(env, Object::Type::Hash, "Hash");
-    auto other_hash = other->as_hash();
+    auto other_hash = other->to_hash(env);
 
     for (auto &node : *this) {
         Value value = other_hash->get(env, node.key);
@@ -475,12 +460,9 @@ bool HashObject::lte(Env *env, Value other) {
 }
 
 bool HashObject::lt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
-        other = other->send(env, "to_hash"_s);
+    auto other_hash = other->to_hash(env);
 
-    other->assert_type(env, Object::Type::Hash, "Hash");
-
-    return lte(env, other) && other->as_hash()->size() != size();
+    return lte(env, other) && other_hash->size() != size();
 }
 
 Value HashObject::each(Env *env, Block *block) {
@@ -665,14 +647,7 @@ Value HashObject::merge_in_place(Env *env, Args args, Block *block) {
     this->assert_not_frozen(env);
 
     for (size_t i = 0; i < args.size(); i++) {
-        auto h = args[i];
-
-        if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
-            h = h->send(env, "to_hash"_s);
-
-        h->assert_type(env, Object::Type::Hash, "Hash");
-
-        for (auto node : *h->as_hash()) {
+        for (auto node : *args[i]->to_hash(env)) {
             auto new_value = node.val;
             if (block) {
                 auto old_value = get(env, node.key);
