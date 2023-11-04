@@ -1,9 +1,11 @@
+#include <openssl/asn1.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
+#include <openssl/x509.h>
 
 #include "natalie.hpp"
 
@@ -19,6 +21,11 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     EVP_MD_CTX_free(mdctx);
 }
 
+static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
+    auto name = static_cast<X509_NAME *>(self->void_ptr());
+    X509_NAME_free(name);
+}
+
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
     static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
     if (!klass) klass = OpenSSLError;
@@ -30,6 +37,13 @@ static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
     static auto Cipher = OpenSSL->const_get("Cipher"_s);
     static auto CipherError = Cipher->const_get("CipherError"_s);
     OpenSSL_raise_error(env, func, CipherError->as_class());
+}
+
+static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
+    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    static auto X509 = OpenSSL->const_get("X509"_s);
+    static auto NameError = X509->const_get("NameError"_s);
+    OpenSSL_raise_error(env, func, NameError->as_class());
 }
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
@@ -428,4 +442,107 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
         OpenSSL_raise_error(env, "RAND_bytes");
 
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
+Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    auto kwarg_loc = kwargs ? kwargs->remove(env, "loc"_s) : nullptr;
+    auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : nullptr;
+    env->ensure_no_extra_keywords(kwargs);
+    args.ensure_argc_between(env, 2, 3);
+    auto oid = args.at(0)->to_str(env);
+    auto value = args.at(1)->to_str(env);
+    auto type = args.at(2, nullptr);
+    if (type && !type->is_nil()) {
+        type = type->to_int(env);
+    } else {
+        auto OBJECT_TYPE_TEMPLATE = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
+    }
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    int loc = kwarg_loc && !kwarg_loc->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_loc) : -1;
+    int set = kwarg_set && !kwarg_set->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
+    if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
+    return self;
+}
+
+Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 2);
+    X509_NAME *name = X509_NAME_new();
+    if (!name)
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
+    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
+    if (args.size() > 0) {
+        HashObject *lookup = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        if (args.size() >= 2 && !args.at(1)->is_nil())
+            lookup = args.at(1)->to_hash(env);
+        for (auto entry : *args.at(0)->to_ary(env)) {
+            ArrayObject *add_entry_args = entry->to_ary(env);
+            if (args.size() >= 2 && add_entry_args->size() == 2) {
+                add_entry_args = add_entry_args->dup(env)->as_array();
+                add_entry_args->push(lookup->ref(env, add_entry_args->at(0)));
+            }
+            OpenSSL_X509_Name_add_entry(env, self, Args(add_entry_args), nullptr);
+        }
+    }
+    return self;
+}
+
+Value OpenSSL_X509_Name_to_a(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    const size_t size = X509_NAME_entry_count(name);
+    auto result = new ArrayObject { size };
+    for (size_t i = 0; i < size; i++) {
+        X509_NAME_ENTRY *name_entry = X509_NAME_get_entry(name, i);
+        auto entry_result = new ArrayObject { 3 };
+
+        ASN1_OBJECT *obj = X509_NAME_ENTRY_get_object(name_entry);
+        if (!obj)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_object");
+        const auto nid = OBJ_obj2nid(obj);
+        if (nid == NID_undef)
+            OpenSSL_X509_Name_raise_error(env, "OBJ_obj2nid");
+        const char *sn = OBJ_nid2sn(nid);
+        if (!sn)
+            OpenSSL_X509_Name_raise_error(env, "OBJ_nid2sn");
+        entry_result->push(new StringObject { sn });
+
+        ASN1_STRING *data = X509_NAME_ENTRY_get_data(name_entry);
+        if (!data)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_ENTRY_get_data");
+        entry_result->push(new StringObject { reinterpret_cast<const char *>(ASN1_STRING_get0_data(data)), static_cast<size_t>(ASN1_STRING_length(data)) });
+
+        entry_result->push(IntegerObject::create(ASN1_STRING_type(data)));
+
+        result->push(entry_result);
+    }
+    return result;
+}
+
+Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto format = args.at(0, nullptr);
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    if (!format || format->is_nil()) {
+        char *str = X509_NAME_oneline(name, nullptr, 0);
+        if (!str)
+            OpenSSL_X509_Name_raise_error(env, "X509_NAME_oneline");
+        auto result = new StringObject { str };
+        free(str);
+        return result;
+    }
+    int flags = IntegerObject::convert_to_nat_int_t(env, format);
+    BIO *bio = BIO_new(BIO_s_mem());
+    if (!bio)
+        OpenSSL_raise_error(env, "BIO_new_mem_buf");
+    Defer bio_free { [&bio]() { BIO_vfree(bio); } };
+    if (!X509_NAME_print_ex(bio, name, 0, flags))
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_print_ex");
+    char *mem;
+    auto size = BIO_get_mem_data(bio, &mem);
+    if (size < 0)
+        OpenSSL_X509_Name_raise_error(env, "BIO_get_mem_data");
+    return new StringObject { mem, static_cast<size_t>(size) };
 }

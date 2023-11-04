@@ -12,6 +12,35 @@ module OpenSSL
     fixed_length_secure_compare(sha1_a, sha1_b) && a == b
   end
 
+  module ASN1
+    __constant__('EOC', 'int', 'V_ASN1_EOC')
+    __constant__('BOOLEAN', 'int', 'V_ASN1_BOOLEAN')
+    __constant__('INTEGER', 'int', 'V_ASN1_INTEGER')
+    __constant__('BIT_STRING', 'int', 'V_ASN1_BIT_STRING')
+    __constant__('OCTET_STRING', 'int', 'V_ASN1_OCTET_STRING')
+    __constant__('NULL', 'int', 'V_ASN1_NULL')
+    __constant__('OBJECT', 'int', 'V_ASN1_OBJECT')
+    __constant__('OBJECT_DESCRIPTOR', 'int', 'V_ASN1_OBJECT_DESCRIPTOR')
+    __constant__('EXTERNAL', 'int', 'V_ASN1_EXTERNAL')
+    __constant__('REAL', 'int', 'V_ASN1_REAL')
+    __constant__('ENUMERATED', 'int', 'V_ASN1_ENUMERATED')
+    __constant__('UTF8STRING', 'int', 'V_ASN1_UTF8STRING')
+    __constant__('SEQUENCE', 'int', 'V_ASN1_SEQUENCE')
+    __constant__('SET', 'int', 'V_ASN1_SET')
+    __constant__('NUMERICSTRING', 'int', 'V_ASN1_NUMERICSTRING')
+    __constant__('PRINTABLESTRING', 'int', 'V_ASN1_PRINTABLESTRING')
+    __constant__('T61STRING', 'int', 'V_ASN1_T61STRING')
+    __constant__('VIDEOTEXSTRING', 'int', 'V_ASN1_VIDEOTEXSTRING')
+    __constant__('IA5STRING', 'int', 'V_ASN1_IA5STRING')
+    __constant__('UTCTIME', 'int', 'V_ASN1_UTCTIME')
+    __constant__('GENERALIZEDTIME', 'int', 'V_ASN1_GENERALIZEDTIME')
+    __constant__('GRAPHICSTRING', 'int', 'V_ASN1_GRAPHICSTRING')
+    __constant__('ISO64STRING', 'int', 'V_ASN1_ISO64STRING')
+    __constant__('GENERALSTRING', 'int', 'V_ASN1_GENERALSTRING')
+    __constant__('UNIVERSALSTRING', 'int', 'V_ASN1_UNIVERSALSTRING')
+    __constant__('BMPSTRING', 'int', 'V_ASN1_BMPSTRING')
+  end
+
   module Random
     __bind_static_method__ :random_bytes, :OpenSSL_Random_random_bytes
   end
@@ -72,5 +101,46 @@ module OpenSSL
 
   module KDF
     class KDFError < OpenSSLError; end
+  end
+
+  module X509
+    class NameError < OpenSSLError; end
+
+    class Name
+      OBJECT_TYPE_TEMPLATE = {
+        'C' => ASN1::PRINTABLESTRING,
+        'countryName' => ASN1::PRINTABLESTRING,
+        'serialNumber' => ASN1::PRINTABLESTRING,
+        'dnQualifier' => ASN1::PRINTABLESTRING,
+        'DC' => ASN1::IA5STRING,
+        'domainComponent' => ASN1::IA5STRING,
+        'emailAddress' => ASN1::IA5STRING
+      }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
+
+      __constant__('COMPAT', 'int', 'XN_FLAG_COMPAT')
+      __constant__('RFC2253', 'int', 'XN_FLAG_RFC2253')
+      __constant__('ONELINE', 'int', 'XN_FLAG_ONELINE')
+      __constant__('MULTILINE', 'int', 'XN_FLAG_MULTILINE')
+
+      __bind_method__ :initialize, :OpenSSL_X509_Name_initialize
+      __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
+      __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
+      __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
+
+      class <<self
+        def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
+          ary = if str.start_with?('/')
+                  str.split('/')[1..-1]
+                else
+                  str.split(/,\s*/)
+                end
+          ary = ary.map { |e| e.split('=') }
+          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2}
+          new(ary, template)
+        end
+
+        alias parse parse_openssl
+      end
+    end
   end
 end
