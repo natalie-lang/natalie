@@ -126,6 +126,21 @@ module OpenSSL
       __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
       __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
       __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
+
+      class <<self
+        def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
+          ary = if str.start_with?('/')
+                  str.split('/')[1..-1]
+                else
+                  str.split(/,\s*/)
+                end
+          ary = ary.map { |e| e.split('=') }
+          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2}
+          new(ary, template)
+        end
+
+        alias parse parse_openssl
+      end
     end
   end
 end

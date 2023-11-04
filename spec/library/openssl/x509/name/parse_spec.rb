@@ -4,13 +4,7 @@ require 'openssl'
 describe "OpenSSL::X509::Name.parse" do
   it "parses a /-delimited string of key-value pairs into a Name" do
     dn = "/DC=org/DC=ruby-lang/CN=www.ruby-lang.org"
-    NATFIXME 'Implement OpenSSL::X509::Name.parse', exception: NoMethodError, message: "undefined method `parse' for OpenSSL::X509::Name:Class" do
-      name = OpenSSL::X509::Name.parse(dn)
-    end
-    name = OpenSSL::X509::Name.new
-    name.add_entry('DC', 'org')
-    name.add_entry('DC', 'ruby-lang')
-    name.add_entry('CN', 'www.ruby-lang.org')
+    name = OpenSSL::X509::Name.parse(dn)
 
     name.to_s.should == dn
 
@@ -29,13 +23,7 @@ describe "OpenSSL::X509::Name.parse" do
 
   it "parses a comma-delimited string of key-value pairs into a name" do
     dn = "DC=org, DC=ruby-lang, CN=www.ruby-lang.org"
-    NATFIXME 'Implement OpenSSL::X509::Name.parse', exception: NoMethodError, message: "undefined method `parse' for OpenSSL::X509::Name:Class" do
-      name = OpenSSL::X509::Name.parse(dn)
-    end
-    name = OpenSSL::X509::Name.new
-    name.add_entry('DC', 'org')
-    name.add_entry('DC', 'ruby-lang')
-    name.add_entry('CN', 'www.ruby-lang.org')
+    name = OpenSSL::X509::Name.parse(dn)
 
     name.to_s.should == "/DC=org/DC=ruby-lang/CN=www.ruby-lang.org"
 
@@ -47,18 +35,14 @@ describe "OpenSSL::X509::Name.parse" do
   end
 
   it "raises TypeError if the given string contains no key/value pairs" do
-    NATFIXME 'Implement OpenSSL::X509::Name.parse', exception: SpecFailedException do
-      -> do
-        OpenSSL::X509::Name.parse("hello")
-      end.should raise_error(TypeError)
-    end
+    -> do
+      OpenSSL::X509::Name.parse("hello")
+    end.should raise_error(TypeError)
   end
 
   it "raises OpenSSL::X509::NameError if the given string contains invalid keys" do
-    NATFIXME 'Implement OpenSSL::X509::Name.parse', exception: SpecFailedException do
-      -> do
-        OpenSSL::X509::Name.parse("hello=goodbye")
-      end.should raise_error(OpenSSL::X509::NameError)
-    end
+    -> do
+      OpenSSL::X509::Name.parse("hello=goodbye")
+    end.should raise_error(OpenSSL::X509::NameError)
   end
 end
