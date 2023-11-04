@@ -89,6 +89,50 @@ describe "OpenSSL.secure_compare" do
   end
 end
 
+describe "OpenSSL::X509::Name#initialize" do
+  it "can handle input with types" do
+    input = [
+      ["DC", "org", OpenSSL::ASN1::IA5STRING],
+      ["DC", "ruby-lang", OpenSSL::ASN1::IA5STRING],
+      ["CN", "www.ruby-lang.org", OpenSSL::ASN1::UTF8STRING]
+    ]
+    name = OpenSSL::X509::Name.new(input)
+
+    ary = name.to_a
+
+    ary[0][0].should == "DC"
+    ary[1][0].should == "DC"
+    ary[2][0].should == "CN"
+    ary[0][1].should == "org"
+    ary[1][1].should == "ruby-lang"
+    ary[2][1].should == "www.ruby-lang.org"
+    ary[0][2].should == OpenSSL::ASN1::IA5STRING
+    ary[1][2].should == OpenSSL::ASN1::IA5STRING
+    ary[2][2].should == OpenSSL::ASN1::UTF8STRING
+  end
+
+  it "can handle input without types" do
+    input = [
+      ["DC", "org"],
+      ["DC", "ruby-lang"],
+      ["CN", "www.ruby-lang.org"]
+    ]
+    name = OpenSSL::X509::Name.new(input)
+
+    ary = name.to_a
+
+    ary[0][0].should == "DC"
+    ary[1][0].should == "DC"
+    ary[2][0].should == "CN"
+    ary[0][1].should == "org"
+    ary[1][1].should == "ruby-lang"
+    ary[2][1].should == "www.ruby-lang.org"
+    ary[0][2].should == OpenSSL::ASN1::IA5STRING
+    ary[1][2].should == OpenSSL::ASN1::IA5STRING
+    ary[2][2].should == OpenSSL::ASN1::UTF8STRING
+  end
+end
+
 describe "OpenSSL::X509::Name#to_s" do
   it "returns the correct string" do
     name = OpenSSL::X509::Name.new

@@ -444,16 +444,6 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
-Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
-    if (args.size() != 0)
-        env->raise("NotImplementedError", "Arguments for OpenSSL::X509::Name.new are not yet supported");
-    X509_NAME *name = X509_NAME_new();
-    if (!name)
-        OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
-    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
-    return self;
-}
-
 Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     auto kwarg_loc = kwargs ? kwargs->remove(env, "loc"_s) : nullptr;
@@ -474,6 +464,19 @@ Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
     int set = kwarg_set && !kwarg_set->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
     if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
         OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
+    return self;
+}
+
+Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    X509_NAME *name = X509_NAME_new();
+    if (!name)
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
+    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
+    if (args.size() == 1) {
+        for (auto entry : *args.at(0)->to_ary(env))
+            OpenSSL_X509_Name_add_entry(env, self, Args(entry->to_ary(env)), nullptr);
+    }
     return self;
 }
 
