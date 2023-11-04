@@ -22,12 +22,14 @@ module Natalie
 
         # We need a way to associate `retry` with the `rescue` block it
         # belongs to. Using a stack of object ids seems to work ok.
-        # See the Rescue class for how it's used.
         @retry_context = []
 
         # We need to know if we're at the top level (left-most indent)
         # of a file, which enables certain macros.
         @depth = 0
+
+        # Our MacroExpander and our REPL need to know local variables.
+        @locals_stack = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -45,8 +47,22 @@ module Natalie
 
       # pass used: true to leave the final result on the stack
       def transform(used: false)
-        raise 'unexpected AST input' unless @ast.type == :statements_node
-        transform_statements_node(@ast, used: used).flatten
+        case @ast.type
+        when :program_node
+          transform_program_node(@ast, used: used).flatten
+        when :statements_node
+          with_locals([]) do
+            transform_statements_node(@ast, used: used).flatten
+          end
+        else
+          raise 'unexpected AST input'
+        end
+      end
+
+      def transform_program_node(node, used:)
+        with_locals(node.locals) do
+          transform_statements_node(node.statements, used: used).flatten
+        end
       end
 
       def transform_expression(node, used:)
@@ -76,7 +92,8 @@ module Natalie
       end
 
       def expand_macros(node)
-        @macro_expander.expand(node, depth: @depth)
+        locals = @locals_stack.last
+        @macro_expander.expand(node, locals: locals, depth: @depth)
       end
 
       def transform_body(body, used:)
@@ -328,6 +345,7 @@ module Natalie
 
       def transform_block_node(node, used:, is_lambda:)
         arity = Arity.new(node.parameters, is_proc: !is_lambda).arity
+
         instructions = []
         instructions << DefineBlockInstruction.new(arity: arity)
         if is_lambda
@@ -335,7 +353,11 @@ module Natalie
         else
           instructions << transform_block_args(node.parameters, used: true)
         end
-        instructions << transform_expression(node.body || Prism.nil_node, used: true)
+
+        with_locals(node.locals) do
+          instructions << transform_expression(node.body || Prism.nil_node, used: true)
+        end
+
         instructions << EndInstruction.new(:define_block)
         instructions
       end
@@ -400,10 +422,6 @@ module Natalie
         receiver = node.receiver
         message = node.name
         args = node.arguments&.arguments || []
-
-        if repl? && (instructions = transform_repl_variable_that_looks_like_call(node, used: used))
-          return instructions
-        end
 
         if is_inline_macro_call_node?(node)
           instructions = []
@@ -741,7 +759,9 @@ module Natalie
           file: node.location.path,
           line: node.location.start_line,
         )
-        instructions += transform_body(node.body, used: true)
+        with_locals(node.locals) do
+          instructions += transform_body(node.body, used: true)
+        end
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
         instructions
@@ -860,7 +880,9 @@ module Natalie
         instructions << [
           DefineMethodInstruction.new(name: node.name, arity: arity),
           transform_defn_args(node.parameters, used: true),
-          transform_body([node.body], used: true),
+          with_locals(node.locals) do
+            transform_body([node.body], used: true)
+          end,
           EndInstruction.new(:define_method),
         ]
 
@@ -1708,7 +1730,9 @@ module Natalie
           file: node.location.path,
           line: node.location.start_line,
         )
-        instructions += transform_body(node.body, used: true)
+        with_locals(node.locals) do
+          instructions += transform_body(node.body, used: true)
+        end
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
         instructions
@@ -1814,20 +1838,6 @@ module Natalie
         return [] unless used
         regexp = Regexp.new(node.content, node.options)
         PushRegexpInstruction.new(regexp)
-      end
-
-      # HACK: When using the REPL, the parser doesn't differentiate between method calls
-      # and variable lookup. But we know which variables are defined in the REPL,
-      # so we can convert the CallNode back to an LocalVariableReadNode as needed.
-      # TODO: Can we pass a list of local variables to Prism so this hack can be removed?
-      def transform_repl_variable_that_looks_like_call(node, used:)
-        return unless node.type == :call_node && node.receiver.nil?
-        return unless @compiler_context[:vars].key?(node.name)
-
-        # it is a variable, but it's unused so just return some empty instructions
-        return [] unless used
-
-        [VariableGetInstruction.new(node.name)]
       end
 
       def transform_rescue_modifier_node(node, used:)
@@ -2174,8 +2184,11 @@ module Natalie
         end
       end
 
-      def repl?
-        @compiler_context[:repl]
+      def with_locals(locals)
+        @locals_stack << locals
+        yield
+      ensure
+        @locals_stack.pop
       end
 
       class << self

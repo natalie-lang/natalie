@@ -42,14 +42,23 @@ module Natalie
       end
 
       def transform_variable_set(instruction)
+        # We need to mark the variable as captured in the odd case of:
+        #
+        #     foo = foo
+        #
+        previous_instruction = @instructions.peek_back(2)
+        setting_to_itself = previous_instruction.is_a?(VariableGetInstruction) &&
+                            previous_instruction.name == instruction.name
+
         instruction.meta = find_or_create_var(
           instruction.env,
           instruction.name,
           local_only: instruction.local_only,
+          setting_to_itself: setting_to_itself,
         )
       end
 
-      def find_or_create_var(env, name, local_only: false)
+      def find_or_create_var(env, name, local_only: false, setting_to_itself: false)
         raise "bad var name: #{name.inspect}" unless name =~ /^(?:[[:alpha:]]|_)[[:alnum:]]*/
 
         owning_env = env
@@ -62,11 +71,15 @@ module Natalie
 
         env = owning_env
 
-        # If a variable is not referenced from a block within this
-        # scope, then it is not "captured". Unless we're in the REPL,
-        # then everything is captured.
-        capturing = capturing_default
+        # Two easy cases where the variable gets marked as "captured":
+        #
+        # 1. We're in the REPL
+        # 2. We're setting the variable to itself
+        capturing = repl? || setting_to_itself
 
+        # And one complicated case where it gets marked:
+        #
+        # 3. The variable is referenced from a block
         loop do
           if env.fetch(:vars).key?(name)
             var = env.dig(:vars, name)
@@ -106,7 +119,7 @@ module Natalie
         var
       end
 
-      def capturing_default
+      def repl?
         @compiler_context[:repl]
       end
 

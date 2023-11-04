@@ -19,7 +19,7 @@ module Natalie
               cmd = requires.join + cmd
             end
 
-            ast = Natalie::Parser.new(cmd, '(repl)').ast
+            ast = Natalie::Parser.new(cmd, '(repl)', locals: vars.keys).ast
           rescue Parser::IncompleteExpression
             next :continue
           rescue SyntaxError => e
@@ -27,15 +27,16 @@ module Natalie
             next :next
           end
 
-          next :continue if ast.body.empty?
-          last_node = ast.body.pop
-          ast.body << Prism.call_node(
-                        receiver: nil,
-                        name: :puts,
-                        arguments: [
-                          Prism.call_node(receiver: Prism.local_variable_write_node(name: :_, value: last_node), name: :inspect)
-                        ]
-                      )
+          next :continue if ast.statements.body.empty?
+          last_node = ast.statements.body.pop
+          puts_and_set_underscore_variable = Prism.call_node(
+            receiver: nil,
+            name: :puts,
+            arguments: [
+              Prism.call_node(receiver: Prism.local_variable_write_node(name: :_, value: last_node), name: :inspect)
+            ]
+          )
+          ast.statements.body << puts_and_set_underscore_variable
           temp = Tempfile.create('natalie.so')
           compiler = Compiler.new(ast, '(repl)')
           compiler.repl = true
