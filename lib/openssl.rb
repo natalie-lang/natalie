@@ -104,6 +104,8 @@ module OpenSSL
   end
 
   module X509
+    class NameError < OpenSSLError; end
+
     class Name
       OBJECT_TYPE_TEMPLATE = {
         'C' => ASN1::PRINTABLESTRING,
@@ -114,6 +116,8 @@ module OpenSSL
         'domainComponent' => ASN1::IA5STRING,
         'emailAddress' => ASN1::IA5STRING
       }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
+
+      __bind_method__ :initialize, :OpenSSL_X509_Name_initialize
     end
   end
 end

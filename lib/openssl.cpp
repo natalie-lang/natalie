@@ -4,6 +4,7 @@
 #include <openssl/hmac.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
+#include <openssl/x509.h>
 
 #include "natalie.hpp"
 
@@ -19,6 +20,11 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     EVP_MD_CTX_free(mdctx);
 }
 
+static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
+    auto name = static_cast<X509_NAME *>(self->void_ptr());
+    X509_NAME_free(name);
+}
+
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
     static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
     if (!klass) klass = OpenSSLError;
@@ -30,6 +36,13 @@ static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
     static auto Cipher = OpenSSL->const_get("Cipher"_s);
     static auto CipherError = Cipher->const_get("CipherError"_s);
     OpenSSL_raise_error(env, func, CipherError->as_class());
+}
+
+static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
+    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    static auto X509 = OpenSSL->const_get("X509"_s);
+    static auto NameError = X509->const_get("NameError"_s);
+    OpenSSL_raise_error(env, func, NameError->as_class());
 }
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
@@ -428,4 +441,14 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
         OpenSSL_raise_error(env, "RAND_bytes");
 
     return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
+Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
+    if (args.size() != 0)
+        env->raise("NotImplementedError", "Arguments for OpenSSL::X509::Name.new are not yet supported");
+    X509_NAME *name = X509_NAME_new();
+    if (!name)
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_new");
+    self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
+    return self;
 }
