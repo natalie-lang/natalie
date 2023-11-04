@@ -168,6 +168,37 @@ class Complex
     end
   end
 
+  def **(n)
+    if n.is_a?(Float) && n == 0.0
+      return Complex(1.0, 0.0)
+    elsif n.is_a?(Integer) && n == 0
+      return Complex(1)
+    end
+
+    if n.is_a?(Complex)
+      r = Math.sqrt(real ** 2 + imaginary ** 2)
+      theta = Math.atan2(imaginary, real)
+      r_n = Math.exp(n.real * Math.log(r) - n.imaginary * theta)
+      theta_n = n.real * theta + n.imaginary * Math.log(r)
+      Complex(r_n * Math.cos(theta_n), r_n * Math.sin(theta_n))
+    elsif n.is_a?(Float) || (n.is_a?(Integer) && n.negative?)
+      r = Math.sqrt(real ** 2 + imaginary ** 2)
+      theta = Math.atan2(imaginary, real)
+      r_n = r ** n
+      theta_n = n * theta
+      Complex(r_n * Math.cos(theta_n), r_n * Math.sin(theta_n))
+    elsif n.is_a?(Integer)
+      # NOTE: this branch is so we don't get floats in the result.
+      # If you know a better formula for that, please fix!
+      result = Complex(1, 0)
+      n.times { result *= self }
+      result
+    elsif n.respond_to?(:coerce)
+      first, second = n.coerce(self)
+      return first ** second
+    end
+  end
+
   def -@
     Complex(-self.real, -self.imaginary)
   end
