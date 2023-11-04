@@ -18,7 +18,7 @@ describe "Fiber.blocking?" do
 
     context "root Fiber of a new thread" do
       it "returns 1 for blocking: true" do
-        NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+        NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
           thread = Thread.new do
             fiber = Fiber.new(blocking: true) { Fiber.blocking? }
             blocking = fiber.resume
@@ -48,7 +48,7 @@ describe "Fiber#blocking?" do
 
     context "root Fiber of a new thread" do
       it "returns true for blocking: true" do
-        NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+        NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
           thread = Thread.new do
             fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
             blocking = fiber.resume

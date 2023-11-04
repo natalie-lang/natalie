@@ -444,7 +444,7 @@ describe "String#split with Regexp" do
     str = 'a,b,c,d,e'
 
     p = proc { str.split(/,/) }
-    NATFIXME 'Implement Thread', exception: NameError, message: 'uninitialized constant Thread' do
+    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
       results = 10.times.map { Thread.new { x = nil; 100.times { x = p.call }; x } }.map(&:value)
 
       results.should == [%w[a b c d e]] * 10

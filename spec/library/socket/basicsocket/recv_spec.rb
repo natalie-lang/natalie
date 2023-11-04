@@ -15,7 +15,7 @@ describe "BasicSocket#recv" do
   end
 
   it "receives a specified number of bytes of a message from another socket"  do
-    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
       t = Thread.new do
         client = @server.accept
         ScratchPad.record client.recv(10)
@@ -37,7 +37,7 @@ describe "BasicSocket#recv" do
 
   platform_is_not :solaris do
     it "accepts flags to specify unusual receiving behaviour" do
-      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
         t = Thread.new do
           client = @server.accept
 
@@ -63,7 +63,7 @@ describe "BasicSocket#recv" do
   end
 
   it "gets lines delimited with a custom separator"  do
-    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
       t = Thread.new do
         client = @server.accept
         ScratchPad.record client.gets("\377")

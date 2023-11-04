@@ -318,7 +318,7 @@ describe "IO.copy_stream" do
     end
 
     it "calls #write repeatedly on the destination Object" do
-      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
         @from_in.write "1234"
         @from_in.close
 

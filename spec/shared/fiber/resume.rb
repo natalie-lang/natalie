@@ -6,7 +6,7 @@ describe :fiber_resume, shared: true do
 
   it "raises a FiberError if invoked from a different Thread" do
     fiber = Fiber.new { 42 }
-    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
       Thread.new do
         -> {
           fiber.send(@method)

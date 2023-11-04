@@ -37,7 +37,7 @@ describe "Kernel#sleep" do
   end
 
   it "pauses execution indefinitely if not given a duration" do
-    NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
       running = false
       t = Thread.new do
         running = true

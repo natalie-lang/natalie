@@ -616,7 +616,7 @@ describe "File.open" do
       it "opens it as a normal file" do
         file_w, file_r, read_bytes, written_length = nil
 
-        NATFIXME 'threads', exception: NameError, message: 'uninitialized constant Thread' do
+        NATFIXME 'threads', exception: NoMethodError, message: 'TODO: Thread.new' do
           # open in threads, due to blocking open and writes
           writer = Thread.new do
             file_w = File.open(@fifo, 'w')
