@@ -364,38 +364,6 @@ Value init(Env *env, Value self) {
     OpenSSL->const_set("OPENSSL_VERSION_NUMBER"_s, new IntegerObject { OPENSSL_VERSION_NUMBER });
     OpenSSL->define_singleton_method(env, "fixed_length_secure_compare"_s, OpenSSL_fixed_length_secure_compare, 2);
 
-    auto ASN1 = OpenSSL->const_get("ASN1"_s);
-    if (!ASN1) {
-        ASN1 = new ModuleObject { "ASN1" };
-        OpenSSL->const_set("ASN1"_s, ASN1);
-    }
-    ASN1->const_set("EOC"_s, Value::integer(V_ASN1_EOC));
-    ASN1->const_set("BOOLEAN"_s, Value::integer(V_ASN1_BOOLEAN));
-    ASN1->const_set("INTEGER"_s, Value::integer(V_ASN1_INTEGER));
-    ASN1->const_set("BIT_STRING"_s, Value::integer(V_ASN1_BIT_STRING));
-    ASN1->const_set("OCTET_STRING"_s, Value::integer(V_ASN1_OCTET_STRING));
-    ASN1->const_set("NULL"_s, Value::integer(V_ASN1_NULL));
-    ASN1->const_set("OBJECT"_s, Value::integer(V_ASN1_OBJECT));
-    ASN1->const_set("OBJECT_DESCRIPTOR"_s, Value::integer(V_ASN1_OBJECT_DESCRIPTOR));
-    ASN1->const_set("EXTERNAL"_s, Value::integer(V_ASN1_EXTERNAL));
-    ASN1->const_set("REAL"_s, Value::integer(V_ASN1_REAL));
-    ASN1->const_set("ENUMERATED"_s, Value::integer(V_ASN1_ENUMERATED));
-    ASN1->const_set("UTF8STRING"_s, Value::integer(V_ASN1_UTF8STRING));
-    ASN1->const_set("SEQUENCE"_s, Value::integer(V_ASN1_SEQUENCE));
-    ASN1->const_set("SET"_s, Value::integer(V_ASN1_SET));
-    ASN1->const_set("NUMERICSTRING"_s, Value::integer(V_ASN1_NUMERICSTRING));
-    ASN1->const_set("PRINTABLESTRING"_s, Value::integer(V_ASN1_PRINTABLESTRING));
-    ASN1->const_set("T61STRING"_s, Value::integer(V_ASN1_T61STRING));
-    ASN1->const_set("VIDEOTEXSTRING"_s, Value::integer(V_ASN1_VIDEOTEXSTRING));
-    ASN1->const_set("IA5STRING"_s, Value::integer(V_ASN1_IA5STRING));
-    ASN1->const_set("UTCTIME"_s, Value::integer(V_ASN1_UTCTIME));
-    ASN1->const_set("GENERALIZEDTIME"_s, Value::integer(V_ASN1_GENERALIZEDTIME));
-    ASN1->const_set("GRAPHICSTRING"_s, Value::integer(V_ASN1_GRAPHICSTRING));
-    ASN1->const_set("ISO64STRING"_s, Value::integer(V_ASN1_ISO64STRING));
-    ASN1->const_set("GENERALSTRING"_s, Value::integer(V_ASN1_GENERALSTRING));
-    ASN1->const_set("UNIVERSALSTRING"_s, Value::integer(V_ASN1_UNIVERSALSTRING));
-    ASN1->const_set("BMPSTRING"_s, Value::integer(V_ASN1_BMPSTRING));
-
     auto Cipher = OpenSSL->const_get("Cipher"_s);
     if (!Cipher) {
         Cipher = GlobalEnv::the()->Object()->subclass(env, "Cipher");

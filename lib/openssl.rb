@@ -12,6 +12,35 @@ module OpenSSL
     fixed_length_secure_compare(sha1_a, sha1_b) && a == b
   end
 
+  module ASN1
+    __constant__('EOC', 'int', 'V_ASN1_EOC')
+    __constant__('BOOLEAN', 'int', 'V_ASN1_BOOLEAN')
+    __constant__('INTEGER', 'int', 'V_ASN1_INTEGER')
+    __constant__('BIT_STRING', 'int', 'V_ASN1_BIT_STRING')
+    __constant__('OCTET_STRING', 'int', 'V_ASN1_OCTET_STRING')
+    __constant__('NULL', 'int', 'V_ASN1_NULL')
+    __constant__('OBJECT', 'int', 'V_ASN1_OBJECT')
+    __constant__('OBJECT_DESCRIPTOR', 'int', 'V_ASN1_OBJECT_DESCRIPTOR')
+    __constant__('EXTERNAL', 'int', 'V_ASN1_EXTERNAL')
+    __constant__('REAL', 'int', 'V_ASN1_REAL')
+    __constant__('ENUMERATED', 'int', 'V_ASN1_ENUMERATED')
+    __constant__('UTF8STRING', 'int', 'V_ASN1_UTF8STRING')
+    __constant__('SEQUENCE', 'int', 'V_ASN1_SEQUENCE')
+    __constant__('SET', 'int', 'V_ASN1_SET')
+    __constant__('NUMERICSTRING', 'int', 'V_ASN1_NUMERICSTRING')
+    __constant__('PRINTABLESTRING', 'int', 'V_ASN1_PRINTABLESTRING')
+    __constant__('T61STRING', 'int', 'V_ASN1_T61STRING')
+    __constant__('VIDEOTEXSTRING', 'int', 'V_ASN1_VIDEOTEXSTRING')
+    __constant__('IA5STRING', 'int', 'V_ASN1_IA5STRING')
+    __constant__('UTCTIME', 'int', 'V_ASN1_UTCTIME')
+    __constant__('GENERALIZEDTIME', 'int', 'V_ASN1_GENERALIZEDTIME')
+    __constant__('GRAPHICSTRING', 'int', 'V_ASN1_GRAPHICSTRING')
+    __constant__('ISO64STRING', 'int', 'V_ASN1_ISO64STRING')
+    __constant__('GENERALSTRING', 'int', 'V_ASN1_GENERALSTRING')
+    __constant__('UNIVERSALSTRING', 'int', 'V_ASN1_UNIVERSALSTRING')
+    __constant__('BMPSTRING', 'int', 'V_ASN1_BMPSTRING')
+  end
+
   module Random
     __bind_static_method__ :random_bytes, :OpenSSL_Random_random_bytes
   end

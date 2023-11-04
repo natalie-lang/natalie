@@ -118,20 +118,21 @@ module Natalie
         )
       end
 
-      def generate_constant(transform, name, type)
+      def generate_constant(transform, name, type, value = name)
         name = comptime_string(name)
         type = comptime_string(type)
+        value = comptime_string(value)
 
         code = case type
                when 'int', 'unsigned short'
-                 "self->const_set(\"#{name}\"_s, Value::integer(#{name}))"
+                 "self->const_set(\"#{name}\"_s, Value::integer(#{value}))"
                when 'bigint'
-                 "self->const_set(\"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{name}))));"
+                 "self->const_set(\"#{name}\"_s, IntegerObject::create(Integer(BigInt(#{value}))));"
                else
                  raise "I don't yet know how to handle constant of type #{type.inspect}"
                end
 
-        transform.exec("#ifdef #{name}")
+        transform.exec("#ifdef #{value}")
         transform.exec(code)
         transform.exec('#endif')
         transform.push_nil
