@@ -452,3 +452,26 @@ Value OpenSSL_X509_Name_initialize(Env *env, Value self, Args args, Block *) {
     self->ivar_set(env, "@name"_s, new VoidPObject { name, OpenSSL_X509_NAME_cleanup });
     return self;
 }
+
+Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
+    auto kwarg_loc = kwargs ? kwargs->remove(env, "loc"_s) : nullptr;
+    auto kwarg_set = kwargs ? kwargs->remove(env, "set"_s) : nullptr;
+    env->ensure_no_extra_keywords(kwargs);
+    args.ensure_argc_between(env, 2, 3);
+    auto oid = args.at(0)->to_str(env);
+    auto value = args.at(1)->to_str(env);
+    auto type = args.at(2, nullptr);
+    if (type && !type->is_nil()) {
+        type = type->to_int(env);
+    } else {
+        auto OBJECT_TYPE_TEMPLATE = self->klass()->const_get("OBJECT_TYPE_TEMPLATE"_s)->as_hash();
+        type = OBJECT_TYPE_TEMPLATE->ref(env, oid);
+    }
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    int loc = kwarg_loc && !kwarg_loc->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_loc) : -1;
+    int set = kwarg_set && !kwarg_set->is_nil() ? IntegerObject::convert_to_nat_int_t(env, kwarg_set) : 0;
+    if (!X509_NAME_add_entry_by_txt(name, oid->c_str(), IntegerObject::convert_to_nat_int_t(env, type), reinterpret_cast<const unsigned char *>(value->c_str()), value->bytesize(), loc, set))
+        OpenSSL_X509_Name_raise_error(env, "X509_NAME_add_entry_by_txt");
+    return self;
+}

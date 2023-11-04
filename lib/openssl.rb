@@ -118,6 +118,7 @@ module OpenSSL
       }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
 
       __bind_method__ :initialize, :OpenSSL_X509_Name_initialize
+      __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
     end
   end
 end
