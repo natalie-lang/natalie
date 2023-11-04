@@ -1,5 +1,4 @@
 require_relative './lib/natalie/compiler/flags'
-require 'date'
 
 task default: :build
 
@@ -136,51 +135,6 @@ task tidy: %i[build tidy_internal]
 
 desc 'Lint GC visiting code'
 task gc_lint: %i[build gc_lint_internal]
-
-desc 'Generate Prism sources from templates (do this when updating Prism)'
-task prism_templated_sources: :build_dir do
-  build_dir = File.expand_path('build/prism', __dir__)
-  rm_rf build_dir
-  cp_r 'ext/prism', build_dir
-  sh <<-END
-    cd #{build_dir} && \
-    bundle install && \
-    find . -type f > /tmp/prism_before.txt && \
-    rake templates && \
-    find . -type f > /tmp/prism_after.txt
-  END
-  gen_dir = File.join(__dir__, 'ext/prism-generated')
-  rm_rf gen_dir
-  mkdir_p gen_dir
-  File.open(File.join(gen_dir, 'README.md'), 'w') do |readme|
-    readme.puts "The files in this directory are generated from the Prism sources."
-    readme.puts "We have a rake task that does this for us:"
-    readme.puts
-    readme.puts "    rake prism_templated_sources"
-    readme.puts
-    readme.puts "The license for Prism as of the date (#{Date.today.strftime('%Y-%m-%d')}) these were generated is copied below:"
-    readme.puts
-    readme.puts '---------------------------------------------'
-    readme.puts
-    readme.puts File.read(File.join(build_dir, 'LICENSE.md'))
-  end
-  files = (
-    File.read('/tmp/prism_after.txt').split("\n") - File.read('/tmp/prism_before.txt').split("\n")
-  ).grep_v(/\.java/)
-  files.each do |src|
-    full_dest = File.join(gen_dir, src)
-    dir = File.split(full_dest).first
-    mkdir_p dir unless File.exist?(dir)
-    cp File.join(build_dir, src), full_dest
-  end
-  # we don't have Method#parameters yet, so change that to use Method#arity
-  serialize_path = File.join(gen_dir, 'lib/prism/serialize.rb')
-  patched_source = File.read(serialize_path).sub(
-    '.parameters.none? { |_, name| name == :offset }',
-    '.arity == 1'
-  )
-  File.write(serialize_path, patched_source)
-end
 
 # # # # Docker Tasks (used for CI) # # # #
 
@@ -449,13 +403,23 @@ end
 
 file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{h,c,rb}'] do
   build_dir = File.expand_path('build/prism', __dir__)
+  patch_dir = File.expand_path('ext/prism-patches', __dir__)
+
   rm_rf build_dir
   cp_r 'ext/prism', build_dir
-  Rake::FileList['ext/prism-generated/**/*.{rb,c,h}'].each do |path|
-    dest = File.join(build_dir, path.sub(%r{^ext/prism-generated}, ''))
-    cp path, dest
+
+  sh <<-SH
+    cd #{build_dir} && \
+    git apply #{File.join(patch_dir, 'Rakefile.patch')} && \
+    PRISM_FFI_BACKEND=true rake templates
+  SH
+
+  # patch some files in Prism
+  Dir.glob(File.expand_path('ext/prism-patches/*.patch', __dir__)).each do |patch|
+    next if patch.end_with?('Rakefile.patch') # already applied
+    sh "cd #{build_dir} && git apply #{patch}"
   end
-  File.write(File.join(build_dir, 'rakelib/test.rake'), '') # disable this task since it tries to load ruby_memcheck
+
   sh <<-SH
     cd #{build_dir} && \
     make && \
