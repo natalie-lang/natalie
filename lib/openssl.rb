@@ -102,4 +102,18 @@ module OpenSSL
   module KDF
     class KDFError < OpenSSLError; end
   end
+
+  module X509
+    class Name
+      OBJECT_TYPE_TEMPLATE = {
+        'C' => ASN1::PRINTABLESTRING,
+        'countryName' => ASN1::PRINTABLESTRING,
+        'serialNumber' => ASN1::PRINTABLESTRING,
+        'dnQualifier' => ASN1::PRINTABLESTRING,
+        'DC' => ASN1::IA5STRING,
+        'domainComponent' => ASN1::IA5STRING,
+        'emailAddress' => ASN1::IA5STRING
+      }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
+    end
+  end
 end
