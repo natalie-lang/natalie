@@ -17,7 +17,7 @@ describe :non_blocking_fiber, shared: true do
 
   context "root Fiber of a new thread" do
     it "returns false" do
-      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
         thread = Thread.new do
           fiber = Fiber.new { @method.call }
           blocking = fiber.resume
@@ -30,7 +30,7 @@ describe :non_blocking_fiber, shared: true do
     end
 
     it "returns false for blocking: false" do
-      NATFIXME 'Threads', exception: NameError, message: 'uninitialized constant Thread' do
+      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
         thread = Thread.new do
           fiber = Fiber.new(blocking: false) { @method.call }
           blocking = fiber.resume

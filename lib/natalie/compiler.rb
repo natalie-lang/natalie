@@ -341,13 +341,5 @@ module Natalie
     def use_speedscope?
       system("speedscope --version > /dev/null 2>&1")
     end
-
-    # FIXME: implement pp
-    if RUBY_ENGINE == 'natalie'
-      def pp(obj)
-        File.open('/tmp/pp.txt', 'w') { |f| f.write(obj.inspect) }
-        puts `ruby -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
-      end
-    end
   end
 end
