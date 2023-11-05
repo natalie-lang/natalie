@@ -82,51 +82,6 @@ describe 'regexp' do
     end
   end
 
-  describe '#match' do
-    describe '#size' do
-      it 'returns the number of captures (including the whole match)' do
-        match = /foo/.match('foo')
-        match.size.should == 1
-        match = /bar/.match('foo bar baz')
-        match.size.should == 1
-        match = /bar (baz)/.match('foo bar baz')
-        match.size.should == 2
-      end
-    end
-
-    describe '#length' do
-      it 'returns the number of captures (including the whole match)' do
-        match = /foo/.match('foo')
-        match.length.should == 1
-        match = /bar/.match('foo bar baz')
-        match.length.should == 1
-        match = /bar (baz)/.match('foo bar baz')
-        match.length.should == 2
-      end
-    end
-
-    describe '#to_s' do
-      it 'returns the matched string' do
-        match = /foo/.match('foo')
-        match.to_s.should == 'foo'
-        match = /bar/.match('foo bar baz')
-        match.to_s.should == 'bar'
-        match = /bar (baz)/.match('foo bar baz')
-        match.to_s.should == 'bar baz'
-      end
-    end
-
-    describe '#[]' do
-      it 'returns a capture group' do
-        match = /(foo) bar (baz)/.match('foo bar baz')
-        match[0].should == 'foo bar baz'
-        match[1].should == 'foo'
-        match[2].should == 'baz'
-        match[3].should == nil
-      end
-    end
-  end
-
   describe '=~ on String' do
     it 'works' do
       result = 'foo' =~ /foo/
@@ -138,14 +93,6 @@ describe 'regexp' do
       result.should == 0
       result = 'n' =~ /^\*(.+)/
       result.should be_nil
-    end
-  end
-
-  describe '#match on String' do
-    it 'works' do
-      match = 'foo'.match(/foo/)
-      match.should be_kind_of(MatchData)
-      match[0].should == 'foo'
     end
   end
 
@@ -232,13 +179,6 @@ describe 'regexp' do
     it 'returns the literal representation of the regexp' do
       r = /^foo\n[0-9]+ (bar){1,2}$/ixm
       r.options.should == 7
-    end
-  end
-
-  describe 'MatchData' do
-    describe '#captures' do
-      /foo/.match('foo').captures.should == []
-      /f(.)(o)/.match('foo').captures.should == ['o', 'o']
     end
   end
 
