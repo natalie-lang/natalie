@@ -43,7 +43,7 @@ Value init(Env *env, Value self) {
     ModuleObject *Etc = new ModuleObject { "Etc" };
     GlobalEnv::the()->Object()->const_set("Etc"_s, Etc);
     Etc->const_set("VERSION"_s, new StringObject { "1.3.0" });
-    Etc->const_set("CS_PATH"_s, new StringObject { _CS_PATH });
+    Etc->const_set("CS_PATH"_s, new IntegerObject { _CS_PATH });
     // POSIX.1 variables [sysconf(3) man page]
     Etc->const_set("SC_ARG_MAX"_s, new IntegerObject { _SC_ARG_MAX });
     Etc->const_set("SC_CHILD_MAX"_s, new IntegerObject { _SC_CHILD_MAX });
