@@ -2,6 +2,7 @@ require 'natalie/inline'
 require 'openssl.cpp'
 
 __ld_flags__ '-lcrypto'
+__ld_flags__ '-lssl'
 
 module OpenSSL
   class OpenSSLError < StandardError; end
@@ -99,6 +100,12 @@ module OpenSSL
   class HMAC
     def self.hexdigest(digest, key, data)
       digest(digest, key, data).unpack1('H*')
+    end
+  end
+
+  module SSL
+    class SSLContext
+      __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
     end
   end
 

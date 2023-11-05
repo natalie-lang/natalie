@@ -5,6 +5,7 @@
 #include <openssl/hmac.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include "natalie.hpp"
@@ -19,6 +20,11 @@ static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
 static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->void_ptr());
     EVP_MD_CTX_free(mdctx);
+}
+
+static void OpenSSL_SSL_CTX_cleanup(VoidPObject *self) {
+    auto ctx = static_cast<SSL_CTX *>(self->void_ptr());
+    SSL_CTX_free(ctx);
 }
 
 static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
@@ -272,6 +278,15 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args args, Block *) {
     if (!res)
         OpenSSL_raise_error(env, "HMAC");
     return new StringObject { reinterpret_cast<const char *>(md), md_len };
+}
+
+Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0); // NATFIXME: Add deprecated version argument
+    SSL_CTX *ctx = SSL_CTX_new(TLS_method());
+    if (!ctx)
+        OpenSSL_raise_error(env, "SSL_CTX_new");
+    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    return self;
 }
 
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
