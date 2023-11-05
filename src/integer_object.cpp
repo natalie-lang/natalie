@@ -168,6 +168,11 @@ Value IntegerObject::mod(Env *env, Value arg) {
 }
 
 Value IntegerObject::pow(Env *env, Value arg) {
+    if ((arg->is_float() || arg->is_rational()) && m_integer < 0) {
+        auto comp = new ComplexObject { this };
+        return comp->send(env, "**"_s, { arg });
+    }
+
     if (arg->is_float())
         return Value::floatingpoint(m_integer.to_double())->as_float()->pow(env, arg);
 
