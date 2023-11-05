@@ -5,7 +5,7 @@ module Etc
   Passwd = Struct.new(:name, :passwd, :uid, :gid, :gecos, :dir, :shell)
   Group = Struct.new(:name, :passwd, :gid, :mem)
   
-  #__bind_static_method__ :confstr, :Etc_confstr
+  __bind_static_method__ :confstr, :Etc_confstr
   __bind_static_method__ :endgrent, :Etc_endgrent
   __bind_static_method__ :endpwent, :Etc_endpwent
   __bind_static_method__ :getgrent, :Etc_getgrent

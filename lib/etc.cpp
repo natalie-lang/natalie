@@ -64,6 +64,21 @@ Value init(Env *env, Value self) {
     return NilObject::the();
 }
 
+Value Etc_confstr(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    const int name = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const auto size = ::confstr(name, nullptr, 0);
+    if (size == 0) {
+        if (errno)
+            env->raise_errno();
+        return NilObject::the();
+    }
+    TM::String buf(size - 1, '\0');
+    if (!::confstr(name, &buf[0], size))
+        env->raise_errno();
+    return new StringObject { std::move(buf) };
+}
+
 Value Etc_endgrent(Env *env, Value self, Args args, Block *_block) {
     args.ensure_argc_is(env, 0);
     ::endgrent();
