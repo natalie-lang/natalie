@@ -119,9 +119,7 @@ EncodingObject *EncodingObject::set_default_internal(Env *env, Value arg) {
 Value EncodingObject::find(Env *env, Value name) {
     if (name->is_encoding())
         return name;
-    if (!name->is_string())
-        name = name->to_str(env);
-    auto string = name->as_string()->string().lowercase();
+    auto string = name->to_str(env)->string().lowercase();
     if (string == "internal") {
         auto intenc = EncodingObject::default_internal();
         if (!intenc) return NilObject::the();

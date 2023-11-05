@@ -890,6 +890,7 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         auto to_ary = "to_ary"_s;
         auto to_s = "to_s"_s;
         if (item->respond_to(env, to_str)) {
+            // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
             if (!rval->is_nil()) return rval->as_string();
         }
@@ -1329,10 +1330,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
-    auto to_str = "to_str"_s;
-
-    if (!factor->is_string() && factor->respond_to(env, to_str))
-        factor = factor.send(env, to_str);
+    if (!factor->is_string() && factor->respond_to(env, "to_str"_s))
+        factor = factor->to_str(env);
 
     if (factor->is_string()) {
         return join(env, factor);

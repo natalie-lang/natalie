@@ -153,16 +153,15 @@ private:
         auto to_str = "to_str"_s;
         auto to_int = "to_int"_s;
         SymbolObject *rlimit_symbol = nullptr;
-        if (val->is_symbol() || val->is_string() || val->respond_to(env, to_str)) {
-            if (val->is_symbol()) {
-                rlimit_symbol = val->as_symbol();
-            } else if (val->is_string()) {
-                rlimit_symbol = val->as_string()->to_symbol(env);
-            } else {
-                auto tsval = val->send(env, to_str);
-                if (tsval->is_string()) {
-                    rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
-                }
+        if (val->is_symbol()) {
+            rlimit_symbol = val->as_symbol();
+        } else if (val->is_string()) {
+            rlimit_symbol = val->as_string()->to_symbol(env);
+        } else if (val->respond_to(env, to_str)) {
+            // Need to support nil, don't use Object::to_str
+            auto tsval = val->send(env, to_str);
+            if (tsval->is_string()) {
+                rlimit_symbol = tsval->as_string()->to_sym(env)->as_symbol();
             }
         }
         if (rlimit_symbol) {

@@ -300,9 +300,7 @@ Value IoObject::write_file(Env *env, Args args) {
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer->is_nil()) {
-        if (!buffer->is_string() && buffer->respond_to(env, "to_str"_s))
-            buffer = buffer.send(env, "to_str"_s);
-        buffer->assert_type(env, Object::Type::String, "String");
+        buffer = buffer->to_str(env);
     } else {
         buffer = nullptr;
     }
@@ -529,9 +527,7 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     }
     buf.truncate(bytes_read);
     if (out_string != nullptr && !out_string->is_nil()) {
-        if (!out_string->is_string())
-            out_string = out_string->to_str(env);
-        out_string->assert_type(env, Object::Type::String, "String");
+        out_string = out_string->to_str(env);
         out_string->as_string()->set_str(buf.c_str(), buf.size());
         return out_string;
     }

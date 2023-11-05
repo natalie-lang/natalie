@@ -80,7 +80,7 @@ Value EnvObject::delete_if(Env *env, Block *block) {
 }
 
 Value EnvObject::delete_key(Env *env, Value name, Block *block) {
-    auto namestr = name->is_string() ? name->as_string() : name->to_str(env);
+    auto namestr = name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
         auto value_obj = new StringObject { value };
@@ -146,8 +146,7 @@ Value EnvObject::each_value(Env *env, Block *block) {
 }
 
 Value EnvObject::assoc(Env *env, Value name) {
-    StringObject *namestr;
-    namestr = name->is_string() ? name->as_string() : name->to_str(env);
+    auto namestr = name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
         StringObject *valuestr = new StringObject { value };
@@ -169,8 +168,7 @@ Value EnvObject::rassoc(Env *env, Value value) {
 }
 
 Value EnvObject::ref(Env *env, Value name) {
-    StringObject *namestr;
-    namestr = name->is_string() ? name->as_string() : name->to_str(env);
+    auto namestr = name->to_str(env);
     char *value = getenv(namestr->c_str());
     if (value) {
         return string_with_default_encoding(value);
@@ -204,12 +202,11 @@ Value EnvObject::fetch(Env *env, Value name, Value default_value, Block *block) 
 }
 
 Value EnvObject::refeq(Env *env, Value name, Value value) {
-    StringObject *namestr, *valuestr;
-    namestr = name->is_string() ? name->as_string() : name->to_str(env);
+    auto namestr = name->to_str(env);
     if (value->is_nil()) {
         unsetenv(namestr->c_str());
     } else {
-        valuestr = value->is_string() ? value->as_string() : value->to_str(env);
+        auto valuestr = value->to_str(env);
         auto result = setenv(namestr->c_str(), valuestr->c_str(), 1);
         if (result == -1)
             env->raise_errno();
@@ -228,10 +225,7 @@ Value EnvObject::keep_if(Env *env, Block *block) {
 }
 
 Value EnvObject::key(Env *env, Value value) {
-    if (!value->is_string() && value->respond_to(env, "to_str"_s))
-        value = value->send(env, "to_str"_s);
-    value->assert_type(env, Object::Type::String, "String");
-
+    value = value->to_str(env);
     const auto &needle = value->as_string()->string();
 
     size_t i = 1;
@@ -253,18 +247,15 @@ Value EnvObject::keys(Env *env) {
 }
 
 bool EnvObject::has_key(Env *env, Value name) {
-    StringObject *namestr;
-    namestr = name->is_string() ? name->as_string() : name->to_str(env);
+    auto namestr = name->to_str(env);
     char *value = getenv(namestr->c_str());
     return (value != NULL);
 }
 
 Value EnvObject::has_value(Env *env, Value name) {
-    if (!name->is_string()) {
-        if (!name->respond_to(env, "to_str"_s))
-            return NilObject::the();
-        name = name->send(env, "to_str"_s);
-    }
+    if (!name->respond_to(env, "to_str"_s))
+        return NilObject::the();
+    name = name->to_str(env);
     if (to_hash(env, nullptr)->as_hash()->has_value(env, name))
         return TrueObject::the();
     return FalseObject::the();
@@ -400,7 +391,7 @@ Value EnvObject::slice(Env *env, Args args) {
     auto result = new HashObject;
     for (size_t i = 0; i < args.size(); i++) {
         auto name = args[i];
-        auto namestr = name->is_string() ? name->as_string() : name->to_str(env);
+        auto namestr = name->to_str(env);
 
         const char *value = getenv(namestr->c_str());
         if (value != nullptr) {
