@@ -40,28 +40,22 @@ Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
 }
 
 Value init(Env *env, Value self) {
-    ModuleObject *Etc = new ModuleObject { "Etc" };
-    GlobalEnv::the()->Object()->const_set("Etc"_s, Etc);
-    Etc->const_set("VERSION"_s, new StringObject { "1.3.0" });
-    Etc->const_set("CS_PATH"_s, new StringObject { _CS_PATH });
-    // POSIX.1 variables [sysconf(3) man page]
-    Etc->const_set("SC_ARG_MAX"_s, new IntegerObject { _SC_ARG_MAX });
-    Etc->const_set("SC_CHILD_MAX"_s, new IntegerObject { _SC_CHILD_MAX });
-    Etc->const_set("SC_HOST_NAME_MAX"_s, new IntegerObject { _SC_HOST_NAME_MAX });
-    Etc->const_set("SC_LOGIN_NAME_MAX"_s, new IntegerObject { _SC_LOGIN_NAME_MAX });
-    Etc->const_set("SC_NGROUPS_MAX"_s, new IntegerObject { _SC_NGROUPS_MAX });
-    Etc->const_set("SC_CLK_TCK"_s, new IntegerObject { _SC_CLK_TCK });
-    Etc->const_set("SC_OPEN_MAX"_s, new IntegerObject { _SC_OPEN_MAX });
-    Etc->const_set("SC_PAGESIZE"_s, new IntegerObject { _SC_PAGESIZE });
-    Etc->const_set("SC_PAGE_SIZE"_s, new IntegerObject { _SC_PAGE_SIZE });
-    Etc->const_set("SC_RE_DUP_MAX"_s, new IntegerObject { _SC_RE_DUP_MAX });
-    Etc->const_set("SC_STREAM_MAX"_s, new IntegerObject { _SC_STREAM_MAX });
-    Etc->const_set("SC_SYMLOOP_MAX"_s, new IntegerObject { _SC_SYMLOOP_MAX });
-    Etc->const_set("SC_TTY_NAME_MAX"_s, new IntegerObject { _SC_TTY_NAME_MAX });
-    Etc->const_set("SC_TZNAME_MAX"_s, new IntegerObject { _SC_TZNAME_MAX });
-    Etc->const_set("SC_VERSION"_s, new IntegerObject { _SC_VERSION });
-
     return NilObject::the();
+}
+
+Value Etc_confstr(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    const int name = IntegerObject::convert_to_nat_int_t(env, args[0]);
+    const auto size = ::confstr(name, nullptr, 0);
+    if (size == 0) {
+        if (errno)
+            env->raise_errno();
+        return NilObject::the();
+    }
+    TM::String buf(size - 1, '\0');
+    if (!::confstr(name, &buf[0], size))
+        env->raise_errno();
+    return new StringObject { std::move(buf) };
 }
 
 Value Etc_endgrent(Env *env, Value self, Args args, Block *_block) {
