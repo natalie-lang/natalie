@@ -428,11 +428,7 @@ Value init(Env *env, Value self) {
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
-    Value length = args[0];
-    const auto to_int = "to_int"_s;
-    if (!length->is_integer() && length->respond_to(env, to_int))
-        length = length->send(env, to_int);
-    length->assert_type(env, ObjectType::Integer, "Integer");
+    Value length = args[0]->to_int(env);
     const auto num = static_cast<int>(length->as_integer()->to_nat_int_t());
     if (num < 0)
         env->raise("ArgumentError", "negative string size (or size too big)");

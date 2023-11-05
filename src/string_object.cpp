@@ -2020,11 +2020,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        if (!base_obj->is_integer() && base_obj->respond_to(env, "to_int"_s))
-            base_obj = base_obj->send(env, "to_int"_s);
-
-        base_obj->assert_type(env, Object::Type::Integer, "Integer");
-        base = base_obj->as_integer()->to_nat_int_t();
+        base = base_obj->to_int(env)->to_nat_int_t();
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2199,8 +2195,6 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     }
     int max_count = 0;
     if (max_count_value) {
-        if (!max_count_value->is_integer() && max_count_value->respond_to(env, "to_int"_s))
-            max_count_value = max_count_value->send(env, "to_int"_s);
         max_count = IntegerObject::convert_to_int(env, max_count_value);
     }
     if (length() == 0) {
@@ -3200,15 +3194,8 @@ Value StringObject::sum(Env *env, Value val) {
     int base = 16;
     int sum = 0;
 
-    if (val) {
-        if (!val->is_integer() && val->respond_to(env, "to_int"_s)) {
-            val = val->send(env, "to_int"_s);
-        }
-
-        val->assert_type(env, Object::Type::Integer, "Integer");
-
-        base = val->as_integer()->to_nat_int_t();
-    }
+    if (val)
+        base = val->to_int(env)->to_nat_int_t();
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];

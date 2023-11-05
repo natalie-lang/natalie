@@ -151,7 +151,6 @@ private:
     static int value_to_resource(Env *env, Value val) {
         int resource;
         auto to_str = "to_str"_s;
-        auto to_int = "to_int"_s;
         SymbolObject *rlimit_symbol = nullptr;
         if (val->is_symbol()) {
             rlimit_symbol = val->as_symbol();
@@ -177,11 +176,6 @@ private:
             val = rlimval->as_integer();
         }
 
-        if (!val->is_integer() && val->respond_to(env, to_int)) {
-            val = val->send(env, to_int);
-        }
-
-        val->assert_type(env, Object::Type::Integer, "Integer");
         resource = IntegerObject::convert_to_nat_int_t(env, val);
         return resource;
     }
