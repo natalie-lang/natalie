@@ -85,6 +85,9 @@ module OpenSSL
       raise if name.to_s != normalized_name
       klass = Class.new(self) do
         define_method(:initialize) { |*args| super(normalized_name, *args) }
+        define_singleton_method(:digest) { |*args| Digest.digest(normalized_name, *args) }
+        define_singleton_method(:base64digest) { |*args| Digest.base64digest(normalized_name, *args) }
+        define_singleton_method(:hexdigest) { |*args| Digest.hexdigest(normalized_name, *args) }
       end
       const_set(name, klass)
       klass
