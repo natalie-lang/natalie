@@ -107,6 +107,12 @@ module OpenSSL
     class SSLContext
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
     end
+
+    class SSLSocket
+      attr_reader :context, :io
+
+      __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
+    end
   end
 
   module KDF

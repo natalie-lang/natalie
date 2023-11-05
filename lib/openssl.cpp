@@ -289,6 +289,24 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
     return self;
 }
 
+Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto io = args.at(0);
+    if (!io->is_io())
+        env->raise("TypeError", "wrong argument type {} (expected File)", io->klass()->inspect_str());
+    auto context = args.at(1, nullptr);
+    auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("SSL"_s)->const_get("SSLContext"_s);
+    if (!context || context->is_nil()) {
+        context = Object::_new(env, SSLContext, {}, nullptr);
+    } else {
+        if (!context->is_a(env, SSLContext->as_class()))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
+    }
+    self->ivar_set(env, "@context"_s, context);
+    self->ivar_set(env, "@io"_s, io);
+    return self;
+}
+
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
