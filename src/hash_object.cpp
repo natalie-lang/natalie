@@ -560,7 +560,7 @@ Value HashObject::to_h(Env *env, Block *block) {
         block_args[1] = node.val;
         auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, Args(2, block_args), nullptr);
         if (!result->is_array() && result->respond_to(env, "to_ary"_s))
-            result = result.send(env, "to_ary"_s);
+            result = result->to_ary(env);
         if (!result->is_array())
             env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->inspect_str());
         auto result_array = result->as_array();

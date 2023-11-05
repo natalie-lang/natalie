@@ -551,10 +551,8 @@ void IoObject::putary(Env *env, ArrayObject *ary) {
 void IoObject::puts(Env *env, Value val) {
     if (val->is_string()) {
         this->putstr(env, val->as_string());
-    } else if (val->respond_to(env, "to_ary"_s)) {
-        auto ary = val->send(env, "to_ary"_s);
-        ary->assert_type(env, Object::Type::Array, "Array");
-        this->putary(env, ary->as_array());
+    } else if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
+        this->putary(env, val->to_ary(env));
     } else {
         Value str = val->send(env, "to_s"_s);
         if (str->is_string()) {

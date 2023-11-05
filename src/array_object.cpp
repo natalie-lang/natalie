@@ -308,14 +308,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     new_ary->expand_with_nil(env, start);
 
     // the new entry/entries
-    auto to_ary = "to_ary"_s;
-    if (val->is_array() || val->respond_to(env, to_ary)) {
-        if (!val->is_array())
-            val = val.send(env, to_ary);
-
-        val->assert_type(env, Object::Type::Array, "Array");
-
-        for (auto &v : *val->as_array()) {
+    if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
+        for (auto &v : *val->to_ary(env)) {
             new_ary->push(v);
         }
     } else {
@@ -895,6 +889,7 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
             if (!rval->is_nil()) return rval->as_string();
         }
         if (item->respond_to(env, to_ary)) {
+            // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
             if (!rval->is_nil()) return rval->as_array()->join(env, joiner)->as_string();
         }
