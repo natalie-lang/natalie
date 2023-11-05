@@ -12,6 +12,9 @@ EncodingObject::EncodingObject()
 // TODO:
 // * support encoding options
 Value EncodingObject::encode(Env *env, EncodingObject *orig_encoding, StringObject *str) const {
+    if (num() == orig_encoding->num())
+        return str;
+
     StringObject temp_string = StringObject("", (EncodingObject *)this);
     ClassObject *EncodingClass = find_top_level_const(env, "Encoding"_s)->as_class();
 

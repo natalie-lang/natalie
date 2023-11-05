@@ -131,12 +131,20 @@ describe 'string' do
     it 'changes the encoding while reinterpreting the characters' do
       s = 'abc123'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
+
+      # change to binary
       s2 = s.encode 'ascii-8bit'
       s2.encoding.should == Encoding::ASCII_8BIT
       s2.should == 'abc123'
+
+      # change back to utf-8
       s3 = s2.encode 'utf-8'
       s3.encoding.should == Encoding::UTF_8
       s3.should == 'abc123'
+
+      # change from binary to binary (no change)
+      s4 = "\x86\x86\x86".b.encode 'ascii-8bit'
+      s4.should == "\x86\x86\x86".b
     end
 
     it 'raises an error if a character cannot be converted to the new encoding' do
