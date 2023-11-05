@@ -77,4 +77,8 @@ describe 'constants' do
   it 'finds constants in a mixin when resolved from a subclass' do
     TheClass.new.mixin_constant.should == :mixin
   end
+
+  it 'raises NameError for missing const' do
+    -> { UnknownConst; nil }.should raise_error(NameError, /uninitialized constant UnknownConst/)
+  end
 end
