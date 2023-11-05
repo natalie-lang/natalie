@@ -181,7 +181,7 @@ class Complex
       r_n = Math.exp(n.real * Math.log(r) - n.imaginary * theta)
       theta_n = n.real * theta + n.imaginary * Math.log(r)
       Complex(r_n * Math.cos(theta_n), r_n * Math.sin(theta_n))
-    elsif n.is_a?(Float) || (n.is_a?(Integer) && n.negative?)
+    elsif n.is_a?(Float) || n.is_a?(Rational) || (n.is_a?(Integer) && n.negative?)
       r = Math.sqrt(real ** 2 + imaginary ** 2)
       theta = Math.atan2(imaginary, real)
       r_n = r ** n
