@@ -553,12 +553,8 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
 }
 
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
-    if (arg) {
-        if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
-            arg = arg->send(env, "to_str"_s);
-        arg->assert_type(env, Object::Type::String, "String");
-        initialize_copy(env, arg);
-    }
+    if (arg)
+        initialize_copy(env, arg->to_str(env));
     if (encoding) {
         force_encoding(env, encoding);
     }
@@ -567,10 +563,7 @@ Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capaci
 
 Value StringObject::initialize_copy(Env *env, Value arg) {
     assert_not_frozen(env);
-    if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
-        arg = arg->send(env, "to_str"_s);
-    arg->assert_type(env, Type::String, "String");
-    auto string_obj = arg->as_string();
+    auto string_obj = arg->to_str(env);
     m_string = string_obj->string();
     m_encoding = string_obj->encoding();
     return this;
@@ -582,15 +575,8 @@ Value StringObject::ltlt(Env *env, Value arg) {
 }
 
 Value StringObject::add(Env *env, Value arg) const {
-    String str;
-    if (arg->is_string()) {
-        str = arg->as_string()->string();
-    } else {
-        str = arg->to_str(env)->string();
-    }
-
     StringObject *new_string = new StringObject { m_string, m_encoding }; // TODO: encoding should be negotiated
-    new_string->append(str);
+    new_string->append(arg->to_str(env)->string());
     return new_string;
 }
 
@@ -744,11 +730,7 @@ Value StringObject::crypt(Env *env, Value salt) {
             env->raise("ArgumentError", "string contains null byte");
     }
 
-    if (!salt->is_string() && salt->respond_to(env, "to_str"_s))
-        salt = salt->send(env, "to_str"_s);
-    salt->assert_type(env, Object::Type::String, "String");
-
-    const auto salt_str = salt->as_string();
+    const auto salt_str = salt->to_str(env);
 
     // Use the null terminated length of the string
     if (strlen(salt_str->c_str()) < 2)
@@ -773,7 +755,7 @@ Value StringObject::match(Env *env, Value other, Value index, Block *block) {
         if (other->is_string()) {
             other = new RegexpObject { env, other->as_string()->string() };
         } else if (other->respond_to(env, "to_str"_s)) {
-            other = new RegexpObject { env, other->send(env, "to_str"_s)->as_string()->string() };
+            other = new RegexpObject { env, other->to_str(env)->string() };
         } else if (other->respond_to(env, "=~"_s)) {
             return other->send(env, "=~"_s, { this });
         }
@@ -869,10 +851,8 @@ size_t StringObject::char_count(Env *env) const {
 }
 
 Value StringObject::scan(Env *env, Value pattern, Block *block) {
-    if (!pattern->is_string() && !pattern->is_regexp() && pattern->respond_to(env, "to_str"_s))
-        pattern = pattern->send(env, "to_str"_s);
-    if (pattern->is_string())
-        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern));
+    if (!pattern->is_regexp())
+        pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern->to_str(env)));
     pattern->assert_type(env, Type::Regexp, "Regexp");
     auto regexp = pattern->as_regexp();
     auto ary = new ArrayObject {};
@@ -2040,11 +2020,7 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
 
     int base = 10;
     if (base_obj) {
-        if (!base_obj->is_integer() && base_obj->respond_to(env, "to_int"_s))
-            base_obj = base_obj->send(env, "to_int"_s);
-
-        base_obj->assert_type(env, Object::Type::Integer, "Integer");
-        base = base_obj->as_integer()->to_nat_int_t();
+        base = base_obj->to_int(env)->to_nat_int_t();
 
         if (base < 0 || base == 1 || base > 36) {
             env->raise("ArgumentError", "invalid radix {}", base);
@@ -2219,8 +2195,6 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     }
     int max_count = 0;
     if (max_count_value) {
-        if (!max_count_value->is_integer() && max_count_value->respond_to(env, "to_int"_s))
-            max_count_value = max_count_value->send(env, "to_int"_s);
         max_count = IntegerObject::convert_to_int(env, max_count_value);
     }
     if (length() == 0) {
@@ -2238,7 +2212,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     } else {
         // string case or object-coercible to string case
         if (!splitter->is_string() && splitter->respond_to(env, "to_str"_s))
-            splitter = splitter->send(env, "to_str"_s);
+            splitter = splitter->to_str(env);
         if (!splitter->is_string())
             env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
 
@@ -2263,8 +2237,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 }
 
 bool StringObject::include(Env *env, Value arg) {
-    if (!arg->is_string())
-        arg = arg->to_str(env);
+    arg = arg->to_str(env);
     if (arg->as_string()->is_empty())
         return true;
     return m_string.find(arg->as_string()->m_string) != -1;
@@ -3221,15 +3194,8 @@ Value StringObject::sum(Env *env, Value val) {
     int base = 16;
     int sum = 0;
 
-    if (val) {
-        if (!val->is_integer() && val->respond_to(env, "to_int"_s)) {
-            val = val->send(env, "to_int"_s);
-        }
-
-        val->assert_type(env, Object::Type::Integer, "Integer");
-
-        base = val->as_integer()->to_nat_int_t();
-    }
+    if (val)
+        base = val->to_int(env)->to_nat_int_t();
 
     for (size_t i = 0; i < length(); ++i) {
         sum += m_string[i];

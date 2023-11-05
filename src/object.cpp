@@ -518,16 +518,8 @@ StringObject *Object::as_string_or_raise(Env *env) {
 SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol();
-    } else if (is_string()) {
-        return as_string()->to_symbol(env);
-    } else if (respond_to(env, "to_str"_s)) {
-        Value str = send(env, "to_str"_s);
-        if (str->is_string()) {
-            return str->as_string()->to_symbol(env);
-        } else {
-            auto class_name = klass()->inspect_str();
-            env->raise("TypeError", "can't convert {} to String ({}#to_str gives {})", class_name, class_name, str->klass()->inspect_str());
-        }
+    } else if (is_string() || respond_to(env, "to_str"_s)) {
+        return to_str(env)->to_symbol(env);
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {

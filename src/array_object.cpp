@@ -308,14 +308,8 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     new_ary->expand_with_nil(env, start);
 
     // the new entry/entries
-    auto to_ary = "to_ary"_s;
-    if (val->is_array() || val->respond_to(env, to_ary)) {
-        if (!val->is_array())
-            val = val.send(env, to_ary);
-
-        val->assert_type(env, Object::Type::Array, "Array");
-
-        for (auto &v : *val->as_array()) {
+    if (val->is_array() || val->respond_to(env, "to_ary"_s)) {
+        for (auto &v : *val->to_ary(env)) {
             new_ary->push(v);
         }
     } else {
@@ -890,10 +884,12 @@ Value ArrayObject::_subjoin(Env *env, Value item, Value joiner) {
         auto to_ary = "to_ary"_s;
         auto to_s = "to_s"_s;
         if (item->respond_to(env, to_str)) {
+            // Need to support nil, don't use Object::to_str
             auto rval = item.send(env, to_str);
             if (!rval->is_nil()) return rval->as_string();
         }
         if (item->respond_to(env, to_ary)) {
+            // Need to support nil, don't use Object::to_ary
             auto rval = item.send(env, to_ary);
             if (!rval->is_nil()) return rval->as_array()->join(env, joiner)->as_string();
         }
@@ -1329,10 +1325,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
 }
 
 Value ArrayObject::multiply(Env *env, Value factor) {
-    auto to_str = "to_str"_s;
-
-    if (!factor->is_string() && factor->respond_to(env, to_str))
-        factor = factor.send(env, to_str);
+    if (!factor->is_string() && factor->respond_to(env, "to_str"_s))
+        factor = factor->to_str(env);
 
     if (factor->is_string()) {
         return join(env, factor);

@@ -343,11 +343,8 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
         // any fall-through of the above ugly logic
         env->raise("ArgumentError", "\"+HH:MM\", \"-HH:MM\", \"UTC\" or \"A\"..\"I\",\"K\"..\"Z\" expected for utc_offset: {}", str);
     }
-    if (!val->is_integer() && val->respond_to(env, "to_int"_s)) {
-        val = val->send(env, "to_int"_s);
-    }
-    if (val->is_integer()) {
-        auto seconds = val->as_integer()->to_nat_int_t();
+    if (val->is_integer() || val->respond_to(env, "to_int"_s)) {
+        auto seconds = val->to_int(env)->to_nat_int_t();
         if (seconds > hoursec * -24 && seconds < hoursec * 24) {
             return seconds;
         }
@@ -358,15 +355,9 @@ nat_int_t TimeObject::normalize_timezone(Env *env, Value val) {
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val) {
-    if (!val->is_integer()) {
-        if (val->respond_to(env, "to_i"_s)) {
-            val = val->send(env, "to_i"_s);
-        } else if (val->respond_to(env, "to_int"_s)) {
-            val = val->send(env, "to_int"_s);
-        }
-    }
-    val->assert_type(env, Object::Type::Integer, "Integer");
-    return val->as_integer()->to_nat_int_t();
+    if (!val->is_integer() && val->respond_to(env, "to_i"_s))
+        val = val->send(env, "to_i"_s);
+    return val->to_int(env)->to_nat_int_t();
 }
 
 nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat_int_t maxval) {
@@ -381,10 +372,8 @@ nat_int_t TimeObject::normalize_field(Env *env, Value val, nat_int_t minval, nat
 nat_int_t TimeObject::normalize_month(Env *env, Value val) {
     if (val->is_nil()) return 0;
     if (!val->is_integer()) {
-        if (!val->is_string() && val->respond_to(env, "to_str"_s)) {
-            val = val->send(env, "to_str"_s)->as_string();
-        }
-        if (val->is_string()) {
+        if (val->is_string() || val->respond_to(env, "to_str"_s)) {
+            val = val->to_str(env);
             auto monstr = val->as_string()->downcase(env, nullptr, nullptr)->as_string()->string();
             if (monstr == "jan") {
                 return 0;
@@ -418,7 +407,7 @@ nat_int_t TimeObject::normalize_month(Env *env, Value val) {
             env->raise("ArgumentError", "mon out of range");
         }
         if (val->respond_to(env, "to_int"_s)) {
-            val = val->send(env, "to_int"_s);
+            val = val->to_int(env);
         }
     }
     val->assert_type(env, Object::Type::Integer, "Integer");
@@ -437,7 +426,7 @@ RationalObject *TimeObject::convert_rational(Env *env, Value value) {
     } else if (value->respond_to(env, "to_r"_s) && value->respond_to(env, "to_int"_s)) {
         return value->send(env, "to_r"_s)->as_rational();
     } else if (value->respond_to(env, "to_int"_s)) {
-        return RationalObject::create(env, value->send(env, "to_int"_s)->as_integer(), new IntegerObject { 1 });
+        return RationalObject::create(env, value->to_int(env), new IntegerObject { 1 });
     } else {
         env->raise("TypeError", "can't convert {} into an exact number", value->klass()->inspect_str());
     }
