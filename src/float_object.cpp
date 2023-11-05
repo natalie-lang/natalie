@@ -350,6 +350,11 @@ Value FloatObject::divmod(Env *env, Value arg) {
 Value FloatObject::pow(Env *env, Value rhs) {
     Value lhs = this;
 
+    if ((rhs->is_float() || rhs->is_rational()) && to_double() < 0) {
+        auto comp = new ComplexObject { this };
+        return comp->send(env, "**"_s, { rhs });
+    }
+
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
