@@ -856,15 +856,15 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
     pattern->assert_type(env, Type::Regexp, "Regexp");
     auto regexp = pattern->as_regexp();
     auto ary = new ArrayObject {};
-    size_t char_index = 0;
-    size_t new_char_index = 0;
-    size_t total_chars = char_count(env);
+    size_t byte_index = 0;
+    size_t new_byte_index = 0;
+    size_t total_size = m_string.size();
     Value match_value = nullptr;
     MatchDataObject *match_obj = nullptr;
 
     auto caller_env = env->caller();
 
-    while (!(match_value = regexp->match(env, this, Value::integer(char_index)))->is_nil()) {
+    while (!(match_value = regexp->match_at_byte_offset(env, this, byte_index))->is_nil()) {
         match_obj = match_value->as_match_data();
         env->set_match(match_obj);
 
@@ -886,17 +886,17 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
             }
         }
 
-        auto offset_ary = match_obj->offset(env, Value::integer(0));
-        if (offset_ary)
-            new_char_index = offset_ary->as_array_or_raise(env)->last()->as_integer_or_raise(env)->to_nat_int_t();
-
-        if (new_char_index > char_index) {
-            char_index = new_char_index;
+        if (match_obj->is_empty()) {
+            // To match MRI String#scan semantics, we need to increment
+            // by a character every time there is an empty match...
+            auto result = next_char(&byte_index);
+            // ...and one extra when we reach the end of the string.
+            if (result.is_empty()) byte_index++;
         } else {
-            char_index++;
+            byte_index = match_obj->end_byte_offset(0);
         }
 
-        if (char_index > total_chars)
+        if (byte_index > total_size)
             break;
     }
 

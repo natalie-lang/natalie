@@ -64,6 +64,10 @@ ssize_t MatchDataObject::end_char_index(Env *env, size_t index) const {
     return StringObject::byte_index_to_char_index(chars, end);
 }
 
+bool MatchDataObject::is_empty() const {
+    return m_region->beg[0] == m_region->end[0];
+}
+
 /**
  * Return the capture indicated by the given index. This function supports
  * negative indices as well, provided they are within one overall length of the
