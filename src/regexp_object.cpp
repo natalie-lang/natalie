@@ -238,56 +238,67 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
 
 Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
     assert_initialized(env);
+
     Env *caller_env = env->caller();
     if (other->is_nil()) {
         caller_env->clear_match();
         return NilObject::the();
     }
+
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
     other->assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
 
-    nat_int_t start_index = 0;
+    nat_int_t start_char_index = 0;
+    nat_int_t start_byte_index = 0;
     if (start != nullptr) {
-        if (start.is_fast_integer()) {
-            start_index = start.get_fast_integer();
-        } else if (start->is_integer()) {
-            start_index = start->as_integer()->to_nat_int_t();
-        }
-        if (start_index < 0) {
+        start_byte_index = start->as_integer_or_raise(env)->to_nat_int_t();
+
+        if (start_byte_index < 0) {
             size_t byte_index = str_obj->bytesize();
             ssize_t char_index = 0;
             TM::StringView view;
             do {
                 view = str_obj->prev_char(&byte_index);
                 char_index--;
-            } while (byte_index != 0 && start_index < char_index);
-            start_index = byte_index;
+            } while (byte_index != 0 && start_byte_index < char_index);
+            start_byte_index = byte_index;
         } else {
             size_t byte_index = 0;
             ssize_t char_index = 0;
             TM::StringView view;
-            while (start_index > char_index) {
+            while (start_byte_index > char_index) {
                 view = str_obj->next_char(&byte_index);
                 char_index++;
                 if (view.is_empty()) break;
             }
-            start_index = byte_index;
+            start_byte_index = byte_index;
         }
     }
 
+    auto result = match_at_byte_offset(env, str_obj, start_byte_index);
+
+    if (block && !result->is_nil()) {
+        Value args[] = { result };
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
+    }
+
+    return result;
+}
+
+Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byte_index) {
+    assert_initialized(env);
+
+    Env *caller_env = env->caller();
+
     OnigRegion *region = onig_region_new();
-    int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
+    int result = search(str->c_str(), byte_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
-        auto match = new MatchDataObject { region, str_obj, this };
+        auto match = new MatchDataObject { region, str, this };
         caller_env->set_last_match(match);
 
-        if (block) {
-            Value args[] = { match };
-            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
-        }
         return match;
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
