@@ -78,6 +78,10 @@ end
 desc 'Test that the self-hosted compiler builds and runs'
 task test_self_hosted: :bootstrap do
   sh 'bin/nat --version'
+  # Until our test runner works with the self-hosted compiler, let's run the examples...
+  sh 'bin/nat examples/hello.rb'
+  sh 'bin/nat examples/fib.rb'
+  sh 'bin/nat examples/boardslam.rb 3 5 1'
 end
 
 def num_procs
