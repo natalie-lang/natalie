@@ -473,7 +473,7 @@ public:
 
 private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
-    StringObject *regexp_sub(Env *, RegexpObject *, StringObject *, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
+    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, StringObject *, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Value) const;
 
     using Object::Object;

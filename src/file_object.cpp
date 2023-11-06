@@ -70,6 +70,7 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
 
 Value FileObject::expand_path(Env *env, Value path, Value root) {
     path->assert_type(env, Object::Type::String, "String");
+
     StringObject *merged;
     if (path->as_string()->length() > 0 && path->as_string()->string()[0] == '/') {
         merged = path->as_string();
@@ -83,22 +84,31 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
             env->raise_errno();
         merged = StringObject::format("{}/{}", root, path->as_string());
     }
+
+    // This is a bit weird, but since the regexp stuff below sets last_match
+    // on the **calling** env, we need to call these with a child env.
+    Env e { env };
+    e.set_caller(env);
+
     // collapse ..
     auto dotdot = new RegexpObject { env, "[^/]*/\\.\\.(/|\\z)" };
     StringObject empty_string { "" };
     do {
-        merged = merged->sub(env, dotdot, &empty_string)->as_string();
+        merged = merged->sub(&e, dotdot, &empty_string)->as_string();
     } while (env->has_last_match());
+
     // collapse .
     auto dot = new RegexpObject { env, "/\\.(/|\\z)" };
     StringObject slash { "/" };
     do {
-        merged = merged->sub(env, dot, &slash)->as_string();
+        merged = merged->sub(&e, dot, &slash)->as_string();
     } while (env->has_last_match());
+
     // remove trailing slash
     if (merged->length() > 1 && merged->string()[merged->length() - 1] == '/') {
         merged->truncate(merged->length() - 1);
     }
+
     return merged;
 }
 

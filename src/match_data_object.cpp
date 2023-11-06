@@ -19,6 +19,13 @@ Value MatchDataObject::array(int start) {
     return array;
 }
 
+size_t MatchDataObject::bytesize() const {
+    if (m_region->num_regs == 0)
+        return 0;
+
+    return m_region->end[0] - m_region->beg[0];
+}
+
 Value MatchDataObject::byteoffset(Env *env, Value n) {
     nat_int_t index;
     if (n->is_string() || n->is_symbol()) {

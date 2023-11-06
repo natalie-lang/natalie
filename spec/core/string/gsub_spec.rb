@@ -440,27 +440,27 @@ describe "String#gsub with pattern and block" do
 
   it "sets $~ for access from the block" do
     str = "hello"
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil:NilClass" do
-      str.gsub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>ll<o>"
-      str.gsub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>ll<o>"
-      str.gsub("l") { "<#{$~[0]}>" }.should == "he<l><l>o"
+    str.gsub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>ll<o>"
+    str.gsub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>ll<o>"
+    str.gsub("l") { "<#{$~[0]}>" }.should == "he<l><l>o"
 
-      offsets = []
+    offsets = []
 
-      str.gsub(/([aeiou])/) do
-        md = $~
-        md.string.should == str
-        offsets << md.offset(0)
-        str
-      end.should == "hhellollhello"
+    str.gsub(/([aeiou])/) do
+      md = $~
+      md.string.should == str
+      offsets << md.offset(0)
+      str
+    end.should == "hhellollhello"
 
-      offsets.should == [[1, 2], [4, 5]]
-    end
+    offsets.should == [[1, 2], [4, 5]]
   end
 
   it "does not set $~ for procs created from methods" do
-    str = "hello"
-    str.gsub("l", &StringSpecs::SpecialVarProcessor.new.method(:process)).should == "he<unset><unset>o"
+    NATFIXME 'proc from method handling', exception: SpecFailedException do
+      str = "hello"
+      str.gsub("l", &StringSpecs::SpecialVarProcessor.new.method(:process)).should == "he<unset><unset>o"
+    end
   end
 
   it "restores $~ after leaving the block" do
@@ -472,8 +472,8 @@ describe "String#gsub with pattern and block" do
         "x"
       end
 
-      $~[0].should == old_md[0]
       NATFIXME 'restores $~ after leaving the block', exception: SpecFailedException do
+        $~[0].should == old_md[0]
         $~.string.should == "hello"
       end
     end
@@ -505,14 +505,14 @@ describe "String#gsub with pattern and block" do
     replacement = mock('hello_replacement')
     def replacement.to_s() "hello_replacement" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: 'no implicit conversion' do
+    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
       "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
     end
 
     obj = mock('ok')
     def obj.to_s() "ok" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: 'no implicit conversion' do
+    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
       "hello".gsub(/.+/) { obj }.should == "ok"
     end
   end

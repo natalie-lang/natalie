@@ -33,6 +33,7 @@ public:
     StringObject *string() const { return m_string; }
 
     size_t size() const { return m_region->num_regs; }
+    size_t bytesize() const;
     bool is_empty() const;
 
     ssize_t beg_byte_index(size_t) const;
@@ -46,11 +47,9 @@ public:
     Value offset(Env *, Value);
 
     Value begin(Env *, Value) const;
-    size_t begin_byte_offset(int index) const { return m_region->beg[index]; }
     Value captures(Env *);
     Value deconstruct_keys(Env *, Value);
     Value end(Env *, Value) const;
-    size_t end_byte_offset(int index) const { return m_region->end[index]; }
     bool eq(Env *, Value) const;
     bool has_captures() const { return size() > 1; }
     Value inspect(Env *);
