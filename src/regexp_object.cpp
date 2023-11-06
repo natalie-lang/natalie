@@ -255,13 +255,25 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
         } else if (start->is_integer()) {
             start_index = start->as_integer()->to_nat_int_t();
         }
-        auto chars = str_obj->chars(env)->as_array();
         if (start_index < 0) {
-            // FIXME: get char index
-            start_index += str_obj->length();
-            assert(start_index >= 0);
+            size_t byte_index = str_obj->bytesize();
+            ssize_t char_index = 0;
+            TM::StringView view;
+            do {
+                view = str_obj->prev_char(&byte_index);
+                char_index--;
+            } while (byte_index != 0 && start_index < char_index);
+            start_index = byte_index;
         } else {
-            start_index = StringObject::char_index_to_byte_index(chars, start_index);
+            size_t byte_index = 0;
+            ssize_t char_index = 0;
+            TM::StringView view;
+            while (start_index > char_index) {
+                view = str_obj->next_char(&byte_index);
+                char_index++;
+                if (view.is_empty()) break;
+            }
+            start_index = byte_index;
         }
     }
 

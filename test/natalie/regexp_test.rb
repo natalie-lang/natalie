@@ -42,6 +42,42 @@ describe 'regexp' do
     end
   end
 
+  describe '#match' do
+    it 'works' do
+      match = /foo/.match('foo')
+      match.should be_kind_of(MatchData)
+      match[0].should == 'foo'
+    end
+
+    it 'accepts a start argument' do
+      match = /foo/.match('😊😊foo bar foo', 4)
+      match.should be_kind_of(MatchData)
+      match.begin(0).should == 10
+
+      match = /foo/.match('foo bar foo😊', -4)
+      match.should be_kind_of(MatchData)
+      match.begin(0).should == 8
+    end
+  end
+
+  describe '#match on String' do
+    it 'works' do
+      match = 'foo'.match(/foo/)
+      match.should be_kind_of(MatchData)
+      match[0].should == 'foo'
+    end
+
+    it 'accepts a start argument' do
+      match = '😊😊foo bar foo'.match(/foo/, 4)
+      match.should be_kind_of(MatchData)
+      match.begin(0).should == 10
+
+      match = 'foo bar foo😊'.match(/foo/, -4)
+      match.should be_kind_of(MatchData)
+      match.begin(0).should == 8
+    end
+  end
+
   describe '=~' do
     it 'return an integer for match' do
       result = /foo/ =~ 'foo'

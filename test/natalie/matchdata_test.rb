@@ -1,14 +1,6 @@
 require_relative '../spec_helper'
 
 describe 'MatchData' do
-  describe '#match on String' do
-    it 'works' do
-      match = 'foo'.match(/foo/)
-      match.should be_kind_of(MatchData)
-      match[0].should == 'foo'
-    end
-  end
-
   describe '#captures' do
     /foo/.match('foo').captures.should == []
     /f(.)(o)/.match('foo').captures.should == ['o', 'o']

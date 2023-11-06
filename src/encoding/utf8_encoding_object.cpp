@@ -28,10 +28,10 @@ std::pair<bool, StringView> Utf8EncodingObject::prev_char(const String &string, 
     Code point ↔ UTF-8 conversion:
 
     First code point Last code point Byte 1   Byte 2   Byte 3   Byte 4
-    U+0000           U+007F	         0xxxxxxx
-    U+0080           U+07FF	         110xxxxx	10xxxxxx
-    U+0800           U+FFFF	         1110xxxx	10xxxxxx 10xxxxxx
-    U+10000          U+10FFFF        11110xxx	10xxxxxx 10xxxxxx 10xxxxxx
+    U+0000           U+007F          0xxxxxxx
+    U+0080           U+07FF          110xxxxx 10xxxxxx
+    U+0800           U+FFFF          1110xxxx 10xxxxxx 10xxxxxx
+    U+10000          U+10FFFF        11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 
     See: https://en.wikipedia.org/wiki/UTF-8
 */
