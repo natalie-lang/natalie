@@ -275,6 +275,20 @@ describe 'string' do
         s[2...].should == 'llo'
       end
     end
+
+    context 'given a range on a binary string' do
+      it 'returns a substring' do
+        s = 'abcdefg'.b
+        s.encoding.should == Encoding::ASCII_8BIT
+        s[1..-1].should == 'bcdefg'
+        s[1...-1].should == 'bcdef'
+        s = 'hello'
+        s[1..-1].should == 'ello'
+        s = 'n'
+        s[1..-1].should == ''
+        s[2..-1].should == nil
+      end
+    end
   end
 
   describe '#[]=' do

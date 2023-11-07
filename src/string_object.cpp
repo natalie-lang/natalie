@@ -840,6 +840,9 @@ Value StringObject::each_byte(Env *env, Block *block) {
 }
 
 size_t StringObject::char_count(Env *env) const {
+    if (m_encoding->is_single_byte_encoding())
+        return bytesize();
+
     size_t index = 0;
     size_t char_count = 0;
     auto c = next_char(&index);
@@ -1629,6 +1632,15 @@ Value StringObject::ref_fast_index(Env *env, size_t index) const {
 }
 
 Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
+    if (m_encoding->is_single_byte_encoding()) {
+        if (begin >= bytesize())
+            return NilObject::the();
+        if (end > bytesize())
+            end = bytesize();
+        auto length = end - begin;
+        return new StringObject { m_string.substring(begin, length), m_encoding };
+    }
+
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
