@@ -31,8 +31,7 @@ public:
         , m_integer { integer } { }
 
     static Value integer(nat_int_t integer) {
-        // This is required, beacause initialization by a literal is often
-        // ambiguous.
+        // This is required, because initialization by a literal is often ambiguous.
         return Value { integer };
     }
     static Value floatingpoint(double value);

@@ -840,6 +840,9 @@ Value StringObject::each_byte(Env *env, Block *block) {
 }
 
 size_t StringObject::char_count(Env *env) const {
+    if (m_encoding->is_single_byte_encoding())
+        return bytesize();
+
     size_t index = 0;
     size_t char_count = 0;
     auto c = next_char(&index);
@@ -854,17 +857,18 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
     if (!pattern->is_regexp())
         pattern = RegexpObject::compile(env, RegexpObject::quote(env, pattern->to_str(env)));
     pattern->assert_type(env, Type::Regexp, "Regexp");
+
     auto regexp = pattern->as_regexp();
     auto ary = new ArrayObject {};
-    size_t char_index = 0;
-    size_t new_char_index = 0;
-    size_t total_chars = char_count(env);
+    size_t byte_index = 0;
+    size_t new_byte_index = 0;
+    size_t total_size = m_string.size();
     Value match_value = nullptr;
     MatchDataObject *match_obj = nullptr;
 
     auto caller_env = env->caller();
 
-    while (!(match_value = regexp->match(env, this, Value::integer(char_index)))->is_nil()) {
+    while (!(match_value = regexp->match_at_byte_offset(env, this, byte_index))->is_nil()) {
         match_obj = match_value->as_match_data();
         env->set_match(match_obj);
 
@@ -886,26 +890,25 @@ Value StringObject::scan(Env *env, Value pattern, Block *block) {
             }
         }
 
-        auto offset_ary = match_obj->offset(env, Value::integer(0));
-        if (offset_ary)
-            new_char_index = offset_ary->as_array_or_raise(env)->last()->as_integer_or_raise(env)->to_nat_int_t();
-
-        if (new_char_index > char_index) {
-            char_index = new_char_index;
+        if (match_obj->is_empty()) {
+            // To match MRI String#scan semantics, we need to increment
+            // by a character every time there is an empty match...
+            auto result = next_char(&byte_index);
+            // ...and one extra when we reach the end of the string.
+            if (result.is_empty()) byte_index++;
         } else {
-            char_index++;
+            byte_index = match_obj->end_byte_index(0);
         }
 
-        if (char_index > total_chars)
+        if (byte_index > total_size)
             break;
     }
 
-    if (block) {
-        caller_env->set_last_match(match_obj);
-        return this;
-    }
-
     caller_env->set_last_match(match_obj);
+
+    if (block)
+        return this;
+
     return ary;
 }
 
@@ -1629,6 +1632,15 @@ Value StringObject::ref_fast_index(Env *env, size_t index) const {
 }
 
 Value StringObject::ref_fast_range(Env *env, size_t begin, size_t end) const {
+    if (m_encoding->is_single_byte_encoding()) {
+        if (begin >= bytesize())
+            return NilObject::the();
+        if (end > bytesize())
+            end = bytesize();
+        auto length = end - begin;
+        return new StringObject { m_string.substring(begin, length), m_encoding };
+    }
+
     size_t byte_index = 0;
     size_t char_index = 0;
     String result;
@@ -1684,16 +1696,34 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
-size_t StringObject::char_index_to_byte_index(ArrayObject *chars, size_t char_index) {
-    size_t current_char_index = 0;
+size_t StringObject::char_index_to_byte_index(size_t char_index) const {
+    if (m_encoding->is_single_byte_encoding())
+        return char_index;
+
     size_t current_byte_index = 0;
-    for (auto character : *chars) {
-        if (current_char_index >= char_index)
-            break;
-        ++current_char_index;
-        current_byte_index += character->as_string()->length();
+    size_t current_char_index = 0;
+    TM::StringView view;
+    while (char_index > current_char_index) {
+        view = next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
     }
     return current_byte_index;
+}
+
+size_t StringObject::byte_index_to_char_index(size_t byte_index) const {
+    if (m_encoding->is_single_byte_encoding())
+        return byte_index;
+
+    size_t current_byte_index = 0;
+    size_t current_char_index = 0;
+    TM::StringView view;
+    while (byte_index > current_byte_index) {
+        view = next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
+    }
+    return current_char_index;
 }
 
 Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
@@ -1819,33 +1849,34 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *block) {
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
+
     StringObject *replacement = nullptr;
     if (!block) {
         replacement_value->assert_type(env, Object::Type::String, "String");
         replacement = replacement_value->as_string();
     }
+
     if (find->is_string()) {
-        nat_int_t index = this->index_int(env, find->as_string(), 0);
-        if (index == -1) {
-            return dup(env)->as_string();
-        }
-        StringObject *out = new StringObject { c_str(), static_cast<size_t>(index), m_encoding };
-        if (block) {
-            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
-            result->assert_type(env, Object::Type::String, "String");
-            out->append(result->as_string());
-        } else {
-            out->append(replacement->as_string());
-        }
-        out->append(&c_str()[index + find->as_string()->length()]);
-        return out;
-    } else if (find->is_regexp()) {
-        MatchDataObject *match;
-        StringObject *expanded_replacement;
-        return regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, 0, block);
-    } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
+        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+        const int options = 0;
+        find = new RegexpObject { env, pattern, options };
     }
+    if (!find->is_regexp())
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
+
+    MatchDataObject *match;
+    StringObject *expanded_replacement;
+    String out;
+    regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, 0, block);
+
+    if (match) {
+        // append remaining bytes from source string
+        auto byte_index = match->end_byte_index(0);
+        if (byte_index >= 0 && (size_t)byte_index < m_string.size())
+            out.append(m_string.substring(byte_index));
+    }
+
+    return new StringObject { out, m_encoding };
 }
 
 Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
@@ -1860,34 +1891,45 @@ Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, 
 }
 
 Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
+
+    if (!replacement_value && !block)
+        env->raise("NotImplementedError", "Enumerator reply in String#gsub");
+
     StringObject *replacement = nullptr;
     if (replacement_value) {
         replacement_value->assert_type(env, Object::Type::String, "String");
         replacement = replacement_value->as_string();
     }
+
     if (find->is_string()) {
         const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
-    if (find->is_regexp()) {
-        MatchDataObject *match = nullptr;
-        StringObject *expanded_replacement = nullptr;
-        StringObject *result = this;
-        size_t start_index = 0;
-        do {
-            match = nullptr;
-            result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index, block);
-            if (match) {
-                start_index = match->beg_byte_index(0) + expanded_replacement->length();
-                if (match->group(0)->as_string()->is_empty() && start_index >= result->bytesize())
-                    break;
-            }
-        } while (match);
-        return result;
-    } else {
+    if (!find->is_regexp())
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
-    }
+
+    MatchDataObject *match = nullptr;
+    StringObject *expanded_replacement = nullptr;
+    size_t byte_index = 0;
+    String out;
+
+    do {
+        match = nullptr;
+        this->regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, byte_index, block);
+        if (match) {
+            byte_index = match->end_byte_index(0);
+            if (match->is_empty()) {
+                // The match was empty, and running it again with the same byte_index would cause an infinite loop.
+                // So we increment ahead one byte (and append that one byte), and run the match again.
+                if (byte_index < m_string.size())
+                    out.append_char(m_string.at(byte_index));
+                byte_index++;
+            }
+        }
+    } while (match);
+
+    return new StringObject { out, m_encoding };
 }
 
 Value StringObject::gsub_in_place(Env *env, Value find, Value replacement_value, Block *block) {
@@ -1921,32 +1963,38 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     return IntegerObject::create(Integer(byte));
 }
 
-StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index, Block *block) {
-    Value match_result = find->send(env, "match"_s, { this, Value::integer(start_index) });
-    if (match_result == NilObject::the())
-        return dup(env)->as_string();
+void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+    Value match_result = find->match_at_byte_offset(env, orig_string, byte_index);
+    if (match_result == NilObject::the()) {
+        *match = nullptr;
+        // append rest of the unmatched bytes to the string
+        if (byte_index < orig_string->bytesize())
+            out.append(orig_string->string().substring(byte_index));
+        return;
+    }
+
     *match = match_result->as_match_data();
-    size_t length = (*match)->as_match_data()->to_s(env)->as_string()->length();
-    nat_int_t index = (*match)->as_match_data()->beg_byte_index(0);
-    StringObject *out = new StringObject { c_str(), static_cast<size_t>(index), m_encoding };
+    nat_int_t index = (*match)->beg_byte_index(0);
+
+    // unchanged bytes from original string up until match index
+    if (byte_index < orig_string->bytesize())
+        out.append(orig_string->string().substring(byte_index, index - byte_index));
+
     if (block) {
         auto string = (*match)->to_s(env);
         Value args[1] = { string };
         Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
-        replacement_from_block->assert_type(env, Object::Type::String, "String");
-        *expanded_replacement = replacement_from_block->as_string();
-        out->append(*expanded_replacement);
-        if (index + length < m_string.length())
-            out->append(m_string.substring(index + length));
-    } else if (replacement) {
-        *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-        out->append(*expanded_replacement);
-        if (index + length < m_string.length())
-            out->append(m_string.substring(index + length));
-    } else {
-        env->raise("NotImplementedError", "Enumerator reply in String#gsub");
+
+        *expanded_replacement = replacement_from_block->as_string_or_raise(env);
+        out.append((*expanded_replacement)->string());
+
+        return;
     }
-    return out;
+
+    *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
+    out.append((*expanded_replacement)->string());
+
+    return;
 }
 
 StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDataObject *match) {
@@ -1980,8 +2028,8 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
                 break;
             // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
             default:
-                fprintf(stderr, "Unknown backslash reference: \\%c\n", c);
-                abort();
+                expanded->append(String::format("<unhandled backref: {}>", c));
+                break;
             }
             break;
         default:

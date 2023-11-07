@@ -33,6 +33,8 @@ public:
     StringObject *string() const { return m_string; }
 
     size_t size() const { return m_region->num_regs; }
+    size_t bytesize() const;
+    bool is_empty() const;
 
     ssize_t beg_byte_index(size_t) const;
     ssize_t beg_char_index(Env *, size_t) const;

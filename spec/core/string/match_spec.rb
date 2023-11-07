@@ -79,9 +79,7 @@ describe "String#match" do
       end
 
       it "uses the start as a character offset" do
-        NATFIXME 'negative offset', exception: NoMethodError, message: "undefined method `captures' for nil:NilClass" do
-          "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
-        end
+        "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
       end
     end
   end

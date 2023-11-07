@@ -371,7 +371,9 @@ public:
     Value convert_integer(Env *, nat_int_t base);
 
     static size_t byte_index_to_char_index(ArrayObject *chars, size_t byte_index);
-    static size_t char_index_to_byte_index(ArrayObject *chars, size_t char_index);
+
+    size_t char_index_to_byte_index(size_t) const;
+    size_t byte_index_to_char_index(size_t) const;
 
     static CaseFoldType check_case_options(Env *env, Value arg1, Value arg2, CaseFoldType flags);
 
@@ -473,7 +475,7 @@ public:
 
 private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
-    StringObject *regexp_sub(Env *, RegexpObject *, StringObject *, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
+    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, StringObject *, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Value) const;
 
     using Object::Object;

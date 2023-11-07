@@ -56,10 +56,8 @@ describe "String#sub with pattern, replacement" do
   it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
 
-    NATFIXME 'treats \\1 sequences without corresponding captures as empty strings', exception: SpecFailedException do
-      str.sub("", '<\1>').should == "<>hello!"
-      str.sub("h", '<\1>').should == "<>ello!"
-    end
+    str.sub("", '<\1>').should == "<>hello!"
+    str.sub("h", '<\1>').should == "<>ello!"
 
     # NATFIXME: Natalie::StringObject* Natalie::Object::as_string(): Assertion `is_string()' failed.
     # str.sub(//, '<\1>').should == "<>hello!"
@@ -201,18 +199,16 @@ describe "String#sub with pattern, replacement" do
 
   it "sets $~ to MatchData of match and nil when there's none" do
     'hello.'.sub('hello', 'x')
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil" do
-      $~[0].should == 'hello'
+    $~[0].should == 'hello'
 
-      'hello.'.sub('not', 'x')
-      $~.should == nil
+    'hello.'.sub('not', 'x')
+    $~.should == nil
 
-      'hello.'.sub(/.(.)/, 'x')
-      $~[0].should == 'he'
+    'hello.'.sub(/.(.)/, 'x')
+    $~[0].should == 'he'
 
-      'hello.'.sub(/not/, 'x')
-      $~.should == nil
-    end
+    'hello.'.sub(/not/, 'x')
+    $~.should == nil
   end
 
   it "replaces \\\\\\1 with \\1" do
@@ -248,39 +244,35 @@ describe "String#sub with pattern and block" do
 
   it "sets $~ for access from the block" do
     str = "hello"
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil" do
-      str.sub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
-      str.sub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
-      str.sub("l") { "<#{$~[0]}>" }.should == "he<l>lo"
+    str.sub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
+    str.sub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
+    str.sub("l") { "<#{$~[0]}>" }.should == "he<l>lo"
 
-      offsets = []
+    offsets = []
 
-      str.sub(/([aeiou])/) do
-         md = $~
-         md.string.should == str
-         offsets << md.offset(0)
-         str
-      end.should == "hhellollo"
+    str.sub(/([aeiou])/) do
+        md = $~
+        md.string.should == str
+        offsets << md.offset(0)
+        str
+    end.should == "hhellollo"
 
-      offsets.should == [[1, 2]]
-    end
+    offsets.should == [[1, 2]]
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
     'hello.'.sub('l') { 'x' }
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `begin' for nil" do
-      $~.begin(0).should == 2
-      $~[0].should == 'l'
+    $~.begin(0).should == 2
+    $~[0].should == 'l'
 
-      'hello.'.sub('not') { 'x' }
-      $~.should == nil
+    'hello.'.sub('not') { 'x' }
+    $~.should == nil
 
-      'hello.'.sub(/.(.)/) { 'x' }
-      $~[0].should == 'he'
+    'hello.'.sub(/.(.)/) { 'x' }
+    $~[0].should == 'he'
 
-      'hello.'.sub(/not/) { 'x' }
-      $~.should == nil
-    end
+    'hello.'.sub(/not/) { 'x' }
+    $~.should == nil
   end
 
   it "doesn't raise a RuntimeError if the string is modified while substituting" do
@@ -298,7 +290,7 @@ describe "String#sub with pattern and block" do
 
   it "converts the block's return value to a string using to_s" do
     obj = mock('hello_replacement')
-    NATFIXME 'String conversions', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+    NATFIXME 'String conversions', exception: TypeError, message: "MockObject can't be coerced into String" do
       obj.should_receive(:to_s).and_return("hello_replacement")
       "hello".sub(/hello/) { obj }.should == "hello_replacement"
 
@@ -363,22 +355,20 @@ describe "String#sub! with pattern and block" do
 
   it "sets $~ for access from the block" do
     str = "hello"
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil" do
-      str.dup.sub!(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
-      str.dup.sub!(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
-      str.dup.sub!("l") { "<#{$~[0]}>" }.should == "he<l>lo"
+    str.dup.sub!(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
+    str.dup.sub!(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
+    str.dup.sub!("l") { "<#{$~[0]}>" }.should == "he<l>lo"
 
-      offsets = []
+    offsets = []
 
-      str.dup.sub!(/([aeiou])/) do
-         md = $~
-         md.string.should == str
-         offsets << md.offset(0)
-         str
-      end.should == "hhellollo"
+    str.dup.sub!(/([aeiou])/) do
+        md = $~
+        md.string.should == str
+        offsets << md.offset(0)
+        str
+    end.should == "hhellollo"
 
-      offsets.should == [[1, 2]]
-    end
+    offsets.should == [[1, 2]]
   end
 
   it "returns nil if no modifications were made" do
