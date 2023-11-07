@@ -607,13 +607,14 @@ Value IoObject::pwrite(Env *env, Value data, Value offset) {
 Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();
+
     int result = ::close(m_fileno);
-    if (result == -1) {
+    if (result == -1)
         env->raise_errno();
-    } else {
-        m_closed = true;
-        return NilObject::the();
-    }
+
+    m_closed = true;
+    m_fileno = -1;
+    return NilObject::the();
 }
 
 Value IoObject::seek(Env *env, Value amount_value, Value whence_value) {

@@ -31,9 +31,9 @@ public:
     virtual ~IoObject() override {
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
             return;
-        if (!m_closed && m_fileno != -1) {
-            ::close(m_fileno);
+        if (m_autoclose && !m_closed && m_fileno != -1) {
             m_closed = true;
+            m_fileno = -1;
         }
     }
 
@@ -125,7 +125,7 @@ private:
     int m_fileno { -1 };
     int m_lineno { 0 };
     bool m_closed { false };
-    bool m_autoclose { false };
+    bool m_autoclose { true };
     bool m_sync { false };
     StringObject *m_path { nullptr };
     TM::String m_read_buffer {};
