@@ -340,6 +340,19 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
             return val;
         module = module->m_superclass;
     }
+
+    for (auto *m : m_included_modules) {
+        val = m->m_class_vars.get(name, env);
+        if (val)
+            return val;
+    }
+
+    if (singleton_class()) {
+        val = singleton_class()->m_class_vars.get(name, env);
+        if (val)
+            return val;
+    }
+
     return nullptr;
 }
 
@@ -360,6 +373,22 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     }
     m_class_vars.put(name, val.object(), env);
     return val;
+}
+
+Value ModuleObject::class_variable_get(Env *env, Value name) {
+    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+
+    auto val = cvar_get_or_null(env, name_sym);
+    if (!val) {
+        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
+    }
+    return val;
+}
+
+Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
+    assert_not_frozen(env);
+
+    return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {

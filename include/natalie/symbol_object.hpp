@@ -49,7 +49,7 @@ public:
     }
 
     bool is_cvar_name() {
-        return m_name.length() > 1 && m_name[0] == '@' && m_name[1] == '@';
+        return m_name.length() > 2 && m_name[0] == '@' && m_name[1] == '@';
     }
 
     bool is_empty() {
