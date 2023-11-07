@@ -279,13 +279,23 @@ Value MatchDataObject::names() const {
 Value MatchDataObject::post_match(Env *env) {
     if (m_region->beg[0] == -1)
         return NilObject::the();
-    return m_string->ref_fast_range(env, m_region->end[0], m_string->length());
+
+    auto length = m_string->bytesize() - m_region->end[0];
+    if (length == 0)
+        return new StringObject { "", m_string->encoding() };
+
+    return new StringObject { m_string->string().substring(m_region->end[0], length), m_string->encoding() };
 }
 
 Value MatchDataObject::pre_match(Env *env) {
     if (m_region->beg[0] == -1)
         return NilObject::the();
-    return m_string->ref_fast_range(env, 0, m_region->beg[0]);
+
+    auto length = m_region->beg[0];
+    if (length == 0)
+        return new StringObject { "", m_string->encoding() };
+
+    return new StringObject { m_string->string().substring(0, length), m_string->encoding() };
 }
 
 Value MatchDataObject::regexp() const {
