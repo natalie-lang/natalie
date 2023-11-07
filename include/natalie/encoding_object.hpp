@@ -57,6 +57,8 @@ public:
     virtual nat_int_t to_unicode_codepoint(nat_int_t codepoint) const = 0;
     virtual nat_int_t from_unicode_codepoint(nat_int_t codepoint) const = 0;
 
+    virtual bool is_single_byte_encoding() const = 0;
+
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 
     static HashObject *aliases(Env *);

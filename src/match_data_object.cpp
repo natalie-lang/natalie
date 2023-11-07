@@ -54,9 +54,9 @@ ssize_t MatchDataObject::beg_byte_index(size_t index) const {
 
 ssize_t MatchDataObject::beg_char_index(Env *env, size_t index) const {
     if (index >= size()) return -1;
-    auto chars = m_string->chars(env)->as_array();
-    auto beg = m_region->beg[index];
-    return StringObject::byte_index_to_char_index(chars, beg);
+    auto begin = m_region->beg[index];
+
+    return m_string->byte_index_to_char_index(begin);
 }
 
 ssize_t MatchDataObject::end_byte_index(size_t index) const {
@@ -66,9 +66,9 @@ ssize_t MatchDataObject::end_byte_index(size_t index) const {
 
 ssize_t MatchDataObject::end_char_index(Env *env, size_t index) const {
     if (index >= size()) return -1;
-    auto chars = m_string->chars(env)->as_array();
     auto end = m_region->end[index];
-    return StringObject::byte_index_to_char_index(chars, end);
+
+    return m_string->byte_index_to_char_index(end);
 }
 
 bool MatchDataObject::is_empty() const {
@@ -102,16 +102,29 @@ Value MatchDataObject::offset(Env *env, Value n) {
     if (index >= (nat_int_t)size())
         return NilObject::the();
 
-    auto begin = m_region->beg[index];
-    auto end = m_region->end[index];
+    ssize_t begin = m_region->beg[index];
+    ssize_t end = m_region->end[index];
     if (begin == -1)
         return new ArrayObject { NilObject::the(), NilObject::the() };
 
-    auto chars = m_string->chars(env)->as_array();
-    return new ArrayObject {
-        Value::integer(StringObject::byte_index_to_char_index(chars, begin)),
-        Value::integer(StringObject::byte_index_to_char_index(chars, end))
-    };
+    size_t current_byte_index = 0;
+    size_t current_char_index = 0;
+    TM::StringView view;
+    while ((size_t)begin > current_byte_index) {
+        view = m_string->next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
+    }
+    size_t begin_char_index = current_char_index;
+
+    while ((size_t)end > current_byte_index) {
+        view = m_string->next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
+    }
+    size_t end_char_index = current_char_index;
+
+    return new ArrayObject { Value::integer(begin_char_index), Value::integer(end_char_index) };
 }
 
 Value MatchDataObject::begin(Env *env, Value start) const {

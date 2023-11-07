@@ -33,6 +33,8 @@ public:
 
     virtual String encode_codepoint(nat_int_t codepoint) const override;
     virtual nat_int_t decode_codepoint(StringView &str) const override;
+
+    virtual bool is_single_byte_encoding() const override final { return true; }
 };
 
 }

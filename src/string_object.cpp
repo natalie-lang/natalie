@@ -1684,16 +1684,34 @@ size_t StringObject::byte_index_to_char_index(ArrayObject *chars, size_t byte_in
     return char_index;
 }
 
-size_t StringObject::char_index_to_byte_index(ArrayObject *chars, size_t char_index) {
-    size_t current_char_index = 0;
+size_t StringObject::char_index_to_byte_index(size_t char_index) const {
+    if (m_encoding->is_single_byte_encoding())
+        return char_index;
+
     size_t current_byte_index = 0;
-    for (auto character : *chars) {
-        if (current_char_index >= char_index)
-            break;
-        ++current_char_index;
-        current_byte_index += character->as_string()->length();
+    size_t current_char_index = 0;
+    TM::StringView view;
+    while (char_index > current_char_index) {
+        view = next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
     }
     return current_byte_index;
+}
+
+size_t StringObject::byte_index_to_char_index(size_t byte_index) const {
+    if (m_encoding->is_single_byte_encoding())
+        return byte_index;
+
+    size_t current_byte_index = 0;
+    size_t current_char_index = 0;
+    TM::StringView view;
+    while (byte_index > current_byte_index) {
+        view = next_char(&current_byte_index);
+        current_char_index++;
+        if (view.is_empty()) break;
+    }
+    return current_char_index;
 }
 
 Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
