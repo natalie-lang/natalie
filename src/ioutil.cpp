@@ -30,6 +30,31 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
+    void flags_struct::parse_encoding(Env *env) {
+        if (!m_kwargs) return;
+        auto encoding = m_kwargs->remove(env, "encoding"_s);
+        if (!encoding || encoding->is_nil()) return;
+        if (m_external_encoding) {
+            env->raise("ArgumentError", "encoding specified twice");
+        } else if (m_kwargs->has_key(env, "external_encoding"_s)) {
+            env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
+        } else if (m_kwargs->has_key(env, "internal_encoding"_s)) {
+            env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
+        } else if (encoding->is_encoding()) {
+            m_external_encoding = encoding->as_encoding();
+        } else {
+            encoding = encoding->to_str(env);
+            if (encoding->as_string()->include(":")) {
+                auto colon = new StringObject { ":" };
+                auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
+                encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
+                auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+                m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
+            }
+            m_external_encoding = EncodingObject::find_encoding(env, encoding);
+        }
+    }
+
     void flags_struct::parse_external_encoding(Env *env) {
         if (!m_kwargs) return;
         auto external_encoding = m_kwargs->remove(env, "external_encoding"_s);
@@ -161,32 +186,6 @@ namespace ioutil {
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
-        void parse_encoding(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto encoding = self->m_kwargs->remove(env, "encoding"_s);
-            if (!encoding || encoding->is_nil()) return;
-            if (self->m_external_encoding) {
-                env->raise("ArgumentError", "encoding specified twice");
-            } else if (self->m_kwargs->has_key(env, "external_encoding"_s)) {
-                env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
-            } else if (self->m_kwargs->has_key(env, "internal_encoding"_s)) {
-                env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
-            } else if (encoding->is_encoding()) {
-                self->m_external_encoding = encoding->as_encoding();
-            } else {
-                encoding = encoding->to_str(env);
-                if (encoding->as_string()->include(":")) {
-                    auto colon = new StringObject { ":" };
-                    auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
-                    encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
-                    auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
-                    self->m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
-                }
-                self->m_external_encoding = EncodingObject::find_encoding(env, encoding);
-            }
-        }
-
-
         void parse_textmode(Env *env, flags_struct *self) {
             if (!self->m_kwargs) return;
             auto textmode = self->m_kwargs->remove(env, "textmode"_s);
@@ -220,7 +219,7 @@ namespace ioutil {
         parse_mode(env, this);
         parse_flags(env, this);
         flags |= O_CLOEXEC;
-        parse_encoding(env, this);
+        parse_encoding(env);
         parse_external_encoding(env);
         parse_internal_encoding(env);
         parse_textmode(env, this);

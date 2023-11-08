@@ -32,6 +32,7 @@ namespace ioutil {
         EncodingObject *m_internal_encoding { nullptr };
 
     private:
+        void parse_encoding(Env *);
         void parse_external_encoding(Env *);
         void parse_internal_encoding(Env *);
         void parse_autoclose(Env *);
