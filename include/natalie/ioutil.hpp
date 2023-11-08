@@ -22,16 +22,18 @@ namespace ioutil {
         read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
-        bool autoclose { false };
 
         StringObject *path() const { return m_path; }
+        bool autoclose() const { return m_autoclose; }
 
         // NATFIXME: This should be made private, but we have to shave some yaks first
         HashObject *m_kwargs { nullptr };
 
     private:
+        void parse_autoclose(Env *);
         void parse_path(Env *);
 
+        bool m_autoclose { false };
         StringObject *m_path { nullptr };
     };
     mode_t perm_to_mode(Env *env, Value perm);

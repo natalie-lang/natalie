@@ -30,6 +30,13 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
+    void flags_struct::parse_autoclose(Env *env) {
+        if (!m_kwargs) return;
+        auto autoclose = m_kwargs->remove(env, "autoclose"_s);
+        if (!autoclose) return;
+        m_autoclose = autoclose->is_truthy();
+    }
+
     void flags_struct::parse_path(Env *env) {
         if (!m_kwargs) return;
         auto path = m_kwargs->remove(env, "path"_s);
@@ -204,13 +211,6 @@ namespace ioutil {
             if (binmode->is_truthy())
                 self->read_mode = flags_struct::read_mode::binary;
         }
-
-        void parse_autoclose(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto autoclose = self->m_kwargs->remove(env, "autoclose"_s);
-            if (!autoclose) return;
-            self->autoclose = autoclose->is_truthy();
-        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)
@@ -224,7 +224,7 @@ namespace ioutil {
         parse_internal_encoding(env, this);
         parse_textmode(env, this);
         parse_binmode(env, this);
-        parse_autoclose(env, this);
+        parse_autoclose(env);
         parse_path(env);
         if (!external_encoding) {
             if (read_mode == read_mode::binary) {
