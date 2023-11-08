@@ -23,10 +23,16 @@ namespace ioutil {
         EncodingObject *external_encoding { nullptr };
         EncodingObject *internal_encoding { nullptr };
         bool autoclose { false };
-        StringObject *path { nullptr };
+
+        StringObject *path() const { return m_path; }
 
         // NATFIXME: This should be made private, but we have to shave some yaks first
         HashObject *m_kwargs { nullptr };
+
+    private:
+        void parse_path(Env *);
+
+        StringObject *m_path { nullptr };
     };
     mode_t perm_to_mode(Env *env, Value perm);
 }
