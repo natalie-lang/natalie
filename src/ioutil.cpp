@@ -30,6 +30,24 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
+    void flags_struct::parse_internal_encoding(Env *env) {
+        if (!m_kwargs) return;
+        auto internal_encoding = m_kwargs->remove(env, "internal_encoding"_s);
+        if (!internal_encoding || internal_encoding->is_nil()) return;
+        if (m_internal_encoding)
+            env->raise("ArgumentError", "encoding specified twice");
+        if (internal_encoding->is_encoding()) {
+            m_internal_encoding = internal_encoding->as_encoding();
+        } else {
+            internal_encoding = internal_encoding->to_str(env);
+            if (internal_encoding->as_string()->string() != "-") {
+                m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
+                if (external_encoding == m_internal_encoding)
+                    m_internal_encoding = nullptr;
+            }
+        }
+    }
+
     void flags_struct::parse_autoclose(Env *env) {
         if (!m_kwargs) return;
         auto autoclose = m_kwargs->remove(env, "autoclose"_s);
@@ -70,7 +88,7 @@ namespace ioutil {
                 auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
                 auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
                 if (!extenc->is_nil()) self->external_encoding = EncodingObject::find_encoding(env, extenc);
-                if (!intenc->is_nil()) self->internal_encoding = EncodingObject::find_encoding(env, intenc);
+                if (!intenc->is_nil()) self->m_internal_encoding = EncodingObject::find_encoding(env, intenc);
 
                 if (flags_str.length() < 1 || flags_str.length() > 3)
                     env->raise("ArgumentError", "invalid access mode {}", flags_str);
@@ -149,7 +167,7 @@ namespace ioutil {
                     auto encsplit = encoding->to_str(env)->split(env, colon, nullptr)->as_array();
                     encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(0)), nullptr);
                     auto internal_encoding = encsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
-                    self->internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
+                    self->m_internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
                 }
                 self->external_encoding = EncodingObject::find_encoding(env, encoding);
             }
@@ -168,23 +186,6 @@ namespace ioutil {
             }
         }
 
-        void parse_internal_encoding(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto internal_encoding = self->m_kwargs->remove(env, "internal_encoding"_s);
-            if (!internal_encoding || internal_encoding->is_nil()) return;
-            if (self->internal_encoding)
-                env->raise("ArgumentError", "encoding specified twice");
-            if (internal_encoding->is_encoding()) {
-                self->internal_encoding = internal_encoding->as_encoding();
-            } else {
-                internal_encoding = internal_encoding->to_str(env);
-                if (internal_encoding->as_string()->string() != "-") {
-                    self->internal_encoding = EncodingObject::find_encoding(env, internal_encoding);
-                    if (self->external_encoding == self->internal_encoding)
-                        self->internal_encoding = nullptr;
-                }
-            }
-        }
 
         void parse_textmode(Env *env, flags_struct *self) {
             if (!self->m_kwargs) return;
@@ -221,7 +222,7 @@ namespace ioutil {
         flags |= O_CLOEXEC;
         parse_encoding(env, this);
         parse_external_encoding(env, this);
-        parse_internal_encoding(env, this);
+        parse_internal_encoding(env);
         parse_textmode(env, this);
         parse_binmode(env, this);
         parse_autoclose(env);

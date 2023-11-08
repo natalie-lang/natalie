@@ -63,7 +63,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
         }
     }
     set_fileno(fileno);
-    set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding);
+    set_encoding(env, wanted_flags.external_encoding, wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
     if (block)
@@ -260,7 +260,7 @@ Value IoObject::read_file(Env *env, Args args) {
         env->raise("IOError", "not opened for reading");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
-    file->set_encoding(env, flags.external_encoding, flags.internal_encoding);
+    file->set_encoding(env, flags.external_encoding, flags.internal_encoding());
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
     auto data = file->read(env, length, nullptr);

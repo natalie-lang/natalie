@@ -21,15 +21,17 @@ namespace ioutil {
         int flags { O_RDONLY | O_CLOEXEC };
         read_mode read_mode { read_mode::none };
         EncodingObject *external_encoding { nullptr };
-        EncodingObject *internal_encoding { nullptr };
 
+        EncodingObject *internal_encoding() const { return m_internal_encoding; }
         StringObject *path() const { return m_path; }
         bool autoclose() const { return m_autoclose; }
 
         // NATFIXME: This should be made private, but we have to shave some yaks first
         HashObject *m_kwargs { nullptr };
+        EncodingObject *m_internal_encoding { nullptr };
 
     private:
+        void parse_internal_encoding(Env *);
         void parse_autoclose(Env *);
         void parse_path(Env *);
 
