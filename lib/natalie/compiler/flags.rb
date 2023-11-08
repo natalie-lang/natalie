@@ -23,6 +23,11 @@ module Natalie
         -DNAT_GC_GUARD
       ].freeze
 
+      ASAN_FLAGS = DEBUG_FLAGS + %w[
+        -fsanitize=address
+        -fno-omit-frame-pointer
+      ]
+
       COVERAGE_FLAGS = DEBUG_FLAGS + %w[
         -fprofile-arcs
         -ftest-coverage

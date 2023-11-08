@@ -26,7 +26,7 @@ void MarkingVisitor::visit(Value val) {
     visit(val.object_or_null());
 }
 
-TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
+NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     void *dummy;
     void *end_of_stack = &dummy;
 

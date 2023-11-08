@@ -18,6 +18,11 @@ task build_debug: %i[set_build_debug libnatalie prism_c_ext ctags] do
   puts 'Build mode: debug'
 end
 
+desc 'Build Natalie with AddressSanitizer enabled'
+task build_asan: %i[set_build_asan libnatalie prism_c_ext] do
+  puts 'Build mode: asan'
+end
+
 desc 'Build Natalie with release optimizations enabled and warnings off'
 task build_release: %i[set_build_release libnatalie prism_c_ext] do
   puts 'Build mode: release'
@@ -255,6 +260,11 @@ task(:set_build_debug) do
   File.write('.build', 'debug')
 end
 
+task(:set_build_asan) do
+  ENV['BUILD'] = 'asan'
+  File.write('.build', 'asan')
+end
+
 task(:set_build_release) do
   ENV['BUILD'] = 'release'
   File.write('.build', 'release')
@@ -488,6 +498,8 @@ def cxx_flags
     case ENV['BUILD']
     when 'release'
       Natalie::Compiler::Flags::RELEASE_FLAGS
+    when 'asan'
+      Natalie::Compiler::Flags::ASAN_FLAGS
     else
       Natalie::Compiler::Flags::DEBUG_FLAGS
     end

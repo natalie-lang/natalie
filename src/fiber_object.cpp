@@ -105,7 +105,7 @@ Value FiberObject::resume(Env *env, Args args) {
     set_args(args);
 
     Heap::the().set_start_of_stack(m_start_of_stack);
-    suspending_fiber->m_end_of_stack = &args;
+    suspending_fiber->m_end_of_stack = __builtin_frame_address(0);
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
@@ -179,7 +179,7 @@ Value FiberObject::yield(Env *env, Args args) {
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
-    current_fiber->m_end_of_stack = &args;
+    current_fiber->m_end_of_stack = __builtin_frame_address(0);
     current_fiber->swap_current(env, args);
 
     mco_yield(mco_running());
@@ -203,7 +203,7 @@ void FiberObject::swap_current(Env *env, Args args) {
     Heap::the().set_start_of_stack(s_current->start_of_stack());
 }
 
-void FiberObject::visit_children(Visitor &visitor) {
+NO_SANITIZE_ADDRESS void FiberObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     for (auto arg : m_args)
         visitor.visit(arg);

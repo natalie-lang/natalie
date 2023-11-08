@@ -33,12 +33,13 @@ OptionParser.new do |opts|
       'kcachegrind'   => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
       'strace'        => 'run the resulting binary with strace',
       '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
+      'asan'          => 'enable AddressSanitizer',
     },
   ) do |type|
     case type
     when true, 'c', 'cpp', 'c++'
       options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind', 'strace'
+    when /^p\d/, 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind', 'strace', 'asan'
       options[:debug] = type
     when 'gdb', 'lldb'
       options[:debug] = type
@@ -127,11 +128,8 @@ OptionParser.new do |opts|
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
-if File.exist?(build_type_path) && File.read(build_type_path).strip == 'release'
-  options[:build] = 'release'
-else
-  options[:build] = 'debug'
-end
+build_setting = File.exist?(build_type_path) ? File.read(build_type_path).strip : 'debug'
+options[:build] = build_setting
 
 class Runner
   def initialize(options)

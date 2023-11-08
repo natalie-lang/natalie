@@ -881,6 +881,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     ModuleObject *klass = singleton_class();
     if (!klass)
         klass = m_klass;
+    assert(klass);
     auto method_info = klass->find_method(env, method_name);
 
     if (!method_info.is_defined()) {
