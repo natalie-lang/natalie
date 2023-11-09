@@ -99,6 +99,7 @@ private:
         m_allocators.push(new Allocator(1024));
     }
 
+    void gather_roots_from_asan_fake_stack(Hashmap<Cell *>, Cell *);
     TM::Hashmap<Cell *> gather_conservative_roots();
 
     void sweep();

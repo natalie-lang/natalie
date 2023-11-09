@@ -15,7 +15,7 @@ void *Cell::operator new(size_t size) {
 }
 
 void Cell::operator delete(void *) {
-    // sweep() deletes cells, and this will almost never be called by generated code.
+    // sweep() deletes cells, and this delete will almost never be called by generated code.
     // However, it does get called in one place that I know of... when creating a
     // RegexpObject, if the syntax is incorrect, an error is raised. Throwing an
     // exception causes C++ to automatically call delete on the in-progress
@@ -25,6 +25,27 @@ void Cell::operator delete(void *) {
 void MarkingVisitor::visit(Value val) {
     visit(val.object_or_null());
 }
+
+#ifdef __SANITIZE_ADDRESS__
+NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) {
+    void *begin_fake_frame = nullptr;
+    void *end_fake_frame = nullptr;
+    auto fake_stack = __asan_get_current_fake_stack();
+    void *real_stack = __asan_addr_is_in_fake_stack(fake_stack, potential_cell, &begin_fake_frame, &end_fake_frame);
+
+    if (!real_stack) return;
+
+    for (char *ptr = reinterpret_cast<char *>(begin_fake_frame); ptr < end_fake_frame; ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
+        if (roots.get(potential_cell))
+            continue;
+        if (is_a_heap_cell_in_use(potential_cell))
+            roots.set(potential_cell);
+    }
+}
+#else
+void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) { }
+#endif
 
 NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     void *dummy;
@@ -41,9 +62,11 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (roots.get(potential_cell))
             continue;
-        if (is_a_heap_cell_in_use(potential_cell)) {
+        if (is_a_heap_cell_in_use(potential_cell))
             roots.set(potential_cell);
-        }
+#ifdef __SANITIZE_ADDRESS__
+        gather_roots_from_asan_fake_stack(roots, potential_cell);
+#endif
     }
 
     // step over any registers, saving potential pointers
@@ -204,12 +227,13 @@ Cell *HeapBlock::find_next_free_cell() {
     assert(m_free_list || m_free_count == 0);
     auto cell = reinterpret_cast<Cell *>(node);
     m_used_map[node->index] = true;
-    // printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
+    // printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, node->index);
     new (cell) Cell();
     return cell;
 }
 
 void HeapBlock::return_cell_to_free_list(const Cell *cell) {
+    // printf("returning %p to free list\n", cell);
     auto index = index_from_cell(cell);
     assert(index > -1);
     m_used_map[index] = false;

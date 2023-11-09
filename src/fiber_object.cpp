@@ -105,7 +105,15 @@ Value FiberObject::resume(Env *env, Args args) {
     set_args(args);
 
     Heap::the().set_start_of_stack(m_start_of_stack);
-    suspending_fiber->m_end_of_stack = __builtin_frame_address(0);
+
+#ifdef __SANITIZE_ADDRESS__
+    auto fake_stack = __asan_get_current_fake_stack();
+    void *real_stack = __asan_addr_is_in_fake_stack(fake_stack, &args, nullptr, nullptr);
+    suspending_fiber->m_end_of_stack = real_stack ? real_stack : &args;
+    suspending_fiber->m_asan_fake_stack = __asan_get_current_fake_stack();
+#else
+    suspending_fiber->m_end_of_stack = &args;
+#endif
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
@@ -179,7 +187,7 @@ Value FiberObject::yield(Env *env, Args args) {
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
-    current_fiber->m_end_of_stack = __builtin_frame_address(0);
+    current_fiber->m_end_of_stack = &args;
     current_fiber->swap_current(env, args);
 
     mco_yield(mco_running());
@@ -203,7 +211,7 @@ void FiberObject::swap_current(Env *env, Args args) {
     Heap::the().set_start_of_stack(s_current->start_of_stack());
 }
 
-NO_SANITIZE_ADDRESS void FiberObject::visit_children(Visitor &visitor) {
+void FiberObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     for (auto arg : m_args)
         visitor.visit(arg);
@@ -211,6 +219,10 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_error);
     visitor.visit(m_block);
     visitor.visit(m_storage);
+    visit_children_from_stack(visitor);
+}
+
+NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor) const {
     if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
@@ -219,11 +231,31 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children(Visitor &visitor) {
     }
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
+        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
-        }
+#ifdef __SANITIZE_ADDRESS__
+        visit_children_from_asan_fake_stack(visitor, potential_cell);
+#endif
     }
 }
+
+#ifdef __SANITIZE_ADDRESS__
+NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
+    void *begin = nullptr;
+    void *end = nullptr;
+    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack, potential_cell, &begin, &end);
+
+    if (!real_stack) return;
+
+    for (char *ptr = reinterpret_cast<char *>(begin); ptr < end; ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
+        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
+            visitor.visit(potential_cell);
+    }
+}
+#else
+void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
+#endif
 
 void FiberObject::set_args(Args args) {
     m_args.clear();
@@ -231,7 +263,6 @@ void FiberObject::set_args(Args args) {
         m_args.push(args[i]);
     }
 }
-
 }
 
 extern "C" {
