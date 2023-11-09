@@ -90,13 +90,26 @@ namespace ioutil {
         if (!m_kwargs) return;
         auto textmode = m_kwargs->remove(env, "textmode"_s);
         if (!textmode || textmode->is_nil()) return;
-        if (m_read_mode == flags_struct::read_mode::binary) {
+        if (binmode()) {
             env->raise("ArgumentError", "both textmode and binmode specified");
         } else if (this->textmode()) {
             env->raise("ArgumentError", "textmode specified twice");
         }
         if (textmode->is_truthy())
             m_read_mode = flags_struct::read_mode::text;
+    }
+
+    void flags_struct::parse_binmode(Env *env) {
+        if (!m_kwargs) return;
+        auto binmode = m_kwargs->remove(env, "binmode"_s);
+        if (!binmode || binmode->is_nil()) return;
+        if (this->binmode()) {
+            env->raise("ArgumentError", "binmode specified twice");
+        } else if (textmode()) {
+            env->raise("ArgumentError", "both textmode and binmode specified");
+        }
+        if (binmode->is_truthy())
+            m_read_mode = flags_struct::read_mode::binary;
     }
 
     void flags_struct::parse_autoclose(Env *env) {
@@ -198,19 +211,6 @@ namespace ioutil {
             if (!flags || flags->is_nil()) return;
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
-
-        void parse_binmode(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto binmode = self->m_kwargs->remove(env, "binmode"_s);
-            if (!binmode || binmode->is_nil()) return;
-            if (self->m_read_mode == flags_struct::read_mode::binary) {
-                env->raise("ArgumentError", "binmode specified twice");
-            } else if (self->textmode()) {
-                env->raise("ArgumentError", "both textmode and binmode specified");
-            }
-            if (binmode->is_truthy())
-                self->m_read_mode = flags_struct::read_mode::binary;
-        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)
@@ -223,11 +223,11 @@ namespace ioutil {
         parse_external_encoding(env);
         parse_internal_encoding(env);
         parse_textmode(env);
-        parse_binmode(env, this);
+        parse_binmode(env);
         parse_autoclose(env);
         parse_path(env);
         if (!m_external_encoding) {
-            if (m_read_mode == read_mode::binary) {
+            if (binmode()) {
                 m_external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
             } else if (textmode()) {
                 m_external_encoding = EncodingObject::get(Encoding::UTF_8);
