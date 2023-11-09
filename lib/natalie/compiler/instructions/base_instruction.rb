@@ -17,6 +17,19 @@ module Natalie
 
       attr_accessor :env
 
+      class << self
+        attr_accessor :instruction_number
+
+        def inherited(subclass)
+          @number ||= 0
+          subclass.instruction_number = @number += 1
+        end
+      end
+
+      def instruction_number
+        self.class.instruction_number
+      end
+
       private
 
       def self.underscore(name)

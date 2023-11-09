@@ -14,6 +14,10 @@ module Natalie
       def execute(vm)
         vm.pop
       end
+
+      def serialize
+        [instruction_number].pack('C')
+      end
     end
   end
 end
