@@ -26,6 +26,14 @@ module Natalie
       def execute(vm)
         vm.push(@string.dup)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @bytesize,
+          @string,
+        ].pack("CQa#{@bytesize}")
+      end
     end
   end
 end

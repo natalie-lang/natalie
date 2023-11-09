@@ -129,6 +129,19 @@ module Natalie
         )
       end
 
+      def serialize
+        message_string = @message.to_s
+        [
+          instruction_number,
+          message_string.bytesize,
+          message_string,
+          receiver_is_self ? 1 : 0,
+          with_block ? 1 : 0,
+          args_array_on_stack ? 1 : 0,
+          has_keyword_hash ? 1 : 0,
+        ].pack("CLa#{message_string.bytesize}CCCC")
+      end
+
       private
 
       def method

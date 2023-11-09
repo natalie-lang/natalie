@@ -20,6 +20,13 @@ module Natalie
       def execute(vm)
         vm.push(@count)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @count
+        ].pack("CS")
+      end
     end
   end
 end

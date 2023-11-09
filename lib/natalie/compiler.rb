@@ -240,6 +240,15 @@ module Natalie
         exit
       end
 
+      if options[:bytecode] && (path = options[:compile])
+        File.open(path, 'w') do |file|
+          instructions.each do |instruction|
+            file.write(instruction.serialize)
+          end
+        end
+        exit
+      end
+
       return instructions if options[:interpret]
 
       CppBackend.new(instructions, compiler_context: @context).generate

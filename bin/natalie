@@ -82,6 +82,12 @@ OptionParser.new do |opts|
     options[:ast] = ast
   end
 
+  opts.on('-b path', '--bytecode path', 'Compile to bytecode') do |path|
+    options[:compile] = path
+    options[:bytecode] = true
+    options[:expecting_script] = true
+  end
+
   opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
     options[:compile] = path
     options[:expecting_script] = true

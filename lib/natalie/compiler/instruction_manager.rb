@@ -17,6 +17,10 @@ module Natalie
         @instructions
       end
 
+      def each(&block)
+        @instructions.each(&block)
+      end
+
       def each_with_index(&block)
         @instructions.each_with_index(&block)
       end
