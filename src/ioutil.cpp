@@ -100,31 +100,31 @@ namespace ioutil {
             }
         }
 
-        void parse_mode(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto mode = kwargs->remove(env, "mode"_s);
+        void parse_mode(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto mode = self->m_kwargs->remove(env, "mode"_s);
             if (!mode || mode->is_nil()) return;
             if (self->has_mode)
                 env->raise("ArgumentError", "mode specified twice");
             parse_flags_obj(env, self, mode);
         }
 
-        void parse_flags(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto flags = kwargs->remove(env, "flags"_s);
+        void parse_flags(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto flags = self->m_kwargs->remove(env, "flags"_s);
             if (!flags || flags->is_nil()) return;
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
-        void parse_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto encoding = kwargs->remove(env, "encoding"_s);
+        void parse_encoding(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto encoding = self->m_kwargs->remove(env, "encoding"_s);
             if (!encoding || encoding->is_nil()) return;
             if (self->external_encoding) {
                 env->raise("ArgumentError", "encoding specified twice");
-            } else if (kwargs->has_key(env, "external_encoding"_s)) {
+            } else if (self->m_kwargs->has_key(env, "external_encoding"_s)) {
                 env->warn("Ignoring encoding parameter '{}', external_encoding is used", encoding);
-            } else if (kwargs->has_key(env, "internal_encoding"_s)) {
+            } else if (self->m_kwargs->has_key(env, "internal_encoding"_s)) {
                 env->warn("Ignoring encoding parameter '{}', internal_encoding is used", encoding);
             } else if (encoding->is_encoding()) {
                 self->external_encoding = encoding->as_encoding();
@@ -141,9 +141,9 @@ namespace ioutil {
             }
         }
 
-        void parse_external_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto external_encoding = kwargs->remove(env, "external_encoding"_s);
+        void parse_external_encoding(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto external_encoding = self->m_kwargs->remove(env, "external_encoding"_s);
             if (!external_encoding || external_encoding->is_nil()) return;
             if (self->external_encoding)
                 env->raise("ArgumentError", "encoding specified twice");
@@ -154,9 +154,9 @@ namespace ioutil {
             }
         }
 
-        void parse_internal_encoding(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto internal_encoding = kwargs->remove(env, "internal_encoding"_s);
+        void parse_internal_encoding(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto internal_encoding = self->m_kwargs->remove(env, "internal_encoding"_s);
             if (!internal_encoding || internal_encoding->is_nil()) return;
             if (self->internal_encoding)
                 env->raise("ArgumentError", "encoding specified twice");
@@ -172,9 +172,9 @@ namespace ioutil {
             }
         }
 
-        void parse_textmode(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto textmode = kwargs->remove(env, "textmode"_s);
+        void parse_textmode(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto textmode = self->m_kwargs->remove(env, "textmode"_s);
             if (!textmode || textmode->is_nil()) return;
             if (self->read_mode == flags_struct::read_mode::binary) {
                 env->raise("ArgumentError", "both textmode and binmode specified");
@@ -185,9 +185,9 @@ namespace ioutil {
                 self->read_mode = flags_struct::read_mode::text;
         }
 
-        void parse_binmode(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto binmode = kwargs->remove(env, "binmode"_s);
+        void parse_binmode(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto binmode = self->m_kwargs->remove(env, "binmode"_s);
             if (!binmode || binmode->is_nil()) return;
             if (self->read_mode == flags_struct::read_mode::binary) {
                 env->raise("ArgumentError", "binmode specified twice");
@@ -198,33 +198,34 @@ namespace ioutil {
                 self->read_mode = flags_struct::read_mode::binary;
         }
 
-        void parse_autoclose(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto autoclose = kwargs->remove(env, "autoclose"_s);
+        void parse_autoclose(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto autoclose = self->m_kwargs->remove(env, "autoclose"_s);
             if (!autoclose) return;
             self->autoclose = autoclose->is_truthy();
         }
 
-        void parse_path(Env *env, flags_struct *self, HashObject *kwargs) {
-            if (!kwargs) return;
-            auto path = kwargs->remove(env, "path"_s);
+        void parse_path(Env *env, flags_struct *self) {
+            if (!self->m_kwargs) return;
+            auto path = self->m_kwargs->remove(env, "path"_s);
             if (!path) return;
             self->path = convert_using_to_path(env, path);
         }
     };
 
-    flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs) {
+    flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)
+        : m_kwargs(kwargs) {
         parse_flags_obj(env, this, flags_obj);
-        parse_mode(env, this, kwargs);
-        parse_flags(env, this, kwargs);
+        parse_mode(env, this);
+        parse_flags(env, this);
         flags |= O_CLOEXEC;
-        parse_encoding(env, this, kwargs);
-        parse_external_encoding(env, this, kwargs);
-        parse_internal_encoding(env, this, kwargs);
-        parse_textmode(env, this, kwargs);
-        parse_binmode(env, this, kwargs);
-        parse_autoclose(env, this, kwargs);
-        parse_path(env, this, kwargs);
+        parse_encoding(env, this);
+        parse_external_encoding(env, this);
+        parse_internal_encoding(env, this);
+        parse_textmode(env, this);
+        parse_binmode(env, this);
+        parse_autoclose(env, this);
+        parse_path(env, this);
         if (!external_encoding) {
             if (read_mode == read_mode::binary) {
                 external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
@@ -232,7 +233,7 @@ namespace ioutil {
                 external_encoding = EncodingObject::get(Encoding::UTF_8);
             }
         }
-        env->ensure_no_extra_keywords(kwargs);
+        env->ensure_no_extra_keywords(m_kwargs);
     }
 
     mode_t perm_to_mode(Env *env, Value perm) {

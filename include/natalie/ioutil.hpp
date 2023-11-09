@@ -24,6 +24,9 @@ namespace ioutil {
         EncodingObject *internal_encoding { nullptr };
         bool autoclose { false };
         StringObject *path { nullptr };
+
+        // NATFIXME: This should be made private, but we have to shave some yaks first
+        HashObject *m_kwargs { nullptr };
     };
     mode_t perm_to_mode(Env *env, Value perm);
 }
