@@ -31,13 +31,14 @@ OptionParser.new do |opts|
       'cc-cmd'        => 'show the gcc/clang compiler command that will be run',
       'valgrind'      => 'run the resulting binary with valgrind',
       'kcachegrind'   => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
+      'strace'        => 'run the resulting binary with strace',
       '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
     },
   ) do |type|
     case type
     when true, 'c', 'cpp', 'c++'
       options[:debug] = 'cpp'
-    when /^p\d/, 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
+    when /^p\d/, 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind', 'strace'
       options[:debug] = type
     when 'gdb', 'lldb'
       options[:debug] = type
@@ -188,7 +189,7 @@ class Runner
     end
 
     case options[:debug]
-    when 'gdb', 'lldb'
+    when 'gdb', 'lldb', 'strace'
       compiler.compile
       exec(options[:debug], out.path)
     when 'valgrind'
