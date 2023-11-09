@@ -18,8 +18,8 @@ namespace ioutil {
         flags_struct(Env *env, Value flags_obj, HashObject *kwargs);
 
         bool has_mode { false };
-        int flags { O_RDONLY | O_CLOEXEC };
 
+        int flags() const { return m_flags; }
         EncodingObject *external_encoding() const { return m_external_encoding; }
         EncodingObject *internal_encoding() const { return m_internal_encoding; }
         bool textmode() const { return m_read_mode == read_mode::text; }
@@ -29,11 +29,13 @@ namespace ioutil {
 
         // NATFIXME: This should be made private, but we have to shave some yaks first
         HashObject *m_kwargs { nullptr };
+        int m_flags { O_RDONLY | O_CLOEXEC };
         read_mode m_read_mode { read_mode::none };
         EncodingObject *m_external_encoding { nullptr };
         EncodingObject *m_internal_encoding { nullptr };
 
     private:
+        void parse_flags(Env *);
         void parse_encoding(Env *);
         void parse_external_encoding(Env *);
         void parse_internal_encoding(Env *);

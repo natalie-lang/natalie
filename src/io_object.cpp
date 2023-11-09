@@ -57,7 +57,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
     if (actual_flags < 0)
         env->raise_errno();
     if (wanted_flags.has_mode) {
-        if ((flags_is_readable(wanted_flags.flags) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags) && !flags_is_writable(actual_flags))) {
+        if ((flags_is_readable(wanted_flags.flags()) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags()) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
         }
@@ -256,7 +256,7 @@ Value IoObject::read_file(Env *env, Args args) {
     auto length = args.at(1, nullptr);
     auto offset = args.at(2, nullptr);
     const ioutil::flags_struct flags { env, nullptr, kwargs };
-    if (!flags_is_readable(flags.flags))
+    if (!flags_is_readable(flags.flags()))
         env->raise("IOError", "not opened for reading");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
@@ -723,7 +723,7 @@ Value IoObject::sysopen(Env *env, Value path, Value flags_obj, Value perm) {
     const auto modenum = ioutil::perm_to_mode(env, perm);
 
     path = ioutil::convert_using_to_path(env, path);
-    const auto fd = ::open(path->as_string()->c_str(), flags.flags, modenum);
+    const auto fd = ::open(path->as_string()->c_str(), flags.flags(), modenum);
     return IntegerObject::create(fd);
 }
 

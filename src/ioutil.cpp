@@ -30,6 +30,13 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
+    void flags_struct::parse_flags(Env *env) {
+        if (!m_kwargs) return;
+        auto flags = m_kwargs->remove(env, "flags"_s);
+        if (!flags || flags->is_nil()) return;
+        m_flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
+    }
+
     void flags_struct::parse_encoding(Env *env) {
         if (!m_kwargs) return;
         auto encoding = m_kwargs->remove(env, "encoding"_s);
@@ -143,7 +150,7 @@ namespace ioutil {
 
             switch (flags_obj->type()) {
             case Object::Type::Integer:
-                self->flags = flags_obj->as_integer()->to_nat_int_t();
+                self->m_flags = flags_obj->as_integer()->to_nat_int_t();
                 break;
             case Object::Type::String: {
                 auto colon = new StringObject { ":" };
@@ -176,17 +183,17 @@ namespace ioutil {
                 }
 
                 if (main_mode == 'r' && !read_write_mode)
-                    self->flags = O_RDONLY;
+                    self->m_flags = O_RDONLY;
                 else if (main_mode == 'r' && read_write_mode == '+')
-                    self->flags = O_RDWR;
+                    self->m_flags = O_RDWR;
                 else if (main_mode == 'w' && !read_write_mode)
-                    self->flags = O_WRONLY | O_CREAT | O_TRUNC;
+                    self->m_flags = O_WRONLY | O_CREAT | O_TRUNC;
                 else if (main_mode == 'w' && read_write_mode == '+')
-                    self->flags = O_RDWR | O_CREAT | O_TRUNC;
+                    self->m_flags = O_RDWR | O_CREAT | O_TRUNC;
                 else if (main_mode == 'a' && !read_write_mode)
-                    self->flags = O_WRONLY | O_CREAT | O_APPEND;
+                    self->m_flags = O_WRONLY | O_CREAT | O_APPEND;
                 else if (main_mode == 'a' && read_write_mode == '+')
-                    self->flags = O_RDWR | O_CREAT | O_APPEND;
+                    self->m_flags = O_RDWR | O_CREAT | O_APPEND;
                 else
                     env->raise("ArgumentError", "invalid access mode {}", flags_str);
                 break;
@@ -204,21 +211,14 @@ namespace ioutil {
                 env->raise("ArgumentError", "mode specified twice");
             parse_flags_obj(env, self, mode);
         }
-
-        void parse_flags(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto flags = self->m_kwargs->remove(env, "flags"_s);
-            if (!flags || flags->is_nil()) return;
-            self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
-        }
     };
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)
         : m_kwargs(kwargs) {
         parse_flags_obj(env, this, flags_obj);
         parse_mode(env, this);
-        parse_flags(env, this);
-        flags |= O_CLOEXEC;
+        parse_flags(env);
+        m_flags |= O_CLOEXEC;
         parse_encoding(env);
         parse_external_encoding(env);
         parse_internal_encoding(env);
