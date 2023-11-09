@@ -26,15 +26,8 @@ namespace ioutil {
         StringObject *path() const { return m_path; }
         bool autoclose() const { return m_autoclose; }
 
-        // NATFIXME: This should be made private, but we have to shave some yaks first
-        HashObject *m_kwargs { nullptr };
-        bool m_has_mode { false };
-        int m_flags { O_RDONLY | O_CLOEXEC };
-        read_mode m_read_mode { read_mode::none };
-        EncodingObject *m_external_encoding { nullptr };
-        EncodingObject *m_internal_encoding { nullptr };
-
     private:
+        void parse_flags_obj(Env *, Value);
         void parse_mode(Env *);
         void parse_flags(Env *);
         void parse_encoding(Env *);
@@ -45,6 +38,12 @@ namespace ioutil {
         void parse_autoclose(Env *);
         void parse_path(Env *);
 
+        HashObject *m_kwargs { nullptr };
+        bool m_has_mode { false };
+        int m_flags { O_RDONLY | O_CLOEXEC };
+        read_mode m_read_mode { read_mode::none };
+        EncodingObject *m_external_encoding { nullptr };
+        EncodingObject *m_internal_encoding { nullptr };
         bool m_autoclose { false };
         StringObject *m_path { nullptr };
     };

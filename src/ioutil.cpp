@@ -30,76 +30,74 @@ namespace ioutil {
         return ::stat(io->as_string()->c_str(), sb);
     }
 
-    namespace {
-        void parse_flags_obj(Env *env, flags_struct *self, Value flags_obj) {
-            if (!flags_obj || flags_obj->is_nil())
-                return;
+    void flags_struct::parse_flags_obj(Env *env, Value flags_obj) {
+        if (!flags_obj || flags_obj->is_nil())
+            return;
 
-            self->m_has_mode = true;
+        m_has_mode = true;
 
-            if (!flags_obj->is_integer() && !flags_obj->is_string()) {
-                if (flags_obj->respond_to(env, "to_str"_s)) {
-                    flags_obj = flags_obj->to_str(env);
-                } else if (flags_obj->respond_to(env, "to_int"_s)) {
-                    flags_obj = flags_obj->to_int(env);
-                }
-            }
-
-            switch (flags_obj->type()) {
-            case Object::Type::Integer:
-                self->m_flags = flags_obj->as_integer()->to_nat_int_t();
-                break;
-            case Object::Type::String: {
-                auto colon = new StringObject { ":" };
-                auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
-                auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
-                auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
-                auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
-                if (!extenc->is_nil()) self->m_external_encoding = EncodingObject::find_encoding(env, extenc);
-                if (!intenc->is_nil()) self->m_internal_encoding = EncodingObject::find_encoding(env, intenc);
-
-                if (flags_str.length() < 1 || flags_str.length() > 3)
-                    env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-                // rb+ => 'r', 'b', '+'
-                auto main_mode = flags_str.at(0);
-                auto read_write_mode = flags_str.length() > 1 ? flags_str.at(1) : 0;
-                auto binary_text_mode = flags_str.length() > 2 ? flags_str.at(2) : 0;
-
-                // rb+ => r+b
-                if (read_write_mode == 'b' || read_write_mode == 't')
-                    std::swap(read_write_mode, binary_text_mode);
-
-                if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
-                    env->raise("ArgumentError", "invalid access mode {}", flags_str);
-
-                if (binary_text_mode == 'b') {
-                    self->m_read_mode = flags_struct::read_mode::binary;
-                } else if (binary_text_mode == 't') {
-                    self->m_read_mode = flags_struct::read_mode::text;
-                }
-
-                if (main_mode == 'r' && !read_write_mode)
-                    self->m_flags = O_RDONLY;
-                else if (main_mode == 'r' && read_write_mode == '+')
-                    self->m_flags = O_RDWR;
-                else if (main_mode == 'w' && !read_write_mode)
-                    self->m_flags = O_WRONLY | O_CREAT | O_TRUNC;
-                else if (main_mode == 'w' && read_write_mode == '+')
-                    self->m_flags = O_RDWR | O_CREAT | O_TRUNC;
-                else if (main_mode == 'a' && !read_write_mode)
-                    self->m_flags = O_WRONLY | O_CREAT | O_APPEND;
-                else if (main_mode == 'a' && read_write_mode == '+')
-                    self->m_flags = O_RDWR | O_CREAT | O_APPEND;
-                else
-                    env->raise("ArgumentError", "invalid access mode {}", flags_str);
-                break;
-            }
-            default:
-                env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
+        if (!flags_obj->is_integer() && !flags_obj->is_string()) {
+            if (flags_obj->respond_to(env, "to_str"_s)) {
+                flags_obj = flags_obj->to_str(env);
+            } else if (flags_obj->respond_to(env, "to_int"_s)) {
+                flags_obj = flags_obj->to_int(env);
             }
         }
-    };
+
+        switch (flags_obj->type()) {
+        case Object::Type::Integer:
+            m_flags = flags_obj->as_integer()->to_nat_int_t();
+            break;
+        case Object::Type::String: {
+            auto colon = new StringObject { ":" };
+            auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
+            auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
+            auto extenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(1)), nullptr);
+            auto intenc = flagsplit->ref(env, IntegerObject::create(static_cast<nat_int_t>(2)), nullptr);
+            if (!extenc->is_nil()) m_external_encoding = EncodingObject::find_encoding(env, extenc);
+            if (!intenc->is_nil()) m_internal_encoding = EncodingObject::find_encoding(env, intenc);
+
+            if (flags_str.length() < 1 || flags_str.length() > 3)
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+
+            // rb+ => 'r', 'b', '+'
+            auto main_mode = flags_str.at(0);
+            auto read_write_mode = flags_str.length() > 1 ? flags_str.at(1) : 0;
+            auto binary_text_mode = flags_str.length() > 2 ? flags_str.at(2) : 0;
+
+            // rb+ => r+b
+            if (read_write_mode == 'b' || read_write_mode == 't')
+                std::swap(read_write_mode, binary_text_mode);
+
+            if (binary_text_mode && binary_text_mode != 'b' && binary_text_mode != 't')
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+
+            if (binary_text_mode == 'b') {
+                m_read_mode = flags_struct::read_mode::binary;
+            } else if (binary_text_mode == 't') {
+                m_read_mode = flags_struct::read_mode::text;
+            }
+
+            if (main_mode == 'r' && !read_write_mode)
+                m_flags = O_RDONLY;
+            else if (main_mode == 'r' && read_write_mode == '+')
+                m_flags = O_RDWR;
+            else if (main_mode == 'w' && !read_write_mode)
+                m_flags = O_WRONLY | O_CREAT | O_TRUNC;
+            else if (main_mode == 'w' && read_write_mode == '+')
+                m_flags = O_RDWR | O_CREAT | O_TRUNC;
+            else if (main_mode == 'a' && !read_write_mode)
+                m_flags = O_WRONLY | O_CREAT | O_APPEND;
+            else if (main_mode == 'a' && read_write_mode == '+')
+                m_flags = O_RDWR | O_CREAT | O_APPEND;
+            else
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
+            break;
+        }
+        default:
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
+        }
+    }
 
     void flags_struct::parse_mode(Env *env) {
         if (!m_kwargs) return;
@@ -107,7 +105,7 @@ namespace ioutil {
         if (!mode || mode->is_nil()) return;
         if (has_mode())
             env->raise("ArgumentError", "mode specified twice");
-        parse_flags_obj(env, this, mode);
+        parse_flags_obj(env, mode);
     }
 
     void flags_struct::parse_flags(Env *env) {
@@ -215,7 +213,7 @@ namespace ioutil {
 
     flags_struct::flags_struct(Env *env, Value flags_obj, HashObject *kwargs)
         : m_kwargs(kwargs) {
-        parse_flags_obj(env, this, flags_obj);
+        parse_flags_obj(env, flags_obj);
         parse_mode(env);
         parse_flags(env);
         m_flags |= O_CLOEXEC;
