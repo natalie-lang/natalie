@@ -21,6 +21,7 @@ module Natalie
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
       File.join(ROOT_DIR, 'ext/tm/include'),
+      File.join(ROOT_DIR, 'ext/minicoro'),
       File.join(BUILD_DIR),
       File.join(BUILD_DIR, 'onigmo/include'),
     ]

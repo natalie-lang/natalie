@@ -10,3 +10,6 @@
 [submodule "ext/prism"]
 	path = ext/prism
 	url = https://github.com/ruby/prism
+[submodule "ext/minicoro"]
+	path = ext/minicoro
+	url = https://github.com/edubart/minicoro.git

@@ -501,6 +501,7 @@ def include_paths
   [
     File.expand_path('include', __dir__),
     File.expand_path('ext/tm/include', __dir__),
+    File.expand_path('ext/minicoro', __dir__),
     File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/prism/include', __dir__),
