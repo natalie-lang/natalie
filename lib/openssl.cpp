@@ -22,6 +22,11 @@ static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     EVP_MD_CTX_free(mdctx);
 }
 
+static void OpenSSL_PKEY_cleanup(VoidPObject *self) {
+    auto pkey = static_cast<EVP_PKEY *>(self->void_ptr());
+    EVP_PKEY_free(pkey);
+}
+
 static void OpenSSL_SSL_CTX_cleanup(VoidPObject *self) {
     auto ctx = static_cast<SSL_CTX *>(self->void_ptr());
     SSL_CTX_free(ctx);
@@ -360,6 +365,39 @@ Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args args, Block *) {
     if (size < 0)
         OpenSSL_raise_error(env, "SSL_write");
     return Value::integer(size);
+}
+
+Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    // NATFIXME: Support other constructor types
+    const unsigned int bits = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+    auto pkey = EVP_RSA_gen(bits);
+    if (!pkey)
+        OpenSSL_raise_error(env, "EVP_PKEY_new");
+    self->ivar_set(env, "@pkey"_s, new VoidPObject { pkey, OpenSSL_PKEY_cleanup });
+
+    return self;
+}
+
+Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args args, Block *) {
+    // NATFIXME: Support arguments
+    args.ensure_argc_is(env, 0);
+
+    auto pkey = static_cast<EVP_PKEY *>(self->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
+
+    auto bio = BIO_new(BIO_s_mem());
+    if (!bio)
+        OpenSSL_raise_error(env, "BIO_new_mem_buf");
+    Defer bio_free { [&bio]() { BIO_free(bio); } };
+
+    PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
+
+    char *data;
+    const auto size = BIO_get_mem_data(bio, &data);
+    if (size <= 0)
+        OpenSSL_raise_error(env, "BIO_get_mem_data");
+    return new StringObject { data, static_cast<size_t>(size) };
 }
 
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {

@@ -163,6 +163,19 @@ module OpenSSL
     class KDFError < OpenSSLError; end
   end
 
+  module PKey
+    class PKeyError < OpenSSLError; end
+    class RSAError < PKeyError; end
+
+    class RSA
+      __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize
+      __bind_method__ :export, :OpenSSL_PKey_RSA_export
+
+      alias to_pem export
+      alias to_s export
+    end
+  end
+
   module X509
     class NameError < OpenSSLError; end
 
