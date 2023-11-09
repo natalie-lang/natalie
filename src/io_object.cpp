@@ -56,7 +56,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
     const auto actual_flags = ::fcntl(fileno, F_GETFL);
     if (actual_flags < 0)
         env->raise_errno();
-    if (wanted_flags.has_mode) {
+    if (wanted_flags.has_mode()) {
         if ((flags_is_readable(wanted_flags.flags()) && !flags_is_readable(actual_flags)) || (flags_is_writable(wanted_flags.flags()) && !flags_is_writable(actual_flags))) {
             errno = EINVAL;
             env->raise_errno();
