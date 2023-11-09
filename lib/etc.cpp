@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include <grp.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 using namespace Natalie;
@@ -169,4 +170,20 @@ Value Etc_sysconf(Env *env, Value self, Args args, Block *_block) {
         return NilObject::the();
     }
     return new IntegerObject { status };
+}
+
+Value Etc_uname(Env *env, Value, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    utsname buf;
+    if (uname(&buf) < 0)
+        env->raise_errno();
+
+    auto result = new HashObject;
+    result->put(env, SymbolObject::intern("sysname"), new StringObject { buf.sysname });
+    result->put(env, SymbolObject::intern("nodename"), new StringObject { buf.nodename });
+    result->put(env, SymbolObject::intern("release"), new StringObject { buf.release });
+    result->put(env, SymbolObject::intern("version"), new StringObject { buf.version });
+    result->put(env, SymbolObject::intern("machine"), new StringObject { buf.machine });
+    return result;
 }
