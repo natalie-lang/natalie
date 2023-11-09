@@ -86,6 +86,19 @@ namespace ioutil {
         }
     }
 
+    void flags_struct::parse_textmode(Env *env) {
+        if (!m_kwargs) return;
+        auto textmode = m_kwargs->remove(env, "textmode"_s);
+        if (!textmode || textmode->is_nil()) return;
+        if (m_read_mode == flags_struct::read_mode::binary) {
+            env->raise("ArgumentError", "both textmode and binmode specified");
+        } else if (this->textmode()) {
+            env->raise("ArgumentError", "textmode specified twice");
+        }
+        if (textmode->is_truthy())
+            m_read_mode = flags_struct::read_mode::text;
+    }
+
     void flags_struct::parse_autoclose(Env *env) {
         if (!m_kwargs) return;
         auto autoclose = m_kwargs->remove(env, "autoclose"_s);
@@ -144,9 +157,9 @@ namespace ioutil {
                     env->raise("ArgumentError", "invalid access mode {}", flags_str);
 
                 if (binary_text_mode == 'b') {
-                    self->read_mode = flags_struct::read_mode::binary;
+                    self->m_read_mode = flags_struct::read_mode::binary;
                 } else if (binary_text_mode == 't') {
-                    self->read_mode = flags_struct::read_mode::text;
+                    self->m_read_mode = flags_struct::read_mode::text;
                 }
 
                 if (main_mode == 'r' && !read_write_mode)
@@ -186,30 +199,17 @@ namespace ioutil {
             self->flags |= static_cast<int>(flags->to_int(env)->to_nat_int_t());
         }
 
-        void parse_textmode(Env *env, flags_struct *self) {
-            if (!self->m_kwargs) return;
-            auto textmode = self->m_kwargs->remove(env, "textmode"_s);
-            if (!textmode || textmode->is_nil()) return;
-            if (self->read_mode == flags_struct::read_mode::binary) {
-                env->raise("ArgumentError", "both textmode and binmode specified");
-            } else if (self->read_mode == flags_struct::read_mode::text) {
-                env->raise("ArgumentError", "textmode specified twice");
-            }
-            if (textmode->is_truthy())
-                self->read_mode = flags_struct::read_mode::text;
-        }
-
         void parse_binmode(Env *env, flags_struct *self) {
             if (!self->m_kwargs) return;
             auto binmode = self->m_kwargs->remove(env, "binmode"_s);
             if (!binmode || binmode->is_nil()) return;
-            if (self->read_mode == flags_struct::read_mode::binary) {
+            if (self->m_read_mode == flags_struct::read_mode::binary) {
                 env->raise("ArgumentError", "binmode specified twice");
-            } else if (self->read_mode == flags_struct::read_mode::text) {
+            } else if (self->textmode()) {
                 env->raise("ArgumentError", "both textmode and binmode specified");
             }
             if (binmode->is_truthy())
-                self->read_mode = flags_struct::read_mode::binary;
+                self->m_read_mode = flags_struct::read_mode::binary;
         }
     };
 
@@ -222,14 +222,14 @@ namespace ioutil {
         parse_encoding(env);
         parse_external_encoding(env);
         parse_internal_encoding(env);
-        parse_textmode(env, this);
+        parse_textmode(env);
         parse_binmode(env, this);
         parse_autoclose(env);
         parse_path(env);
         if (!m_external_encoding) {
-            if (read_mode == read_mode::binary) {
+            if (m_read_mode == read_mode::binary) {
                 m_external_encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-            } else if (read_mode == read_mode::text) {
+            } else if (textmode()) {
                 m_external_encoding = EncodingObject::get(Encoding::UTF_8);
             }
         }
