@@ -1,3 +1,5 @@
+require_relative './meta'
+
 module Natalie
   class Compiler
     class BaseInstruction
@@ -18,11 +20,8 @@ module Natalie
       attr_accessor :env
 
       class << self
-        attr_accessor :instruction_number
-
-        def inherited(subclass)
-          @number ||= 0
-          subclass.instruction_number = @number += 1
+        def instruction_number
+          @instruction_number ||= INSTRUCTIONS_META.fetch(label).fetch(:num)
         end
       end
 

@@ -25,7 +25,7 @@ module Natalie
         [
           instruction_number,
           @count
-        ].pack("CS")
+        ].pack("Cw")
       end
     end
   end
