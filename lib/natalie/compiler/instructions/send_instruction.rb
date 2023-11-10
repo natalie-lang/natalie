@@ -139,7 +139,7 @@ module Natalie
           with_block ? 1 : 0,
           args_array_on_stack ? 1 : 0,
           has_keyword_hash ? 1 : 0,
-        ].pack("CLa#{message_string.bytesize}CCCC")
+        ].pack("Cwa#{message_string.bytesize}CCCC")
       end
 
       private

@@ -32,7 +32,7 @@ module Natalie
           instruction_number,
           @bytesize,
           @string,
-        ].pack("CQa#{@bytesize}")
+        ].pack("Cwa#{@bytesize}")
       end
     end
   end
