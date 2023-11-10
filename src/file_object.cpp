@@ -57,12 +57,12 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
         set_fileno(fileno);
     } else {
         filename = ioutil::convert_using_to_path(env, filename);
-        int fileno = ::open(filename->as_string()->c_str(), flags.flags, modenum);
+        int fileno = ::open(filename->as_string()->c_str(), flags.flags(), modenum);
         if (fileno == -1) env->raise_errno();
         set_fileno(fileno);
         set_path(filename->as_string());
     }
-    set_encoding(env, flags.external_encoding, flags.internal_encoding);
+    set_encoding(env, flags.external_encoding(), flags.internal_encoding());
     if (block)
         env->warn("File::new() does not take block; use File::open() instead");
     return this;
