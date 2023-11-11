@@ -50,6 +50,7 @@ public:
         }
         auto user_data = (coroutine_user_data *)m_coroutine->user_data;
         delete user_data;
+        mco_destroy(m_coroutine);
     }
 
     static void build_main_fiber(void *start_of_stack) {
