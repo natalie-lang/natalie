@@ -113,6 +113,7 @@ module OpenSSL
 
       __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
       __bind_method__ :connect, :OpenSSL_SSL_SSLSocket_connect
+      __bind_method__ :write, :OpenSSL_SSL_SSLSocket_write
     end
   end
 

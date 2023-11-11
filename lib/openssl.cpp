@@ -329,6 +329,16 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto str = args.at(0)->to_s(env);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    const auto size = SSL_write(ssl, str->c_str(), str->bytesize());
+    if (size < 0)
+        OpenSSL_raise_error(env, "SSL_write");
+    return Value::integer(size);
+}
+
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
