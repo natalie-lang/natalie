@@ -1,5 +1,8 @@
 require_relative '../spec_helper'
 
+tmp_path = File.expand_path('../tmp', __dir__)
+Dir.mkdir(tmp_path) unless File.exist?(tmp_path)
+
 describe 'File' do
   it 'is an IO object' do
     f = File.new('test/support/file.txt')
