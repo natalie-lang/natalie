@@ -174,3 +174,56 @@ describe "OpenSSL::X509::Name#to_s" do
     NAME
   end
 end
+
+describe "OpenSSL::SSL::SSLContext#initialize" do
+  it "can be constructed without arguments" do
+    context = OpenSSL::SSL::SSLContext.new
+    context.should be_kind_of(OpenSSL::SSL::SSLContext)
+  end
+
+  # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
+end
+
+describe "OpenSSL::SSL::SSLSocket#initialize" do
+  it "can be constructed with a single IO object" do
+    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr)
+    ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
+    ssl_socket.io.should == $stderr
+    ssl_socket.context.should be_kind_of(OpenSSL::SSL::SSLContext)
+  end
+
+  it "can be constructed with an IO object and an SSL context" do
+    context = OpenSSL::SSL::SSLContext.new
+    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
+    ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
+    ssl_socket.io.should == $stderr
+    ssl_socket.context.should == context
+  end
+
+  # NATFIXME: The macos CI runner detects the Ruby version as 3.0-, but the code behaves like 3.1+
+  #           For now, just disable this test on Darwin, it does not add anything and the tests are
+  #           mostly relevant for developing.
+  platform_is_not :darwin do
+    ruby_version_is ''...'3.1' do
+      it "tries to call sync on the first argument" do
+        -> {
+          OpenSSL::SSL::SSLSocket.new(42)
+        }.should raise_error(NoMethodError, "undefined method `sync' for 42:Integer")
+      end
+    end
+
+    ruby_version_is '3.1' do
+      it "raises a TypeError if the first argument is not an IO object" do
+        -> {
+          OpenSSL::SSL::SSLSocket.new(42)
+        }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
+      end
+    end
+  end
+
+  it "raises a TypeError if the second argument is not an SSLContext object" do
+    -> {
+      OpenSSL::SSL::SSLSocket.new($stderr, 42)
+    }.should raise_error(TypeError, 'wrong argument type Integer (expected OpenSSL/SSL/CTX)')
+  end
+end

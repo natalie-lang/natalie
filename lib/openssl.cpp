@@ -5,6 +5,7 @@
 #include <openssl/hmac.h>
 #include <openssl/kdf.h>
 #include <openssl/rand.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include "natalie.hpp"
@@ -19,6 +20,16 @@ static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
 static void OpenSSL_MD_CTX_cleanup(VoidPObject *self) {
     auto mdctx = static_cast<EVP_MD_CTX *>(self->void_ptr());
     EVP_MD_CTX_free(mdctx);
+}
+
+static void OpenSSL_SSL_CTX_cleanup(VoidPObject *self) {
+    auto ctx = static_cast<SSL_CTX *>(self->void_ptr());
+    SSL_CTX_free(ctx);
+}
+
+static void OpenSSL_SSL_cleanup(VoidPObject *self) {
+    auto ssl = static_cast<SSL *>(self->void_ptr());
+    SSL_free(ssl);
 }
 
 static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
@@ -272,6 +283,80 @@ Value OpenSSL_HMAC_digest(Env *env, Value self, Args args, Block *) {
     if (!res)
         OpenSSL_raise_error(env, "HMAC");
     return new StringObject { reinterpret_cast<const char *>(md), md_len };
+}
+
+Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0); // NATFIXME: Add deprecated version argument
+    SSL_CTX *ctx = SSL_CTX_new(TLS_method());
+    if (!ctx)
+        OpenSSL_raise_error(env, "SSL_CTX_new");
+    self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    return self;
+}
+
+Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto io = args.at(0);
+    if (!io->is_io())
+        env->raise("TypeError", "wrong argument type {} (expected File)", io->klass()->inspect_str());
+    auto context = args.at(1, nullptr);
+    auto SSLContext = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("SSL"_s)->const_get("SSLContext"_s);
+    if (!context || context->is_nil()) {
+        context = Object::_new(env, SSLContext, {}, nullptr);
+    } else {
+        if (!context->is_a(env, SSLContext->as_class()))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
+    }
+    auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL *ssl = SSL_new(ctx);
+    if (!ssl)
+        OpenSSL_raise_error(env, "SSL_new");
+    self->ivar_set(env, "@context"_s, context);
+    self->ivar_set(env, "@io"_s, io);
+    self->ivar_set(env, "@ssl"_s, new VoidPObject { ssl, OpenSSL_SSL_cleanup });
+    return self;
+}
+
+Value OpenSSL_SSL_SSLSocket_close(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    SSL_shutdown(ssl);
+    return self;
+}
+
+Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    auto fd = self->ivar_get(env, "@io"_s)->as_io()->fileno();
+    const auto flags = fcntl(fd, F_GETFL);
+    if (!SSL_set_fd(ssl, fd))
+        OpenSSL_raise_error(env, "SSL_set_fd");
+    if (!SSL_connect(ssl))
+        OpenSSL_raise_error(env, "SSL_connect");
+    return self;
+}
+
+Value OpenSSL_SSL_SSLSocket_read(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0); // NATFIXME: This probably supports a buffer
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    constexpr size_t buf_size = 1024;
+    TM::String buf(buf_size, '\0');
+    auto result = new StringObject {};
+    int bytes_read;
+    while ((bytes_read = SSL_read(ssl, &buf[0], buf_size)) > 0) {
+        result->append(buf.c_str(), bytes_read);
+    }
+    return result;
+}
+
+Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto str = args.at(0)->to_s(env);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    const auto size = SSL_write(ssl, str->c_str(), str->bytesize());
+    if (size < 0)
+        OpenSSL_raise_error(env, "SSL_write");
+    return Value::integer(size);
 }
 
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
