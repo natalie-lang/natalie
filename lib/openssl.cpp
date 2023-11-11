@@ -27,6 +27,11 @@ static void OpenSSL_SSL_CTX_cleanup(VoidPObject *self) {
     SSL_CTX_free(ctx);
 }
 
+static void OpenSSL_SSL_cleanup(VoidPObject *self) {
+    auto ssl = static_cast<SSL *>(self->void_ptr());
+    SSL_free(ssl);
+}
+
 static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
     auto name = static_cast<X509_NAME *>(self->void_ptr());
     X509_NAME_free(name);
@@ -302,8 +307,25 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *)
         if (!context->is_a(env, SSLContext->as_class()))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
     }
+    auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL *ssl = SSL_new(ctx);
+    if (!ssl)
+        OpenSSL_raise_error(env, "SSL_new");
     self->ivar_set(env, "@context"_s, context);
     self->ivar_set(env, "@io"_s, io);
+    self->ivar_set(env, "@ssl"_s, new VoidPObject { ssl, OpenSSL_SSL_cleanup });
+    return self;
+}
+
+Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    auto fd = self->ivar_get(env, "@io"_s)->as_io()->fileno();
+    const auto flags = fcntl(fd, F_GETFL);
+    if (!SSL_set_fd(ssl, fd))
+        OpenSSL_raise_error(env, "SSL_set_fd");
+    if (!SSL_connect(ssl))
+        OpenSSL_raise_error(env, "SSL_connect");
     return self;
 }
 
