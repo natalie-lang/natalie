@@ -317,6 +317,13 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *)
     return self;
 }
 
+Value OpenSSL_SSL_SSLSocket_close(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
+    SSL_shutdown(ssl);
+    return self;
+}
+
 Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());

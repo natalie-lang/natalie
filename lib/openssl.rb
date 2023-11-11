@@ -112,6 +112,7 @@ module OpenSSL
       attr_reader :context, :io
 
       __bind_method__ :initialize, :OpenSSL_SSL_SSLSocket_initialize
+      __bind_method__ :close, :OpenSSL_SSL_SSLSocket_close
       __bind_method__ :connect, :OpenSSL_SSL_SSLSocket_connect
       __bind_method__ :read, :OpenSSL_SSL_SSLSocket_read
       __bind_method__ :write, :OpenSSL_SSL_SSLSocket_write
