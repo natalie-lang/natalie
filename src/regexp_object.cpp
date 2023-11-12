@@ -293,7 +293,7 @@ Value RegexpObject::match_at_byte_offset(Env *env, StringObject *str, size_t byt
     Env *caller_env = env->caller();
 
     OnigRegion *region = onig_region_new();
-    int result = search(str->c_str(), byte_index, region, ONIG_OPTION_NONE);
+    int result = search(str->string(), byte_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
         auto match = new MatchDataObject { region, str, this };
@@ -336,7 +336,7 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
     }
 
     OnigRegion *region = onig_region_new();
-    int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
+    int result = search(str_obj->string(), start_index, region, ONIG_OPTION_NONE);
 
     if (result >= 0) {
         return true;

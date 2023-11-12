@@ -226,6 +226,10 @@ describe 'regexp' do
     it 'works with zero-width match' do
       "f\nmp".gsub(/^/, 'gi').should == "gif\ngimp"
     end
+
+    it 'works with a null byte' do
+      "foo\0bar\0baz".gsub(/\0/, '?').should == 'foo?bar?baz'
+    end
   end
 
   describe '#sub' do
@@ -234,6 +238,10 @@ describe 'regexp' do
       'tim'.sub(/t(i)m/, "\\9").should == ''
       'tim'.sub(/t(i)m/, "0\\10").should == '0i0'
       'tim'.sub(/t(i)m/, "0\\90").should == '00'
+    end
+
+    it 'works with a null byte' do
+      "foo\0bar\0baz".sub(/\0/, '?').should == "foo?bar\0baz"
     end
   end
 
