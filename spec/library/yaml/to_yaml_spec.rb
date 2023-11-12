@@ -32,9 +32,7 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a FalseClass" do
     false_klass = false
     false_klass.should be_kind_of(FalseClass)
-    NATFIXME 'YAML.dump for booleans', exception: NotImplementedError, message: 'TODO: Implement YAML output for FalseClass' do
-      false_klass.to_yaml.should match_yaml("--- false\n")
-    end
+    false_klass.to_yaml.should match_yaml("--- false\n")
   end
 
   it "returns the YAML representation of a Float object" do
@@ -87,9 +85,7 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a TrueClass" do
     true_klass = true
     true_klass.should be_kind_of(TrueClass)
-    NATFIXME 'YAML.dump for booleans', exception: NotImplementedError, message: 'TODO: Implement YAML output for TrueClass' do
-      true_klass.to_yaml.should match_yaml("--- true\n")
-    end
+    true_klass.to_yaml.should match_yaml("--- true\n")
   end
 
   it "returns the YAML representation of a Error object" do

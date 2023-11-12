@@ -12,6 +12,13 @@ static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
         env->raise("RuntimeError", "Error in yaml_emitter_emit");
 }
 
+static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const TM::String str { "false" };
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
+        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
     const auto str = value->to_s()->as_string()->string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_FLOAT_TAG,
@@ -41,8 +48,17 @@ static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, y
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const TM::String str { "true" };
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
+        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    if (value->is_float()) {
+    if (value->is_false()) {
+        emit_value(env, value->as_false(), emitter, event);
+    } else if (value->is_float()) {
         emit_value(env, value->as_float(), emitter, event);
     } else if (value->is_integer()) {
         emit_value(env, value->as_integer(), emitter, event);
@@ -50,6 +66,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_string(), emitter, event);
     } else if (value->is_symbol()) {
         emit_value(env, value->as_symbol(), emitter, event);
+    } else if (value->is_true()) {
+        emit_value(env, value->as_true(), emitter, event);
     } else {
         env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
     }
