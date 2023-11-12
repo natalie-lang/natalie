@@ -883,6 +883,24 @@ class ComplainExpectation
   end
 end
 
+class YAMLExpectation
+  def initialize(expected)
+    @expected = expected
+  end
+
+  def match(subject)
+    if subject.delete_suffix!("...\n") != @expected
+      raise SpecFailedException, "#{subject.inspect} should be equal to #{@expected.inspect}"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.delete_suffix!("...\n") == @expected
+      raise SpecFailedException, "#{subject.inspect} should not be equal to #{@expected.inspect}"
+    end
+  end
+end
+
 class StubRegistry
   attr_reader :stubs
 
@@ -1310,6 +1328,10 @@ class Object
 
   def complain(message = nil, verbose: false)
     ComplainExpectation.new(message, verbose: verbose)
+  end
+
+  def match_yaml(expected)
+    YAMLExpectation.new(expected)
   end
 
   def should_receive(message)
