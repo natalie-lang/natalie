@@ -19,9 +19,19 @@ static void emit_value(Env *env, StringObject *value, yaml_emitter_t &emitter, y
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    TM::String str = value->string();
+    str.prepend_char(':');
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
+        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (value->is_string()) {
         emit_value(env, value->as_string(), emitter, event);
+    } else if (value->is_symbol()) {
+        emit_value(env, value->as_symbol(), emitter, event);
     } else {
         env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
     }

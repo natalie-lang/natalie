@@ -79,9 +79,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Symbol object" do
-    NATFIXME 'YAML.dump for Symbols', exception: NotImplementedError, message: 'TODO: Implement YAML output for Symbol' do
-      :symbol.to_yaml.should match_yaml("--- :symbol\n")
-    end
+    :symbol.to_yaml.should match_yaml("--- :symbol\n")
   end
 
   it "returns the YAML representation of a Time object" do

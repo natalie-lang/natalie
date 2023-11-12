@@ -17,9 +17,7 @@ describe "YAML.dump" do
   end
 
   it "returns a string containing dumped YAML when no io provided" do
-    NATFIXME 'Dump Symbol', exception: NotImplementedError, message: 'TODO: Implement YAML output for Symbol' do
-      YAML.dump( :locked ).should match_yaml("--- :locked\n")
-    end
+    YAML.dump( :locked ).should match_yaml("--- :locked\n")
   end
 
   it "returns the same string that #to_yaml on objects" do
