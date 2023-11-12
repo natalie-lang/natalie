@@ -23,7 +23,7 @@ describe "YAML.dump" do
   end
 
   it "returns the same string that #to_yaml on objects" do
-    NATFIXME 'Implement Object#to_yaml', exception: NoMethodError, message: "undefined method `to_yaml'" do
+    NATFIXME 'Dump Array', exception: NotImplementedError, message: 'TODO: Implement YAML output for Array' do
       ["a", "b", "c"].to_yaml.should == YAML.dump(["a", "b", "c"])
     end
   end
