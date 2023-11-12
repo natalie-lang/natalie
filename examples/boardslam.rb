@@ -109,7 +109,7 @@ class BoardSlam
   end
 
   def missing
-    BOARD.to_a - results.keys
+    @missing ||= (BOARD.to_a - results.keys)
   end
 end
 

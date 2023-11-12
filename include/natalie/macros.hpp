@@ -72,3 +72,5 @@
 #else
 #define NAT_GC_GUARD_VALUE(val)
 #endif
+
+#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))

@@ -50,6 +50,7 @@ public:
         }
         auto user_data = (coroutine_user_data *)m_coroutine->user_data;
         delete user_data;
+        mco_destroy(m_coroutine);
     }
 
     static void build_main_fiber(void *start_of_stack) {
@@ -105,6 +106,8 @@ public:
     }
 
     virtual void visit_children(Visitor &) override final;
+    void visit_children_from_stack(Visitor &) const;
+    void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         auto size = m_coroutine ? m_coroutine->stack_size : 0;
@@ -134,6 +137,9 @@ private:
     mco_coro *m_coroutine {};
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
+#ifdef __SANITIZE_ADDRESS__
+    void *m_asan_fake_stack { nullptr };
+#endif
     Status m_status { Status::Created };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};

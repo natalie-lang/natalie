@@ -268,7 +268,14 @@ module Natalie
     end
 
     def link_flags
-      (@context[:compile_ld_flags].join(' ').split.uniq - unnecessary_link_flags).join(' ')
+      flags = if build == 'asan'
+                ['-fsanitize=address']
+              else
+                []
+              end
+      flags += @context[:compile_ld_flags].join(' ').split
+      flags -= unnecessary_link_flags
+      flags.join(' ')
     end
 
     def unnecessary_link_flags
@@ -281,6 +288,8 @@ module Natalie
         RELEASE_FLAGS
       when 'debug', nil
         DEBUG_FLAGS
+      when 'asan'
+        ASAN_FLAGS
       when 'coverage'
         COVERAGE_FLAGS
       else

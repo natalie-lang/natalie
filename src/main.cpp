@@ -45,10 +45,9 @@ int main(int argc, char *argv[]) {
 #ifdef NAT_NATIVE_PROFILER
     NativeProfiler::enable();
 #endif
-    Heap::the().set_start_of_stack(&argv);
-#ifdef NAT_GC_COLLECT_ALL_AT_EXIT
-    Heap::the().set_collect_all_at_exit(true);
-#endif
+
+    Heap::the().set_start_of_stack(__builtin_frame_address(0));
+
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
     Env *env = ::build_top_env();
@@ -56,6 +55,9 @@ int main(int argc, char *argv[]) {
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
+#endif
+#ifdef NAT_GC_COLLECT_ALL_AT_EXIT
+    Heap::the().set_collect_all_at_exit(true);
 #endif
 
     if (argc > 0) {

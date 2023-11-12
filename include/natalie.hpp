@@ -122,6 +122,11 @@ extern "C" {
 #include "onigmo.h"
 }
 
+#ifdef __SANITIZE_ADDRESS__
+extern "C" void *__asan_get_current_fake_stack();
+extern "C" void *__asan_addr_is_in_fake_stack(void *fake_stack, void *addr, void **beg, void **end);
+#endif
+
 void init_bindings(Env *);
 
 Env *build_top_env();
