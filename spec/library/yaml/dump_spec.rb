@@ -8,7 +8,7 @@ describe "YAML.dump" do
   end
 
   it "converts an object to YAML and write result to io when io provided" do
-    NATFIXME 'Dump Array, support IO argument', exception: NotImplementedError, message: 'TODO: Implement YAML output for Array' do
+    NATFIXME 'support IO argument, implement YAML.load_file', exception: NoMethodError, message: "undefined method `load_file' for YAML:Module" do
       File.open($test_file, 'w' ) do |io|
         YAML.dump( ['badger', 'elephant', 'tiger'], io )
       end
@@ -17,15 +17,11 @@ describe "YAML.dump" do
   end
 
   it "returns a string containing dumped YAML when no io provided" do
-    NATFIXME 'Dump Symbol', exception: NotImplementedError, message: 'TODO: Implement YAML output for Symbol' do
-      YAML.dump( :locked ).should match_yaml("--- :locked\n")
-    end
+    YAML.dump( :locked ).should match_yaml("--- :locked\n")
   end
 
   it "returns the same string that #to_yaml on objects" do
-    NATFIXME 'Implement Object#to_yaml', exception: NoMethodError, message: "undefined method `to_yaml'" do
-      ["a", "b", "c"].to_yaml.should == YAML.dump(["a", "b", "c"])
-    end
+    ["a", "b", "c"].to_yaml.should == YAML.dump(["a", "b", "c"])
   end
 
   it "dumps strings into YAML strings" do
@@ -39,9 +35,7 @@ describe "YAML.dump" do
   end
 
   it "dumps Arrays into YAML collection" do
-    NATFIXME 'dumps Arrays into YAML collection', exception: NotImplementedError, message: 'TODO: Implement YAML output for Array' do
-      YAML.dump(["a", "b", "c"]).should match_yaml("--- \n- a\n- b\n- c\n")
-    end
+    YAML.dump(["a", "b", "c"]).should match_yaml("--- \n- a\n- b\n- c\n")
   end
 
   it "dumps an OpenStruct" do

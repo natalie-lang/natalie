@@ -889,15 +889,23 @@ class YAMLExpectation
   end
 
   def match(subject)
-    if subject.delete_suffix!("...\n") != @expected
+    if prepare_yaml(subject) != @expected
       raise SpecFailedException, "#{subject.inspect} should be equal to #{@expected.inspect}"
     end
   end
 
   def inverted_match(subject)
-    if subject.delete_suffix!("...\n") == @expected
+    if prepare_yaml(subject) == @expected
       raise SpecFailedException, "#{subject.inspect} should not be equal to #{@expected.inspect}"
     end
+  end
+
+  private
+
+  def prepare_yaml(yaml)
+    yaml
+      .delete_suffix!("...\n")
+      .gsub(/^---\n/, "--- \n")
   end
 end
 
