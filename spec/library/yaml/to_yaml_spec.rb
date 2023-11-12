@@ -50,9 +50,7 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a NilClass object" do
     nil_klass = nil
     nil_klass.should be_kind_of(NilClass)
-    NATFIXME 'YAML.dump for nil', exception: NotImplementedError, message: 'TODO: Implement YAML output for NilClass' do
-      nil_klass.to_yaml.should match_yaml("--- \n")
-    end
+    nil_klass.to_yaml.should match_yaml("--- \n")
   end
 
   it "returns the YAML representation of a RegExp object" do
