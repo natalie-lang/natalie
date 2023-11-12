@@ -12,6 +12,20 @@ static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
         env->raise("RuntimeError", "Error in yaml_emitter_emit");
 }
 
+static void emit_value(Env *, Value, yaml_emitter_t &, yaml_event_t &);
+
+static void emit_value(Env *env, ArrayObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_sequence_start_event_initialize(&event, NULL, (yaml_char_t *)YAML_SEQ_TAG,
+        1, YAML_ANY_SEQUENCE_STYLE);
+    emit(env, emitter, event);
+
+    for (auto elem : *value)
+        emit_value(env, elem, emitter, event);
+
+    yaml_sequence_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "false" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
@@ -56,7 +70,9 @@ static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_eve
 }
 
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    if (value->is_false()) {
+    if (value->is_array()) {
+        emit_value(env, value->as_array(), emitter, event);
+    } else if (value->is_false()) {
         emit_value(env, value->as_false(), emitter, event);
     } else if (value->is_float()) {
         emit_value(env, value->as_float(), emitter, event);

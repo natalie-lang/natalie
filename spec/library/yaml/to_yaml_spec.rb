@@ -5,7 +5,7 @@ require_relative 'fixtures/example_class'
 describe "Object#to_yaml" do
 
   it "returns the YAML representation of an Array object" do
-    NATFIXME 'YAML.dump for Arrays', exception: NotImplementedError, message: 'TODO: Implement YAML output for Array' do
+    NATFIXME 'Dump string integers in quotes', exception: SpecFailedException do
       %w( 30 ruby maz irb 99 ).to_yaml.gsub("'", '"').should match_yaml("--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n")
     end
   end
@@ -117,7 +117,7 @@ describe "Object#to_yaml" do
 
   it "returns the YAML representation of an array of hashes" do
     players = [{"a" => "b"}, {"b" => "c"}]
-    NATFIXME 'YAML.dump for arrays and hashes', exception: NotImplementedError, message: 'TODO: Implement YAML output for Array' do
+    NATFIXME 'YAML.dump for hashes', exception: NotImplementedError, message: 'TODO: Implement YAML output for Hash' do
       players.to_yaml.should match_yaml("--- \n- a: b\n- b: c\n")
     end
   end
