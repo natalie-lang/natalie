@@ -15,7 +15,7 @@ static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
 static void emit_value(Env *, Value, yaml_emitter_t &, yaml_event_t &);
 
 static void emit_value(Env *env, ArrayObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    yaml_sequence_start_event_initialize(&event, NULL, (yaml_char_t *)YAML_SEQ_TAG,
+    yaml_sequence_start_event_initialize(&event, nullptr, (yaml_char_t *)YAML_SEQ_TAG,
         1, YAML_ANY_SEQUENCE_STYLE);
     emit(env, emitter, event);
 
@@ -37,6 +37,20 @@ static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, ya
     const auto str = value->to_s()->as_string()->string();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_FLOAT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_value(Env *env, HashObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)YAML_MAP_TAG,
+        1, YAML_ANY_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    for (auto elem : *value) {
+        emit_value(env, elem.key, emitter, event);
+        emit_value(env, elem.val, emitter, event);
+    }
+
+    yaml_mapping_end_event_initialize(&event);
     emit(env, emitter, event);
 }
 
@@ -82,6 +96,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_false(), emitter, event);
     } else if (value->is_float()) {
         emit_value(env, value->as_float(), emitter, event);
+    } else if (value->is_hash()) {
+        emit_value(env, value->as_hash(), emitter, event);
     } else if (value->is_integer()) {
         emit_value(env, value->as_integer(), emitter, event);
     } else if (value->is_nil()) {

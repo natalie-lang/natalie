@@ -11,9 +11,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Hash object" do
-    NATFIXME 'YAML.dump for Hashes', exception: NotImplementedError, message: 'TODO: Implement YAML output for Hash' do
-      { "a" => "b"}.to_yaml.should match_yaml("--- \na: b\n")
-    end
+    { "a" => "b"}.to_yaml.should match_yaml("--- \na: b\n")
   end
 
   it "returns the YAML representation of a Class object" do
@@ -115,8 +113,6 @@ describe "Object#to_yaml" do
 
   it "returns the YAML representation of an array of hashes" do
     players = [{"a" => "b"}, {"b" => "c"}]
-    NATFIXME 'YAML.dump for hashes', exception: NotImplementedError, message: 'TODO: Implement YAML output for Hash' do
-      players.to_yaml.should match_yaml("--- \n- a: b\n- b: c\n")
-    end
+    players.to_yaml.should match_yaml("--- \n- a: b\n- b: c\n")
   end
 end

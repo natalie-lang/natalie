@@ -29,9 +29,7 @@ describe "YAML.dump" do
   end
 
   it "dumps hashes into YAML key-values" do
-    NATFIXME 'dumps hashes into YAML key-values', exception: NotImplementedError, message: 'TODO: Implement YAML output for Hash' do
-      YAML.dump({ "a" => "b" }).should match_yaml("--- \na: b\n")
-    end
+    YAML.dump({ "a" => "b" }).should match_yaml("--- \na: b\n")
   end
 
   it "dumps Arrays into YAML collection" do
