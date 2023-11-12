@@ -145,15 +145,11 @@ public:
         return m_options & RegexOpts::IgnoreCase;
     }
 
-    int search(const char *str, OnigRegion *region, OnigOptionType options) {
-        return search(str, 0, region, options);
-    }
-
-    int search(const char *str, int start, OnigRegion *region, OnigOptionType options) {
-        unsigned char *unsigned_str = (unsigned char *)str;
-        unsigned char *char_end = unsigned_str + strlen(str);
-        unsigned char *char_start = unsigned_str + start;
-        unsigned char *char_range = char_end;
+    int search(const TM::String &string, int start, OnigRegion *region, OnigOptionType options) {
+        const unsigned char *unsigned_str = (unsigned char *)string.c_str();
+        const unsigned char *char_end = unsigned_str + string.size();
+        const unsigned char *char_start = unsigned_str + start;
+        const unsigned char *char_range = char_end;
         return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
     }
 

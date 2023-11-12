@@ -2174,7 +2174,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
     size_t last_index = 0;
     size_t index, len;
     OnigRegion *region = onig_region_new();
-    int result = splitter->as_regexp()->search(c_str(), region, ONIG_OPTION_NONE);
+    int result = splitter->as_regexp()->search(string(), 0, region, ONIG_OPTION_NONE);
     if (result == ONIG_MISMATCH) {
         ary->push(dup(env));
     } else {
@@ -2188,7 +2188,7 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
                 onig_region_free(region, true);
                 return ary;
             }
-            result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
+            result = splitter->as_regexp()->search(string(), last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
         ary->push(new StringObject { &c_str()[last_index], m_encoding });
     }
