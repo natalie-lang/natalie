@@ -22,7 +22,7 @@ describe "Object#to_yaml" do
 
   it "returns the YAML representation of a Date object" do
     require 'date'
-    NATFIXME 'Implement Date.parse', exception: NoMethodError, message: "undefined method `parse' for Date:Class" do
+    NATFIXME 'YAML.dump for Time objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for Date' do
       Date.parse('1997/12/30').to_yaml.should match_yaml("--- 1997-12-30\n")
     end
   end

@@ -68,6 +68,44 @@ class Date
       year % 4 == 0
     end
 
+    def parse(string = '-4712-01-01', comp = true)
+      year = comp ? 2000 : 0
+      string = string.to_str if !string.is_a?(String) && string.respond_to?(:to_str)
+      raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String" unless string.is_a?(String)
+      case string
+      when /\A(\d\d)\z/ # DD
+        new(today.year, today.month, $1.to_i)
+      when /\A(\d\d)(\d\d)\z/ # MMDD
+        new(today.year, $1.to_i, $2.to_i)
+      when /\A(\d\d)(\d\d)(\d\d)\z/ # YYMMDD
+        year = $1.to_i
+        year = year <= 68 ? year + 2000 : year + 1900
+        new(year, $2.to_i, $3.to_i)
+      when /\A(\d{4})(\d\d)(\d\d)\z/ # YYYYMMDD
+        new($1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d{4})\/(\d\d)\/(\d\d)\z/ # YYYY/MM/DD
+        new($1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d\d)\/(\d\d)\/(\d{4})\z/ # DD/MM/YYYY
+        new($3.to_i, $2.to_i, $1.to_i)
+      when /\A(\d\d)\/(\d\d)\/(\d\d)\z/  # YY/MM/DD
+        new(year + $1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d{4})-(\d\d)-(\d\d)\z/ # YYYY-MM-DD
+        new($1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d\d)-(\d\d)-(\d{4})\z/ # MM-DD-YYYY
+        new($3.to_i, $2.to_i, $1.to_i)
+      when /\A(\d\d)-(\d\d)-(\d\d)\z/ #  YY-MM-DD
+        new(year + $1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d{4})\.(\d\d)\.(\d\d)\z/ # YYYY.MM.DD
+        new($1.to_i, $2.to_i, $3.to_i)
+      when /\A(\d\d)\.(\d\d)\.(\d{4})\z/ # DD.MM.YYYY
+        new($3.to_i, $2.to_i, $1.to_i)
+      when /\A(\d\d)\.(\d\d)\.(\d\d)\z/ # YY.MM.DD
+        new(year + $1.to_i, $2.to_i, $3.to_i)
+      else
+        raise Date::Error, 'invalid date'
+      end
+    end
+
     def today(start = Date::ITALY)
       time = Time.now
       new(time.year, time.month, time.mday, start)
