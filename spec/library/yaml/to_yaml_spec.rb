@@ -48,9 +48,7 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of an Integer object" do
     int = 20
     int.should be_kind_of(Integer)
-    NATFIXME 'YAML.dump for Integers', exception: NotImplementedError, message: 'TODO: Implement YAML output for Integer' do
-      int.to_yaml.should match_yaml("--- 20\n")
-    end
+    int.to_yaml.should match_yaml("--- 20\n")
   end
 
   it "returns the YAML representation of a NilClass object" do
