@@ -12,6 +12,21 @@ static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
         env->raise("RuntimeError", "Error in yaml_emitter_emit");
 }
 
+static void emit_value(Env *env, StringObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
+        (yaml_char_t *)(value->as_string()->c_str()), value->as_string()->bytesize(),
+        1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    if (value->is_string()) {
+        emit_value(env, value->as_string(), emitter, event);
+    } else {
+        env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
+    }
+}
+
 Value YAML_dump(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto value = args.at(0);
@@ -31,14 +46,7 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     yaml_document_start_event_initialize(&event, nullptr, nullptr, nullptr, 0);
     emit(env, emitter, event);
 
-    if (value->is_string()) {
-        yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-            (yaml_char_t *)(value->as_string()->c_str()), value->as_string()->bytesize(),
-            1, 0, YAML_PLAIN_SCALAR_STYLE);
-        emit(env, emitter, event);
-    } else {
-        env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
-    }
+    emit_value(env, value, emitter, event);
 
     yaml_document_end_event_initialize(&event, 0);
     emit(env, emitter, event);
