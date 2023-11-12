@@ -1,6 +1,7 @@
 require_relative '../../spec_helper'
-require_relative 'fixtures/common'
 require_relative 'fixtures/example_class'
+
+require 'yaml'
 
 describe "Object#to_yaml" do
 
