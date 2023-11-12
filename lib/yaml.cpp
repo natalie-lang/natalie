@@ -12,6 +12,13 @@ static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {
         env->raise("RuntimeError", "Error in yaml_emitter_emit");
 }
 
+static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto str = value->to_s()->as_string()->string();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_FLOAT_TAG,
+        (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, IntegerObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
     const auto str = value->to_s();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_INT_TAG,
@@ -35,7 +42,9 @@ static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, y
 }
 
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    if (value->is_integer()) {
+    if (value->is_float()) {
+        emit_value(env, value->as_float(), emitter, event);
+    } else if (value->is_integer()) {
         emit_value(env, value->as_integer(), emitter, event);
     } else if (value->is_string()) {
         emit_value(env, value->as_string(), emitter, event);

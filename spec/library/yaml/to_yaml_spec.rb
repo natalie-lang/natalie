@@ -40,9 +40,7 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a Float object" do
     float = 1.2
     float.should be_kind_of(Float)
-    NATFIXME 'YAML.dump for floats', exception: NotImplementedError, message: 'TODO: Implement YAML output for Float' do
-      float.to_yaml.should match_yaml("--- 1.2\n")
-    end
+    float.to_yaml.should match_yaml("--- 1.2\n")
   end
 
   it "returns the YAML representation of an Integer object" do
@@ -111,12 +109,14 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of numeric constants" do
-    NATFIXME 'YAML.dump for floats', exception: NotImplementedError, message: 'TODO: Implement YAML output for Float' do
+    NATFIXME 'Fix YAML dump of Float::NAN', exception: SpecFailedException do
       nan_value.to_yaml.downcase.should match_yaml("--- .nan\n")
+    end
+    NATFIXME 'Fix YAML dump of Float::INFINITY', exception: SpecFailedException do
       infinity_value.to_yaml.downcase.should match_yaml("--- .inf\n")
       (-infinity_value).to_yaml.downcase.should match_yaml("--- -.inf\n")
-      (0.0).to_yaml.should match_yaml("--- 0.0\n")
     end
+    (0.0).to_yaml.should match_yaml("--- 0.0\n")
   end
 
   it "returns the YAML representation of an array of hashes" do
