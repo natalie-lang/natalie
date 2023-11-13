@@ -31,6 +31,15 @@ class Date
       (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
     end
 
+    def iso8601(string = '-4712-01-01')
+      string = string.to_str if !string.is_a?(String) && string.respond_to?(:to_str)
+      raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String" unless string.is_a?(String)
+      if string =~ /\A(\d{4})(\d\d)(\d\d)\z/ || string =~ /\A(-?\d{4})-(\d\d)-(\d\d)\z/
+        return new($1.to_i, $2.to_i, $3.to_i)
+      end
+      raise Error, 'invalid date'
+    end
+
     def jd(number = 0, start = Date::ITALY)
       year, month, mday = jd_to_civil(number, start)
       date = allocate
