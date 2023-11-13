@@ -121,10 +121,17 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     yaml_event_t event;
     unsigned char buf[16384];
     size_t written = 0;
+    FILE *file = nullptr;
 
     yaml_emitter_initialize(&emitter);
     Defer emit_deleter { [&emitter]() { yaml_emitter_delete(&emitter); } };
-    yaml_emitter_set_output_string(&emitter, buf, sizeof(buf), &written);
+    if (args.size() > 1) {
+        auto io = args.at(1)->as_io();
+        file = fdopen(io->fileno(env), "wb");
+        yaml_emitter_set_output_file(&emitter, file);
+    } else {
+        yaml_emitter_set_output_string(&emitter, buf, sizeof(buf), &written);
+    }
 
     yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
     emit(env, emitter, event);
@@ -139,6 +146,11 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
 
     yaml_stream_end_event_initialize(&event);
     emit(env, emitter, event);
+
+    if (file) {
+        fflush(file);
+        return args.at(1);
+    }
 
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
