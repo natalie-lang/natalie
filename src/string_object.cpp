@@ -606,9 +606,33 @@ Value StringObject::clear(Env *env) {
     return this;
 }
 
-Value StringObject::cmp(Env *env, Value other) const {
-    if (other->type() != Object::Type::String) return NilObject::the();
-    return Value::integer(m_string.cmp(other->as_string()->m_string));
+Value StringObject::cmp(Env *env, Value other) {
+    StringObject *other_str;
+    if (other->is_string()) {
+        other_str = other->as_string();
+    } else if (other->find_method(env, "to_str"_s, MethodVisibility::Private, other)) {
+        other_str = other->to_str(env);
+    } else if (other->find_method(env, "<=>"_s, MethodVisibility::Private, other)) {
+        auto negative_cmp = other->send(env, "<=>"_s, { this });
+        if (negative_cmp->is_nil()) {
+            return negative_cmp;
+        }
+        return negative_cmp->to_int(env)->negate(env);
+    } else {
+        return NilObject::the();
+    }
+
+    auto comparison = m_string.cmp(other_str->m_string);
+
+    if (comparison == 0 && !(ascii_only(env) && other->as_string()->ascii_only(env))) {
+        nat_int_t this_enc_idx = static_cast<nat_int_t>(m_encoding->num());
+        nat_int_t other_enc_idx = static_cast<nat_int_t>(other_str->m_encoding->num());
+        nat_int_t cmp_encodings = this_enc_idx - other_enc_idx;
+        return Value::integer(
+            cmp_encodings > 0 ? 1 : cmp_encodings == 0 ? 0 : -1);
+    }
+
+    return Value::integer(comparison);
 }
 
 Value StringObject::concat(Env *env, Args args) {
