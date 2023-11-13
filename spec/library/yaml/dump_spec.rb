@@ -12,7 +12,7 @@ describe "YAML.dump" do
   end
 
   it "converts an object to YAML and write result to io when io provided" do
-    NATFIXME 'support IO argument, implement YAML.load_file', exception: NoMethodError, message: "undefined method `load_file' for YAML:Module" do
+    NATFIXME 'implement YAML.load_file', exception: NoMethodError, message: "undefined method `load_file' for YAML:Module" do
       File.open(@test_file, 'w' ) do |io|
         YAML.dump( ['badger', 'elephant', 'tiger'], io )
       end
