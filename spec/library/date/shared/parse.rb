@@ -17,7 +17,7 @@ describe :date_parse, shared: true do
     end
   end
 
-  it "can parse a 'mmm DD YYYY' string into a Date object" do
+  it "can parse a 'DD mmm YYYY' string into a Date object" do
     NATFIXME 'Implement match for strings', exception: Date::Error do
       d = Date.parse("23#{@sep}feb#{@sep}2008")
       d.year.should == 2008
@@ -56,7 +56,7 @@ describe :date_parse, shared: true do
     end
   end
 
-  it "can parse a year, day and month name into a Date object" do
+  it "can parse a day, month name and year into a Date object" do
     NATFIXME 'Implement match for strings', exception: Date::Error do
       d = Date.parse("5th#{@sep}november#{@sep}2005")
       d.should == Date.civil(2005, 11, 5)
