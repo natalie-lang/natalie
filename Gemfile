@@ -7,6 +7,7 @@ gem 'rake'
 
 group :development do
   gem 'stackprof'
+  gem 'rubocop'
 end
 
 group :run_all_specs, optional: true do
