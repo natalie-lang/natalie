@@ -302,7 +302,7 @@ public:
     Value chop(Env *) const;
     Value chop_in_place(Env *);
     Value clear(Env *);
-    Value cmp(Env *, Value) const;
+    Value cmp(Env *, Value);
     Value concat(Env *env, Args args);
     Value count(Env *env, Args args);
     Value crypt(Env *, Value);
