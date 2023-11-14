@@ -295,6 +295,8 @@ class StringIO
     argument.bytes.size
   end
 
+  alias << write
+
   private def __assert_not_read_closed
     raise IOError, 'not opened for reading' if closed_read?
   end
