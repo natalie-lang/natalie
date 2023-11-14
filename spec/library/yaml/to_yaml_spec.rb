@@ -51,9 +51,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a RegExp object" do
-    NATFIXME 'YAML.dump for Regexps', exception: NotImplementedError, message: 'TODO: Implement YAML output for Regexp' do
-      Regexp.new('^a-z+:\\s+\w+').to_yaml.should match_yaml("--- !ruby/regexp /^a-z+:\\s+\\w+/\n")
-    end
+    Regexp.new('^a-z+:\\s+\w+').to_yaml.should match_yaml("--- !ruby/regexp /^a-z+:\\s+\\w+/\n")
   end
 
   it "returns the YAML representation of a String object" do
