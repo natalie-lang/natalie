@@ -34,6 +34,12 @@ module Natalie
           @string,
         ].pack("Cwa#{@bytesize}")
       end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        string = io.read(size)
+        new(string, bytesize: size)
+      end
     end
   end
 end

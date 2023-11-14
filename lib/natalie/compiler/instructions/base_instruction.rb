@@ -13,6 +13,10 @@ module Natalie
           self.underscore(self.name.sub(/Instruction$/, '')).to_sym
       end
 
+      def label
+        self.class.label
+      end
+
       def matching_label
         nil
       end

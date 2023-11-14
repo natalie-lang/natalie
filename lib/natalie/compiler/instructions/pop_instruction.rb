@@ -18,6 +18,10 @@ module Natalie
       def serialize
         [instruction_number].pack('C')
       end
+
+      def self.deserialize(_)
+        new
+      end
     end
   end
 end

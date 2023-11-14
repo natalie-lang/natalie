@@ -31,6 +31,12 @@ module Natalie
           label_string,
         ].pack("Cwa*")
       end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        matching_label = io.read(size).to_sym
+        new(matching_label)
+      end
     end
   end
 end

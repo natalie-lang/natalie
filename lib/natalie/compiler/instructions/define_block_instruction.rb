@@ -31,33 +31,21 @@ module Natalie
       end
 
       def execute(vm)
-        start_ip = vm.ip
+        vm.push(Natalie::VM::Block.new(vm: vm))
         vm.skip_block_of_instructions(expected_label: :define_block)
-        parent_scope = vm.scope
-        captured_self = vm.self
-        captured_block = vm.block
-        block_lambda =
-          lambda do |*args|
-            vm.with_self(captured_self) do
-              scope = { vars: {}, parent: parent_scope }
-              vm.push_call(name: nil, return_ip: vm.ip, args: args, scope: scope, block: captured_block)
-              vm.ip = start_ip
-              begin
-                vm.run
-              ensure
-                vm.ip = vm.pop_call[:return_ip]
-              end
-              vm.pop # result must be returned from proc
-            end
-          end
-        vm.push(block_lambda)
+        nil
       end
 
       def serialize
         [
           instruction_number,
           arity,
-        ].pack("Cw")
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io)
+        arity = io.read_ber_integer
+        new(arity: arity)
       end
     end
   end

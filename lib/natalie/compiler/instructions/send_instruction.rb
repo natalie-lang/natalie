@@ -142,6 +142,25 @@ module Natalie
         ].pack("Cwa#{message_string.bytesize}CCCC")
       end
 
+      def self.deserialize(io)
+        message_length = io.read_ber_integer
+        message = io.read(message_length).to_sym
+        flags = io.read(4).unpack('CCCC')
+        receiver_is_self = flags[0] == 1
+        with_block = flags[1] == 1
+        args_array_on_stack = flags[2] == 1
+        has_keyword_hash = flags[3] == 1
+        new(
+          message,
+          receiver_is_self: receiver_is_self,
+          with_block: with_block,
+          args_array_on_stack: args_array_on_stack,
+          has_keyword_hash: has_keyword_hash,
+          file: '', # FIXME
+          line: 0 # FIXME
+        )
+      end
+
       private
 
       def method
