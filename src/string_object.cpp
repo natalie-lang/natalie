@@ -629,7 +629,8 @@ Value StringObject::cmp(Env *env, Value other) {
         nat_int_t other_enc_idx = static_cast<nat_int_t>(other_str->m_encoding->num());
         nat_int_t cmp_encodings = this_enc_idx - other_enc_idx;
         return Value::integer(
-            cmp_encodings > 0 ? 1 : cmp_encodings == 0 ? 0 : -1);
+            cmp_encodings > 0 ? 1 : cmp_encodings == 0 ? 0
+                                                       : -1);
     }
 
     return Value::integer(comparison);
