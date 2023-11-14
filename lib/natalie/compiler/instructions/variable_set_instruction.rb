@@ -45,6 +45,16 @@ module Natalie
           vm.scope[:vars][@name] = { name: @name, value: vm.pop }
         end
       end
+
+      def serialize
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @local_only ? 1 : 0,
+        ].pack("Cwa#{name_string.bytesize}C")
+      end
     end
   end
 end

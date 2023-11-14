@@ -22,6 +22,15 @@ module Natalie
       def execute(_)
         :halt
       end
+
+      def serialize
+        label_string = matching_label.to_s
+        [
+          instruction_number,
+          label_string.bytesize,
+          label_string,
+        ].pack("Cwa*")
+      end
     end
   end
 end

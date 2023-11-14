@@ -52,6 +52,13 @@ module Natalie
           end
         vm.push(block_lambda)
       end
+
+      def serialize
+        [
+          instruction_number,
+          arity,
+        ].pack("Cw")
+      end
     end
   end
 end

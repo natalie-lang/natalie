@@ -27,6 +27,14 @@ module Natalie
       def execute(vm)
         vm.push(vm.args[@index])
       end
+
+      def serialize
+        [
+          instruction_number,
+          index,
+          nil_default ? 1 : 0,
+        ].pack("CwC")
+      end
     end
   end
 end

@@ -58,6 +58,16 @@ module Natalie
           raise "unknown variable #{@name}"
         end
       end
+
+      def serialize
+        name_string = @name.to_s
+        [
+          instruction_number,
+          name_string.bytesize,
+          name_string,
+          @default_to_nil ? 1 : 0,
+        ].pack("Cwa#{name_string.bytesize}C")
+      end
     end
   end
 end
