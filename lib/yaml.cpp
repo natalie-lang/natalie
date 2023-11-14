@@ -108,6 +108,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_symbol(), emitter, event);
     } else if (value->is_true()) {
         emit_value(env, value->as_true(), emitter, event);
+    } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
+        emit_value(env, value->send(env, "to_s"_s)->as_string(), emitter, event);
     } else {
         env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
     }
