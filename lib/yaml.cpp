@@ -122,6 +122,21 @@ static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_eve
     emit(env, emitter, event);
 }
 
+static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/object:OpenStruct",
+        0, YAML_BLOCK_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    auto values = value->send(env, "to_h"_s)->as_hash();
+    for (auto elem : *values) {
+        emit_value(env, elem.key->to_s(env), emitter, event);
+        emit_value(env, elem.val, emitter, event);
+    }
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     TM::String mapping_header = "!ruby/struct";
     if (auto name = value->klass()->class_name()) {
@@ -167,6 +182,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_true(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
         emit_value(env, value->send(env, "to_s"_s)->as_string(), emitter, event);
+    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s)->as_class())) {
+        emit_openstruct_value(env, value, emitter, event);
     } else if (value->is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s)->as_class())) {
         emit_struct_value(env, value, emitter, event);
     } else {

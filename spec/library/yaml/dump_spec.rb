@@ -43,14 +43,12 @@ describe "YAML.dump" do
   it "dumps an OpenStruct" do
     require "ostruct"
     os = OpenStruct.new("age" => 20, "name" => "John")
-    NATFIXME 'dumps an OpenStruct', exception: NotImplementedError, message: 'TODO: Implement YAML output for OpenStruct' do
-      yaml_dump = YAML.dump(os)
+    yaml_dump = YAML.dump(os)
 
-      [
-        "--- !ruby/object:OpenStruct\nage: 20\nname: John\n",
-        "--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n",
-      ].should.include?(yaml_dump)
-    end
+    [
+      "--- !ruby/object:OpenStruct\nage: 20\nname: John\n",
+      "--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n",
+    ].should.include?(yaml_dump)
   end
 
   it "dumps a File without any state" do
