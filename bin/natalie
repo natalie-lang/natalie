@@ -215,11 +215,8 @@ class Runner
       else
         compiler.options[:dynamic_linking] = true
         compiler.compile
-        build_dir = File.expand_path('../build', __dir__)
-        env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
         begin
-          pid = spawn(env, out.path, *ARGV)
-          Process.wait(pid)
+          run_temp_and_wait(out.path)
           exit $?.exitstatus || 1
         ensure
           File.unlink(out.path)
@@ -240,13 +237,19 @@ class Runner
       rescue Natalie::Compiler::CompileError => e
         puts e
       else
-        pid = spawn(env, out.path, *ARGV)
-        Process.wait(pid)
+        run_temp_and_wait(out.path)
       end
       print 'Edit again? [Yn] '
       response = gets.strip.downcase
       break if response == 'n'
     end
+  end
+
+  def run_temp_and_wait(path)
+    build_dir = File.expand_path('../build', __dir__)
+    env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
+    pid = spawn(env, path, *ARGV)
+    Process.wait(pid)
   end
 
   def show_assembly
