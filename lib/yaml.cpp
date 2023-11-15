@@ -123,9 +123,12 @@ static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_eve
 }
 
 static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    TM::String struct_name = "!ruby/struct:";
-    struct_name.append(value->klass()->inspect_str());
-    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(struct_name.c_str()),
+    TM::String mapping_header = "!ruby/struct";
+    if (auto name = value->klass()->class_name()) {
+        mapping_header.append_char(':');
+        mapping_header.append(*name);
+    }
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
         0, YAML_BLOCK_MAPPING_STYLE);
     emit(env, emitter, event);
 
