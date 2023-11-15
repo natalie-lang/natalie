@@ -68,9 +68,10 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Time object" do
-    NATFIXME 'YAML.dump for Time objects', exception: NotImplementedError, message: 'Implement YAML output for Time' do
+    NATFIXME 'Different output in Time objects, requires reading of the spec', exception: SpecFailedException do
       Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- 2000-01-01 20:15:01 Z\n")
     end
+    Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- !!timestamp 2000-01-01 20:15:01 UTC\n")
   end
 
   it "returns the YAML representation of a TrueClass" do

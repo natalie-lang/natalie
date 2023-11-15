@@ -115,6 +115,13 @@ static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, y
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, TimeObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto str = value->to_s(env)->as_string();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_TIMESTAMP_TAG,
+        (yaml_char_t *)(str->c_str()), str->bytesize(), 0, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "true" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
@@ -178,6 +185,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_string(), emitter, event);
     } else if (value->is_symbol()) {
         emit_value(env, value->as_symbol(), emitter, event);
+    } else if (value->is_time()) {
+        emit_value(env, value->as_time(), emitter, event);
     } else if (value->is_true()) {
         emit_value(env, value->as_true(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
