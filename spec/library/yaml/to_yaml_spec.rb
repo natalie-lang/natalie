@@ -16,9 +16,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Class object" do
-    NATFIXME 'YAML.dump for Class objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for YAMLSpecs::Example' do
-      YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
-    end
+    YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
   end
 
   it "returns the YAML representation of a Date object" do
@@ -81,7 +79,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Error object" do
-    NATFIXME 'YAML.dump for Error objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for StandardError' do
+    NATFIXME 'Special case for Error object', exception: SpecFailedException do
       StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
     end
   end

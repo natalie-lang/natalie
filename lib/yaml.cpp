@@ -178,6 +178,25 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
     emit(env, emitter, event);
 }
 
+static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto mapping_header = String::format("!ruby/object:{}", value->klass()->inspect_str());
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
+        0, YAML_ANY_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    auto ivars = value->instance_variables(env)->as_array();
+    for (auto ivar : *ivars) {
+        auto name = ivar->to_s(env);
+        name->delete_prefix_in_place(env, new StringObject { "@" });
+        auto val = value->ivar_get(env, ivar->as_symbol());
+        emit_value(env, name, emitter, event);
+        emit_value(env, val, emitter, event);
+    }
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (value->is_array()) {
         emit_value(env, value->as_array(), emitter, event);
@@ -214,7 +233,7 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
     } else if (value->is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s)->as_class())) {
         emit_struct_value(env, value, emitter, event);
     } else {
-        env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
+        emit_object_value(env, value, emitter, event);
     }
 }
 
