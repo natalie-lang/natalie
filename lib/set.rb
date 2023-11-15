@@ -296,6 +296,10 @@ class Set
     self
   end
 
+  def pretty_print_cycle(pp)
+    pp.text('#<Set: {...}>')
+  end
+
   def proper_subset?(other)
     unless other.is_a?(self.class)
       raise ArgumentError, 'value must be a set'
