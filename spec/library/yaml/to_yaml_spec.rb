@@ -60,9 +60,7 @@ describe "Object#to_yaml" do
 
   it "returns the YAML representation of a Struct object" do
     Person = Struct.new(:name, :gender)
-    NATFIXME 'YAML.dump for Struct objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for Person' do
-      Person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct:Person\nname: Jane\ngender: female\n")
-    end
+    Person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct:Person\nname: Jane\ngender: female\n")
   end
 
   it "returns the YAML representation of a Symbol object" do
