@@ -12,4 +12,10 @@ describe 'YAML.dump' do
   ensure
     rm_r filename
   end
+
+  # https://github.com/ruby/spec/pull/1114
+  it 'can dump an anonymous struct' do
+    person = Struct.new(:name, :gender)
+    person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct\nname: Jane\ngender: female\n")
+  end
 end
