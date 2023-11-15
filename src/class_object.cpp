@@ -2,6 +2,8 @@
 
 namespace Natalie {
 
+std::mutex g_class_mutex;
+
 Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
     if (!superclass)
         superclass = GlobalEnv::the()->Object();
@@ -13,6 +15,8 @@ Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
 }
 
 ClassObject *ClassObject::subclass(Env *env, String name, Type object_type) {
+    std::lock_guard<std::mutex> lock(g_class_mutex);
+
     ClassObject *subclass = new ClassObject { klass() };
     initialize_subclass(subclass, env, name, object_type);
     return subclass;

@@ -78,8 +78,4 @@
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
 
-#define NAT_BACKTRACE_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(g_backtrace_mutex);
 #define NAT_GC_LOCK_GUARD() std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
-#define NAT_GLOBAL_LOCK_GUARD() std::lock_guard<std::mutex> global_lock(g_global_mutex);
-#define NAT_HASH_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(m_hash_mutex);
-#define NAT_THREAD_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(g_thread_mutex);

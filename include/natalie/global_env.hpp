@@ -13,7 +13,6 @@
 namespace Natalie {
 
 extern std::mutex g_backtrace_mutex;
-extern std::mutex g_global_mutex;
 extern std::mutex g_thread_mutex;
 
 extern "C" {

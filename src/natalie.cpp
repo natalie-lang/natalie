@@ -8,6 +8,8 @@
 
 namespace Natalie {
 
+std::mutex g_backtrace_mutex;
+
 Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
     auto *env = new Env {};
@@ -478,7 +480,8 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
-    NAT_BACKTRACE_LOCK_GUARD();
+    std::lock_guard<std::mutex> lock(g_backtrace_mutex);
+
     IoObject *_stderr = env->global_get("$stderr"_s)->as_io();
     int fd = _stderr->fileno();
     ArrayObject *backtrace = exception->backtrace()->to_ruby_array();

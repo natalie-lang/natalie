@@ -12,6 +12,8 @@
 
 namespace Natalie {
 
+std::mutex g_array_mutex;
+
 ArrayObject::ArrayObject(std::initializer_list<Value> list)
     : ArrayObject {} {
     m_vector.set_capacity(list.size());
@@ -86,24 +88,29 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
 
 void ArrayObject::push(Value val) {
     NAT_GC_GUARD_VALUE(val);
-    NAT_GLOBAL_LOCK_GUARD();
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     m_vector.push(val);
 }
 
 Value ArrayObject::first() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[0];
 }
 
 Value ArrayObject::last() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[m_vector.size() - 1];
 }
 
 Value ArrayObject::pop() {
-    NAT_GLOBAL_LOCK_GUARD();
+    std::lock_guard<std::mutex> lock(g_array_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -111,7 +118,7 @@ Value ArrayObject::pop() {
 }
 
 Value ArrayObject::shift() {
-    NAT_GLOBAL_LOCK_GUARD();
+    std::lock_guard<std::mutex> lock(g_array_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -120,7 +127,7 @@ Value ArrayObject::shift() {
 
 void ArrayObject::set(size_t index, Value value) {
     NAT_GC_GUARD_VALUE(value);
-    NAT_GLOBAL_LOCK_GUARD();
+    std::lock_guard<std::mutex> lock(g_array_mutex);
 
     if (index == m_vector.size()) {
         m_vector.push(value);

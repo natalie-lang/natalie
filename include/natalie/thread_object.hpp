@@ -78,15 +78,7 @@ public:
             m_start_of_stack);
     }
 
-    static ThreadObject *current() {
-        NAT_THREAD_LOCK_GUARD();
-        auto current = pthread_self();
-        for (auto thread : s_list) {
-            if (thread->thread_id() == current)
-                return thread;
-        }
-        NAT_UNREACHABLE();
-    }
+    static ThreadObject *current();
 
     static ThreadObject *main() { return s_main; }
 

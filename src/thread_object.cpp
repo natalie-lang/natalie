@@ -48,6 +48,20 @@ void *nat_create_thread(void *thread_object) {
 
 namespace Natalie {
 
+std::mutex g_thread_mutex;
+
+ThreadObject *ThreadObject::current() {
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
+
+    auto current = pthread_self();
+    for (auto thread : s_list) {
+        if (thread->thread_id() == current)
+            return thread;
+    }
+
+    NAT_UNREACHABLE();
+}
+
 void ThreadObject::build_main_thread(void *start_of_stack) {
     assert(!s_main); // can only be built once
     auto thread = new ThreadObject;

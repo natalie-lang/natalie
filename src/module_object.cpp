@@ -2,6 +2,9 @@
 
 namespace Natalie {
 
+std::mutex g_module_mutex;
+std::recursive_mutex g_module_recursive_mutex;
+
 ModuleObject::ModuleObject()
     : ModuleObject { Object::Type::Module, GlobalEnv::the()->Module() } { }
 
@@ -32,6 +35,8 @@ Value ModuleObject::include(Env *env, Args args) {
 }
 
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
         m_included_modules.push(module);
@@ -58,6 +63,8 @@ Value ModuleObject::prepend(Env *env, Args args) {
 }
 
 void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     if (m_included_modules.is_empty()) {
         m_included_modules.push(module);
         m_included_modules.push(this);
@@ -96,6 +103,8 @@ Value ModuleObject::const_fetch(SymbolObject *name) {
 }
 
 Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject **found_in_module, ConstLookupSearchMode search_mode) {
+    std::lock_guard<std::recursive_mutex> lock(g_module_recursive_mutex);
+
     ModuleObject *search_parent = nullptr;
     Constant *constant = nullptr;
 
@@ -245,6 +254,8 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 }
 
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     m_constants.put(name, new Constant { name, val.object() });
     if (val->is_module()) {
         if (!val->owner()) {
@@ -268,6 +279,8 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
 }
 
 Value ModuleObject::const_set(SymbolObject *name, MethodFnPtr autoload_fn, StringObject *autoload_path) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     m_constants.put(name, new Constant { name, autoload_fn, autoload_path });
     return NilObject::the();
 }
@@ -332,6 +345,8 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
     if (!name->is_cvar_name())
         env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
 
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     ModuleObject *module = this;
     Value val = nullptr;
     while (module) {
@@ -359,6 +374,8 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
 Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_cvar_name())
         env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->string());
+
+    std::lock_guard<std::mutex> lock(g_module_mutex);
 
     ModuleObject *current = this;
 
@@ -442,11 +459,15 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
 }
 
 void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, MethodVisibility visibility) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     m_methods.put(name, MethodInfo(visibility, method), env);
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
 MethodInfo ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, const Method **after_method) const {
+    std::lock_guard<std::recursive_mutex> lock(g_module_recursive_mutex);
+
     MethodInfo method_info;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
@@ -570,6 +591,8 @@ Value ModuleObject::public_instance_methods(Env *env, Value include_super_value)
 }
 
 ArrayObject *ModuleObject::ancestors(Env *env) {
+    std::lock_guard<std::mutex> lock(g_module_mutex);
+
     ModuleObject *klass = this;
     ArrayObject *ancestors = new ArrayObject {};
     do {
