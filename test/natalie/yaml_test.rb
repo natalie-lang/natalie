@@ -24,4 +24,9 @@ describe 'YAML.dump' do
   it "returns the YAML representation of a Class object" do
     YAMLSpecs::Example.to_yaml.should match_yaml("--- !ruby/class 'YAMLSpecs::Example'\n")
   end
+
+  # https://github.com/ruby/spec/pull/1114
+  it "returns the YAML representation of a Module object" do
+    Enumerable.to_yaml.should match_yaml("--- !ruby/module 'Enumerable'\n")
+  end
 end
