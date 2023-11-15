@@ -76,6 +76,23 @@ static void emit_value(Env *env, NilObject *, yaml_emitter_t &emitter, yaml_even
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, RangeObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/range",
+        0, YAML_BLOCK_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    emit_value(env, new StringObject { "begin" }, emitter, event);
+    emit_value(env, value->begin(), emitter, event);
+    emit_value(env, new StringObject { "end" }, emitter, event);
+    emit_value(env, value->end(), emitter, event);
+    emit_value(env, new StringObject { "excl" }, emitter, event);
+    auto exclude_end = value->exclude_end() ? static_cast<Value>(TrueObject::the()) : static_cast<Value>(FalseObject::the());
+    emit_value(env, exclude_end, emitter, event);
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, RegexpObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
     auto str = value->inspect_str(env);
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/regexp",
@@ -118,6 +135,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_integer(), emitter, event);
     } else if (value->is_nil()) {
         emit_value(env, value->as_nil(), emitter, event);
+    } else if (value->is_range()) {
+        emit_value(env, value->as_range(), emitter, event);
     } else if (value->is_regexp()) {
         emit_value(env, value->as_regexp(), emitter, event);
     } else if (value->is_string()) {
