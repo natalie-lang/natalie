@@ -79,9 +79,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Error object" do
-    NATFIXME 'Special case for Error object', exception: SpecFailedException do
-      StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
-    end
+    StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
   end
 
   it "returns the YAML representation for Range objects" do

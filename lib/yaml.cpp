@@ -33,6 +33,21 @@ static void emit_value(Env *env, ClassObject *value, yaml_emitter_t &emitter, ya
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, ExceptionObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto mapping_header = String::format("!ruby/exception:{}", value->klass()->inspect_str());
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
+        0, YAML_ANY_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    emit_value(env, new StringObject { "message" }, emitter, event);
+    emit_value(env, value->message(env), emitter, event);
+    emit_value(env, new StringObject { "backtrace" }, emitter, event);
+    emit_value(env, value->backtrace(env), emitter, event);
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "false" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
@@ -202,6 +217,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_array(), emitter, event);
     } else if (value->is_class()) {
         emit_value(env, value->as_class(), emitter, event);
+    } else if (value->is_exception()) {
+        emit_value(env, value->as_exception(), emitter, event);
     } else if (value->is_false()) {
         emit_value(env, value->as_false(), emitter, event);
     } else if (value->is_float()) {
