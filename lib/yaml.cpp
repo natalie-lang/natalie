@@ -34,9 +34,16 @@ static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_ev
 }
 
 static void emit_value(Env *env, FloatObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
-    auto str = value->to_s()->as_string()->string();
-    if (value->is_nan())
-        str.prepend_char('.');
+    String str;
+    if (value->is_nan()) {
+        str = ".nan";
+    } else if (value->is_positive_infinity()) {
+        str = ".inf";
+    } else if (value->is_negative_infinity()) {
+        str = "-.inf";
+    } else {
+        str = value->to_s()->as_string()->string();
+    }
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_FLOAT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
     emit(env, emitter, event);
