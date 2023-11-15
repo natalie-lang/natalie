@@ -20,6 +20,7 @@ module Natalie
         -Wno-unused-but-set-variable
         -Wno-unused-value
         -Wno-unknown-warning-option
+        -Wno-trigraphs
         -DNAT_GC_GUARD
       ].freeze
 

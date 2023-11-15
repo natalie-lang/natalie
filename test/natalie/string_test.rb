@@ -803,4 +803,9 @@ describe 'string' do
         'baz'
     s.should == 'foobarbaz'
   end
+
+  describe 'trigraph' do
+    s = '??!'
+    s.size.should == 3
+  end
 end
