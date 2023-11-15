@@ -26,6 +26,13 @@ static void emit_value(Env *env, ArrayObject *value, yaml_emitter_t &emitter, ya
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, ClassObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    auto str = value->inspect_str();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/class",
+        (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_SINGLE_QUOTED_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "false" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
@@ -167,6 +174,8 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (value->is_array()) {
         emit_value(env, value->as_array(), emitter, event);
+    } else if (value->is_class()) {
+        emit_value(env, value->as_class(), emitter, event);
     } else if (value->is_false()) {
         emit_value(env, value->as_false(), emitter, event);
     } else if (value->is_float()) {
