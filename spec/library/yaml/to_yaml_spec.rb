@@ -98,13 +98,9 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of numeric constants" do
-    NATFIXME 'Fix YAML dump of Float::NAN', exception: SpecFailedException do
-      nan_value.to_yaml.downcase.should match_yaml("--- .nan\n")
-    end
-    NATFIXME 'Fix YAML dump of Float::INFINITY', exception: SpecFailedException do
-      infinity_value.to_yaml.downcase.should match_yaml("--- .inf\n")
-      (-infinity_value).to_yaml.downcase.should match_yaml("--- -.inf\n")
-    end
+    nan_value.to_yaml.downcase.should match_yaml("--- .nan\n")
+    infinity_value.to_yaml.downcase.should match_yaml("--- .inf\n")
+    (-infinity_value).to_yaml.downcase.should match_yaml("--- -.inf\n")
     (0.0).to_yaml.should match_yaml("--- 0.0\n")
   end
 
