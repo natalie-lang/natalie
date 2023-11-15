@@ -180,7 +180,7 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
 
     emit_value(env, value, emitter, event);
 
-    yaml_document_end_event_initialize(&event, 0);
+    yaml_document_end_event_initialize(&event, 1);
     emit(env, emitter, event);
 
     yaml_stream_end_event_initialize(&event);
