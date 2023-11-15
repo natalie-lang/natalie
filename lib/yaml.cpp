@@ -26,6 +26,28 @@ static void emit_value(Env *env, ArrayObject *value, yaml_emitter_t &emitter, ya
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, ClassObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    auto str = value->inspect_str();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/class",
+        (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_SINGLE_QUOTED_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_value(Env *env, ExceptionObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto mapping_header = String::format("!ruby/exception:{}", value->klass()->inspect_str());
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
+        0, YAML_ANY_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    emit_value(env, new StringObject { "message" }, emitter, event);
+    emit_value(env, value->message(env), emitter, event);
+    emit_value(env, new StringObject { "backtrace" }, emitter, event);
+    emit_value(env, value->backtrace(env), emitter, event);
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, FalseObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "false" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
@@ -67,6 +89,13 @@ static void emit_value(Env *env, IntegerObject *value, yaml_emitter_t &emitter, 
     const auto str = value->to_s();
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_INT_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_value(Env *env, ModuleObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    auto str = value->inspect_str();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/module",
+        (yaml_char_t *)(str.c_str()), str.size(), 0, 0, YAML_SINGLE_QUOTED_SCALAR_STYLE);
     emit(env, emitter, event);
 }
 
@@ -115,10 +144,32 @@ static void emit_value(Env *env, SymbolObject *value, yaml_emitter_t &emitter, y
     emit(env, emitter, event);
 }
 
+static void emit_value(Env *env, TimeObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto str = value->to_s(env)->as_string();
+    yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_TIMESTAMP_TAG,
+        (yaml_char_t *)(str->c_str()), str->bytesize(), 0, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, TrueObject *, yaml_emitter_t &emitter, yaml_event_t &event) {
     const TM::String str { "true" };
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_BOOL_TAG,
         (yaml_char_t *)(str.c_str()), str.size(), 1, 0, YAML_PLAIN_SCALAR_STYLE);
+    emit(env, emitter, event);
+}
+
+static void emit_openstruct_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)"!ruby/object:OpenStruct",
+        0, YAML_BLOCK_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    auto values = value->send(env, "to_h"_s)->as_hash();
+    for (auto elem : *values) {
+        emit_value(env, elem.key->to_s(env), emitter, event);
+        emit_value(env, elem.val, emitter, event);
+    }
+
+    yaml_mapping_end_event_initialize(&event);
     emit(env, emitter, event);
 }
 
@@ -142,9 +193,32 @@ static void emit_struct_value(Env *env, Value value, yaml_emitter_t &emitter, ya
     emit(env, emitter, event);
 }
 
+static void emit_object_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    const auto mapping_header = String::format("!ruby/object:{}", value->klass()->inspect_str());
+    yaml_mapping_start_event_initialize(&event, nullptr, (yaml_char_t *)(mapping_header.c_str()),
+        0, YAML_ANY_MAPPING_STYLE);
+    emit(env, emitter, event);
+
+    auto ivars = value->instance_variables(env)->as_array();
+    for (auto ivar : *ivars) {
+        auto name = ivar->to_s(env);
+        name->delete_prefix_in_place(env, new StringObject { "@" });
+        auto val = value->ivar_get(env, ivar->as_symbol());
+        emit_value(env, name, emitter, event);
+        emit_value(env, val, emitter, event);
+    }
+
+    yaml_mapping_end_event_initialize(&event);
+    emit(env, emitter, event);
+}
+
 static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_event_t &event) {
     if (value->is_array()) {
         emit_value(env, value->as_array(), emitter, event);
+    } else if (value->is_class()) {
+        emit_value(env, value->as_class(), emitter, event);
+    } else if (value->is_exception()) {
+        emit_value(env, value->as_exception(), emitter, event);
     } else if (value->is_false()) {
         emit_value(env, value->as_false(), emitter, event);
     } else if (value->is_float()) {
@@ -153,6 +227,8 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_hash(), emitter, event);
     } else if (value->is_integer()) {
         emit_value(env, value->as_integer(), emitter, event);
+    } else if (value->is_module()) {
+        emit_value(env, value->as_module(), emitter, event);
     } else if (value->is_nil()) {
         emit_value(env, value->as_nil(), emitter, event);
     } else if (value->is_range()) {
@@ -163,14 +239,18 @@ static void emit_value(Env *env, Value value, yaml_emitter_t &emitter, yaml_even
         emit_value(env, value->as_string(), emitter, event);
     } else if (value->is_symbol()) {
         emit_value(env, value->as_symbol(), emitter, event);
+    } else if (value->is_time()) {
+        emit_value(env, value->as_time(), emitter, event);
     } else if (value->is_true()) {
         emit_value(env, value->as_true(), emitter, event);
     } else if (GlobalEnv::the()->Object()->defined(env, "Date"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("Date"_s)->as_class())) {
         emit_value(env, value->send(env, "to_s"_s)->as_string(), emitter, event);
+    } else if (GlobalEnv::the()->Object()->defined(env, "OpenStruct"_s, false) && value->is_a(env, GlobalEnv::the()->Object()->const_get("OpenStruct"_s)->as_class())) {
+        emit_openstruct_value(env, value, emitter, event);
     } else if (value->is_a(env, GlobalEnv::the()->Object()->const_get("Struct"_s)->as_class())) {
         emit_struct_value(env, value, emitter, event);
     } else {
-        env->raise("NotImplementedError", "TODO: Implement YAML output for {}", value->klass()->inspect_str());
+        emit_object_value(env, value, emitter, event);
     }
 }
 

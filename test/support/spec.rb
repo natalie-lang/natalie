@@ -905,6 +905,7 @@ class YAMLExpectation
   def prepare_yaml(yaml)
     yaml
       .gsub(/^---\n/, "--- \n")
+      .gsub(/:\n/, ": \n")
   end
 end
 

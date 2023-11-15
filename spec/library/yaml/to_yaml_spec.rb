@@ -16,9 +16,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Class object" do
-    NATFIXME 'YAML.dump for Class objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for YAMLSpecs::Example' do
-      YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
-    end
+    YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
   end
 
   it "returns the YAML representation of a Date object" do
@@ -68,9 +66,10 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Time object" do
-    NATFIXME 'YAML.dump for Time objects', exception: NotImplementedError, message: 'Implement YAML output for Time' do
+    NATFIXME 'Different output in Time objects, requires reading of the spec', exception: SpecFailedException do
       Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- 2000-01-01 20:15:01 Z\n")
     end
+    Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- !!timestamp 2000-01-01 20:15:01 UTC\n")
   end
 
   it "returns the YAML representation of a TrueClass" do
@@ -80,9 +79,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Error object" do
-    NATFIXME 'YAML.dump for Error objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for StandardError' do
-      StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
-    end
+    StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
   end
 
   it "returns the YAML representation for Range objects" do
