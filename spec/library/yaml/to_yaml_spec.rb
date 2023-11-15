@@ -88,13 +88,11 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation for Range objects" do
-    NATFIXME 'YAML.dump for ranges', exception: NotImplementedError, message: 'TODO: Implement YAML output for Range' do
-      yaml = Range.new(1,3).to_yaml
-      yaml.include?("!ruby/range").should be_true
-      yaml.include?("begin: 1").should be_true
-      yaml.include?("end: 3").should be_true
-      yaml.include?("excl: false").should be_true
-    end
+    yaml = Range.new(1,3).to_yaml
+    yaml.include?("!ruby/range").should be_true
+    yaml.include?("begin: 1").should be_true
+    yaml.include?("end: 3").should be_true
+    yaml.include?("excl: false").should be_true
   end
 
   it "returns the YAML representation of numeric constants" do
