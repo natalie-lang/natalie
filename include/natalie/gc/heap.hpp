@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <mutex>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +13,8 @@
 #include "tm/vector.hpp"
 
 namespace Natalie {
+
+extern std::mutex g_gc_mutex;
 
 using namespace TM;
 
@@ -38,7 +41,7 @@ public:
 
     void *allocate(size_t size);
 
-    void collect();
+    void collect(bool);
 
     void *start_of_stack() {
         return m_start_of_stack;

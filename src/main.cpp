@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
 
     Env *env = ::build_top_env();
     FiberObject::build_main_fiber(Heap::the().start_of_stack());
+    ThreadObject::build_main_thread(Heap::the().start_of_stack());
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();

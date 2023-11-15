@@ -3,7 +3,13 @@
 
 namespace Natalie {
 
+std::mutex g_backtrace_mutex;
+std::mutex g_global_mutex;
+std::mutex g_thread_mutex;
+
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
@@ -15,6 +21,8 @@ bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
 }
 
 Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
@@ -26,6 +34,8 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
 }
 
 Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
 
@@ -40,6 +50,8 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (!new_name->is_global_name())
         env->raise_name_error(new_name, "`{}' is not allowed as a global variable name", new_name->string());
     if (!old_name->is_global_name())

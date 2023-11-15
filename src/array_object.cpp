@@ -12,6 +12,15 @@
 
 namespace Natalie {
 
+ArrayObject::ArrayObject(std::initializer_list<Value> list)
+    : ArrayObject {} {
+    m_vector.set_capacity(list.size());
+    for (auto v : list) {
+        NAT_GC_GUARD_VALUE(v);
+        m_vector.push(v);
+    }
+}
+
 Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 
@@ -75,6 +84,12 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
     return this;
 }
 
+void ArrayObject::push(Value val) {
+    NAT_GC_GUARD_VALUE(val);
+    NAT_GLOBAL_LOCK_GUARD();
+    m_vector.push(val);
+}
+
 Value ArrayObject::first() {
     if (m_vector.is_empty())
         return NilObject::the();
@@ -88,12 +103,16 @@ Value ArrayObject::last() {
 }
 
 Value ArrayObject::pop() {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop();
 }
 
 Value ArrayObject::shift() {
+    NAT_GLOBAL_LOCK_GUARD();
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop_front();
@@ -101,6 +120,7 @@ Value ArrayObject::shift() {
 
 void ArrayObject::set(size_t index, Value value) {
     NAT_GC_GUARD_VALUE(value);
+    NAT_GLOBAL_LOCK_GUARD();
 
     if (index == m_vector.size()) {
         m_vector.push(value);

@@ -88,9 +88,9 @@ public:
 
     mco_coro *coroutine() { return m_coroutine; }
     Block *block() { return m_block; }
-    void set_status(Status status) { m_status = status; }
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
+    void set_status(Status status) { m_status = status; }
     SymbolObject *status(Env *env) {
         switch (m_status) {
         case Status::Created:
@@ -116,8 +116,8 @@ public:
             len,
             "<FiberObject %p stack=%p..%p>",
             this,
-            m_start_of_stack,
-            reinterpret_cast<char *>(m_start_of_stack) + size);
+            m_end_of_stack,
+            m_start_of_stack);
     }
 
     static FiberObject *current() { return s_current; }

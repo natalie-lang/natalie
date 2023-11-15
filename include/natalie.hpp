@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 #include <unistd.h>
 #include <utility>
 
@@ -105,6 +106,7 @@
 #include "natalie/string_object.hpp"
 #include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"
+#include "natalie/thread_object.hpp"
 #include "natalie/time_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"

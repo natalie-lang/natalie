@@ -35,6 +35,8 @@ bool HashObject::is_comparing_by_identity() const {
 }
 
 Value HashObject::get(Env *env, Value key) {
+    NAT_HASH_LOCK_GUARD();
+
     Key key_container;
     key_container.key = key;
     key_container.hash = generate_key_hash(env, key);
@@ -70,6 +72,8 @@ Value HashObject::set_default(Env *env, Value value) {
 void HashObject::put(Env *env, Value key, Value val) {
     NAT_GC_GUARD_VALUE(key);
     NAT_GC_GUARD_VALUE(val);
+    NAT_HASH_LOCK_GUARD();
+
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
@@ -93,6 +97,8 @@ void HashObject::put(Env *env, Value key, Value val) {
 }
 
 Value HashObject::remove(Env *env, Value key) {
+    NAT_HASH_LOCK_GUARD();
+
     Key key_container;
     key_container.key = key;
     auto hash = generate_key_hash(env, key);
@@ -109,6 +115,8 @@ Value HashObject::remove(Env *env, Value key) {
 }
 
 Value HashObject::clear(Env *env) {
+    NAT_HASH_LOCK_GUARD();
+
     assert_not_frozen(env);
     m_hashmap.clear();
     m_key_list = nullptr;

@@ -358,6 +358,9 @@ Env *build_top_env() {
     Value ProcessGID = new ModuleObject { "GID" };
     Process->const_set("GID"_s, ProcessGID);
 
+    ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
+    Object->const_set("Thread"_s, Thread);
+
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
 
@@ -475,6 +478,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
+    NAT_BACKTRACE_LOCK_GUARD();
     IoObject *_stderr = env->global_get("$stderr"_s)->as_io();
     int fd = _stderr->fileno();
     ArrayObject *backtrace = exception->backtrace()->to_ruby_array();

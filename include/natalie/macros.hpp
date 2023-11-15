@@ -50,27 +50,36 @@
     c &operator=(const c &) = delete
 
 #ifdef NAT_GC_GUARD
-#define NAT_GC_GUARD_VALUE(val)                                                               \
-    {                                                                                         \
-        Object *ptr;                                                                          \
-        if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
-            void *dummy;                                                                      \
-            auto end_of_stack = (uintptr_t)(&dummy);                                          \
-            auto start_of_stack = (uintptr_t)Heap::the().start_of_stack();                    \
-            assert(start_of_stack > end_of_stack);                                            \
-            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
-                fprintf(                                                                      \
-                    stderr,                                                                   \
-                    "This object (%p) is stack allocated, but you allowed it to be captured " \
-                    "in a Ruby variable or another data structure.\n"                         \
-                    "Be sure to heap-allocate the object with `new`.",                        \
-                    ptr);                                                                     \
-                abort();                                                                      \
-            }                                                                                 \
-        }                                                                                     \
+#define NAT_GC_GUARD_VALUE(val)                                                                        \
+    {                                                                                                  \
+        NAT_GC_LOCK_GUARD();                                                                           \
+        Object *ptr;                                                                                   \
+        /* FIXME: we should be able to have this guard on all threads */                               \
+        auto is_main_thread = ThreadObject::main() && ThreadObject::current() == ThreadObject::main(); \
+        if ((ptr = val.object_or_null()) && Heap::the().gc_enabled() && is_main_thread) {              \
+            void *dummy;                                                                               \
+            auto end_of_stack = (uintptr_t)(&dummy);                                                   \
+            auto start_of_stack = (uintptr_t)(Heap::the().start_of_stack());                           \
+            assert(start_of_stack > end_of_stack);                                                     \
+            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {                    \
+                fprintf(                                                                               \
+                    stderr,                                                                            \
+                    "This object (%p) is stack allocated, but you allowed it to be captured "          \
+                    "in a Ruby variable or another data structure.\n"                                  \
+                    "Be sure to heap-allocate the object with `new`.",                                 \
+                    ptr);                                                                              \
+                abort();                                                                               \
+            }                                                                                          \
+        }                                                                                              \
     }
 #else
 #define NAT_GC_GUARD_VALUE(val)
 #endif
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
+
+#define NAT_BACKTRACE_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(g_backtrace_mutex);
+#define NAT_GC_LOCK_GUARD() std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
+#define NAT_GLOBAL_LOCK_GUARD() std::lock_guard<std::mutex> global_lock(g_global_mutex);
+#define NAT_HASH_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(m_hash_mutex);
+#define NAT_THREAD_LOCK_GUARD() std::lock_guard<std::mutex> hash_lock(g_thread_mutex);

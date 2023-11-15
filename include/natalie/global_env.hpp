@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <stdlib.h>
 
 #include "natalie/encodings.hpp"
@@ -10,6 +11,10 @@
 #include "tm/hashmap.hpp"
 
 namespace Natalie {
+
+extern std::mutex g_backtrace_mutex;
+extern std::mutex g_global_mutex;
+extern std::mutex g_thread_mutex;
 
 extern "C" {
 #include "onigmo.h"
