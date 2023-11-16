@@ -271,7 +271,7 @@ module Natalie
       def transform_back_reference_read_node(node, used:)
         return [] unless used
         case node.slice
-        when '$`', "$'"
+        when '$`', "$'", '$+'
           [GlobalVariableGetInstruction.new(node.slice.to_sym)]
         when '$&'
           [PushLastMatchInstruction.new(to_s: true)]
