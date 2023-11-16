@@ -3,7 +3,7 @@ require_relative './instructions'
 require_relative '../vm'
 
 class BytecodeLoader
-  INSTRUCTIONS = Natalie::Compiler::INSTRUCTIONS_META
+  INSTRUCTIONS = Natalie::Compiler::INSTRUCTIONS
 
   def initialize(io)
     @io = IO.new(io)
@@ -46,18 +46,10 @@ class BytecodeLoader
       num = @io.getbyte
       break if num.nil?
 
-      name = instruction_num_to_name(num)
-      instruction_class = Natalie::Compiler.const_get("#{name}Instruction")
+      instruction_class = INSTRUCTIONS[num]
       instructions << instruction_class.deserialize(@io)
     end
     instructions
-  end
-
-  def instruction_num_to_name(num)
-    @instruction_names ||= INSTRUCTIONS.each_with_object({}) do |(name, meta), hash|
-      hash[meta.fetch(:num)] = name.to_s.capitalize.gsub(/_([a-z])/) { |m| m[1].upcase }
-    end
-    @instruction_names.fetch(num)
   end
 end
 

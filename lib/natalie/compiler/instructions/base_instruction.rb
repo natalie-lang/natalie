@@ -1,5 +1,3 @@
-require_relative './meta'
-
 module Natalie
   class Compiler
     class BaseInstruction
@@ -25,7 +23,7 @@ module Natalie
 
       class << self
         def instruction_number
-          @instruction_number ||= INSTRUCTIONS_META.fetch(label).fetch(:num)
+          @instruction_number ||= INSTRUCTIONS.index(self) or raise("Instruction not found!")
         end
       end
 
