@@ -187,24 +187,18 @@ end
 describe "Predefined global $+" do
   it "is equivalent to $~.captures.last" do
     /(f(o)o)/ =~ 'barfoobaz'
-    NATFIXME 'Implement $+', exception: SpecFailedException do
-      $+.should == $~.captures.last
-      $+.should == 'o'
-    end
+    $+.should == $~.captures.last
+    $+.should == 'o'
   end
 
   it "captures the last non nil capture" do
     /(a)|(b)/ =~ 'a'
-    NATFIXME 'Implement $+', exception: SpecFailedException do
-      $+.should == 'a'
-    end
+    $+.should == 'a'
   end
 
   it "sets the encoding to the encoding of the source String" do
     "abc".force_encoding(Encoding::EUC_JP) =~ /(b)/
-    NATFIXME 'Implement $+', exception: NoMethodError, message: "undefined method `encoding' for nil:NilClass" do
-      $+.encoding.should equal(Encoding::EUC_JP)
-    end
+    $+.encoding.should equal(Encoding::EUC_JP)
   end
 end
 
