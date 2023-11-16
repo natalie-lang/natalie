@@ -1,14 +1,15 @@
 require 'tempfile'
 require_relative './parser'
+require_relative './compiler/bytecode_loader'
 require_relative './compiler/comptime_values'
 require_relative './compiler/flags'
+require_relative './compiler/instruction_manager'
+require_relative './compiler/macro_expander'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
 require_relative './compiler/pass4'
-require_relative './compiler/instruction_manager'
 require_relative './compiler/backends/cpp_backend'
-require_relative './compiler/macro_expander'
 require_relative '../../build/generated/numbers'
 
 module Natalie
@@ -241,10 +242,9 @@ module Natalie
       end
 
       if options[:bytecode] && (path = options[:compile])
-        File.open(path, 'w') do |file|
-          instructions.each do |instruction|
-            file.write(instruction.serialize)
-          end
+        out = path == '-' ? $stdout : File.open(path, 'w')
+        instructions.each do |instruction|
+          out.write(instruction.serialize)
         end
         exit
       end

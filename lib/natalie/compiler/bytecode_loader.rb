@@ -2,59 +2,57 @@ require_relative './instruction_manager'
 require_relative './instructions'
 require_relative '../vm'
 
-class BytecodeLoader
-  INSTRUCTIONS = Natalie::Compiler::INSTRUCTIONS
+module Natalie
+  class Compiler
+    class BytecodeLoader
+      INSTRUCTIONS = Natalie::Compiler::INSTRUCTIONS
 
-  def initialize(io)
-    @io = IO.new(io)
-    @instructions = load_instructions
-  end
+      def initialize(io)
+        @io = IO.new(io)
+        @instructions = load_instructions
+      end
 
-  attr_reader :instructions
+      attr_reader :instructions
 
-  class IO
-    def initialize(io)
-      @io = io
-    end
+      class IO
+        def initialize(io)
+          @io = io
+        end
 
-    def getbyte
-      @io.getbyte
-    end
+        def getbyte
+          @io.getbyte
+        end
 
-    def read(size)
-      @io.read(size)
-    end
+        def read(size)
+          @io.read(size)
+        end
 
-    def read_ber_integer
-      result = 0
-      loop do
-        byte = getbyte
-        result = (result << 7) + (byte & 0x7f)
-        if (byte & 0x80) == 0
-          break
+        def read_ber_integer
+          result = 0
+          loop do
+            byte = getbyte
+            result = (result << 7) + (byte & 0x7f)
+            if (byte & 0x80) == 0
+              break
+            end
+          end
+          result
         end
       end
-      result
+
+      private
+
+      def load_instructions
+        instructions = []
+        loop do
+          num = @io.getbyte
+          break if num.nil?
+
+          instruction_class = INSTRUCTIONS[num]
+          instructions << instruction_class.deserialize(@io)
+        end
+        instructions
+      end
     end
   end
-
-  private
-
-  def load_instructions
-    instructions = []
-    loop do
-      num = @io.getbyte
-      break if num.nil?
-
-      instruction_class = INSTRUCTIONS[num]
-      instructions << instruction_class.deserialize(@io)
-    end
-    instructions
-  end
-end
-
-if __FILE__ == $0
-  instructions = BytecodeLoader.new(File.open(ARGV.first, 'rb')).instructions
-  im = Natalie::Compiler::InstructionManager.new(instructions)
-  Natalie::VM.new(im, path: 'unknown').run
 end

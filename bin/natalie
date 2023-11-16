@@ -82,10 +82,14 @@ OptionParser.new do |opts|
     options[:ast] = ast
   end
 
-  opts.on('-b path', '--bytecode path', 'Compile to bytecode') do |path|
+  opts.on('--compile-bytecode path', 'Compile to bytecode') do |path|
     options[:compile] = path
-    options[:bytecode] = true
+    options[:bytecode] = path
     options[:expecting_script] = true
+  end
+
+  opts.on('-b path', '--bytecode path', 'Load from bytecode dump') do |path|
+    options[:bytecode] = path
   end
 
   opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
@@ -174,6 +178,8 @@ class Runner
       edit_compile_run_loop
     elsif options[:transform_only]
       compiler.send(:transform)
+    elsif options[:bytecode]
+      compile_and_run_bytecode(@source_path)
     else
       compile_and_run
     end
@@ -255,6 +261,12 @@ class Runner
     end
   end
 
+  def compile_and_run_bytecode(path)
+    loader = Natalie::Compiler::BytecodeLoader.new(File.open(path, 'rb'))
+    im = Natalie::Compiler::InstructionManager.new(loader.instructions)
+    Natalie::VM.new(im, path: path).run
+  end
+
   def show_assembly
     compiler.write_file
     compiler.out_path = '-'
@@ -275,6 +287,8 @@ class Runner
       if options[:require].any?
         @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
       end
+    elsif options[:bytecode]
+      @source_path  = options[:bytecode]
     elsif options[:expecting_script]
       raise 'Expected a Ruby script, but none was given.'
     else
