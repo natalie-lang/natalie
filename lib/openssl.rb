@@ -81,6 +81,10 @@ module OpenSSL
       digest(...).unpack1('H*')
     end
 
+    def new
+      Digest.new(name)
+    end
+
     def self.const_missing(name)
       normalized_name = new(name.to_s).name
       raise if name.to_s != normalized_name
