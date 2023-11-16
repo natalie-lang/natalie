@@ -46,8 +46,11 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
         env->raise_name_error(old_name, "`{}' is not allowed as a global variable name", old_name->string());
 
     auto info = m_global_variables.get(old_name, env);
-    if (info)
-        m_global_variables.put(new_name, info, env);
+    if (!info) {
+        global_set(env, old_name, NilObject::the());
+        info = m_global_variables.get(old_name, env);
+    }
+    m_global_variables.put(new_name, info, env);
     return info->object();
 }
 
