@@ -2,6 +2,7 @@ module Enumerable
   def all?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
+      warn('warning: given block not used') if block_given?
       each { |*item| return false unless pattern === gather.(item) }
       true
     elsif block_given?
