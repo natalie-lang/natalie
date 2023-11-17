@@ -117,7 +117,7 @@ module Natalie
     end
 
     def write_file
-      cpp = instructions
+      cpp = with_profiler { generate_cpp }
       if write_obj_path
         File.write(write_obj_path, cpp)
       else
@@ -159,6 +159,10 @@ module Natalie
 
     def instructions
       @instructions ||= transform
+    end
+
+    def generate_cpp
+      CppBackend.new(instructions, compiler_context: @context).generate
     end
 
     def load_path
@@ -203,7 +207,6 @@ module Natalie
     private
 
     def transform
-      start_profiling if options[:profile] == :compiler
       @context = build_context
 
       keep_final_value_on_stack = options[:interpret]
@@ -240,11 +243,7 @@ module Natalie
         exit
       end
 
-      return instructions if options[:interpret]
-
-      CppBackend.new(instructions, compiler_context: @context).generate
-    ensure
-      stop_profiling if options[:profile] == :compiler
+      instructions
     end
 
     def libraries
@@ -327,29 +326,15 @@ module Natalie
       )
     end
 
-    def start_profiling
+    def with_profiler(&block)
+      return yield unless options[:profile] == :compiler
+
       require 'stackprof'
-      StackProf.start(mode: :wall, raw: true)
-    end
-
-    PROFILES_PATH = '/tmp/natalie/profiles'
-
-    def stop_profiling
-      StackProf.stop
-      # You can install speedscope using npm install -g speedscope
-      if use_speedscope?
-        require 'json'
-        FileUtils.mkdir_p(PROFILES_PATH)
-        profile = "#{PROFILES_PATH}/#{Time.new.to_i}.dump"
-        File.write(profile, JSON.generate(StackProf.results))
-        system("speedscope #{profile}")
-      else
-        StackProf::Report.new(StackProf.results).print_text
-      end
-    end
-
-    def use_speedscope?
-      system("speedscope --version > /dev/null 2>&1")
+      require 'json'
+      profile = StackProf.run(mode: :wall, raw: true, &block)
+      profile_path = "profile-#{Time.new.to_i}.json"
+      File.write(profile_path, JSON.generate(profile))
+      puts "profile written: #{profile_path}"
     end
   end
 end

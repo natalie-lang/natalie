@@ -167,7 +167,7 @@ class Runner
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
     elsif options[:transform_only]
-      compiler.send(:transform)
+      compiler.write_file
     else
       compile_and_run
     end
