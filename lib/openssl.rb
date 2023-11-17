@@ -11,8 +11,11 @@ module Digest
     def update(_)
       raise "#{self} does not implement update()"
     end
-
     alias << update
+
+    def new
+      OpenSSL::Digest.new(name)
+    end
   end
 end
 
@@ -92,10 +95,6 @@ module OpenSSL
 
     def hexdigest(...)
       digest(...).unpack1('H*')
-    end
-
-    def new
-      Digest.new(name)
     end
 
     def self.const_missing(name)
