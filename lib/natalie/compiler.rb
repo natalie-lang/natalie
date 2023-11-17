@@ -118,7 +118,7 @@ module Natalie
     end
 
     def write_file
-      cpp = instructions
+      cpp = with_profiler { generate_cpp }
       if write_obj_path
         File.write(write_obj_path, cpp)
       else
@@ -160,6 +160,10 @@ module Natalie
 
     def instructions
       @instructions ||= transform
+    end
+
+    def generate_cpp
+      CppBackend.new(instructions, compiler_context: @context).generate
     end
 
     def load_path
@@ -204,7 +208,6 @@ module Natalie
     private
 
     def transform
-      start_profiling if options[:profile] == :compiler
       @context = build_context
 
       keep_final_value_on_stack = options[:interpret]
@@ -249,11 +252,7 @@ module Natalie
         exit
       end
 
-      return instructions if options[:interpret]
-
-      CppBackend.new(instructions, compiler_context: @context).generate
-    ensure
-      stop_profiling if options[:profile] == :compiler
+      instructions
     end
 
     def libraries
@@ -336,7 +335,16 @@ module Natalie
       )
     end
 
+    def with_profiler
+      start_profiling
+      yield
+    ensure
+      stop_profiling
+    end
+
     def start_profiling
+      return unless options[:profile] == :compiler
+
       require 'stackprof'
       StackProf.start(mode: :wall, raw: true)
     end
@@ -344,6 +352,8 @@ module Natalie
     PROFILES_PATH = '/tmp/natalie/profiles'
 
     def stop_profiling
+      return unless options[:profile] == :compiler
+
       StackProf.stop
       # You can install speedscope using npm install -g speedscope
       if use_speedscope?
