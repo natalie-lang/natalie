@@ -31,10 +31,11 @@ module Natalie
           result = 0
           loop do
             byte = getbyte
-            result = (result << 7) + (byte & 0x7f)
+            result += (byte & 0x7f)
             if (byte & 0x80) == 0
               break
             end
+            result <<= 7
           end
           result
         end
