@@ -4,11 +4,15 @@ module Natalie
   class Compiler
     # This instruction is really just used for breaking from a `while` loop.
     class BreakOutInstruction < BaseInstruction
+      def initialize(while_instruction:)
+        @while_instruction = while_instruction
+      end
+
       def to_s
         'break_out'
       end
 
-      attr_accessor :while_instruction
+      attr_reader :while_instruction
 
       def generate(transform)
         value = transform.pop

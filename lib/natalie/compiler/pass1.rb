@@ -31,9 +31,13 @@ module Natalie
         # Our MacroExpander and our REPL need to know local variables.
         @locals_stack = []
 
-        # `next` needs to know its enclosing scope type,
+        # `next` and `break` need to know their enclosing scope type,
         # e.g. block vs while loop, so we'll use a stack to keep track.
-        @next_context = []
+        @next_or_break_context = []
+
+        # We need to know the nearest WhileInstruction so we can attach
+        # it to any BreakOutInstruction.
+        @enclosing_while_stack = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -69,7 +73,7 @@ module Natalie
         end
       end
 
-      def transform_expression(node, used:)
+      def transform_expression(node, used:, **kwargs)
         case node
         when ::Prism::Node
           node = expand_macros(node) if node.type == :call_node
@@ -77,7 +81,7 @@ module Natalie
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
           result = track_scope(node) do
-            send(method, node, used: used)
+            send(method, node, used: used, **kwargs)
           end
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
@@ -86,7 +90,7 @@ module Natalie
             # TODO: remove this kludge and change these fake node types to CallNode or something else
             @depth += 1
             method = "transform_#{node.first}_fake_node"
-            result = send(method, node, used: used)
+            result = send(method, node, used: used, **kwargs)
             @depth -= 1
             Array(result).flatten
           else
@@ -362,10 +366,20 @@ module Natalie
       end
 
       def transform_break_node(node, used:)
-        [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location),
-          BreakInstruction.new
+        instructions = [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location)
         ]
+
+        if %i[while_node until_node].include?(@next_or_break_context.last)
+          while_instruction = @enclosing_while_stack.last or raise('no enclosing while')
+          instructions << BreakOutInstruction.new(
+            while_instruction: while_instruction
+          )
+        else
+          instructions << BreakInstruction.new
+        end
+
+        instructions
       end
 
       def transform_call_args(args, with_block:, instructions: [])
@@ -448,7 +462,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -1094,7 +1108,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -1612,7 +1626,9 @@ module Natalie
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
-        instructions = transform_block_node(node, used: true, is_lambda: true)
+        instructions = track_scope(node) do
+          transform_block_node(node, used: true, is_lambda: true)
+        end
         instructions << CreateLambdaInstruction.new
         instructions << PopInstruction.new unless used
         instructions
@@ -1757,7 +1773,7 @@ module Natalie
       end
 
       def transform_next_node(node, used:)
-        if %i[while_node until_node].include?(@next_context.last)
+        if %i[while_node until_node].include?(@next_or_break_context.last)
           return [ContinueInstruction.new]
         end
 
@@ -2007,7 +2023,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -2070,8 +2086,10 @@ module Natalie
 
       def transform_until_node(node, used:)
         pre = !node.begin_modifier?
+        while_instruction = WhileInstruction.new(pre: pre)
+
         instructions = [
-          WhileInstruction.new(pre: pre),
+          while_instruction,
           transform_expression(node.predicate, used: true),
           PushArgcInstruction.new(0),
           SendInstruction.new(
@@ -2082,9 +2100,13 @@ module Natalie
             line: node.location.start_line,
           ),
           WhileBodyInstruction.new,
-          transform_expression(node.statements || Prism.nil_node, used: true),
-          EndInstruction.new(:while),
         ]
+
+        @enclosing_while_stack << while_instruction
+        instructions << transform_expression(node.statements || Prism.nil_node, used: true)
+        @enclosing_while_stack.pop
+
+        instructions << EndInstruction.new(:while)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2105,13 +2127,19 @@ module Natalie
 
       def transform_while_node(node, used:)
         pre = !node.begin_modifier?
+        while_instruction = WhileInstruction.new(pre: pre)
+
         instructions = [
-          WhileInstruction.new(pre: pre),
+          while_instruction,
           transform_expression(node.predicate, used: true),
           WhileBodyInstruction.new,
-          transform_expression(node.statements || Prism.nil_node, used: true),
-          EndInstruction.new(:while),
         ]
+
+        @enclosing_while_stack << while_instruction
+        instructions << transform_expression(node.statements || Prism.nil_node, used: true)
+        @enclosing_while_stack.pop
+
+        instructions << EndInstruction.new(:while)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2145,12 +2173,12 @@ module Natalie
         @retry_context.pop
       end
 
-      def next_context(node)
+      def next_or_break_context(node)
         case node
         when ::Prism::WhileNode, ::Prism::UntilNode, ::Prism::BlockNode, ::Prism::DefNode
-          @next_context << node.type
+          @next_or_break_context << node.type
           result = yield
-          @next_context.pop
+          @next_or_break_context.pop
           result
         else
           yield
@@ -2159,7 +2187,7 @@ module Natalie
 
       def track_scope(...)
         # NOTE: we may have other contexts to track here later
-        next_context(...)
+        next_or_break_context(...)
       end
 
       # returns a set of [name, is_private, prep_instruction]
