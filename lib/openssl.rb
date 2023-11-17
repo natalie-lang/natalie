@@ -4,6 +4,18 @@ require 'openssl.cpp'
 __ld_flags__ '-lcrypto'
 __ld_flags__ '-lssl'
 
+# We have some circular dependencies here: our digest implementations are simply aliases to OpenSSL::Digest classes,
+# but OpenSSL::Digest depends on ::Digest::Instance. So define this one in openssl.rb instead of digest.rb.
+module Digest
+  module Instance
+    def update(_)
+      raise "#{self} does not implement update()"
+    end
+
+    alias << update
+  end
+end
+
 module OpenSSL
   class OpenSSLError < StandardError; end
 
@@ -59,6 +71,7 @@ module OpenSSL
   end
 
   class Digest
+    include ::Digest::Instance
     attr_reader :name
 
     def self.digest(name, data)
