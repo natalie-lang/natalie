@@ -16,6 +16,14 @@ module Digest
     def new
       OpenSSL::Digest.new(name)
     end
+
+    def self.included(klass)
+      klass.define_singleton_method(:file) do |file, *args|
+        file = file.to_str if !file.is_a?(String) && file.respond_to?(:to_str)
+        raise TypeError, "TODO" unless file.is_a?(String)
+        new(*args, File.read(file))
+      end
+    end
   end
 end
 
