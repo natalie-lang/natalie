@@ -34,6 +34,7 @@ OptionParser.new do |opts|
       'strace'        => 'run the resulting binary with strace',
       '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
       'asan'          => 'enable AddressSanitizer',
+      'speedscope'    => 'launch speedscope after gathering profile',
     },
   ) do |type|
     case type
@@ -46,6 +47,12 @@ OptionParser.new do |opts|
       options[:keep_cpp] = true
     when 'transform'
       options[:transform_only] = true
+    when 'speedscope'
+      unless options[:profile]
+        puts 'Must also specify -p or --profile option'
+        exit 1
+      end
+      options[:debug] = type
     else
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
@@ -171,6 +178,13 @@ class Runner
     else
       compile_and_run
     end
+    if options[:debug] == 'speedscope'
+      path = Dir['profile-*.json'].sort.last
+      exec('speedscope', path)
+    end
+    if @run_result
+      exit @run_result.exitstatus || 1
+    end
   end
 
   private
@@ -217,7 +231,6 @@ class Runner
         compiler.compile
         begin
           run_temp_and_wait(out.path)
-          exit $?.exitstatus || 1
         ensure
           File.unlink(out.path)
         end
@@ -250,6 +263,7 @@ class Runner
     env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
     pid = spawn(env, path, *ARGV)
     Process.wait(pid)
+    @run_result = $?
   end
 
   def show_assembly
