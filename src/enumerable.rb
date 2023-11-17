@@ -38,6 +38,7 @@ module Enumerable
   def none?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
+      warn('warning: given block not used') if block_given?
       each { |*item| return false if pattern === gather.(item) }
     elsif block_given?
       each { |*item| return false if yield(*item) }
