@@ -58,34 +58,37 @@ module Natalie
         return unless (break_point = @break_point_stack.pop)
 
         try_instruction = TryInstruction.new
-        @instructions.insert_left(try_instruction)
 
-        @instructions.insert_right([
-          CatchInstruction.new,
-          MatchBreakPointInstruction.new(break_point),
-          IfInstruction.new,
-          GlobalVariableGetInstruction.new(:$!),
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :exit_value,
-            receiver_is_self: false,
-            with_block: false,
-            file: instruction.file,
-            line: instruction.line,
-          ),
-          ElseInstruction.new(:if),
-          PushSelfInstruction.new,
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :raise,
-            receiver_is_self: true,
-            with_block: false,
-            file: instruction.file,
-            line: instruction.line,
-          ),
-          EndInstruction.new(:if),
-          EndInstruction.new(:try),
-        ])
+        @instructions.replace_current(
+          [
+            try_instruction,
+            instruction,
+            CatchInstruction.new,
+            MatchBreakPointInstruction.new(break_point),
+            IfInstruction.new,
+            GlobalVariableGetInstruction.new(:$!),
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :exit_value,
+              receiver_is_self: false,
+              with_block: false,
+              file: instruction.file,
+              line: instruction.line,
+            ),
+            ElseInstruction.new(:if),
+            PushSelfInstruction.new,
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :raise,
+              receiver_is_self: true,
+              with_block: false,
+              file: instruction.file,
+              line: instruction.line,
+            ),
+            EndInstruction.new(:if),
+            EndInstruction.new(:try),
+          ]
+        )
       end
 
       class << self

@@ -50,30 +50,15 @@ module Natalie
         @instructions[@ip - offset]
       end
 
-      def replace_at(ip, instruction)
-        raise 'expected instruction' unless instruction.is_a?(BaseInstruction)
-        @instructions[ip] = instruction
+      def replace_at(ip, instructions)
+        raise 'expected array of instructions' unless instructions.all? { |i| i.is_a?(BaseInstruction) }
+
+        @instructions[ip,1] = instructions
         EnvBuilder.new(@instructions, env: @env).process
       end
 
-      def replace_current(instruction)
-        replace_at(@ip - 1, instruction)
-      end
-
-      def insert_left(instructions)
-        count = insert_at(@ip - 1, instructions)
-        @ip += count
-      end
-
-      def insert_right(instructions)
-        insert_at(@ip, instructions)
-      end
-
-      def insert_at(ip, instructions)
-        instructions = Array(instructions)
-        @instructions.insert(ip, *instructions)
-        EnvBuilder.new(@instructions, env: @env).process
-        instructions.size
+      def replace_current(instructions)
+        replace_at(@ip - 1, instructions)
       end
 
       def fetch_block(until_instruction: EndInstruction, expected_label: nil)
