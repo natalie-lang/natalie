@@ -52,6 +52,7 @@ module Enumerable
     gather = ->(item) { item.size <= 1 ? item.first : item }
     result = false
     if pattern
+      warn('warning: given block not used') if block_given?
       each do |*item|
         if pattern === gather.(item)
           return false if result
