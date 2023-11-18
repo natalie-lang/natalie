@@ -50,11 +50,11 @@ module Natalie
         @instructions[@ip - offset]
       end
 
-      def replace_at(ip, instructions)
-        raise 'expected array of instructions' unless instructions.all? { |i| i.is_a?(BaseInstruction) }
+      def replace_at(ip, new_instructions)
+        raise 'expected array of instructions' unless new_instructions.all? { |i| i.is_a?(BaseInstruction) }
 
-        @instructions[ip,1] = instructions
-        EnvBuilder.new(@instructions, env: @env).process
+        @instructions[ip,1] = new_instructions
+        EnvBuilder.new(new_instructions, env: @env).process
       end
 
       def replace_current(instructions)
