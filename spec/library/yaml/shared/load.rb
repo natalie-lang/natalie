@@ -8,7 +8,7 @@ describe :yaml_load_safe, shared: true do
     File.open(@test_file, 'w') do |io|
       YAML.dump( ['badger', 'elephant', 'tiger'], io )
     end
-    NATFIXME "Implement YAML.load for String and Array", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
       File.open(@test_file) { |yf| YAML.send(@method,  yf ) }.should == ['badger', 'elephant', 'tiger']
     end
   ensure
@@ -31,9 +31,7 @@ describe :yaml_load_safe, shared: true do
                 "--- 'str'"
               ]
     strings.each do |str|
-      NATFIXME "Implement YAML.load for String", exception: NotImplementedError do
-        YAML.send(@method, str).should == "str"
-      end
+      YAML.send(@method, str).should == "str"
     end
   end
 
@@ -54,9 +52,7 @@ describe :yaml_load_safe, shared: true do
       [83, 111, 109, 101, 32, 116, 101, 120, 116, 32, 240, 159, 140, 181, 32, 97, 110, 100, 32, 115, 111, 109, 101, 32, 116, 101, 120, 116]
     }
     yaml_and_strings.each do |yaml, str|
-      NATFIXME "Implement YAML.load for String", exception: NotImplementedError do
-        YAML.send(@method, yaml.pack("C*").force_encoding("UTF-8")).should == str.pack("C*").force_encoding("UTF-8")
-      end
+      YAML.send(@method, yaml.pack("C*").force_encoding("UTF-8")).should == str.pack("C*").force_encoding("UTF-8")
     end
   end
 
@@ -70,13 +66,13 @@ describe :yaml_load_safe, shared: true do
   end
 
   it "accepts symbols" do
-    NATFIXME "Implement YAML.load for Symbol", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Symbol", exception: SpecFailedException do
       YAML.send(@method,  "--- :locked" ).should == :locked
     end
   end
 
   it "accepts numbers" do
-    NATFIXME "Implement YAML.load for Integer", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Integer", exception: SpecFailedException do
       YAML.send(@method, "47").should == 47
       YAML.send(@method, "-1").should == -1
     end
@@ -84,7 +80,7 @@ describe :yaml_load_safe, shared: true do
 
   it "accepts collections" do
     expected = ["a", "b", "c"]
-    NATFIXME "Implement YAML.load for Array", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
       YAML.send(@method, "--- \n- a\n- b\n- c\n").should == expected
       YAML.send(@method, "--- [a, b, c]").should == expected
       YAML.send(@method, "[a, b, c]").should == expected
@@ -95,15 +91,13 @@ describe :yaml_load_safe, shared: true do
     NATFIXME "Implement YAML.load for NilObject", exception: NotImplementedError do
       YAML.send(@method, "---\n").should == nil
     end
-    NATFIXME "Implement YAML.load for String", exception: NotImplementedError do
-      YAML.send(@method, "--- ---\n").should == "---"
-      YAML.send(@method, "--- abc").should == "abc"
-    end
+    YAML.send(@method, "--- ---\n").should == "---"
+    YAML.send(@method, "--- abc").should == "abc"
   end
 
   it "works with block sequence shortcuts" do
     block_seq = "- - - one\n    - two\n    - three"
-    NATFIXME "Implement YAML.load for String", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
       YAML.send(@method, block_seq).should == [[["one", "two", "three"]]]
     end
   end
@@ -111,7 +105,7 @@ describe :yaml_load_safe, shared: true do
   it "loads a symbol key that contains spaces" do
     string = ":user name: This is the user name."
     expected = { :"user name" => "This is the user name."}
-    NATFIXME "Implement YAML.load for Symbol", exception: NotImplementedError do
+    NATFIXME "Implement YAML.load for Symbol and Hash", exception: SpecFailedException do
       YAML.send(@method, string).should == expected
     end
   end

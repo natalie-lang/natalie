@@ -315,14 +315,25 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
 
     yaml_token_t token;
     Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+    Value result = nullptr;
     do {
         yaml_parser_scan(&parser, &token);
-        if (token.type == YAML_NO_TOKEN)
+        switch (token.type) {
+        case YAML_NO_TOKEN:
             env->raise("ArgumentError", "Invalid YAML input");
+            break;
+        case YAML_SCALAR_TOKEN:
+            result = new StringObject { (char *)(token.data.scalar.value), token.data.scalar.length };
+            break;
+        default:
+            // Ignore for now
+            break;
+        }
         if (token.type != YAML_STREAM_END_TOKEN)
             yaml_token_delete(&token);
     } while (token.type != YAML_STREAM_END_TOKEN);
 
-    env->raise("NotImplementedError", "TODO: Implement YAML.load");
-    return NilObject::the();
+    if (result == nullptr)
+        env->raise("NotImplementedError", "TODO: Implement YAML.load");
+    return result;
 }
