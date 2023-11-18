@@ -193,8 +193,9 @@ Constant *ModuleObject::find_constant(Env *env, SymbolObject *name, ModuleObject
     if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
         search_parent = GlobalEnv::the()->Object();
-        if (found_in_module) *found_in_module = search_parent;
-        constant = search_parent->m_constants.get(name);
+        ModuleObject *found = nullptr;
+        constant = search_parent->find_constant(env, name, &found, search_mode);
+        if (found_in_module) *found_in_module = found;
     }
 
     if (constant) check_valid(constant);
