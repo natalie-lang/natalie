@@ -295,3 +295,9 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
 
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
+
+Value YAML_load(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    env->raise("NotImplementedError", "TODO: Implement YAML.load");
+    return NilObject::the();
+}
