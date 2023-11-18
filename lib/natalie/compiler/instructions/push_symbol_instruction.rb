@@ -21,6 +21,21 @@ module Natalie
       def execute(vm)
         vm.push(@name)
       end
+
+      def serialize
+        bytesize = name.to_s.bytesize
+        [
+          instruction_number,
+          bytesize,
+          name.to_s,
+        ].pack("Cwa#{bytesize}")
+      end
+
+      def self.deserialize(io)
+        size = io.read_ber_integer
+        name = io.read(size)
+        new(name)
+      end
     end
   end
 end
