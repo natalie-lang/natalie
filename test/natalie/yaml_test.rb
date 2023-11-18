@@ -13,20 +13,4 @@ describe 'YAML.dump' do
   ensure
     rm_r filename
   end
-
-  # https://github.com/ruby/spec/pull/1114
-  it 'can dump an anonymous struct' do
-    person = Struct.new(:name, :gender)
-    person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct\nname: Jane\ngender: female\n")
-  end
-
-  # https://github.com/ruby/spec/pull/1114
-  it "returns the YAML representation of a Class object" do
-    YAMLSpecs::Example.to_yaml.should match_yaml("--- !ruby/class 'YAMLSpecs::Example'\n")
-  end
-
-  # https://github.com/ruby/spec/pull/1114
-  it "returns the YAML representation of a Module object" do
-    Enumerable.to_yaml.should match_yaml("--- !ruby/module 'Enumerable'\n")
-  end
 end
