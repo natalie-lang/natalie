@@ -34,7 +34,6 @@ OptionParser.new do |opts|
       'strace'        => 'run the resulting binary with strace',
       '{gdb,lldb}'    => 'run the resulting binary with gdb or lldb',
       'asan'          => 'enable AddressSanitizer',
-      'speedscope'    => 'launch speedscope after gathering profile',
     },
   ) do |type|
     case type
@@ -47,12 +46,6 @@ OptionParser.new do |opts|
       options[:keep_cpp] = true
     when 'transform'
       options[:transform_only] = true
-    when 'speedscope'
-      unless options[:profile]
-        puts 'Must also specify -p or --profile option'
-        exit 1
-      end
-      options[:debug] = type
     else
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
@@ -177,10 +170,6 @@ class Runner
       compiler.write_file
     else
       compile_and_run
-    end
-    if options[:debug] == 'speedscope'
-      path = Dir['profile-*.json'].sort.last
-      exec('speedscope', path)
     end
     if @run_result
       exit @run_result.exitstatus || 1
