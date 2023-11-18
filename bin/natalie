@@ -14,7 +14,7 @@ require 'tempfile'
 
 require_relative '../lib/natalie'
 
-options = { load_path: [], require: [], execute: [], profile: false, transform_only: false }
+options = { load_path: [], require: [], execute: [], profile: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -44,8 +44,6 @@ OptionParser.new do |opts|
     when 'gdb', 'lldb'
       options[:debug] = type
       options[:keep_cpp] = true
-    when 'transform'
-      options[:transform_only] = true
     else
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
@@ -58,23 +56,19 @@ OptionParser.new do |opts|
   end
 
   opts.on(
-    '-p [type]', '--profile [type]',
-    'Start profiling an application or the compiler.',
-    options: {
-      'app'       => 'Execute the script and profile it using the embedded profiler.',
-      'compiler'  => 'Profile the compilation process using StackProf.'
-    }
+    '--profile-compiler format',
+    'Run the compiler and gather a profile (must specify format of "text", "json", "graphviz", etc.)',
+  ) do |format|
+    options[:profile] = :compiler
+    options[:profile_format] = format
+    options[:expecting_script] = true
+  end
+
+  opts.on(
+    '--profile-app',
+    'Run the application and gather a profile with Trace Event Format',
   ) do |type|
-    case type
-    when true, 'app'
-      options[:profile] = :app
-    when 'compiler'
-      options[:profile] = :compiler
-      options[:transform_only] = true
-    else
-      puts "Unrecognized -p argument: #{type.inspect}"
-      exit 1
-    end
+    options[:profile] = :app
     options[:expecting_script] = true
   end
 
@@ -166,8 +160,6 @@ class Runner
       show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
-    elsif options[:transform_only]
-      compiler.write_file
     else
       compile_and_run
     end
@@ -213,7 +205,9 @@ class Runner
       system('valgrind', '--tool=callgrind', "--callgrind-out-file=#{callgrind_out.path}", out.path, *ARGV)
       exec('kcachegrind', callgrind_out.path)
     else
-      if options[:interpret]
+      if options[:profile] == :compiler
+        profile_compiler
+      elsif options[:interpret]
         Natalie::VM.new(compiler.instructions, path: source_path).run
       else
         compiler.options[:dynamic_linking] = true
@@ -317,6 +311,13 @@ class Runner
       puts '-' * 80
       puts path
     end
+  end
+
+  def profile_compiler
+    require 'stackprof'
+    profile = StackProf.run(mode: :wall, raw: true) { compiler.compile }
+    report = StackProf::Report.new(profile)
+    report.send("print_#{options[:profile_format]}")
   end
 end
 

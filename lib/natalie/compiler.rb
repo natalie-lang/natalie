@@ -117,7 +117,7 @@ module Natalie
     end
 
     def write_file
-      cpp = with_profiler { generate_cpp }
+      cpp = generate_cpp
       if write_obj_path
         File.write(write_obj_path, cpp)
       else
@@ -324,17 +324,6 @@ module Natalie
         log_load_error: options[:log_load_error],
         compiler_context: @context,
       )
-    end
-
-    def with_profiler(&block)
-      return yield unless options[:profile] == :compiler
-
-      require 'stackprof'
-      require 'json'
-      profile = StackProf.run(mode: :wall, raw: true, &block)
-      profile_path = "profile-#{Time.new.to_i}.json"
-      File.write(profile_path, JSON.generate(profile))
-      puts "profile written: #{profile_path}"
     end
   end
 end
