@@ -260,7 +260,7 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
         OpenSSL_raise_error(env, "EVP_DigestFinal_ex");
     OpenSSL_Digest_reset(env, self, {}, nullptr);
 
-    return new StringObject { reinterpret_cast<const char *>(buf), md_len };
+    return new StringObject { reinterpret_cast<const char *>(buf), md_len, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
 Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
