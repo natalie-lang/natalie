@@ -298,6 +298,31 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
 
 Value YAML_load(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
+
+    yaml_parser_t parser;
+    yaml_parser_initialize(&parser);
+    Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
+
+    auto input = args.at(0);
+    if (input->is_io() || input->respond_to(env, "to_io"_s)) {
+        auto io = input->to_io(env);
+        auto file = fdopen(io->fileno(env), "r");
+        yaml_parser_set_input_file(&parser, file);
+    } else {
+        auto str = input->to_str(env);
+        yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
+    }
+
+    yaml_token_t token;
+    Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+    do {
+        yaml_parser_scan(&parser, &token);
+        if (token.type == YAML_NO_TOKEN)
+            env->raise("ArgumentError", "Invalid YAML input");
+        if (token.type != YAML_STREAM_END_TOKEN)
+            yaml_token_delete(&token);
+    } while (token.type != YAML_STREAM_END_TOKEN);
+
     env->raise("NotImplementedError", "TODO: Implement YAML.load");
     return NilObject::the();
 }

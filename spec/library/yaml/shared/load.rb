@@ -66,9 +66,7 @@ describe :yaml_load_safe, shared: true do
     else
       error = ArgumentError
     end
-    NATFIXME "Implement errors in YAML.load", exception: NotImplementedError do
-      -> { YAML.send(@method, "key1: value\ninvalid_key") }.should raise_error(error)
-    end
+    -> { YAML.send(@method, "key1: value\ninvalid_key") }.should raise_error(error)
   end
 
   it "accepts symbols" do
