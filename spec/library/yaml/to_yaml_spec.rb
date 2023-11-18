@@ -15,8 +15,16 @@ describe "Object#to_yaml" do
     { "a" => "b"}.to_yaml.should match_yaml("--- \na: b\n")
   end
 
-  it "returns the YAML representation of a Class object" do
+  it "returns the YAML representation of an object" do
     YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
+  end
+
+  it "returns the YAML representation of a Class object" do
+    YAMLSpecs::Example.to_yaml.should match_yaml("--- !ruby/class 'YAMLSpecs::Example'\n")
+  end
+
+  it "returns the YAML representation of a Module object" do
+    Enumerable.to_yaml.should match_yaml("--- !ruby/module 'Enumerable'\n")
   end
 
   it "returns the YAML representation of a Date object" do
@@ -59,6 +67,11 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a Struct object" do
     Person = Struct.new(:name, :gender)
     Person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct:Person\nname: Jane\ngender: female\n")
+  end
+
+  it "returns the YAML representation of an unnamed Struct object" do
+    person = Struct.new(:name, :gender)
+    person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct\nname: Jane\ngender: female\n")
   end
 
   it "returns the YAML representation of a Symbol object" do
