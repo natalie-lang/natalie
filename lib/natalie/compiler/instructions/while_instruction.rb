@@ -7,7 +7,7 @@ module Natalie
         @pre = pre
       end
 
-      attr_reader :pre, :result_name
+      attr_reader :pre
 
       def to_s
         s = 'while'
@@ -17,6 +17,17 @@ module Natalie
 
       def has_body?
         true
+      end
+
+      class << self
+        def next_result_name
+          @result_id ||= 0
+          "while_result#{@result_id += 1}"
+        end
+      end
+
+      def result_name
+        @result_name ||= self.class.next_result_name
       end
 
       def generate(transform)
@@ -38,8 +49,7 @@ module Natalie
           code << '};'
         end
 
-        @result_name = result = transform.temp('while_result')
-        code << "Value #{result} = NilObject::the()"
+        code << "Value #{result_name} = NilObject::the()"
 
         transform.with_same_scope(body) do |t|
           if @pre
@@ -54,7 +64,7 @@ module Natalie
         end
 
         transform.exec(code)
-        transform.push(result)
+        transform.push(result_name)
       end
 
       def execute(vm)

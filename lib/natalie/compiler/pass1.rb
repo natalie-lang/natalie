@@ -34,10 +34,6 @@ module Natalie
         # `next` and `break` need to know their enclosing scope type,
         # e.g. block vs while loop, so we'll use a stack to keep track.
         @next_or_break_context = []
-
-        # We need to know the nearest WhileInstruction so we can attach
-        # it to any BreakOutInstruction.
-        @enclosing_while_stack = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -371,10 +367,7 @@ module Natalie
         ]
 
         if %i[while_node until_node].include?(@next_or_break_context.last)
-          while_instruction = @enclosing_while_stack.last or raise('no enclosing while')
-          instructions << BreakOutInstruction.new(
-            while_instruction: while_instruction
-          )
+          instructions << BreakOutInstruction.new
         else
           instructions << BreakInstruction.new
         end
@@ -2086,10 +2079,9 @@ module Natalie
 
       def transform_until_node(node, used:)
         pre = !node.begin_modifier?
-        while_instruction = WhileInstruction.new(pre: pre)
 
         instructions = [
-          while_instruction,
+          WhileInstruction.new(pre: pre),
           transform_expression(node.predicate, used: true),
           PushArgcInstruction.new(0),
           SendInstruction.new(
@@ -2100,13 +2092,10 @@ module Natalie
             line: node.location.start_line,
           ),
           WhileBodyInstruction.new,
+          transform_expression(node.statements || Prism.nil_node, used: true),
+          EndInstruction.new(:while),
         ]
 
-        @enclosing_while_stack << while_instruction
-        instructions << transform_expression(node.statements || Prism.nil_node, used: true)
-        @enclosing_while_stack.pop
-
-        instructions << EndInstruction.new(:while)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2127,19 +2116,15 @@ module Natalie
 
       def transform_while_node(node, used:)
         pre = !node.begin_modifier?
-        while_instruction = WhileInstruction.new(pre: pre)
 
         instructions = [
-          while_instruction,
+          WhileInstruction.new(pre: pre),
           transform_expression(node.predicate, used: true),
           WhileBodyInstruction.new,
+          transform_expression(node.statements || Prism.nil_node, used: true),
+          EndInstruction.new(:while),
         ]
 
-        @enclosing_while_stack << while_instruction
-        instructions << transform_expression(node.statements || Prism.nil_node, used: true)
-        @enclosing_while_stack.pop
-
-        instructions << EndInstruction.new(:while)
         instructions << PopInstruction.new unless used
         instructions
       end
