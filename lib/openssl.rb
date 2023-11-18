@@ -17,6 +17,14 @@ module Digest
       OpenSSL::Digest.new(name)
     end
 
+    def length
+      digest_length
+    end
+
+    def size
+      digest_length
+    end
+
     def self.included(klass)
       klass.define_singleton_method(:file) do |file, *args|
         file = file.to_str if !file.is_a?(String) && file.respond_to?(:to_str)
