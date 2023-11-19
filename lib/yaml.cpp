@@ -296,6 +296,8 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
 
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
+
 static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     const auto &scalar = token.data.scalar;
     Value result = new StringObject { (char *)(scalar.value), scalar.length };
@@ -348,25 +350,7 @@ static Value load_array(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     NAT_UNREACHABLE();
 }
 
-Value YAML_load(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
-
-    yaml_parser_t parser;
-    yaml_parser_initialize(&parser);
-    Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
-
-    auto input = args.at(0);
-    if (input->is_io() || input->respond_to(env, "to_io"_s)) {
-        auto io = input->to_io(env);
-        auto file = fdopen(io->fileno(env), "r");
-        yaml_parser_set_input_file(&parser, file);
-    } else {
-        auto str = input->to_str(env);
-        yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
-    }
-
-    yaml_token_t token;
-    Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     Value result = nullptr;
     do {
         yaml_parser_scan(&parser, &token);
@@ -388,6 +372,30 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
         if (token.type != YAML_STREAM_END_TOKEN)
             yaml_token_delete(&token);
     } while (token.type != YAML_STREAM_END_TOKEN);
+
+    yaml_token_delete(&token);
+    return result;
+}
+
+Value YAML_load(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    yaml_parser_t parser;
+    yaml_parser_initialize(&parser);
+    Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
+
+    auto input = args.at(0);
+    if (input->is_io() || input->respond_to(env, "to_io"_s)) {
+        auto io = input->to_io(env);
+        auto file = fdopen(io->fileno(env), "r");
+        yaml_parser_set_input_file(&parser, file);
+    } else {
+        auto str = input->to_str(env);
+        yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
+    }
+
+    yaml_token_t token;
+    auto result = load_value(env, parser, token);
 
     if (result == nullptr)
         env->raise("NotImplementedError", "TODO: Implement YAML.load");
