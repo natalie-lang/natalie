@@ -140,6 +140,7 @@ module Natalie
         compile_ld_flags: [],
         source_path: @path,
         required_cpp_files: {},
+        required_ruby_files: {},
       }
     end
 
@@ -218,27 +219,26 @@ module Natalie
         exit
       end
 
-      instructions = Pass2.new(
-        instructions,
-        compiler_context: @context,
-      ).transform
-      if debug == 'p2'
-        Pass2.debug_instructions(instructions)
-        exit
+      main_file = { instructions: instructions }
+      files = [main_file] + @context[:required_ruby_files].values
+      files.each do |file_info|
+        {
+          'p2' => Pass2,
+          'p3' => Pass3,
+          'p4' => Pass4,
+        }.each do |short_name, klass|
+          file_info[:instructions] = klass.new(
+            file_info.fetch(:instructions),
+            compiler_context: @context,
+          ).transform
+          if debug == short_name
+            klass.debug_instructions(instructions)
+            exit
+          end
+        end
       end
 
-      instructions = Pass3.new(instructions).transform
-      if debug == 'p3'
-        Pass3.debug_instructions(instructions)
-        exit
-      end
-
-      instructions = Pass4.new(instructions).transform
-      if debug == 'p4'
-        Pass4.debug_instructions(instructions)
-        exit
-      end
-
+      instructions = main_file.fetch(:instructions)
       return instructions if options[:interpret]
 
       CppBackend.new(instructions, compiler_context: @context).generate
