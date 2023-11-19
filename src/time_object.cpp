@@ -107,7 +107,7 @@ TimeObject *TimeObject::utc(Env *env, Value year, Value month, Value mday, Value
 Value TimeObject::add(Env *env, Value other) {
     if (other->is_time()) {
         env->raise("TypeError", "time + time?");
-    } else if (other->is_nil() || !other->respond_to(env, "to_r"_s)) {
+    } else if (other->is_nil() || other->is_string() || !other->respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational();
