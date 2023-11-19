@@ -7,7 +7,7 @@ module Prism
     # Find this transformation method so that we can catch any places where we
     # might previously have been doing destructuring.
     def to_ary
-      raise "Implicit destructuring not supported for prism nodes"
+      raise 'Implicit destructuring not supported for prism nodes'
     end
 
     def location
@@ -91,16 +91,16 @@ module Natalie
       end
 
       def visit_child_nodes(node)
-        node.compact_child_nodes.each do |node|
-          node.location.path = @path if node
-          node&.accept(self)
+        node.compact_child_nodes.each do |n|
+          n.location.path = @path if n
+          n&.accept(self)
         end
         node
       end
 
       Prism::Visitor.instance_methods.each do |name|
         next unless name.start_with?('visit_')
-        next if name == :visit_child_nodes || name == :visit
+        next if %i[visit_child_nodes visit].include?(name)
 
         alias_method name, :visit_child_nodes
       end

@@ -83,7 +83,6 @@ module Natalie
                   :write_obj_path,
                   :repl,
                   :repl_num,
-                  :out_path,
                   :context,
                   :vars,
                   :options,
@@ -91,7 +90,7 @@ module Natalie
                   :inline_cpp_enabled,
                   :cxx_flags
 
-    attr_writer :load_path
+    attr_writer :load_path, :out_path
 
     def compile
       return write_file if write_obj_path
@@ -105,8 +104,8 @@ module Natalie
       out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless keep_cpp? || $? != 0
       puts "cpp file path is: #{c_path}" if keep_cpp?
-      $stderr.puts out if out.strip != ''
-      raise CompileError.new('There was an error compiling.') if $? != 0
+      warn out if out.strip != ''
+      raise CompileError, 'There was an error compiling.' if $? != 0
     end
 
     def check_build
@@ -141,6 +140,7 @@ module Natalie
         compile_ld_flags: [],
         source_path: @path,
         required_cpp_files: {},
+        required_ruby_files: {},
       }
     end
 
@@ -222,28 +222,26 @@ module Natalie
         exit
       end
 
-      instructions = Pass2.new(
-        instructions,
-        compiler_context: @context,
-      ).transform
-      if debug == 'p2'
-        Pass2.debug_instructions(instructions)
-        exit
+      main_file = { instructions: instructions }
+      files = [main_file] + @context[:required_ruby_files].values
+      files.each do |file_info|
+        {
+          'p2' => Pass2,
+          'p3' => Pass3,
+          'p4' => Pass4,
+        }.each do |short_name, klass|
+          file_info[:instructions] = klass.new(
+            file_info.fetch(:instructions),
+            compiler_context: @context,
+          ).transform
+          if debug == short_name
+            klass.debug_instructions(instructions)
+            exit
+          end
+        end
       end
 
-      instructions = Pass3.new(instructions).transform
-      if debug == 'p3'
-        Pass3.debug_instructions(instructions)
-        exit
-      end
-
-      instructions = Pass4.new(instructions).transform
-      if debug == 'p4'
-        Pass4.debug_instructions(instructions)
-        exit
-      end
-
-      instructions
+      main_file.fetch(:instructions)
     end
 
     def libraries

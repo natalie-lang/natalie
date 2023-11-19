@@ -2,6 +2,7 @@ module Enumerable
   def all?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
+      warn('warning: given block not used') if block_given?
       each { |*item| return false unless pattern === gather.(item) }
       true
     elsif block_given?
@@ -16,6 +17,7 @@ module Enumerable
   def any?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
+      warn('warning: given block not used') if block_given?
       each { |*item| return true if pattern === gather.(item) }
       false
     elsif block_given?
@@ -36,6 +38,7 @@ module Enumerable
   def none?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
+      warn('warning: given block not used') if block_given?
       each { |*item| return false if pattern === gather.(item) }
     elsif block_given?
       each { |*item| return false if yield(*item) }
@@ -49,6 +52,7 @@ module Enumerable
     gather = ->(item) { item.size <= 1 ? item.first : item }
     result = false
     if pattern
+      warn('warning: given block not used') if block_given?
       each do |*item|
         if pattern === gather.(item)
           return false if result
@@ -647,7 +651,7 @@ module Enumerable
   def count(*args)
     count = 0
     if args.size > 0
-      $stderr.puts('warning: given block not used') if block_given?
+      warn('warning: given block not used') if block_given?
       gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
       item = args.first
       each { |*obj| count += 1 if gather.(obj) == item }
@@ -716,7 +720,7 @@ module Enumerable
 
     if args.size != 0 && block_given
       block_given = false
-      $stderr.puts('warning: given block not used')
+      warn('warning: given block not used')
     end
 
     gather = ->(item) { item.size <= 1 ? item.first : item }

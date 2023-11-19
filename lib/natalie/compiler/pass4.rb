@@ -6,7 +6,7 @@ module Natalie
     # This compiler pass sets up needed break points to handle `return` from a block.
     # You can debug this pass with the `-d p4` CLI flag.
     class Pass4 < BasePass
-      def initialize(instructions)
+      def initialize(instructions, **)
         super()
         @instructions = instructions
 

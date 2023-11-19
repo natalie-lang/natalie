@@ -4,6 +4,45 @@ require 'openssl.cpp'
 __ld_flags__ '-lcrypto'
 __ld_flags__ '-lssl'
 
+# We have some circular dependencies here: our digest implementations are simply aliases to OpenSSL::Digest classes,
+# but OpenSSL::Digest depends on ::Digest::Instance. So define this one in openssl.rb instead of digest.rb.
+module Digest
+  module Instance
+    def update(_)
+      raise "#{self} does not implement update()"
+    end
+    alias << update
+
+    def new
+      OpenSSL::Digest.new(name)
+    end
+
+    def length
+      digest_length
+    end
+
+    def size
+      digest_length
+    end
+
+    def digest!(...)
+      digest(...).tap { reset }
+    end
+
+    def hexdigest!(...)
+      hexdigest(...).tap { reset }
+    end
+
+    def self.included(klass)
+      klass.define_singleton_method(:file) do |file, *args|
+        file = file.to_str if !file.is_a?(String) && file.respond_to?(:to_str)
+        raise TypeError, 'TODO' unless file.is_a?(String)
+        new(*args, File.read(file))
+      end
+    end
+  end
+end
+
 module OpenSSL
   class OpenSSLError < StandardError; end
 
@@ -59,6 +98,7 @@ module OpenSSL
   end
 
   class Digest
+    include ::Digest::Instance
     attr_reader :name
 
     def self.digest(name, data)
@@ -81,10 +121,6 @@ module OpenSSL
       digest(...).unpack1('H*')
     end
 
-    def new
-      Digest.new(name)
-    end
-
     def self.const_missing(name)
       normalized_name = new(name.to_s).name
       raise if name.to_s != normalized_name
@@ -96,7 +132,7 @@ module OpenSSL
       end
       const_set(name, klass)
       klass
-    rescue
+    rescue StandardError
       super
     end
   end
@@ -132,13 +168,13 @@ module OpenSSL
 
     class Name
       OBJECT_TYPE_TEMPLATE = {
-        'C' => ASN1::PRINTABLESTRING,
-        'countryName' => ASN1::PRINTABLESTRING,
-        'serialNumber' => ASN1::PRINTABLESTRING,
-        'dnQualifier' => ASN1::PRINTABLESTRING,
-        'DC' => ASN1::IA5STRING,
+        'C'               => ASN1::PRINTABLESTRING,
+        'countryName'     => ASN1::PRINTABLESTRING,
+        'serialNumber'    => ASN1::PRINTABLESTRING,
+        'dnQualifier'     => ASN1::PRINTABLESTRING,
+        'DC'              => ASN1::IA5STRING,
         'domainComponent' => ASN1::IA5STRING,
-        'emailAddress' => ASN1::IA5STRING
+        'emailAddress'    => ASN1::IA5STRING
       }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
 
       __constant__('COMPAT', 'int', 'XN_FLAG_COMPAT')
@@ -151,15 +187,15 @@ module OpenSSL
       __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
       __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
 
-      class <<self
+      class << self
         def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
           ary = if str.start_with?('/')
-                  str.split('/')[1..-1]
+                  str.split('/')[1..]
                 else
                   str.split(/,\s*/)
                 end
           ary = ary.map { |e| e.split('=') }
-          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2}
+          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2 }
           new(ary, template)
         end
 

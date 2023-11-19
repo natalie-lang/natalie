@@ -14,6 +14,7 @@ module Natalie
         super()
         @ast = ast
         @compiler_context = compiler_context
+        @required_ruby_files = @compiler_context[:required_ruby_files]
         @macro_expander = macro_expander
 
         # If any user code has required 'natalie/inline', then we enable
@@ -82,7 +83,7 @@ module Natalie
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         when Array
-          if %i[with_filename autoload_const].include?(node.first)
+          if %i[load_file autoload_const].include?(node.first)
             # TODO: remove this kludge and change these fake node types to CallNode or something else
             @depth += 1
             method = "transform_#{node.first}_fake_node"
@@ -506,7 +507,7 @@ module Natalie
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: receiver.nil?,
+          receiver_is_self: receiver.nil? || receiver.is_a?(Prism::SelfNode),
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
           forward_args: call_args[:forward_args],
@@ -2100,17 +2101,27 @@ module Natalie
         instructions
       end
 
-      def transform_with_filename_fake_node(exp, used:)
+      def transform_load_file_fake_node(exp, used:)
         depth_was = @depth
-        @depth = 0
-        _, filename, require_once, *body = exp
+        _, filename, require_once = exp
+        file_info = @required_ruby_files.fetch(filename)
+
+        unless file_info[:instructions]
+          file_info[:instructions] = :generating # set this to avoid endless loop
+          @depth = 0
+          ast = file_info.fetch(:ast)
+          file_info[:instructions] = transform_expression(ast, used: true)
+          @depth = depth_was
+        end
+
         instructions = [
-          WithFilenameInstruction.new(filename, require_once: require_once),
-          transform_body(body, used: true),
-          EndInstruction.new(:with_filename),
+          LoadFileInstruction.new(
+            filename,
+            require_once: require_once,
+            required_ruby_files: @required_ruby_files
+          ),
         ]
         instructions << PopInstruction.new unless used
-        @depth = depth_was
         instructions
       end
 

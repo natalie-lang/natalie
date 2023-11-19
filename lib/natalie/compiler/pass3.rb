@@ -6,7 +6,7 @@ module Natalie
     # This compiler pass sets up needed break points to handle `break` from a block,
     # lambda, or while loop. You can debug this pass with the `-d p3` CLI flag.
     class Pass3 < BasePass
-      def initialize(instructions)
+      def initialize(instructions, **)
         super()
         @instructions = instructions
 

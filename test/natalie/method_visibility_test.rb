@@ -9,6 +9,10 @@ class Foo
     private_foo
   end
 
+  def public_foo_calling_private_foo_with_self
+    self.private_foo # rubocop:disable Style/RedundantSelf
+  end
+
   def public_foo_calling_protected_foo
     protected_foo
   end
@@ -100,6 +104,10 @@ describe 'method visibility' do
 
     it 'is not visible from inside a subclass calling the method on another object (not self)' do
       -> { Bar.new.public_bar_calling_private_foo_on_another_object }.should raise_error(NoMethodError)
+    end
+
+    it 'is callable from public method with using self' do
+      Foo.new.public_foo_calling_private_foo_with_self.should == 'private'
     end
   end
 

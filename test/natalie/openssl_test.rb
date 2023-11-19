@@ -151,3 +151,10 @@ describe "OpenSSL::SSL::SSLSocket#initialize" do
     }.should raise_error(TypeError, 'wrong argument type Integer (expected OpenSSL/SSL/CTX)')
   end
 end
+
+describe "OpenSSL::Digest.file" do
+  it "can work with some argument shuffling on OpenSSL::Digest itself" do
+    expect = OpenSSL::Digest.new('sha1').hexdigest(File.read(__FILE__))
+    OpenSSL::Digest.file(__FILE__, 'sha1').hexdigest.should == expect
+  end
+end

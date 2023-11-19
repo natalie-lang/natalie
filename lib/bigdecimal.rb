@@ -10,6 +10,6 @@ class BigDecimal
   end
 end
 
-def BigDecimal(str)
-  BigDecimal.new(str)
+def BigDecimal(str) # rubocop:disable Naming/MethodName
+  BigDecimal.new(str) # rubocop:disable Lint/BigDecimalNew
 end

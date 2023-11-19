@@ -3,15 +3,16 @@ require 'natalie/inline'
 class Date
   include Comparable
 
-  ITALY = 2299161 # 1582-10-15
-  ENGLAND = 2361222 # 1752-09-14
+  ITALY = 2_299_161 # 1582-10-15
+  ENGLAND = 2_361_222 # 1752-09-14
 
   freeze = ->(values) { values.map { |value| value.nil? ? nil : value.freeze }.freeze }
 
-  ABBR_DAYNAMES = freeze[['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']]
+  ABBR_DAYNAMES = freeze[%w[Sun Mon Tue Wed Thu Fri Sat]]
   ABBR_MONTHNAMES = freeze[[nil, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']]
-  DAYNAMES = freeze[['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']]
-  MONTHNAMES = freeze[[nil, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']]
+  DAYNAMES = freeze[%w[Sunday Monday Tuesday Wednesday Thursday Friday Saturday]]
+  MONTHNAMES = freeze[[nil, 'January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December']]
 
   Error = Class.new(ArgumentError)
 
@@ -40,11 +41,14 @@ class Date
     def _iso8601(string)
       return {} if string.nil?
       string = string.to_str if !string.is_a?(String) && string.respond_to?(:to_str)
-      raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String" unless string.is_a?(String)
+      unless string.is_a?(String)
+        raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String"
+      end
+
       if string =~ /\A(\d{4})(\d\d)(\d\d)\z/ || string =~ /\A(-?\d{4})-(\d\d)-(\d\d)\z/
         return { mday: $3.to_i, mon: $2.to_i, year: $1.to_i }
       end
-      return {}
+      {}
     end
 
     def jd(number = 0, start = Date::ITALY)
@@ -62,7 +66,7 @@ class Date
       if number < start
         a = number
       else
-        x = ((number - 1867216.25) / 36524.25).floor
+        x = ((number - 1_867_216.25) / 36_524.25).floor
         a = number + 1 + x - (x / 4.0).floor
       end
       b = a + 1524
@@ -87,7 +91,10 @@ class Date
     def parse(string = '-4712-01-01', comp = true)
       year = comp ? 2000 : 0
       string = string.to_str if !string.is_a?(String) && string.respond_to?(:to_str)
-      raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String" unless string.is_a?(String)
+      unless string.is_a?(String)
+        raise TypeError, "no implicit conversion of #{string.nil? ? 'nil' : string.class} into String"
+      end
+
       case string
       when /\A(\d\d)\z/ # DD
         new(today.year, today.month, $1.to_i)
@@ -99,11 +106,11 @@ class Date
         new(year, $2.to_i, $3.to_i)
       when /\A(\d{4})(\d\d)(\d\d)\z/ # YYYYMMDD
         new($1.to_i, $2.to_i, $3.to_i)
-      when /\A(\d{4})\/(\d\d)\/(\d\d)\z/ # YYYY/MM/DD
+      when %r{\A(\d{4})/(\d\d)/(\d\d)\z} # YYYY/MM/DD
         new($1.to_i, $2.to_i, $3.to_i)
-      when /\A(\d\d)\/(\d\d)\/(\d{4})\z/ # DD/MM/YYYY
+      when %r{\A(\d\d)/(\d\d)/(\d{4})\z} # DD/MM/YYYY
         new($3.to_i, $2.to_i, $1.to_i)
-      when /\A(\d\d)\/(\d\d)\/(\d\d)\z/  # YY/MM/DD
+      when %r{\A(\d\d)/(\d\d)/(\d\d)\z}  # YY/MM/DD
         new(year + $1.to_i, $2.to_i, $3.to_i)
       when /\A(\d{4})-(\d\d)-(\d\d)\z/ # YYYY-MM-DD
         new($1.to_i, $2.to_i, $3.to_i)
@@ -151,7 +158,7 @@ class Date
     @start = start
     @jd = self.class.civil_to_jd(year, month, mday, start)
     if @jd >= start
-      y, m, d = self.class.jd_to_civil(@jd)
+      _y, m, d = self.class.jd_to_civil(@jd)
       unless m == @month && d == @mday
         raise Date::Error, 'invalid date'
       end
@@ -191,12 +198,12 @@ class Date
     end
   end
 
-  def >>(n)
-    unless n.is_a?(Numeric)
-      raise TypeError, "#{n.class} can't be coerced into Integer"
+  def >>(other)
+    unless other.is_a?(Numeric)
+      raise TypeError, "#{other.class} can't be coerced into Integer"
     end
-    n = n.to_int
-    i = (@year * 12) + (@month - 1) + n
+    other = other.to_int
+    i = (@year * 12) + (@month - 1) + other
     year = i.div(12)
     month = (i % 12) + 1
     mday = @mday
@@ -319,7 +326,7 @@ class Date
     end
   end
 
-  def strftime(format = '%F')
+  def strftime(format = '%F') # rubocop:disable Line/UnusedMethodArgument
     __inline__ <<-END
       format_var->assert_type(env, Object::Type::String, "String");
       struct tm time = { 0 };
