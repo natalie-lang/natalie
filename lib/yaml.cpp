@@ -313,6 +313,11 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     if (int_value && !int_value->is_nil())
         return int_value;
 
+    // If it looks like a Float, and quaks like a Float
+    auto float_value = KernelModule::Float(env, result, false);
+    if (float_value && !float_value->is_nil())
+        return float_value;
+
     return result;
 }
 
