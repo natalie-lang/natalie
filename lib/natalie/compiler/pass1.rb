@@ -499,7 +499,7 @@ module Natalie
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: receiver.nil?,
+          receiver_is_self: receiver.nil? || receiver.is_a?(Prism::SelfNode),
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
           forward_args: call_args[:forward_args],
