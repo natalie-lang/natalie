@@ -11,9 +11,7 @@ describe "Rational#to_r" do
 
   it "works when a BasicObject has to_r" do
     obj = BasicObject.new; def obj.to_r; 1 / 2.to_r end
-    NATFIXME 'Implement Rational(String)', exception: ArgumentError, message: 'invalid value for Float()' do
-      Rational(obj).should == Rational('1/2')
-    end
+    Rational(obj).should == Rational('1/2')
     Rational(obj).should == Rational(1, 2)
   end
 
