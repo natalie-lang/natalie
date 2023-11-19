@@ -207,7 +207,7 @@ Value TimeObject::minus(Env *env, Value other) {
     if (other->is_time()) {
         return to_r(env)->as_rational()->sub(env, other->as_time()->to_r(env))->as_rational()->to_f(env);
     }
-    if (other->is_nil() || !other->respond_to(env, "to_r"_s)) {
+    if (other->is_nil() || other->is_string() || !other->respond_to(env, "to_r"_s)) {
         env->raise("TypeError", "can't convert {} into an exact number", other->klass()->inspect_str());
     }
     RationalObject *rational = to_r(env)->as_rational()->sub(env, other->send(env, "to_r"_s))->as_rational();
