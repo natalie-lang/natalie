@@ -8,9 +8,7 @@ describe :yaml_load_safe, shared: true do
     File.open(@test_file, 'w') do |io|
       YAML.dump( ['badger', 'elephant', 'tiger'], io )
     end
-    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
-      File.open(@test_file) { |yf| YAML.send(@method,  yf ) }.should == ['badger', 'elephant', 'tiger']
-    end
+    File.open(@test_file) { |yf| YAML.send(@method,  yf ) }.should == ['badger', 'elephant', 'tiger']
   ensure
     rm_r @test_file
   end
@@ -76,11 +74,9 @@ describe :yaml_load_safe, shared: true do
 
   it "accepts collections" do
     expected = ["a", "b", "c"]
-    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
-      YAML.send(@method, "--- \n- a\n- b\n- c\n").should == expected
-      YAML.send(@method, "--- [a, b, c]").should == expected
-      YAML.send(@method, "[a, b, c]").should == expected
-    end
+    YAML.send(@method, "--- \n- a\n- b\n- c\n").should == expected
+    YAML.send(@method, "--- [a, b, c]").should == expected
+    YAML.send(@method, "[a, b, c]").should == expected
   end
 
   it "parses start markers" do
@@ -93,7 +89,7 @@ describe :yaml_load_safe, shared: true do
 
   it "works with block sequence shortcuts" do
     block_seq = "- - - one\n    - two\n    - three"
-    NATFIXME "Implement YAML.load for Array", exception: SpecFailedException do
+    NATFIXME "Implement YAML.load for Array", exception: NotImplementedError do
       YAML.send(@method, block_seq).should == [[["one", "two", "three"]]]
     end
   end

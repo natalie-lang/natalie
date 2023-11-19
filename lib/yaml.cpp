@@ -321,6 +321,33 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     return result;
 }
 
+static Value load_array(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
+    auto result = new ArrayObject {};
+    while (true) {
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        switch (token.type) {
+        case YAML_NO_TOKEN:
+            env->raise("ArgumentError", "Invalid YAML input");
+            break;
+        case YAML_SCALAR_TOKEN:
+            result->push(load_scalar(env, parser, token));
+            break;
+        case YAML_BLOCK_END_TOKEN:
+        case YAML_FLOW_SEQUENCE_END_TOKEN:
+            return result;
+        case YAML_FLOW_ENTRY_TOKEN:
+        case YAML_BLOCK_ENTRY_TOKEN:
+            // ignore
+            break;
+        default:
+            env->raise("NotImplementedError", "TODO: Deeper data structures ({})", token.type);
+            break;
+        }
+    };
+    NAT_UNREACHABLE();
+}
+
 Value YAML_load(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
 
@@ -349,6 +376,10 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
             break;
         case YAML_SCALAR_TOKEN:
             result = load_scalar(env, parser, token);
+            break;
+        case YAML_FLOW_SEQUENCE_START_TOKEN:
+        case YAML_BLOCK_SEQUENCE_START_TOKEN:
+            result = load_array(env, parser, token);
             break;
         default:
             // Ignore for now
