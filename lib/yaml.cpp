@@ -296,6 +296,10 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
 
+static Value load_scalar(yaml_parser_t &parser, yaml_token_t &token) {
+    return new StringObject { (char *)(token.data.scalar.value), token.data.scalar.length };
+}
+
 Value YAML_load(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
 
@@ -323,7 +327,7 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
             env->raise("ArgumentError", "Invalid YAML input");
             break;
         case YAML_SCALAR_TOKEN:
-            result = new StringObject { (char *)(token.data.scalar.value), token.data.scalar.length };
+            result = load_scalar(parser, token);
             break;
         default:
             // Ignore for now
