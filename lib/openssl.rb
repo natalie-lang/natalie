@@ -36,7 +36,7 @@ module Digest
     def self.included(klass)
       klass.define_singleton_method(:file) do |file, *args|
         file = file.to_str if !file.is_a?(String) && file.respond_to?(:to_str)
-        raise TypeError, "TODO" unless file.is_a?(String)
+        raise TypeError, 'TODO' unless file.is_a?(String)
         new(*args, File.read(file))
       end
     end
@@ -132,7 +132,7 @@ module OpenSSL
       end
       const_set(name, klass)
       klass
-    rescue
+    rescue StandardError
       super
     end
   end
@@ -168,13 +168,13 @@ module OpenSSL
 
     class Name
       OBJECT_TYPE_TEMPLATE = {
-        'C' => ASN1::PRINTABLESTRING,
-        'countryName' => ASN1::PRINTABLESTRING,
-        'serialNumber' => ASN1::PRINTABLESTRING,
-        'dnQualifier' => ASN1::PRINTABLESTRING,
-        'DC' => ASN1::IA5STRING,
+        'C'               => ASN1::PRINTABLESTRING,
+        'countryName'     => ASN1::PRINTABLESTRING,
+        'serialNumber'    => ASN1::PRINTABLESTRING,
+        'dnQualifier'     => ASN1::PRINTABLESTRING,
+        'DC'              => ASN1::IA5STRING,
         'domainComponent' => ASN1::IA5STRING,
-        'emailAddress' => ASN1::IA5STRING
+        'emailAddress'    => ASN1::IA5STRING
       }.tap { |hash| hash.default = ASN1::UTF8STRING }.freeze
 
       __constant__('COMPAT', 'int', 'XN_FLAG_COMPAT')
@@ -187,15 +187,15 @@ module OpenSSL
       __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
       __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
 
-      class <<self
+      class << self
         def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
           ary = if str.start_with?('/')
-                  str.split('/')[1..-1]
+                  str.split('/')[1..]
                 else
                   str.split(/,\s*/)
                 end
           ary = ary.map { |e| e.split('=') }
-          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2}
+          raise TypeError, 'invalid OpenSSL::X509::Name input' unless ary.all? { |e| e.size == 2 }
           new(ary, template)
         end
 
