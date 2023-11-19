@@ -95,9 +95,7 @@ describe :yaml_load_safe, shared: true do
   it "loads a symbol key that contains spaces" do
     string = ":user name: This is the user name."
     expected = { :"user name" => "This is the user name."}
-    NATFIXME "Implement YAML.load for Hash", exception: NotImplementedError do
-      YAML.send(@method, string).should == expected
-    end
+    YAML.send(@method, string).should == expected
   end
 end
 

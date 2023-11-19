@@ -344,6 +344,34 @@ static Value load_array(Env *env, yaml_parser_t &parser) {
     NAT_UNREACHABLE();
 }
 
+static Value load_hash(Env *env, yaml_parser_t &parser) {
+    auto result = new HashObject {};
+    while (true) {
+        yaml_token_t token;
+        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+        yaml_parser_scan(&parser, &token);
+        if (token.type == YAML_BLOCK_END_TOKEN || token.type == YAML_FLOW_SEQUENCE_END_TOKEN)
+            return result;
+
+        if (token.type != YAML_KEY_TOKEN)
+            env->raise("ArgumentError", "Expected key token");
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        auto key = load_value(env, parser, token);
+
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        if (token.type != YAML_VALUE_TOKEN)
+            env->raise("ArgumentError", "Expected value token");
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        auto value = load_value(env, parser, token);
+
+        result->put(env, key, value);
+    }
+    NAT_UNREACHABLE();
+}
+
 static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     switch (token.type) {
     case YAML_NO_TOKEN:
@@ -354,6 +382,9 @@ static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     case YAML_FLOW_SEQUENCE_START_TOKEN:
     case YAML_BLOCK_SEQUENCE_START_TOKEN:
         return load_array(env, parser);
+    case YAML_FLOW_MAPPING_START_TOKEN:
+    case YAML_BLOCK_MAPPING_START_TOKEN:
+        return load_hash(env, parser);
     default:
         // Ignore for now
         return nullptr;
