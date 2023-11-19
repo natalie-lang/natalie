@@ -89,15 +89,13 @@ describe :yaml_load_safe, shared: true do
 
   it "works with block sequence shortcuts" do
     block_seq = "- - - one\n    - two\n    - three"
-    NATFIXME "Implement YAML.load for Array", exception: NotImplementedError do
-      YAML.send(@method, block_seq).should == [[["one", "two", "three"]]]
-    end
+    YAML.send(@method, block_seq).should == [[["one", "two", "three"]]]
   end
 
   it "loads a symbol key that contains spaces" do
     string = ":user name: This is the user name."
     expected = { :"user name" => "This is the user name."}
-    NATFIXME "Implement YAML.load for Symbol and Hash", exception: SpecFailedException do
+    NATFIXME "Implement YAML.load for Hash", exception: NotImplementedError do
       YAML.send(@method, string).should == expected
     end
   end

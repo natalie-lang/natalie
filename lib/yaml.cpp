@@ -296,7 +296,7 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
 
-static Value load_value(Env *env, yaml_parser_t &parser);
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
 
 static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     const auto &scalar = token.data.scalar;
@@ -330,12 +330,6 @@ static Value load_array(Env *env, yaml_parser_t &parser) {
         Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
         yaml_parser_scan(&parser, &token);
         switch (token.type) {
-        case YAML_NO_TOKEN:
-            env->raise("ArgumentError", "Invalid YAML input");
-            break;
-        case YAML_SCALAR_TOKEN:
-            result->push(load_scalar(env, parser, token));
-            break;
         case YAML_BLOCK_END_TOKEN:
         case YAML_FLOW_SEQUENCE_END_TOKEN:
             return result;
@@ -344,38 +338,26 @@ static Value load_array(Env *env, yaml_parser_t &parser) {
             // ignore
             break;
         default:
-            env->raise("NotImplementedError", "TODO: Deeper data structures ({})", token.type);
-            break;
+            result->push(load_value(env, parser, token));
         }
     }
     NAT_UNREACHABLE();
 }
 
-static Value load_value(Env *env, yaml_parser_t &parser) {
-    Value result = nullptr;
-    while (true) {
-        yaml_token_t token;
-        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
-        yaml_parser_scan(&parser, &token);
-        switch (token.type) {
-        case YAML_NO_TOKEN:
-            env->raise("ArgumentError", "Invalid YAML input");
-            break;
-        case YAML_SCALAR_TOKEN:
-            result = load_scalar(env, parser, token);
-            break;
-        case YAML_FLOW_SEQUENCE_START_TOKEN:
-        case YAML_BLOCK_SEQUENCE_START_TOKEN:
-            result = load_array(env, parser);
-            break;
-        case YAML_STREAM_END_TOKEN:
-            return result;
-        default:
-            // Ignore for now
-            break;
-        }
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
+    switch (token.type) {
+    case YAML_NO_TOKEN:
+        env->raise("ArgumentError", "Invalid YAML input");
+        NAT_UNREACHABLE();
+    case YAML_SCALAR_TOKEN:
+        return load_scalar(env, parser, token);
+    case YAML_FLOW_SEQUENCE_START_TOKEN:
+    case YAML_BLOCK_SEQUENCE_START_TOKEN:
+        return load_array(env, parser);
+    default:
+        // Ignore for now
+        return nullptr;
     }
-    NAT_UNREACHABLE();
 }
 
 Value YAML_load(Env *env, Value self, Args args, Block *) {
@@ -395,7 +377,15 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
         yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
     }
 
-    auto result = load_value(env, parser);
+    Value result = nullptr;
+    while (true) {
+        yaml_token_t token;
+        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+        yaml_parser_scan(&parser, &token);
+        if (token.type == YAML_STREAM_END_TOKEN)
+            break;
+        result = load_value(env, parser, token);
+    }
 
     if (result == nullptr)
         env->raise("NotImplementedError", "TODO: Implement YAML.load");
