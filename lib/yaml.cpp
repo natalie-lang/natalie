@@ -296,8 +296,19 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
 
-static Value load_scalar(yaml_parser_t &parser, yaml_token_t &token) {
-    return new StringObject { (char *)(token.data.scalar.value), token.data.scalar.length };
+static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
+    const auto &scalar = token.data.scalar;
+    Value result = new StringObject { (char *)(scalar.value), scalar.length };
+
+    // Quoted must be a String
+    if (scalar.style == YAML_SINGLE_QUOTED_SCALAR_STYLE || scalar.style == YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+        return result;
+
+    // Starts with a ':', then it's a Symbol
+    if (scalar.length > 0 && (char)(*scalar.value) == ':')
+        return SymbolObject::intern((const char *)(scalar.value + 1), scalar.length - 1);
+
+    return result;
 }
 
 Value YAML_load(Env *env, Value self, Args args, Block *) {
@@ -327,7 +338,7 @@ Value YAML_load(Env *env, Value self, Args args, Block *) {
             env->raise("ArgumentError", "Invalid YAML input");
             break;
         case YAML_SCALAR_TOKEN:
-            result = load_scalar(parser, token);
+            result = load_scalar(env, parser, token);
             break;
         default:
             // Ignore for now

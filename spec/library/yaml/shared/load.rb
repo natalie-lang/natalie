@@ -66,9 +66,7 @@ describe :yaml_load_safe, shared: true do
   end
 
   it "accepts symbols" do
-    NATFIXME "Implement YAML.load for Symbol", exception: SpecFailedException do
-      YAML.send(@method,  "--- :locked" ).should == :locked
-    end
+    YAML.send(@method,  "--- :locked" ).should == :locked
   end
 
   it "accepts numbers" do
