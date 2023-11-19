@@ -4,11 +4,15 @@ AllCops:
 FrozenStringLiteralComment:
   Enabled: false
 
+Layout/LeadingCommentSpace:
+  Enabled: false
+
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 
 Layout/HashAlignment:
   EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
 
 Layout/HeredocIndentation:
   Enabled: false
@@ -59,6 +63,15 @@ Style/LambdaCall:
   EnforcedStyle: braces
 
 Style/NumericPredicate:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Style/PerlBackrefs:
   Enabled: false
 
 Style/SingleLineMethods:

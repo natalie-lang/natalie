@@ -30,13 +30,13 @@ module Observable
   end
 
   def notify_observers(*arg)
-    if defined? @observer_state and @observer_state
-      if defined? @observers
+    if defined?(@observer_state) && @observer_state
+      if defined?(@observers)
         @observers.each do |observer, callback|
           observer.__send__(callback, *arg)
         end
       end
-      
+
       @observer_state = false
     end
   end

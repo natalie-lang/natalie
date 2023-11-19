@@ -83,7 +83,6 @@ module Natalie
                   :write_obj_path,
                   :repl,
                   :repl_num,
-                  :out_path,
                   :context,
                   :vars,
                   :options,
@@ -91,7 +90,7 @@ module Natalie
                   :inline_cpp_enabled,
                   :cxx_flags
 
-    attr_writer :load_path
+    attr_writer :load_path, :out_path
 
     def compile
       return write_file if write_obj_path
@@ -105,8 +104,8 @@ module Natalie
       out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless keep_cpp? || $? != 0
       puts "cpp file path is: #{c_path}" if keep_cpp?
-      $stderr.puts out if out.strip != ''
-      raise CompileError.new('There was an error compiling.') if $? != 0
+      warn out if out.strip != ''
+      raise CompileError, 'There was an error compiling.' if $? != 0
     end
 
     def check_build
@@ -332,7 +331,7 @@ module Natalie
       StackProf.start(mode: :wall, raw: true)
     end
 
-    PROFILES_PATH = '/tmp/natalie/profiles'
+    PROFILES_PATH = '/tmp/natalie/profiles'.freeze
 
     def stop_profiling
       StackProf.stop
@@ -349,7 +348,7 @@ module Natalie
     end
 
     def use_speedscope?
-      system("speedscope --version > /dev/null 2>&1")
+      system('speedscope --version > /dev/null 2>&1')
     end
   end
 end
