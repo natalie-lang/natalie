@@ -308,6 +308,11 @@ static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
     if (scalar.length > 0 && (char)(*scalar.value) == ':')
         return SymbolObject::intern((const char *)(scalar.value + 1), scalar.length - 1);
 
+    // If it looks like an Integer, and quaks like an Integer
+    auto int_value = KernelModule::Integer(env, result, 10, false);
+    if (int_value && !int_value->is_nil())
+        return int_value;
+
     return result;
 }
 

@@ -70,10 +70,8 @@ describe :yaml_load_safe, shared: true do
   end
 
   it "accepts numbers" do
-    NATFIXME "Implement YAML.load for Integer", exception: SpecFailedException do
-      YAML.send(@method, "47").should == 47
-      YAML.send(@method, "-1").should == -1
-    end
+    YAML.send(@method, "47").should == 47
+    YAML.send(@method, "-1").should == -1
   end
 
   it "accepts collections" do
