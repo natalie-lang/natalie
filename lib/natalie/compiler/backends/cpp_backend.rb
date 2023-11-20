@@ -6,6 +6,11 @@ module Natalie
     class CppBackend
       include StringToCpp
 
+      ROOT_DIR = File.expand_path('../../../../', __dir__)
+      SRC_PATH = File.join(ROOT_DIR, 'src')
+      MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
+      OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
+
       def initialize(instructions, compiler_context:, compiler:)
         @instructions = instructions
         @compiler_context = compiler_context
@@ -59,11 +64,19 @@ module Natalie
       end
 
       def merge_cpp_with_template(string_of_cpp)
-        @compiler_context[:template]
+        template
           .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { init_object_files.join("\n") }
           .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
           .sub('/*' + 'NAT_EVAL_BODY' + '*/') { string_of_cpp }
+      end
+
+      def template
+        if @compiler.write_obj_path
+          OBJ_TEMPLATE.gsub(/OBJ_NAME/, @compiler.obj_name)
+        else
+          MAIN_TEMPLATE
+        end
       end
 
       def declarations

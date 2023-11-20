@@ -17,7 +17,6 @@ module Natalie
 
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
-    SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
       File.join(ROOT_DIR, 'ext/tm/include'),
@@ -64,9 +63,6 @@ module Natalie
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
-    MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
-    OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
-
     class CompileError < StandardError
     end
 
@@ -110,7 +106,6 @@ module Natalie
       {
         var_prefix:          var_prefix,
         var_num:             0,
-        template:            template,
         is_obj:              !!write_obj_path,
         repl:                !!repl,
         vars:                vars || {},
@@ -181,6 +176,12 @@ module Natalie
         libraries.join(' '),
         link_flags,
       ].map(&:to_s).join(' ')
+    end
+
+    def obj_name
+      # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
+      # Maybe we need another arg to specify the init name...
+      write_obj_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/generated/}, '').tr('/', '_')
     end
 
     private
@@ -281,16 +282,6 @@ module Natalie
       else
         ''
       end
-    end
-
-    def obj_name
-      # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
-      # Maybe we need another arg to specify the init name...
-      write_obj_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/generated/}, '').tr('/', '_')
-    end
-
-    def template
-      write_obj_path ? OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name) : MAIN_TEMPLATE
     end
 
     def macro_expander
