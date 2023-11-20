@@ -50,9 +50,9 @@ module Natalie
       def transform_instructions
         transform = Transform.new(
           @instructions,
-          top: @top,
+          top:              @top,
           compiler_context: @compiler_context,
-          symbols: @symbols,
+          symbols:          @symbols,
           inline_functions: @inline_functions,
         )
         transform.transform

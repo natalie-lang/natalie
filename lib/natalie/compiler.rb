@@ -94,6 +94,7 @@ module Natalie
 
     def compile
       return backend.write_file if write_obj_path
+
       check_build
       backend.compile_to_binary
     end
@@ -107,17 +108,17 @@ module Natalie
 
     def build_context
       {
-        var_prefix: var_prefix,
-        var_num: 0,
-        template: template,
-        is_obj: !!write_obj_path,
-        repl: !!repl,
-        vars: vars || {},
-        inline_cpp_enabled: inline_cpp_enabled,
-        compile_cxx_flags: cxx_flags,
-        compile_ld_flags: [],
-        source_path: @path,
-        required_cpp_files: {},
+        var_prefix:          var_prefix,
+        var_num:             0,
+        template:            template,
+        is_obj:              !!write_obj_path,
+        repl:                !!repl,
+        vars:                vars || {},
+        inline_cpp_enabled:  inline_cpp_enabled,
+        compile_cxx_flags:   cxx_flags,
+        compile_ld_flags:    [],
+        source_path:         @path,
+        required_cpp_files:  {},
         required_ruby_files: {},
       }
     end
@@ -191,7 +192,7 @@ module Natalie
       instructions = Pass1.new(
         ast,
         compiler_context: @context,
-        macro_expander: macro_expander
+        macro_expander:   macro_expander
       ).transform(
         used: keep_final_value_on_stack
       )
@@ -294,10 +295,10 @@ module Natalie
 
     def macro_expander
       @macro_expander ||= MacroExpander.new(
-        path: @path,
-        load_path: load_path,
-        interpret: interpret?,
-        log_load_error: options[:log_load_error],
+        path:             @path,
+        load_path:        load_path,
+        interpret:        interpret?,
+        log_load_error:   options[:log_load_error],
         compiler_context: @context,
       )
     end
