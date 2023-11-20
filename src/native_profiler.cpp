@@ -47,9 +47,12 @@ bool NativeProfiler::enabled() const {
 void NativeProfiler::dump() {
     if (!m_is_enabled)
         return;
+
     String path("profile-");
-    path.append_sprintf("%lld", std::chrono::system_clock::now().time_since_epoch());
-    path.append(".json");
+
+    auto epoch = std::chrono::system_clock::now().time_since_epoch();
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+    path.append_sprintf("%lld.json", seconds.count());
 
     FILE *fp = fopen(path.c_str(), "w+");
 

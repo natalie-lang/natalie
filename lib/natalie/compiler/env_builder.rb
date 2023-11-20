@@ -62,7 +62,18 @@ module Natalie
       def process_try(i) @env = i.env || { vars: {}, outer: @env, hoist: true } end
       def process_end_try(_) @env = @env.fetch(:outer) end
 
-      def process_while(i) @env = i.env || { vars: {}, outer: @env, hoist: true, while: true } end
+      def process_while(i)
+        return if i.env
+
+        @env = {
+          vars: {},
+          outer: @env,
+          hoist: true,
+          while: true,
+          result_name: i.result_name # used by BreakOutInstruction to set result variable
+        }
+      end
+
       def process_end_while(_) @env = @env.fetch(:outer) end
 
       def process_with_main(i) @env = i.env || { vars: {}, outer: @env, main: true } end
