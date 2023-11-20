@@ -13,4 +13,8 @@ describe 'YAML.dump' do
   ensure
     rm_r filename
   end
+
+  it 'can load floats' do
+    YAML.load('90.0').should be_kind_of(Float)
+  end
 end

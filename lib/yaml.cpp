@@ -295,3 +295,130 @@ Value YAML_dump(Env *env, Value self, Args args, Block *) {
 
     return new StringObject { reinterpret_cast<char *>(buf), written };
 }
+
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token);
+
+static Value load_scalar(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
+    const auto &scalar = token.data.scalar;
+    Value result = new StringObject { (char *)(scalar.value), scalar.length };
+
+    // Quoted must be a String
+    if (scalar.style == YAML_SINGLE_QUOTED_SCALAR_STYLE || scalar.style == YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+        return result;
+
+    // Starts with a ':', then it's a Symbol
+    if (scalar.length > 0 && (char)(*scalar.value) == ':')
+        return SymbolObject::intern((const char *)(scalar.value + 1), scalar.length - 1);
+
+    // If it looks like an Integer, and quaks like an Integer
+    auto int_value = KernelModule::Integer(env, result, 10, false);
+    if (int_value && !int_value->is_nil())
+        return int_value;
+
+    // If it looks like a Float, and quaks like a Float
+    auto float_value = KernelModule::Float(env, result, false);
+    if (float_value && !float_value->is_nil())
+        return float_value;
+
+    return result;
+}
+
+static Value load_array(Env *env, yaml_parser_t &parser) {
+    auto result = new ArrayObject {};
+    while (true) {
+        yaml_token_t token;
+        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+        yaml_parser_scan(&parser, &token);
+        switch (token.type) {
+        case YAML_BLOCK_END_TOKEN:
+        case YAML_FLOW_SEQUENCE_END_TOKEN:
+            return result;
+        case YAML_FLOW_ENTRY_TOKEN:
+        case YAML_BLOCK_ENTRY_TOKEN:
+            // ignore
+            break;
+        default:
+            result->push(load_value(env, parser, token));
+        }
+    }
+    NAT_UNREACHABLE();
+}
+
+static Value load_hash(Env *env, yaml_parser_t &parser) {
+    auto result = new HashObject {};
+    while (true) {
+        yaml_token_t token;
+        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+        yaml_parser_scan(&parser, &token);
+        if (token.type == YAML_BLOCK_END_TOKEN || token.type == YAML_FLOW_SEQUENCE_END_TOKEN)
+            return result;
+
+        if (token.type != YAML_KEY_TOKEN)
+            env->raise("ArgumentError", "Expected key token");
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        auto key = load_value(env, parser, token);
+
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        if (token.type != YAML_VALUE_TOKEN)
+            env->raise("ArgumentError", "Expected value token");
+        yaml_token_delete(&token);
+        yaml_parser_scan(&parser, &token);
+        auto value = load_value(env, parser, token);
+
+        result->put(env, key, value);
+    }
+    NAT_UNREACHABLE();
+}
+
+static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
+    switch (token.type) {
+    case YAML_NO_TOKEN:
+        env->raise("ArgumentError", "Invalid YAML input");
+        NAT_UNREACHABLE();
+    case YAML_SCALAR_TOKEN:
+        return load_scalar(env, parser, token);
+    case YAML_FLOW_SEQUENCE_START_TOKEN:
+    case YAML_BLOCK_SEQUENCE_START_TOKEN:
+        return load_array(env, parser);
+    case YAML_FLOW_MAPPING_START_TOKEN:
+    case YAML_BLOCK_MAPPING_START_TOKEN:
+        return load_hash(env, parser);
+    default:
+        // Ignore for now
+        return nullptr;
+    }
+}
+
+Value YAML_load(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    yaml_parser_t parser;
+    yaml_parser_initialize(&parser);
+    Defer parser_deleter { [&parser]() { yaml_parser_delete(&parser); } };
+
+    auto input = args.at(0);
+    if (input->is_io() || input->respond_to(env, "to_io"_s)) {
+        auto io = input->to_io(env);
+        auto file = fdopen(io->fileno(env), "r");
+        yaml_parser_set_input_file(&parser, file);
+    } else {
+        auto str = input->to_str(env);
+        yaml_parser_set_input_string(&parser, reinterpret_cast<const unsigned char *>(str->c_str()), str->bytesize());
+    }
+
+    Value result = nullptr;
+    while (true) {
+        yaml_token_t token;
+        Defer token_deleter { [&token]() { yaml_token_delete(&token); } };
+        yaml_parser_scan(&parser, &token);
+        if (token.type == YAML_STREAM_END_TOKEN)
+            break;
+        result = load_value(env, parser, token);
+    }
+
+    if (result == nullptr)
+        env->raise("NotImplementedError", "TODO: Implement YAML.load");
+    return result;
+}
