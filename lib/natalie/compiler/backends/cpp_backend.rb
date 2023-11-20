@@ -1,5 +1,6 @@
 require_relative './cpp_backend/transform'
 require_relative '../string_to_cpp'
+require_relative '../flags'
 
 module Natalie
   class Compiler

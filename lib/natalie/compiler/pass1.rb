@@ -2104,13 +2104,12 @@ module Natalie
       def transform_load_file_fake_node(exp, used:)
         depth_was = @depth
         _, filename, require_once = exp
-        file_info = @required_ruby_files.fetch(filename)
+        loaded_file = @required_ruby_files.fetch(filename)
 
-        unless file_info[:instructions]
-          file_info[:instructions] = :generating # set this to avoid endless loop
+        unless loaded_file.instructions
+          loaded_file.instructions = :generating # set this to avoid endless loop
           @depth = 0
-          ast = file_info.fetch(:ast)
-          file_info[:instructions] = transform_expression(ast, used: true)
+          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
           @depth = depth_was
         end
 

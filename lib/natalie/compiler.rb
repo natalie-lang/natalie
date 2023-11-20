@@ -1,15 +1,15 @@
 require 'tempfile'
-require_relative './parser'
+require_relative '../../build/generated/numbers'
+require_relative './compiler/backends/cpp_backend'
 require_relative './compiler/comptime_values'
-require_relative './compiler/flags'
+require_relative './compiler/instruction_manager'
+require_relative './compiler/loaded_file'
+require_relative './compiler/macro_expander'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
 require_relative './compiler/pass4'
-require_relative './compiler/instruction_manager'
-require_relative './compiler/backends/cpp_backend'
-require_relative './compiler/macro_expander'
-require_relative '../../build/generated/numbers'
+require_relative './parser'
 
 module Natalie
   class Compiler
@@ -123,7 +123,7 @@ module Natalie
         exit
       end
 
-      main_file = { instructions: instructions }
+      main_file = LoadedFile.new(path: @path, instructions: instructions)
       files = [main_file] + @context[:required_ruby_files].values
       files.each do |file_info|
         {
@@ -131,8 +131,8 @@ module Natalie
           'p3' => Pass3,
           'p4' => Pass4,
         }.each do |short_name, klass|
-          file_info[:instructions] = klass.new(
-            file_info.fetch(:instructions),
+          file_info.instructions = klass.new(
+            file_info.instructions,
             compiler_context: @context,
           ).transform
           if debug == short_name
@@ -142,7 +142,7 @@ module Natalie
         end
       end
 
-      main_file.fetch(:instructions)
+      main_file.instructions
     end
 
     def macro_expander
