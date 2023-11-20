@@ -130,9 +130,10 @@ static void emit_value(Env *env, RegexpObject *value, yaml_emitter_t &emitter, y
 }
 
 static void emit_value(Env *env, StringObject *value, yaml_emitter_t &emitter, yaml_event_t &event) {
+    auto numeric = KernelModule::Float(env, value, false);
+    const auto style = numeric ? YAML_SINGLE_QUOTED_SCALAR_STYLE : YAML_PLAIN_SCALAR_STYLE;
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-        (yaml_char_t *)(value->as_string()->c_str()), value->as_string()->bytesize(),
-        1, 0, YAML_PLAIN_SCALAR_STYLE);
+        (yaml_char_t *)(value->c_str()), value->bytesize(), 1, 1, style);
     emit(env, emitter, event);
 }
 
