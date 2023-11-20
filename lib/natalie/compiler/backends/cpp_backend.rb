@@ -6,21 +6,36 @@ module Natalie
     class CppBackend
       include StringToCpp
 
-      def initialize(instructions, compiler_context:)
+      def initialize(instructions, compiler_context:, compiler:)
         @instructions = instructions
         @compiler_context = compiler_context
+        @compiler = compiler
         @symbols = {}
         @inline_functions = {}
         @top = []
       end
+
+      attr_reader :cpp_path
+
+      def write_file
+        cpp = generate
+        if @compiler.write_obj_path
+          File.write(@compiler.write_obj_path, cpp)
+        else
+          temp_cpp = Tempfile.create('natalie.cpp')
+          temp_cpp.write(cpp)
+          temp_cpp.close
+          @cpp_path = temp_cpp.path
+        end
+      end
+
+      private
 
       def generate
         string_of_cpp = transform_instructions
         out = merge_cpp_with_template(string_of_cpp)
         reindent(out)
       end
-
-      private
 
       def transform_instructions
         transform = Transform.new(

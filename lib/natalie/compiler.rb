@@ -102,7 +102,7 @@ module Natalie
     def compile_c_to_binary
       cmd = compiler_command
       out = `#{cmd} 2>&1`
-      File.unlink(@c_path) unless keep_cpp? || $? != 0
+      File.unlink(backend.cpp_path) unless keep_cpp? || $? != 0
       puts "cpp file path is: #{c_path}" if keep_cpp?
       warn out if out.strip != ''
       raise CompileError, 'There was an error compiling.' if $? != 0
@@ -116,15 +116,7 @@ module Natalie
     end
 
     def write_file
-      cpp = generate_cpp
-      if write_obj_path
-        File.write(write_obj_path, cpp)
-      else
-        temp_c = Tempfile.create('natalie.cpp')
-        temp_c.write(cpp)
-        temp_c.close
-        @c_path = temp_c.path
-      end
+      backend.write_file
     end
 
     def build_context
@@ -161,8 +153,8 @@ module Natalie
       @instructions ||= transform
     end
 
-    def generate_cpp
-      CppBackend.new(instructions, compiler_context: @context).generate
+    def backend
+      @backend ||= CppBackend.new(instructions, compiler_context: @context, compiler: self)
     end
 
     def load_path
@@ -197,7 +189,7 @@ module Natalie
         inc_paths,
         "-o #{out_path}",
         '-x c++ -std=c++17',
-        (@c_path || 'code.cpp'),
+        (backend.cpp_path || 'code.cpp'),
         LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
         libraries.join(' '),
         link_flags,
