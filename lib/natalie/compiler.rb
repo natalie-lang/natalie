@@ -104,7 +104,6 @@ module Natalie
 
     def build_context
       {
-        var_prefix:          var_prefix,
         var_num:             0,
         is_obj:              !!write_obj_path,
         repl:                !!repl,
@@ -136,7 +135,7 @@ module Natalie
     end
 
     def backend
-      @backend ||= CppBackend.new(instructions, compiler_context: @context, compiler: self)
+      @backend ||= CppBackend.new(instructions, compiler: self, compiler_context: @context)
     end
 
     def load_path
@@ -176,12 +175,6 @@ module Natalie
         libraries.join(' '),
         link_flags,
       ].map(&:to_s).join(' ')
-    end
-
-    def obj_name
-      # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
-      # Maybe we need another arg to specify the init name...
-      write_obj_path.sub(/\.rb\.cpp/, '').sub(%r{.*build/generated/}, '').tr('/', '_')
     end
 
     private
@@ -271,16 +264,6 @@ module Natalie
         COVERAGE_FLAGS
       else
         raise "unknown build mode: #{build.inspect}"
-      end
-    end
-
-    def var_prefix
-      if write_obj_path
-        "#{obj_name}_"
-      elsif repl
-        "repl#{repl_num}_"
-      else
-        ''
       end
     end
 

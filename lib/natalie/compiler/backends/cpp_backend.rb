@@ -11,10 +11,11 @@ module Natalie
       MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
       OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
-      def initialize(instructions, compiler_context:, compiler:)
+      def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
-        @compiler_context = compiler_context
         @compiler = compiler
+        @compiler_context = compiler_context
+        augment_compiler_context
         @symbols = {}
         @inline_functions = {}
         @top = []
@@ -73,9 +74,29 @@ module Natalie
 
       def template
         if @compiler.write_obj_path
-          OBJ_TEMPLATE.gsub(/OBJ_NAME/, @compiler.obj_name)
+          OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name)
         else
           MAIN_TEMPLATE
+        end
+      end
+
+      def obj_name
+        # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
+        # Maybe we need another arg to specify the init name...
+        @compiler
+          .write_obj_path
+          .sub(/\.rb\.cpp/, '')
+          .sub(%r{.*build/generated/}, '')
+          .tr('/', '_')
+      end
+
+      def var_prefix
+        if @compiler.write_obj_path
+          "#{obj_name}_"
+        elsif @compiler.repl
+          "repl#{@compiler.repl_num}_"
+        else
+          ''
         end
       end
 
@@ -163,6 +184,12 @@ module Natalie
             indent += 4 if line.end_with?('{')
           end
         out.join("\n")
+      end
+
+      def augment_compiler_context
+        @compiler_context.merge!(
+          var_prefix: var_prefix,
+        )
       end
     end
   end
