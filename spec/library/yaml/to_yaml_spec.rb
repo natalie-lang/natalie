@@ -6,9 +6,7 @@ require 'yaml'
 describe "Object#to_yaml" do
 
   it "returns the YAML representation of an Array object" do
-    NATFIXME 'Dump string integers in quotes', exception: SpecFailedException do
-      %w( 30 ruby maz irb 99 ).to_yaml.gsub("'", '"').should match_yaml("--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n")
-    end
+    %w( 30 ruby maz irb 99 ).to_yaml.gsub("'", '"').should match_yaml("--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n")
   end
 
   it "returns the YAML representation of a Hash object" do
