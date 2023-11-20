@@ -23,9 +23,9 @@ module Natalie
         unless fn
           fn = transform.temp('load_file_fn')
           transform.compiled_files[@filename] = fn
-          file_info = @required_ruby_files.fetch(@filename)
+          loaded_file = @required_ruby_files.fetch(@filename)
           transform.top("Value #{fn}(Env *, Value, bool);")
-          transform.with_new_scope(file_info.fetch(:instructions)) do |t|
+          transform.with_new_scope(loaded_file.instructions) do |t|
             fn_code = []
             fn_code << "Value #{fn}(Env *env, Value self, bool require_once) {"
             fn_code << "if (require_once && #{transform.files_var_name}.get(#{filename_sym})) return FalseObject::the();"

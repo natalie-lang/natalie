@@ -224,10 +224,10 @@ module Natalie
       def load_file(path, require_once:, location:)
         return load_cpp_file(path, require_once: require_once, location: location) if path =~ /\.cpp$/
 
-        unless (file_info = @required_ruby_files[path])
+        unless (loaded_file = @required_ruby_files[path])
           code = File.read(path)
           ast = Natalie::Parser.new(code, path).ast
-          @required_ruby_files[path] = { ast: ast }
+          @required_ruby_files[path] = LoadedFile.new(path: path, ast: ast)
         end
 
         [:load_file, path, require_once]
