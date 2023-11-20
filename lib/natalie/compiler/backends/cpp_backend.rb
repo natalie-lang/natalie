@@ -162,7 +162,7 @@ module Natalie
       def var_prefix
         if write_object_file?
           "#{obj_name}_"
-        elsif @compiler.repl
+        elsif @compiler.repl?
           "repl#{@compiler.repl_num}_"
         else
           ''
@@ -255,7 +255,7 @@ module Natalie
       end
 
       def shared?
-        !!@compiler.repl
+        @compiler.repl?
       end
 
       def declarations

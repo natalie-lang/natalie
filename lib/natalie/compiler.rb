@@ -47,7 +47,7 @@ module Natalie
     def build_context
       {
         inline_cpp_enabled:  inline_cpp_enabled,
-        repl:                !!repl,
+        repl:                repl?,
         required_cpp_files:  {},
         required_ruby_files: {},
         source_path:         @path,
@@ -101,7 +101,7 @@ module Natalie
       !!options[:dynamic_linking]
     end
 
-    def shared?
+    def repl?
       !!repl
     end
 
