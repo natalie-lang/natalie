@@ -93,19 +93,9 @@ module Natalie
     attr_writer :load_path, :out_path
 
     def compile
-      return write_file if write_obj_path
+      return backend.write_file if write_obj_path
       check_build
-      write_file
-      compile_c_to_binary
-    end
-
-    def compile_c_to_binary
-      cmd = compiler_command
-      out = `#{cmd} 2>&1`
-      File.unlink(backend.cpp_path) unless keep_cpp? || $? != 0
-      puts "cpp file path is: #{c_path}" if keep_cpp?
-      warn out if out.strip != ''
-      raise CompileError, 'There was an error compiling.' if $? != 0
+      backend.compile_to_binary
     end
 
     def check_build
@@ -113,10 +103,6 @@ module Natalie
         puts 'please run: rake'
         exit 1
       end
-    end
-
-    def write_file
-      backend.write_file
     end
 
     def build_context

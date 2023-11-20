@@ -17,6 +17,16 @@ module Natalie
 
       attr_reader :cpp_path
 
+      def compile_to_binary
+        write_file
+        cmd = @compiler.compiler_command
+        out = `#{cmd} 2>&1`
+        File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
+        puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
+        warn out if out.strip != ''
+        raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
+      end
+
       def write_file
         cpp = generate
         if @compiler.write_obj_path
