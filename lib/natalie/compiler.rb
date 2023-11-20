@@ -13,8 +13,6 @@ require_relative '../../build/generated/numbers'
 
 module Natalie
   class Compiler
-    include Flags
-
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
 
@@ -121,10 +119,6 @@ module Natalie
       !!options[:dynamic_linking]
     end
 
-    def build_flags
-      "#{base_build_flags.join(' ')} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
-    end
-
     def shared?
       !!repl
     end
@@ -167,21 +161,6 @@ module Natalie
       end
 
       main_file.fetch(:instructions)
-    end
-
-    def base_build_flags
-      case build
-      when 'release'
-        RELEASE_FLAGS
-      when 'debug', nil
-        DEBUG_FLAGS
-      when 'asan'
-        ASAN_FLAGS
-      when 'coverage'
-        COVERAGE_FLAGS
-      else
-        raise "unknown build mode: #{build.inspect}"
-      end
     end
 
     def macro_expander

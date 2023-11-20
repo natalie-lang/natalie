@@ -5,6 +5,7 @@ module Natalie
   class Compiler
     class CppBackend
       include StringToCpp
+      include Flags
 
       ROOT_DIR = File.expand_path('../../../../', __dir__)
       BUILD_DIR = File.join(ROOT_DIR, 'build')
@@ -81,7 +82,7 @@ module Natalie
       def compiler_command
         [
           cc,
-          @compiler.build_flags,
+          build_flags,
           (@compiler.shared? ? '-fPIC -shared' : ''),
           inc_paths.map { |path| "-I #{path}" }.join(' '),
           "-o #{@compiler.out_path}",
@@ -208,6 +209,29 @@ module Natalie
         flags += @compiler_context[:compile_ld_flags].join(' ').split
         flags -= unnecessary_link_flags
         flags.join(' ')
+      end
+
+      def build_flags
+        (
+          base_build_flags +
+          [ENV['NAT_CXX_FLAGS']].compact +
+          @compiler_context[:compile_cxx_flags]
+        ).join(' ')
+      end
+
+      def base_build_flags
+        case @compiler.build
+        when 'release'
+          RELEASE_FLAGS
+        when 'debug', nil
+          DEBUG_FLAGS
+        when 'asan'
+          ASAN_FLAGS
+        when 'coverage'
+          COVERAGE_FLAGS
+        else
+          raise "unknown build mode: #{@compiler.build.inspect}"
+        end
       end
 
       def unnecessary_link_flags
