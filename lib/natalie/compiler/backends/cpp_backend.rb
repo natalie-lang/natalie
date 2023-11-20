@@ -13,6 +13,7 @@ module Natalie
       OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
       DARWIN = RUBY_PLATFORM.match?(/darwin/)
+      OPENBSD = RUBY_PLATFORM.match?(/openbsd/)
       CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
 
       INC_PATHS = [
@@ -88,7 +89,7 @@ module Natalie
           (cpp_path || 'code.cpp'),
           lib_paths.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
-          @compiler.link_flags,
+          link_flags,
         ].map(&:to_s).join(' ')
       end
 
@@ -196,6 +197,21 @@ module Natalie
         end
 
         flags[type]
+      end
+
+      def link_flags
+        flags = if @compiler.build == 'asan'
+                  ['-fsanitize=address']
+                else
+                  []
+                end
+        flags += @compiler_context[:compile_ld_flags].join(' ').split
+        flags -= unnecessary_link_flags
+        flags.join(' ')
+      end
+
+      def unnecessary_link_flags
+        OPENBSD ? ['-ldl'] : []
       end
 
       def declarations

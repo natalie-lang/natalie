@@ -129,17 +129,6 @@ module Natalie
       !!repl
     end
 
-    def link_flags
-      flags = if build == 'asan'
-                ['-fsanitize=address']
-              else
-                []
-              end
-      flags += @context[:compile_ld_flags].join(' ').split
-      flags -= unnecessary_link_flags
-      flags.join(' ')
-    end
-
     private
 
     def transform
@@ -178,10 +167,6 @@ module Natalie
       end
 
       main_file.fetch(:instructions)
-    end
-
-    def unnecessary_link_flags
-      RUBY_PLATFORM =~ /openbsd/ ? ['-ldl'] : []
     end
 
     def base_build_flags
