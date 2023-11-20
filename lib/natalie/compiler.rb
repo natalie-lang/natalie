@@ -162,19 +162,31 @@ module Natalie
       INC_PATHS.map { |path| "-I #{path}" }.join(' ')
     end
 
-    def compiler_command
-      [
-        cc,
-        build_flags,
-        (shared? ? '-fPIC -shared' : ''),
-        inc_paths,
-        "-o #{out_path}",
-        '-x c++ -std=c++17',
-        (backend.cpp_path || 'code.cpp'),
-        LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-        libraries.join(' '),
-        link_flags,
-      ].map(&:to_s).join(' ')
+    def build_flags
+      "#{base_build_flags.join(' ')} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
+    end
+
+    def shared?
+      !!repl
+    end
+
+    def libraries
+      if options[:dynamic_linking]
+        LIBRARIES_FOR_DYNAMIC_LINKING
+      else
+        LIBRARIES_FOR_STATIC_LINKING
+      end
+    end
+
+    def link_flags
+      flags = if build == 'asan'
+                ['-fsanitize=address']
+              else
+                []
+              end
+      flags += @context[:compile_ld_flags].join(' ').split
+      flags -= unnecessary_link_flags
+      flags.join(' ')
     end
 
     private
@@ -215,37 +227,6 @@ module Natalie
       end
 
       main_file.fetch(:instructions)
-    end
-
-    def libraries
-      if options[:dynamic_linking]
-        LIBRARIES_FOR_DYNAMIC_LINKING
-      else
-        LIBRARIES_FOR_STATIC_LINKING
-      end
-    end
-
-    def cc
-      ENV['CXX'] || 'c++'
-    end
-
-    def shared?
-      !!repl
-    end
-
-    def build_flags
-      "#{base_build_flags.join(' ')} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
-    end
-
-    def link_flags
-      flags = if build == 'asan'
-                ['-fsanitize=address']
-              else
-                []
-              end
-      flags += @context[:compile_ld_flags].join(' ').split
-      flags -= unnecessary_link_flags
-      flags.join(' ')
     end
 
     def unnecessary_link_flags

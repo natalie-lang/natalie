@@ -25,7 +25,7 @@ module Natalie
 
       def compile_to_binary
         write_file
-        cmd = @compiler.compiler_command
+        cmd = compiler_command
         out = `#{cmd} 2>&1`
         File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
         puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
@@ -43,6 +43,21 @@ module Natalie
           temp_cpp.close
           @cpp_path = temp_cpp.path
         end
+      end
+
+      def compiler_command
+        [
+          cc,
+          @compiler.build_flags,
+          (@compiler.shared? ? '-fPIC -shared' : ''),
+          @compiler.inc_paths,
+          "-o #{@compiler.out_path}",
+          '-x c++ -std=c++17',
+          (cpp_path || 'code.cpp'),
+          Compiler::LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
+          @compiler.libraries.join(' '),
+          @compiler.link_flags,
+        ].map(&:to_s).join(' ')
       end
 
       private
@@ -98,6 +113,10 @@ module Natalie
         else
           ''
         end
+      end
+
+      def cc
+        ENV['CXX'] || 'c++'
       end
 
       def declarations
