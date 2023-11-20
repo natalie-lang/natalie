@@ -92,6 +92,11 @@ module Natalie
         ].map(&:to_s).join(' ')
       end
 
+      def write_file_for_debugging
+        write_file
+        @cpp_path
+      end
+
       private
 
       def write_file

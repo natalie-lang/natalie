@@ -153,8 +153,8 @@ class Runner
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
       else
-        compiler.write_file
-        print_cpp_source(compiler.c_path)
+        path = compiler.write_file_for_debugging
+        print_cpp_source(path)
       end
     elsif options[:debug] == 'S'
       show_assembly
