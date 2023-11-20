@@ -11,6 +11,20 @@ module Natalie
       MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
       OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
+      CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
+
+      # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
+      LIBRARIES_FOR_DYNAMIC_LINKING = %w[
+        -lnatalie_base
+        -lonigmo
+      ] + CRYPT_LIBRARIES
+
+      # When using the REPL or compiling a binary with the `-c` option,
+      # we use static linking for compatibility.
+      LIBRARIES_FOR_STATIC_LINKING = %w[
+        -lnatalie
+      ] + CRYPT_LIBRARIES
+
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
         @compiler = compiler
@@ -55,7 +69,7 @@ module Natalie
           '-x c++ -std=c++17',
           (cpp_path || 'code.cpp'),
           Compiler::LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-          @compiler.libraries.join(' '),
+          libraries.join(' '),
           @compiler.link_flags,
         ].map(&:to_s).join(' ')
       end
@@ -92,6 +106,14 @@ module Natalie
           OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name)
         else
           MAIN_TEMPLATE
+        end
+      end
+
+      def libraries
+        if @compiler.dynamic_linking?
+          LIBRARIES_FOR_DYNAMIC_LINKING
+        else
+          LIBRARIES_FOR_STATIC_LINKING
         end
       end
 

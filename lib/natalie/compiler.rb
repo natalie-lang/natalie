@@ -158,6 +158,10 @@ module Natalie
       !!options[:interpret]
     end
 
+    def dynamic_linking?
+      !!options[:dynamic_linking]
+    end
+
     def inc_paths
       INC_PATHS.map { |path| "-I #{path}" }.join(' ')
     end
@@ -168,14 +172,6 @@ module Natalie
 
     def shared?
       !!repl
-    end
-
-    def libraries
-      if options[:dynamic_linking]
-        LIBRARIES_FOR_DYNAMIC_LINKING
-      else
-        LIBRARIES_FOR_STATIC_LINKING
-      end
     end
 
     def link_flags
