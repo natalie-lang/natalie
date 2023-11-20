@@ -13,11 +13,6 @@ require_relative '../../build/generated/numbers'
 
 module Natalie
   class Compiler
-    ROOT_DIR = File.expand_path('../../', __dir__)
-    BUILD_DIR = File.join(ROOT_DIR, 'build')
-
-    DL_EXT = RbConfig::CONFIG['DLEXT']
-
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
     class CompileError < StandardError
@@ -32,14 +27,14 @@ module Natalie
     end
 
     attr_accessor :ast,
-                  :write_obj_path,
+                  :context,
+                  :c_path,
+                  :inline_cpp_enabled,
+                  :options,
                   :repl,
                   :repl_num,
-                  :context,
                   :vars,
-                  :options,
-                  :c_path,
-                  :inline_cpp_enabled
+                  :write_obj_path
 
     attr_writer :load_path, :out_path
 

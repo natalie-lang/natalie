@@ -15,7 +15,8 @@ module Natalie
 
       DARWIN = RUBY_PLATFORM.match?(/darwin/)
       OPENBSD = RUBY_PLATFORM.match?(/openbsd/)
-      CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
+
+      DL_EXT = RbConfig::CONFIG['DLEXT']
 
       INC_PATHS = [
         File.join(ROOT_DIR, 'include'),
@@ -24,6 +25,8 @@ module Natalie
         File.join(BUILD_DIR),
         File.join(BUILD_DIR, 'onigmo/include'),
       ].freeze
+
+      CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
 
       # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
       LIBRARIES_FOR_DYNAMIC_LINKING = %w[
@@ -77,7 +80,7 @@ module Natalie
         [
           cc,
           build_flags,
-          (@compiler.shared? ? '-fPIC -shared' : ''),
+          (shared? ? '-fPIC -shared' : ''),
           inc_paths.map { |path| "-I #{path}" }.join(' '),
           "-o #{@compiler.out_path}",
           '-x c++ -std=c++17',
@@ -249,6 +252,10 @@ module Natalie
 
       def write_object_file?
         !!@compiler.write_obj_path
+      end
+
+      def shared?
+        !!@compiler.repl
       end
 
       def declarations
