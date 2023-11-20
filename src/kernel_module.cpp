@@ -517,8 +517,9 @@ Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
             return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
         }
 
+        if (!exception) return nullptr;
+
         if (x->is_nil()) {
-            if (!exception) return nullptr;
             env->raise("TypeError", "can't convert {} into Rational", x->klass()->inspect_str());
         }
 

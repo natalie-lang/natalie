@@ -2164,6 +2164,60 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
     return Value::integer(number);
 }
 
+Value StringObject::to_r(Env *env) const {
+    size_t idx = 0;
+    String numerator_digits;
+    String denominator_digits;
+    nat_int_t denominator = 1;
+
+    // ignore leading whitespace
+    while (idx < m_string.size() && isspace(m_string.at(idx)))
+        idx++;
+
+    // optional hyphen
+    if (idx < m_string.size() && m_string.at(idx) == '-') {
+        numerator_digits.append_char('-');
+        idx++;
+    }
+
+    // numerator digits
+    for (; idx < m_string.size(); ++idx) {
+        auto c = m_string[idx];
+        if (isdigit(c)) {
+            numerator_digits.append_char(c);
+        } else if (c == '_') {
+            // ignore underscores between digits
+        } else {
+            break;
+        }
+    }
+
+    // optional decimal point and fractional digits
+    if (idx < m_string.size() && m_string.at(idx) == '.') {
+        idx++;
+        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+            numerator_digits.append_char(m_string.at(idx));
+            denominator = denominator * 10;
+            idx++;
+        }
+    }
+
+    // optional slash and denominator digits
+    if (idx < m_string.size() && m_string.at(idx) == '/') {
+        idx++;
+        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+            denominator_digits.append_char(m_string.at(idx));
+            idx++;
+        }
+    }
+
+    nat_int_t numerator = strtoll(numerator_digits.c_str(), nullptr, 10);
+    if (!denominator_digits.is_empty()) {
+        denominator = denominator * strtoll(denominator_digits.c_str(), nullptr, 10);
+    }
+    return RationalObject::create(env, new IntegerObject { numerator }, new IntegerObject { denominator });
+}
+
 nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
     nat_int_t offset = -1;
     if (offset_value) {
