@@ -51,16 +51,13 @@ module Natalie
 
     def build_context
       {
-        var_num:             0,
-        is_obj:              !!write_obj_path,
-        repl:                !!repl,
-        vars:                vars || {},
         inline_cpp_enabled:  inline_cpp_enabled,
-        compile_cxx_flags:   [],
-        compile_ld_flags:    [],
-        source_path:         @path,
+        repl:                !!repl,
         required_cpp_files:  {},
         required_ruby_files: {},
+        source_path:         @path,
+        var_num:             0,
+        vars:                vars || {},
       }
     end
 

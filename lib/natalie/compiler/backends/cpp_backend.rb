@@ -131,7 +131,7 @@ module Natalie
       end
 
       def template
-        if @compiler.write_obj_path
+        if write_object_file?
           OBJ_TEMPLATE.gsub(/OBJ_NAME/, obj_name)
         else
           MAIN_TEMPLATE
@@ -157,7 +157,7 @@ module Natalie
       end
 
       def var_prefix
-        if @compiler.write_obj_path
+        if write_object_file?
           "#{obj_name}_"
         elsif @compiler.repl
           "repl#{@compiler.repl_num}_"
@@ -247,6 +247,10 @@ module Natalie
         OPENBSD ? ['-ldl'] : []
       end
 
+      def write_object_file?
+        !!@compiler.write_obj_path
+      end
+
       def declarations
         [
           object_file_declarations,
@@ -288,7 +292,7 @@ module Natalie
       end
 
       def init_dollar_zero_global
-        return if @compiler_context[:is_obj]
+        return if write_object_file?
 
         "env->global_set(\"$0\"_s, new StringObject { #{@compiler_context[:source_path].inspect} });"
       end
@@ -335,7 +339,9 @@ module Natalie
 
       def augment_compiler_context
         @compiler_context.merge!(
-          var_prefix: var_prefix,
+          compile_cxx_flags: [],
+          compile_ld_flags:  [],
+          var_prefix:        var_prefix,
         )
       end
     end
