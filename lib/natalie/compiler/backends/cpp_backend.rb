@@ -7,11 +7,21 @@ module Natalie
       include StringToCpp
 
       ROOT_DIR = File.expand_path('../../../../', __dir__)
+      BUILD_DIR = File.join(ROOT_DIR, 'build')
       SRC_PATH = File.join(ROOT_DIR, 'src')
       MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
       OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
-      CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
+      DARWIN = RUBY_PLATFORM.match?(/darwin/)
+      CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
+
+      INC_PATHS = [
+        File.join(ROOT_DIR, 'include'),
+        File.join(ROOT_DIR, 'ext/tm/include'),
+        File.join(ROOT_DIR, 'ext/minicoro'),
+        File.join(BUILD_DIR),
+        File.join(BUILD_DIR, 'onigmo/include'),
+      ].freeze
 
       # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
       LIBRARIES_FOR_DYNAMIC_LINKING = %w[
@@ -24,6 +34,14 @@ module Natalie
       LIBRARIES_FOR_STATIC_LINKING = %w[
         -lnatalie
       ] + CRYPT_LIBRARIES
+
+      LIB_PATHS = [
+        BUILD_DIR,
+        File.join(BUILD_DIR, 'onigmo/lib'),
+        File.join(BUILD_DIR, 'zlib'),
+      ].freeze
+
+      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi].freeze
 
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
@@ -64,11 +82,11 @@ module Natalie
           cc,
           @compiler.build_flags,
           (@compiler.shared? ? '-fPIC -shared' : ''),
-          @compiler.inc_paths,
+          inc_paths.map { |path| "-I #{path}" }.join(' '),
           "-o #{@compiler.out_path}",
           '-x c++ -std=c++17',
           (cpp_path || 'code.cpp'),
-          Compiler::LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
+          lib_paths.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
           @compiler.link_flags,
         ].map(&:to_s).join(' ')
@@ -139,6 +157,45 @@ module Natalie
 
       def cc
         ENV['CXX'] || 'c++'
+      end
+
+      def inc_paths
+        INC_PATHS +
+          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
+            flags_for_package(package, :inc)
+          end
+      end
+
+      def lib_paths
+        LIB_PATHS +
+          PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
+            flags_for_package(package, :lib)
+          end
+      end
+
+      # FIXME: We should run this on any system (not just Darwin), but only when one
+      # of the packages in PACKAGES_REQUIRING_PKG_CONFIG are used.
+      def flags_for_package(package, type)
+        return unless DARWIN
+
+        @flags_for_package ||= {}
+        existing_flags = @flags_for_package[package]
+        return existing_flags[type] if existing_flags
+
+        unless system("pkg-config --exists #{package}")
+          @flags_for_package[package] = { inc: [], lib: [] }
+          return []
+        end
+
+        flags = @flags_for_package[package] = {}
+        unless (inc_result = `pkg-config --cflags #{package}`.strip).empty?
+          flags[:inc] = inc_result.sub(/^-I/, '')
+        end
+        unless (lib_result = `pkg-config --libs-only-L #{package}`.strip).empty?
+          flags[:lib] = lib_result.sub(/^-L/, '')
+        end
+
+        flags[type]
       end
 
       def declarations

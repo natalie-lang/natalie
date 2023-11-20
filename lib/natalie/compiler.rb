@@ -17,49 +17,8 @@ module Natalie
 
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
-    INC_PATHS = [
-      File.join(ROOT_DIR, 'include'),
-      File.join(ROOT_DIR, 'ext/tm/include'),
-      File.join(ROOT_DIR, 'ext/minicoro'),
-      File.join(BUILD_DIR),
-      File.join(BUILD_DIR, 'onigmo/include'),
-    ]
-    LIB_PATHS = [
-      BUILD_DIR,
-      File.join(BUILD_DIR, 'onigmo/lib'),
-      File.join(BUILD_DIR, 'zlib'),
-    ]
-
-    # TODO: make this configurable from Ruby source via a macro of some sort
-    %w[
-      openssl
-      libffi
-    ].each do |package|
-      next unless system("pkg-config --exists #{package}")
-
-      unless (inc_path = `pkg-config --cflags #{package}`.strip).empty?
-        INC_PATHS << inc_path.sub(/^-I/, '')
-      end
-      unless (lib_path = `pkg-config --libs-only-L #{package}`.strip).empty?
-        LIB_PATHS << lib_path.sub(/^-L/, '')
-      end
-    end
 
     DL_EXT = RbConfig::CONFIG['DLEXT']
-
-    CRYPT_LIBRARIES = RUBY_PLATFORM =~ /darwin/ ? [] : %w[-lcrypt]
-
-    # When running `bin/natalie script.rb`, we use dynamic linking to speed things up.
-    LIBRARIES_FOR_DYNAMIC_LINKING = %w[
-      -lnatalie_base
-      -lonigmo
-    ] + CRYPT_LIBRARIES
-
-    # When using the REPL or compiling a binary with the `-c` option,
-    # we use static linking for compatibility.
-    LIBRARIES_FOR_STATIC_LINKING = %w[
-      -lnatalie
-    ] + CRYPT_LIBRARIES
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
@@ -160,10 +119,6 @@ module Natalie
 
     def dynamic_linking?
       !!options[:dynamic_linking]
-    end
-
-    def inc_paths
-      INC_PATHS.map { |path| "-I #{path}" }.join(' ')
     end
 
     def build_flags
