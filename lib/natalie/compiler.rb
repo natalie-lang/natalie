@@ -46,17 +46,9 @@ module Natalie
     attr_writer :load_path, :out_path
 
     def compile
-      return backend.write_file if write_obj_path
+      return backend.compile_to_object if write_obj_path
 
-      check_build
       backend.compile_to_binary
-    end
-
-    def check_build
-      unless File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
-        puts 'please run: rake'
-        exit 1
-      end
     end
 
     def build_context

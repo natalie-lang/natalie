@@ -58,6 +58,7 @@ module Natalie
       attr_reader :cpp_path
 
       def compile_to_binary
+        check_build
         write_file
         cmd = compiler_command
         out = `#{cmd} 2>&1`
@@ -67,16 +68,9 @@ module Natalie
         raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
       end
 
-      def write_file
+      def compile_to_object
         cpp = generate
-        if @compiler.write_obj_path
-          File.write(@compiler.write_obj_path, cpp)
-        else
-          temp_cpp = Tempfile.create('natalie.cpp')
-          temp_cpp.write(cpp)
-          temp_cpp.close
-          @cpp_path = temp_cpp.path
-        end
+        File.write(@compiler.write_obj_path, cpp)
       end
 
       def compiler_command
@@ -95,6 +89,21 @@ module Natalie
       end
 
       private
+
+      def write_file
+        cpp = generate
+        temp_cpp = Tempfile.create('natalie.cpp')
+        temp_cpp.write(cpp)
+        temp_cpp.close
+        @cpp_path = temp_cpp.path
+      end
+
+      def check_build
+        return if File.file?(File.join(BUILD_DIR, "libnatalie_base.#{DL_EXT}"))
+
+        puts 'please run: rake'
+        exit 1
+      end
 
       def generate
         string_of_cpp = transform_instructions
