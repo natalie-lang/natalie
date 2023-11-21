@@ -6,6 +6,7 @@ __ld_flags__ '-lyaml'
 module YAML
   __bind_static_method__ :dump, :YAML_dump
   __bind_static_method__ :load, :YAML_load
+  __bind_static_method__ :unsafe_load, :YAML_load
 
   def self.load_file(file)
     File.open(file) { |fh| self.load(fh) }

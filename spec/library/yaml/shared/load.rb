@@ -108,19 +108,25 @@ describe :yaml_load_unsafe, shared: true do
                                                     Date.new( 2001, 8, 12 ),
                                                     Date.new( 2001, 8, 14 ) ]
     }
-    YAML.send(@method, $complex_key_1).should == expected
+    NATFIXME 'Implement YAML.unsafe_load', exception: SpecFailedException do
+      YAML.send(@method, $complex_key_1).should == expected
+    end
   end
 
   describe "with iso8601 timestamp" do
     it "computes the microseconds" do
-      [ [YAML.send(@method, "2011-03-22t23:32:11.2233+01:00"),   223300],
-        [YAML.send(@method, "2011-03-22t23:32:11.0099+01:00"),   9900],
-        [YAML.send(@method, "2011-03-22t23:32:11.000076+01:00"), 76]
-      ].should be_computed_by(:usec)
+      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: "undefined method `usec'" do
+        [ [YAML.send(@method, "2011-03-22t23:32:11.2233+01:00"),   223300],
+          [YAML.send(@method, "2011-03-22t23:32:11.0099+01:00"),   9900],
+          [YAML.send(@method, "2011-03-22t23:32:11.000076+01:00"), 76]
+        ].should be_computed_by(:usec)
+      end
     end
 
     it "rounds values smaller than 1 usec to 0 " do
-      YAML.send(@method, "2011-03-22t23:32:11.000000342222+01:00").usec.should == 0
+      NATFIXME 'Implement YAML.unsafe_load', exception: NoMethodError, message: "undefined method `usec'" do
+        YAML.send(@method, "2011-03-22t23:32:11.000000342222+01:00").usec.should == 0
+      end
     end
   end
 
@@ -128,13 +134,17 @@ describe :yaml_load_unsafe, shared: true do
     require "ostruct"
     os = OpenStruct.new("age" => 20, "name" => "John")
     loaded = YAML.send(@method, "--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n")
-    loaded.should == os
+    NATFIXME 'Implement YAML.unsafe_load', exception: SpecFailedException do
+      loaded.should == os
+    end
   end
 
   it "loads a File but raise an error when used as it is uninitialized" do
-    loaded = YAML.send(@method, "--- !ruby/object:File {}\n")
-    -> {
-      loaded.read(1)
-    }.should raise_error(IOError)
+    NATFIXME 'Implement YAML.unsafe_load', exception: ArgumentError, message: 'Expected key token' do
+      loaded = YAML.send(@method, "--- !ruby/object:File {}\n")
+      -> {
+        loaded.read(1)
+      }.should raise_error(IOError)
+    end
   end
 end
