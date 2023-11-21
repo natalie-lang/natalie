@@ -185,12 +185,12 @@ Value TimeObject::inspect(Env *env) {
         result->append_char('.');
         result->append(strip_zeroes(string));
     }
-    if (is_utc(env)) {
-        result->append(" UTC");
-    } else {
+    if (m_time.tm_gmtoff) {
         char buffer[7];
         ::strftime(buffer, 7, " %z", &m_time);
         result->append(buffer);
+    } else {
+        result->append(" UTC");
     }
     return result;
 }
@@ -268,10 +268,10 @@ Value TimeObject::to_r(Env *env) {
 }
 
 Value TimeObject::to_s(Env *env) {
-    if (is_utc(env)) {
-        return build_string(env, "%Y-%m-%d %H:%M:%S UTC");
-    } else {
+    if (m_time.tm_gmtoff) {
         return build_string(env, "%Y-%m-%d %H:%M:%S %z");
+    } else {
+        return build_string(env, "%Y-%m-%d %H:%M:%S UTC");
     }
 }
 
