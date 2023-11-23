@@ -28,6 +28,12 @@ void MarkingVisitor::visit(Value val) {
     visit(val.object_or_null());
 }
 
+void Heap::set_start_of_stack(void *start_of_stack) {
+    assert(start_of_stack);
+    m_start_of_stack = start_of_stack;
+    ThreadObject::current()->set_start_of_stack(start_of_stack);
+}
+
 #ifdef __SANITIZE_ADDRESS__
 NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) {
     void *begin_fake_frame = nullptr;

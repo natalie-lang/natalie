@@ -47,7 +47,10 @@ public:
 
     void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
     void *start_of_stack() { return m_start_of_stack; }
+
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
+    void *end_of_stack() { return m_end_of_stack; }
+
 #ifdef __SANITIZE_ADDRESS__
     void set_asan_fake_stack(void *ptr) { m_asan_fake_stack = ptr; }
 #endif

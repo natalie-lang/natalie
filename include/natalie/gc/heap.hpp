@@ -47,10 +47,7 @@ public:
         return m_start_of_stack;
     }
 
-    void set_start_of_stack(void *start_of_stack) {
-        assert(start_of_stack);
-        m_start_of_stack = start_of_stack;
-    }
+    void set_start_of_stack(void *start_of_stack);
 
     void return_cell_to_free_list(Cell *cell);
 

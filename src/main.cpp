@@ -46,13 +46,12 @@ int main(int argc, char *argv[]) {
     NativeProfiler::enable();
 #endif
 
-    Heap::the().set_start_of_stack(__builtin_frame_address(0));
-
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
     Env *env = ::build_top_env();
-    FiberObject::build_main_fiber(Heap::the().start_of_stack());
-    ThreadObject::build_main_thread(Heap::the().start_of_stack());
+    ThreadObject::build_main_thread(__builtin_frame_address(0));
+    Heap::the().set_start_of_stack(__builtin_frame_address(0));
+    FiberObject::build_main_fiber(__builtin_frame_address(0));
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
