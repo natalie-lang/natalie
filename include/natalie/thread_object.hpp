@@ -61,13 +61,14 @@ public:
     Block *block() { return m_block; }
 
     Value join(Env *);
+    Value kill(Env *);
+    Value raise(Env *, Value, Value = nullptr);
+    Value wakeup() { return NilObject::the(); }
 
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
-    Value wakeup() { return NilObject::the(); }
-
-    pthread_t thread_id() const { return m_thread; }
+    pthread_t thread_id() const { return m_thread_id; }
 
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
@@ -88,6 +89,8 @@ public:
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
 
+    static bool is_main() { return pthread_self() == s_main_id; }
+
     static TM::Vector<ThreadObject *> &list() { return s_list; }
 
 private:
@@ -95,7 +98,7 @@ private:
     HashObject *m_storage { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
-    pthread_t m_thread {};
+    pthread_t m_thread_id {};
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
@@ -103,6 +106,7 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
 
+    inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
 };

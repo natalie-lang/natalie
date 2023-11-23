@@ -1,5 +1,7 @@
 #include "natalie.hpp"
 
+#include <signal.h>
+
 using namespace Natalie;
 
 #ifdef NAT_PRINT_OBJECTS
@@ -41,6 +43,27 @@ extern "C" Object *EVAL(Env *env) {
     }
 }
 
+void sigint_handler(int sig) {
+    const char *msg = "Interrupt\n";
+    write(STDOUT_FILENO, msg, strlen(msg));
+    if (ThreadObject::is_main())
+        exit(128 + SIGINT);
+    else
+        pthread_exit(nullptr);
+}
+
+void trap_sigint() {
+    struct sigaction sa;
+    sa.sa_handler = sigint_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        printf("Failed to trap SIGINT\n");
+        exit(1);
+    }
+}
+
 int main(int argc, char *argv[]) {
 #ifdef NAT_NATIVE_PROFILER
     NativeProfiler::enable();
@@ -52,6 +75,8 @@ int main(int argc, char *argv[]) {
     ThreadObject::build_main_thread(__builtin_frame_address(0));
     Heap::the().set_start_of_stack(__builtin_frame_address(0));
     FiberObject::build_main_fiber(__builtin_frame_address(0));
+
+    trap_sigint();
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();

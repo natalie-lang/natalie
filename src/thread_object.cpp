@@ -1,3 +1,5 @@
+#include <signal.h>
+
 #include "natalie.hpp"
 
 static void set_end_of_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
@@ -63,14 +65,15 @@ ThreadObject *ThreadObject::current() {
 }
 
 void ThreadObject::build_main_thread(void *start_of_stack) {
-    assert(!s_main); // can only be built once
+    assert(!s_main && !s_main_id); // can only be built once
     auto thread = new ThreadObject;
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
-    thread->m_thread = pthread_self();
-    set_end_of_stack_for_thread(thread->m_thread, thread);
+    thread->m_thread_id = pthread_self();
+    set_end_of_stack_for_thread(thread->m_thread_id, thread);
     s_main = thread;
+    s_main_id = thread->m_thread_id;
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
@@ -82,7 +85,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
-    pthread_create(&m_thread, nullptr, nat_create_thread, (void *)this);
+    pthread_create(&m_thread_id, nullptr, nat_create_thread, (void *)this);
 
     return this;
 }
@@ -93,7 +96,7 @@ Value ThreadObject::status(Env *env) {
         return new StringObject { "sleep" };
     case Status::Active:
         return new StringObject {
-            pthread_self() == m_thread ? "run" : "sleep"
+            pthread_self() == m_thread_id ? "run" : "sleep"
         };
     case Status::Errored:
         return NilObject::the();
@@ -105,13 +108,24 @@ Value ThreadObject::status(Env *env) {
 
 Value ThreadObject::join(Env *) {
     void *return_value = nullptr;
-    auto result = pthread_join(m_thread, &return_value);
+    auto result = pthread_join(m_thread_id, &return_value);
 
     // TODO: handle error more gracefully
     assert(result == 0);
 
     // TODO
     // return (Object *)return_value;
+    return NilObject::the();
+}
+
+Value ThreadObject::kill(Env *) {
+    if (this == ThreadObject::main())
+        exit(0);
+    pthread_kill(m_thread_id, SIGINT);
+    return NilObject::the();
+}
+
+Value ThreadObject::raise(Env *, Value, Value) {
     return NilObject::the();
 }
 
@@ -139,7 +153,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
-    if (pthread_self() == m_thread)
+    if (pthread_self() == m_thread_id)
         return; // this is the currently active thread, so don't walk its stack a second time
     if (m_status != Status::Active)
         return;
