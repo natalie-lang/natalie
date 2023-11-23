@@ -388,7 +388,7 @@ static Value load_value(Env *env, yaml_parser_t &parser, yaml_token_t &token) {
         return load_hash(env, parser);
     default:
         // Ignore for now
-        return nullptr;
+        return NilObject::the();
     }
 }
 
