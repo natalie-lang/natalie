@@ -62,6 +62,8 @@ public:
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
+    Value wakeup() { return NilObject::the(); }
+
     pthread_t thread_id() const { return m_thread; }
 
     virtual void visit_children(Visitor &) override final;
@@ -78,8 +80,9 @@ public:
             m_start_of_stack);
     }
 
-    static ThreadObject *current();
+    static Value pass() { return NilObject::the(); }
 
+    static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
