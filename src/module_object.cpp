@@ -35,7 +35,7 @@ Value ModuleObject::include(Env *env, Args args) {
 }
 
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
-    std::lock_guard<std::mutex> lock(g_module_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_module_recursive_mutex);
 
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
