@@ -80,9 +80,7 @@ describe :yaml_load_safe, shared: true do
   end
 
   it "parses start markers" do
-    NATFIXME "Implement YAML.load for NilObject", exception: NotImplementedError do
-      YAML.send(@method, "---\n").should == nil
-    end
+    YAML.send(@method, "---\n").should == nil
     YAML.send(@method, "--- ---\n").should == "---"
     YAML.send(@method, "--- abc").should == "abc"
   end
