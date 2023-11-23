@@ -29,7 +29,7 @@ describe "IO.select" do
   end
 
   it "returns supplied objects when they are ready for I/O" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `value'" do
       main = Thread.current
       t = Thread.new {
         Thread.pass until main.status == "sleep"
@@ -68,7 +68,7 @@ describe "IO.select" do
   end
 
   it "returns the pipe read end in read set if the pipe write end is closed concurrently" do
-    NATFIXME 'Threads', exception: NameError, message: "undefined method `join' for nil" do
+    NATFIXME 'Threads', exception: NameError, message: "undefined method `stop?'" do
       main = Thread.current
       t = Thread.new {
         Thread.pass until main.stop?
@@ -123,7 +123,7 @@ end
 
 describe "IO.select when passed nil for timeout" do
   it "sleeps forever and sets the thread status to 'sleep'" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `value'" do
       t = Thread.new do
         IO.select(nil, nil, nil, nil)
       end

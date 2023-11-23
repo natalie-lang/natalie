@@ -6,13 +6,11 @@ describe :fiber_resume, shared: true do
 
   it "raises a FiberError if invoked from a different Thread" do
     fiber = Fiber.new { 42 }
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      Thread.new do
-        -> {
-          fiber.send(@method)
-        }.should raise_error(FiberError)
-      end.join
-    end
+    Thread.new do
+      -> {
+        fiber.send(@method)
+      }.should raise_error(FiberError)
+    end.join
 
     # Check the Fiber can still be used
     fiber.send(@method).should == 42

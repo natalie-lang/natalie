@@ -37,20 +37,18 @@ describe "StringIO#putc when passed [String]" do
   end
 
   it "handles concurrent writes correctly" do
-    NATFIXME 'implement Thread' do
-      @io = StringIO.new
-      n = 8
-      go = false
-      threads = n.times.map { |i|
-        Thread.new {
-          Thread.pass until go
-          @io.putc i.to_s
-        }
+    @io = StringIO.new
+    n = 8
+    go = false
+    threads = n.times.map { |i|
+      Thread.new {
+        Thread.pass until go
+        @io.putc i.to_s
       }
-      go = true
-      threads.each(&:join)
-      @io.string.size.should == n
-    end
+    }
+    go = true
+    threads.each(&:join)
+    @io.string.size.should == n
   end
 end
 

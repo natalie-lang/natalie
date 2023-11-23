@@ -138,7 +138,7 @@ describe "IO#gets" do
             # available in the buffer.
             write.write("Aquí está la línea tres\r\n")
 
-            NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+            NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `stop?'" do
               t = Thread.new do
                 # Continue reading until the separator is encountered or the pipe is closed.
                 read.gets("\r\n\r\n")

@@ -616,27 +616,25 @@ describe "File.open" do
       it "opens it as a normal file" do
         file_w, file_r, read_bytes, written_length = nil
 
-        NATFIXME 'threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-          # open in threads, due to blocking open and writes
-          writer = Thread.new do
-            file_w = File.open(@fifo, 'w')
-            written_length = file_w.syswrite('hello')
-          end
-          reader = Thread.new do
-            file_r = File.open(@fifo, 'r')
-            read_bytes = file_r.sysread(5)
-          end
+        # open in threads, due to blocking open and writes
+        writer = Thread.new do
+          file_w = File.open(@fifo, 'w')
+          written_length = file_w.syswrite('hello')
+        end
+        reader = Thread.new do
+          file_r = File.open(@fifo, 'r')
+          read_bytes = file_r.sysread(5)
+        end
 
-          begin
-            writer.join
-            reader.join
+        begin
+          writer.join
+          reader.join
 
-            written_length.should == 5
-            read_bytes.should == 'hello'
-          ensure
-            file_w.close if file_w
-            file_r.close if file_r
-          end
+          written_length.should == 5
+          read_bytes.should == 'hello'
+        ensure
+          file_w.close if file_w
+          file_r.close if file_r
         end
       end
     end

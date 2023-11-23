@@ -13,7 +13,7 @@ describe "TCPServer#accept" do
 
   it "accepts a connection and returns a TCPSocket" do
     data = nil
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `shutdown'" do
       t = Thread.new do
         client = @server.accept
         client.should be_kind_of(TCPSocket)
@@ -34,7 +34,7 @@ describe "TCPServer#accept" do
   end
 
   it "can be interrupted by Thread#kill" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `kill'" do
       t = Thread.new { @server.accept }
 
       Thread.pass while t.status and t.status != "sleep"
@@ -51,7 +51,7 @@ describe "TCPServer#accept" do
   end
 
   it "can be interrupted by Thread#raise" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `raise'" do
       t = Thread.new {
         -> {
           @server.accept
@@ -65,7 +65,7 @@ describe "TCPServer#accept" do
   end
 
   it "is automatically retried when interrupted by SIGVTALRM" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `backtrace'" do
       t = Thread.new do
         client = @server.accept
         value = client.read(2)

@@ -428,7 +428,7 @@ describe "IO#read" do
 
   platform_is_not :windows do
     it "raises IOError when stream is closed by another thread" do
-      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+      NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `stop?'" do
         r, w = IO.pipe
         t = Thread.new do
           begin

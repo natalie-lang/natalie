@@ -37,7 +37,7 @@ describe "Kernel#sleep" do
   end
 
   it "pauses execution indefinitely if not given a duration" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `value'" do
       running = false
       t = Thread.new do
         running = true
