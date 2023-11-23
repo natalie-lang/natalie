@@ -48,6 +48,10 @@ module Natalie
       backend.write_file_for_debugging
     end
 
+    def compiler_command
+      backend.compiler_command
+    end
+
     def build_context
       {
         inline_cpp_enabled:  inline_cpp_enabled,
