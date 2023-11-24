@@ -116,7 +116,7 @@ private:
     HashObject *m_storage { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
-    pthread_t m_thread_id {};
+    pthread_t m_thread_id { 0 };
     ExceptionObject *m_exception { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };

@@ -2,6 +2,8 @@
 
 #include "natalie.hpp"
 
+thread_local Natalie::ThreadObject *tl_current_thread = nullptr;
+
 static void set_end_of_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
 #if defined(__APPLE__)
     auto start = pthread_get_stackaddr_np(thread_id);
@@ -29,6 +31,8 @@ void *nat_create_thread(void *thread_object) {
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
 
+    tl_current_thread = thread;
+
     auto thread_id = thread->thread_id();
     set_end_of_stack_for_thread(thread_id, thread);
 
@@ -54,15 +58,7 @@ namespace Natalie {
 std::mutex g_thread_mutex;
 
 ThreadObject *ThreadObject::current() {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
-
-    auto current = pthread_self();
-    for (auto thread : s_list) {
-        if (thread->thread_id() == current)
-            return thread;
-    }
-
-    NAT_UNREACHABLE();
+    return tl_current_thread;
 }
 
 void ThreadObject::build_main_thread(void *start_of_stack) {
@@ -75,6 +71,7 @@ void ThreadObject::build_main_thread(void *start_of_stack) {
     set_end_of_stack_for_thread(thread->m_thread_id, thread);
     s_main = thread;
     s_main_id = thread->m_thread_id;
+    tl_current_thread = thread;
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
