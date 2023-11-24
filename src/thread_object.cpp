@@ -17,6 +17,7 @@ static void set_end_of_stack_for_thread(pthread_t thread_id, Natalie::ThreadObje
     pthread_attr_getstack(&attr, &end, &stack_size);
     thread_object->set_start_of_stack((void *)((uintptr_t)end + stack_size));
     thread_object->set_end_of_stack(end);
+    pthread_attr_destroy(&attr);
 #endif
 }
 
