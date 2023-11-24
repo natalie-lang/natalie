@@ -19,33 +19,37 @@ describe "Ruby character strings" do
     "#{@ip}".should == 'xxx'
   end
 
-  it "interpolate instance variables just with the # character" do
-    "#@ip".should == 'xxx'
-  end
+  # NATFIXME: This breaks compilation
+  # it "interpolate instance variables just with the # character" do
+  #   "#@ip".should == 'xxx'
+  # end
 
-  it "interpolate global variables just with the # character" do
-    "#$ip".should == 'xxx'
-  end
+  # NATFIXME: This breaks compilation
+  # it "interpolate global variables just with the # character" do
+  #   "#$ip".should == 'xxx'
+  # end
 
-  it "allows underscore as part of a variable name in a simple interpolation" do
-    @my_ip = 'xxx'
-    "#@my_ip".should == 'xxx'
-  end
+  # NATFIXME: This breaks compilation
+  # it "allows underscore as part of a variable name in a simple interpolation" do
+  #   @my_ip = 'xxx'
+  #   "#@my_ip".should == 'xxx'
+  # end
 
   it "does not interpolate invalid variable names" do
     "#@".should == '#@'
     "#$%".should == '#$%'
   end
 
-  it "has characters [.(=?!# end simple # interpolation" do
-    "#@ip[".should == 'xxx['
-    "#@ip.".should == 'xxx.'
-    "#@ip(".should == 'xxx('
-    "#@ip=".should == 'xxx='
-    "#@ip?".should == 'xxx?'
-    "#@ip!".should == 'xxx!'
-    "#@ip#@ip".should == 'xxxxxx'
-  end
+  # NATFIXME: This breaks compilation
+  # it "has characters [.(=?!# end simple # interpolation" do
+  #   "#@ip[".should == 'xxx['
+  #   "#@ip.".should == 'xxx.'
+  #   "#@ip(".should == 'xxx('
+  #   "#@ip=".should == 'xxx='
+  #   "#@ip?".should == 'xxx?'
+  #   "#@ip!".should == 'xxx!'
+  #   "#@ip#@ip".should == 'xxxxxx'
+  # end
 
   it "don't get confused by partial interpolation character sequences" do
     "#@".should == '#@'
@@ -141,8 +145,10 @@ describe "Ruby character strings" do
   end
 
   it "allows a dynamic string to parse a nested do...end block as an argument to a call without parens, interpolated" do
-    s = eval 'eval "#{proc do; 1; end.call}"'
-    s.should == 1
+    NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
+      s = eval 'eval "#{proc do; 1; end.call}"'
+      s.should == 1
+    end
   end
 
   it "are produced from character shortcuts" do
@@ -180,11 +186,15 @@ describe "Ruby character strings" do
     # TODO: spec other source encodings
     describe "with ASCII_8BIT source encoding" do
       it "produces an ASCII string when escaping ASCII characters via \\u" do
-        "\u0000".encoding.should == Encoding::BINARY
+        NATFIXME 'Encoding magic comment', exception: SpecFailedException do
+          "\u0000".encoding.should == Encoding::BINARY
+        end
       end
 
       it "produces an ASCII string when escaping ASCII characters via \\u{}" do
-        "\u{0000}".encoding.should == Encoding::BINARY
+        NATFIXME 'Encoding magic comment', exception: SpecFailedException do
+          "\u{0000}".encoding.should == Encoding::BINARY
+        end
       end
 
       it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u" do
@@ -220,15 +230,21 @@ describe "Ruby String literals" do
 
   describe "with a magic frozen comment" do
     it "produce the same object each time" do
-      ruby_exe(fixture(__FILE__, "freeze_magic_comment_one_literal.rb")).chomp.should == "true"
+      NATFIXME 'Support magic comments', exception: SpecFailedException do
+        ruby_exe(fixture(__FILE__, "freeze_magic_comment_one_literal.rb")).chomp.should == "true"
+      end
     end
 
     it "produce the same object for literals with the same content" do
-      ruby_exe(fixture(__FILE__, "freeze_magic_comment_two_literals.rb")).chomp.should == "true"
+      NATFIXME 'Support magic comments', exception: SpecFailedException do
+        ruby_exe(fixture(__FILE__, "freeze_magic_comment_two_literals.rb")).chomp.should == "true"
+      end
     end
 
     it "produce the same object for literals with the same content in different files" do
-      ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files.rb")).chomp.should == "true"
+      NATFIXME 'Support magic comments', exception: SpecFailedException do
+        ruby_exe(fixture(__FILE__, "freeze_magic_comment_across_files.rb")).chomp.should == "true"
+      end
     end
 
     it "produce different objects for literals with the same content in different files if the other file doesn't have the comment" do
@@ -243,38 +259,49 @@ describe "Ruby String literals" do
 end
 
 describe "Ruby String interpolation" do
-  it "permits an empty expression" do
-    s = "#{}" # rubocop:disable Lint/EmptyInterpolation
-    s.should.empty?
-    s.should_not.frozen?
-  end
+  # NATFIXME: This breaks compilation
+  # it "permits an empty expression" do
+  #   s = "#{}" # rubocop:disable Lint/EmptyInterpolation
+  #   s.should.empty?
+  #   s.should_not.frozen?
+  # end
 
   it "returns a string with the source encoding by default" do
-    "a#{"b"}c".encoding.should == Encoding::BINARY
-    eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
-    eval("# coding: US-ASCII \n 'a#{"b"}c'").encoding.should == Encoding::US_ASCII
+    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
+      "a#{"b"}c".encoding.should == Encoding::BINARY
+      eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
+      eval("# coding: US-ASCII \n 'a#{"b"}c'").encoding.should == Encoding::US_ASCII
+    end
   end
 
   it "returns a string with the source encoding, even if the components have another encoding" do
     a = "abc".force_encoding("euc-jp")
-    "#{a}".encoding.should == Encoding::BINARY
+    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
+      "#{a}".encoding.should == Encoding::BINARY
+    end
 
     b = "abc".encode("utf-8")
-    "#{b}".encoding.should == Encoding::BINARY
+    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
+      "#{b}".encoding.should == Encoding::BINARY
+    end
   end
 
   it "raises an Encoding::CompatibilityError if the Encodings are not compatible" do
     a = "\u3042"
     b = "\xff".force_encoding "binary"
 
-    -> { "#{a} #{b}" }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+      -> { "#{a} #{b}" }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 
-  it "creates a non-frozen String" do
+  xit "creates a non-frozen String" do
     code = <<~'RUBY'
     "a#{6*7}c"
     RUBY
-    eval(code).should_not.frozen?
+    NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
+      eval(code).should_not.frozen?
+    end
   end
 
   it "creates a non-frozen String when # frozen-string-literal: true is used" do
@@ -282,6 +309,8 @@ describe "Ruby String interpolation" do
     # frozen-string-literal: true
     "a#{6*7}c"
     RUBY
-    eval(code).should_not.frozen?
+    NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
+      eval(code).should_not.frozen?
+    end
   end
 end
