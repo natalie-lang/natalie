@@ -114,6 +114,11 @@
 #include "natalie/value.hpp"
 #include "natalie/void_p_object.hpp"
 
+#ifdef __SANITIZE_ADDRESS__
+extern "C" void *__asan_get_current_fake_stack();
+extern "C" void *__asan_addr_is_in_fake_stack(void *fake_stack, void *addr, void **beg, void **end);
+#endif
+
 namespace Natalie {
 
 extern const char *ruby_platform;
@@ -123,11 +128,6 @@ extern const char *ruby_revision;
 extern "C" {
 #include "onigmo.h"
 }
-
-#ifdef __SANITIZE_ADDRESS__
-extern "C" void *__asan_get_current_fake_stack();
-extern "C" void *__asan_addr_is_in_fake_stack(void *fake_stack, void *addr, void **beg, void **end);
-#endif
 
 void init_bindings(Env *);
 
