@@ -49,20 +49,24 @@ describe "BasicSocket#recv" do
       Thread.pass while t.status and t.status != "sleep"
       t.status.should_not be_nil
 
-      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
-      socket = Socket.tcp('127.0.0.1', @port)
-      socket.send('helloU', Socket::MSG_OOB)
-      socket.shutdown(1)
-      t.join
-      socket.close
-      ScratchPad.recorded.should == 'hello'
+      NATFIXME 'Socket#shutdown', exception: NoMethodError, message: "undefined method `shutdown'" do
+        #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+        socket = Socket.tcp('127.0.0.1', @port)
+        socket.send('helloU', Socket::MSG_OOB)
+        socket.shutdown(1)
+        t.join
+        socket.close
+        ScratchPad.recorded.should == 'hello'
+      end
     end
   end
 
   it "gets lines delimited with a custom separator"  do
     t = Thread.new do
       client = @server.accept
-      ScratchPad.record client.gets("\377")
+      NATFIXME 'invalid utf-8', exception: ArgumentError do
+        ScratchPad.record client.gets("\377")
+      end
 
       # this call is important (TODO: explain)
       client.gets(nil)
@@ -77,7 +81,9 @@ describe "BasicSocket#recv" do
     socket.close
 
     t.join
-    ScratchPad.recorded.should == "firstline\377"
+    NATFIXME 'no recorded result', exception: SpecFailedException do
+      ScratchPad.recorded.should == "firstline\377"
+    end
   end
 
   it "allows an output buffer as third argument" do
