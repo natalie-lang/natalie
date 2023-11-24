@@ -165,6 +165,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_block);
     visitor.visit(m_storage);
+    visitor.visit(m_exception);
     visit_children_from_stack(visitor);
 }
 
