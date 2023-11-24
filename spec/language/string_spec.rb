@@ -19,37 +19,33 @@ describe "Ruby character strings" do
     "#{@ip}".should == 'xxx'
   end
 
-  # NATFIXME: This breaks compilation
-  # it "interpolate instance variables just with the # character" do
-  #   "#@ip".should == 'xxx'
-  # end
+  it "interpolate instance variables just with the # character" do
+    "#@ip".should == 'xxx'
+  end
 
-  # NATFIXME: This breaks compilation
-  # it "interpolate global variables just with the # character" do
-  #   "#$ip".should == 'xxx'
-  # end
+  it "interpolate global variables just with the # character" do
+    "#$ip".should == 'xxx'
+  end
 
-  # NATFIXME: This breaks compilation
-  # it "allows underscore as part of a variable name in a simple interpolation" do
-  #   @my_ip = 'xxx'
-  #   "#@my_ip".should == 'xxx'
-  # end
+  it "allows underscore as part of a variable name in a simple interpolation" do
+    @my_ip = 'xxx'
+    "#@my_ip".should == 'xxx'
+  end
 
   it "does not interpolate invalid variable names" do
     "#@".should == '#@'
     "#$%".should == '#$%'
   end
 
-  # NATFIXME: This breaks compilation
-  # it "has characters [.(=?!# end simple # interpolation" do
-  #   "#@ip[".should == 'xxx['
-  #   "#@ip.".should == 'xxx.'
-  #   "#@ip(".should == 'xxx('
-  #   "#@ip=".should == 'xxx='
-  #   "#@ip?".should == 'xxx?'
-  #   "#@ip!".should == 'xxx!'
-  #   "#@ip#@ip".should == 'xxxxxx'
-  # end
+  it "has characters [.(=?!# end simple # interpolation" do
+    "#@ip[".should == 'xxx['
+    "#@ip.".should == 'xxx.'
+    "#@ip(".should == 'xxx('
+    "#@ip=".should == 'xxx='
+    "#@ip?".should == 'xxx?'
+    "#@ip!".should == 'xxx!'
+    "#@ip#@ip".should == 'xxxxxx'
+  end
 
   it "don't get confused by partial interpolation character sequences" do
     "#@".should == '#@'
