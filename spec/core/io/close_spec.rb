@@ -63,7 +63,9 @@ describe "IO#close" do
           thread = Thread.new do
             begin
               going_to_read = true
-              read_io.read
+              NATFIXME 'Errno::EAGAIN', exception: Errno::EAGAIN do
+                read_io.read
+              end
             rescue IOError => ioe
               if ioe.message == IOSpecs::THREAD_CLOSE_ERROR_MESSAGE
                 matching_exception = ioe

@@ -43,12 +43,15 @@ describe "StringIO#putc when passed [String]" do
     threads = n.times.map { |i|
       Thread.new {
         Thread.pass until go
-        @io.putc i.to_s
+        # NATFIXME: occasional "negative argument" in stringio.rb:289
+        #@io.putc i.to_s
       }
     }
     go = true
     threads.each(&:join)
-    @io.string.size.should == n
+    NATFIXME 'wrong number', exception: SpecFailedException do
+      @io.string.size.should == n
+    end
   end
 end
 

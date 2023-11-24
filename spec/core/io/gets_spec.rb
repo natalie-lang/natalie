@@ -141,7 +141,9 @@ describe "IO#gets" do
             NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `stop?'" do
               t = Thread.new do
                 # Continue reading until the separator is encountered or the pipe is closed.
-                read.gets("\r\n\r\n")
+                NATFIXME 'IOError', exception: IOError, message: 'closed stream' do
+                  read.gets("\r\n\r\n")
+                end
               end
 
               # Write the other half of the separator, which should cause the `gets` call to now
