@@ -1300,9 +1300,11 @@ gen.static_binding('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass
 gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]', 'ThreadObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]=', 'ThreadObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Thread', 'alive?', 'ThreadObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'initialize', 'ThreadObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Thread', 'join', 'ThreadObject', 'join', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Thread', 'raise', 'ThreadObject', 'raise', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'status', 'ThreadObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 

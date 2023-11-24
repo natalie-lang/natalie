@@ -34,34 +34,30 @@ describe "TCPServer#accept" do
   end
 
   it "can be interrupted by Thread#kill" do
-    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `kill'" do
-      t = Thread.new { @server.accept }
+    t = Thread.new { @server.accept }
 
-      Thread.pass while t.status and t.status != "sleep"
+    Thread.pass while t.status and t.status != "sleep"
 
-      # kill thread, ensure it dies in a reasonable amount of time
-      t.kill
-      a = 0
-      while t.alive? and a < 5000
-        sleep 0.001
-        a += 1
-      end
-      a.should < 5000
+    # kill thread, ensure it dies in a reasonable amount of time
+    t.kill
+    a = 0
+    while t.alive? and a < 5000
+      sleep 0.001
+      a += 1
     end
+    a.should < 5000
   end
 
   it "can be interrupted by Thread#raise" do
-    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `raise'" do
-      t = Thread.new {
-        -> {
-          @server.accept
-        }.should raise_error(Exception, "interrupted")
-      }
+    t = Thread.new {
+      -> {
+        @server.accept
+      }.should raise_error(Exception, "interrupted")
+    }
 
-      Thread.pass while t.status and t.status != "sleep"
-      t.raise Exception, "interrupted"
-      t.join
-    end
+    Thread.pass while t.status and t.status != "sleep"
+    t.raise Exception, "interrupted"
+    t.join
   end
 
   it "is automatically retried when interrupted by SIGVTALRM" do

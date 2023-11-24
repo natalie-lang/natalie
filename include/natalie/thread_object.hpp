@@ -58,11 +58,22 @@ public:
     void set_status(Status status) { m_status = status; }
     Value status(Env *env);
 
+    void set_exception(ExceptionObject *exception) { m_exception = exception; }
+    ExceptionObject *exception() { return m_exception; }
+
     Block *block() { return m_block; }
+
+    bool is_alive() const {
+        return m_status == Status::Active || m_status == Status::Created;
+    }
+
+    bool is_main() const {
+        return m_thread_id == s_main_id;
+    }
 
     Value join(Env *);
     Value kill(Env *);
-    Value raise(Env *, Value, Value = nullptr);
+    Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup() { return NilObject::the(); }
 
     Value ref(Env *env, Value key);
@@ -89,7 +100,9 @@ public:
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
 
-    static bool is_main() { return pthread_self() == s_main_id; }
+    static pthread_t main_id() { return s_main_id; }
+
+    static bool i_am_main() { return pthread_self() == s_main_id; }
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
 
@@ -99,6 +112,7 @@ private:
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id {};
+    ExceptionObject *m_exception { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif

@@ -119,13 +119,27 @@ Value ThreadObject::join(Env *) {
 }
 
 Value ThreadObject::kill(Env *) {
-    if (this == ThreadObject::main())
+    m_status = Status::Terminated;
+    if (is_main())
         exit(0);
     pthread_kill(m_thread_id, SIGINT);
     return NilObject::the();
 }
 
-Value ThreadObject::raise(Env *, Value, Value) {
+Value ThreadObject::raise(Env *env, Value klass, Value message) {
+    if (klass && klass->is_string()) {
+        message = klass;
+        klass = nullptr;
+    }
+    if (!klass)
+        klass = GlobalEnv::the()->Object()->const_fetch("RuntimeError"_s);
+    auto exception = new ExceptionObject { klass->as_class_or_raise(env), new StringObject { "" } };
+    if (is_main()) {
+        env->raise_exception(exception);
+    } else {
+        m_exception = exception;
+        kill(env);
+    }
     return NilObject::the();
 }
 

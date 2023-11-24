@@ -44,12 +44,13 @@ extern "C" Object *EVAL(Env *env) {
 }
 
 void sigint_handler(int sig) {
-    const char *msg = "Interrupt\n";
-    write(STDOUT_FILENO, msg, strlen(msg));
-    if (ThreadObject::is_main())
+    if (ThreadObject::i_am_main()) {
+        const char *msg = "Interrupt\n";
+        write(STDOUT_FILENO, msg, strlen(msg));
         exit(128 + SIGINT);
-    else
-        pthread_exit(nullptr);
+    } else {
+        pthread_cancel(pthread_self());
+    }
 }
 
 void trap_sigint() {
