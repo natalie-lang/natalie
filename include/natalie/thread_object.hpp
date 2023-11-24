@@ -71,7 +71,7 @@ public:
         return m_thread_id == s_main_id;
     }
 
-    Value join(Env *);
+    Value join(Env *) const;
     Value kill(Env *);
     Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup() { return NilObject::the(); }

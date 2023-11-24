@@ -106,7 +106,7 @@ Value ThreadObject::status(Env *env) {
     NAT_UNREACHABLE();
 }
 
-Value ThreadObject::join(Env *) {
+Value ThreadObject::join(Env *) const {
     void *return_value = nullptr;
     auto result = pthread_join(m_thread_id, &return_value);
 
