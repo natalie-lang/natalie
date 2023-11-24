@@ -389,6 +389,9 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
     if (flags < 0)
         env->raise("ArgumentError", "flags cannot be negative");
 
+    Defer([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
     char buf[maxlen];
     auto bytes = recv(self->as_io()->fileno(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
     if (bytes == -1)
