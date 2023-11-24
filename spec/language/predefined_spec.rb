@@ -824,17 +824,18 @@ describe "Predefined global $_" do
     $_ = nil
     running = false
 
-    NATFIXME 'threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      thr = Thread.new do
-        $_ = "last line"
-        running = true
-      end
-
-      Thread.pass until running
-      $_.should be_nil
-
-      thr.join
+    thr = Thread.new do
+      $_ = "last line"
+      running = true
     end
+
+    Thread.pass until running
+
+    NATFIXME 'thread-local $_', exception: SpecFailedException do
+      $_.should be_nil
+    end
+
+    thr.join
   end
 
   it "can be assigned any value" do
