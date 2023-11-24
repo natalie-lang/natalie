@@ -115,10 +115,13 @@ Value ThreadObject::join(Env *) const {
 }
 
 Value ThreadObject::kill(Env *) {
-    m_status = Status::Terminated;
     if (is_main())
         exit(0);
+
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
     pthread_kill(m_thread_id, SIGINT);
+    m_status = Status::Terminated;
+
     return NilObject::the();
 }
 
