@@ -163,6 +163,7 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_block);
+    visitor.visit(m_storage);
     visit_children_from_stack(visitor);
 }
 
