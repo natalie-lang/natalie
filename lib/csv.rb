@@ -6,7 +6,7 @@ require 'csv/writer'
 class CSV
   DEFAULT_OPTIONS = {
     # For both parsing and generating.
-    col_sep:            ",",
+    col_sep:            ',',
     row_sep:            :auto,
     quote_char:         '"',
     # For parsing.
@@ -20,7 +20,7 @@ class CSV
     skip_lines:         nil,
     liberal_parsing:    false,
     nil_value:          nil,
-    empty_value:        "",
+    empty_value:        '',
     strip:              false,
     # For generating.
     write_headers:      nil,
@@ -28,8 +28,8 @@ class CSV
     force_quotes:       false,
     write_converters:   nil,
     write_nil_value:    nil,
-    write_empty_value:  "",
-  }
+    write_empty_value:  '',
+  }.freeze
 
   attr_reader :encoding
 
@@ -45,7 +45,7 @@ class CSV
     @lineno = 0
   end
 
-  def self.generate(string = "", **options)
+  def self.generate(string = '', **options)
     io = StringIO.new(string)
     csv = CSV.new(io, **options)
     yield csv
@@ -58,7 +58,7 @@ class CSV
     end
   end
 
-  def self.open(file_path_or_io, mode = "r")
+  def self.open(file_path_or_io, mode = 'r')
     io =
       if file_path_or_io.is_a? IO
         file_path_or_io
@@ -93,7 +93,7 @@ class CSV
   end
 
   def each
-    while row = shift
+    while (row = shift)
       yield row
     end
   end
@@ -125,7 +125,7 @@ class CSV
 
   def read
     [].tap do |out|
-      while line = shift
+      while (line = shift)
         out << line
       end
     end

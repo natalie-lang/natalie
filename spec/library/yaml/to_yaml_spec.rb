@@ -6,19 +6,23 @@ require 'yaml'
 describe "Object#to_yaml" do
 
   it "returns the YAML representation of an Array object" do
-    NATFIXME 'Dump string integers in quotes', exception: SpecFailedException do
-      %w( 30 ruby maz irb 99 ).to_yaml.gsub("'", '"').should match_yaml("--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n")
-    end
+    %w( 30 ruby maz irb 99 ).to_yaml.gsub("'", '"').should match_yaml("--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n")
   end
 
   it "returns the YAML representation of a Hash object" do
     { "a" => "b"}.to_yaml.should match_yaml("--- \na: b\n")
   end
 
+  it "returns the YAML representation of an object" do
+    YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
+  end
+
   it "returns the YAML representation of a Class object" do
-    NATFIXME 'YAML.dump for Class objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for YAMLSpecs::Example' do
-      YAMLSpecs::Example.new("baz").to_yaml.should match_yaml("--- !ruby/object:YAMLSpecs::Example\nname: baz\n")
-    end
+    YAMLSpecs::Example.to_yaml.should match_yaml("--- !ruby/class 'YAMLSpecs::Example'\n")
+  end
+
+  it "returns the YAML representation of a Module object" do
+    Enumerable.to_yaml.should match_yaml("--- !ruby/module 'Enumerable'\n")
   end
 
   it "returns the YAML representation of a Date object" do
@@ -51,9 +55,7 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a RegExp object" do
-    NATFIXME 'YAML.dump for Regexps', exception: NotImplementedError, message: 'TODO: Implement YAML output for Regexp' do
-      Regexp.new('^a-z+:\\s+\w+').to_yaml.should match_yaml("--- !ruby/regexp /^a-z+:\\s+\\w+/\n")
-    end
+    Regexp.new('^a-z+:\\s+\w+').to_yaml.should match_yaml("--- !ruby/regexp /^a-z+:\\s+\\w+/\n")
   end
 
   it "returns the YAML representation of a String object" do
@@ -62,9 +64,12 @@ describe "Object#to_yaml" do
 
   it "returns the YAML representation of a Struct object" do
     Person = Struct.new(:name, :gender)
-    NATFIXME 'YAML.dump for Struct objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for Person' do
-      Person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct:Person\nname: Jane\ngender: female\n")
-    end
+    Person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct:Person\nname: Jane\ngender: female\n")
+  end
+
+  it "returns the YAML representation of an unnamed Struct object" do
+    person = Struct.new(:name, :gender)
+    person.new("Jane", "female").to_yaml.should match_yaml("--- !ruby/struct\nname: Jane\ngender: female\n")
   end
 
   it "returns the YAML representation of a Symbol object" do
@@ -72,9 +77,10 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Time object" do
-    NATFIXME 'YAML.dump for Time objects', exception: NotImplementedError, message: 'Implement YAML output for Time' do
+    NATFIXME 'Different output in Time objects, requires reading of the spec', exception: SpecFailedException do
       Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- 2000-01-01 20:15:01 Z\n")
     end
+    Time.utc(2000,"jan",1,20,15,1).to_yaml.sub(/\.0+/, "").should match_yaml("--- !!timestamp 2000-01-01 20:15:01 UTC\n")
   end
 
   it "returns the YAML representation of a TrueClass" do
@@ -84,29 +90,21 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of a Error object" do
-    NATFIXME 'YAML.dump for Error objects', exception: NotImplementedError, message: 'TODO: Implement YAML output for StandardError' do
-      StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
-    end
+    StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\nbacktrace: \n")
   end
 
   it "returns the YAML representation for Range objects" do
-    NATFIXME 'YAML.dump for ranges', exception: NotImplementedError, message: 'TODO: Implement YAML output for Range' do
-      yaml = Range.new(1,3).to_yaml
-      yaml.include?("!ruby/range").should be_true
-      yaml.include?("begin: 1").should be_true
-      yaml.include?("end: 3").should be_true
-      yaml.include?("excl: false").should be_true
-    end
+    yaml = Range.new(1,3).to_yaml
+    yaml.include?("!ruby/range").should be_true
+    yaml.include?("begin: 1").should be_true
+    yaml.include?("end: 3").should be_true
+    yaml.include?("excl: false").should be_true
   end
 
   it "returns the YAML representation of numeric constants" do
-    NATFIXME 'Fix YAML dump of Float::NAN', exception: SpecFailedException do
-      nan_value.to_yaml.downcase.should match_yaml("--- .nan\n")
-    end
-    NATFIXME 'Fix YAML dump of Float::INFINITY', exception: SpecFailedException do
-      infinity_value.to_yaml.downcase.should match_yaml("--- .inf\n")
-      (-infinity_value).to_yaml.downcase.should match_yaml("--- -.inf\n")
-    end
+    nan_value.to_yaml.downcase.should match_yaml("--- .nan\n")
+    infinity_value.to_yaml.downcase.should match_yaml("--- .inf\n")
+    (-infinity_value).to_yaml.downcase.should match_yaml("--- -.inf\n")
     (0.0).to_yaml.should match_yaml("--- 0.0\n")
   end
 

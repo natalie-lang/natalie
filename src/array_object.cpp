@@ -1455,10 +1455,10 @@ Value ArrayObject::at(Env *env, Value n) {
 Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
-        if (!item->is_array())
+        if (!item->is_array() && !item->respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->as_array();
+        ArrayObject *sub_array = item->to_ary(env);
         if (sub_array->is_empty())
             continue;
 

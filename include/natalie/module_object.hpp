@@ -70,8 +70,8 @@ public:
         return m_class_name;
     }
 
-    void set_class_name(const String name) {
-        m_class_name = name;
+    void set_class_name(String name) {
+        m_class_name = std::move(name);
     }
 
     void set_class_name(const char *name) {

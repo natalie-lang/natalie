@@ -10,9 +10,9 @@ describe 'ruby/spec' do
   SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
 
   Dir.chdir File.expand_path('../..', __dir__)
-  glob = if ENV['DEBUG_PARSER']
-           # I use this when I'm working on the parser, as it catches 99% of bugs
-           # and finishes a lot quicker
+  glob = if ENV['DEBUG_COMPILER']
+           # I use this when I'm working on the compiler,
+           # as it catches 99% of bugs and finishes a lot quicker.
            Dir['spec/language/*_spec.rb']
          else
            Dir['spec/**/*_spec.rb']

@@ -13,7 +13,7 @@ module Natalie
         @compiler_context = compiler_context
         @inline_cpp_enabled = @compiler_context[:inline_cpp_enabled]
         @log_load_error = log_load_error
-        @parsed_files = {}
+        @required_ruby_files = @compiler_context[:required_ruby_files]
       end
 
       attr_reader :node, :path, :load_path, :depth
@@ -224,13 +224,13 @@ module Natalie
       def load_file(path, require_once:, location:)
         return load_cpp_file(path, require_once: require_once, location: location) if path =~ /\.cpp$/
 
-        code = File.read(path)
-        unless (ast = @parsed_files[path])
+        unless (loaded_file = @required_ruby_files[path])
+          code = File.read(path)
           ast = Natalie::Parser.new(code, path).ast
-          @parsed_files[path] = ast
+          @required_ruby_files[path] = LoadedFile.new(path: path, ast: ast)
         end
 
-        [:with_filename, path, require_once, ast]
+        [:load_file, path, require_once]
       end
 
       def load_cpp_file(path, require_once:, location:)

@@ -14,7 +14,7 @@ require 'tempfile'
 
 require_relative '../lib/natalie'
 
-options = { load_path: [], require: [], execute: [], profile: false, transform_only: false }
+options = { load_path: [], require: [], execute: [], profile: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -44,8 +44,6 @@ OptionParser.new do |opts|
     when 'gdb', 'lldb'
       options[:debug] = type
       options[:keep_cpp] = true
-    when 'transform'
-      options[:transform_only] = true
     else
       puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
@@ -58,23 +56,19 @@ OptionParser.new do |opts|
   end
 
   opts.on(
-    '-p [type]', '--profile [type]',
-    'Start profiling an application or the compiler.',
-    options: {
-      'app'       => 'Execute the script and profile it using the embedded profiler.',
-      'compiler'  => 'Profile the compilation process using StackProf.'
-    }
+    '--profile-compiler format',
+    'Run the compiler and gather a profile (must specify format of "text", "json", "graphviz", etc.)',
+  ) do |format|
+    options[:profile] = :compiler
+    options[:profile_format] = format
+    options[:expecting_script] = true
+  end
+
+  opts.on(
+    '--profile-app',
+    'Run the application and gather a profile with Trace Event Format',
   ) do |type|
-    case type
-    when true, 'app'
-      options[:profile] = :app
-    when 'compiler'
-      options[:profile] = :compiler
-      options[:transform_only] = true
-    else
-      puts "Unrecognized -p argument: #{type.inspect}"
-      exit 1
-    end
+    options[:profile] = :app
     options[:expecting_script] = true
   end
 
@@ -159,17 +153,18 @@ class Runner
       if options[:interpret]
         puts compiler.instructions.map(&:to_s)
       else
-        compiler.write_file
-        print_cpp_source(compiler.c_path)
+        path = compiler.write_file_for_debugging
+        print_cpp_source(path)
       end
     elsif options[:debug] == 'S'
       show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
-    elsif options[:transform_only]
-      compiler.send(:transform)
     else
       compile_and_run
+    end
+    if @run_result
+      exit @run_result.exitstatus || 1
     end
   end
 
@@ -210,17 +205,15 @@ class Runner
       system('valgrind', '--tool=callgrind', "--callgrind-out-file=#{callgrind_out.path}", out.path, *ARGV)
       exec('kcachegrind', callgrind_out.path)
     else
-      if options[:interpret]
+      if options[:profile] == :compiler
+        profile_compiler
+      elsif options[:interpret]
         Natalie::VM.new(compiler.instructions, path: source_path).run
       else
         compiler.options[:dynamic_linking] = true
         compiler.compile
-        build_dir = File.expand_path('../build', __dir__)
-        env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
         begin
-          pid = spawn(env, out.path, *ARGV)
-          Process.wait(pid)
-          exit $?.exitstatus || 1
+          run_temp_and_wait(out.path)
         ensure
           File.unlink(out.path)
         end
@@ -240,13 +233,20 @@ class Runner
       rescue Natalie::Compiler::CompileError => e
         puts e
       else
-        pid = spawn(env, out.path, *ARGV)
-        Process.wait(pid)
+        run_temp_and_wait(out.path)
       end
       print 'Edit again? [Yn] '
       response = gets.strip.downcase
       break if response == 'n'
     end
+  end
+
+  def run_temp_and_wait(path)
+    build_dir = File.expand_path('../build', __dir__)
+    env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
+    pid = spawn(env, path, *ARGV)
+    Process.wait(pid)
+    @run_result = $?
   end
 
   def show_assembly
@@ -311,6 +311,13 @@ class Runner
       puts '-' * 80
       puts path
     end
+  end
+
+  def profile_compiler
+    require 'stackprof'
+    profile = StackProf.run(mode: :wall, raw: true) { compiler.compile }
+    report = StackProf::Report.new(profile)
+    report.send("print_#{options[:profile_format]}")
   end
 end
 

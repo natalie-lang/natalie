@@ -1,11 +1,13 @@
 require_relative '../spec_helper'
 
 # test/support/require
+# ├── circular1.rb
+# ├── circular2.rb
 # ├── cpp_file.cpp
 # ├── loaded.rb
 # ├── relative.rb
 # ├── simple
-# │   └── relative.rb
+# │   └── relative.rb
 # ├── simple_again.rb
 # ├── simple.rb
 # ├── with_fake_ext.ext
@@ -27,6 +29,9 @@ end
 class Foo1Child < Foo1
 end
 require 'require/simple' # rubocop:disable Lint/DuplicateRequire
+
+# circular requires do not cause stack overflow
+require 'require/circular1'
 
 describe 'require' do
   it 'requires a file from the load path' do

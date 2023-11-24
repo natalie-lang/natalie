@@ -14,6 +14,7 @@ module Natalie
         super()
         @ast = ast
         @compiler_context = compiler_context
+        @required_ruby_files = @compiler_context[:required_ruby_files]
         @macro_expander = macro_expander
 
         # If any user code has required 'natalie/inline', then we enable
@@ -31,9 +32,9 @@ module Natalie
         # Our MacroExpander and our REPL need to know local variables.
         @locals_stack = []
 
-        # `next` needs to know its enclosing scope type,
+        # `next` and `break` need to know their enclosing scope type,
         # e.g. block vs while loop, so we'll use a stack to keep track.
-        @next_context = []
+        @next_or_break_context = []
       end
 
       INLINE_CPP_MACROS = %i[
@@ -69,7 +70,7 @@ module Natalie
         end
       end
 
-      def transform_expression(node, used:)
+      def transform_expression(node, used:, **kwargs)
         case node
         when ::Prism::Node
           node = expand_macros(node) if node.type == :call_node
@@ -77,16 +78,16 @@ module Natalie
           @depth += 1 unless node.type == :statements_node
           method = "transform_#{node.type}"
           result = track_scope(node) do
-            send(method, node, used: used)
+            send(method, node, used: used, **kwargs)
           end
           @depth -= 1 unless node.type == :statements_node
           Array(result).flatten
         when Array
-          if %i[with_filename autoload_const].include?(node.first)
+          if %i[load_file autoload_const].include?(node.first)
             # TODO: remove this kludge and change these fake node types to CallNode or something else
             @depth += 1
             method = "transform_#{node.first}_fake_node"
-            result = send(method, node, used: used)
+            result = send(method, node, used: used, **kwargs)
             @depth -= 1
             Array(result).flatten
           else
@@ -271,7 +272,7 @@ module Natalie
       def transform_back_reference_read_node(node, used:)
         return [] unless used
         case node.slice
-        when '$`', "$'"
+        when '$`', "$'", '$+'
           [GlobalVariableGetInstruction.new(node.slice.to_sym)]
         when '$&'
           [PushLastMatchInstruction.new(to_s: true)]
@@ -362,10 +363,17 @@ module Natalie
       end
 
       def transform_break_node(node, used:)
-        [
-          transform_arguments_node_for_returnish(node.arguments, location: node.location),
-          BreakInstruction.new
+        instructions = [
+          transform_arguments_node_for_returnish(node.arguments, location: node.location)
         ]
+
+        if %i[while_node until_node].include?(@next_or_break_context.last)
+          instructions << BreakOutInstruction.new
+        else
+          instructions << BreakInstruction.new
+        end
+
+        instructions
       end
 
       def transform_call_args(args, with_block:, instructions: [])
@@ -448,7 +456,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -499,7 +507,7 @@ module Natalie
         instructions << SendInstruction.new(
           message,
           args_array_on_stack: call_args.fetch(:args_array_on_stack),
-          receiver_is_self: receiver.nil?,
+          receiver_is_self: receiver.nil? || receiver.is_a?(Prism::SelfNode),
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
           forward_args: call_args[:forward_args],
@@ -1094,7 +1102,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -1612,7 +1620,9 @@ module Natalie
       alias transform_keyword_hash_node transform_hash_node
 
       def transform_lambda_node(node, used:)
-        instructions = transform_block_node(node, used: true, is_lambda: true)
+        instructions = track_scope(node) do
+          transform_block_node(node, used: true, is_lambda: true)
+        end
         instructions << CreateLambdaInstruction.new
         instructions << PopInstruction.new unless used
         instructions
@@ -1757,7 +1767,7 @@ module Natalie
       end
 
       def transform_next_node(node, used:)
-        if %i[while_node until_node].include?(@next_context.last)
+        if %i[while_node until_node].include?(@next_or_break_context.last)
           return [ContinueInstruction.new]
         end
 
@@ -2007,7 +2017,7 @@ module Natalie
         # block handling
         if node.block.is_a?(Prism::BlockNode)
           with_block = true
-          instructions << transform_block_node(
+          instructions << transform_expression(
             node.block,
             used: true,
             is_lambda: is_lambda_call?(node)
@@ -2070,6 +2080,7 @@ module Natalie
 
       def transform_until_node(node, used:)
         pre = !node.begin_modifier?
+
         instructions = [
           WhileInstruction.new(pre: pre),
           transform_expression(node.predicate, used: true),
@@ -2085,26 +2096,37 @@ module Natalie
           transform_expression(node.statements || Prism.nil_node, used: true),
           EndInstruction.new(:while),
         ]
+
         instructions << PopInstruction.new unless used
         instructions
       end
 
-      def transform_with_filename_fake_node(exp, used:)
+      def transform_load_file_fake_node(exp, used:)
         depth_was = @depth
-        @depth = 0
-        _, filename, require_once, *body = exp
+        _, filename, require_once = exp
+        loaded_file = @required_ruby_files.fetch(filename)
+
+        unless loaded_file.instructions
+          loaded_file.instructions = :generating # set this to avoid endless loop
+          @depth = 0
+          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
+          @depth = depth_was
+        end
+
         instructions = [
-          WithFilenameInstruction.new(filename, require_once: require_once),
-          transform_body(body, used: true),
-          EndInstruction.new(:with_filename),
+          LoadFileInstruction.new(
+            filename,
+            require_once: require_once,
+            required_ruby_files: @required_ruby_files
+          ),
         ]
         instructions << PopInstruction.new unless used
-        @depth = depth_was
         instructions
       end
 
       def transform_while_node(node, used:)
         pre = !node.begin_modifier?
+
         instructions = [
           WhileInstruction.new(pre: pre),
           transform_expression(node.predicate, used: true),
@@ -2112,6 +2134,7 @@ module Natalie
           transform_expression(node.statements || Prism.nil_node, used: true),
           EndInstruction.new(:while),
         ]
+
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2145,12 +2168,12 @@ module Natalie
         @retry_context.pop
       end
 
-      def next_context(node)
+      def next_or_break_context(node)
         case node
         when ::Prism::WhileNode, ::Prism::UntilNode, ::Prism::BlockNode, ::Prism::DefNode
-          @next_context << node.type
+          @next_or_break_context << node.type
           result = yield
-          @next_context.pop
+          @next_or_break_context.pop
           result
         else
           yield
@@ -2159,7 +2182,7 @@ module Natalie
 
       def track_scope(...)
         # NOTE: we may have other contexts to track here later
-        next_context(...)
+        next_or_break_context(...)
       end
 
       # returns a set of [name, is_private, prep_instruction]

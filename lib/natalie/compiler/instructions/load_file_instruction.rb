@@ -2,32 +2,30 @@ require_relative './base_instruction'
 
 module Natalie
   class Compiler
-    class WithFilenameInstruction < BaseInstruction
-      def initialize(filename, require_once:)
+    class LoadFileInstruction < BaseInstruction
+      def initialize(filename, require_once:, required_ruby_files:)
         @filename = filename
         @require_once = require_once
+        @required_ruby_files = required_ruby_files
       end
 
       attr_reader :filename
 
-      def has_body?
-        true
-      end
-
       def to_s
-        s = "with_filename #{@filename}"
+        s = "load_file #{@filename}"
         s << ' (require_once)' if @require_once
         s
       end
 
       def generate(transform)
-        body = transform.fetch_block_of_instructions(expected_label: :with_filename)
         fn = transform.compiled_files[@filename]
         filename_sym = transform.intern(@filename)
         unless fn
-          fn = transform.temp('with_filename_fn')
+          fn = transform.temp('load_file_fn')
           transform.compiled_files[@filename] = fn
-          transform.with_new_scope(body) do |t|
+          loaded_file = @required_ruby_files.fetch(@filename)
+          transform.top("Value #{fn}(Env *, Value, bool);")
+          transform.with_new_scope(loaded_file.instructions) do |t|
             fn_code = []
             fn_code << "Value #{fn}(Env *env, Value self, bool require_once) {"
             fn_code << "if (require_once && #{transform.files_var_name}.get(#{filename_sym})) return FalseObject::the();"
@@ -39,7 +37,7 @@ module Natalie
           end
         end
         transform.exec_and_push(
-          :result_of_with_filename,
+          :result_of_load_file,
           "#{fn}(env, GlobalEnv::the()->main_obj(), #{@require_once})"
         )
       end

@@ -1,4 +1,5 @@
 require_relative '../spec_helper'
+require_relative '../../spec/library/yaml/fixtures/example_class'
 require 'yaml'
 
 describe 'YAML.dump' do
@@ -11,5 +12,9 @@ describe 'YAML.dump' do
     File.read(filename).should == YAML.dump(['a', 'b'])
   ensure
     rm_r filename
+  end
+
+  it 'can load floats' do
+    YAML.load('90.0').should be_kind_of(Float)
   end
 end

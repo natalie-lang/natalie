@@ -1253,6 +1253,7 @@ gen.binding('String', 'swapcase', 'StringObject', 'swapcase', argc: 0..2, pass_e
 gen.binding('String', 'swapcase!', 'StringObject', 'swapcase_in_place', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_f', 'StringObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_i', 'StringObject', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'to_r', 'StringObject', 'to_r', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_s', 'StringObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_str', 'StringObject', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('String', 'tr', 'StringObject', 'tr', argc: 2, pass_env: true, pass_block: false, return_type: :Object)

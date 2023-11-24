@@ -45,13 +45,11 @@ describe :kernel_Rational, shared: true do
   describe "when passed a String" do
     it "converts the String to a Rational using the same method as String#to_r" do
       r = Rational(13, 25)
-      NATFIXME 'Implement String#to_r and Rational(String)', exception: NoMethodError, message: "undefined method `to_r'" do
-        s_r = ".52".to_r
-        r_s = Rational(".52")
+      s_r = ".52".to_r
+      r_s = Rational(".52")
 
-        r_s.should == r
-        r_s.should == s_r
-      end
+      r_s.should == r
+      r_s.should == s_r
     end
 
     it "scales the Rational value of the first argument by the Rational value of the second" do
@@ -66,10 +64,8 @@ describe :kernel_Rational, shared: true do
       f_r = 0.6.to_r
       r_s = Rational("0.6")
 
-      NATFIXME 'Scale String arguments', exception: SpecFailedException do
-        r_s.should == r
-        r_s.should_not == f_r
-      end
+      r_s.should == r
+      r_s.should_not == f_r
     end
   end
 

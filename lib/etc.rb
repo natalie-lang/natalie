@@ -26,7 +26,7 @@ module Etc
   __constant__('SC_TTY_NAME_MAX', 'int', '_SC_TTY_NAME_MAX')
   __constant__('SC_TZNAME_MAX', 'int', '_SC_TZNAME_MAX')
   __constant__('SC_VERSION', 'int', '_SC_VERSION')
-  
+
   __bind_static_method__ :confstr, :Etc_confstr
   __bind_static_method__ :endgrent, :Etc_endgrent
   __bind_static_method__ :endpwent, :Etc_endpwent
