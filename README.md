@@ -161,6 +161,8 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `pp.rb`          | Yukihiro Matsumoto                | BSD               |
 | `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
 | `spec/*`         | Engine Yard, Inc.                 | MIT               |
+| `uri.rb`         | Akira Yamada                      | BSD               |
+| `uri/*`          | Akira Yamada                      | BSD               |
 | `version.rb`     | Engine Yard, Inc.                 | MIT               |
 | `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
 
