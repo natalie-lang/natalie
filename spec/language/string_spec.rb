@@ -255,12 +255,11 @@ describe "Ruby String literals" do
 end
 
 describe "Ruby String interpolation" do
-  # NATFIXME: This breaks compilation
-  # it "permits an empty expression" do
-  #   s = "#{}" # rubocop:disable Lint/EmptyInterpolation
-  #   s.should.empty?
-  #   s.should_not.frozen?
-  # end
+  it "permits an empty expression" do
+    s = "#{}" # rubocop:disable Lint/EmptyInterpolation
+    s.should.empty?
+    s.should_not.frozen?
+  end
 
   it "returns a string with the source encoding by default" do
     NATFIXME 'Encoding magic comment', exception: SpecFailedException do
