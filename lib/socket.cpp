@@ -573,7 +573,10 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
+    ThreadObject::set_current_sleeping(true);
     auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    ThreadObject::set_current_sleeping(false);
+
     if (fd == -1)
         env->raise_errno();
 
@@ -1051,7 +1054,10 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
+    ThreadObject::set_current_sleeping(true);
     auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    ThreadObject::set_current_sleeping(false);
+
     if (fd == -1)
         env->raise_errno();
 

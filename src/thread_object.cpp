@@ -94,11 +94,9 @@ ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
 Value ThreadObject::status(Env *env) {
     switch (m_status) {
     case Status::Created:
-        return new StringObject { "sleep" };
+        return new StringObject { "run" };
     case Status::Active:
-        return new StringObject {
-            pthread_self() == m_thread_id ? "run" : "sleep"
-        };
+        return new StringObject { m_sleeping ? "sleep" : "run" };
     case Status::Errored:
         return NilObject::the();
     case Status::Terminated:

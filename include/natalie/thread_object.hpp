@@ -79,6 +79,9 @@ public:
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
+    bool is_sleeping() const { return m_sleeping; }
+    void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
+
     pthread_t thread_id() const { return m_thread_id; }
 
     virtual void visit_children(Visitor &) override final;
@@ -106,6 +109,8 @@ public:
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
 
+    static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
+
 private:
     Block *m_block { nullptr };
     HashObject *m_storage { nullptr };
@@ -119,6 +124,7 @@ private:
     Status m_status { Status::Created };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+    bool m_sleeping { false };
 
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
