@@ -15,11 +15,17 @@ describe "TCPServer#accept" do
     data = nil
     NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `shutdown'" do
       t = Thread.new do
-        client = @server.accept
-        client.should be_kind_of(TCPSocket)
-        data = client.read(5)
-        client << "goodbye"
-        client.close
+        begin
+          client = @server.accept
+        rescue Errno::ECONNABORTED
+          # NATFIXME: NoMethodError below causes ECONNABORTED
+          puts 'stream closed in another thread'
+        else
+          client.should be_kind_of(TCPSocket)
+          data = client.read(5)
+          client << "goodbye"
+          client.close
+        end
       end
       Thread.pass while t.status and t.status != "sleep"
 
