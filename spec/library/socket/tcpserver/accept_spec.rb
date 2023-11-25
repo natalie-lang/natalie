@@ -63,10 +63,16 @@ describe "TCPServer#accept" do
   it "is automatically retried when interrupted by SIGVTALRM" do
     NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `backtrace'" do
       t = Thread.new do
-        client = @server.accept
-        value = client.read(2)
-        client.close
-        value
+        begin
+          client = @server.accept
+        rescue Errno::ECONNABORTED
+          # NATFIXME: NoMethodError below causes ECONNABORTED
+          puts 'stream closed in another thread'
+        else
+          value = client.read(2)
+          client.close
+          value
+        end
       end
 
       Thread.pass while t.status and t.status != "sleep"
