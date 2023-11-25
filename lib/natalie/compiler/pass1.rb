@@ -1581,7 +1581,13 @@ module Natalie
           when Prism::StringNode
             instructions << PushStringInstruction.new(unescaped ? part.unescaped : part.content)
           when Prism::EmbeddedStatementsNode
-            instructions << transform_expression(part.statements, used: true)
+            if part.statements.nil?
+              instructions << PushStringInstruction.new('')
+            else
+              instructions << transform_expression(part.statements, used: true)
+            end
+          when Prism::EmbeddedVariableNode
+            instructions << transform_expression(part.variable, used: true)
           else
             raise "unknown interpolated string segment: #{part.inspect}"
           end
