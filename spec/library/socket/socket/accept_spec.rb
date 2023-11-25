@@ -54,6 +54,7 @@ describe 'Socket#accept' do
             thread = Thread.new do
               @server.accept
             end
+            Thread.pass while thread.status and thread.status != "sleep"
 
             client.connect(@server_addr)
 
