@@ -28,12 +28,6 @@ void MarkingVisitor::visit(Value val) {
     visit(val.object_or_null());
 }
 
-void Heap::set_start_of_stack(void *start_of_stack) {
-    assert(start_of_stack);
-    m_start_of_stack = start_of_stack;
-    ThreadObject::current()->set_start_of_stack(start_of_stack);
-}
-
 #ifdef __SANITIZE_ADDRESS__
 NO_SANITIZE_ADDRESS void Heap::gather_roots_from_asan_fake_stack(Hashmap<Cell *> roots, Cell *potential_cell) {
     void *begin_fake_frame = nullptr;
@@ -60,13 +54,14 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     void *end_of_stack = &dummy;
 
     // step over stack, saving potential pointers
-    assert(m_start_of_stack);
+    auto start_of_stack = ThreadObject::current()->start_of_stack();
+    assert(start_of_stack);
     assert(end_of_stack);
-    assert(m_start_of_stack > end_of_stack);
+    assert(start_of_stack > end_of_stack);
 
     Hashmap<Cell *> roots;
 
-    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
+    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (roots.get(potential_cell))
             continue;

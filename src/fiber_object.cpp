@@ -118,7 +118,7 @@ Value FiberObject::resume(Env *env, Args args) {
 
     set_args(args);
 
-    Heap::the().set_start_of_stack(m_start_of_stack);
+    ThreadObject::current()->set_start_of_stack(m_start_of_stack);
 
 #ifdef __SANITIZE_ADDRESS__
     auto fake_stack = __asan_get_current_fake_stack();
@@ -222,7 +222,7 @@ void FiberObject::swap_current(Env *env, Args args) {
     s_current = m_previous_fiber;
     s_current->set_args(args);
     m_previous_fiber = nullptr;
-    Heap::the().set_start_of_stack(s_current->start_of_stack());
+    ThreadObject::current()->set_start_of_stack(s_current->start_of_stack());
 }
 
 void FiberObject::visit_children(Visitor &visitor) {
@@ -237,7 +237,7 @@ void FiberObject::visit_children(Visitor &visitor) {
 }
 
 NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor) const {
-    if (m_start_of_stack == Heap::the().start_of_stack())
+    if (m_start_of_stack == ThreadObject::current()->start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
         assert(m_status == Status::Created);
@@ -285,7 +285,7 @@ void fiber_wrapper_func(mco_coro *co) {
     auto user_data = (coroutine_user_data *)co->user_data;
     auto env = user_data->env;
     auto fiber = user_data->fiber;
-    Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
+    Natalie::ThreadObject::current()->set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberObject::Status::Resumed);
     assert(fiber->block());
     Natalie::Value return_arg = nullptr;

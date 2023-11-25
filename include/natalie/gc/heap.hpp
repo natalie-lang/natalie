@@ -43,12 +43,6 @@ public:
 
     void collect(bool);
 
-    void *start_of_stack() {
-        return m_start_of_stack;
-    }
-
-    void set_start_of_stack(void *start_of_stack);
-
     void return_cell_to_free_list(Cell *cell);
 
     bool is_a_heap_cell_in_use(Cell *potential_cell) {
@@ -123,7 +117,6 @@ private:
 
     Vector<Allocator *> m_allocators;
 
-    void *m_start_of_stack { nullptr };
     bool m_gc_enabled { false };
     bool m_collect_all_at_exit { false };
 };
