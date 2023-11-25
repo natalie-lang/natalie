@@ -183,14 +183,14 @@ module Natalie
         INC_PATHS +
           PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
             flags_for_package(package, :inc)
-          end
+          end.compact
       end
 
       def lib_paths
         LIB_PATHS +
           PACKAGES_REQUIRING_PKG_CONFIG.flat_map do |package|
             flags_for_package(package, :lib)
-          end
+          end.compact
       end
 
       # FIXME: We should run this on any system (not just Darwin), but only when one
