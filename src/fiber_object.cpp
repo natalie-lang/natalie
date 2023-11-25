@@ -5,6 +5,16 @@
 
 namespace Natalie {
 
+void FiberObject::build_main_fiber(void *start_of_stack) {
+    assert(!s_main); // can only be built once
+    auto fiber = new FiberObject;
+    assert(start_of_stack);
+    fiber->m_start_of_stack = start_of_stack;
+    fiber->m_thread = ThreadObject::main();
+    s_main = fiber;
+    s_current = fiber;
+}
+
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
 
@@ -29,6 +39,8 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
         }
         m_storage = hash;
     }
+
+    m_thread = ThreadObject::current();
 
     mco_desc desc = mco_desc_init(fiber_wrapper_func, STACK_SIZE);
     desc.user_data = new coroutine_user_data { env, this };
@@ -93,6 +105,8 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
 }
 
 Value FiberObject::resume(Env *env, Args args) {
+    if (m_thread != ThreadObject::current())
+        env->raise("FiberError", "fiber called across threads");
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)

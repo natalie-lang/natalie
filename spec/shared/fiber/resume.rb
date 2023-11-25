@@ -7,17 +7,13 @@ describe :fiber_resume, shared: true do
   it "raises a FiberError if invoked from a different Thread" do
     fiber = Fiber.new { 42 }
     Thread.new do
-      NATFIXME 'should raise FiberError', exception: SpecFailedException, message: 'should have raised FiberError, but instead raised nothing' do
-        -> {
-          fiber.send(@method)
-        }.should raise_error(FiberError)
-      end
+      -> {
+        fiber.send(@method)
+      }.should raise_error(FiberError)
     end.join
 
     # Check the Fiber can still be used
-    NATFIXME 'dead fiber', exception: FiberError, message: 'dead fiber called' do
-      fiber.send(@method).should == 42
-    end
+    fiber.send(@method).should == 42
   end
 
   it "passes control to the beginning of the block on first invocation" do

@@ -53,14 +53,7 @@ public:
         mco_destroy(m_coroutine);
     }
 
-    static void build_main_fiber(void *start_of_stack) {
-        assert(!s_main); // can only be built once
-        auto fiber = new FiberObject;
-        assert(start_of_stack);
-        fiber->m_start_of_stack = start_of_stack;
-        s_main = fiber;
-        s_current = fiber;
-    }
+    static void build_main_fiber(void *start_of_stack);
 
     constexpr static int STACK_SIZE = 1024 * 1024;
 
@@ -137,6 +130,7 @@ private:
     mco_coro *m_coroutine {};
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
+    ThreadObject *m_thread { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
