@@ -82,6 +82,7 @@ public:
     bool is_sleeping() const { return m_sleeping; }
     void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
 
+    void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
     pthread_t thread_id() const { return m_thread_id; }
 
     void build_main_fiber();

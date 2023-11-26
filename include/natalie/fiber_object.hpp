@@ -75,7 +75,7 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
-    void swap_current(Env *env, Args args);
+    void swap_to_previous(Env *env, Args args);
 
     void *start_of_stack() { return m_start_of_stack; }
 

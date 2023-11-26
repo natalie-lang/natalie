@@ -32,10 +32,14 @@ void *nat_create_thread(void *thread_object) {
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
 
-    tl_current_thread = thread;
+    auto thread_id = pthread_self();
 
-    auto thread_id = thread->thread_id();
+    // NOTE: We set the thread_id again here because *sometimes* the new thread
+    // starts executing *before* pthread_create() sets the thread_id. Fun!
+    thread->set_thread_id(thread_id);
+
     set_stack_for_thread(thread_id, thread);
+    tl_current_thread = thread;
 
     thread->build_main_fiber();
 
@@ -91,7 +95,8 @@ ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
-    pthread_create(&m_thread_id, nullptr, nat_create_thread, (void *)this);
+    auto result = pthread_create(&m_thread_id, nullptr, nat_create_thread, (void *)this);
+    assert(result == 0);
 
     return this;
 }

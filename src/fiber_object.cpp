@@ -111,13 +111,11 @@ Value FiberObject::resume(Env *env, Args args) {
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
 
-    auto suspending_fiber = current();
-    m_previous_fiber = current();
+    auto suspending_fiber = m_previous_fiber = current();
     ThreadObject::current()->m_current_fiber = this;
+    ThreadObject::current()->set_start_of_stack(m_start_of_stack);
 
     set_args(args);
-
-    ThreadObject::current()->set_start_of_stack(m_start_of_stack);
 
 #ifdef __SANITIZE_ADDRESS__
     auto fake_stack = __asan_get_current_fake_stack();
@@ -201,12 +199,11 @@ Value FiberObject::yield(Env *env, Args args) {
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
     current_fiber->m_end_of_stack = &args;
-    current_fiber->swap_current(env, args);
+    current_fiber->swap_to_previous(env, args);
 
     mco_yield(mco_running());
 
-    auto fiber_args
-        = FiberObject::current()->args();
+    auto fiber_args = FiberObject::current()->args();
     if (fiber_args.size() == 0) {
         return NilObject::the();
     } else if (fiber_args.size() == 1) {
@@ -216,13 +213,13 @@ Value FiberObject::yield(Env *env, Args args) {
     }
 }
 
-void FiberObject::swap_current(Env *env, Args args) {
+void FiberObject::swap_to_previous(Env *env, Args args) {
     assert(m_previous_fiber);
     auto new_current = m_previous_fiber;
     ThreadObject::current()->m_current_fiber = new_current;
+    ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
     new_current->set_args(args);
     m_previous_fiber = nullptr;
-    ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
 }
 
 void FiberObject::visit_children(Visitor &visitor) {
@@ -318,8 +315,8 @@ void fiber_wrapper_func(mco_coro *co) {
     fiber->set_end_of_stack(&fiber);
 
     if (reraise)
-        fiber->swap_current(env, {});
+        fiber->swap_to_previous(env, {});
     else
-        fiber->swap_current(env, { return_arg });
+        fiber->swap_to_previous(env, { return_arg });
 }
 }
