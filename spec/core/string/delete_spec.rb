@@ -112,17 +112,15 @@ end
 describe "String#delete!" do
   it "modifies self in place and returns self" do
     a = "hello"
-    a.delete!("aeiou", "^e").should equal(a)
     NATFIXME 'modifies self in place and returns self', exception: SpecFailedException do
+      a.delete!("aeiou", "^e").should equal(a)
       a.should == "hell"
     end
   end
 
   it "returns nil if no modifications were made" do
     a = "hello"
-    NATFIXME 'returns nil if no modifications were made', exception: SpecFailedException do
-      a.delete!("z").should == nil
-    end
+    a.delete!("z").should == nil
     a.should == "hello"
   end
 

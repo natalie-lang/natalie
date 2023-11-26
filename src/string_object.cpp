@@ -765,11 +765,19 @@ Value StringObject::crypt(Env *env, Value salt) {
 }
 
 Value StringObject::delete_str(Env *env, Args selectors) {
-    return dup(env)->as_string()->delete_in_place(env, std::move(selectors));
+    auto dup = this->dup(env)->as_string();
+    auto result = dup->delete_in_place(env, std::move(selectors));
+    if (result->is_nil())
+        return dup;
+    return result;
 }
 
 Value StringObject::delete_in_place(Env *env, Args selectors) {
     assert_not_frozen(env);
+    const auto old_len = bytesize();
+    // TODO: Replace the output
+    if (bytesize() == old_len)
+        return NilObject::the();
     return this;
 }
 
