@@ -12,7 +12,8 @@ module Natalie
       end
 
       def generate(transform)
-        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{@regexp.source.inspect}, #{@regexp.options}))")
+        source = @regexp.source.inspect.gsub(/\\#(\$|@)/, '#\1')
+        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{source}, #{@regexp.options}))")
       end
 
       def execute(vm)
