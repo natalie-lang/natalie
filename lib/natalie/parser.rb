@@ -22,13 +22,13 @@ module Prism
 
   # Create an ArrayNode with the optionally given elements and location.
   def self.array_node(elements: [], location: nil)
-    ArrayNode.new(elements, nil, nil, location)
+    ArrayNode.new(elements, nil, nil, 0, location)
   end
 
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
     arguments = ArgumentsNode.new(arguments, 0, location)
-    CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
+    CallNode.new(receiver, nil, name, nil, nil, arguments, nil, block, flags, location)
   end
 
   # Create a ClassVariableWriteNode with the optionally given values.
@@ -109,10 +109,8 @@ module Natalie
         raise SyntaxError, "syntax error #{node.location.path}##{node.location.start_line}"
       end
 
-      def visit_case_node(node)
-        raise SyntaxError, 'expected at least one when clause for case' if node.conditions.empty?
-
-        visit_child_nodes(node)
+      def visit_case_match_node(node)
+        raise SyntaxError, 'expected at least one when clause for case'
       end
     end
 

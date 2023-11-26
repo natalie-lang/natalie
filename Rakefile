@@ -187,7 +187,7 @@ desc 'Build the self-hosted version of Natalie at bin/nat'
 task bootstrap: [:build, 'bin/nat']
 
 desc 'Build MRI C Extension for Prism'
-task prism_c_ext: ["build/librubyparser.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
+task prism_c_ext: ["build/libprism.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -359,8 +359,8 @@ task libnatalie: [
   :build_dir,
   'build/zlib/libz.a',
   'build/onigmo/lib/libonigmo.a',
-  'build/librubyparser.a',
-  "build/librubyparser.#{SO_EXT}",
+  'build/libprism.a',
+  "build/libprism.#{SO_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -490,12 +490,12 @@ rule '.rb.cpp' => ['src/%{build\/generated/,}X'] do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
 end
 
-file "build/librubyparser.#{SO_EXT}" => ['build/librubyparser.a']
+file "build/libprism.#{SO_EXT}" => ['build/libprism.a']
 
-file 'build/librubyparser.a' => ["build/prism/ext/prism/prism.#{DL_EXT}"] do
+file 'build/libprism.a' => ["build/prism/ext/prism/prism.#{DL_EXT}"] do
   build_dir = File.expand_path('build/prism', __dir__)
-  cp "#{build_dir}/build/librubyparser.a", File.expand_path('build', __dir__)
-  cp "#{build_dir}/build/librubyparser.#{SO_EXT}", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/libprism.a", File.expand_path('build', __dir__)
+  cp "#{build_dir}/build/libprism.#{SO_EXT}", File.expand_path('build', __dir__)
 end
 
 file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{h,c,rb}'] do

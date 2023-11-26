@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 require 'ffi'
 
 SO_EXT = RbConfig::CONFIG['SOEXT']
-PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/librubyparser.#{SO_EXT}", __dir__)
+PRISM_LIBRARY_PATH = File.expand_path("../../build/prism/build/libprism.#{SO_EXT}", __dir__)
 STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EXT}", __dir__)
 
 module TestStubs

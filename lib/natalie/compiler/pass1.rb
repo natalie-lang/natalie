@@ -1588,6 +1588,8 @@ module Natalie
             end
           when Prism::EmbeddedVariableNode
             instructions << transform_expression(part.variable, used: true)
+          when Prism::InterpolatedStringNode
+            instructions << transform_expression(part, used: true)
           else
             raise "unknown interpolated string segment: #{part.inspect}"
           end
@@ -1715,7 +1717,9 @@ module Natalie
           file: node.location.path,
           line: node.location.start_line,
         )
-        node.locals.each do |name|
+        node.targets.each do |target|
+          raise "I cannot yet handle target: #{target.inspect}" unless target.is_a?(::Prism::LocalVariableTargetNode)
+          name = target.name
           instructions << DupInstruction.new
           instructions << PushStringInstruction.new(name.to_s)
           instructions << PushArgcInstruction.new(1)
@@ -1732,9 +1736,10 @@ module Natalie
 
         # if no match
         instructions << ElseInstruction.new(:if)
-        node.locals.each do |name|
+        node.targets.each do |target|
+          raise "I cannot yet handle target: #{target.inspect}" unless target.is_a?(::Prism::LocalVariableTargetNode)
           instructions << PushNilInstruction.new
-          instructions << VariableSetInstruction.new(name)
+          instructions << VariableSetInstruction.new(target.name)
         end
         instructions << EndInstruction.new(:if)
 
@@ -1861,7 +1866,7 @@ module Natalie
 
       def transform_regular_expression_node(node, used:)
         return [] unless used
-        regexp = Regexp.new(node.content, node.options)
+        regexp = Regexp.new(node.unescaped, node.options)
         PushRegexpInstruction.new(regexp)
       end
 
