@@ -53,6 +53,9 @@ describe 'Socket#accept' do
           NATFIXME 'Threads', exception: NoMethodError, message: /undefined method `value'/ do
             thread = Thread.new do
               @server.accept
+            rescue Errno::ECONNABORTED
+              # NATFIXME: NoMethodError below causes ECONNABORTED
+              puts 'stream closed in another thread'
             end
             Thread.pass while thread.status and thread.status != "sleep"
 
