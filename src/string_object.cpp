@@ -769,6 +769,7 @@ Value StringObject::delete_str(Env *env, Args selectors) {
 }
 
 Value StringObject::delete_in_place(Env *env, Args selectors) {
+    assert_not_frozen(env);
     return this;
 }
 

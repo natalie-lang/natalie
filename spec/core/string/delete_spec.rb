@@ -130,9 +130,7 @@ describe "String#delete!" do
     a = "hello"
     a.freeze
 
-    NATFIXME 'raises a FrozenError when self is frozen', exception: SpecFailedException do
-      -> { a.delete!("")            }.should raise_error(FrozenError)
-      -> { a.delete!("aeiou", "^e") }.should raise_error(FrozenError)
-    end
+    -> { a.delete!("")            }.should raise_error(FrozenError)
+    -> { a.delete!("aeiou", "^e") }.should raise_error(FrozenError)
   end
 end
