@@ -17,6 +17,82 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
+static auto character_class_handler(Env *env, Args args) {
+    args.ensure_argc_at_least(env, 1);
+
+    auto basic_characters = Hashmap<String>(HashType::TMString);
+    auto negated_characters = Hashmap<String>(HashType::TMString);
+
+    // For each argument
+    for (size_t i = 0; i < args.size(); ++i) {
+        auto arg = args[i];
+
+        // Try convert to string
+        auto selectors = arg->to_str(env);
+        auto new_selectors = Hashmap<String>(HashType::TMString);
+        StringView last_character = {};
+        bool negated = false;
+        // Split into selectors
+        auto it = selectors->begin();
+        if (*it == "^") {
+            ++it;
+
+            if (it != selectors->end()) {
+                negated = true;
+            } else {
+                new_selectors.set("^");
+            }
+        }
+        for (; it != selectors->end(); ++it) {
+            auto value = *it;
+            if (value == "-" && last_character != StringView()) {
+                ++it;
+                if (it == selectors->end()) {
+                    new_selectors.set(value.to_string());
+                    break;
+                }
+
+                auto next_value = *it;
+                if (last_character.to_string().cmp(next_value.to_string()) == 1)
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+
+                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
+                auto all_chars = range->to_a(env)->as_array();
+                for (auto character : *all_chars) {
+                    auto character_string = character->as_string()->string();
+                    new_selectors.set(character_string);
+                }
+                last_character = StringView();
+            } else {
+                last_character = value;
+                new_selectors.set(value.to_string());
+            }
+        }
+
+        // intersect with current selectors
+        if (negated) {
+            for (auto pair : new_selectors) {
+                negated_characters.set(pair.first);
+            }
+        } else {
+            auto new_basic_characters = Hashmap<String>(HashType::TMString);
+            for (auto pair : new_selectors) {
+                if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
+                    new_basic_characters.set(pair.first);
+                }
+            }
+            basic_characters = new_basic_characters;
+        }
+    }
+
+    return [basic_characters, negated_characters](const StringView character) -> bool {
+        if (basic_characters.is_empty() && negated_characters.is_empty())
+            return false;
+        return ((negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
+            && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr));
+    };
+}
+
 std::pair<bool, StringView> StringObject::prev_char_result(size_t *index) const {
     return m_encoding->prev_char(m_string, index);
 }
@@ -667,85 +743,12 @@ Value StringObject::concat(Env *env, Args args) {
 }
 
 Value StringObject::count(Env *env, Args args) {
-    args.ensure_argc_at_least(env, 1);
-
-    auto basic_characters = Hashmap<String>(HashType::TMString);
-    auto negated_characters = Hashmap<String>(HashType::TMString);
-
-    // For each argument
-    for (size_t i = 0; i < args.size(); ++i) {
-        auto arg = args[i];
-
-        // Try convert to string
-        auto selectors = arg->to_str(env);
-        auto new_selectors = Hashmap<String>(HashType::TMString);
-        StringView last_character = {};
-        bool negated = false;
-        // Split into selectors
-        auto it = selectors->begin();
-        if (*it == "^") {
-            ++it;
-
-            if (it != selectors->end()) {
-                negated = true;
-            } else {
-                new_selectors.set("^");
-            }
-        }
-        for (; it != selectors->end(); ++it) {
-            auto value = *it;
-            if (value == "-" && last_character != StringView()) {
-                ++it;
-                if (it == selectors->end()) {
-                    new_selectors.set(value.to_string());
-                    break;
-                }
-
-                auto next_value = *it;
-                if (last_character.to_string().cmp(next_value.to_string()) == 1)
-                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
-
-                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
-                auto all_chars = range->to_a(env)->as_array();
-                for (auto character : *all_chars) {
-                    auto character_string = character->as_string()->string();
-                    new_selectors.set(character_string);
-                }
-                last_character = StringView();
-            } else {
-                last_character = value;
-                new_selectors.set(value.to_string());
-            }
-        }
-
-        // intersect with current selectors
-        if (negated) {
-            for (auto pair : new_selectors) {
-                negated_characters.set(pair.first);
-            }
-        } else {
-            auto new_basic_characters = Hashmap<String>(HashType::TMString);
-            for (auto pair : new_selectors) {
-                if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
-                    new_basic_characters.set(pair.first);
-                }
-            }
-            basic_characters = new_basic_characters;
-        }
-    }
-
-    // apply selectors
     nat_int_t total_count = 0;
-    if (!negated_characters.is_empty() || !basic_characters.is_empty()) {
-        for (auto character : *this) {
-            if (
-                (negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
-                && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr)) {
-                total_count++;
-            }
-        }
+    auto handler = character_class_handler(env, args);
+    for (auto character : *this) {
+        if (handler(character))
+            total_count++;
     }
-
     return IntegerObject::create(total_count);
 }
 
