@@ -230,6 +230,7 @@ void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_error);
     visitor.visit(m_block);
     visitor.visit(m_storage);
+    visitor.visit(m_thread);
     visit_children_from_stack(visitor);
 }
 
