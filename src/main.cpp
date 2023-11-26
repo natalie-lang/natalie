@@ -74,7 +74,6 @@ int main(int argc, char *argv[]) {
 
     Env *env = ::build_top_env();
     ThreadObject::build_main_thread(__builtin_frame_address(0));
-    FiberObject::build_main_fiber(__builtin_frame_address(0));
 
     trap_sigint();
 

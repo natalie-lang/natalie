@@ -1,10 +1,11 @@
 #include <signal.h>
 
 #include "natalie.hpp"
+#include "natalie/thread_object.hpp"
 
 thread_local Natalie::ThreadObject *tl_current_thread = nullptr;
 
-static void set_end_of_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
+static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
 #if defined(__APPLE__)
     auto start = pthread_get_stackaddr_np(thread_id);
     assert(start);
@@ -34,7 +35,9 @@ void *nat_create_thread(void *thread_object) {
     tl_current_thread = thread;
 
     auto thread_id = thread->thread_id();
-    set_end_of_stack_for_thread(thread_id, thread);
+    set_stack_for_thread(thread_id, thread);
+
+    thread->build_main_fiber();
 
     thread->set_status(Natalie::ThreadObject::Status::Active);
 
@@ -68,10 +71,15 @@ void ThreadObject::build_main_thread(void *start_of_stack) {
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
     thread->m_thread_id = pthread_self();
-    set_end_of_stack_for_thread(thread->m_thread_id, thread);
+    set_stack_for_thread(thread->m_thread_id, thread);
+    thread->build_main_fiber();
     s_main = thread;
     s_main_id = thread->m_thread_id;
     tl_current_thread = thread;
+}
+
+void ThreadObject::build_main_fiber() {
+    m_current_fiber = m_main_fiber = FiberObject::build_main_fiber(this, m_start_of_stack);
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
@@ -164,6 +172,8 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_block);
     visitor.visit(m_storage);
     visitor.visit(m_exception);
+    visitor.visit(m_current_fiber);
+    visitor.visit(m_main_fiber);
     visit_children_from_stack(visitor);
 }
 

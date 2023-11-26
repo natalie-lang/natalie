@@ -22,4 +22,15 @@ describe 'Thread' do
     threads.each(&:join)
     $results.size.should == 10
   end
+
+  describe 'Fibers within threads' do
+    it 'works' do
+      Thread.new do
+        @f = Fiber.new do
+          1
+        end
+        @f.resume.should == 1
+      end
+    end
+  end
 end

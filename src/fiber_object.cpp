@@ -1,18 +1,17 @@
 #include "natalie.hpp"
+#include "natalie/thread_object.hpp"
 
 #define MINICORO_IMPL
 #include "minicoro.h"
 
 namespace Natalie {
 
-void FiberObject::build_main_fiber(void *start_of_stack) {
-    assert(!s_main); // can only be built once
+FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_stack) {
     auto fiber = new FiberObject;
     assert(start_of_stack);
     fiber->m_start_of_stack = start_of_stack;
-    fiber->m_thread = ThreadObject::main();
-    s_main = fiber;
-    s_current = fiber;
+    fiber->m_thread = thread;
+    return fiber;
 }
 
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
@@ -81,13 +80,13 @@ Value FiberObject::blocking(Env *env, Block *block) {
 }
 
 Value FiberObject::is_blocking_current() {
-    return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
+    return current()->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
 }
 
 Value FiberObject::ref(Env *env, Value key) {
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
-    auto fiber = s_current;
+    auto fiber = current();
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
     if (fiber->m_storage == nullptr)
@@ -98,9 +97,9 @@ Value FiberObject::ref(Env *env, Value key) {
 Value FiberObject::refeq(Env *env, Value key, Value value) {
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
-    if (s_current->m_storage == nullptr)
-        s_current->m_storage = new HashObject {};
-    s_current->m_storage->refeq(env, key, value);
+    if (current()->m_storage == nullptr)
+        current()->m_storage = new HashObject {};
+    current()->m_storage->refeq(env, key, value);
     return value;
 }
 
@@ -112,9 +111,9 @@ Value FiberObject::resume(Env *env, Args args) {
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
 
-    auto suspending_fiber = s_current;
-    m_previous_fiber = s_current;
-    s_current = this;
+    auto suspending_fiber = current();
+    m_previous_fiber = current();
+    ThreadObject::current()->m_current_fiber = this;
 
     set_args(args);
 
@@ -219,10 +218,11 @@ Value FiberObject::yield(Env *env, Args args) {
 
 void FiberObject::swap_current(Env *env, Args args) {
     assert(m_previous_fiber);
-    s_current = m_previous_fiber;
-    s_current->set_args(args);
+    auto new_current = m_previous_fiber;
+    ThreadObject::current()->m_current_fiber = new_current;
+    new_current->set_args(args);
     m_previous_fiber = nullptr;
-    ThreadObject::current()->set_start_of_stack(s_current->start_of_stack());
+    ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
 }
 
 void FiberObject::visit_children(Visitor &visitor) {
@@ -277,6 +277,15 @@ void FiberObject::set_args(Args args) {
         m_args.push(args[i]);
     }
 }
+
+FiberObject *FiberObject::current() {
+    return ThreadObject::current()->current_fiber();
+}
+
+FiberObject *FiberObject::main() {
+    return ThreadObject::current()->main_fiber();
+}
+
 }
 
 extern "C" {

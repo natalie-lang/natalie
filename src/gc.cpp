@@ -128,8 +128,6 @@ void Heap::collect(bool guard = true) {
     visitor.visit(NilObject::the());
     visitor.visit(TrueObject::the());
     visitor.visit(FalseObject::the());
-    visitor.visit(FiberObject::main());
-    visitor.visit(FiberObject::current());
     for (auto thread : ThreadObject::list())
         visitor.visit(thread);
 

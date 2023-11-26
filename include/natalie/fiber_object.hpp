@@ -53,7 +53,7 @@ public:
         mco_destroy(m_coroutine);
     }
 
-    static void build_main_fiber(void *start_of_stack);
+    static FiberObject *build_main_fiber(ThreadObject *, void *);
 
     constexpr static int STACK_SIZE = 1024 * 1024;
 
@@ -113,9 +113,8 @@ public:
             m_start_of_stack);
     }
 
-    static FiberObject *current() { return s_current; }
-
-    static FiberObject *main() { return s_main; }
+    static FiberObject *current();
+    static FiberObject *main();
 
     Vector<Value> &args() { return m_args; }
     void set_args(Args args);
@@ -141,8 +140,6 @@ private:
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
 
-    inline static FiberObject *s_current = nullptr;
-    inline static FiberObject *s_main = nullptr;
     inline static Value s_scheduler { nullptr };
 };
 

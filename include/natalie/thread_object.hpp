@@ -84,6 +84,10 @@ public:
 
     pthread_t thread_id() const { return m_thread_id; }
 
+    void build_main_fiber();
+    FiberObject *main_fiber() { return m_main_fiber; }
+    FiberObject *current_fiber() { return m_current_fiber; }
+
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
@@ -112,12 +116,16 @@ public:
     static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
 
 private:
+    friend FiberObject;
+
     Block *m_block { nullptr };
     HashObject *m_storage { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id { 0 };
     ExceptionObject *m_exception { nullptr };
+    FiberObject *m_main_fiber { nullptr };
+    FiberObject *m_current_fiber { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
