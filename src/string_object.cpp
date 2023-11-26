@@ -764,6 +764,14 @@ Value StringObject::crypt(Env *env, Value salt) {
     return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
 }
 
+Value StringObject::delete_str(Env *env, Args selectors) {
+    return dup(env)->as_string()->delete_in_place(env, std::move(selectors));
+}
+
+Value StringObject::delete_in_place(Env *env, Args selectors) {
+    return this;
+}
+
 bool StringObject::eq(Env *env, Value arg) {
     if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
         return arg->send(env, "=="_s, { this });

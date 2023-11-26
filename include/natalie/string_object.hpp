@@ -306,6 +306,8 @@ public:
     Value concat(Env *env, Args args);
     Value count(Env *env, Args args);
     Value crypt(Env *, Value);
+    Value delete_str(Env *, Args);
+    Value delete_in_place(Env *, Args);
     Value delete_prefix(Env *, Value);
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
