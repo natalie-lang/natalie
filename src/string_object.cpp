@@ -778,8 +778,16 @@ Value StringObject::delete_str(Env *env, Args selectors) {
 Value StringObject::delete_in_place(Env *env, Args selectors) {
     assert_not_frozen(env);
     const auto old_len = bytesize();
-    // TODO: Replace the output
-    character_class_handler(env, selectors);
+    auto handler = character_class_handler(env, selectors);
+    size_t index = 0;
+    while (index < m_string.size()) {
+        const auto old_index = index;
+        auto character = next_char(&index);
+        if (handler(character)) {
+            m_string.replace_bytes(old_index, character.size(), "");
+            index = old_index;
+        }
+    }
     if (bytesize() == old_len)
         return NilObject::the();
     return this;
