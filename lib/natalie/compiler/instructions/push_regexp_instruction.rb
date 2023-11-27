@@ -3,6 +3,8 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class PushRegexpInstruction < BaseInstruction
+      include StringToCpp
+
       def initialize(regexp)
         @regexp = regexp
       end
@@ -12,8 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        source = @regexp.source.inspect.gsub(/\\#(\$|@)/, '#\1')
-        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{source}, #{@regexp.options}))")
+        transform.exec_and_push(:regexp, "Value(RegexpObject::literal(env, #{string_to_cpp(@regexp.source)}, #{@regexp.options}))")
       end
 
       def execute(vm)
