@@ -15,6 +15,15 @@ describe 'regexp' do
     r.inspect.should == '/foo 2/'
   end
 
+  it 'can handle the # character with or without string interpolation' do
+    /\#foo/.should =~ '#foo'
+    /#foo/.should =~ '#foo'
+    /#$1/.should =~ '#$1'
+    @bar = 'x'
+    /#@bar/.should =~ 'x'
+    /\#@bar/.should =~ '#@bar'
+  end
+
   describe '.new' do
     it 'can be created with a string or another regexp' do
       r1 = Regexp.new('foo.*bar')
