@@ -24,13 +24,18 @@ static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thr
 #endif
 }
 
-extern "C" {
+static void nat_thread_finish(void *thread_object) {
+    auto thread = (Natalie::ThreadObject *)thread_object;
+    thread->set_status(Natalie::ThreadObject::Status::Dead);
+}
 
-void *nat_create_thread(void *thread_object) {
+static void *nat_create_thread(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
+
+    pthread_cleanup_push(nat_thread_finish, thread);
 
     auto thread_id = pthread_self();
 
@@ -49,15 +54,16 @@ void *nat_create_thread(void *thread_object) {
     Natalie::Env e {};
     try {
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
-        thread->set_status(Natalie::ThreadObject::Status::Dead);
         pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
-        thread->set_status(Natalie::ThreadObject::Status::Dead);
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
+        pthread_exit(Natalie::NilObject::the());
     }
-    return Natalie::NilObject::the();
-}
+
+    pthread_cleanup_pop(0);
+
+    NAT_UNREACHABLE();
 }
 
 namespace Natalie {

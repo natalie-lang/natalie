@@ -7,6 +7,8 @@
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
+#include <atomic>
+
 namespace Natalie {
 
 class ThreadObject : public Object {
@@ -132,7 +134,7 @@ private:
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
-    Status m_status { Status::Created };
+    std::atomic<Status> m_status { Status::Created };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
     bool m_sleeping { false };
