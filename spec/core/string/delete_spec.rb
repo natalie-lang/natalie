@@ -62,7 +62,7 @@ describe "String#delete" do
   end
 
   it "respects backslash for escaping a -" do
-    NATFIXME 'respects backslash for escaping a -', exception: SpecFailedException do
+    NATFIXME 'respects backslash for escaping a -', exception: ArgumentError do
       'Non-Authoritative Information'.delete(' \-\'').should ==
         'NonAuthoritativeInformation'
     end
@@ -93,11 +93,9 @@ describe "String#delete" do
   end
 
   it "raises a TypeError when one set arg can't be converted to a string" do
-    NATFIXME "raises a TypeError when one set arg can't be converted to a string", exception: SpecFailedException do
-      -> { "hello world".delete(100)       }.should raise_error(TypeError)
-      -> { "hello world".delete([])        }.should raise_error(TypeError)
-      -> { "hello world".delete(mock('x')) }.should raise_error(TypeError)
-    end
+    -> { "hello world".delete(100)       }.should raise_error(TypeError)
+    -> { "hello world".delete([])        }.should raise_error(TypeError)
+    -> { "hello world".delete(mock('x')) }.should raise_error(TypeError)
   end
 
   it "returns String instances when called on a subclass" do

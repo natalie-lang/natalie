@@ -779,6 +779,7 @@ Value StringObject::delete_in_place(Env *env, Args selectors) {
     assert_not_frozen(env);
     const auto old_len = bytesize();
     // TODO: Replace the output
+    character_class_handler(env, selectors);
     if (bytesize() == old_len)
         return NilObject::the();
     return this;
