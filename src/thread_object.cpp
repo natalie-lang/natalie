@@ -42,7 +42,6 @@ void *nat_create_thread(void *thread_object) {
     tl_current_thread = thread;
 
     thread->build_main_fiber();
-
     thread->set_status(Natalie::ThreadObject::Status::Active);
 
     auto block = thread->block();
@@ -50,13 +49,14 @@ void *nat_create_thread(void *thread_object) {
     Natalie::Env e {};
     try {
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
-        thread->set_status(Natalie::ThreadObject::Status::Terminated);
-        return return_value.object();
+        thread->set_status(Natalie::ThreadObject::Status::Dead);
+        pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
+        thread->set_status(Natalie::ThreadObject::Status::Dead);
         Natalie::handle_top_level_exception(&e, exception, false);
-        thread->set_status(Natalie::ThreadObject::Status::Errored);
-        return Natalie::NilObject::the();
+        thread->set_exception(exception);
     }
+    return Natalie::NilObject::the();
 }
 }
 
@@ -107,24 +107,30 @@ Value ThreadObject::status(Env *env) {
         return new StringObject { "run" };
     case Status::Active:
         return new StringObject { m_sleeping ? "sleep" : "run" };
-    case Status::Errored:
-        return NilObject::the();
-    case Status::Terminated:
+    case Status::Dead:
+        if (m_exception)
+            return NilObject::the();
         return FalseObject::the();
     }
     NAT_UNREACHABLE();
 }
 
-Value ThreadObject::join(Env *) const {
+Value ThreadObject::join(Env *) {
+    if (m_status == Status::Dead)
+        return this;
+
     void *return_value = nullptr;
     auto result = pthread_join(m_thread_id, &return_value);
 
     // TODO: handle error more gracefully
     assert(result == 0);
 
-    // TODO
-    // return (Object *)return_value;
-    return NilObject::the();
+    m_status = Status::Dead;
+
+    if (return_value)
+        m_value = (Object *)return_value;
+
+    return this;
 }
 
 Value ThreadObject::kill(Env *) {
@@ -133,7 +139,7 @@ Value ThreadObject::kill(Env *) {
 
     std::lock_guard<std::mutex> lock(g_thread_mutex);
     pthread_kill(m_thread_id, SIGINT);
-    m_status = Status::Terminated;
+    m_status = Status::Dead;
 
     return NilObject::the();
 }
@@ -153,6 +159,20 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
         kill(env);
     }
     return NilObject::the();
+}
+
+Value ThreadObject::value(Env *env) {
+    struct timespec request = { 0, 10000 };
+    while (m_status == Status::Created)
+        nanosleep(&request, nullptr);
+
+    if (m_status == Status::Active)
+        join(env);
+
+    if (!m_value)
+        return NilObject::the();
+
+    return m_value;
 }
 
 Value ThreadObject::ref(Env *env, Value key) {
@@ -175,10 +195,11 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_block);
-    visitor.visit(m_storage);
-    visitor.visit(m_exception);
     visitor.visit(m_current_fiber);
+    visitor.visit(m_exception);
     visitor.visit(m_main_fiber);
+    visitor.visit(m_storage);
+    visitor.visit(m_value);
     visit_children_from_stack(visitor);
 }
 

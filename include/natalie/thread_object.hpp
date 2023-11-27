@@ -3,6 +3,7 @@
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/hash_object.hpp"
+#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
@@ -11,10 +12,9 @@ namespace Natalie {
 class ThreadObject : public Object {
 public:
     enum class Status {
-        Created,
-        Active,
-        Terminated,
-        Errored,
+        Created, // before thread is started
+        Active, // thread is running
+        Dead, // thread has exited (or had an exception)
     };
 
     ThreadObject()
@@ -71,10 +71,11 @@ public:
         return m_thread_id == s_main_id;
     }
 
-    Value join(Env *) const;
+    Value join(Env *);
     Value kill(Env *);
     Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup() { return NilObject::the(); }
+    Value value(Env *);
 
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
@@ -125,6 +126,7 @@ private:
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id { 0 };
     ExceptionObject *m_exception { nullptr };
+    Object *m_value { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
 #ifdef __SANITIZE_ADDRESS__
