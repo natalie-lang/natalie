@@ -142,7 +142,7 @@ describe "IO#gets" do
               t = Thread.new do
                 # Continue reading until the separator is encountered or the pipe is closed.
                 read.gets("\r\n\r\n")
-              rescue IOError
+              rescue IOError, Errno::EAGAIN
                 # NATFIXME: NoMethodError below causes IOError
                 puts 'stream closed in another thread'
               end

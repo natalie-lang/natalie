@@ -444,9 +444,10 @@ describe "String#split with Regexp" do
     str = 'a,b,c,d,e'
 
     p = proc { str.split(/,/) }
-    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `value'" do
+    NATFIXME 'Maybe need a mutex in RegexpObject::search() or StringObject::split()', exception: SpecFailedException do
       results = 10.times.map { Thread.new { x = nil; 100.times { x = p.call }; x } }.map(&:value)
 
+      results << nil # NATFIXME: remove this once above bug is fixed
       results.should == [%w[a b c d e]] * 10
     end
   end
