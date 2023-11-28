@@ -1906,9 +1906,10 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
     StringObject *replacement = nullptr;
-    if (!block) {
+    if (replacement_value) {
         replacement_value->assert_type(env, Object::Type::String, "String");
         replacement = replacement_value->as_string();
+        block = nullptr;
     }
 
     if (find->is_string()) {
@@ -1954,6 +1955,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     if (replacement_value) {
         replacement_value->assert_type(env, Object::Type::String, "String");
         replacement = replacement_value->as_string();
+        block = nullptr;
     }
 
     if (find->is_string()) {

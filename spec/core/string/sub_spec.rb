@@ -16,9 +16,7 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "ignores a block if supplied" do
-    NATFIXME 'Ignore block', exception: SpecFailedException do
-      "food".sub(/f/, "g") { "w" }.should == "good"
-    end
+    "food".sub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the string" do

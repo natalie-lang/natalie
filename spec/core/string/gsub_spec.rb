@@ -45,9 +45,7 @@ describe "String#gsub with pattern and replacement" do
   end
 
   it "ignores a block if supplied" do
-    NATFIXME 'ignores a block if supplied', exception: SpecFailedException do
-      "food".gsub(/f/, "g") { "w" }.should == "good"
-    end
+    "food".gsub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the remaining (non-matched) string" do
