@@ -54,7 +54,8 @@ static void *nat_create_thread(void *thread_object) {
     Natalie::Env e {};
     try {
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
-        pthread_exit(return_value.object());
+        thread->set_value(return_value);
+        pthread_exit(nullptr);
     } catch (Natalie::ExceptionObject *exception) {
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
@@ -101,8 +102,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
-    auto result = pthread_create(&m_thread_id, nullptr, nat_create_thread, (void *)this);
-    assert(result == 0);
+    m_thread = std::thread { nat_create_thread, (void *)this };
 
     return this;
 }
@@ -121,20 +121,30 @@ Value ThreadObject::status(Env *env) {
     NAT_UNREACHABLE();
 }
 
-Value ThreadObject::join(Env *) {
-    if (m_status == Status::Dead)
-        return this;
+Value ThreadObject::join(Env *env) {
+    if (is_current())
+        env->raise("ThreadError", "Target thread must not be current thread");
 
-    void *return_value = nullptr;
-    auto result = pthread_join(m_thread_id, &return_value);
+    if (is_main())
+        env->raise("ThreadError", "Target thread must not be main thread");
 
-    // TODO: handle error more gracefully
-    assert(result == 0);
+    try {
+        m_thread.join();
+    } catch (std::system_error &e) {
+        if (e.code() == std::errc::invalid_argument) {
+            // no biggie - thread was already joined
+        } else {
+            printf("Unable to join thread: %s (%d)", e.what(), e.code().value());
+            abort();
+        }
+    }
+    // TODO: catch std::system_error...
+    // Error conditions:
+    // - resource_deadlock_would_occur if this->get_id() == std::this_thread::get_id() (deadlock detected).
+    // - no_such_process if the thread is not valid.
+    // - invalid_argument if joinable() is false.
 
     m_status = Status::Dead;
-
-    if (return_value)
-        m_value = (Object *)return_value;
 
     return this;
 }
@@ -172,8 +182,7 @@ Value ThreadObject::value(Env *env) {
     while (m_status == Status::Created)
         nanosleep(&request, nullptr);
 
-    if (m_status == Status::Active)
-        join(env);
+    join(env);
 
     if (!m_value)
         return NilObject::the();

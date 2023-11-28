@@ -8,6 +8,7 @@
 #include "natalie/symbol_object.hpp"
 
 #include <atomic>
+#include <thread>
 
 namespace Natalie {
 
@@ -73,17 +74,23 @@ public:
         return m_thread_id == s_main_id;
     }
 
+    bool is_current() const {
+        return m_thread_id == pthread_self();
+    }
+
     Value join(Env *);
     Value kill(Env *);
     Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup() { return NilObject::the(); }
+
+    void set_value(Value value) { m_value = value; }
     Value value(Env *);
 
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
-    bool is_sleeping() const { return m_sleeping; }
     void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
+    bool is_sleeping() const { return m_sleeping; }
 
     void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
     pthread_t thread_id() const { return m_thread_id; }
@@ -127,8 +134,9 @@ private:
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id { 0 };
+    std::thread m_thread {};
     ExceptionObject *m_exception { nullptr };
-    Object *m_value { nullptr };
+    Value m_value { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
 #ifdef __SANITIZE_ADDRESS__
