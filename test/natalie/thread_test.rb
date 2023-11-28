@@ -34,7 +34,21 @@ describe 'Thread' do
     it 'returns the thread' do
       t = Thread.new { 1 }
       t.join.should == t
+    end
+
+    it 'can be called multiple times' do
+      t = Thread.new { 1 }
       t.join.should == t
+
+      # make sure thread id reuse doesn't cause later join to block
+      other_threads = 1.upto(100).map { Thread.new { sleep } }
+      sleep 1
+
+      # if the thread id gets reused and we are using pthread_join with that id,
+      # then this will block on one of the above threads.
+      10.times { t.join.should == t }
+
+      other_threads.each(&:kill)
     end
   end
 

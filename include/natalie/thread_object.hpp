@@ -143,6 +143,7 @@ private:
     void *m_asan_fake_stack { nullptr };
 #endif
     std::atomic<Status> m_status { Status::Created };
+    std::atomic<bool> m_joined { false };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
     bool m_sleeping { false };

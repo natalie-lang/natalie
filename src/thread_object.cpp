@@ -128,6 +128,9 @@ Value ThreadObject::join(Env *env) {
     if (is_main())
         env->raise("ThreadError", "Target thread must not be main thread");
 
+    if (m_joined)
+        return this;
+
     try {
         m_thread.join();
     } catch (std::system_error &e) {
@@ -138,13 +141,9 @@ Value ThreadObject::join(Env *env) {
             abort();
         }
     }
-    // TODO: catch std::system_error...
-    // Error conditions:
-    // - resource_deadlock_would_occur if this->get_id() == std::this_thread::get_id() (deadlock detected).
-    // - no_such_process if the thread is not valid.
-    // - invalid_argument if joinable() is false.
 
     m_status = Status::Dead;
+    m_joined = true;
 
     return this;
 }
