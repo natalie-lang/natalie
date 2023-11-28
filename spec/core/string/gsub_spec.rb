@@ -3,27 +3,28 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 describe :string_gsub_named_capture, shared: true do
-  # NATFIXME: Unknown backslash reference: \k
-  xit "replaces \\k named backreferences with the regexp's corresponding capture" do
+  it "replaces \\k named backreferences with the regexp's corresponding capture" do
     str = "hello"
 
-    str.gsub(/(?<foo>[aeiou])/, '<\k<foo>>').should == "h<e>ll<o>"
-    str.gsub(/(?<foo>.)/, '\k<foo>\k<foo>').should == "hheelllloo"
+    NATFIXME 'Unknown backslash reference: \k', exception: SpecFailedException do
+      str.gsub(/(?<foo>[aeiou])/, '<\k<foo>>').should == "h<e>ll<o>"
+      str.gsub(/(?<foo>.)/, '\k<foo>\k<foo>').should == "hheelllloo"
+    end
   end
 end
 
 describe "String#gsub with pattern and replacement" do
-  # NATFIXME: Fix infinite loop
-  xit "inserts the replacement around every character when the pattern collapses" do
+  it "inserts the replacement around every character when the pattern collapses" do
     "hello".gsub(//, ".").should == ".h.e.l.l.o."
   end
 
-  # NATFIXME: Fix infinite loop
-  xit "respects unicode when the pattern collapses" do
+  it "respects unicode when the pattern collapses" do
     str = "こにちわ"
     reg = %r!!
 
-    str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    end
   end
 
   it "doesn't freak out when replacing ^" do
@@ -37,9 +38,10 @@ describe "String#gsub with pattern and replacement" do
     str = "hello homely world. hah!"
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
 
-    # NATFIXME: Fix infinite loop
-    # str = "¿por qué?"
-    # str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
+    str = "¿por qué?"
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
+    end
   end
 
   it "ignores a block if supplied" do
@@ -85,12 +87,10 @@ describe "String#gsub with pattern and replacement" do
   it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("h", '<\1>').should == "<>ello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(/./, '\1\2\3').should == ""
     str.gsub(/.(.{20})?/, '\1').should == ""
   end
@@ -112,77 +112,80 @@ describe "String#gsub with pattern and replacement" do
     str.gsub(/(.)./, '<\0>').should == "<he><ll><o!>"
   end
 
-  # NATFIXME: .Unknown backslash reference: \`
-  xit "replaces \\` with everything before the current match" do
+  it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-    str.gsub("h", '<\`>').should == "<>ello!"
-    str.gsub("l", '<\`>').should == "he<he><hel>o!"
-    str.gsub("!", '<\`>').should == "hello<hello>"
+    NATFIXME 'Unknown backslash reference: \`', exception: SpecFailedException do
+      str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+      str.gsub("h", '<\`>').should == "<>ello!"
+      str.gsub("l", '<\`>').should == "he<he><hel>o!"
+      str.gsub("!", '<\`>').should == "hello<hello>"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-    str.gsub(/../, '<\`>').should == "<><he><hell>"
+      str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+      str.gsub(/../, '<\`>').should == "<><he><hell>"
+    end
   end
 
-  # NATFIXME: Unknown backslash reference: \'
-  xit "replaces \\' with everything after the current match" do
+  it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
-    str.gsub("h", '<\\\'>').should == "<ello!>ello!"
-    str.gsub("ll", '<\\\'>').should == "he<o!>o!"
-    str.gsub("!", '<\\\'>').should == "hello<>"
+    NATFIXME 'Unknown backslash reference: \'', exception: SpecFailedException do
+      str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+      str.gsub("h", '<\\\'>').should == "<ello!>ello!"
+      str.gsub("ll", '<\\\'>').should == "he<o!>o!"
+      str.gsub("!", '<\\\'>').should == "hello<>"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
-    str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
+      str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+      str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
+    end
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "replaces \\+ with the last paren that actually matched" do
+  it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
-    str.gsub(/(.)(.)/, '\+').should == "el!"
-    str.gsub(/(.)(.)+/, '\+').should == "!"
-    str.gsub(/(.)()/, '\+').should == ""
-    str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
+    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
+      str.gsub(/(.)(.)/, '\+').should == "el!"
+      str.gsub(/(.)(.)+/, '\+').should == "!"
+      str.gsub(/(.)()/, '\+').should == ""
+      str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
 
-    str = "ABCDEFGHIJKLabcdefghijkl"
-    re = /#{"(.)" * 12}/
-    str.gsub(re, '\+').should == "Ll"
+      str = "ABCDEFGHIJKLabcdefghijkl"
+      re = /#{"(.)" * 12}/
+      str.gsub(re, '\+').should == "Ll"
+    end
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "treats \\+ as an empty string if there was no captures" do
-    "hello!".gsub(/./, '\+').should == ""
+  it "treats \\+ as an empty string if there was no captures" do
+    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
+      "hello!".gsub(/./, '\+').should == ""
+    end
   end
 
   it "maps \\\\ in replacement to \\" do
     "hello".gsub(/./, '\\\\').should == '\\' * 5
   end
 
-  # NATFIXME: .Unknown backslash reference: \x
-  xit "leaves unknown \\x escapes in replacement untouched" do
-    "hello".gsub(/./, '\\x').should == '\\x' * 5
-    "hello".gsub(/./, '\\y').should == '\\y' * 5
+  it "leaves unknown \\x escapes in replacement untouched" do
+    NATFIXME 'Unknown backslash reference: \x', exception: SpecFailedException do
+      "hello".gsub(/./, '\\x').should == '\\x' * 5
+      "hello".gsub(/./, '\\y').should == '\\y' * 5
+    end
   end
 
-  # NATFIXME: Unknown backslash reference: \
-  xit "leaves \\ at the end of replacement untouched" do
-    "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
+  it "leaves \\ at the end of replacement untouched" do
+    NATFIXME 'Unknown backslash reference: \\', exception: SpecFailedException do
+      "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
+    end
   end
 
   it_behaves_like :string_gsub_named_capture, :gsub
 
-  # NATFIXME: Fix infinite loop
-  xit "handles pattern collapse" do
+  it "handles pattern collapse" do
     str = "こにちわ"
     reg = %r!!
-    str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    end
   end
 
   it "tries to convert pattern to a string using to_str" do
@@ -216,8 +219,7 @@ describe "String#gsub with pattern and replacement" do
   end
 
   it "returns String instances when called on a subclass" do
-    # NATFIXME: Fix infinite loop
-    # StringSpecs::MyString.new("").gsub(//, "").should be_an_instance_of(String)
+    StringSpecs::MyString.new("").gsub(//, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("").gsub(/foo/, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("foo").gsub(/foo/, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("foo").gsub("foo", "").should be_an_instance_of(String)
@@ -299,9 +301,9 @@ describe "String#gsub with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    # obj.should_receive(:to_s).and_return('!')
-    hsh['!'] = obj
     NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+      obj.should_receive(:to_s).and_return('!')
+      hsh['!'] = obj
       "food!".gsub(/./, hsh).should == "[]00[]!"
     end
   end
@@ -586,11 +588,12 @@ describe "String#gsub! with pattern and replacement" do
     a.should == "h*ll*"
   end
 
-  # NATFIXME: Fix infinite loop
-  xit "modifies self in place with multi-byte characters and returns self" do
+  it "modifies self in place with multi-byte characters and returns self" do
     a = "¿por qué?"
-    a.gsub!(/([a-z\d]*)/, "*").should equal(a)
-    a.should == "*¿** **é*?*"
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      a.gsub!(/([a-z\d]*)/, "*").should equal(a)
+      a.should == "*¿** **é*?*"
+    end
   end
 
   it "returns nil if no modifications were made" do
