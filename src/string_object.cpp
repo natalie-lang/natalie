@@ -581,10 +581,11 @@ Value StringObject::add(Env *env, Value arg) const {
 }
 
 Value StringObject::mul(Env *env, Value arg) const {
-    auto nat_int = IntegerObject::convert_to_nat_int_t(env, arg);
-    if (nat_int < 0)
+    auto int_arg = arg->to_int(env);
+    if (int_arg->is_negative())
         env->raise("ArgumentError", "negative argument");
 
+    auto nat_int = IntegerObject::convert_to_nat_int_t(env, int_arg);
     if (nat_int && (std::numeric_limits<size_t>::max() / nat_int) < length())
         env->raise("ArgumentError", "argument too big");
 
