@@ -193,6 +193,8 @@ Value RegexpObject::regexp_union(Env *env, Args args) {
                 pattern = pattern->to_str(env);
             auto quoted = RegexpObject::quote(env, pattern);
             out.append(quoted->as_string()->string());
+        } else if (pattern->is_regexp()) {
+            out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
         }
     }
     return new RegexpObject { env, out };
