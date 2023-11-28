@@ -188,13 +188,19 @@ Value RegexpObject::regexp_union(Env *env, Args args) {
     for (auto pattern : *patterns) {
         if (!out.is_empty())
             out.append_char('|');
-        if (pattern->is_string() || pattern->is_symbol() || pattern->respond_to(env, "to_str"_s)) {
-            if (!pattern->is_string() && !pattern->is_symbol())
-                pattern = pattern->to_str(env);
+        if (pattern->respond_to(env, "to_regexp"_s)) {
+            pattern = pattern->send(env, "to_regexp"_s);
+        } else if (pattern->is_symbol()) {
+            pattern = pattern->to_s(env);
+        }
+        if (pattern->is_regexp()) {
+            if (patterns->size() == 1)
+                return pattern;
+            out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
+        } else {
+            pattern = pattern->to_str(env);
             auto quoted = RegexpObject::quote(env, pattern);
             out.append(quoted->as_string()->string());
-        } else if (pattern->is_regexp()) {
-            out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
         }
     }
     return new RegexpObject { env, out };
