@@ -1150,6 +1150,7 @@ gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, p
 gen.static_binding('Regexp', 'escape', 'RegexpObject', 'quote', argc: 1, pass_env: true, pass_block: false, pass_klass: false, aliases: ['quote'], return_type: :Object)
 gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.static_binding('Regexp', 'try_convert', 'RegexpObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding('Regexp', 'union', 'RegexpObject', 'regexp_union', argc: :any, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', '=~', 'RegexpObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', '~', 'RegexpObject', 'tilde', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

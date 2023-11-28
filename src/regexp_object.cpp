@@ -180,6 +180,10 @@ Value RegexpObject::try_convert(Env *env, Value value) {
     return value;
 }
 
+Value RegexpObject::regexp_union(Env *env, Args args) {
+    return RegexpObject::literal(env, "(?!)");
+}
+
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
     if (is_initialized())
