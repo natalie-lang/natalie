@@ -1252,6 +1252,10 @@ module Natalie
         ]
       end
 
+      def transform_implicit_node(node, used:)
+        transform_expression(node.value, used: used)
+      end
+
       def transform_index_and_write_node(node, used:)
         obj = node.receiver
         key_args = node.arguments&.arguments || []
