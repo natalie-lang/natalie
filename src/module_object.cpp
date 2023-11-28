@@ -78,11 +78,14 @@ Value ModuleObject::const_get(SymbolObject *name) const {
         return nullptr;
 }
 
-Value ModuleObject::const_get(Env *env, Value name) {
+Value ModuleObject::const_get(Env *env, Value name, Value inherited) {
     auto symbol = name->to_symbol(env, Object::Conversion::Strict);
     auto constant = const_get(symbol);
-    if (!constant)
+    if (!constant) {
+        if (inherited && inherited->is_falsey())
+            env->raise("NameError", "uninitialized constant {}", symbol->string());
         return send(env, "const_missing"_s, { name });
+    }
     return constant;
 }
 
@@ -928,10 +931,13 @@ Value ModuleObject::public_constant(Env *env, Args args) {
     return this;
 }
 
-bool ModuleObject::const_defined(Env *env, Value name_value) {
+bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
     auto name = name_value->to_symbol(env, Object::Conversion::NullAllowed);
     if (!name) {
         env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
+    }
+    if (inherited && inherited->is_falsey()) {
+        return !!m_constants.get(name);
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
