@@ -142,9 +142,7 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "leaves \\ at the end of replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \\', exception: SpecFailedException do
-      "hello".sub(/./, 'hah\\').should == 'hah\\ello'
-    end
+    "hello".sub(/./, 'hah\\').should == 'hah\\ello'
   end
 
   it "tries to convert pattern to a string using to_str" do

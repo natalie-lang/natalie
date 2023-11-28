@@ -2060,6 +2060,10 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
         auto c = c_str[i];
         switch (c) {
         case '\\':
+            if (i == len - 1) {
+                expanded->append_char('\\');
+                break;
+            }
             c = c_str[++i];
             switch (c) {
             case '0':

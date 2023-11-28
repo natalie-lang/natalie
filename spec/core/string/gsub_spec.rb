@@ -169,9 +169,7 @@ describe "String#gsub with pattern and replacement" do
   end
 
   it "leaves \\ at the end of replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \\', exception: SpecFailedException do
-      "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
-    end
+    "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
   end
 
   it_behaves_like :string_gsub_named_capture, :gsub
