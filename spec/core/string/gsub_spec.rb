@@ -98,21 +98,17 @@ describe "String#gsub with pattern and replacement" do
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
-    # str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("he", '<\0>').should == "<he>llo!"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub("he", '<\&>').should == "<he>llo!"
+    str.gsub("he", '<\&>').should == "<he>llo!"
     str.gsub("l", '<\0>').should == "he<l><l>o!"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub("l", '<\&>').should == "he<l><l>o!"
+    str.gsub("l", '<\&>').should == "he<l><l>o!"
 
-    # str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
-    # str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(/../, '<\0>').should == "<he><ll><o!>"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub(/../, '<\&>').should == "<he><ll><o!>"
+    str.gsub(/../, '<\&>').should == "<he><ll><o!>"
     str.gsub(/(.)./, '<\0>').should == "<he><ll><o!>"
   end
 

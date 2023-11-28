@@ -68,21 +68,18 @@ describe "String#sub with pattern, replacement" do
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
 
-    NATFIXME 'replaces \\& and \\0 with the complete match', exception: SpecFailedException do
-      str.sub("", '<\0>').should == "<>hello!"
-      str.sub("", '<\&>').should == "<>hello!"
-      str.sub("he", '<\0>').should == "<he>llo!"
-      str.sub("he", '<\&>').should == "<he>llo!"
-      str.sub("l", '<\0>').should == "he<l>lo!"
-      str.sub("l", '<\&>').should == "he<l>lo!"
-    end
+    str.sub("", '<\0>').should == "<>hello!"
+    str.sub("", '<\&>').should == "<>hello!"
+    str.sub("he", '<\0>').should == "<he>llo!"
+    str.sub("he", '<\&>').should == "<he>llo!"
+    str.sub("l", '<\0>').should == "he<l>lo!"
+    str.sub("l", '<\&>').should == "he<l>lo!"
 
-    # NATFIXME: Unknown backslash reference: \&
-    # str.sub(//, '<\0>').should == "<>hello!"
-    # str.sub(//, '<\&>').should == "<>hello!"
-    # str.sub(/../, '<\0>').should == "<he>llo!"
-    # str.sub(/../, '<\&>').should == "<he>llo!"
-    # str.sub(/(.)./, '<\0>').should == "<he>llo!"
+    str.sub(//, '<\0>').should == "<>hello!"
+    str.sub(//, '<\&>').should == "<>hello!"
+    str.sub(/../, '<\0>').should == "<he>llo!"
+    str.sub(/../, '<\&>').should == "<he>llo!"
+    str.sub(/(.)./, '<\0>').should == "<he>llo!"
   end
 
   it "replaces \\` with everything before the current match" do
