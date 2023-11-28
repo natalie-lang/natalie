@@ -149,7 +149,7 @@ public:
     Value private_constant(Env *, Args);
     Value public_constant(Env *, Args);
 
-    bool const_defined(Env *, Value);
+    bool const_defined(Env *, Value, Value = nullptr);
     Value alias_method(Env *, Value, Value);
     Value remove_method(Env *, Args);
     Value undef_method(Env *, Args);

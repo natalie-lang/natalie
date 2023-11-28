@@ -38,22 +38,16 @@ describe "Module#const_defined?" do
   end
 
   it "returns false if the constant is defined in the receiver's superclass and the inherit flag is false" do
-    NATFIXME 'Support inherited argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, false).should be_false
-    end
+    ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, false).should be_false
   end
 
   it "returns true if the constant is defined in the receiver's superclass and the inherit flag is true" do
-    NATFIXME 'Support inherited argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, true).should be_true
-    end
+    ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, true).should be_true
   end
 
   it "coerces the inherit flag to a boolean" do
-    NATFIXME 'Support inherited argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, nil).should be_false
-      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, :true).should be_true
-    end
+    ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, nil).should be_false
+    ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, :true).should be_true
   end
 
   it "returns true if the given String names a constant defined in the receiver" do
@@ -131,15 +125,13 @@ describe "Module#const_defined?" do
   end
 
   it "returns true when passed a scoped constant name for a constant in the inheritance hierarchy and the inherited flag is true" do
-    NATFIXME 'Support inherited argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Scoping', exception: SpecFailedException do
       ConstantSpecs::ClassD.const_defined?("ClassE::CS_CONST2", true).should be_true
     end
   end
 
   it "returns false when passed a scoped constant name for a constant in the inheritance hierarchy and the inherited flag is false" do
-    NATFIXME 'Support inherited argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      ConstantSpecs::ClassD.const_defined?("ClassE::CS_CONST2", false).should be_false
-    end
+    ConstantSpecs::ClassD.const_defined?("ClassE::CS_CONST2", false).should be_false
   end
 
   it "returns false when the name begins with '::' and the toplevel constant does not exist" do

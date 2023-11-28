@@ -928,10 +928,13 @@ Value ModuleObject::public_constant(Env *env, Args args) {
     return this;
 }
 
-bool ModuleObject::const_defined(Env *env, Value name_value) {
+bool ModuleObject::const_defined(Env *env, Value name_value, Value inherited) {
     auto name = name_value->to_symbol(env, Object::Conversion::NullAllowed);
     if (!name) {
         env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
+    }
+    if (inherited && inherited->is_falsey()) {
+        return !!m_constants.get(name);
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
