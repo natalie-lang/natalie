@@ -173,6 +173,10 @@ module Natalie
           @compiler_context[:compile_ld_flags] << flags
         end
 
+        def required_ruby_file(filename)
+          @compiler_context[:required_ruby_files].fetch(filename)
+        end
+
         def inspect
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end

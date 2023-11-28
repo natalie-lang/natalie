@@ -2125,11 +2125,7 @@ module Natalie
         end
 
         instructions = [
-          LoadFileInstruction.new(
-            filename,
-            require_once: require_once,
-            required_ruby_files: @required_ruby_files
-          ),
+          LoadFileInstruction.new(filename, require_once: require_once),
         ]
         instructions << PopInstruction.new unless used
         instructions
