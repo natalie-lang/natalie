@@ -55,7 +55,7 @@ public:
     virtual Value const_set(SymbolObject *, Value) override;
     virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *) override;
 
-    Value const_get(Env *, Value);
+    Value const_get(Env *, Value, Value = nullptr);
     Value const_set(Env *, Value, Value);
     void const_remove(SymbolObject *);
     Value constants(Env *, Value) const;

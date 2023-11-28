@@ -71,43 +71,37 @@ describe "Module#const_get" do
   end
 
   it "raises a NameError if the constant is defined in the receiver's superclass and the inherit flag is false" do
-    NATFIXME "raises a NameError if the constant is defined in the receiver's superclass and the inherit flag is false", exception: SpecFailedException do
-      -> do
-        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, false)
-      end.should raise_error(NameError)
-    end
+    -> do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, false)
+    end.should raise_error(NameError)
   end
 
   it "searches into the receiver superclasses if the inherit flag is true" do
-    NATFIXME 'searches into the receiver superclasses if the inherit flag is true', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Behaviour is the same as without the boolean flag', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST4' do
       ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, true).should == :const4
     end
   end
 
   it "raises a NameError when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false" do
-    NATFIXME 'raises a NameError when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false', exception: SpecFailedException do
-      -> do
-        ConstantSpecs::ModuleA.const_get(:CS_CONST1, false)
-      end.should raise_error(NameError)
-    end
+    -> do
+      ConstantSpecs::ModuleA.const_get(:CS_CONST1, false)
+    end.should raise_error(NameError)
   end
 
   it "raises a NameError when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false" do
-    NATFIXME 'raises a NameError when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false', exception: SpecFailedException do
-      -> do
-        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, false)
-      end.should raise_error(NameError)
-    end
+    -> do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, false)
+    end.should raise_error(NameError)
   end
 
   it "coerces the inherit flag to a boolean" do
-    NATFIXME 'coerces the inherit flag to a boolean', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Behaviour is the same as without the boolean flag', exception: NameError, message: 'uninitialized constant ConstantSpecs::ContainerA::ChildA::CS_CONST4' do
       ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, :true).should == :const4
-
-      -> do
-        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, nil)
-      end.should raise_error(NameError)
     end
+
+    -> do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, nil)
+    end.should raise_error(NameError)
   end
 
   it "accepts a toplevel scope qualifier" do
@@ -117,7 +111,7 @@ describe "Module#const_get" do
   end
 
   it "accepts a toplevel scope qualifier when inherit is false" do
-    NATFIXME 'accepts a toplevel scope qualifier when inherit is false', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'accepts a toplevel scope qualifier', exception: NameError, message: 'uninitialized constant ::CS_CONST1' do
       ConstantSpecs.const_get("::CS_CONST1", false).should == :const1
       -> { ConstantSpecs.const_get("CS_CONST1", false) }.should raise_error(NameError)
     end
