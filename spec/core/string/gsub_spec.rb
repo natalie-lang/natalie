@@ -166,10 +166,8 @@ describe "String#gsub with pattern and replacement" do
   end
 
   it "leaves unknown \\x escapes in replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \x', exception: SpecFailedException do
-      "hello".gsub(/./, '\\x').should == '\\x' * 5
-      "hello".gsub(/./, '\\y').should == '\\y' * 5
-    end
+    "hello".gsub(/./, '\\x').should == '\\x' * 5
+    "hello".gsub(/./, '\\y').should == '\\y' * 5
   end
 
   it "leaves \\ at the end of replacement untouched" do

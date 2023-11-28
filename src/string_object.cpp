@@ -2085,8 +2085,15 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
                 expanded->append(match->group(0));
                 break;
             // TODO: there are other back references we need to handle, e.g. \', \`, and \+
-            default:
+            case 'k':
+            case '`':
+            case '\'':
+            case '+':
                 expanded->append(String::format("<unhandled backref: {}>", c));
+                break;
+            default:
+                expanded->append_char('\\');
+                expanded->append_char(c);
                 break;
             }
             break;

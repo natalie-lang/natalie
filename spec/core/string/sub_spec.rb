@@ -139,10 +139,8 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "leaves unknown \\x escapes in replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \x', exception: SpecFailedException do
-      "hello".sub(/./, '\\x').should == '\\xello'
-      "hello".sub(/./, '\\y').should == '\\yello'
-    end
+    "hello".sub(/./, '\\x').should == '\\xello'
+    "hello".sub(/./, '\\y').should == '\\yello'
   end
 
   it "leaves \\ at the end of replacement untouched" do
