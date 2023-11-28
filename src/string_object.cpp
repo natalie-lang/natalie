@@ -1907,13 +1907,12 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
 
     StringObject *replacement = nullptr;
     if (replacement_value) {
-        replacement_value->assert_type(env, Object::Type::String, "String");
-        replacement = replacement_value->as_string();
+        replacement = replacement_value->to_str(env);
         block = nullptr;
     }
 
-    if (find->is_string()) {
-        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+    if (find->is_string() || find->respond_to(env, "to_str"_s)) {
+        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
@@ -1953,13 +1952,12 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
 
     StringObject *replacement = nullptr;
     if (replacement_value) {
-        replacement_value->assert_type(env, Object::Type::String, "String");
-        replacement = replacement_value->as_string();
+        replacement = replacement_value->to_str(env);
         block = nullptr;
     }
 
-    if (find->is_string()) {
-        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+    if (find->is_string() || find->respond_to(env, "to_str"_s)) {
+        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }

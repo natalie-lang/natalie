@@ -188,9 +188,7 @@ describe "String#gsub with pattern and replacement" do
     pattern = mock('.')
     def pattern.to_str() "." end
 
-    NATFIXME 'tries to convert pattern to a string using to_str', exception: TypeError, message: 'expected Regexp' do
-      "hello.".gsub(pattern, "!").should == "hello!"
-    end
+    "hello.".gsub(pattern, "!").should == "hello!"
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
@@ -203,9 +201,7 @@ describe "String#gsub with pattern and replacement" do
     replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
 
-    NATFIXME 'tries to convert replacement to a string using to_str', exception: TypeError, message: 'no implicit conversion' do
-      "hello".gsub(/hello/, replacement).should == "hello_replacement"
-    end
+    "hello".gsub(/hello/, replacement).should == "hello_replacement"
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do

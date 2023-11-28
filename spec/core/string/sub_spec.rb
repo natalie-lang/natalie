@@ -149,11 +149,9 @@ describe "String#sub with pattern, replacement" do
 
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'wrong argument type MockObject (expected Regexp)' do
-      pattern.should_receive(:to_str).and_return(".")
+    pattern.should_receive(:to_str).and_return(".")
 
-      "hello.".sub(pattern, "!").should == "hello!"
-    end
+    "hello.".sub(pattern, "!").should == "hello!"
   end
 
   not_supported_on :opal do
@@ -172,11 +170,9 @@ describe "String#sub with pattern, replacement" do
 
   it "tries to convert replacement to a string using to_str" do
     replacement = mock('hello_replacement')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      replacement.should_receive(:to_str).and_return("hello_replacement")
+    replacement.should_receive(:to_str).and_return("hello_replacement")
 
-      "hello".sub(/hello/, replacement).should == "hello_replacement"
-    end
+    "hello".sub(/hello/, replacement).should == "hello_replacement"
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do
