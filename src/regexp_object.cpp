@@ -181,7 +181,21 @@ Value RegexpObject::try_convert(Env *env, Value value) {
 }
 
 Value RegexpObject::regexp_union(Env *env, Args args) {
-    return RegexpObject::literal(env, "(?!)");
+    auto patterns = args.size() == 1 && args[0]->is_array() ? args[0]->as_array() : args.to_array();
+    if (patterns->is_empty())
+        return RegexpObject::literal(env, "(?!)");
+    String out;
+    for (auto pattern : *patterns) {
+        if (!out.is_empty())
+            out.append_char('|');
+        if (pattern->is_string() || pattern->is_symbol() || pattern->respond_to(env, "to_str"_s)) {
+            if (!pattern->is_string() && !pattern->is_symbol())
+                pattern = pattern->to_str(env);
+            auto quoted = RegexpObject::quote(env, pattern);
+            out.append(quoted->as_string()->string());
+        }
+    }
+    return new RegexpObject { env, out };
 }
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
