@@ -1636,6 +1636,25 @@ module Natalie
         instructions
       end
 
+      def transform_load_file_fake_node(exp, used:)
+        depth_was = @depth
+        _, filename, require_once = exp
+        loaded_file = @required_ruby_files.fetch(filename)
+
+        unless loaded_file.instructions
+          loaded_file.instructions = :generating # set this to avoid endless loop
+          @depth = 0
+          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
+          @depth = depth_was
+        end
+
+        instructions = [
+          LoadFileInstruction.new(filename, require_once: require_once),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_local_variable_and_write_node(node, used:)
         instructions = [
           VariableGetInstruction.new(node.name, default_to_nil: true),
@@ -2108,25 +2127,6 @@ module Natalie
           EndInstruction.new(:while),
         ]
 
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_load_file_fake_node(exp, used:)
-        depth_was = @depth
-        _, filename, require_once = exp
-        loaded_file = @required_ruby_files.fetch(filename)
-
-        unless loaded_file.instructions
-          loaded_file.instructions = :generating # set this to avoid endless loop
-          @depth = 0
-          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
-          @depth = depth_was
-        end
-
-        instructions = [
-          LoadFileInstruction.new(filename, require_once: require_once),
-        ]
         instructions << PopInstruction.new unless used
         instructions
       end
