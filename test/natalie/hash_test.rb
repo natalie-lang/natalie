@@ -18,12 +18,16 @@ describe 'hash' do
       h[:bar].should == 2
     end
 
-    it 'accepts hash key shorthand' do
-      foo = 1
-      bar = 2
-      h = { foo:, bar: }
-      h[:foo].should == 1
-      h[:bar].should == 2
+    ruby_version_is ''...'3.1' do
+      it 'does not accept hash key shorthand' do
+        ruby_exe(fixture(__FILE__, 'hash_hash_key_shorthand_old.rb')).should == "[1, 2]\n"
+      end
+    end
+
+    ruby_version_is '3.1' do
+      it 'accepts hash key shorthand' do
+        ruby_exe(fixture(__FILE__, 'hash_hash_key_shorthand_new.rb')).should == "[1, 2]\n"
+      end
     end
   end
 
