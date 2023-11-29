@@ -2094,9 +2094,14 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '\'':
                 expanded->append(match->post_match(env));
                 break;
-            // TODO: there are other back references we need to handle, e.g. \k and \+
+            case '+': {
+                auto captures = match->captures(env)->to_ary(env)->compact(env)->to_ary(env);
+                if (!captures->is_empty())
+                    expanded->append(captures->last());
+                break;
+            }
+            // TODO: there are other back references we need to handle, e.g. \k
             case 'k':
-            case '+':
                 expanded->append(String::format("<unhandled backref: {}>", c));
                 break;
             default:

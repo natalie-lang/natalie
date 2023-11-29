@@ -110,22 +110,18 @@ describe "String#sub with pattern, replacement" do
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      str.sub(/(.)(.)/, '\+').should == "ello!"
-      str.sub(/(.)(.)+/, '\+').should == "!"
-      str.sub(/(.)()/, '\+').should == "ello!"
-      str.sub(/(.)(.{20})?/, '<\+>').should == "<h>ello!"
+    str.sub(/(.)(.)/, '\+').should == "ello!"
+    str.sub(/(.)(.)+/, '\+').should == "!"
+    str.sub(/(.)()/, '\+').should == "ello!"
+    str.sub(/(.)(.{20})?/, '<\+>').should == "<h>ello!"
 
-      str = "ABCDEFGHIJKL"
-      re = /#{"(.)" * 12}/
-      str.sub(re, '\+').should == "L"
-    end
+    str = "ABCDEFGHIJKL"
+    re = /#{"(.)" * 12}/
+    str.sub(re, '\+').should == "L"
   end
 
   it "treats \\+ as an empty string if there was no captures" do
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      "hello!".sub(/./, '\+').should == "ello!"
-    end
+    "hello!".sub(/./, '\+').should == "ello!"
   end
 
   it "maps \\\\ in replacement to \\" do

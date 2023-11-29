@@ -137,22 +137,18 @@ describe "String#gsub with pattern and replacement" do
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      str.gsub(/(.)(.)/, '\+').should == "el!"
-      str.gsub(/(.)(.)+/, '\+').should == "!"
-      str.gsub(/(.)()/, '\+').should == ""
-      str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
+    str.gsub(/(.)(.)/, '\+').should == "el!"
+    str.gsub(/(.)(.)+/, '\+').should == "!"
+    str.gsub(/(.)()/, '\+').should == ""
+    str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
 
-      str = "ABCDEFGHIJKLabcdefghijkl"
-      re = /#{"(.)" * 12}/
-      str.gsub(re, '\+').should == "Ll"
-    end
+    str = "ABCDEFGHIJKLabcdefghijkl"
+    re = /#{"(.)" * 12}/
+    str.gsub(re, '\+').should == "Ll"
   end
 
   it "treats \\+ as an empty string if there was no captures" do
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      "hello!".gsub(/./, '\+').should == ""
-    end
+    "hello!".gsub(/./, '\+').should == ""
   end
 
   it "maps \\\\ in replacement to \\" do
