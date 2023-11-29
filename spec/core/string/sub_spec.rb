@@ -16,9 +16,7 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "ignores a block if supplied" do
-    NATFIXME 'Ignore block', exception: SpecFailedException do
-      "food".sub(/f/, "g") { "w" }.should == "good"
-    end
+    "food".sub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the string" do
@@ -139,25 +137,19 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "leaves unknown \\x escapes in replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \x', exception: SpecFailedException do
-      "hello".sub(/./, '\\x').should == '\\xello'
-      "hello".sub(/./, '\\y').should == '\\yello'
-    end
+    "hello".sub(/./, '\\x').should == '\\xello'
+    "hello".sub(/./, '\\y').should == '\\yello'
   end
 
   it "leaves \\ at the end of replacement untouched" do
-    NATFIXME 'Unknown backslash reference: \\', exception: SpecFailedException do
-      "hello".sub(/./, 'hah\\').should == 'hah\\ello'
-    end
+    "hello".sub(/./, 'hah\\').should == 'hah\\ello'
   end
 
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'wrong argument type MockObject (expected Regexp)' do
-      pattern.should_receive(:to_str).and_return(".")
+    pattern.should_receive(:to_str).and_return(".")
 
-      "hello.".sub(pattern, "!").should == "hello!"
-    end
+    "hello.".sub(pattern, "!").should == "hello!"
   end
 
   not_supported_on :opal do
@@ -176,11 +168,9 @@ describe "String#sub with pattern, replacement" do
 
   it "tries to convert replacement to a string using to_str" do
     replacement = mock('hello_replacement')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      replacement.should_receive(:to_str).and_return("hello_replacement")
+    replacement.should_receive(:to_str).and_return("hello_replacement")
 
-      "hello".sub(/hello/, replacement).should == "hello_replacement"
-    end
+    "hello".sub(/hello/, replacement).should == "hello_replacement"
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do
