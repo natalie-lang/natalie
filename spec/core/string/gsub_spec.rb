@@ -113,15 +113,13 @@ describe "String#gsub with pattern and replacement" do
   it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \`', exception: SpecFailedException do
-      str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-      str.gsub("h", '<\`>').should == "<>ello!"
-      str.gsub("l", '<\`>').should == "he<he><hel>o!"
-      str.gsub("!", '<\`>').should == "hello<hello>"
+    str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub("h", '<\`>').should == "<>ello!"
+    str.gsub("l", '<\`>').should == "he<he><hel>o!"
+    str.gsub("!", '<\`>').should == "hello<hello>"
 
-      str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-      str.gsub(/../, '<\`>').should == "<><he><hell>"
-    end
+    str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub(/../, '<\`>').should == "<><he><hell>"
   end
 
   it "replaces \\' with everything after the current match" do
