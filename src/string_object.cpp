@@ -2040,7 +2040,7 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
         Value args[1] = { string };
         Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
 
-        *expanded_replacement = replacement_from_block->as_string_or_raise(env);
+        *expanded_replacement = replacement_from_block->to_s(env);
         out.append((*expanded_replacement)->string());
 
         return;

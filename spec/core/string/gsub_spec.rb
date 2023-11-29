@@ -493,16 +493,12 @@ describe "String#gsub with pattern and block" do
     replacement = mock('hello_replacement')
     def replacement.to_s() "hello_replacement" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
-      "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
-    end
+    "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
 
     obj = mock('ok')
     def obj.to_s() "ok" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
-      "hello".gsub(/.+/) { obj }.should == "ok"
-    end
+    "hello".gsub(/.+/) { obj }.should == "ok"
   end
 
   it "uses the compatible encoding if they are compatible" do

@@ -278,14 +278,12 @@ describe "String#sub with pattern and block" do
 
   it "converts the block's return value to a string using to_s" do
     obj = mock('hello_replacement')
-    NATFIXME 'String conversions', exception: TypeError, message: "MockObject can't be coerced into String" do
-      obj.should_receive(:to_s).and_return("hello_replacement")
-      "hello".sub(/hello/) { obj }.should == "hello_replacement"
+    obj.should_receive(:to_s).and_return("hello_replacement")
+    "hello".sub(/hello/) { obj }.should == "hello_replacement"
 
-      obj = mock('ok')
-      obj.should_receive(:to_s).and_return("ok")
-      "hello".sub(/.+/) { obj }.should == "ok"
-    end
+    obj = mock('ok')
+    obj.should_receive(:to_s).and_return("ok")
+    "hello".sub(/.+/) { obj }.should == "ok"
   end
 end
 
