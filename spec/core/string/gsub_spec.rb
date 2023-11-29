@@ -113,50 +113,42 @@ describe "String#gsub with pattern and replacement" do
   it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \`', exception: SpecFailedException do
-      str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-      str.gsub("h", '<\`>').should == "<>ello!"
-      str.gsub("l", '<\`>').should == "he<he><hel>o!"
-      str.gsub("!", '<\`>').should == "hello<hello>"
+    str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub("h", '<\`>').should == "<>ello!"
+    str.gsub("l", '<\`>').should == "he<he><hel>o!"
+    str.gsub("!", '<\`>').should == "hello<hello>"
 
-      str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
-      str.gsub(/../, '<\`>').should == "<><he><hell>"
-    end
+    str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub(/../, '<\`>').should == "<><he><hell>"
   end
 
   it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \'', exception: SpecFailedException do
-      str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
-      str.gsub("h", '<\\\'>').should == "<ello!>ello!"
-      str.gsub("ll", '<\\\'>').should == "he<o!>o!"
-      str.gsub("!", '<\\\'>').should == "hello<>"
+    str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub("h", '<\\\'>').should == "<ello!>ello!"
+    str.gsub("ll", '<\\\'>').should == "he<o!>o!"
+    str.gsub("!", '<\\\'>').should == "hello<>"
 
-      str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
-      str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
-    end
+    str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
   end
 
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      str.gsub(/(.)(.)/, '\+').should == "el!"
-      str.gsub(/(.)(.)+/, '\+').should == "!"
-      str.gsub(/(.)()/, '\+').should == ""
-      str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
+    str.gsub(/(.)(.)/, '\+').should == "el!"
+    str.gsub(/(.)(.)+/, '\+').should == "!"
+    str.gsub(/(.)()/, '\+').should == ""
+    str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
 
-      str = "ABCDEFGHIJKLabcdefghijkl"
-      re = /#{"(.)" * 12}/
-      str.gsub(re, '\+').should == "Ll"
-    end
+    str = "ABCDEFGHIJKLabcdefghijkl"
+    re = /#{"(.)" * 12}/
+    str.gsub(re, '\+').should == "Ll"
   end
 
   it "treats \\+ as an empty string if there was no captures" do
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      "hello!".gsub(/./, '\+').should == ""
-    end
+    "hello!".gsub(/./, '\+').should == ""
   end
 
   it "maps \\\\ in replacement to \\" do

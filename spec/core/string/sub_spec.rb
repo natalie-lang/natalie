@@ -82,29 +82,25 @@ describe "String#sub with pattern, replacement" do
   it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    NATFIXME 'replaces \\` with everything before the current match', exception: SpecFailedException do
-      str.sub("", '<\`>').should == "<>hello!"
-      str.sub("h", '<\`>').should == "<>ello!"
-      str.sub("l", '<\`>').should == "he<he>lo!"
-      str.sub("!", '<\`>').should == "hello<hello>"
+    str.sub("", '<\`>').should == "<>hello!"
+    str.sub("h", '<\`>').should == "<>ello!"
+    str.sub("l", '<\`>').should == "he<he>lo!"
+    str.sub("!", '<\`>').should == "hello<hello>"
 
-      str.sub(//, '<\`>').should == "<>hello!"
-      str.sub(/..o/, '<\`>').should == "he<he>!"
-    end
+    str.sub(//, '<\`>').should == "<>hello!"
+    str.sub(/..o/, '<\`>').should == "he<he>!"
   end
 
   it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    NATFIXME "replaces \\' with everything after the current match", exception: SpecFailedException do
-      str.sub("", '<\\\'>').should == "<hello!>hello!"
-      str.sub("h", '<\\\'>').should == "<ello!>ello!"
-      str.sub("ll", '<\\\'>').should == "he<o!>o!"
-      str.sub("!", '<\\\'>').should == "hello<>"
+    str.sub("", '<\\\'>').should == "<hello!>hello!"
+    str.sub("h", '<\\\'>').should == "<ello!>ello!"
+    str.sub("ll", '<\\\'>').should == "he<o!>o!"
+    str.sub("!", '<\\\'>').should == "hello<>"
 
-      str.sub(//, '<\\\'>').should == "<hello!>hello!"
-      str.sub(/../, '<\\\'>').should == "<llo!>llo!"
-    end
+    str.sub(//, '<\\\'>').should == "<hello!>hello!"
+    str.sub(/../, '<\\\'>').should == "<llo!>llo!"
   end
 
   it "replaces \\\\\\+ with \\\\+" do
@@ -114,22 +110,18 @@ describe "String#sub with pattern, replacement" do
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      str.sub(/(.)(.)/, '\+').should == "ello!"
-      str.sub(/(.)(.)+/, '\+').should == "!"
-      str.sub(/(.)()/, '\+').should == "ello!"
-      str.sub(/(.)(.{20})?/, '<\+>').should == "<h>ello!"
+    str.sub(/(.)(.)/, '\+').should == "ello!"
+    str.sub(/(.)(.)+/, '\+').should == "!"
+    str.sub(/(.)()/, '\+').should == "ello!"
+    str.sub(/(.)(.{20})?/, '<\+>').should == "<h>ello!"
 
-      str = "ABCDEFGHIJKL"
-      re = /#{"(.)" * 12}/
-      str.sub(re, '\+').should == "L"
-    end
+    str = "ABCDEFGHIJKL"
+    re = /#{"(.)" * 12}/
+    str.sub(re, '\+').should == "L"
   end
 
   it "treats \\+ as an empty string if there was no captures" do
-    NATFIXME 'Unknown backslash reference: \+', exception: SpecFailedException do
-      "hello!".sub(/./, '\+').should == "ello!"
-    end
+    "hello!".sub(/./, '\+').should == "ello!"
   end
 
   it "maps \\\\ in replacement to \\" do
