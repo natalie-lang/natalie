@@ -94,15 +94,13 @@ describe "String#sub with pattern, replacement" do
   it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    NATFIXME "replaces \\' with everything after the current match", exception: SpecFailedException do
-      str.sub("", '<\\\'>').should == "<hello!>hello!"
-      str.sub("h", '<\\\'>').should == "<ello!>ello!"
-      str.sub("ll", '<\\\'>').should == "he<o!>o!"
-      str.sub("!", '<\\\'>').should == "hello<>"
+    str.sub("", '<\\\'>').should == "<hello!>hello!"
+    str.sub("h", '<\\\'>').should == "<ello!>ello!"
+    str.sub("ll", '<\\\'>').should == "he<o!>o!"
+    str.sub("!", '<\\\'>').should == "hello<>"
 
-      str.sub(//, '<\\\'>').should == "<hello!>hello!"
-      str.sub(/../, '<\\\'>').should == "<llo!>llo!"
-    end
+    str.sub(//, '<\\\'>').should == "<hello!>hello!"
+    str.sub(/../, '<\\\'>').should == "<llo!>llo!"
   end
 
   it "replaces \\\\\\+ with \\\\+" do

@@ -2091,9 +2091,11 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '`':
                 expanded->append(match->pre_match(env));
                 break;
-            // TODO: there are other back references we need to handle, e.g. \' and \+
-            case 'k':
             case '\'':
+                expanded->append(match->post_match(env));
+                break;
+            // TODO: there are other back references we need to handle, e.g. \k and \+
+            case 'k':
             case '+':
                 expanded->append(String::format("<unhandled backref: {}>", c));
                 break;
