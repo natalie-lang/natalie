@@ -7,7 +7,9 @@ require_relative '../support/nat_binary'
 describe 'ruby/spec' do
   parallelize_me!
 
-  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
+  def spec_timeout
+    (ENV['SPEC_TIMEOUT'] || 120).to_i
+  end
 
   Dir.chdir File.expand_path('../..', __dir__)
   glob = if ENV['DEBUG_COMPILER']
@@ -20,8 +22,9 @@ describe 'ruby/spec' do
   glob.each do |path|
     describe path do
       it 'passes all specs' do
-        out_nat =
-          Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") { `#{NAT_BINARY} #{path} 2>&1` }
+        out_nat = Timeout.timeout(spec_timeout, nil, "execution expired running: #{path}") do
+          `#{NAT_BINARY} #{path} 2>&1`
+        end
         puts out_nat unless $?.success?
         expect($?).must_be :success?
         expect(out_nat).wont_match(/traceback|error/i)

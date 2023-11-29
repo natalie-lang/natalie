@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <mutex>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +13,8 @@
 #include "tm/vector.hpp"
 
 namespace Natalie {
+
+extern std::mutex g_gc_mutex;
 
 using namespace TM;
 
@@ -38,16 +41,7 @@ public:
 
     void *allocate(size_t size);
 
-    void collect();
-
-    void *start_of_stack() {
-        return m_start_of_stack;
-    }
-
-    void set_start_of_stack(void *start_of_stack) {
-        assert(start_of_stack);
-        m_start_of_stack = start_of_stack;
-    }
+    void collect(bool);
 
     void return_cell_to_free_list(Cell *cell);
 
@@ -123,7 +117,6 @@ private:
 
     Vector<Allocator *> m_allocators;
 
-    void *m_start_of_stack { nullptr };
     bool m_gc_enabled { false };
     bool m_collect_all_at_exit { false };
 };

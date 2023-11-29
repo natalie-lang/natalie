@@ -4,7 +4,7 @@ require 'fiber'
 describe "Fiber#inspect" do
   describe "status" do
     it "is resumed for the root Fiber of a Thread" do
-      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+      NATFIXME 'Thread + Fiber', exception: SpecFailedException do
         inspected = Thread.new { Fiber.current.inspect }.value
         inspected.should =~ /\A#<Fiber:0x\h+ .*\(resumed\)>\z/
       end

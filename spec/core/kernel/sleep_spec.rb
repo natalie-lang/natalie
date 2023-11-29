@@ -37,18 +37,19 @@ describe "Kernel#sleep" do
   end
 
   it "pauses execution indefinitely if not given a duration" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      running = false
-      t = Thread.new do
-        running = true
-        sleep
-        5
-      end
+    running = false
+    t = Thread.new do
+      running = true
+      # NATFIXME: Thread#wakeup below should stop the thread from sleeping?
+      #sleep
+      #5
+    end
 
-      Thread.pass until running
-      Thread.pass while t.status and t.status != "sleep"
+    Thread.pass until running
+    Thread.pass while t.status and t.status != "sleep"
 
-      t.wakeup
+    t.wakeup
+    NATFIXME 'Fix the Thread#wakeup issue above', exception: SpecFailedException do
       t.value.should == 5
     end
   end

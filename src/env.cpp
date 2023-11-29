@@ -4,6 +4,8 @@
 
 namespace Natalie {
 
+std::mutex g_var_mutex;
+
 using namespace TM;
 
 void Env::build_vars(size_t size) {
@@ -303,6 +305,8 @@ Backtrace *Env::backtrace() {
 }
 
 Value Env::var_get(const char *key, size_t index) {
+    std::lock_guard<std::mutex> lock(g_var_mutex);
+
     if (!m_vars || index >= m_vars->size())
         return NilObject::the();
     Value val = m_vars->at(index);
@@ -315,6 +319,7 @@ Value Env::var_get(const char *key, size_t index) {
 
 Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
     NAT_GC_GUARD_VALUE(val);
+    std::lock_guard<std::mutex> lock(g_var_mutex);
 
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;

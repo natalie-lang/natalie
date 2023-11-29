@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 #include <unistd.h>
 #include <utility>
 
@@ -105,12 +106,18 @@
 #include "natalie/string_object.hpp"
 #include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"
+#include "natalie/thread_object.hpp"
 #include "natalie/time_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
 #include "natalie/unbound_method_object.hpp"
 #include "natalie/value.hpp"
 #include "natalie/void_p_object.hpp"
+
+#ifdef __SANITIZE_ADDRESS__
+extern "C" void *__asan_get_current_fake_stack();
+extern "C" void *__asan_addr_is_in_fake_stack(void *fake_stack, void *addr, void **beg, void **end);
+#endif
 
 namespace Natalie {
 
@@ -121,11 +128,6 @@ extern const char *ruby_revision;
 extern "C" {
 #include "onigmo.h"
 }
-
-#ifdef __SANITIZE_ADDRESS__
-extern "C" void *__asan_get_current_fake_stack();
-extern "C" void *__asan_addr_is_in_fake_stack(void *fake_stack, void *addr, void **beg, void **end);
-#endif
 
 void init_bindings(Env *);
 

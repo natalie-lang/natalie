@@ -37,18 +37,19 @@ describe "StringIO#putc when passed [String]" do
   end
 
   it "handles concurrent writes correctly" do
-    NATFIXME 'implement Thread' do
-      @io = StringIO.new
-      n = 8
-      go = false
-      threads = n.times.map { |i|
-        Thread.new {
-          Thread.pass until go
-          @io.putc i.to_s
-        }
+    @io = StringIO.new
+    n = 8
+    go = false
+    threads = n.times.map { |i|
+      Thread.new {
+        Thread.pass until go
+        # NATFIXME: occasional "negative argument" in stringio.rb:289
+        #@io.putc i.to_s
       }
-      go = true
-      threads.each(&:join)
+    }
+    go = true
+    threads.each(&:join)
+    NATFIXME 'wrong number', exception: SpecFailedException do
       @io.string.size.should == n
     end
   end

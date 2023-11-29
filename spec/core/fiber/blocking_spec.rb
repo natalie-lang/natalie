@@ -18,16 +18,14 @@ describe "Fiber.blocking?" do
 
     context "root Fiber of a new thread" do
       it "returns 1 for blocking: true" do
-        NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-          thread = Thread.new do
-            fiber = Fiber.new(blocking: true) { Fiber.blocking? }
-            blocking = fiber.resume
+        thread = Thread.new do
+          fiber = Fiber.new(blocking: true) { Fiber.blocking? }
+          blocking = fiber.resume
 
-            blocking.should == 1
-          end
-
-          thread.join
+          blocking.should == 1
         end
+
+        thread.join
       end
     end
   end
@@ -48,16 +46,14 @@ describe "Fiber#blocking?" do
 
     context "root Fiber of a new thread" do
       it "returns true for blocking: true" do
-        NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-          thread = Thread.new do
-            fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
-            blocking = fiber.resume
+        thread = Thread.new do
+          fiber = Fiber.new(blocking: true) { Fiber.current.blocking? }
+          blocking = fiber.resume
 
-            blocking.should == true
-          end
-
-          thread.join
+          blocking.should == true
         end
+
+        thread.join
       end
     end
   end

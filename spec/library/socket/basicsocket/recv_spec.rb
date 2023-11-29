@@ -7,6 +7,7 @@ describe "BasicSocket#recv" do
   before :each do
     @server = TCPServer.new('127.0.0.1', 0)
     @port = @server.addr[1]
+    p @port
   end
 
   after :each do
@@ -15,42 +16,40 @@ describe "BasicSocket#recv" do
   end
 
   it "receives a specified number of bytes of a message from another socket"  do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    t = Thread.new do
+      client = @server.accept
+      ScratchPad.record client.recv(10)
+      client.recv(1) # this recv is important
+      client.close
+    end
+    Thread.pass while t.status and t.status != "sleep"
+    t.status.should_not be_nil
+
+    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+    socket = Socket.tcp('127.0.0.1', @port)
+    socket.send('hello', 0)
+    socket.close
+
+    t.join
+    ScratchPad.recorded.should == 'hello'
+  end
+
+  platform_is_not :solaris do
+    it "accepts flags to specify unusual receiving behaviour" do
       t = Thread.new do
         client = @server.accept
+
+        # in-band data (TCP), doesn't receive the flag.
         ScratchPad.record client.recv(10)
-        client.recv(1) # this recv is important
+
+        # this recv is important (TODO: explain)
+        client.recv(10)
         client.close
       end
       Thread.pass while t.status and t.status != "sleep"
       t.status.should_not be_nil
 
-      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
-      socket = Socket.tcp('127.0.0.1', @port)
-      socket.send('hello', 0)
-      socket.close
-
-      t.join
-      ScratchPad.recorded.should == 'hello'
-    end
-  end
-
-  platform_is_not :solaris do
-    it "accepts flags to specify unusual receiving behaviour" do
-      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-        t = Thread.new do
-          client = @server.accept
-
-          # in-band data (TCP), doesn't receive the flag.
-          ScratchPad.record client.recv(10)
-
-          # this recv is important (TODO: explain)
-          client.recv(10)
-          client.close
-        end
-        Thread.pass while t.status and t.status != "sleep"
-        t.status.should_not be_nil
-
+      NATFIXME 'Socket#shutdown', exception: NoMethodError, message: "undefined method `shutdown'" do
         #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
         socket = Socket.tcp('127.0.0.1', @port)
         socket.send('helloU', Socket::MSG_OOB)
@@ -63,24 +62,26 @@ describe "BasicSocket#recv" do
   end
 
   it "gets lines delimited with a custom separator"  do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      t = Thread.new do
-        client = @server.accept
+    t = Thread.new do
+      client = @server.accept
+      NATFIXME 'invalid utf-8', exception: ArgumentError do
         ScratchPad.record client.gets("\377")
-
-        # this call is important (TODO: explain)
-        client.gets(nil)
-        client.close
       end
-      Thread.pass while t.status and t.status != "sleep"
-      t.status.should_not be_nil
 
-      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
-      socket = Socket.tcp('127.0.0.1', @port)
-      socket.write("firstline\377secondline\377")
-      socket.close
+      # this call is important (TODO: explain)
+      client.gets(nil)
+      client.close
+    end
+    Thread.pass while t.status and t.status != "sleep"
+    t.status.should_not be_nil
 
-      t.join
+    #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+    socket = Socket.tcp('127.0.0.1', @port)
+    socket.write("firstline\377secondline\377")
+    socket.close
+
+    t.join
+    NATFIXME 'no recorded result', exception: SpecFailedException do
       ScratchPad.recorded.should == "firstline\377"
     end
   end

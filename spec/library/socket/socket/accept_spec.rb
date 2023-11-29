@@ -50,20 +50,19 @@ describe 'Socket#accept' do
       describe 'without a connected client' do
         it 'blocks the caller until a connection is available' do
           client = Socket.new(family, :STREAM, 0)
-          NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-            thread = Thread.new do
-              @server.accept
-            end
+          thread = Thread.new do
+            @server.accept
+          end
+          Thread.pass while thread.status and thread.status != "sleep"
 
-            client.connect(@server_addr)
+          client.connect(@server_addr)
 
-            value = thread.value
-            begin
-              value.should be_an_instance_of(Array)
-            ensure
-              client.close
-              value[0].close
-            end
+          value = thread.value
+          begin
+            value.should be_an_instance_of(Array)
+          ensure
+            client.close
+            value[0].close
           end
         end
       end

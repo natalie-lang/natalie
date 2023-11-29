@@ -149,7 +149,7 @@ ruby_version_is "3.2" do
 
   describe "Thread.new" do
     it "creates a thread with the storage of the current fiber" do
-      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+      NATFIXME 'Threads + Fiber storage', exception: SpecFailedException do
         fiber = Fiber.new(storage: {life: 42}) do
           Thread.new { Fiber.current.storage }.value
         end

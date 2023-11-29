@@ -12,6 +12,17 @@
 
 namespace Natalie {
 
+std::mutex g_array_mutex;
+
+ArrayObject::ArrayObject(std::initializer_list<Value> list)
+    : ArrayObject {} {
+    m_vector.set_capacity(list.size());
+    for (auto v : list) {
+        NAT_GC_GUARD_VALUE(v);
+        m_vector.push(v);
+    }
+}
+
 Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 
@@ -75,25 +86,40 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
     return this;
 }
 
+void ArrayObject::push(Value val) {
+    NAT_GC_GUARD_VALUE(val);
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
+    m_vector.push(val);
+}
+
 Value ArrayObject::first() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[0];
 }
 
 Value ArrayObject::last() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[m_vector.size() - 1];
 }
 
 Value ArrayObject::pop() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop();
 }
 
 Value ArrayObject::shift() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop_front();
@@ -101,6 +127,7 @@ Value ArrayObject::shift() {
 
 void ArrayObject::set(size_t index, Value value) {
     NAT_GC_GUARD_VALUE(value);
+    std::lock_guard<std::mutex> lock(g_array_mutex);
 
     if (index == m_vector.size()) {
         m_vector.push(value);
