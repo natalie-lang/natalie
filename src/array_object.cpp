@@ -1971,6 +1971,20 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         return _slice_in_place(start, end, range->exclude_end());
     }
 
+    if (index_obj->is_enumerator_arithmetic_sequence()) {
+        auto seq = index_obj->as_enumerator_arithmetic_sequence();
+        Vector<Value> result {};
+        auto idx = IntegerObject::convert_to_nat_int_t(env, seq->begin());
+        const auto end = IntegerObject::convert_to_nat_int_t(env, seq->end());
+        const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
+        while (idx < end && static_cast<size_t>(idx) < this->size()) {
+            result.push(m_vector[idx]);
+            idx += step;
+        }
+        m_vector = result;
+        return this;
+    }
+
     return slice_in_place(env, index_obj->to_int(env), size);
 }
 

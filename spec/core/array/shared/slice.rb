@@ -512,7 +512,7 @@ describe :array_slice, shared: true do
     end
 
     it "has endless range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
+      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
         @array.send(@method, eval("(0..).step(1)")).should == [0, 1, 2, 3, 4, 5]
         @array.send(@method, eval("(0..).step(2)")).should == [0, 2, 4]
         @array.send(@method, eval("(0..).step(10)")).should == [0]
@@ -528,7 +528,7 @@ describe :array_slice, shared: true do
     end
 
     it "has beginless range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
+      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
         # end with zero index
         @array.send(@method, eval("(..0).step(1)")).should == [0]
         @array.send(@method, eval("(...0).step(1)")).should == []
@@ -562,7 +562,7 @@ describe :array_slice, shared: true do
     end
 
     it "has endless range and negative steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
+      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
         @array.send(@method, eval("(0..).step(-1)")).should == [0]
         @array.send(@method, eval("(0..).step(-2)")).should == [0]
         @array.send(@method, eval("(0..).step(-10)")).should == [0]
@@ -576,7 +576,7 @@ describe :array_slice, shared: true do
     end
 
     it "has closed range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
+      NATFIXME 'sequence', exception: SpecFailedException do
         # start and end with 0
         @array.send(@method, eval("(0..0).step(1)")).should == [0]
         @array.send(@method, eval("(0...0).step(1)")).should == []
@@ -630,7 +630,7 @@ describe :array_slice, shared: true do
     end
 
     it "has closed range and negative steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
+      NATFIXME 'sequence', exception: SpecFailedException do
         # start and end with 0
         @array.send(@method, eval("(0..0).step(-1)")).should == [0]
         @array.send(@method, eval("(0...0).step(-1)")).should == []
@@ -684,47 +684,45 @@ describe :array_slice, shared: true do
     end
 
     it "has inverted closed range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion of Enumerator::ArithmeticSequence into Integer' do
-        # start and end with positive index
-        @array.send(@method, eval("(3..1).step(1)")).should == []
-        @array.send(@method, eval("(3...1).step(1)")).should == []
+      # start and end with positive index
+      @array.send(@method, eval("(3..1).step(1)")).should == []
+      @array.send(@method, eval("(3...1).step(1)")).should == []
 
-        @array.send(@method, eval("(3..1).step(2)")).should == []
-        @array.send(@method, eval("(3...1).step(2)")).should == []
+      @array.send(@method, eval("(3..1).step(2)")).should == []
+      @array.send(@method, eval("(3...1).step(2)")).should == []
 
-        @array.send(@method, eval("(3..1).step(10)")).should == []
-        @array.send(@method, eval("(3...1).step(10)")).should == []
+      @array.send(@method, eval("(3..1).step(10)")).should == []
+      @array.send(@method, eval("(3...1).step(10)")).should == []
 
-        # start with negative index, end with positive index
-        @array.send(@method, eval("(-2..1).step(1)")).should == []
-        @array.send(@method, eval("(-2...1).step(1)")).should == []
+      # start with negative index, end with positive index
+      @array.send(@method, eval("(-2..1).step(1)")).should == []
+      @array.send(@method, eval("(-2...1).step(1)")).should == []
 
-        @array.send(@method, eval("(-2..1).step(2)")).should ==  []
-        @array.send(@method, eval("(-2...1).step(2)")).should ==  []
+      @array.send(@method, eval("(-2..1).step(2)")).should ==  []
+      @array.send(@method, eval("(-2...1).step(2)")).should ==  []
 
-        @array.send(@method, eval("(-2..1).step(10)")).should == []
-        @array.send(@method, eval("(-2...1).step(10)")).should == []
+      @array.send(@method, eval("(-2..1).step(10)")).should == []
+      @array.send(@method, eval("(-2...1).step(10)")).should == []
 
-        # start with positive index, end with negative index
-        @array.send(@method, eval("(4..-4).step(1)")).should == []
-        @array.send(@method, eval("(4...-4).step(1)")).should == []
+      # start with positive index, end with negative index
+      @array.send(@method, eval("(4..-4).step(1)")).should == []
+      @array.send(@method, eval("(4...-4).step(1)")).should == []
 
-        @array.send(@method, eval("(4..-4).step(2)")).should == []
-        @array.send(@method, eval("(4...-4).step(2)")).should == []
+      @array.send(@method, eval("(4..-4).step(2)")).should == []
+      @array.send(@method, eval("(4...-4).step(2)")).should == []
 
-        @array.send(@method, eval("(4..-4).step(10)")).should == []
-        @array.send(@method, eval("(4...-4).step(10)")).should == []
+      @array.send(@method, eval("(4..-4).step(10)")).should == []
+      @array.send(@method, eval("(4...-4).step(10)")).should == []
 
-        # start with negative index, end with negative index
-        @array.send(@method, eval("(-2..-4).step(1)")).should == []
-        @array.send(@method, eval("(-2...-4).step(1)")).should == []
+      # start with negative index, end with negative index
+      @array.send(@method, eval("(-2..-4).step(1)")).should == []
+      @array.send(@method, eval("(-2...-4).step(1)")).should == []
 
-        @array.send(@method, eval("(-2..-4).step(2)")).should == []
-        @array.send(@method, eval("(-2...-4).step(2)")).should == []
+      @array.send(@method, eval("(-2..-4).step(2)")).should == []
+      @array.send(@method, eval("(-2...-4).step(2)")).should == []
 
-        @array.send(@method, eval("(-2..-4).step(10)")).should == []
-        @array.send(@method, eval("(-2...-4).step(10)")).should == []
-      end
+      @array.send(@method, eval("(-2..-4).step(10)")).should == []
+      @array.send(@method, eval("(-2...-4).step(10)")).should == []
     end
   end
 
