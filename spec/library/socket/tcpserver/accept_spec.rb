@@ -112,9 +112,7 @@ describe 'TCPServer#accept' do
 
     describe 'without a connected client' do
       it 'blocks the caller' do
-        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-          -> { @server.accept }.should block_caller
-        end
+        -> { @server.accept }.should block_caller
       end
     end
 

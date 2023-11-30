@@ -562,19 +562,40 @@ end
 
 class BlockCallerExpectation
   def match(subject)
-    subject.call
-  rescue ThreadError # raised by Thread#lock if already locked by the current thread
-    # good
-  else
-    raise SpecFailedException, subject.inspect + ' should have blocked, but it did not'
+    unless check(subject)
+      raise SpecFailedException, subject.inspect + ' should have blocked, but it did not'
+    end
   end
 
   def inverted_match(subject)
-    subject.call
-  rescue ThreadError
-    raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did'
-  else
-    # good
+    if check(subject)
+      raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did'
+    end
+  end
+
+  private
+
+  # I borrowed this from https://github.com/ruby/mspec/blob/master/lib/mspec/matchers/block_caller.rb
+  # Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
+  # Licensed Under the MIT license.
+  def check(subject)
+    t = Thread.new { subject.call }
+
+    loop do
+      case t.status
+      when 'sleep'    # blocked
+        t.kill
+        t.join
+        return true
+      when false      # terminated normally, so never blocked
+        t.join
+        return false
+      when nil        # terminated exceptionally
+        t.value
+      else
+        Thread.pass
+      end
+    end
   end
 end
 
