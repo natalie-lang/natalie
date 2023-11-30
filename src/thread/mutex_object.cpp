@@ -9,7 +9,7 @@ Value MutexObject::lock(Env *env) {
         if (ThreadObject::current() == m_thread) {
             env->raise("ThreadError", "deadlock; recursive locking");
         } else {
-            Defer([] { ThreadObject::set_current_sleeping(false); });
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
             ThreadObject::set_current_sleeping(true);
             struct timespec request = { 0, 100000 };
             while (!m_mutex.try_lock())

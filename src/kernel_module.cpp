@@ -574,7 +574,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         while (true) {
             if (FiberObject::scheduler_is_relevant())
                 FiberObject::scheduler()->send(env, "kernel_sleep"_s);
-            Defer([] { ThreadObject::set_current_sleeping(false); });
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
             ThreadObject::set_current_sleeping(true);
             ::sleep(1000);
         }
@@ -621,7 +621,7 @@ Value KernelModule::sleep(Env *env, Value length) {
             length = new FloatObject { secs };
         }
     } else {
-        Defer([] { ThreadObject::set_current_sleeping(false); });
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
         ThreadObject::set_current_sleeping(true);
         nanosleep(&ts, nullptr);
         if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
