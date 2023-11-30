@@ -101,6 +101,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ThreadObject { klass };
         break;
 
+    case Object::Type::ThreadMutex:
+        obj = new Thread::MutexObject { klass };
+        break;
+
     case Object::Type::Time:
         obj = new TimeObject { klass };
         break;
@@ -437,6 +441,21 @@ const SymbolObject *Object::as_symbol() const {
 ThreadObject *Object::as_thread() {
     assert(is_thread());
     return static_cast<ThreadObject *>(this);
+}
+
+const ThreadObject *Object::as_thread() const {
+    assert(is_thread());
+    return static_cast<const ThreadObject *>(this);
+}
+
+Thread::MutexObject *Object::as_thread_mutex() {
+    assert(is_thread_mutex());
+    return static_cast<Thread::MutexObject *>(this);
+}
+
+const Thread::MutexObject *Object::as_thread_mutex() const {
+    assert(is_thread_mutex());
+    return static_cast<const Thread::MutexObject *>(this);
 }
 
 TimeObject *Object::as_time() {

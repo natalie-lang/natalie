@@ -560,6 +560,24 @@ class BeAncestorOfExpectation
   end
 end
 
+class BlockCallerExpectation
+  def match(subject)
+    subject.call
+  rescue ThreadError # raised by Thread#lock if already locked by the current thread
+    # good
+  else
+    raise SpecFailedException, subject.inspect + ' should have blocked, but it did not'
+  end
+
+  def inverted_match(subject)
+    subject.call
+  rescue ThreadError
+    raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did'
+  else
+    # good
+  end
+end
+
 class EqlExpectation
   def initialize(other)
     @other = other
@@ -1306,6 +1324,10 @@ class Object
 
   def be_ancestor_of(klass)
     BeAncestorOfExpectation.new(klass)
+  end
+
+  def block_caller
+    BlockCallerExpectation.new
   end
 
   def eql(other)

@@ -7,6 +7,9 @@ namespace Natalie {
 namespace Enumerator {
     class ArithmeticSequenceObject;
 };
+namespace Thread {
+    class MutexObject;
+};
 class ArrayObject;
 class Backtrace;
 class BindingObject;

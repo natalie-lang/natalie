@@ -1314,6 +1314,10 @@ gen.binding('Thread', 'status', 'ThreadObject', 'status', argc: 0, pass_env: tru
 gen.binding('Thread', 'value', 'ThreadObject', 'value', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
+gen.binding('Thread::Mutex', 'lock', 'Thread::MutexObject', 'lock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Thread::Mutex', 'locked?', 'Thread::MutexObject', 'is_locked', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Thread::Mutex', 'unlock', 'Thread::MutexObject', 'unlock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+
 gen.static_binding('Time', 'at', 'TimeObject', 'at', argc: 1..3, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Time', 'local', 'TimeObject', 'local', argc: 1..7, pass_env: true, pass_block: false, aliases: ['mktime'], return_type: :Object)
 gen.static_binding('Time', 'new', 'TimeObject', 'initialize', argc: 0..7, kwargs: [:in], pass_env: true, pass_block: false, return_type: :Object)

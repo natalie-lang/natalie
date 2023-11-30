@@ -67,6 +67,8 @@ class StandardError < Exception; end
   class LocalJumpError < StandardError
     attr_reader :exit_value
   end
+
+  class ThreadError < StandardError; end
 # end StandardError subclasses
 
 class Encoding
