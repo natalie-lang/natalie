@@ -1252,6 +1252,10 @@ module Natalie
         ]
       end
 
+      def transform_implicit_node(node, used:)
+        transform_expression(node.value, used: used)
+      end
+
       def transform_index_and_write_node(node, used:)
         obj = node.receiver
         key_args = node.arguments&.arguments || []
@@ -1632,6 +1636,25 @@ module Natalie
           transform_block_node(node, used: true, is_lambda: true)
         end
         instructions << CreateLambdaInstruction.new
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
+      def transform_load_file_fake_node(exp, used:)
+        depth_was = @depth
+        _, filename, require_once = exp
+        loaded_file = @required_ruby_files.fetch(filename)
+
+        unless loaded_file.instructions
+          loaded_file.instructions = :generating # set this to avoid endless loop
+          @depth = 0
+          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
+          @depth = depth_was
+        end
+
+        instructions = [
+          LoadFileInstruction.new(filename, require_once: require_once),
+        ]
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -2108,25 +2131,6 @@ module Natalie
           EndInstruction.new(:while),
         ]
 
-        instructions << PopInstruction.new unless used
-        instructions
-      end
-
-      def transform_load_file_fake_node(exp, used:)
-        depth_was = @depth
-        _, filename, require_once = exp
-        loaded_file = @required_ruby_files.fetch(filename)
-
-        unless loaded_file.instructions
-          loaded_file.instructions = :generating # set this to avoid endless loop
-          @depth = 0
-          loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
-          @depth = depth_was
-        end
-
-        instructions = [
-          LoadFileInstruction.new(filename, require_once: require_once),
-        ]
         instructions << PopInstruction.new unless used
         instructions
       end
