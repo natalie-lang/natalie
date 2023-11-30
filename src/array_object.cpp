@@ -1974,12 +1974,21 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     if (index_obj->is_enumerator_arithmetic_sequence()) {
         auto seq = index_obj->as_enumerator_arithmetic_sequence();
         Vector<Value> result {};
-        nat_int_t idx = seq->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
-        const nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
         const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
-        while (idx < end && static_cast<size_t>(idx) < this->size()) {
-            result.push(m_vector[idx]);
-            idx += step;
+        if (step > 0) {
+            nat_int_t idx = seq->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            const nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            while (idx < end && static_cast<size_t>(idx) < this->size()) {
+                result.push(m_vector[idx]);
+                idx += step;
+            }
+        } else {
+            const nat_int_t begin = seq->end()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            nat_int_t idx = seq->begin()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            while (idx >= begin && idx >= 0) {
+                result.push(m_vector[idx]);
+                idx += step;
+            }
         }
         m_vector = result;
         return this;

@@ -562,14 +562,14 @@ describe :array_slice, shared: true do
     end
 
     it "has endless range and negative steps" do
+      @array.send(@method, eval("(0..).step(-1)")).should == [0]
+      @array.send(@method, eval("(0..).step(-2)")).should == [0]
+      @array.send(@method, eval("(0..).step(-10)")).should == [0]
+
+      @array.send(@method, eval("(2..).step(-1)")).should == [2, 1, 0]
+      @array.send(@method, eval("(2..).step(-2)")).should == [2, 0]
+
       NATFIXME 'sequence', exception: SpecFailedException do
-        @array.send(@method, eval("(0..).step(-1)")).should == [0]
-        @array.send(@method, eval("(0..).step(-2)")).should == [0]
-        @array.send(@method, eval("(0..).step(-10)")).should == [0]
-
-        @array.send(@method, eval("(2..).step(-1)")).should == [2, 1, 0]
-        @array.send(@method, eval("(2..).step(-2)")).should == [2, 0]
-
         @array.send(@method, eval("(-3..).step(-1)")).should == [3, 2, 1, 0]
         @array.send(@method, eval("(-3..).step(-2)")).should == [3, 1]
       end
