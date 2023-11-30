@@ -1301,6 +1301,7 @@ gen.binding('Symbol', 'to_sym', 'SymbolObject', 'to_sym', argc: 0, pass_env: tru
 gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding('Thread', 'list', 'ThreadObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]', 'ThreadObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]=', 'ThreadObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)

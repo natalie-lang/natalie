@@ -76,4 +76,14 @@ describe 'Thread' do
       t.join
     end
   end
+
+  describe '.list' do
+    it 'keeps a list of all threads' do
+      Thread.list.should == [Thread.current]
+      t = Thread.new { sleep 0.5 }
+      Thread.list.should == [Thread.current, t]
+      t.join
+      Thread.list.should == [Thread.current]
+    end
+  end
 end

@@ -36,12 +36,17 @@ public:
     }
 
     virtual ~ThreadObject() {
-        size_t i;
-        for (i = 0; i < s_list.size(); ++i) {
-            if (s_list.at(i)->thread_id() == thread_id())
-                break;
-        }
-        s_list.remove(i);
+        // In normal operation, this destructor should only be called for threads that
+        // are well and truly dead. (See the is_collectible function.) But in one case --
+        // when you compile with the flag NAT_GC_COLLECT_ALL_AT_EXIT -- the GC will
+        // destroy every object at the end of the program, even threads that could still
+        // be running. In order to be able to safely destroy the std::thread object, we
+        // need to detatch any running system thread from the object. And in many cases,
+        // the thread will already be joined, so this could error. But we don't care
+        // about the error.
+        try {
+            m_thread.detach();
+        } catch (...) { }
     }
 
     static void build_main_thread(void *start_of_stack);
@@ -79,7 +84,7 @@ public:
     }
 
     Value join(Env *);
-    Value kill(Env *);
+    Value kill(Env *) const;
     Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup() { return NilObject::the(); }
 
@@ -98,6 +103,12 @@ public:
     void build_main_fiber();
     FiberObject *main_fiber() { return m_main_fiber; }
     FiberObject *current_fiber() { return m_current_fiber; }
+
+    void remove_from_list() const;
+
+    virtual bool is_collectible() override {
+        return m_status == Status::Dead && !m_thread.joinable();
+    }
 
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
@@ -123,6 +134,7 @@ public:
     static bool i_am_main() { return pthread_self() == s_main_id; }
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
+    static Value list(Env *);
 
     static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
 

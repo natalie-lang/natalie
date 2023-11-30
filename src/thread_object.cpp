@@ -27,6 +27,7 @@ static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thr
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
     thread->set_status(Natalie::ThreadObject::Status::Dead);
+    thread->remove_from_list();
 }
 
 static void *nat_create_thread(void *thread_object) {
@@ -70,6 +71,7 @@ static void *nat_create_thread(void *thread_object) {
 namespace Natalie {
 
 std::mutex g_thread_mutex;
+std::recursive_mutex g_thread_recursive_mutex;
 
 ThreadObject *ThreadObject::current() {
     return tl_current_thread;
@@ -142,19 +144,19 @@ Value ThreadObject::join(Env *env) {
         }
     }
 
-    m_status = Status::Dead;
     m_joined = true;
+    remove_from_list();
 
     return this;
 }
 
-Value ThreadObject::kill(Env *) {
+Value ThreadObject::kill(Env *) const {
     if (is_main())
         exit(0);
 
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     pthread_kill(m_thread_id, SIGINT);
-    m_status = Status::Dead;
+    remove_from_list();
 
     return NilObject::the();
 }
@@ -204,6 +206,32 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
         m_storage = new HashObject {};
     m_storage->refeq(env, key, value);
     return value;
+}
+
+Value ThreadObject::list(Env *env) {
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    auto ary = new ArrayObject { s_list.size() };
+    for (auto thread : s_list) {
+        if (thread->m_status != ThreadObject::Status::Dead)
+            ary->push(thread);
+    }
+    return ary;
+}
+
+void ThreadObject::remove_from_list() const {
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    size_t i;
+    bool found = false;
+    for (i = 0; i < s_list.size(); ++i) {
+        if (s_list.at(i) == this) {
+            found = true;
+            break;
+        }
+    }
+    // We call remove_from_list() from a few different places,
+    // so it's possible it was already removed.
+    if (found)
+        s_list.remove(i);
 }
 
 void ThreadObject::visit_children(Visitor &visitor) {
