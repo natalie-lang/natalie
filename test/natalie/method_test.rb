@@ -474,13 +474,15 @@ describe 'method with keyword args' do
 
   ruby_version_is ''...'3.1' do
     it 'does not accept hash key shorthand' do
-      ruby_exe(fixture(__FILE__, 'method_hash_key_shorthand_old.rb')).should == "[1, 2]\n"
+      b = 2
+      eval('method_with_kwargs1(1, b: b)').should == [1, 2]
     end
   end
 
   ruby_version_is '3.1' do
     it 'accepts hash key shorthand' do
-      ruby_exe(fixture(__FILE__, 'method_hash_key_shorthand_new.rb')).should == "[1, 2]\n"
+      b = 2
+      eval('method_with_kwargs1(1, b:)').should == [1, 2]
     end
   end
 
