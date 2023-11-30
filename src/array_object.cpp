@@ -1977,14 +1977,16 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
         if (step > 0) {
             nat_int_t idx = seq->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
-            const nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
-            while (idx < end && static_cast<size_t>(idx) < this->size()) {
+            nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            if (seq->exclude_end()) end--;
+            while (idx <= end && static_cast<size_t>(idx) < this->size()) {
                 result.push(m_vector[idx]);
                 idx += step;
             }
         } else {
             const nat_int_t begin = seq->end()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
             nat_int_t idx = seq->begin()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            if (seq->exclude_end()) idx--;
             while (idx >= begin && idx >= 0) {
                 result.push(m_vector[idx]);
                 idx += step;
