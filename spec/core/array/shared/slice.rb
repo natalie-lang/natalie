@@ -512,15 +512,15 @@ describe :array_slice, shared: true do
     end
 
     it "has endless range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
-        @array.send(@method, eval("(0..).step(1)")).should == [0, 1, 2, 3, 4, 5]
-        @array.send(@method, eval("(0..).step(2)")).should == [0, 2, 4]
-        @array.send(@method, eval("(0..).step(10)")).should == [0]
+      @array.send(@method, eval("(0..).step(1)")).should == [0, 1, 2, 3, 4, 5]
+      @array.send(@method, eval("(0..).step(2)")).should == [0, 2, 4]
+      @array.send(@method, eval("(0..).step(10)")).should == [0]
 
-        @array.send(@method, eval("(2..).step(1)")).should == [2, 3, 4, 5]
-        @array.send(@method, eval("(2..).step(2)")).should == [2, 4]
-        @array.send(@method, eval("(2..).step(10)")).should == [2]
+      @array.send(@method, eval("(2..).step(1)")).should == [2, 3, 4, 5]
+      @array.send(@method, eval("(2..).step(2)")).should == [2, 4]
+      @array.send(@method, eval("(2..).step(10)")).should == [2]
 
+      NATFIXME 'sequence', exception: SpecFailedException do
         @array.send(@method, eval("(-3..).step(1)")).should == [3, 4, 5]
         @array.send(@method, eval("(-3..).step(2)")).should == [3, 5]
         @array.send(@method, eval("(-3..).step(10)")).should == [3]
@@ -528,7 +528,7 @@ describe :array_slice, shared: true do
     end
 
     it "has beginless range and positive steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
+      NATFIXME 'sequence', exception: SpecFailedException do
         # end with zero index
         @array.send(@method, eval("(..0).step(1)")).should == [0]
         @array.send(@method, eval("(...0).step(1)")).should == []
@@ -562,7 +562,7 @@ describe :array_slice, shared: true do
     end
 
     it "has endless range and negative steps" do
-      NATFIXME 'sequence', exception: TypeError, message: 'no implicit conversion from nil to integer' do
+      NATFIXME 'sequence', exception: SpecFailedException do
         @array.send(@method, eval("(0..).step(-1)")).should == [0]
         @array.send(@method, eval("(0..).step(-2)")).should == [0]
         @array.send(@method, eval("(0..).step(-10)")).should == [0]
