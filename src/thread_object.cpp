@@ -28,6 +28,7 @@ static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     thread->remove_from_list();
+    thread->unlock_mutexes();
 }
 
 static void *nat_create_thread(void *thread_object) {
@@ -234,6 +235,25 @@ void ThreadObject::remove_from_list() const {
         s_list.remove(i);
 }
 
+void ThreadObject::add_mutex(Thread::MutexObject *mutex) {
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
+
+    m_mutexes.set(mutex);
+}
+
+void ThreadObject::remove_mutex(Thread::MutexObject *mutex) {
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
+
+    m_mutexes.remove(mutex);
+}
+
+void ThreadObject::unlock_mutexes() const {
+    std::lock_guard<std::mutex> lock(g_thread_mutex);
+
+    for (auto pair : m_mutexes)
+        pair.first->unlock_without_checks();
+}
+
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_block);
@@ -242,6 +262,8 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_main_fiber);
     visitor.visit(m_storage);
     visitor.visit(m_value);
+    for (auto pair : m_mutexes)
+        visitor.visit(pair.first);
     visit_children_from_stack(visitor);
 }
 

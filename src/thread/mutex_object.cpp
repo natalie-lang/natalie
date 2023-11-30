@@ -2,6 +2,8 @@
 
 namespace Natalie::Thread {
 
+std::mutex g_mutex_mutex; // That's a funny name. :-)
+
 Value MutexObject::lock(Env *env) {
     auto locked = m_mutex.try_lock();
 
@@ -17,23 +19,28 @@ Value MutexObject::lock(Env *env) {
         }
     }
 
+    std::lock_guard<std::mutex> lock(g_mutex_mutex);
     m_thread = ThreadObject::current();
+    m_thread->add_mutex(this);
 
     return this;
 }
 
 Value MutexObject::unlock(Env *env) {
+    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+
     if (!is_locked())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
     if (m_thread->status(env)->is_falsey())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
-    auto thread = m_thread;
-    if (thread && thread != ThreadObject::current())
+    if (m_thread && m_thread != ThreadObject::current())
         env->raise("ThreadError", "Attempt to unlock a mutex which is locked by another thread/fiber");
 
     m_mutex.unlock();
+    assert(m_thread);
+    m_thread->remove_mutex(this);
     m_thread = nullptr;
     return this;
 }

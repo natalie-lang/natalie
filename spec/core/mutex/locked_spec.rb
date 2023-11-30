@@ -30,9 +30,7 @@ describe "Mutex#locked?" do
     m1.locked?.should be_true
     m2.unlock # release th
     th.join
-    NATFIXME 'thread should release mutex when finished', exception: SpecFailedException do
-      # A Thread releases its locks upon termination
-      m1.locked?.should be_false
-    end
+    # A Thread releases its locks upon termination
+    m1.locked?.should be_false
   end
 end

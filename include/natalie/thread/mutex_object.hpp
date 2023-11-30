@@ -20,6 +20,8 @@ public:
     Value lock(Env *);
     Value unlock(Env *);
 
+    void unlock_without_checks() { m_mutex.unlock(); }
+
     bool is_locked();
 
     void visit_children(Visitor &);
