@@ -19,6 +19,7 @@ public:
         : Object { Object::Type::ThreadMutex, klass } { }
 
     Value lock(Env *);
+    Value sleep(Env *, Value = nullptr);
     Value synchronize(Env *, Block *);
     bool try_lock();
     Value unlock(Env *);

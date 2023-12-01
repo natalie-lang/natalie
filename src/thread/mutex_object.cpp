@@ -27,6 +27,30 @@ Value MutexObject::lock(Env *env) {
     return this;
 }
 
+Value MutexObject::sleep(Env *env, Value timeout) {
+    if (!timeout) {
+        unlock(env);
+        while (true)
+            ::sleep(1000);
+        lock(env);
+        return this;
+    }
+
+    if ((timeout->is_float() && timeout->as_float()->is_negative()) || (timeout->is_integer() && timeout->as_integer()->is_negative()))
+        env->raise("ArgumentError", "time interval must not be negative");
+
+    auto timeout_int = IntegerObject::convert_to_nat_int_t(env, timeout);
+
+    if (timeout_int < 0)
+        env->raise("ArgumentError", "timeout must be positive");
+
+    unlock(env);
+    ::sleep(timeout_int);
+    lock(env);
+
+    return Value::integer(timeout_int);
+}
+
 Value MutexObject::synchronize(Env *env, Block *block) {
     try {
         lock(env);
