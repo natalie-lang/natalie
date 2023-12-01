@@ -2027,7 +2027,8 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
 void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Value replacement_value, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
     StringObject *replacement = nullptr;
     if (replacement_value) {
-        replacement = replacement_value->to_str(env);
+        if (!replacement_value->is_hash())
+            replacement = replacement_value->to_str(env);
         block = nullptr;
     }
 
@@ -2058,8 +2059,10 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
         return;
     }
 
-    *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-    out.append((*expanded_replacement)->string());
+    if (replacement) {
+        *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
+        out.append((*expanded_replacement)->string());
+    }
 
     return;
 }

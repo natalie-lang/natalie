@@ -238,7 +238,7 @@ end
 
 describe "String#gsub with pattern and Hash" do
   it "returns a copy of self with all occurrences of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub(/./, 'l' => 'L').should == "LL"
       "hello!".gsub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
       "hello".gsub('l', 'l' => 'el').should == 'heelelo'
@@ -246,25 +246,23 @@ describe "String#gsub with pattern and Hash" do
   end
 
   it "ignores keys that don't correspond to matches" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
     end
   end
 
   it "returns an empty string if the pattern matches but the hash specifies no replacements" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub(/./, 'z' => 'L').should == ""
-    end
+    "hello".gsub(/./, 'z' => 'L').should == ""
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "tattoo".gsub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
     end
   end
 
   it "uses a key's value as many times as needed" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food".gsub(/o/, 'o' => '0').should == "f00d"
     end
   end
@@ -273,7 +271,7 @@ describe "String#gsub with pattern and Hash" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food".gsub(/./, hsh).should == "?00?"
     end
   end
@@ -283,7 +281,7 @@ describe "String#gsub with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       obj.should_receive(:to_s).and_return('!')
       hsh['!'] = obj
       "food!".gsub(/./, hsh).should == "[]00[]!"
@@ -293,13 +291,13 @@ describe "String#gsub with pattern and Hash" do
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food!".gsub(/./, hsh).should == "lamblamblamblamblamb"
     end
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       'hello.'.gsub('l', 'l' => 'L')
       $~.begin(0).should == 3
       $~[0].should == 'l'
@@ -317,7 +315,7 @@ describe "String#gsub with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub(/(.+)/, 'hello' => repl ).should == repl
     end
   end
@@ -326,7 +324,7 @@ end
 describe "String#gsub! with pattern and Hash" do
 
   it "returns self with all occurrences of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub!(/./, 'l' => 'L').should == "LL"
       "hello!".gsub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
       "hello".gsub!('l', 'l' => 'el').should == 'heelelo'
@@ -334,25 +332,23 @@ describe "String#gsub! with pattern and Hash" do
   end
 
   it "ignores keys that don't correspond to matches" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub!(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
     end
   end
 
   it "replaces self with an empty string if the pattern matches but the hash specifies no replacements" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/./, 'z' => 'L').should == ""
-    end
+    "hello".gsub!(/./, 'z' => 'L').should == ""
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
     end
   end
 
   it "uses a key's value as many times as needed" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food".gsub!(/o/, 'o' => '0').should == "f00d"
     end
   end
@@ -361,7 +357,7 @@ describe "String#gsub! with pattern and Hash" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food".gsub!(/./, hsh).should == "?00?"
     end
   end
@@ -371,7 +367,7 @@ describe "String#gsub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       obj.should_receive(:to_s).and_return('!')
       hsh['!'] = obj
       "food!".gsub!(/./, hsh).should == "[]00[]!"
@@ -381,13 +377,13 @@ describe "String#gsub! with pattern and Hash" do
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "food!".gsub!(/./, hsh).should == "lamblamblamblamblamb"
     end
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       'hello.'.gsub!('l', 'l' => 'L')
       $~.begin(0).should == 3
       $~[0].should == 'l'
@@ -405,7 +401,7 @@ describe "String#gsub! with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       "hello".gsub!(/(.+)/, 'hello' => repl ).should == repl
     end
   end
