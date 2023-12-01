@@ -22,6 +22,7 @@ Value MutexObject::lock(Env *env) {
     std::lock_guard<std::mutex> lock(g_mutex_mutex);
     m_thread = ThreadObject::current();
     m_thread->add_mutex(this);
+    m_fiber = FiberObject::current();
 
     return this;
 }
@@ -42,6 +43,7 @@ Value MutexObject::unlock(Env *env) {
     assert(m_thread);
     m_thread->remove_mutex(this);
     m_thread = nullptr;
+    m_fiber = nullptr;
     return this;
 }
 
@@ -55,9 +57,24 @@ bool MutexObject::is_locked() {
     return true;
 }
 
+bool MutexObject::is_owned() {
+    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+
+    if (!is_locked()) return false;
+
+    if (m_thread != ThreadObject::current())
+        return false;
+
+    if (m_fiber != FiberObject::current())
+        return false;
+
+    return true;
+}
+
 void MutexObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_thread);
+    visitor.visit(m_fiber);
 }
 
 }

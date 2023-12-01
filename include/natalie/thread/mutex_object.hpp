@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/fiber_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
@@ -23,12 +24,14 @@ public:
     void unlock_without_checks() { m_mutex.unlock(); }
 
     bool is_locked();
+    bool is_owned();
 
     void visit_children(Visitor &);
 
 private:
     std::mutex m_mutex;
     ThreadObject *m_thread { nullptr };
+    FiberObject *m_fiber { nullptr };
 };
 
 }
