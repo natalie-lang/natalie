@@ -88,7 +88,7 @@ public:
     Value raise(Env *, Value = nullptr, Value = nullptr);
     Value wakeup(Env *);
 
-    void sleep(int);
+    Value sleep(Env *, float);
 
     void set_value(Value value) { m_value = value; }
     Value value(Env *);

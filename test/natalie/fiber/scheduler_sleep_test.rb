@@ -44,7 +44,9 @@ describe 'Fiber.scheduler with Kernel.sleep' do
       events << 'Coffee'
     end
 
-    sleeper.resume
+    NATFIXME 'handle infinite sleep in Fiber Scheduler', exception: TypeError, message: /nil.*to.*float/i do
+      sleeper.resume
+    end
     barista.resume
 
     scheduler.close

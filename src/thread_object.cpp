@@ -191,34 +191,70 @@ Value ThreadObject::wakeup(Env *env) {
     return NilObject::the();
 }
 
-void ThreadObject::sleep(int timeout) {
+Value ThreadObject::sleep(Env *env, float timeout) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
+    timespec t_begin;
+    if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
+        env->raise_errno();
+
+    auto calculate_elapsed = [&t_begin, &env] {
+        timespec t_end;
+        if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
+            env->raise_errno();
+        int elapsed = t_end.tv_sec - t_begin.tv_sec;
+        if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
+        return Value::integer(elapsed);
+    };
+
+    auto handle_error = [&env](int result) {
+        switch (result) {
+        case 0:
+        case ETIMEDOUT:
+            return;
+        case EINVAL:
+            env->raise("ThreadError", "EINVAL");
+        case EPERM:
+            env->raise("ThreadError", "EPERM");
+        default:
+            env->raise("ThreadError", "unknown error");
+        }
+    };
+
     if (ThreadObject::i_am_main()) {
-        while (true)
-            ::sleep(10000);
-        return;
+        if (timeout < 0.0) {
+            while (true)
+                ::sleep(10000);
+        } else {
+            struct timespec ts;
+            ts.tv_sec = ::floor(timeout);
+            ts.tv_nsec = (timeout - ts.tv_sec) * 1000000000;
+            ::nanosleep(&ts, nullptr);
+        }
+        return calculate_elapsed();
     }
 
-    if (timeout == -1) {
+    if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);
-        pthread_cond_wait(&m_sleep_cond, &m_sleep_lock);
+        handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
-        return;
+        return calculate_elapsed();
     }
 
-    struct timespec time_to_wait;
-    struct timeval now;
-
-    gettimeofday(&now, nullptr);
-
-    time_to_wait.tv_sec = now.tv_sec + timeout;
-    time_to_wait.tv_nsec = 0;
+    timespec wait;
+    timeval now;
+    if (gettimeofday(&now, nullptr) != 0)
+        env->raise_errno();
+    wait.tv_sec = now.tv_sec + (int)timeout;
+    auto ms = (timeout - (int)timeout) * 1000;
+    wait.tv_nsec = (now.tv_usec + 1000 * (ms)) * 1000;
 
     pthread_mutex_lock(&m_sleep_lock);
-    pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &time_to_wait);
+    handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
+
+    return calculate_elapsed();
 }
 
 Value ThreadObject::value(Env *env) {
@@ -342,5 +378,4 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visit
 #else
 void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
 #endif
-
 }
