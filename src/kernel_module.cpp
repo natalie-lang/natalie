@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/thread_object.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -571,15 +572,13 @@ Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
 
 Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
-        while (true) {
-            if (FiberObject::scheduler_is_relevant())
-                FiberObject::scheduler()->send(env, "kernel_sleep"_s);
-            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-            ThreadObject::set_current_sleeping(true);
-            ::sleep(1000);
-        }
-        NAT_UNREACHABLE();
+        if (FiberObject::scheduler_is_relevant())
+            FiberObject::scheduler()->send(env, "kernel_sleep"_s);
+        else
+            ThreadObject::current()->sleep(-1);
+        return NilObject::the();
     }
+
     float secs;
     if (length->is_integer()) {
         secs = length->as_integer()->to_nat_int_t();
@@ -594,13 +593,16 @@ Value KernelModule::sleep(Env *env, Value length) {
     } else {
         env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
     }
+
     if (secs < 0.0)
         env->raise("ArgumentError", "time interval must not be negative");
+
     timespec ts, t_begin, t_end;
     ts.tv_sec = ::floor(secs);
     ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
+
     if (FiberObject::scheduler_is_relevant()) {
         ts.tv_sec += t_begin.tv_sec;
         ts.tv_nsec += t_begin.tv_nsec;
@@ -627,6 +629,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         if (::clock_gettime(CLOCK_MONOTONIC, &t_end) < 0)
             env->raise_errno();
     }
+
     int elapsed = t_end.tv_sec - t_begin.tv_sec;
     if (t_end.tv_nsec < t_begin.tv_nsec) elapsed--;
     return IntegerObject::create(elapsed);

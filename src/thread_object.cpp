@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <sys/time.h>
 
 #include "natalie.hpp"
 #include "natalie/thread_object.hpp"
@@ -177,6 +178,47 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
         kill(env);
     }
     return NilObject::the();
+}
+
+Value ThreadObject::wakeup(Env *env) {
+    if (m_status == Status::Dead)
+        env->raise("ThreadError", "killed thread");
+
+    pthread_mutex_lock(&m_sleep_lock);
+    pthread_cond_signal(&m_sleep_cond);
+    pthread_mutex_unlock(&m_sleep_lock);
+
+    return NilObject::the();
+}
+
+void ThreadObject::sleep(int timeout) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    if (ThreadObject::i_am_main()) {
+        while (true)
+            ::sleep(10000);
+        return;
+    }
+
+    if (timeout == -1) {
+        pthread_mutex_lock(&m_sleep_lock);
+        pthread_cond_wait(&m_sleep_cond, &m_sleep_lock);
+        pthread_mutex_unlock(&m_sleep_lock);
+        return;
+    }
+
+    struct timespec time_to_wait;
+    struct timeval now;
+
+    gettimeofday(&now, nullptr);
+
+    time_to_wait.tv_sec = now.tv_sec + timeout;
+    time_to_wait.tv_nsec = 0;
+
+    pthread_mutex_lock(&m_sleep_lock);
+    pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &time_to_wait);
+    pthread_mutex_unlock(&m_sleep_lock);
 }
 
 Value ThreadObject::value(Env *env) {

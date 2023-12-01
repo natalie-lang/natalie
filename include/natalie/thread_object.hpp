@@ -86,7 +86,9 @@ public:
     Value join(Env *);
     Value kill(Env *) const;
     Value raise(Env *, Value = nullptr, Value = nullptr);
-    Value wakeup() { return NilObject::the(); }
+    Value wakeup(Env *);
+
+    void sleep(int);
 
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
@@ -163,7 +165,11 @@ private:
     std::atomic<bool> m_joined { false };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+
     bool m_sleeping { false };
+    pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
+
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
 
     inline static pthread_t s_main_id = 0;
