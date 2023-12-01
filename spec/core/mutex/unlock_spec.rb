@@ -17,9 +17,9 @@ describe "Mutex#unlock" do
 
     # avoid race on mutex.lock
     Thread.pass until mutex.locked?
-
-    # NATFIXME: implement Thread#stop?
-    #Thread.pass until th.stop?
+    NATFIXME 'Implement Thread#stop?', exception: NoMethodError, message: "undefined method `stop?'" do
+      Thread.pass until th.stop?
+    end
     Thread.pass while th.status == 'run'
 
     -> { mutex.unlock }.should raise_error(ThreadError)
