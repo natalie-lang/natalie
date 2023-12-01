@@ -22,8 +22,47 @@ Value MutexObject::lock(Env *env) {
     std::lock_guard<std::mutex> lock(g_mutex_mutex);
     m_thread = ThreadObject::current();
     m_thread->add_mutex(this);
+    m_fiber = FiberObject::current();
 
     return this;
+}
+
+Value MutexObject::sleep(Env *env, Value timeout) {
+    if (!timeout) {
+        unlock(env);
+        while (true)
+            ::sleep(1000);
+        lock(env);
+        return this;
+    }
+
+    if ((timeout->is_float() && timeout->as_float()->is_negative()) || (timeout->is_integer() && timeout->as_integer()->is_negative()))
+        env->raise("ArgumentError", "time interval must not be negative");
+
+    auto timeout_int = IntegerObject::convert_to_nat_int_t(env, timeout);
+
+    if (timeout_int < 0)
+        env->raise("ArgumentError", "timeout must be positive");
+
+    unlock(env);
+    ::sleep(timeout_int);
+    lock(env);
+
+    return Value::integer(timeout_int);
+}
+
+Value MutexObject::synchronize(Env *env, Block *block) {
+    try {
+        lock(env);
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+    } catch (ExceptionObject *exception) {
+        unlock(env);
+        throw exception;
+    }
+}
+
+bool MutexObject::try_lock() {
+    return m_mutex.try_lock();
 }
 
 Value MutexObject::unlock(Env *env) {
@@ -42,6 +81,7 @@ Value MutexObject::unlock(Env *env) {
     assert(m_thread);
     m_thread->remove_mutex(this);
     m_thread = nullptr;
+    m_fiber = nullptr;
     return this;
 }
 
@@ -55,9 +95,24 @@ bool MutexObject::is_locked() {
     return true;
 }
 
+bool MutexObject::is_owned() {
+    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+
+    if (!is_locked()) return false;
+
+    if (m_thread != ThreadObject::current())
+        return false;
+
+    if (m_fiber != FiberObject::current())
+        return false;
+
+    return true;
+}
+
 void MutexObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_thread);
+    visitor.visit(m_fiber);
 }
 
 }
