@@ -1317,6 +1317,7 @@ gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: fal
 gen.binding('Thread::Mutex', 'lock', 'Thread::MutexObject', 'lock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread::Mutex', 'locked?', 'Thread::MutexObject', 'is_locked', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread::Mutex', 'owned?', 'Thread::MutexObject', 'is_owned', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Thread::Mutex', 'synchronize', 'Thread::MutexObject', 'synchronize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Thread::Mutex', 'try_lock', 'Thread::MutexObject', 'try_lock', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread::Mutex', 'unlock', 'Thread::MutexObject', 'unlock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

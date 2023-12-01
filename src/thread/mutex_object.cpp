@@ -27,6 +27,16 @@ Value MutexObject::lock(Env *env) {
     return this;
 }
 
+Value MutexObject::synchronize(Env *env, Block *block) {
+    try {
+        lock(env);
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+    } catch (ExceptionObject *exception) {
+        unlock(env);
+        throw exception;
+    }
+}
+
 bool MutexObject::try_lock() {
     return m_mutex.try_lock();
 }
