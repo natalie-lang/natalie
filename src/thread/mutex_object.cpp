@@ -27,6 +27,10 @@ Value MutexObject::lock(Env *env) {
     return this;
 }
 
+bool MutexObject::try_lock() {
+    return m_mutex.try_lock();
+}
+
 Value MutexObject::unlock(Env *env) {
     std::lock_guard<std::mutex> lock(g_mutex_mutex);
 

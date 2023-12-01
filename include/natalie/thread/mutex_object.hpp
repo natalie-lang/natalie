@@ -19,6 +19,7 @@ public:
         : Object { Object::Type::ThreadMutex, klass } { }
 
     Value lock(Env *);
+    bool try_lock();
     Value unlock(Env *);
 
     void unlock_without_checks() { m_mutex.unlock(); }
