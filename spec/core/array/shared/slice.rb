@@ -520,11 +520,9 @@ describe :array_slice, shared: true do
       @array.send(@method, eval("(2..).step(2)")).should == [2, 4]
       @array.send(@method, eval("(2..).step(10)")).should == [2]
 
-      NATFIXME 'sequence', exception: SpecFailedException do
-        @array.send(@method, eval("(-3..).step(1)")).should == [3, 4, 5]
-        @array.send(@method, eval("(-3..).step(2)")).should == [3, 5]
-        @array.send(@method, eval("(-3..).step(10)")).should == [3]
-      end
+      @array.send(@method, eval("(-3..).step(1)")).should == [3, 4, 5]
+      @array.send(@method, eval("(-3..).step(2)")).should == [3, 5]
+      @array.send(@method, eval("(-3..).step(10)")).should == [3]
     end
 
     it "has beginless range and positive steps" do
