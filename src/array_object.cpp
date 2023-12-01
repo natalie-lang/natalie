@@ -1988,6 +1988,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         } else {
             const nat_int_t begin = seq->end()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
             nat_int_t idx = seq->begin()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            if (idx < 0) idx = this->size() + idx;
             if (seq->exclude_end()) idx--;
             while (idx >= begin && idx >= 0) {
                 result.push(m_vector[idx]);
