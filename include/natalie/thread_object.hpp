@@ -110,6 +110,11 @@ public:
         return m_status == Status::Dead && !m_thread.joinable();
     }
 
+    void add_mutex(Thread::MutexObject *mutex);
+    void remove_mutex(Thread::MutexObject *mutex);
+
+    void unlock_mutexes() const;
+
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
@@ -159,6 +164,7 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
     bool m_sleeping { false };
+    TM::Hashmap<Thread::MutexObject *> m_mutexes {};
 
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;

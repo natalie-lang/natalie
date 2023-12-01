@@ -847,7 +847,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         timeout_ptr = &timeout_tv;
     }
 
-    Defer([] { ThreadObject::set_current_sleeping(false); });
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
     const auto result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
 

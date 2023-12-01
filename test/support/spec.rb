@@ -560,6 +560,45 @@ class BeAncestorOfExpectation
   end
 end
 
+class BlockCallerExpectation
+  def match(subject)
+    unless check(subject)
+      raise SpecFailedException, subject.inspect + ' should have blocked, but it did not'
+    end
+  end
+
+  def inverted_match(subject)
+    if check(subject)
+      raise SpecFailedException, subject.inspect + ' should have not have blocked, but it did'
+    end
+  end
+
+  private
+
+  # I borrowed this from https://github.com/ruby/mspec/blob/master/lib/mspec/matchers/block_caller.rb
+  # Copyright (c) 2008 Engine Yard, Inc. All rights reserved.
+  # Licensed Under the MIT license.
+  def check(subject)
+    t = Thread.new { subject.call }
+
+    loop do
+      case t.status
+      when 'sleep'    # blocked
+        t.kill
+        t.join
+        return true
+      when false      # terminated normally, so never blocked
+        t.join
+        return false
+      when nil        # terminated exceptionally
+        t.value
+      else
+        Thread.pass
+      end
+    end
+  end
+end
+
 class EqlExpectation
   def initialize(other)
     @other = other
@@ -1306,6 +1345,10 @@ class Object
 
   def be_ancestor_of(klass)
     BeAncestorOfExpectation.new(klass)
+  end
+
+  def block_caller
+    BlockCallerExpectation.new
   end
 
   def eql(other)

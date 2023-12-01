@@ -363,6 +363,10 @@ Env *build_top_env() {
     ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
     Object->const_set("Thread"_s, Thread);
 
+    ClassObject *ThreadMutex = Object->subclass(env, "Mutex", Object::Type::ThreadMutex);
+    Thread->const_set("Mutex"_s, ThreadMutex);
+    Object->const_set("Mutex"_s, ThreadMutex);
+
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
 

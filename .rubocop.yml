@@ -64,7 +64,7 @@ Style/IfUnlessModifier:
   Enabled: false
 
 Style/LambdaCall:
-  EnforcedStyle: braces
+  Enabled: false
 
 Style/NumericPredicate:
   Enabled: false

@@ -7,7 +7,6 @@ describe "BasicSocket#recv" do
   before :each do
     @server = TCPServer.new('127.0.0.1', 0)
     @port = @server.addr[1]
-    p @port
   end
 
   after :each do
@@ -118,9 +117,7 @@ describe 'BasicSocket#recv' do
 
     describe 'using an unbound socket' do
       it 'blocks the caller' do
-        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-          -> { @server.recv(4) }.should block_caller
-        end
+        -> { @server.recv(4) }.should block_caller
       end
     end
 
@@ -131,9 +128,7 @@ describe 'BasicSocket#recv' do
 
       describe 'without any data available' do
         it 'blocks the caller' do
-          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-            -> { @server.recv(4) }.should block_caller
-          end
+          -> { @server.recv(4) }.should block_caller
         end
       end
 
@@ -159,9 +154,7 @@ describe 'BasicSocket#recv' do
 
           @server.recv(2).should == 'he'
 
-          NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-            -> { @server.recv(4) }.should block_caller
-          end
+          -> { @server.recv(4) }.should block_caller
         end
 
         it 'takes a peek at the data when using the MSG_PEEK flag' do
