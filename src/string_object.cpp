@@ -1924,12 +1924,6 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
-    StringObject *replacement = nullptr;
-    if (replacement_value) {
-        replacement = replacement_value->to_str(env);
-        block = nullptr;
-    }
-
     if (find->is_string() || find->respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
         const int options = 0;
@@ -1941,7 +1935,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     MatchDataObject *match;
     StringObject *expanded_replacement;
     String out;
-    regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, 0, block);
+    regexp_sub(env, out, this, find->as_regexp(), replacement_value, &match, &expanded_replacement, 0, block);
 
     if (match) {
         // append remaining bytes from source string
@@ -1965,15 +1959,8 @@ Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, 
 }
 
 Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
-
     if (!replacement_value && !block)
         env->raise("NotImplementedError", "Enumerator reply in String#gsub");
-
-    StringObject *replacement = nullptr;
-    if (replacement_value) {
-        replacement = replacement_value->to_str(env);
-        block = nullptr;
-    }
 
     if (find->is_string() || find->respond_to(env, "to_str"_s)) {
         const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
@@ -1990,7 +1977,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
 
     do {
         match = nullptr;
-        this->regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, byte_index, block);
+        this->regexp_sub(env, out, this, find->as_regexp(), replacement_value, &match, &expanded_replacement, byte_index, block);
         if (match) {
             byte_index = match->end_byte_index(0);
             if (match->is_empty()) {
@@ -2037,7 +2024,13 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     return IntegerObject::create(Integer(byte));
 }
 
-void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Value replacement_value, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+    StringObject *replacement = nullptr;
+    if (replacement_value) {
+        replacement = replacement_value->to_str(env);
+        block = nullptr;
+    }
+
     Value match_result = find->match_at_byte_offset(env, orig_string, byte_index);
     if (match_result == NilObject::the()) {
         *match = nullptr;
