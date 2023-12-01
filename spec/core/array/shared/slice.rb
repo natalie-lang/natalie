@@ -642,37 +642,35 @@ describe :array_slice, shared: true do
       @array.send(@method, eval("(1..3).step(-10)")).should == []
       @array.send(@method, eval("(1...3).step(-10)")).should == []
 
-      NATFIXME 'sequence', exception: SpecFailedException do
-        # start with positive index, end with negative index
-        @array.send(@method, eval("(1..-2).step(-1)")).should == []
-        @array.send(@method, eval("(1...-2).step(-1)")).should == []
+      # start with positive index, end with negative index
+      @array.send(@method, eval("(1..-2).step(-1)")).should == []
+      @array.send(@method, eval("(1...-2).step(-1)")).should == []
 
-        @array.send(@method, eval("(1..-2).step(-2)")).should ==  []
-        @array.send(@method, eval("(1...-2).step(-2)")).should ==  []
+      @array.send(@method, eval("(1..-2).step(-2)")).should ==  []
+      @array.send(@method, eval("(1...-2).step(-2)")).should ==  []
 
-        @array.send(@method, eval("(1..-2).step(-10)")).should == []
-        @array.send(@method, eval("(1...-2).step(-10)")).should == []
+      @array.send(@method, eval("(1..-2).step(-10)")).should == []
+      @array.send(@method, eval("(1...-2).step(-10)")).should == []
 
-        # start with negative index, end with positive index
-        @array.send(@method, eval("(-4..4).step(-1)")).should == []
-        @array.send(@method, eval("(-4...4).step(-1)")).should == []
+      # start with negative index, end with positive index
+      @array.send(@method, eval("(-4..4).step(-1)")).should == []
+      @array.send(@method, eval("(-4...4).step(-1)")).should == []
 
-        @array.send(@method, eval("(-4..4).step(-2)")).should == []
-        @array.send(@method, eval("(-4...4).step(-2)")).should == []
+      @array.send(@method, eval("(-4..4).step(-2)")).should == []
+      @array.send(@method, eval("(-4...4).step(-2)")).should == []
 
-        @array.send(@method, eval("(-4..4).step(-10)")).should == []
-        @array.send(@method, eval("(-4...4).step(-10)")).should == []
+      @array.send(@method, eval("(-4..4).step(-10)")).should == []
+      @array.send(@method, eval("(-4...4).step(-10)")).should == []
 
-        # start with negative index, end with negative index
-        @array.send(@method, eval("(-4..-2).step(-1)")).should == []
-        @array.send(@method, eval("(-4...-2).step(-1)")).should == []
+      # start with negative index, end with negative index
+      @array.send(@method, eval("(-4..-2).step(-1)")).should == []
+      @array.send(@method, eval("(-4...-2).step(-1)")).should == []
 
-        @array.send(@method, eval("(-4..-2).step(-2)")).should == []
-        @array.send(@method, eval("(-4...-2).step(-2)")).should == []
+      @array.send(@method, eval("(-4..-2).step(-2)")).should == []
+      @array.send(@method, eval("(-4...-2).step(-2)")).should == []
 
-        @array.send(@method, eval("(-4..-2).step(-10)")).should == []
-        @array.send(@method, eval("(-4...-2).step(-10)")).should == []
-      end
+      @array.send(@method, eval("(-4..-2).step(-10)")).should == []
+      @array.send(@method, eval("(-4...-2).step(-10)")).should == []
     end
 
     it "has inverted closed range and positive steps" do
