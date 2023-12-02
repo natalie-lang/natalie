@@ -376,11 +376,9 @@ end
 describe "String#sub with pattern and Hash" do
 
   it "returns a copy of self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "hello".sub(/./, 'l' => 'L').should == "ello"
-      "hello!".sub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
-      "hello".sub('l', 'l' => 'el').should == 'heello'
-    end
+    "hello".sub(/./, 'l' => 'L').should == "ello"
+    "hello!".sub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+    "hello".sub('l', 'l' => 'el').should == 'heello'
   end
 
   it "removes keys that don't correspond to matches" do
@@ -388,24 +386,18 @@ describe "String#sub with pattern and Hash" do
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "tattoo".sub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
-    end
+    "tattoo".sub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
   end
 
   it "uses a key's value only a single time" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food".sub(/o/, 'o' => '0').should == "f0od"
-    end
+    "food".sub(/o/, 'o' => '0').should == "f0od"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food".sub(/./, hsh).should == "?ood"
-    end
+    "food".sub(/./, hsh).should == "?ood"
   end
 
   it "coerces the hash values with #to_s" do
@@ -413,19 +405,15 @@ describe "String#sub with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      obj.should_receive(:to_s).and_return('!')
-      hsh['f'] = obj
-      "food!".sub(/./, hsh).should == "!ood!"
-    end
+    obj.should_receive(:to_s).and_return('!')
+    hsh['f'] = obj
+    "food!".sub(/./, hsh).should == "!ood!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food!".sub(/./, hsh).should == "lambood!"
-    end
+    "food!".sub(/./, hsh).should == "lambood!"
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
@@ -447,9 +435,7 @@ describe "String#sub with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "hello".sub(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".sub(/(.+)/, 'hello' => repl ).should == repl
   end
 
 end
@@ -457,11 +443,9 @@ end
 describe "String#sub! with pattern and Hash" do
 
   it "returns self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "hello".sub!(/./, 'l' => 'L').should == "ello"
-      "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
-      "hello".sub!('l', 'l' => 'el').should == 'heello'
-    end
+    "hello".sub!(/./, 'l' => 'L').should == "ello"
+    "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+    "hello".sub!('l', 'l' => 'el').should == 'heello'
   end
 
   it "removes keys that don't correspond to matches" do
@@ -469,24 +453,18 @@ describe "String#sub! with pattern and Hash" do
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
-    end
+    "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
   end
 
   it "uses a key's value only a single time" do
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food".sub!(/o/, 'o' => '0').should == "f0od"
-    end
+    "food".sub!(/o/, 'o' => '0').should == "f0od"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food".sub!(/./, hsh).should == "?ood"
-    end
+    "food".sub!(/./, hsh).should == "?ood"
   end
 
   it "coerces the hash values with #to_s" do
@@ -494,19 +472,15 @@ describe "String#sub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      obj.should_receive(:to_s).and_return('!')
-      hsh['f'] = obj
-      "food!".sub!(/./, hsh).should == "!ood!"
-    end
+    obj.should_receive(:to_s).and_return('!')
+    hsh['f'] = obj
+    "food!".sub!(/./, hsh).should == "!ood!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "food!".sub!(/./, hsh).should == "lambood!"
-    end
+    "food!".sub!(/./, hsh).should == "lambood!"
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
@@ -528,9 +502,7 @@ describe "String#sub! with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Hash argument', exception: SpecFailedException do
-      "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
   end
 end
 
