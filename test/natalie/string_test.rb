@@ -350,6 +350,21 @@ describe 'string' do
     end
   end
 
+  describe '#rindex' do
+    it 'returns the character index of the substring from the end' do
+      s = 'hello there 😉 hello'.encode 'utf-8'
+      s.rindex('hello').should == 14
+      s.rindex('there').should == 6
+      s.rindex('😉').should == 12
+    end
+
+    it 'returns nil if the substring cannot be found' do
+      s = 'foo'
+      s.rindex('bar').should == nil
+      s.rindex('something really long').should == nil
+    end
+  end
+
   describe '#start_with?' do
     it 'returns true if the string starts with the given substring' do
       s = 'tim morgan'

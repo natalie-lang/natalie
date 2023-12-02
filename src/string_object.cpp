@@ -628,6 +628,25 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     return ptr - c_str();
 }
 
+Value StringObject::rindex(Env *env, Value needle) const {
+    auto needle_str = needle->to_str(env)->as_string();
+    auto needle_len = needle_str->bytesize();
+
+    auto len = bytesize();
+    auto byte_index = len;
+
+    if (needle_len > len)
+        return NilObject::the();
+
+    auto c = prev_char(&byte_index);
+    while (!c.is_empty()) {
+        if (needle_len <= len - byte_index && memcmp(needle_str->c_str(), c_str() + byte_index, needle_len) == 0)
+            return Value::integer(byte_index_to_char_index(byte_index));
+        c = prev_char(&byte_index);
+    }
+    return NilObject::the();
+}
+
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
     if (arg)
         initialize_copy(env, arg->to_str(env));
