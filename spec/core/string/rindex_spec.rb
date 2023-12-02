@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
-# NATFIXME: Support __ENCODING__ / transform_source_encoding_node
-# require_relative 'fixtures/utf-8-encoding'
 
 describe "String#rindex with object" do
   it "raises a TypeError if obj isn't a String or Regexp" do
