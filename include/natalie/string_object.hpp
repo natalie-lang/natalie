@@ -258,6 +258,8 @@ public:
     Value index(Env *, Value, size_t start) const;
     nat_int_t index_int(Env *, Value, size_t start) const;
 
+    Value rindex(Env *, Value) const;
+
     void truncate(size_t length) {
         m_string.truncate(length);
     }
