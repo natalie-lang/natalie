@@ -1,6 +1,34 @@
+#include "natalie/encoding/eucjp_encoding_object.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {
+
+bool EucJpEncodingObject::valid_codepoint(nat_int_t codepoint) const {
+    if (codepoint < 0 || codepoint > 0x8ffefe)
+        return false;
+    if (codepoint <= 0x7F)
+        return true;
+
+    auto b1 = (codepoint & 0x0000FF);
+    auto b2 = (codepoint & 0x00FF00) >> 8;
+    auto b3 = (codepoint & 0xFF0000) >> 16;
+
+    if (b3 == 0 && b1 >= 0xA1 && b1 <= 0xFE && b1 != 0x8E) {
+        if (b2 >= 0xD0 && b2 <= 0xFE)
+            return true;
+        if ((b2 >= 0xA1 && b2 <= 0xCF) || b2 == 0x8E)
+            return true;
+        return false;
+    }
+
+    if (b3 >= 0xA1 && b3 <= 0xFE && b2 >= 0xA1 && b2 <= 0xFE)
+        return true;
+
+    if (b3 == 0x8F && b2 >= 0xA1 && b2 <= 0xFE && b1 >= 0xA1 && b1 <= 0xFE)
+        return true;
+
+    return false;
+}
 
 std::pair<bool, StringView> EucJpEncodingObject::prev_char(const String &string, size_t *index) const {
     if (*index == 0)
@@ -80,11 +108,27 @@ nat_int_t EucJpEncodingObject::from_unicode_codepoint(nat_int_t codepoint) const
 }
 
 String EucJpEncodingObject::encode_codepoint(nat_int_t codepoint) const {
-    NAT_NOT_YET_IMPLEMENTED();
+    String buf;
+    if (codepoint > 0xffff) buf.append_char(codepoint >> 16);
+    if (codepoint > 0xff) buf.append_char(codepoint >> 8 & 0xff);
+    buf.append_char(codepoint & 0xff);
+    return buf;
 }
 
 nat_int_t EucJpEncodingObject::decode_codepoint(StringView &str) const {
-    NAT_NOT_YET_IMPLEMENTED();
+    switch (str.size()) {
+    case 1:
+        return (unsigned char)str[0];
+    case 2:
+        return ((unsigned char)str[0] << 8)
+            + ((unsigned char)str[1]);
+    case 3:
+        return ((unsigned char)str[0] << 16)
+            + ((unsigned char)str[1] << 8)
+            + ((unsigned char)str[2]);
+    default:
+        return -1;
+    }
 }
 
 }
