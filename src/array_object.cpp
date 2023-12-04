@@ -2000,7 +2000,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
                 idx += step;
             }
         }
-        m_vector = result;
+        m_vector = std::move(result);
         return this;
     }
 
