@@ -1994,6 +1994,7 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
                 if (idx < 0) idx = this->size() + idx;
                 if (seq->exclude_end()) idx--;
             }
+            if (idx >= static_cast<nat_int_t>(this->size())) idx = this->size() - 1;
             while (idx >= begin && idx >= 0) {
                 result.push(m_vector[idx]);
                 idx += step;
