@@ -24,5 +24,18 @@ describe 'encodings' do
         codepoint.chr(Encoding::EUC_JP).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
       end
     end
+
+    it 'can convert from UTF-8' do
+      {
+        0x61   => 0x61,
+        0xFF61 => 0x8EA1,
+        0x9d5f => 0x8febf4,
+        0x9fa5 => 0x8fede3,
+        0x3000 => 0xA1A1,
+        0x3001 => 0xA1A2,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::EUC_JP).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
   end
 end
