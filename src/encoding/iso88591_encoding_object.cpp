@@ -24,15 +24,11 @@ String Iso88591EncodingObject::escaped_char(unsigned char c) const {
 }
 
 nat_int_t Iso88591EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
+    return codepoint;
 }
 
 nat_int_t Iso88591EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
+    return codepoint;
 }
 
 String Iso88591EncodingObject::encode_codepoint(nat_int_t codepoint) const {
