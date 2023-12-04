@@ -270,4 +270,10 @@ nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint) {
     return codepoint + delta;
 }
 
+bool EncodingObject::is_compatible_with(EncodingObject *other_encoding) const {
+    if (other_encoding == this) return true;
+
+    return is_ascii_compatible() && other_encoding->is_ascii_compatible();
+}
+
 }

@@ -49,7 +49,7 @@ describe "String#%" do
     end
 
     it "raises if a compatible encoding can't be found" do
-      NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError do
+      NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
         -> { "hello %s".encode("utf-8") % "world".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
       end
     end

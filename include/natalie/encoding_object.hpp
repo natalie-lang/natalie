@@ -59,6 +59,8 @@ public:
 
     virtual bool is_single_byte_encoding() const = 0;
 
+    virtual bool is_compatible_with(EncodingObject *) const;
+
     [[noreturn]] void raise_encoding_invalid_byte_sequence_error(Env *env, const String &, size_t) const;
 
     static HashObject *aliases(Env *);

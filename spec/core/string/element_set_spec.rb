@@ -142,7 +142,7 @@ describe "String#[]= with Integer index" do
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
@@ -202,7 +202,7 @@ describe "String#[]= with String index" do
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
@@ -319,7 +319,7 @@ describe "String#[]= with a Regexp index" do
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
@@ -444,7 +444,7 @@ describe "String#[]= with a Range index" do
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
@@ -603,7 +603,7 @@ describe "String#[]= with Integer index, count" do
   it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end

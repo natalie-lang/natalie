@@ -75,6 +75,7 @@ class Encoding
   class InvalidByteSequenceError < EncodingError; end
   class UndefinedConversionError < EncodingError; end
   class ConverterNotFoundError < EncodingError; end
+  class CompatibilityError < EncodingError; end
 end
 
 class SystemExit < Exception

@@ -48,7 +48,7 @@ describe :end_with, shared: true do
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> do
         "あれ".send(@method).end_with?(pat)
       end.should raise_error(Encoding::CompatibilityError)

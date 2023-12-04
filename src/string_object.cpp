@@ -1,3 +1,4 @@
+#include "natalie/string_object.hpp"
 #include "ctype.h"
 #include "natalie.hpp"
 #include "natalie/string_unpacker.hpp"
@@ -670,8 +671,10 @@ Value StringObject::ltlt(Env *env, Value arg) {
 }
 
 Value StringObject::add(Env *env, Value arg) const {
-    StringObject *new_string = new StringObject { m_string, m_encoding }; // TODO: encoding should be negotiated
-    new_string->append(arg->to_str(env)->string());
+    StringObject *str = arg->to_str(env);
+    StringObject *new_string = new StringObject { m_string, m_encoding };
+    Value args[] = { str };
+    new_string->concat(env, Args(1, args));
     return new_string;
 }
 
@@ -720,7 +723,7 @@ Value StringObject::cmp(Env *env, Value other) {
 
     auto comparison = m_string.cmp(other_str->m_string);
 
-    if (comparison == 0 && !(ascii_only(env) && other->as_string()->ascii_only(env))) {
+    if (comparison == 0 && !(is_ascii_only() && other->as_string()->is_ascii_only())) {
         nat_int_t this_enc_idx = static_cast<nat_int_t>(m_encoding->num());
         nat_int_t other_enc_idx = static_cast<nat_int_t>(other_str->m_encoding->num());
         nat_int_t cmp_encodings = this_enc_idx - other_enc_idx;
@@ -755,6 +758,18 @@ Value StringObject::concat(Env *env, Args args) {
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
+
+        // If the other string is empty, there's nothing to do.
+        if (str_obj->is_empty()) continue;
+
+        // If this string is empty, then we can just copy the other string and encoding.
+        if (is_empty()) {
+            m_string = str_obj->string();
+            m_encoding = str_obj->encoding();
+            continue;
+        }
+
+        assert_compatible_string_and_update_encoding(env, str_obj);
 
         append(str_obj->string());
     }
@@ -2439,8 +2454,14 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 
 bool StringObject::include(Env *env, Value arg) {
     arg = arg->to_str(env);
-    if (arg->as_string()->is_empty())
+
+    auto arg_str = arg->as_string_or_raise(env);
+
+    if (arg_str->is_empty())
         return true;
+
+    assert_compatible_string(env, arg_str);
+
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
@@ -2973,6 +2994,74 @@ Value StringObject::reverse_in_place(Env *env) {
     return this;
 }
 
+bool StringObject::valid_encoding() const {
+    size_t index = 0;
+    std::pair<bool, StringView> pair;
+    do {
+        pair = m_encoding->next_char(m_string, &index);
+        if (!pair.first)
+            return false;
+    } while (!pair.second.is_empty());
+    return true;
+}
+
+bool StringObject::is_ascii_only() const {
+    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
+        return false;
+
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        if (c > 127) {
+            return false;
+        }
+    }
+    return true;
+}
+
+EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_string) const {
+    if (m_encoding == other_string->m_encoding)
+        return m_encoding;
+
+    if (!m_encoding->is_compatible_with(other_string->m_encoding))
+        return nullptr;
+
+    bool this_is_ascii = is_ascii_only();
+    bool other_is_ascii = other_string->is_ascii_only();
+
+    if (!this_is_ascii && !other_is_ascii)
+        return nullptr;
+
+    // Special case for BINARY
+    if (m_encoding->num() == Encoding::ASCII_8BIT)
+        return m_encoding;
+
+    if (this_is_ascii)
+        return other_string->m_encoding;
+    else
+        return m_encoding;
+}
+
+void StringObject::assert_compatible_string(Env *env, StringObject *other_string) const {
+    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    if (compatible_encoding)
+        return;
+
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+}
+
+EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
+    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    if (compatible_encoding) {
+        if (m_encoding != compatible_encoding)
+            m_encoding = compatible_encoding;
+        return m_encoding;
+    }
+
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+}
+
 void StringObject::prepend_char(Env *env, char c) {
     m_string.prepend_char(c);
 }
@@ -3232,17 +3321,6 @@ Value StringObject::convert_float() {
     }
 }
 
-bool StringObject::valid_encoding() const {
-    size_t index = 0;
-    std::pair<bool, StringView> pair;
-    do {
-        pair = m_encoding->next_char(m_string, &index);
-        if (!pair.first)
-            return false;
-    } while (!pair.second.is_empty());
-    return true;
-}
-
 Value StringObject::delete_prefix(Env *env, Value val) {
     if (!val->is_string())
         val = val->to_str(env);
@@ -3292,19 +3370,6 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
         return Value(NilObject::the());
     }
     return this;
-}
-
-bool StringObject::ascii_only(Env *env) const {
-    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
-        return false;
-
-    for (size_t i = 0; i < length(); i++) {
-        unsigned char c = c_str()[i];
-        if (c > 127) {
-            return false;
-        }
-    }
-    return true;
 }
 
 Value StringObject::chop(Env *env) const {
