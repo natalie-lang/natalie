@@ -29,9 +29,10 @@ describe "String#casecmp independent of case" do
     "abc".casecmp(mock('abc')).should be_nil
   end
 
-  # NATFIXME: NOT_YET_IMPLEMENTED abort in EUC_JP encoding
-  xit "returns nil if incompatible encodings" do
-    "あれ".casecmp("れ".encode(Encoding::EUC_JP)).should be_nil
+  it "returns nil if incompatible encodings" do
+    NATFIXME 'returns nil if incompatible encodings', exception: SpecFailedException do
+      "あれ".casecmp("れ".encode(Encoding::EUC_JP)).should be_nil
+    end
   end
 
   describe "in UTF-8 mode" do
@@ -138,9 +139,10 @@ describe 'String#casecmp? independent of case' do
     "abc".casecmp?(other).should == true
   end
 
-  # NATFIXME: NOT_YET_IMPLEMENTED abort in EUC_JP encoding
-  xit "returns nil if incompatible encodings" do
-    "あれ".casecmp?("れ".encode(Encoding::EUC_JP)).should be_nil
+  it "returns nil if incompatible encodings" do
+    NATFIXME 'returns nil if incompatible encodings', exception: SpecFailedException do
+      "あれ".casecmp?("れ".encode(Encoding::EUC_JP)).should be_nil
+    end
   end
 
   describe 'for UNICODE characters' do

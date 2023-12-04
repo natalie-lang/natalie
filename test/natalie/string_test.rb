@@ -743,16 +743,14 @@ describe 'string' do
       s.should == ''.force_encoding('EUCJP')
     end
 
-    # NATFIXME: Pending implementation of EucJpEncoding::decode_codepoint
-    xit "chops the last char of a string with single-byte final char" do
+    it "chops the last char of a string with single-byte final char" do
       # single-byte char
       s = "foo\x77".force_encoding('EUCJP')
       s.chop!
       s.should == 'foo'.force_encoding('EUCJP')
     end
     
-    # NATFIXME : Pending implementation of EucJpEncoding::prev_char
-    xit "chops the last char of a string with two-byte final char" do
+    it "chops the last char of a string with two-byte final char" do
       # two-byte char removal
       s = "foo\xA1\xA1".force_encoding('EUCJP')
       s.chop!
@@ -764,8 +762,7 @@ describe 'string' do
       s.should == 'foo'.force_encoding('EUCJP')
     end
     
-    # NATFIXME : Pending implementation of EucJpEncoding::prev_char
-    xit "chops the last char of a string with three-byte final char" do
+    it "chops the last char of a string with three-byte final char" do
       # three-byte char removal (8E lead)
       s = "foo\x8F\xA1\xA2".force_encoding('EUCJP')
       s.chop!

@@ -46,12 +46,13 @@ describe :end_with, shared: true do
     "céréale".send(@method).should.end_with?("réale")
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+  it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
-    -> do
-      "あれ".send(@method).end_with?(pat)
-    end.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+      -> do
+        "あれ".send(@method).end_with?(pat)
+      end.should raise_error(Encoding::CompatibilityError)
+    end
   end
 
   it "checks that we are starting to match at the head of a character" do

@@ -77,8 +77,7 @@ describe :array_inspect, shared: true do
       [].send(@method).encoding.should == Encoding::US_ASCII
     end
 
-    # NATFIXME: implement EUC-JP
-    xit "use the default external encoding if it is ascii compatible" do
+    it "use the default external encoding if it is ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-8')
 
       utf8 = "utf8".encode("UTF-8")

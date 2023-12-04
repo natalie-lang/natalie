@@ -160,8 +160,7 @@ describe "Integer#chr with an encoding argument" do
     8287.chr(Encoding::UTF_8).should_not equal(8287.chr(Encoding::UTF_8))
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "accepts a String as an argument" do
+  it "accepts a String as an argument" do
     -> { 0xA4A2.chr('euc-jp') }.should_not raise_error
   end
 
