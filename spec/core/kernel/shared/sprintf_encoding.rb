@@ -58,12 +58,13 @@ describe :kernel_sprintf_encoding, shared: true do
       }.should raise_error(RangeError, /out of char range/)
     end
 
-    # NATFIXME: euc-jp stuff not implemented
-    xit "uses the encoding of the format string to interpret codepoints" do
+    it "uses the encoding of the format string to interpret codepoints" do
       format = "%c".force_encoding("euc-jp")
       result = @method.call(format, 9415601)
 
-      result.encoding.should == Encoding::EUC_JP
+      NATFIXME 'uses the encoding of the format string to interpret codepoints', exception: SpecFailedException do
+        result.encoding.should == Encoding::EUC_JP
+      end
       result.should == "é".encode(Encoding::EUC_JP)
       result.bytes.should == [143, 171, 177]
     end

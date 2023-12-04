@@ -61,8 +61,7 @@ describe "Module#const_defined?" do
     ConstantUnicodeSpecs.const_defined?("CS_CONSTλ").should be_true
   end
 
-  # NATFIXME: Multibyte in EUC_JP
-  xit "returns true when passed a constant name with EUC-JP characters" do
+  it "returns true when passed a constant name with EUC-JP characters" do
     str = "CS_CONSTλ".encode("euc-jp")
     ConstantSpecs.const_set str, 1
     ConstantSpecs.const_defined?(str).should be_true

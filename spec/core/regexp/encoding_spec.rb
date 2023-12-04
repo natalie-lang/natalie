@@ -49,14 +49,14 @@ describe "Regexp#encoding" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "upgrades the encoding to that of an embedded String" do
+  it "upgrades the encoding to that of an embedded String" do
     str = "文字化け".encode('euc-jp')
-    /#{str}/.encoding.should == Encoding::EUC_JP
+    NATFIXME 'upgrades the encoding to that of an embedded String', exception: SpecFailedException do
+      /#{str}/.encoding.should == Encoding::EUC_JP
+    end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "ignores the encoding and uses US-ASCII if the string has only ASCII characters" do
+  it "ignores the encoding and uses US-ASCII if the string has only ASCII characters" do
     str = "abc".encode('euc-jp')
     str.encoding.should == Encoding::EUC_JP
     /#{str}/.encoding.should == Encoding::US_ASCII

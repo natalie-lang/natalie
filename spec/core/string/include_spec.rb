@@ -40,11 +40,12 @@ describe "String#include? with String" do
     -> { "hello".include?(mock('x')) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement multibyte characters and EUC-JP encoding
-  xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+  it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
-    -> do
-      "あれ".include?(pat)
-    end.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+      -> do
+        "あれ".include?(pat)
+      end.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end

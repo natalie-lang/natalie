@@ -669,8 +669,7 @@ describe "IO#read" do
         @io = IOSpecs.io_fixture "read_euc_jp.txt", "r:euc-jp"
       end
 
-      # NATFIXME: Multibyte in EUC_JP
-      xit "does not transcode the String" do
+      it "does not transcode the String" do
         @io.read.should == ("ありがとう\n").encode(Encoding::EUC_JP)
       end
 
