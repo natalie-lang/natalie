@@ -5,6 +5,7 @@ module Natalie
         -pthread
         -O3
         -Wno-unused-value
+        -Wno-trigraphs
       ].freeze
 
       DEBUG_FLAGS = %w[
