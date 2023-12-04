@@ -107,7 +107,7 @@ describe :yaml_load_unsafe, shared: true do
                                                     Date.new( 2001, 8, 14 ) ]
     }
     NATFIXME 'Implement YAML.unsafe_load', exception: SpecFailedException do
-      YAML.send(@method, $complex_key_1).should == expected
+      YAML.send(@method, YAMLSpecs::COMPLEX_KEY_1).should == expected
     end
   end
 
