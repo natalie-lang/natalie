@@ -1878,15 +1878,29 @@ std::pair<bool, StringView> EucJpEncodingObject::prev_char(const String &string,
     (*index)--;
     unsigned char c = string[*index];
 
-    if ((int)c <= 0x7F) {
+    if (c <= 0x7F) {
         // 7F or below is a single-byte
         return { true, StringView(&string, *index, 1) };
     }
-    if (((int)c >= 0x80 && (int)c <= 0xA0) || (int)c == 0xFF) {
-        // invalid code
+
+    if (*index == 0)
         return { false, StringView(&string, *index, 1) };
+
+    (*index)--;
+    c = string[*index];
+
+    if (c >= 0xA1 && c <= 0xFE) {
+        if (*index > 0 && (unsigned char)string[*index - 1] == 0x8F) {
+            // 3 bytes, first byte is 0x8F, next two are 0xA1-0xFE
+            (*index)--;
+            return { true, StringView(&string, *index, 3) };
+        }
+
+        // 2 bytes, first byte is 0xA1-0xFE
+        return { true, StringView(&string, *index, 2) };
     }
-    NAT_NOT_YET_IMPLEMENTED();
+
+    return { false, StringView(&string, *index, 2) };
 }
 
 std::pair<bool, StringView> EucJpEncodingObject::next_char(const String &string, size_t *index) const {

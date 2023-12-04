@@ -37,5 +37,19 @@ describe 'encodings' do
         codepoint.chr(Encoding::UTF_8).encode(Encoding::EUC_JP).ord.to_s(16).should == expected.to_s(16)
       end
     end
+
+    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+      [
+        0x61,
+        0xA1A1,
+        0x8FFEF1,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::EUC_JP) + codepoint.chr(Encoding::EUC_JP)
+        string.encoding.should == Encoding::EUC_JP
+        string.chop!
+        string.encoding.should == Encoding::EUC_JP
+        string.bytes.should == 'a'.encode(Encoding::EUC_JP).bytes
+      end
+    end
   end
 end
