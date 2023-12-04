@@ -2005,7 +2005,6 @@ nat_int_t EucJpEncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
                 if (table_index >= 0 && table_index <= table_max)
                     result = table[table_index];
             }
-            jis0212 = false;
             return result;
         }
 
