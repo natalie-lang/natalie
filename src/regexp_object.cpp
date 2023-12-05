@@ -160,7 +160,7 @@ Value RegexpObject::quote(Env *env, Value string) {
     }
 
     auto encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-    if (str->ascii_only(env))
+    if (str->is_ascii_only())
         encoding = EncodingObject::get(Encoding::US_ASCII);
     else if (str->valid_encoding())
         encoding = str->encoding();

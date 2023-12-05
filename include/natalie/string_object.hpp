@@ -153,9 +153,12 @@ public:
     bool valid_encoding() const;
     EncodingObject *encoding() const { return m_encoding; }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
+    bool is_ascii_only() const;
+    EncodingObject *negotiate_compatible_encoding(StringObject *) const;
+    void assert_compatible_string(Env *, StringObject *) const;
+    EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);
-
     void insert(Env *, size_t, char);
 
     void append_char(char);
@@ -289,7 +292,6 @@ public:
     Value sub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
-    bool ascii_only(Env *) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
     Value byteslice(Env *, Value, Value);

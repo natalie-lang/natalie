@@ -285,7 +285,7 @@ describe "Ruby String interpolation" do
     a = "\u3042"
     b = "\xff".force_encoding "binary"
 
-    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { "#{a} #{b}" }.should raise_error(Encoding::CompatibilityError)
     end
   end

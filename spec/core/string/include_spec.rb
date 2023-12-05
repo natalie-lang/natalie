@@ -42,10 +42,8 @@ describe "String#include? with String" do
 
   it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     pat = "ア".encode Encoding::EUC_JP
-    NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
-      -> do
-        "あれ".include?(pat)
-      end.should raise_error(Encoding::CompatibilityError)
-    end
+    -> do
+      "あれ".include?(pat)
+    end.should raise_error(Encoding::CompatibilityError)
   end
 end

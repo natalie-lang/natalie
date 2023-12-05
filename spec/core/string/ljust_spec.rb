@@ -94,7 +94,7 @@ describe "String#ljust with length, padding" do
 
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       pat = "ア".encode Encoding::EUC_JP
-      NATFIXME 'Add Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+      NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
         -> do
           "あれ".ljust 5, pat
         end.should raise_error(Encoding::CompatibilityError)

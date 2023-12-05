@@ -471,7 +471,7 @@ describe "String#gsub with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { s.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       -> { s2.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
     end
@@ -615,7 +615,7 @@ describe "String#gsub! with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       -> { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
     end

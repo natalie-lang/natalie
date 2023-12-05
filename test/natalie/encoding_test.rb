@@ -52,4 +52,50 @@ describe 'encodings' do
       end
     end
   end
+
+  describe 'ISO-8859-1' do
+    it 'can convert codepoints' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        codepoint.chr(Encoding::ISO_8859_1).ord.should == codepoint
+      end
+    end
+
+    it 'can convert to UTF-8' do
+      {
+        0x61 => 0x61,
+        0x8E => 0x8E,
+        0xFF => 0xFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::ISO_8859_1).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can convert from UTF-8' do
+      {
+        0x61 => 0x61,
+        0x8E => 0x8E,
+        0xFF => 0xFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::ISO_8859_1).encode(Encoding::ISO_8859_1).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::ISO_8859_1) + codepoint.chr(Encoding::ISO_8859_1)
+        string.encoding.should == Encoding::ISO_8859_1
+        string.chop!
+        string.encoding.should == Encoding::ISO_8859_1
+        string.bytes.should == 'a'.encode(Encoding::ISO_8859_1).bytes
+      end
+    end
+  end
 end
