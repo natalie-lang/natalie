@@ -104,7 +104,7 @@ class IO
     get_bytes = lambda do |size|
       buf << read(1024) while !eof? && buf.bytesize << size
       return nil if eof? && buf.empty?
-      buf.byteslice(0, size)
+      buf.byteslice(0, size).force_encoding(Encoding.default_external)
     end
     advance = lambda do |size|
       buf = buf.byteslice(size..)
