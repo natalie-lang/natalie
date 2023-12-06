@@ -139,8 +139,6 @@ private:
     Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
-
-    inline static Value s_scheduler { nullptr };
 };
 
 }

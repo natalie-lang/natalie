@@ -44,14 +44,17 @@ describe 'Fiber.scheduler with Kernel.sleep' do
       events << 'Coffee'
     end
 
-    NATFIXME 'handle infinite sleep in Fiber Scheduler', exception: TypeError, message: /nil.*to.*float/i do
-      sleeper.resume
+    Thread.new do
+      sleep 1
+      scheduler.wakeup(sleeper)
     end
+
+    sleeper.resume
     barista.resume
 
     scheduler.close
 
-    events.should == ['Going to sleep', 'Coffee']
+    events.should == ['Going to sleep', 'Coffee', 'Woken up']
   end
 
   it 'does not interleave blocking fibers' do

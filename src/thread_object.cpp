@@ -348,6 +348,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_value);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);
+    visitor.visit(m_fiber_scheduler);
     visit_children_from_stack(visitor);
 }
 

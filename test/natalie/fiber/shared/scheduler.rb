@@ -20,8 +20,16 @@ class Scheduler
   end
 
   def kernel_sleep(duration = nil)
-    @waiting[Fiber.current] = current_time + duration
+    if duration
+      @waiting[Fiber.current] = current_time + duration
+    else
+      @waiting[Fiber.current] = Float::INFINITY
+    end
     Fiber.yield
+  end
+
+  def wakeup(fiber)
+    @waiting[fiber] = 0
   end
 
   def current_time

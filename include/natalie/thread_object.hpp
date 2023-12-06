@@ -117,6 +117,9 @@ public:
 
     void unlock_mutexes() const;
 
+    Value fiber_scheduler() const { return m_fiber_scheduler; }
+    void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
+
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
@@ -171,6 +174,8 @@ private:
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
+
+    Value m_fiber_scheduler { nullptr };
 
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
