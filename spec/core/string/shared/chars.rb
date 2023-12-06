@@ -21,7 +21,7 @@ describe :string_chars, shared: true do
   end
 
   it "returns characters in the same encoding as self" do
-    "&%".force_encoding('ASCII-8BIT').send(@method).to_a.all? {|c| c.encoding.name.should == 'ASCII-8BIT'}
+    "&%".force_encoding('Shift_JIS').send(@method).to_a.all? {|c| c.encoding.name.should == 'Shift_JIS'}
     "&%".encode('BINARY').send(@method).to_a.all? {|c| c.encoding.should == Encoding::BINARY }
   end
 
@@ -57,10 +57,12 @@ describe :string_chars, shared: true do
       [0xAD].pack('C').force_encoding('BINARY'),
       [0xA2].pack('C').force_encoding('BINARY')
     ]
-    #s.force_encoding('SJIS').send(@method).to_a.should == [
-      #[0xF0,0xA4].pack('CC').force_encoding('SJIS'),
-      #[0xAD].pack('C').force_encoding('SJIS'),
-      #[0xA2].pack('C').force_encoding('SJIS')
-    #]
+    NATFIXME 'Implement SJIS encoding', exception: ArgumentError, message: 'unknown encoding name - "SJIS"' do
+      s.force_encoding('SJIS').send(@method).to_a.should == [
+        [0xF0,0xA4].pack('CC').force_encoding('SJIS'),
+        [0xAD].pack('C').force_encoding('SJIS'),
+        [0xA2].pack('C').force_encoding('SJIS')
+      ]
+    end
   end
 end
