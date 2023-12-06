@@ -63,9 +63,7 @@ describe "IO#eof?" do
 
   it "does not consume the data from the stream" do
     @io.should_not.eof?
-    NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
-      @io.getc.should == 'V'
-    end
+    @io.getc.should == 'V'
   end
 
   it "raises IOError on closed stream" do
