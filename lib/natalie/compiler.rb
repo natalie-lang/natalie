@@ -29,7 +29,6 @@ module Natalie
 
     attr_accessor :ast,
                   :context,
-                  :c_path,
                   :inline_cpp_enabled,
                   :options,
                   :repl,
@@ -43,6 +42,14 @@ module Natalie
       return backend.compile_to_object if write_obj_path
 
       backend.compile_to_binary
+    end
+
+    def compile_to_bytecode
+      File.open(@out_path, 'wb') do |file|
+        instructions.each do |instruction|
+          file.write(instruction.serialize)
+        end
+      end
     end
 
     def write_file_for_debugging

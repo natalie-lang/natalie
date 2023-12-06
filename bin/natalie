@@ -150,6 +150,9 @@ class Runner
     elsif options[:ast]
       require 'pp'
       pp ast
+    elsif options[:compile] && options[:bytecode]
+      compiler.out_path = options[:compile]
+      compiler.compile_to_bytecode
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
@@ -288,7 +291,7 @@ class Runner
         @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
       end
     elsif options[:bytecode]
-      @source_path  = options[:bytecode]
+      @source_path = options[:bytecode]
     elsif options[:expecting_script]
       raise 'Expected a Ruby script, but none was given.'
     else
