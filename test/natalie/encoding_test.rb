@@ -99,6 +99,58 @@ describe 'encodings' do
     end
   end
 
+  describe 'ISO-8859-11' do
+    before :each do
+      @unmapped = [0xDB, 0xDC, 0xDD, 0xDE, 0xFC, 0xFD, 0xFE, 0xFF]
+    end
+
+    it 'can convert codepoints' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        codepoint.chr(Encoding::ISO_8859_11).ord.should == codepoint
+      end
+    end
+
+    it 'can convert to UTF-8' do
+      0x80.upto(0xFF).each do |codepoint|
+        next if @unmapped.include?(codepoint)
+
+        expected = codepoint >= 0xA1 ? 0xD60 + codepoint : codepoint
+        codepoint.chr(Encoding::ISO_8859_11).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
+      end
+
+      @unmapped.each do |codepoint|
+        -> { codepoint.chr(Encoding::ISO_8859_11).encode(Encoding::UTF_8) }.should raise_error(Encoding::UndefinedConversionError)
+      end
+    end
+
+    it 'can convert from UTF-8' do
+      0x80.upto(0xFF).each do |expected|
+        next if @unmapped.include?(expected)
+
+        codepoint = expected >= 0xA1 ? 0xD60 + expected : expected
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_11).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::ISO_8859_13) + codepoint.chr(Encoding::ISO_8859_13)
+        string.encoding.should == Encoding::ISO_8859_13
+        string.chop!
+        string.encoding.should == Encoding::ISO_8859_13
+        string.bytes.should == 'a'.encode(Encoding::ISO_8859_13).bytes
+      end
+    end
+  end
+
   describe 'ISO-8859-13' do
     it 'can convert codepoints' do
       [
