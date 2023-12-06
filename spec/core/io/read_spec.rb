@@ -319,10 +319,7 @@ describe "IO#read" do
     @io.read(0).should == ''
     @io.pos.should == 0
 
-    NATFIXME 'Implement IO#getc', exception: NoMethodError, message: "undefined method `getc'" do
-      @io.getc.chr.should == '1'
-    end
-    @io.getbyte.chr.should == '1'
+    @io.getc.chr.should == '1'
   end
 
   it "is at end-of-file when everything has been read" do
