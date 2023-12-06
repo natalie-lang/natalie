@@ -38,7 +38,7 @@ describe 'encodings' do
       end
     end
 
-    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
       [
         0x61,
         0xA1A1,
@@ -84,7 +84,7 @@ describe 'encodings' do
       end
     end
 
-    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
       [
         0x61,
         0x8E,
