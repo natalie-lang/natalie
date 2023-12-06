@@ -415,11 +415,12 @@ describe "String#rindex with Regexp" do
      end
   end
 
-  # NATFIXME: Conversion above Unicode Basic Latin (0x00..0x7F) not implemented
-  xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+  it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
     re = Regexp.new "れ".encode(Encoding::EUC_JP)
-    -> do
-      "あれ".rindex re
-    end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
+    NATFIXME 'Support Regexp argument', exception: SpecFailedException do
+      -> do
+        "あれ".rindex re
+      end.should raise_error(Encoding::CompatibilityError, "incompatible encoding regexp match (EUC-JP regexp with UTF-8 string)")
+    end
   end
 end
