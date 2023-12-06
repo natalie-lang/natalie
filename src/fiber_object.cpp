@@ -143,23 +143,31 @@ Value FiberObject::resume(Env *env, Args args) {
 }
 
 Value FiberObject::scheduler() {
-    return s_scheduler;
+    auto scheduler = ThreadObject::current()->fiber_scheduler();
+    if (!scheduler)
+        return NilObject::the();
+
+    return scheduler;
 }
 
 bool FiberObject::scheduler_is_relevant() {
-    return !FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil();
+    if (FiberObject::current()->is_blocking())
+        return false;
+
+    auto scheduler = FiberObject::scheduler();
+    return !scheduler->is_nil();
 }
 
 Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     if (scheduler->is_nil()) {
-        s_scheduler = nullptr;
+        ThreadObject::current()->set_fiber_scheduler(nullptr);
     } else {
         TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
         for (const auto &required_method : required_methods) {
             if (!scheduler->respond_to(env, SymbolObject::intern(required_method)))
                 env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
         }
-        s_scheduler = scheduler;
+        ThreadObject::current()->set_fiber_scheduler(scheduler);
     }
     return scheduler;
 }

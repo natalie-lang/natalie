@@ -86,7 +86,9 @@ public:
     Value join(Env *);
     Value kill(Env *) const;
     Value raise(Env *, Value = nullptr, Value = nullptr);
-    Value wakeup() { return NilObject::the(); }
+    Value wakeup(Env *);
+
+    Value sleep(Env *, float);
 
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
@@ -114,6 +116,9 @@ public:
     void remove_mutex(Thread::MutexObject *mutex);
 
     void unlock_mutexes() const;
+
+    Value fiber_scheduler() const { return m_fiber_scheduler; }
+    void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
 
     virtual void visit_children(Visitor &) override final;
     void visit_children_from_stack(Visitor &) const;
@@ -163,8 +168,14 @@ private:
     std::atomic<bool> m_joined { false };
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+
     bool m_sleeping { false };
+    pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
+
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
+
+    Value m_fiber_scheduler { nullptr };
 
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;

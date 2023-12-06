@@ -40,18 +40,15 @@ describe "Kernel#sleep" do
     running = false
     t = Thread.new do
       running = true
-      # NATFIXME: Thread#wakeup below should stop the thread from sleeping?
-      #sleep
-      #5
+      sleep
+      5
     end
 
     Thread.pass until running
     Thread.pass while t.status and t.status != "sleep"
 
     t.wakeup
-    NATFIXME 'Fix the Thread#wakeup issue above', exception: SpecFailedException do
-      t.value.should == 5
-    end
+    t.value.should == 5
   end
 
   ruby_version_is ""..."3.3" do
