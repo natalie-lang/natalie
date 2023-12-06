@@ -94,3 +94,6 @@ require_relative './instructions/while_instruction'
 require_relative './instructions/while_body_instruction'
 require_relative './instructions/with_singleton_instruction'
 require_relative './instructions/yield_instruction'
+
+# This must be last.
+require_relative './instructions/meta'

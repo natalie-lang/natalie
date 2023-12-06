@@ -1,3 +1,5 @@
+require_relative './vm/block'
+
 module Natalie
   class VM
     def initialize(instructions, path:)
@@ -33,7 +35,7 @@ module Natalie
           return result
         end
       end
-      result
+      @stack.last
     end
 
     def run_next_instruction

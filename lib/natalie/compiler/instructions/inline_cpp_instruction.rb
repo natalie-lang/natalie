@@ -1,4 +1,5 @@
 require_relative './base_instruction'
+require_relative '../comptime_values'
 
 module Natalie
   class Compiler

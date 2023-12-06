@@ -27,6 +27,20 @@ module Natalie
       def execute(vm)
         vm.push(vm.args[@index])
       end
+
+      def serialize
+        [
+          instruction_number,
+          index,
+          nil_default ? 1 : 0,
+        ].pack("CwC")
+      end
+
+      def self.deserialize(io)
+        index = io.read_ber_integer
+        nil_default = io.read(1) == 1
+        new(index, nil_default: nil_default)
+      end
     end
   end
 end

@@ -11,11 +11,25 @@ module Natalie
           self.underscore(self.name.sub(/Instruction$/, '')).to_sym
       end
 
+      def label
+        self.class.label
+      end
+
       def matching_label
         nil
       end
 
       attr_accessor :env
+
+      class << self
+        def instruction_number
+          @instruction_number ||= INSTRUCTIONS.index(self) or raise("Instruction not found!")
+        end
+      end
+
+      def instruction_number
+        self.class.instruction_number
+      end
 
       private
 

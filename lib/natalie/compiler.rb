@@ -1,6 +1,7 @@
 require 'tempfile'
 require_relative '../../build/generated/numbers'
 require_relative './compiler/backends/cpp_backend'
+require_relative './compiler/bytecode_loader'
 require_relative './compiler/comptime_values'
 require_relative './compiler/instruction_manager'
 require_relative './compiler/loaded_file'
@@ -28,7 +29,6 @@ module Natalie
 
     attr_accessor :ast,
                   :context,
-                  :c_path,
                   :inline_cpp_enabled,
                   :options,
                   :repl,
@@ -42,6 +42,14 @@ module Natalie
       return backend.compile_to_object if write_obj_path
 
       backend.compile_to_binary
+    end
+
+    def compile_to_bytecode
+      File.open(@out_path, 'wb') do |file|
+        instructions.each do |instruction|
+          file.write(instruction.serialize)
+        end
+      end
     end
 
     def write_file_for_debugging
