@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-const int EncodingCount = 45;
+const int EncodingCount = 44;
 
 enum class Encoding {
     ASCII_8BIT = 1,
@@ -42,14 +42,13 @@ enum class Encoding {
     ISO_8859_9 = 35,
     ISO_8859_10 = 36,
     ISO_8859_11 = 37,
-    ISO_8859_12 = 38,
-    ISO_8859_13 = 39,
-    ISO_8859_14 = 40,
-    ISO_8859_15 = 41,
-    ISO_8859_16 = 42,
-    Windows_1250 = 43,
-    Windows_1251 = 44,
-    Windows_1252 = 45,
+    ISO_8859_13 = 38,
+    ISO_8859_14 = 39,
+    ISO_8859_15 = 40,
+    ISO_8859_16 = 41,
+    Windows_1250 = 42,
+    Windows_1251 = 43,
+    Windows_1252 = 44,
 };
 
 }
