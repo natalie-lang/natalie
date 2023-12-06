@@ -239,7 +239,7 @@ describe "Integer#chr with an encoding argument" do
       [0xA1,   "EUC-JP"],
       [0x80,   "SHIFT_JIS"],
       [0xE0,   "SHIFT_JIS"],
-      # [0x0100, "ISO-8859-9"],
+      [0x0100, "ISO-8859-9"],
       # [620,    "TIS-620"],
       [0xD800, "UTF-8"],
       [0xDBFF, "UTF-8"],
@@ -251,9 +251,6 @@ describe "Integer#chr with an encoding argument" do
       [0xDFFF, "UTF-16"],
     ].each do |integer, encoding_name|
       -> { integer.chr(encoding_name) }.should raise_error(RangeError)
-    end
-    NATFIXME 'Implement ISO-8859-9 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
-      1.chr('ISO-8859-9')
     end
     NATFIXME 'Implement TIS-620 and restore it above', exception: ArgumentError, message: 'unknown encoding name' do
       1.chr('TIS-620')
