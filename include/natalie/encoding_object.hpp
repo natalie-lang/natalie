@@ -42,7 +42,7 @@ public:
 
     Value inspect(Env *) const;
 
-    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) { NAT_UNREACHABLE(); }
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) const { NAT_UNREACHABLE(); }
     virtual bool is_ascii_compatible() const { return false; } // default
     virtual bool is_dummy() const { return false; }
 

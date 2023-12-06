@@ -18,7 +18,7 @@ public:
     virtual bool valid_codepoint(nat_int_t codepoint) const override {
         return (codepoint >= 0 && codepoint <= 0xFF);
     }
-    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) override {
+    virtual bool in_encoding_codepoint_range(nat_int_t codepoint) const override {
         return (codepoint >= 0 && codepoint <= 0xFF);
     }
     virtual bool is_ascii_compatible() const override { return true; };
