@@ -7,6 +7,10 @@ class Object
   CONST_IN_OBJECT = :object
 end
 
+module Kernel
+  CONST_IN_KERNEL = :kernel
+end
+
 module Mixin
   CONST_IN_MIXIN = :mixin
 
@@ -44,6 +48,14 @@ class TheClass < TheSuperclass
   def mixin_constant
     mixin_method
   end
+
+  def object_const
+    CONST_IN_OBJECT
+  end
+
+  def kernel_const
+    CONST_IN_KERNEL
+  end
 end
 
 describe 'constants' do
@@ -72,6 +84,14 @@ describe 'constants' do
 
   it 'does not find the constant on the Object class' do
     -> { TheClass::CONST_IN_OBJECT }.should raise_error(NameError)
+  end
+
+  it 'does find constant from Object class if referenced in other class' do
+    TheClass.new.object_const.should == :object
+  end
+
+  it 'does find constant from Kernel module if referenced in other class' do
+    TheClass.new.kernel_const.should == :kernel
   end
 
   it 'finds constants in a mixin when resolved from a subclass' do

@@ -153,9 +153,12 @@ public:
     bool valid_encoding() const;
     EncodingObject *encoding() const { return m_encoding; }
     void set_encoding(EncodingObject *encoding) { m_encoding = encoding; }
+    bool is_ascii_only() const;
+    EncodingObject *negotiate_compatible_encoding(StringObject *) const;
+    void assert_compatible_string(Env *, StringObject *) const;
+    EncodingObject *assert_compatible_string_and_update_encoding(Env *, StringObject *);
 
     void prepend_char(Env *, char);
-
     void insert(Env *, size_t, char);
 
     void append_char(char);
@@ -258,6 +261,8 @@ public:
     Value index(Env *, Value, size_t start) const;
     nat_int_t index_int(Env *, Value, size_t start) const;
 
+    Value rindex(Env *, Value) const;
+
     void truncate(size_t length) {
         m_string.truncate(length);
     }
@@ -287,7 +292,6 @@ public:
     Value sub_in_place(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
-    bool ascii_only(Env *) const;
     Value b(Env *) const;
     Value bytes(Env *, Block *);
     Value byteslice(Env *, Value, Value);
@@ -306,6 +310,8 @@ public:
     Value concat(Env *env, Args args);
     Value count(Env *env, Args args);
     Value crypt(Env *, Value);
+    Value delete_str(Env *, Args);
+    Value delete_in_place(Env *, Args);
     Value delete_prefix(Env *, Value);
     Value delete_prefix_in_place(Env *, Value);
     Value delete_suffix(Env *, Value);
@@ -356,6 +362,7 @@ public:
     Value swapcase_in_place(Env *, Value, Value);
     Value to_f(Env *) const;
     Value to_i(Env *, Value = nullptr) const;
+    Value to_r(Env *) const;
     Value tr(Env *, Value, Value) const;
     Value tr_in_place(Env *, Value, Value);
     static Value try_convert(Env *, Value);
@@ -475,7 +482,7 @@ public:
 
 private:
     StringObject *expand_backrefs(Env *, StringObject *, MatchDataObject *);
-    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, StringObject *, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
+    void regexp_sub(Env *, TM::String &, StringObject *, RegexpObject *, Value, MatchDataObject **, StringObject **, size_t = 0, Block *block = nullptr);
     nat_int_t unpack_offset(Env *, Value) const;
 
     using Object::Object;

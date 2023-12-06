@@ -39,6 +39,7 @@ public:
     Value hour(Env *) const;
     Value inspect(Env *);
     bool isdst(Env *) const { return m_time.tm_isdst > 0; }
+    // NATFIXME: This one is broken, it returns true for `Time.new(2000, 1, 1, 20, 15, 01, 3600)`
     bool is_utc(Env *) const { return m_mode == Mode::UTC; }
     Value mday(Env *) const;
     Value min(Env *) const;

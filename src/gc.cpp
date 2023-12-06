@@ -8,6 +8,8 @@ extern "C" void GC_disable() {
 
 namespace Natalie {
 
+std::mutex g_gc_mutex;
+
 void *Cell::operator new(size_t size) {
     auto *cell = Heap::the().allocate(size);
     assert(cell);
@@ -52,13 +54,14 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     void *end_of_stack = &dummy;
 
     // step over stack, saving potential pointers
-    assert(m_start_of_stack);
+    auto start_of_stack = ThreadObject::current()->start_of_stack();
+    assert(start_of_stack);
     assert(end_of_stack);
-    assert(m_start_of_stack > end_of_stack);
+    assert(start_of_stack > end_of_stack);
 
     Hashmap<Cell *> roots;
 
-    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
+    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (roots.get(potential_cell))
             continue;
@@ -84,8 +87,13 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     return roots;
 }
 
-void Heap::collect() {
+void Heap::collect(bool guard = true) {
     if (!m_gc_enabled) return;
+
+    // Only collect on the main thread for now.
+    if (ThreadObject::current() != ThreadObject::main()) return;
+
+    if (guard) NAT_GC_LOCK_GUARD();
 
     static auto is_profiled = NativeProfiler::the()->enabled();
 
@@ -120,8 +128,8 @@ void Heap::collect() {
     visitor.visit(NilObject::the());
     visitor.visit(TrueObject::the());
     visitor.visit(FalseObject::the());
-    visitor.visit(FiberObject::main());
-    visitor.visit(FiberObject::current());
+    for (auto thread : ThreadObject::list())
+        visitor.visit(thread);
 
     // We don't collect symbols, but they each can have associated objects we do collect.
     SymbolObject::visit_all_symbols(visitor);
@@ -160,6 +168,8 @@ void Heap::sweep() {
 }
 
 void *Heap::allocate(size_t size) {
+    NAT_GC_LOCK_GUARD();
+
     static auto is_profiled = NativeProfiler::the()->enabled();
     NativeProfilerEvent *profiler_event;
     if (is_profiled)
@@ -172,13 +182,13 @@ void *Heap::allocate(size_t size) {
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
-        collect();
+        collect(false);
 #else
 
         if (allocator.total_cells() == 0) {
             allocator.add_multiple_blocks(initial_blocks_per_allocator);
         } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
-            collect();
+            collect(false);
             allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
         }
 #endif

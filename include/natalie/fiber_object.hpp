@@ -53,14 +53,7 @@ public:
         mco_destroy(m_coroutine);
     }
 
-    static void build_main_fiber(void *start_of_stack) {
-        assert(!s_main); // can only be built once
-        auto fiber = new FiberObject;
-        assert(start_of_stack);
-        fiber->m_start_of_stack = start_of_stack;
-        s_main = fiber;
-        s_current = fiber;
-    }
+    static FiberObject *build_main_fiber(ThreadObject *, void *);
 
     constexpr static int STACK_SIZE = 1024 * 1024;
 
@@ -82,15 +75,15 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
-    void swap_current(Env *env, Args args);
+    void swap_to_previous(Env *env, Args args);
 
     void *start_of_stack() { return m_start_of_stack; }
 
     mco_coro *coroutine() { return m_coroutine; }
     Block *block() { return m_block; }
-    void set_status(Status status) { m_status = status; }
     void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
+    void set_status(Status status) { m_status = status; }
     SymbolObject *status(Env *env) {
         switch (m_status) {
         case Status::Created:
@@ -116,13 +109,12 @@ public:
             len,
             "<FiberObject %p stack=%p..%p>",
             this,
-            m_start_of_stack,
-            reinterpret_cast<char *>(m_start_of_stack) + size);
+            m_end_of_stack,
+            m_start_of_stack);
     }
 
-    static FiberObject *current() { return s_current; }
-
-    static FiberObject *main() { return s_main; }
+    static FiberObject *current();
+    static FiberObject *main();
 
     Vector<Value> &args() { return m_args; }
     void set_args(Args args);
@@ -137,6 +129,7 @@ private:
     mco_coro *m_coroutine {};
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
+    ThreadObject *m_thread { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
@@ -146,10 +139,6 @@ private:
     Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
-
-    inline static FiberObject *s_current = nullptr;
-    inline static FiberObject *s_main = nullptr;
-    inline static Value s_scheduler { nullptr };
 };
 
 }

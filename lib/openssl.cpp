@@ -251,16 +251,20 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto mdctx = static_cast<EVP_MD_CTX *>(self->ivar_get(env, "@mdctx"_s)->as_void_p()->void_ptr());
 
-    if (args.size() == 1)
+    if (args.size() == 1) {
+        OpenSSL_Digest_reset(env, self, {}, nullptr);
         OpenSSL_Digest_update(env, self, { args[0] }, nullptr);
+    }
 
     unsigned char buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
     if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
         OpenSSL_raise_error(env, "EVP_DigestFinal_ex");
-    OpenSSL_Digest_reset(env, self, {}, nullptr);
 
-    return new StringObject { reinterpret_cast<const char *>(buf), md_len };
+    if (args.size() == 1)
+        OpenSSL_Digest_reset(env, self, {}, nullptr);
+
+    return new StringObject { reinterpret_cast<const char *>(buf), md_len, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
 
 Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {

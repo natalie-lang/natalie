@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <mutex>
 
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
@@ -223,6 +224,7 @@ private:
         } while (key != first_key);
     }
 
+    std::mutex m_hash_mutex;
     Key *m_key_list { nullptr };
     TM::Hashmap<Key *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };

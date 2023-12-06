@@ -6,7 +6,7 @@ module Natalie
     # This compiler pass sets up needed break points to handle `return` from a block.
     # You can debug this pass with the `-d p4` CLI flag.
     class Pass4 < BasePass
-      def initialize(instructions)
+      def initialize(instructions, **)
         super()
         @instructions = instructions
 
@@ -60,7 +60,7 @@ module Natalie
 
         break_instruction = BreakInstruction.new(type: :return)
         break_instruction.break_point = break_point
-        @instructions.replace_current(break_instruction)
+        @instructions.replace_current([break_instruction])
       end
 
       def transform_create_lambda(instruction)
@@ -78,35 +78,38 @@ module Natalie
         return unless (break_point = @break_point_stack.pop)
 
         try_instruction = TryInstruction.new
-        @instructions.insert_left(try_instruction)
 
-        @instructions.insert_right([
-          CatchInstruction.new,
-          MatchBreakPointInstruction.new(break_point),
-          IfInstruction.new,
-          GlobalVariableGetInstruction.new(:$!),
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :exit_value,
-            receiver_is_self: false,
-            with_block: false,
-            file: instruction.file,
-            line: instruction.line,
-          ),
-          ReturnInstruction.new,
-          ElseInstruction.new(:if),
-          PushSelfInstruction.new,
-          PushArgcInstruction.new(0),
-          SendInstruction.new(
-            :raise,
-            receiver_is_self: true,
-            with_block: false,
-            file: instruction.file,
-            line: instruction.line,
-          ),
-          EndInstruction.new(:if),
-          EndInstruction.new(:try),
-        ])
+        @instructions.replace_current(
+          [
+            try_instruction,
+            instruction,
+            CatchInstruction.new,
+            MatchBreakPointInstruction.new(break_point),
+            IfInstruction.new,
+            GlobalVariableGetInstruction.new(:$!),
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :exit_value,
+              receiver_is_self: false,
+              with_block: false,
+              file: instruction.file,
+              line: instruction.line,
+            ),
+            ReturnInstruction.new,
+            ElseInstruction.new(:if),
+            PushSelfInstruction.new,
+            PushArgcInstruction.new(0),
+            SendInstruction.new(
+              :raise,
+              receiver_is_self: true,
+              with_block: false,
+              file: instruction.file,
+              line: instruction.line,
+            ),
+            EndInstruction.new(:if),
+            EndInstruction.new(:try),
+          ]
+        )
       end
 
       class << self

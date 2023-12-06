@@ -52,11 +52,12 @@
 #ifdef NAT_GC_GUARD
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
+        NAT_GC_LOCK_GUARD();                                                                  \
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
             void *dummy;                                                                      \
             auto end_of_stack = (uintptr_t)(&dummy);                                          \
-            auto start_of_stack = (uintptr_t)Heap::the().start_of_stack();                    \
+            auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
             assert(start_of_stack > end_of_stack);                                            \
             if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
                 fprintf(                                                                      \
@@ -74,3 +75,5 @@
 #endif
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
+
+#define NAT_GC_LOCK_GUARD() std::lock_guard<std::mutex> gc_lock(g_gc_mutex);

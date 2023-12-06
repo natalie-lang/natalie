@@ -5,6 +5,40 @@ describe 'hash' do
     -> { h = { key: Hash::FOO } }.should raise_error(NameError)
   end
 
+  describe 'literal syntax' do
+    it 'builds an empty hash' do
+      h = {}
+      h.should be_an_instance_of(Hash)
+      h.empty?.should == true
+    end
+
+    it 'accepts keys and values' do
+      h = { foo: 1, bar: 2 }
+      h[:foo].should == 1
+      h[:bar].should == 2
+    end
+
+    ruby_version_is ''...'3.1' do
+      it 'does not accept hash key shorthand' do
+        foo = 1
+        bar = 2
+        h = eval('{ foo: foo, bar: bar }')
+        h[:foo].should == 1
+        h[:bar].should == 2
+      end
+    end
+
+    ruby_version_is '3.1' do
+      it 'accepts hash key shorthand' do
+        foo = 1
+        bar = 2
+        h = eval('{ foo:, bar: }')
+        h[:foo].should == 1
+        h[:bar].should == 2
+      end
+    end
+  end
+
   describe '.new' do
     it 'builds an empty hash' do
       Hash.new.should == {}

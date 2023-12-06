@@ -7,7 +7,7 @@ module Prism
     # Find this transformation method so that we can catch any places where we
     # might previously have been doing destructuring.
     def to_ary
-      raise "Implicit destructuring not supported for prism nodes"
+      raise 'Implicit destructuring not supported for prism nodes'
     end
 
     def location
@@ -22,13 +22,13 @@ module Prism
 
   # Create an ArrayNode with the optionally given elements and location.
   def self.array_node(elements: [], location: nil)
-    ArrayNode.new(elements, nil, nil, location)
+    ArrayNode.new(elements, nil, nil, 0, location)
   end
 
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
     arguments = ArgumentsNode.new(arguments, 0, location)
-    CallNode.new(receiver, nil, nil, nil, arguments, nil, block, flags, name, location)
+    CallNode.new(receiver, nil, name, nil, nil, arguments, nil, block, flags, location)
   end
 
   # Create a ClassVariableWriteNode with the optionally given values.
@@ -91,16 +91,16 @@ module Natalie
       end
 
       def visit_child_nodes(node)
-        node.compact_child_nodes.each do |node|
-          node.location.path = @path if node
-          node&.accept(self)
+        node.compact_child_nodes.each do |n|
+          n.location.path = @path if n
+          n&.accept(self)
         end
         node
       end
 
       Prism::Visitor.instance_methods.each do |name|
         next unless name.start_with?('visit_')
-        next if name == :visit_child_nodes || name == :visit
+        next if %i[visit_child_nodes visit].include?(name)
 
         alias_method name, :visit_child_nodes
       end
@@ -109,10 +109,8 @@ module Natalie
         raise SyntaxError, "syntax error #{node.location.path}##{node.location.start_line}"
       end
 
-      def visit_case_node(node)
-        raise SyntaxError, 'expected at least one when clause for case' if node.conditions.empty?
-
-        visit_child_nodes(node)
+      def visit_case_match_node(node)
+        raise SyntaxError, 'expected at least one when clause for case'
       end
     end
 

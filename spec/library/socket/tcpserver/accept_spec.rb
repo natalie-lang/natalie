@@ -13,13 +13,19 @@ describe "TCPServer#accept" do
 
   it "accepts a connection and returns a TCPSocket" do
     data = nil
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `shutdown'" do
       t = Thread.new do
-        client = @server.accept
-        client.should be_kind_of(TCPSocket)
-        data = client.read(5)
-        client << "goodbye"
-        client.close
+        begin
+          client = @server.accept
+        rescue Errno::ECONNABORTED
+          # NATFIXME: NoMethodError below causes ECONNABORTED
+          puts 'stream closed in another thread'
+        else
+          client.should be_kind_of(TCPSocket)
+          data = client.read(5)
+          client << "goodbye"
+          client.close
+        end
       end
       Thread.pass while t.status and t.status != "sleep"
 
@@ -34,43 +40,45 @@ describe "TCPServer#accept" do
   end
 
   it "can be interrupted by Thread#kill" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      t = Thread.new { @server.accept }
+    t = Thread.new { @server.accept }
 
-      Thread.pass while t.status and t.status != "sleep"
+    Thread.pass while t.status and t.status != "sleep"
 
-      # kill thread, ensure it dies in a reasonable amount of time
-      t.kill
-      a = 0
-      while t.alive? and a < 5000
-        sleep 0.001
-        a += 1
-      end
-      a.should < 5000
+    # kill thread, ensure it dies in a reasonable amount of time
+    t.kill
+    a = 0
+    while t.alive? and a < 5000
+      sleep 0.001
+      a += 1
     end
+    a.should < 5000
   end
 
   it "can be interrupted by Thread#raise" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      t = Thread.new {
-        -> {
-          @server.accept
-        }.should raise_error(Exception, "interrupted")
-      }
+    t = Thread.new {
+      -> {
+        @server.accept
+      }.should raise_error(Exception, "interrupted")
+    }
 
-      Thread.pass while t.status and t.status != "sleep"
-      t.raise Exception, "interrupted"
-      t.join
-    end
+    Thread.pass while t.status and t.status != "sleep"
+    t.raise Exception, "interrupted"
+    t.join
   end
 
   it "is automatically retried when interrupted by SIGVTALRM" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `backtrace'" do
       t = Thread.new do
-        client = @server.accept
-        value = client.read(2)
-        client.close
-        value
+        begin
+          client = @server.accept
+        rescue Errno::ECONNABORTED
+          # NATFIXME: NoMethodError below causes ECONNABORTED
+          puts 'stream closed in another thread'
+        else
+          value = client.read(2)
+          client.close
+          value
+        end
       end
 
       Thread.pass while t.status and t.status != "sleep"
@@ -104,9 +112,7 @@ describe 'TCPServer#accept' do
 
     describe 'without a connected client' do
       it 'blocks the caller' do
-        NATFIXME 'Implement block_caller in spec helper', exception: NoMethodError, message: "undefined method `block_caller'" do
-          -> { @server.accept }.should block_caller
-        end
+        -> { @server.accept }.should block_caller
       end
     end
 

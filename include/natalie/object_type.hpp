@@ -31,6 +31,8 @@ enum class ObjectType {
     Regexp,
     String,
     Symbol,
+    Thread,
+    ThreadMutex,
     Time,
     True,
     UnboundMethod,

@@ -49,6 +49,7 @@ module Natalie
       InstanceVariableSetInstruction,
       IsDefinedInstruction,
       IsNilInstruction,
+      LoadFileInstruction,
       MatchBreakPointInstruction,
       MatchExceptionInstruction,
       MethodDefinedInstruction,
@@ -94,7 +95,6 @@ module Natalie
       VariableSetInstruction,
       WhileBodyInstruction,
       WhileInstruction,
-      WithFilenameInstruction,
       WithSingletonInstruction,
       YieldInstruction
     ].freeze

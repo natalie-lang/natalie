@@ -13,7 +13,7 @@ class Pathname
       value = value.to_path
     end
     raise TypeError, "no implicit conversion of #{value.class} into String" unless value.is_a?(String)
-    raise ArgumentError, "pathname contains null byte" if value.include?("\0")
+    raise ArgumentError, 'pathname contains null byte' if value.include?("\0")
     @path = value
   end
 
@@ -45,7 +45,7 @@ class Pathname
   end
 
   def parent
-    self + ".."
+    self + '..'
   end
 
   def relative?
@@ -89,14 +89,14 @@ class Pathname
     self
   end
 
-  alias_method :/, :+
+  alias / +
 end
 
 module Kernel
-  private def Pathname(arg)
+  private def Pathname(arg) # rubocop:disable Naming/MethodName
     Pathname.new(arg)
   end
-  def self.Pathname(arg)
+  def self.Pathname(arg) # rubocop:disable Naming/MethodName
     Pathname.new(arg)
   end
 end

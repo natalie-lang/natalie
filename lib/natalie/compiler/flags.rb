@@ -5,6 +5,7 @@ module Natalie
         -pthread
         -O3
         -Wno-unused-value
+        -Wno-trigraphs
       ].freeze
 
       DEBUG_FLAGS = %w[
@@ -20,6 +21,7 @@ module Natalie
         -Wno-unused-but-set-variable
         -Wno-unused-value
         -Wno-unknown-warning-option
+        -Wno-trigraphs
         -DNAT_GC_GUARD
       ].freeze
 

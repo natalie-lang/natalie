@@ -6,8 +6,8 @@ class OptionParser
     attr_accessor :short_name, :long_name, :value_label, :value_type, :description, :value
 
     def initialize(short_name:, long_name:, block:, value_label: nil, description: nil, options: nil)
-      @short_name = short_name&.sub(/^\-/, '')&.to_sym
-      @long_name = long_name&.sub(/^\-\-/, '')&.to_sym
+      @short_name = short_name&.sub(/^-/, '')&.to_sym
+      @long_name = long_name&.sub(/^--/, '')&.to_sym
       @value_label = value_label
       @value_type =
         if value_label =~ /^\[.+\]$/
@@ -28,9 +28,9 @@ class OptionParser
     def consume!(args)
       arg = args.shift
       if arg.size > 2 && arg[0] == '-' && arg[1] != '-'
-        arg, @value = arg[0...2], arg[2..]
+        _arg, @value = arg[0...2], arg[2..]
       else
-        arg, @value = arg.split('=', 2)
+        _arg, @value = arg.split('=', 2)
       end
       @value = args.shift if @value.nil? && consume_value?(args.first)
       @value = true if @value.nil?

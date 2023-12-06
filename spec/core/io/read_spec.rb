@@ -428,7 +428,7 @@ describe "IO#read" do
 
   platform_is_not :windows do
     it "raises IOError when stream is closed by another thread" do
-      NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
+      NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `stop?'" do
         r, w = IO.pipe
         t = Thread.new do
           begin
@@ -669,8 +669,7 @@ describe "IO#read" do
         @io = IOSpecs.io_fixture "read_euc_jp.txt", "r:euc-jp"
       end
 
-      # NATFIXME: Multibyte in EUC_JP
-      xit "does not transcode the String" do
+      it "does not transcode the String" do
         @io.read.should == ("ありがとう\n").encode(Encoding::EUC_JP)
       end
 

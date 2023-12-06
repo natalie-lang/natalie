@@ -160,7 +160,7 @@ Value RegexpObject::quote(Env *env, Value string) {
     }
 
     auto encoding = EncodingObject::get(Encoding::ASCII_8BIT);
-    if (str->ascii_only(env))
+    if (str->is_ascii_only())
         encoding = EncodingObject::get(Encoding::US_ASCII);
     else if (str->valid_encoding())
         encoding = str->encoding();
@@ -178,6 +178,32 @@ Value RegexpObject::try_convert(Env *env, Value value) {
     } else if (!value->is_regexp())
         return NilObject::the();
     return value;
+}
+
+Value RegexpObject::regexp_union(Env *env, Args args) {
+    auto patterns = args.size() == 1 && args[0]->is_array() ? args[0]->as_array() : args.to_array();
+    if (patterns->is_empty())
+        return RegexpObject::literal(env, "(?!)");
+    String out;
+    for (auto pattern : *patterns) {
+        if (!out.is_empty())
+            out.append_char('|');
+        if (pattern->respond_to(env, "to_regexp"_s)) {
+            pattern = pattern->send(env, "to_regexp"_s);
+        } else if (pattern->is_symbol()) {
+            pattern = pattern->to_s(env);
+        }
+        if (pattern->is_regexp()) {
+            if (patterns->size() == 1)
+                return pattern;
+            out.append(pattern->as_regexp()->to_s(env)->as_string()->string());
+        } else {
+            pattern = pattern->to_str(env);
+            auto quoted = RegexpObject::quote(env, pattern);
+            out.append(quoted->as_string()->string());
+        }
+    }
+    return new RegexpObject { env, out };
 }
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {

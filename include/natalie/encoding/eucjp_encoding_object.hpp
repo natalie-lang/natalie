@@ -15,22 +15,10 @@ public:
     EucJpEncodingObject()
         : EncodingObject { Encoding::EUC_JP, { "EUC-JP", "eucJP" } } { }
 
-    virtual bool valid_codepoint(nat_int_t codepoint) const override {
-        if (codepoint < 0) return false;
-        if (codepoint <= 0x7F) return true;
-        auto b1 = (codepoint & 0x0000FF);
-        auto b2 = (codepoint & 0x00FF00) >> 8;
-        if (b1 == 0x8E || (b1 >= 0xA1 && b1 <= 0xFE))
-            return (b2 >= 0xA1 && b2 <= 0xFE);
-        if (b1 == 0x8F) {
-            auto b3 = (codepoint & 0xFF0000) >> 16;
-            return (b2 >= 0xA1 && b2 <= 0xFE && b3 >= 0xA1 && b3 <= 0xFE);
-        }
-        return false;
-    }
+    virtual bool valid_codepoint(nat_int_t codepoint) const override;
 
     virtual bool in_encoding_codepoint_range(nat_int_t codepoint) override {
-        return valid_codepoint(codepoint);
+        return codepoint >= 0 && codepoint <= 0x8ffefe;
     }
     virtual bool is_ascii_compatible() const override { return true; };
 

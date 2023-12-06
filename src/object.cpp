@@ -5,6 +5,9 @@
 
 namespace Natalie {
 
+std::mutex g_define_method_mutex;
+std::mutex g_ivar_mutex;
+
 Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
@@ -92,6 +95,14 @@ Value Object::create(Env *env, ClassObject *klass) {
 
     case Object::Type::String:
         obj = new StringObject { klass };
+        break;
+
+    case Object::Type::Thread:
+        obj = new ThreadObject { klass };
+        break;
+
+    case Object::Type::ThreadMutex:
+        obj = new Thread::MutexObject { klass };
         break;
 
     case Object::Type::Time:
@@ -427,6 +438,26 @@ const SymbolObject *Object::as_symbol() const {
     return static_cast<const SymbolObject *>(this);
 }
 
+ThreadObject *Object::as_thread() {
+    assert(is_thread());
+    return static_cast<ThreadObject *>(this);
+}
+
+const ThreadObject *Object::as_thread() const {
+    assert(is_thread());
+    return static_cast<const ThreadObject *>(this);
+}
+
+Thread::MutexObject *Object::as_thread_mutex() {
+    assert(is_thread_mutex());
+    return static_cast<Thread::MutexObject *>(this);
+}
+
+const Thread::MutexObject *Object::as_thread_mutex() const {
+    assert(is_thread_mutex());
+    return static_cast<const Thread::MutexObject *>(this);
+}
+
 TimeObject *Object::as_time() {
     assert(is_time());
     return static_cast<TimeObject *>(this);
@@ -637,6 +668,8 @@ bool Object::ivar_defined(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {
+    std::lock_guard<std::mutex> lock(g_ivar_mutex);
+
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
 
@@ -651,6 +684,8 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_remove(Env *env, SymbolObject *name) {
+    std::lock_guard<std::mutex> lock(g_ivar_mutex);
+
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->string());
 
@@ -666,6 +701,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     NAT_GC_GUARD_VALUE(val);
+    std::lock_guard<std::mutex> lock(g_ivar_mutex);
 
     assert_not_frozen(env);
 
@@ -754,6 +790,8 @@ nat_int_t Object::object_id() const {
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
+    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+
     ClassObject *klass = singleton_class(env);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
@@ -762,6 +800,8 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
+    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+
     ClassObject *klass = singleton_class(env);
     if (klass->is_frozen())
         env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
@@ -770,6 +810,8 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 }
 
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
+    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+
     ClassObject *klass = singleton_class(env);
     klass->undefine_method(env, name);
     return name;
@@ -885,6 +927,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     auto method_info = klass->find_method(env, method_name);
 
     if (!method_info.is_defined()) {
+        // FIXME: store on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
         return nullptr;
     }
@@ -899,9 +942,11 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
 
     switch (visibility) {
     case MethodVisibility::Protected:
+        // FIXME: store on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Protected);
         break;
     case MethodVisibility::Private:
+        // FIXME: store on current thread
         GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Private);
         break;
     default:

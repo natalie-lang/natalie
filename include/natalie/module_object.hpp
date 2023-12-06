@@ -55,7 +55,7 @@ public:
     virtual Value const_set(SymbolObject *, Value) override;
     virtual Value const_set(SymbolObject *, MethodFnPtr, StringObject *) override;
 
-    Value const_get(Env *, Value);
+    Value const_get(Env *, Value, Value = nullptr);
     Value const_set(Env *, Value, Value);
     void const_remove(SymbolObject *);
     Value constants(Env *, Value) const;
@@ -70,8 +70,8 @@ public:
         return m_class_name;
     }
 
-    void set_class_name(const String name) {
-        m_class_name = name;
+    void set_class_name(String name) {
+        m_class_name = std::move(name);
     }
 
     void set_class_name(const char *name) {
@@ -149,7 +149,7 @@ public:
     Value private_constant(Env *, Args);
     Value public_constant(Env *, Args);
 
-    bool const_defined(Env *, Value);
+    bool const_defined(Env *, Value, Value = nullptr);
     Value alias_method(Env *, Value, Value);
     Value remove_method(Env *, Args);
     Value undef_method(Env *, Args);

@@ -92,12 +92,13 @@ describe "String#ljust with length, padding" do
       end
     end
 
-    # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-    xit "raises an Encoding::CompatibilityError if the encodings are incompatible" do
+    it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       pat = "ア".encode Encoding::EUC_JP
-      -> do
-        "あれ".ljust 5, pat
-      end.should raise_error(Encoding::CompatibilityError)
+      NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+        -> do
+          "あれ".ljust 5, pat
+        end.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 end

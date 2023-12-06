@@ -29,16 +29,14 @@ describe "IO.select" do
   end
 
   it "returns supplied objects when they are ready for I/O" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      main = Thread.current
-      t = Thread.new {
-        Thread.pass until main.status == "sleep"
-        @wr.write "be ready"
-      }
-      result = IO.select [@rd], nil, nil, nil
-      result.should == [[@rd], [], []]
-      t.join
-    end
+    main = Thread.current
+    t = Thread.new {
+      Thread.pass until main.status == "sleep"
+      @wr.write "be ready"
+    }
+    result = IO.select [@rd], nil, nil, nil
+    result.should == [[@rd], [], []]
+    t.join
   end
 
   it "leaves out IO objects for which there is no I/O ready" do
@@ -68,16 +66,16 @@ describe "IO.select" do
   end
 
   it "returns the pipe read end in read set if the pipe write end is closed concurrently" do
-    NATFIXME 'Threads', exception: NameError, message: "undefined method `join' for nil" do
-      main = Thread.current
-      t = Thread.new {
+    main = Thread.current
+    t = Thread.new {
+      NATFIXME 'Threads', exception: NameError, message: "undefined method `stop?'" do
         Thread.pass until main.stop?
-        @wr.close
-      }
-      IO.select([@rd]).should == [[@rd], [], []]
-    ensure
-      t.join
-    end
+      end
+      @wr.close
+    }
+    IO.select([@rd]).should == [[@rd], [], []]
+  ensure
+    t.join
   end
 
   it "invokes to_io on supplied objects that are not IO and returns the supplied objects" do
@@ -123,16 +121,14 @@ end
 
 describe "IO.select when passed nil for timeout" do
   it "sleeps forever and sets the thread status to 'sleep'" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      t = Thread.new do
-        IO.select(nil, nil, nil, nil)
-      end
-
-      Thread.pass while t.status && t.status != "sleep"
-      t.join unless t.status
-      t.status.should == "sleep"
-      t.kill
-      t.join
+    t = Thread.new do
+      IO.select(nil, nil, nil, nil)
     end
+
+    Thread.pass while t.status && t.status != "sleep"
+    t.join unless t.status
+    t.status.should == "sleep"
+    t.kill
+    t.join
   end
 end

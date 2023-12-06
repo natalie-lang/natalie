@@ -1,3 +1,4 @@
+#include "natalie/string_object.hpp"
 #include "ctype.h"
 #include "natalie.hpp"
 #include "natalie/string_unpacker.hpp"
@@ -16,6 +17,82 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == '\r'
         || c == ' ';
 };
+
+static auto character_class_handler(Env *env, Args args) {
+    args.ensure_argc_at_least(env, 1);
+
+    auto basic_characters = Hashmap<String>(HashType::TMString);
+    auto negated_characters = Hashmap<String>(HashType::TMString);
+
+    // For each argument
+    for (size_t i = 0; i < args.size(); ++i) {
+        auto arg = args[i];
+
+        // Try convert to string
+        auto selectors = arg->to_str(env);
+        auto new_selectors = Hashmap<String>(HashType::TMString);
+        StringView last_character = {};
+        bool negated = false;
+        // Split into selectors
+        auto it = selectors->begin();
+        if (*it == "^") {
+            ++it;
+
+            if (it != selectors->end()) {
+                negated = true;
+            } else {
+                new_selectors.set("^");
+            }
+        }
+        for (; it != selectors->end(); ++it) {
+            auto value = *it;
+            if (value == "-" && last_character != StringView()) {
+                ++it;
+                if (it == selectors->end()) {
+                    new_selectors.set(value.to_string());
+                    break;
+                }
+
+                auto next_value = *it;
+                if (last_character.to_string().cmp(next_value.to_string()) == 1)
+                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
+
+                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
+                auto all_chars = range->to_a(env)->as_array();
+                for (auto character : *all_chars) {
+                    auto character_string = character->as_string()->string();
+                    new_selectors.set(character_string);
+                }
+                last_character = StringView();
+            } else {
+                last_character = value;
+                new_selectors.set(value.to_string());
+            }
+        }
+
+        // intersect with current selectors
+        if (negated) {
+            for (auto pair : new_selectors) {
+                negated_characters.set(pair.first);
+            }
+        } else {
+            auto new_basic_characters = Hashmap<String>(HashType::TMString);
+            for (auto pair : new_selectors) {
+                if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
+                    new_basic_characters.set(pair.first);
+                }
+            }
+            basic_characters = new_basic_characters;
+        }
+    }
+
+    return [basic_characters, negated_characters](const StringView character) -> bool {
+        if (basic_characters.is_empty() && negated_characters.is_empty())
+            return false;
+        return ((negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
+            && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr));
+    };
+}
 
 std::pair<bool, StringView> StringObject::prev_char_result(size_t *index) const {
     return m_encoding->prev_char(m_string, index);
@@ -552,6 +629,25 @@ nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     return ptr - c_str();
 }
 
+Value StringObject::rindex(Env *env, Value needle) const {
+    auto needle_str = needle->to_str(env)->as_string();
+    auto needle_len = needle_str->bytesize();
+
+    auto len = bytesize();
+    auto byte_index = len;
+
+    if (needle_len > len)
+        return NilObject::the();
+
+    auto c = prev_char(&byte_index);
+    while (!c.is_empty()) {
+        if (needle_len <= len - byte_index && memcmp(needle_str->c_str(), c_str() + byte_index, needle_len) == 0)
+            return Value::integer(byte_index_to_char_index(byte_index));
+        c = prev_char(&byte_index);
+    }
+    return NilObject::the();
+}
+
 Value StringObject::initialize(Env *env, Value arg, Value encoding, Value capacity) {
     if (arg)
         initialize_copy(env, arg->to_str(env));
@@ -575,16 +671,19 @@ Value StringObject::ltlt(Env *env, Value arg) {
 }
 
 Value StringObject::add(Env *env, Value arg) const {
-    StringObject *new_string = new StringObject { m_string, m_encoding }; // TODO: encoding should be negotiated
-    new_string->append(arg->to_str(env)->string());
+    StringObject *str = arg->to_str(env);
+    StringObject *new_string = new StringObject { m_string, m_encoding };
+    Value args[] = { str };
+    new_string->concat(env, Args(1, args));
     return new_string;
 }
 
 Value StringObject::mul(Env *env, Value arg) const {
-    auto nat_int = IntegerObject::convert_to_nat_int_t(env, arg);
-    if (nat_int < 0)
+    auto int_arg = arg->to_int(env);
+    if (int_arg->is_negative())
         env->raise("ArgumentError", "negative argument");
 
+    auto nat_int = IntegerObject::convert_to_nat_int_t(env, int_arg);
     if (nat_int && (std::numeric_limits<size_t>::max() / nat_int) < length())
         env->raise("ArgumentError", "argument too big");
 
@@ -624,7 +723,7 @@ Value StringObject::cmp(Env *env, Value other) {
 
     auto comparison = m_string.cmp(other_str->m_string);
 
-    if (comparison == 0 && !(ascii_only(env) && other->as_string()->ascii_only(env))) {
+    if (comparison == 0 && !(is_ascii_only() && other->as_string()->is_ascii_only())) {
         nat_int_t this_enc_idx = static_cast<nat_int_t>(m_encoding->num());
         nat_int_t other_enc_idx = static_cast<nat_int_t>(other_str->m_encoding->num());
         nat_int_t cmp_encodings = this_enc_idx - other_enc_idx;
@@ -660,6 +759,18 @@ Value StringObject::concat(Env *env, Args args) {
 
         str_obj->assert_type(env, Object::Type::String, "String");
 
+        // If the other string is empty, there's nothing to do.
+        if (str_obj->is_empty()) continue;
+
+        // If this string is empty, then we can just copy the other string and encoding.
+        if (is_empty()) {
+            m_string = str_obj->string();
+            m_encoding = str_obj->encoding();
+            continue;
+        }
+
+        assert_compatible_string_and_update_encoding(env, str_obj);
+
         append(str_obj->string());
     }
 
@@ -667,85 +778,12 @@ Value StringObject::concat(Env *env, Args args) {
 }
 
 Value StringObject::count(Env *env, Args args) {
-    args.ensure_argc_at_least(env, 1);
-
-    auto basic_characters = Hashmap<String>(HashType::TMString);
-    auto negated_characters = Hashmap<String>(HashType::TMString);
-
-    // For each argument
-    for (size_t i = 0; i < args.size(); ++i) {
-        auto arg = args[i];
-
-        // Try convert to string
-        auto selectors = arg->to_str(env);
-        auto new_selectors = Hashmap<String>(HashType::TMString);
-        StringView last_character = {};
-        bool negated = false;
-        // Split into selectors
-        auto it = selectors->begin();
-        if (*it == "^") {
-            ++it;
-
-            if (it != selectors->end()) {
-                negated = true;
-            } else {
-                new_selectors.set("^");
-            }
-        }
-        for (; it != selectors->end(); ++it) {
-            auto value = *it;
-            if (value == "-" && last_character != StringView()) {
-                ++it;
-                if (it == selectors->end()) {
-                    new_selectors.set(value.to_string());
-                    break;
-                }
-
-                auto next_value = *it;
-                if (last_character.to_string().cmp(next_value.to_string()) == 1)
-                    env->raise("ArgumentError", "invalid range \"{}-{}\" in string transliteration", last_character.to_string(), next_value.to_string());
-
-                auto range = RangeObject::create(env, new StringObject { last_character.to_string() }, new StringObject { next_value.to_string() }, false);
-                auto all_chars = range->to_a(env)->as_array();
-                for (auto character : *all_chars) {
-                    auto character_string = character->as_string()->string();
-                    new_selectors.set(character_string);
-                }
-                last_character = StringView();
-            } else {
-                last_character = value;
-                new_selectors.set(value.to_string());
-            }
-        }
-
-        // intersect with current selectors
-        if (negated) {
-            for (auto pair : new_selectors) {
-                negated_characters.set(pair.first);
-            }
-        } else {
-            auto new_basic_characters = Hashmap<String>(HashType::TMString);
-            for (auto pair : new_selectors) {
-                if (basic_characters.is_empty() || basic_characters.get(pair.first) != nullptr) {
-                    new_basic_characters.set(pair.first);
-                }
-            }
-            basic_characters = new_basic_characters;
-        }
-    }
-
-    // apply selectors
     nat_int_t total_count = 0;
-    if (!negated_characters.is_empty() || !basic_characters.is_empty()) {
-        for (auto character : *this) {
-            if (
-                (negated_characters.is_empty() || negated_characters.get(character.to_string()) == nullptr)
-                && (basic_characters.is_empty() || basic_characters.get(character.to_string()) != nullptr)) {
-                total_count++;
-            }
-        }
+    auto handler = character_class_handler(env, args);
+    for (auto character : *this) {
+        if (handler(character))
+            total_count++;
     }
-
     return IntegerObject::create(total_count);
 }
 
@@ -762,6 +800,32 @@ Value StringObject::crypt(Env *env, Value salt) {
         env->raise("ArgumentError", "salt too short (need >=2 bytes)");
 
     return new StringObject { ::crypt(c_str(), salt_str->c_str()) };
+}
+
+Value StringObject::delete_str(Env *env, Args selectors) {
+    auto dup = this->dup(env)->as_string();
+    auto result = dup->delete_in_place(env, std::move(selectors));
+    if (result->is_nil())
+        return dup;
+    return result;
+}
+
+Value StringObject::delete_in_place(Env *env, Args selectors) {
+    assert_not_frozen(env);
+    const auto old_len = bytesize();
+    auto handler = character_class_handler(env, selectors);
+    size_t index = 0;
+    while (index < m_string.size()) {
+        const auto old_index = index;
+        auto character = next_char(&index);
+        if (handler(character)) {
+            m_string.replace_bytes(old_index, character.size(), "");
+            index = old_index;
+        }
+    }
+    if (bytesize() == old_len)
+        return NilObject::the();
+    return this;
 }
 
 bool StringObject::eq(Env *env, Value arg) {
@@ -1875,14 +1939,8 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
 
-    StringObject *replacement = nullptr;
-    if (!block) {
-        replacement_value->assert_type(env, Object::Type::String, "String");
-        replacement = replacement_value->as_string();
-    }
-
-    if (find->is_string()) {
-        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+    if (find->is_string() || find->respond_to(env, "to_str"_s)) {
+        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
@@ -1892,7 +1950,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *bl
     MatchDataObject *match;
     StringObject *expanded_replacement;
     String out;
-    regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, 0, block);
+    regexp_sub(env, out, this, find->as_regexp(), replacement_value, &match, &expanded_replacement, 0, block);
 
     if (match) {
         // append remaining bytes from source string
@@ -1916,18 +1974,11 @@ Value StringObject::sub_in_place(Env *env, Value find, Value replacement_value, 
 }
 
 Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
-
     if (!replacement_value && !block)
         env->raise("NotImplementedError", "Enumerator reply in String#gsub");
 
-    StringObject *replacement = nullptr;
-    if (replacement_value) {
-        replacement_value->assert_type(env, Object::Type::String, "String");
-        replacement = replacement_value->as_string();
-    }
-
-    if (find->is_string()) {
-        const auto pattern = RegexpObject::quote(env, find)->as_string()->string();
+    if (find->is_string() || find->respond_to(env, "to_str"_s)) {
+        const auto pattern = RegexpObject::quote(env, find->to_str(env))->as_string()->string();
         const int options = 0;
         find = new RegexpObject { env, pattern, options };
     }
@@ -1941,7 +1992,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
 
     do {
         match = nullptr;
-        this->regexp_sub(env, out, this, find->as_regexp(), replacement, &match, &expanded_replacement, byte_index, block);
+        this->regexp_sub(env, out, this, find->as_regexp(), replacement_value, &match, &expanded_replacement, byte_index, block);
         if (match) {
             byte_index = match->end_byte_index(0);
             if (match->is_empty()) {
@@ -1988,7 +2039,18 @@ Value StringObject::getbyte(Env *env, Value index_obj) const {
     return IntegerObject::create(Integer(byte));
 }
 
-void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_string, RegexpObject *find, Value replacement_value, MatchDataObject **match, StringObject **expanded_replacement, size_t byte_index, Block *block) {
+    HashObject *replacement_hash = nullptr;
+    StringObject *replacement_str = nullptr;
+    if (replacement_value) {
+        if (replacement_value->is_hash()) {
+            replacement_hash = replacement_value->as_hash();
+        } else {
+            replacement_str = replacement_value->to_str(env);
+        }
+        block = nullptr;
+    }
+
     Value match_result = find->match_at_byte_offset(env, orig_string, byte_index);
     if (match_result == NilObject::the()) {
         *match = nullptr;
@@ -2010,14 +2072,18 @@ void StringObject::regexp_sub(Env *env, TM::String &out, StringObject *orig_stri
         Value args[1] = { string };
         Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, Args(1, args), nullptr);
 
-        *expanded_replacement = replacement_from_block->as_string_or_raise(env);
+        *expanded_replacement = replacement_from_block->to_s(env);
         out.append((*expanded_replacement)->string());
 
         return;
     }
 
-    *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-    out.append((*expanded_replacement)->string());
+    if (replacement_hash && match) {
+        out.append(replacement_hash->ref(env, (*match)->group(0))->to_s(env)->string());
+    } else if (replacement_str) {
+        *expanded_replacement = expand_backrefs(env, replacement_str, *match);
+        out.append((*expanded_replacement)->string());
+    }
 
     return;
 }
@@ -2030,6 +2096,10 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
         auto c = c_str[i];
         switch (c) {
         case '\\':
+            if (i == len - 1) {
+                expanded->append_char('\\');
+                break;
+            }
             c = c_str[++i];
             switch (c) {
             case '0':
@@ -2051,9 +2121,28 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
             case '\\':
                 expanded->append_char(c);
                 break;
-            // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
-            default:
+            case '&':
+                expanded->append(match->group(0));
+                break;
+            case '`':
+                expanded->append(match->pre_match(env));
+                break;
+            case '\'':
+                expanded->append(match->post_match(env));
+                break;
+            case '+': {
+                auto captures = match->captures(env)->to_ary(env)->compact(env)->to_ary(env);
+                if (!captures->is_empty())
+                    expanded->append(captures->last());
+                break;
+            }
+            // TODO: there are other back references we need to handle, e.g. \k
+            case 'k':
                 expanded->append(String::format("<unhandled backref: {}>", c));
+                break;
+            default:
+                expanded->append_char('\\');
+                expanded->append_char(c);
                 break;
             }
             break;
@@ -2162,6 +2251,60 @@ Value StringObject::to_i(Env *env, Value base_obj) const {
         return IntegerObject::create(BigInt(std::move(digits_only), base));
     }
     return Value::integer(number);
+}
+
+Value StringObject::to_r(Env *env) const {
+    size_t idx = 0;
+    String numerator_digits;
+    String denominator_digits;
+    nat_int_t denominator = 1;
+
+    // ignore leading whitespace
+    while (idx < m_string.size() && isspace(m_string.at(idx)))
+        idx++;
+
+    // optional hyphen
+    if (idx < m_string.size() && m_string.at(idx) == '-') {
+        numerator_digits.append_char('-');
+        idx++;
+    }
+
+    // numerator digits
+    for (; idx < m_string.size(); ++idx) {
+        auto c = m_string[idx];
+        if (isdigit(c)) {
+            numerator_digits.append_char(c);
+        } else if (c == '_') {
+            // ignore underscores between digits
+        } else {
+            break;
+        }
+    }
+
+    // optional decimal point and fractional digits
+    if (idx < m_string.size() && m_string.at(idx) == '.') {
+        idx++;
+        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+            numerator_digits.append_char(m_string.at(idx));
+            denominator = denominator * 10;
+            idx++;
+        }
+    }
+
+    // optional slash and denominator digits
+    if (idx < m_string.size() && m_string.at(idx) == '/') {
+        idx++;
+        while (idx < m_string.size() && isdigit(m_string.at(idx))) {
+            denominator_digits.append_char(m_string.at(idx));
+            idx++;
+        }
+    }
+
+    nat_int_t numerator = strtoll(numerator_digits.c_str(), nullptr, 10);
+    if (!denominator_digits.is_empty()) {
+        denominator = denominator * strtoll(denominator_digits.c_str(), nullptr, 10);
+    }
+    return RationalObject::create(env, new IntegerObject { numerator }, new IntegerObject { denominator });
 }
 
 nat_int_t StringObject::unpack_offset(Env *env, Value offset_value) const {
@@ -2311,8 +2454,14 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
 
 bool StringObject::include(Env *env, Value arg) {
     arg = arg->to_str(env);
-    if (arg->as_string()->is_empty())
+
+    auto arg_str = arg->as_string_or_raise(env);
+
+    if (arg_str->is_empty())
         return true;
+
+    assert_compatible_string(env, arg_str);
+
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
@@ -2845,6 +2994,74 @@ Value StringObject::reverse_in_place(Env *env) {
     return this;
 }
 
+bool StringObject::valid_encoding() const {
+    size_t index = 0;
+    std::pair<bool, StringView> pair;
+    do {
+        pair = m_encoding->next_char(m_string, &index);
+        if (!pair.first)
+            return false;
+    } while (!pair.second.is_empty());
+    return true;
+}
+
+bool StringObject::is_ascii_only() const {
+    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
+        return false;
+
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        if (c > 127) {
+            return false;
+        }
+    }
+    return true;
+}
+
+EncodingObject *StringObject::negotiate_compatible_encoding(StringObject *other_string) const {
+    if (m_encoding == other_string->m_encoding)
+        return m_encoding;
+
+    if (!m_encoding->is_compatible_with(other_string->m_encoding))
+        return nullptr;
+
+    bool this_is_ascii = is_ascii_only();
+    bool other_is_ascii = other_string->is_ascii_only();
+
+    if (!this_is_ascii && !other_is_ascii)
+        return nullptr;
+
+    // Special case for BINARY
+    if (m_encoding->num() == Encoding::ASCII_8BIT)
+        return m_encoding;
+
+    if (this_is_ascii)
+        return other_string->m_encoding;
+    else
+        return m_encoding;
+}
+
+void StringObject::assert_compatible_string(Env *env, StringObject *other_string) const {
+    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    if (compatible_encoding)
+        return;
+
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+}
+
+EncodingObject *StringObject::assert_compatible_string_and_update_encoding(Env *env, StringObject *other_string) {
+    auto compatible_encoding = negotiate_compatible_encoding(other_string);
+    if (compatible_encoding) {
+        if (m_encoding != compatible_encoding)
+            m_encoding = compatible_encoding;
+        return m_encoding;
+    }
+
+    auto exception_class = fetch_nested_const({ "Encoding"_s, "CompatibilityError"_s })->as_class();
+    env->raise(exception_class, "incompatible character encodings: {} and {}", m_encoding->name()->string(), other_string->m_encoding->name()->string());
+}
+
 void StringObject::prepend_char(Env *env, char c) {
     m_string.prepend_char(c);
 }
@@ -3104,17 +3321,6 @@ Value StringObject::convert_float() {
     }
 }
 
-bool StringObject::valid_encoding() const {
-    size_t index = 0;
-    std::pair<bool, StringView> pair;
-    do {
-        pair = m_encoding->next_char(m_string, &index);
-        if (!pair.first)
-            return false;
-    } while (!pair.second.is_empty());
-    return true;
-}
-
 Value StringObject::delete_prefix(Env *env, Value val) {
     if (!val->is_string())
         val = val->to_str(env);
@@ -3164,19 +3370,6 @@ Value StringObject::delete_suffix_in_place(Env *env, Value val) {
         return Value(NilObject::the());
     }
     return this;
-}
-
-bool StringObject::ascii_only(Env *env) const {
-    if (m_encoding != nullptr && !m_encoding->is_ascii_compatible())
-        return false;
-
-    for (size_t i = 0; i < length(); i++) {
-        unsigned char c = c_str()[i];
-        if (c > 127) {
-            return false;
-        }
-    }
-    return true;
 }
 
 Value StringObject::chop(Env *env) const {

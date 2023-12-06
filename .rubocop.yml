@@ -1,7 +1,14 @@
 AllCops:
   TargetRubyVersion: 3.0 # the oldest version we support (don't suggest syntax newer than that)
+  Exclude:
+    - build/generated/**/*
+    - spec/**/*.rb
+    - vendor/**/*
 
 FrozenStringLiteralComment:
+  Enabled: false
+
+Layout/LeadingCommentSpace:
   Enabled: false
 
 Layout/EmptyLineAfterGuardClause:
@@ -9,6 +16,7 @@ Layout/EmptyLineAfterGuardClause:
 
 Layout/HashAlignment:
   EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
 
 Layout/HeredocIndentation:
   Enabled: false
@@ -56,9 +64,18 @@ Style/IfUnlessModifier:
   Enabled: false
 
 Style/LambdaCall:
-  EnforcedStyle: braces
+  Enabled: false
 
 Style/NumericPredicate:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Style/PerlBackrefs:
   Enabled: false
 
 Style/SingleLineMethods:

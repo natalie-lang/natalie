@@ -16,9 +16,7 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "ignores a block if supplied" do
-    NATFIXME 'Ignore block', exception: SpecFailedException do
-      "food".sub(/f/, "g") { "w" }.should == "good"
-    end
+    "food".sub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the string" do
@@ -59,68 +57,57 @@ describe "String#sub with pattern, replacement" do
     str.sub("", '<\1>').should == "<>hello!"
     str.sub("h", '<\1>').should == "<>ello!"
 
-    # NATFIXME: Natalie::StringObject* Natalie::Object::as_string(): Assertion `is_string()' failed.
-    # str.sub(//, '<\1>').should == "<>hello!"
-    # str.sub(/./, '\1\2\3').should == "ello!"
-    # str.sub(/.(.{20})?/, '\1').should == "ello!"
+    str.sub(//, '<\1>').should == "<>hello!"
+    str.sub(/./, '\1\2\3').should == "ello!"
+    str.sub(/.(.{20})?/, '\1').should == "ello!"
   end
 
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
 
-    NATFIXME 'replaces \\& and \\0 with the complete match', exception: SpecFailedException do
-      str.sub("", '<\0>').should == "<>hello!"
-      str.sub("", '<\&>').should == "<>hello!"
-      str.sub("he", '<\0>').should == "<he>llo!"
-      str.sub("he", '<\&>').should == "<he>llo!"
-      str.sub("l", '<\0>').should == "he<l>lo!"
-      str.sub("l", '<\&>').should == "he<l>lo!"
-    end
+    str.sub("", '<\0>').should == "<>hello!"
+    str.sub("", '<\&>').should == "<>hello!"
+    str.sub("he", '<\0>').should == "<he>llo!"
+    str.sub("he", '<\&>').should == "<he>llo!"
+    str.sub("l", '<\0>').should == "he<l>lo!"
+    str.sub("l", '<\&>').should == "he<l>lo!"
 
-    # NATFIXME: Unknown backslash reference: \&
-    # str.sub(//, '<\0>').should == "<>hello!"
-    # str.sub(//, '<\&>').should == "<>hello!"
-    # str.sub(/../, '<\0>').should == "<he>llo!"
-    # str.sub(/../, '<\&>').should == "<he>llo!"
-    # str.sub(/(.)./, '<\0>').should == "<he>llo!"
+    str.sub(//, '<\0>').should == "<>hello!"
+    str.sub(//, '<\&>').should == "<>hello!"
+    str.sub(/../, '<\0>').should == "<he>llo!"
+    str.sub(/../, '<\&>').should == "<he>llo!"
+    str.sub(/(.)./, '<\0>').should == "<he>llo!"
   end
 
   it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    NATFIXME 'replaces \\` with everything before the current match', exception: SpecFailedException do
-      str.sub("", '<\`>').should == "<>hello!"
-      str.sub("h", '<\`>').should == "<>ello!"
-      str.sub("l", '<\`>').should == "he<he>lo!"
-      str.sub("!", '<\`>').should == "hello<hello>"
-    end
+    str.sub("", '<\`>').should == "<>hello!"
+    str.sub("h", '<\`>').should == "<>ello!"
+    str.sub("l", '<\`>').should == "he<he>lo!"
+    str.sub("!", '<\`>').should == "hello<hello>"
 
-    # NATFIXME: Unknown backslash reference: \`
-    # str.sub(//, '<\`>').should == "<>hello!"
-    # str.sub(/..o/, '<\`>').should == "he<he>!"
+    str.sub(//, '<\`>').should == "<>hello!"
+    str.sub(/..o/, '<\`>').should == "he<he>!"
   end
 
   it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    NATFIXME "replaces \\' with everything after the current match", exception: SpecFailedException do
-      str.sub("", '<\\\'>').should == "<hello!>hello!"
-      str.sub("h", '<\\\'>').should == "<ello!>ello!"
-      str.sub("ll", '<\\\'>').should == "he<o!>o!"
-      str.sub("!", '<\\\'>').should == "hello<>"
-    end
+    str.sub("", '<\\\'>').should == "<hello!>hello!"
+    str.sub("h", '<\\\'>').should == "<ello!>ello!"
+    str.sub("ll", '<\\\'>').should == "he<o!>o!"
+    str.sub("!", '<\\\'>').should == "hello<>"
 
-    # NATFIXME: Unknown backslash reference: \'
-    # str.sub(//, '<\\\'>').should == "<hello!>hello!"
-    # str.sub(/../, '<\\\'>').should == "<llo!>llo!"
+    str.sub(//, '<\\\'>').should == "<hello!>hello!"
+    str.sub(/../, '<\\\'>').should == "<llo!>llo!"
   end
 
   it "replaces \\\\\\+ with \\\\+" do
     "x".sub(/x/, '\\\+').should == "\\+"
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "replaces \\+ with the last paren that actually matched" do
+  it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
     str.sub(/(.)(.)/, '\+').should == "ello!"
@@ -133,8 +120,7 @@ describe "String#sub with pattern, replacement" do
     str.sub(re, '\+').should == "L"
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "treats \\+ as an empty string if there was no captures" do
+  it "treats \\+ as an empty string if there was no captures" do
     "hello!".sub(/./, '\+').should == "ello!"
   end
 
@@ -142,24 +128,20 @@ describe "String#sub with pattern, replacement" do
     "hello".sub(/./, '\\\\').should == '\\ello'
   end
 
-  # NATFIXME: Unknown backslash reference: \x
-  xit "leaves unknown \\x escapes in replacement untouched" do
+  it "leaves unknown \\x escapes in replacement untouched" do
     "hello".sub(/./, '\\x').should == '\\xello'
     "hello".sub(/./, '\\y').should == '\\yello'
   end
 
-  # NATFIXME: Unknown backslash reference: \
-  xit "leaves \\ at the end of replacement untouched" do
+  it "leaves \\ at the end of replacement untouched" do
     "hello".sub(/./, 'hah\\').should == 'hah\\ello'
   end
 
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'wrong argument type MockObject (expected Regexp)' do
-      pattern.should_receive(:to_str).and_return(".")
+    pattern.should_receive(:to_str).and_return(".")
 
-      "hello.".sub(pattern, "!").should == "hello!"
-    end
+    "hello.".sub(pattern, "!").should == "hello!"
   end
 
   not_supported_on :opal do
@@ -178,11 +160,9 @@ describe "String#sub with pattern, replacement" do
 
   it "tries to convert replacement to a string using to_str" do
     replacement = mock('hello_replacement')
-    NATFIXME 'Support to_str', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      replacement.should_receive(:to_str).and_return("hello_replacement")
+    replacement.should_receive(:to_str).and_return("hello_replacement")
 
-      "hello".sub(/hello/, replacement).should == "hello_replacement"
-    end
+    "hello".sub(/hello/, replacement).should == "hello_replacement"
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do
@@ -290,14 +270,12 @@ describe "String#sub with pattern and block" do
 
   it "converts the block's return value to a string using to_s" do
     obj = mock('hello_replacement')
-    NATFIXME 'String conversions', exception: TypeError, message: "MockObject can't be coerced into String" do
-      obj.should_receive(:to_s).and_return("hello_replacement")
-      "hello".sub(/hello/) { obj }.should == "hello_replacement"
+    obj.should_receive(:to_s).and_return("hello_replacement")
+    "hello".sub(/hello/) { obj }.should == "hello_replacement"
 
-      obj = mock('ok')
-      obj.should_receive(:to_s).and_return("ok")
-      "hello".sub(/.+/) { obj }.should == "ok"
-    end
+    obj = mock('ok')
+    obj.should_receive(:to_s).and_return("ok")
+    "hello".sub(/.+/) { obj }.should == "ok"
   end
 end
 
@@ -398,38 +376,28 @@ end
 describe "String#sub with pattern and Hash" do
 
   it "returns a copy of self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub(/./, 'l' => 'L').should == "ello"
-      "hello!".sub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
-      "hello".sub('l', 'l' => 'el').should == 'heello'
-    end
+    "hello".sub(/./, 'l' => 'L').should == "ello"
+    "hello!".sub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+    "hello".sub('l', 'l' => 'el').should == 'heello'
   end
 
   it "removes keys that don't correspond to matches" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
-    end
+    "hello".sub(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "tattoo".sub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
-    end
+    "tattoo".sub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
   end
 
   it "uses a key's value only a single time" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".sub(/o/, 'o' => '0').should == "f0od"
-    end
+    "food".sub(/o/, 'o' => '0').should == "f0od"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".sub(/./, hsh).should == "?ood"
-    end
+    "food".sub(/./, hsh).should == "?ood"
   end
 
   it "coerces the hash values with #to_s" do
@@ -437,23 +405,19 @@ describe "String#sub with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      obj.should_receive(:to_s).and_return('!')
-      hsh['f'] = obj
-      "food!".sub(/./, hsh).should == "!ood!"
-    end
+    obj.should_receive(:to_s).and_return('!')
+    hsh['f'] = obj
+    "food!".sub(/./, hsh).should == "!ood!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food!".sub(/./, hsh).should == "lambood!"
-    end
+    "food!".sub(/./, hsh).should == "lambood!"
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Hash argument', exception: SpecFailedException do
       'hello.'.sub('l', 'l' => 'L')
       $~.begin(0).should == 2
       $~[0].should == 'l'
@@ -471,9 +435,7 @@ describe "String#sub with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".sub(/(.+)/, 'hello' => repl ).should == repl
   end
 
 end
@@ -481,38 +443,28 @@ end
 describe "String#sub! with pattern and Hash" do
 
   it "returns self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub!(/./, 'l' => 'L').should == "ello"
-      "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
-      "hello".sub!('l', 'l' => 'el').should == 'heello'
-    end
+    "hello".sub!(/./, 'l' => 'L').should == "ello"
+    "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+    "hello".sub!('l', 'l' => 'el').should == 'heello'
   end
 
   it "removes keys that don't correspond to matches" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub!(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
-    end
+    "hello".sub!(/./, 'z' => 'b', 'o' => 'ow').should == "ello"
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
-    end
+    "hello".sub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
   end
 
   it "uses a key's value only a single time" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".sub!(/o/, 'o' => '0').should == "f0od"
-    end
+    "food".sub!(/o/, 'o' => '0').should == "f0od"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".sub!(/./, hsh).should == "?ood"
-    end
+    "food".sub!(/./, hsh).should == "?ood"
   end
 
   it "coerces the hash values with #to_s" do
@@ -520,23 +472,19 @@ describe "String#sub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      obj.should_receive(:to_s).and_return('!')
-      hsh['f'] = obj
-      "food!".sub!(/./, hsh).should == "!ood!"
-    end
+    obj.should_receive(:to_s).and_return('!')
+    hsh['f'] = obj
+    "food!".sub!(/./, hsh).should == "!ood!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food!".sub!(/./, hsh).should == "lambood!"
-    end
+    "food!".sub!(/./, hsh).should == "lambood!"
   end
 
   it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Hash argument', exception: SpecFailedException do
       'hello.'.sub!('l', 'l' => 'L')
       $~.begin(0).should == 2
       $~[0].should == 'l'
@@ -554,9 +502,7 @@ describe "String#sub! with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
   end
 end
 

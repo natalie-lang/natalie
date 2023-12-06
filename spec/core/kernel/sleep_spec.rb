@@ -37,20 +37,18 @@ describe "Kernel#sleep" do
   end
 
   it "pauses execution indefinitely if not given a duration" do
-    NATFIXME 'Threads', exception: NoMethodError, message: 'TODO: Thread.new' do
-      running = false
-      t = Thread.new do
-        running = true
-        sleep
-        5
-      end
-
-      Thread.pass until running
-      Thread.pass while t.status and t.status != "sleep"
-
-      t.wakeup
-      t.value.should == 5
+    running = false
+    t = Thread.new do
+      running = true
+      sleep
+      5
     end
+
+    Thread.pass until running
+    Thread.pass while t.status and t.status != "sleep"
+
+    t.wakeup
+    t.value.should == 5
   end
 
   ruby_version_is ""..."3.3" do

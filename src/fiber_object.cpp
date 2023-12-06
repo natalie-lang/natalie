@@ -1,9 +1,18 @@
 #include "natalie.hpp"
+#include "natalie/thread_object.hpp"
 
 #define MINICORO_IMPL
 #include "minicoro.h"
 
 namespace Natalie {
+
+FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_stack) {
+    auto fiber = new FiberObject;
+    assert(start_of_stack);
+    fiber->m_start_of_stack = start_of_stack;
+    fiber->m_thread = thread;
+    return fiber;
+}
 
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
     assert(this != FiberObject::main()); // can never be main fiber
@@ -29,6 +38,8 @@ FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Bl
         }
         m_storage = hash;
     }
+
+    m_thread = ThreadObject::current();
 
     mco_desc desc = mco_desc_init(fiber_wrapper_func, STACK_SIZE);
     desc.user_data = new coroutine_user_data { env, this };
@@ -69,13 +80,13 @@ Value FiberObject::blocking(Env *env, Block *block) {
 }
 
 Value FiberObject::is_blocking_current() {
-    return s_current->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
+    return current()->is_blocking() ? IntegerObject::create(1) : FalseObject::the();
 }
 
 Value FiberObject::ref(Env *env, Value key) {
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
-    auto fiber = s_current;
+    auto fiber = current();
     while ((fiber->m_storage == nullptr || !fiber->m_storage->has_key(env, key)) && fiber->m_previous_fiber != nullptr)
         fiber = fiber->m_previous_fiber;
     if (fiber->m_storage == nullptr)
@@ -86,25 +97,25 @@ Value FiberObject::ref(Env *env, Value key) {
 Value FiberObject::refeq(Env *env, Value key, Value value) {
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
-    if (s_current->m_storage == nullptr)
-        s_current->m_storage = new HashObject {};
-    s_current->m_storage->refeq(env, key, value);
+    if (current()->m_storage == nullptr)
+        current()->m_storage = new HashObject {};
+    current()->m_storage->refeq(env, key, value);
     return value;
 }
 
 Value FiberObject::resume(Env *env, Args args) {
+    if (m_thread != ThreadObject::current())
+        env->raise("FiberError", "fiber called across threads");
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
 
-    auto suspending_fiber = s_current;
-    m_previous_fiber = s_current;
-    s_current = this;
+    auto suspending_fiber = m_previous_fiber = current();
+    ThreadObject::current()->m_current_fiber = this;
+    ThreadObject::current()->set_start_of_stack(m_start_of_stack);
 
     set_args(args);
-
-    Heap::the().set_start_of_stack(m_start_of_stack);
 
 #ifdef __SANITIZE_ADDRESS__
     auto fake_stack = __asan_get_current_fake_stack();
@@ -132,23 +143,31 @@ Value FiberObject::resume(Env *env, Args args) {
 }
 
 Value FiberObject::scheduler() {
-    return s_scheduler;
+    auto scheduler = ThreadObject::current()->fiber_scheduler();
+    if (!scheduler)
+        return NilObject::the();
+
+    return scheduler;
 }
 
 bool FiberObject::scheduler_is_relevant() {
-    return !FiberObject::current()->is_blocking() && FiberObject::scheduler() && !FiberObject::scheduler()->is_nil();
+    if (FiberObject::current()->is_blocking())
+        return false;
+
+    auto scheduler = FiberObject::scheduler();
+    return !scheduler->is_nil();
 }
 
 Value FiberObject::set_scheduler(Env *env, Value scheduler) {
     if (scheduler->is_nil()) {
-        s_scheduler = nullptr;
+        ThreadObject::current()->set_fiber_scheduler(nullptr);
     } else {
         TM::Vector<TM::String> required_methods { "block", "unblock", "kernel_sleep", "io_wait" };
         for (const auto &required_method : required_methods) {
             if (!scheduler->respond_to(env, SymbolObject::intern(required_method)))
                 env->raise("ArgumentError", "Scheduler must implement #{}", required_method);
         }
-        s_scheduler = scheduler;
+        ThreadObject::current()->set_fiber_scheduler(scheduler);
     }
     return scheduler;
 }
@@ -188,12 +207,11 @@ Value FiberObject::yield(Env *env, Args args) {
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
     current_fiber->m_end_of_stack = &args;
-    current_fiber->swap_current(env, args);
+    current_fiber->swap_to_previous(env, args);
 
     mco_yield(mco_running());
 
-    auto fiber_args
-        = FiberObject::current()->args();
+    auto fiber_args = FiberObject::current()->args();
     if (fiber_args.size() == 0) {
         return NilObject::the();
     } else if (fiber_args.size() == 1) {
@@ -203,12 +221,13 @@ Value FiberObject::yield(Env *env, Args args) {
     }
 }
 
-void FiberObject::swap_current(Env *env, Args args) {
+void FiberObject::swap_to_previous(Env *env, Args args) {
     assert(m_previous_fiber);
-    s_current = m_previous_fiber;
-    s_current->set_args(args);
+    auto new_current = m_previous_fiber;
+    ThreadObject::current()->m_current_fiber = new_current;
+    ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
+    new_current->set_args(args);
     m_previous_fiber = nullptr;
-    Heap::the().set_start_of_stack(s_current->start_of_stack());
 }
 
 void FiberObject::visit_children(Visitor &visitor) {
@@ -219,11 +238,12 @@ void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_error);
     visitor.visit(m_block);
     visitor.visit(m_storage);
+    visitor.visit(m_thread);
     visit_children_from_stack(visitor);
 }
 
 NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor) const {
-    if (m_start_of_stack == Heap::the().start_of_stack())
+    if (m_start_of_stack == ThreadObject::current()->start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
         assert(m_status == Status::Created);
@@ -263,6 +283,15 @@ void FiberObject::set_args(Args args) {
         m_args.push(args[i]);
     }
 }
+
+FiberObject *FiberObject::current() {
+    return ThreadObject::current()->current_fiber();
+}
+
+FiberObject *FiberObject::main() {
+    return ThreadObject::current()->main_fiber();
+}
+
 }
 
 extern "C" {
@@ -271,7 +300,7 @@ void fiber_wrapper_func(mco_coro *co) {
     auto user_data = (coroutine_user_data *)co->user_data;
     auto env = user_data->env;
     auto fiber = user_data->fiber;
-    Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
+    Natalie::ThreadObject::current()->set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberObject::Status::Resumed);
     assert(fiber->block());
     Natalie::Value return_arg = nullptr;
@@ -295,8 +324,8 @@ void fiber_wrapper_func(mco_coro *co) {
     fiber->set_end_of_stack(&fiber);
 
     if (reraise)
-        fiber->swap_current(env, {});
+        fiber->swap_to_previous(env, {});
     else
-        fiber->swap_current(env, { return_arg });
+        fiber->swap_to_previous(env, { return_arg });
 }
 }

@@ -3,27 +3,28 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 describe :string_gsub_named_capture, shared: true do
-  # NATFIXME: Unknown backslash reference: \k
-  xit "replaces \\k named backreferences with the regexp's corresponding capture" do
+  it "replaces \\k named backreferences with the regexp's corresponding capture" do
     str = "hello"
 
-    str.gsub(/(?<foo>[aeiou])/, '<\k<foo>>').should == "h<e>ll<o>"
-    str.gsub(/(?<foo>.)/, '\k<foo>\k<foo>').should == "hheelllloo"
+    NATFIXME 'Unknown backslash reference: \k', exception: SpecFailedException do
+      str.gsub(/(?<foo>[aeiou])/, '<\k<foo>>').should == "h<e>ll<o>"
+      str.gsub(/(?<foo>.)/, '\k<foo>\k<foo>').should == "hheelllloo"
+    end
   end
 end
 
 describe "String#gsub with pattern and replacement" do
-  # NATFIXME: Fix infinite loop
-  xit "inserts the replacement around every character when the pattern collapses" do
+  it "inserts the replacement around every character when the pattern collapses" do
     "hello".gsub(//, ".").should == ".h.e.l.l.o."
   end
 
-  # NATFIXME: Fix infinite loop
-  xit "respects unicode when the pattern collapses" do
+  it "respects unicode when the pattern collapses" do
     str = "こにちわ"
     reg = %r!!
 
-    str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    end
   end
 
   it "doesn't freak out when replacing ^" do
@@ -37,15 +38,14 @@ describe "String#gsub with pattern and replacement" do
     str = "hello homely world. hah!"
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
 
-    # NATFIXME: Fix infinite loop
-    # str = "¿por qué?"
-    # str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
+    str = "¿por qué?"
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(/([a-z\d]*)/, "*").should == "*¿** **é*?*"
+    end
   end
 
   it "ignores a block if supplied" do
-    NATFIXME 'ignores a block if supplied', exception: SpecFailedException do
-      "food".gsub(/f/, "g") { "w" }.should == "good"
-    end
+    "food".gsub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the remaining (non-matched) string" do
@@ -85,12 +85,10 @@ describe "String#gsub with pattern and replacement" do
   it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("h", '<\1>').should == "<>ello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(/./, '\1\2\3').should == ""
     str.gsub(/.(.{20})?/, '\1').should == ""
   end
@@ -98,56 +96,45 @@ describe "String#gsub with pattern and replacement" do
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
-    # str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("he", '<\0>').should == "<he>llo!"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub("he", '<\&>').should == "<he>llo!"
+    str.gsub("he", '<\&>').should == "<he>llo!"
     str.gsub("l", '<\0>').should == "he<l><l>o!"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub("l", '<\&>').should == "he<l><l>o!"
+    str.gsub("l", '<\&>').should == "he<l><l>o!"
 
-    # str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
-    # str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(/../, '<\0>').should == "<he><ll><o!>"
-    # NATFIXME: Unknown backslash reference: \&
-    # str.gsub(/../, '<\&>').should == "<he><ll><o!>"
+    str.gsub(/../, '<\&>').should == "<he><ll><o!>"
     str.gsub(/(.)./, '<\0>').should == "<he><ll><o!>"
   end
 
-  # NATFIXME: .Unknown backslash reference: \`
-  xit "replaces \\` with everything before the current match" do
+  it "replaces \\` with everything before the current match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
     str.gsub("h", '<\`>').should == "<>ello!"
     str.gsub("l", '<\`>').should == "he<he><hel>o!"
     str.gsub("!", '<\`>').should == "hello<hello>"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
     str.gsub(/../, '<\`>').should == "<><he><hell>"
   end
 
-  # NATFIXME: Unknown backslash reference: \'
-  xit "replaces \\' with everything after the current match" do
+  it "replaces \\' with everything after the current match" do
     str = "hello!"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
     str.gsub("h", '<\\\'>').should == "<ello!>ello!"
     str.gsub("ll", '<\\\'>').should == "he<o!>o!"
     str.gsub("!", '<\\\'>').should == "hello<>"
 
-    # NATFIXME: Fix infinite loop
-    # str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
     str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "replaces \\+ with the last paren that actually matched" do
+  it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
 
     str.gsub(/(.)(.)/, '\+').should == "el!"
@@ -160,8 +147,7 @@ describe "String#gsub with pattern and replacement" do
     str.gsub(re, '\+').should == "Ll"
   end
 
-  # NATFIXME: Unknown backslash reference: \+
-  xit "treats \\+ as an empty string if there was no captures" do
+  it "treats \\+ as an empty string if there was no captures" do
     "hello!".gsub(/./, '\+').should == ""
   end
 
@@ -169,33 +155,30 @@ describe "String#gsub with pattern and replacement" do
     "hello".gsub(/./, '\\\\').should == '\\' * 5
   end
 
-  # NATFIXME: .Unknown backslash reference: \x
-  xit "leaves unknown \\x escapes in replacement untouched" do
+  it "leaves unknown \\x escapes in replacement untouched" do
     "hello".gsub(/./, '\\x').should == '\\x' * 5
     "hello".gsub(/./, '\\y').should == '\\y' * 5
   end
 
-  # NATFIXME: Unknown backslash reference: \
-  xit "leaves \\ at the end of replacement untouched" do
+  it "leaves \\ at the end of replacement untouched" do
     "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
   end
 
   it_behaves_like :string_gsub_named_capture, :gsub
 
-  # NATFIXME: Fix infinite loop
-  xit "handles pattern collapse" do
+  it "handles pattern collapse" do
     str = "こにちわ"
     reg = %r!!
-    str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    end
   end
 
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
     def pattern.to_str() "." end
 
-    NATFIXME 'tries to convert pattern to a string using to_str', exception: TypeError, message: 'expected Regexp' do
-      "hello.".gsub(pattern, "!").should == "hello!"
-    end
+    "hello.".gsub(pattern, "!").should == "hello!"
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
@@ -208,9 +191,7 @@ describe "String#gsub with pattern and replacement" do
     replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
 
-    NATFIXME 'tries to convert replacement to a string using to_str', exception: TypeError, message: 'no implicit conversion' do
-      "hello".gsub(/hello/, replacement).should == "hello_replacement"
-    end
+    "hello".gsub(/hello/, replacement).should == "hello_replacement"
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do
@@ -220,8 +201,7 @@ describe "String#gsub with pattern and replacement" do
   end
 
   it "returns String instances when called on a subclass" do
-    # NATFIXME: Fix infinite loop
-    # StringSpecs::MyString.new("").gsub(//, "").should be_an_instance_of(String)
+    StringSpecs::MyString.new("").gsub(//, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("").gsub(/foo/, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("foo").gsub(/foo/, "").should be_an_instance_of(String)
     StringSpecs::MyString.new("foo").gsub("foo", "").should be_an_instance_of(String)
@@ -258,44 +238,32 @@ end
 
 describe "String#gsub with pattern and Hash" do
   it "returns a copy of self with all occurrences of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub(/./, 'l' => 'L').should == "LL"
-      "hello!".gsub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
-      "hello".gsub('l', 'l' => 'el').should == 'heelelo'
-    end
+    "hello".gsub(/./, 'l' => 'L').should == "LL"
+    "hello!".gsub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
+    "hello".gsub('l', 'l' => 'el').should == 'heelelo'
   end
 
   it "ignores keys that don't correspond to matches" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
-    end
+    "hello".gsub(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
   end
 
   it "returns an empty string if the pattern matches but the hash specifies no replacements" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub(/./, 'z' => 'L').should == ""
-    end
+    "hello".gsub(/./, 'z' => 'L').should == ""
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "tattoo".gsub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
-    end
+    "tattoo".gsub(/(tt)/, 'tt' => 'b', tt: 'z').should == "taboo"
   end
 
   it "uses a key's value as many times as needed" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".gsub(/o/, 'o' => '0').should == "f00d"
-    end
+    "food".gsub(/o/, 'o' => '0').should == "f00d"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".gsub(/./, hsh).should == "?00?"
-    end
+    "food".gsub(/./, hsh).should == "?00?"
   end
 
   it "coerces the hash values with #to_s" do
@@ -303,23 +271,19 @@ describe "String#gsub with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    # obj.should_receive(:to_s).and_return('!')
+    obj.should_receive(:to_s).and_return('!')
     hsh['!'] = obj
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food!".gsub(/./, hsh).should == "[]00[]!"
-    end
+    "food!".gsub(/./, hsh).should == "[]00[]!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food!".gsub(/./, hsh).should == "lamblamblamblamblamb"
-    end
+    "food!".gsub(/./, hsh).should == "lamblamblamblamblamb"
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       'hello.'.gsub('l', 'l' => 'L')
       $~.begin(0).should == 3
       $~[0].should == 'l'
@@ -337,53 +301,39 @@ describe "String#gsub with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".gsub(/(.+)/, 'hello' => repl ).should == repl
   end
 end
 
 describe "String#gsub! with pattern and Hash" do
 
   it "returns self with all occurrences of pattern replaced with the value of the corresponding hash key" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/./, 'l' => 'L').should == "LL"
-      "hello!".gsub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
-      "hello".gsub!('l', 'l' => 'el').should == 'heelelo'
-    end
+    "hello".gsub!(/./, 'l' => 'L').should == "LL"
+    "hello!".gsub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
+    "hello".gsub!('l', 'l' => 'el').should == 'heelelo'
   end
 
   it "ignores keys that don't correspond to matches" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
-    end
+    "hello".gsub!(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
   end
 
   it "replaces self with an empty string if the pattern matches but the hash specifies no replacements" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/./, 'z' => 'L').should == ""
-    end
+    "hello".gsub!(/./, 'z' => 'L').should == ""
   end
 
   it "ignores non-String keys" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
-    end
+    "hello".gsub!(/(ll)/, 'll' => 'r', ll: 'z').should == "hero"
   end
 
   it "uses a key's value as many times as needed" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".gsub!(/o/, 'o' => '0').should == "f00d"
-    end
+    "food".gsub!(/o/, 'o' => '0').should == "f00d"
   end
 
   it "uses the hash's default value for missing keys" do
     hsh = {}
     hsh.default='?'
     hsh['o'] = '0'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food".gsub!(/./, hsh).should == "?00?"
-    end
+    "food".gsub!(/./, hsh).should == "?00?"
   end
 
   it "coerces the hash values with #to_s" do
@@ -391,23 +341,19 @@ describe "String#gsub! with pattern and Hash" do
     hsh.default=[]
     hsh['o'] = 0
     obj = mock('!')
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      obj.should_receive(:to_s).and_return('!')
-      hsh['!'] = obj
-      "food!".gsub!(/./, hsh).should == "[]00[]!"
-    end
+    obj.should_receive(:to_s).and_return('!')
+    hsh['!'] = obj
+    "food!".gsub!(/./, hsh).should == "[]00[]!"
   end
 
   it "uses the hash's value set from default_proc for missing keys" do
     hsh = {}
     hsh.default_proc = -> k, v { 'lamb' }
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "food!".gsub!(/./, hsh).should == "lamblamblamblamblamb"
-    end
+    "food!".gsub!(/./, hsh).should == "lamblamblamblamblamb"
   end
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+    NATFIXME 'Support hash argument', exception: SpecFailedException do
       'hello.'.gsub!('l', 'l' => 'L')
       $~.begin(0).should == 3
       $~[0].should == 'l'
@@ -425,9 +371,7 @@ describe "String#gsub! with pattern and Hash" do
 
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
-    NATFIXME 'Support hash argument', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-      "hello".gsub!(/(.+)/, 'hello' => repl ).should == repl
-    end
+    "hello".gsub!(/(.+)/, 'hello' => repl ).should == repl
   end
 end
 
@@ -505,16 +449,12 @@ describe "String#gsub with pattern and block" do
     replacement = mock('hello_replacement')
     def replacement.to_s() "hello_replacement" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
-      "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
-    end
+    "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
 
     obj = mock('ok')
     def obj.to_s() "ok" end
 
-    NATFIXME 'Convert block value using #to_s', exception: TypeError, message: "MockObject can't be coerced into String" do
-      "hello".gsub(/.+/) { obj }.should == "ok"
-    end
+    "hello".gsub(/.+/) { obj }.should == "ok"
   end
 
   it "uses the compatible encoding if they are compatible" do
@@ -531,7 +471,7 @@ describe "String#gsub with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { s.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       -> { s2.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
     end
@@ -590,11 +530,12 @@ describe "String#gsub! with pattern and replacement" do
     a.should == "h*ll*"
   end
 
-  # NATFIXME: Fix infinite loop
-  xit "modifies self in place with multi-byte characters and returns self" do
+  it "modifies self in place with multi-byte characters and returns self" do
     a = "¿por qué?"
-    a.gsub!(/([a-z\d]*)/, "*").should equal(a)
-    a.should == "*¿** **é*?*"
+    NATFIXME 'respects unicode when the pattern collapses', exception: SpecFailedException do
+      a.gsub!(/([a-z\d]*)/, "*").should equal(a)
+      a.should == "*¿** **é*?*"
+    end
   end
 
   it "returns nil if no modifications were made" do
@@ -674,7 +615,7 @@ describe "String#gsub! with pattern and block" do
     s = "hllëllo"
     s2 = "hellö"
 
-    NATFIXME 'Implement Encoding::CompatibilityError', exception: NameError, message: 'uninitialized constant Encoding::CompatibilityError' do
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
       -> { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       -> { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
     end

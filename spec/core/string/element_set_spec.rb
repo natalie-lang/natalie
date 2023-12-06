@@ -139,11 +139,12 @@ describe "String#[]= with Integer index" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+  it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    -> { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+      -> { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end
 
@@ -198,11 +199,12 @@ describe "String#[]= with String index" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+  it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    -> { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+      -> { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end
 
@@ -314,11 +316,12 @@ describe "String#[]= with a Regexp index" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+  it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    -> { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+      -> { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end
 
@@ -438,11 +441,12 @@ describe "String#[]= with a Range index" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+  it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    -> { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+      -> { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end
 
@@ -596,10 +600,11 @@ describe "String#[]= with Integer index, count" do
     end
   end
 
-  # NATFIXME: Implement multibyte characters and Encoding::EUC_JP
-  xit "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+  it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
     str = "あれ"
     rep = "が".encode Encoding::EUC_JP
-    -> { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
+    NATFIXME 'Raise Encoding::CompatibilityError', exception: SpecFailedException do
+      -> { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end

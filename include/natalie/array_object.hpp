@@ -28,14 +28,7 @@ public:
         m_vector.set_capacity(initial_capacity);
     }
 
-    ArrayObject(std::initializer_list<Value> list)
-        : ArrayObject {} {
-        m_vector.set_capacity(list.size());
-        for (auto v : list) {
-            NAT_GC_GUARD_VALUE(v);
-            m_vector.push(v);
-        }
-    }
+    ArrayObject(std::initializer_list<Value> list);
 
     ArrayObject(const ArrayObject &other)
         : Object { other }
@@ -71,10 +64,7 @@ public:
 
     size_t size() const { return m_vector.size(); }
 
-    void push(Value val) {
-        NAT_GC_GUARD_VALUE(val);
-        m_vector.push(val);
-    }
+    void push(Value val);
 
     Value first();
     Value last();

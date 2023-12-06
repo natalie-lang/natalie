@@ -12,6 +12,17 @@
 
 namespace Natalie {
 
+std::mutex g_array_mutex;
+
+ArrayObject::ArrayObject(std::initializer_list<Value> list)
+    : ArrayObject {} {
+    m_vector.set_capacity(list.size());
+    for (auto v : list) {
+        NAT_GC_GUARD_VALUE(v);
+        m_vector.push(v);
+    }
+}
+
 Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 
@@ -75,25 +86,40 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
     return this;
 }
 
+void ArrayObject::push(Value val) {
+    NAT_GC_GUARD_VALUE(val);
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
+    m_vector.push(val);
+}
+
 Value ArrayObject::first() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[0];
 }
 
 Value ArrayObject::last() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[m_vector.size() - 1];
 }
 
 Value ArrayObject::pop() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop();
 }
 
 Value ArrayObject::shift() {
+    std::lock_guard<std::mutex> lock(g_array_mutex);
+
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector.pop_front();
@@ -101,6 +127,7 @@ Value ArrayObject::shift() {
 
 void ArrayObject::set(size_t index, Value value) {
     NAT_GC_GUARD_VALUE(value);
+    std::lock_guard<std::mutex> lock(g_array_mutex);
 
     if (index == m_vector.size()) {
         m_vector.push(value);
@@ -1428,10 +1455,10 @@ Value ArrayObject::at(Env *env, Value n) {
 Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
-        if (!item->is_array())
+        if (!item->is_array() && !item->respond_to(env, "to_ary"_s))
             continue;
 
-        ArrayObject *sub_array = item->as_array();
+        ArrayObject *sub_array = item->to_ary(env);
         if (sub_array->is_empty())
             continue;
 
@@ -1942,6 +1969,39 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         }
 
         return _slice_in_place(start, end, range->exclude_end());
+    }
+
+    if (index_obj->is_enumerator_arithmetic_sequence()) {
+        auto seq = index_obj->as_enumerator_arithmetic_sequence();
+        Vector<Value> result {};
+        const auto step = IntegerObject::convert_to_nat_int_t(env, seq->step());
+        if (step > 0) {
+            nat_int_t idx = seq->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            if (idx < 0) idx = this->size() + idx;
+            nat_int_t end = seq->end()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            if (end < 0) end = this->size() + end;
+            if (seq->exclude_end()) end--;
+            while (idx <= end && static_cast<size_t>(idx) < this->size()) {
+                result.push(m_vector[idx]);
+                idx += step;
+            }
+        } else {
+            const nat_int_t begin = seq->end()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, seq->end());
+            nat_int_t idx = seq->begin()->is_nil() ? this->size() : IntegerObject::convert_to_nat_int_t(env, seq->begin());
+            if (begin < 0 && idx != 0) {
+                idx = -1; // break early
+            } else {
+                if (idx < 0) idx = this->size() + idx;
+                if (seq->exclude_end()) idx--;
+            }
+            if (idx >= static_cast<nat_int_t>(this->size())) idx = this->size() - 1;
+            while (idx >= begin && idx >= 0) {
+                result.push(m_vector[idx]);
+                idx += step;
+            }
+        }
+        m_vector = std::move(result);
+        return this;
     }
 
     return slice_in_place(env, index_obj->to_int(env), size);
