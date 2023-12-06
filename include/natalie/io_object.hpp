@@ -65,6 +65,7 @@ public:
     int fileno(Env *) const;
     int fsync(Env *);
     Value getbyte(Env *);
+    Value getc(Env *);
     Value gets(Env *, Value = nullptr, Value = nullptr, Value = nullptr);
     Value initialize(Env *, Args, Block * = nullptr);
     Value inspect() const;

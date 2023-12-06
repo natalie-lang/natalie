@@ -197,6 +197,11 @@ Value IoObject::getbyte(Env *env) {
     return result;
 }
 
+Value IoObject::getc(Env *env) {
+    raise_if_closed(env);
+    return read(env, Value::integer(1), nullptr);
+}
+
 Value IoObject::inspect() const {
     TM::String details;
     if (m_closed) {

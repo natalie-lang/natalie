@@ -14,7 +14,9 @@ describe "IO#getc" do
   it "returns the next character from the stream" do
     @io.readline.should == "Voici la ligne une.\n"
     letters = @io.getc, @io.getc, @io.getc, @io.getc, @io.getc
-    letters.should == ["Q", "u", "i", " ", "è"]
+    NATFIXME 'Use character encodings', exception: SpecFailedException do
+      letters.should == ["Q", "u", "i", " ", "è"]
+    end
   end
 
   it "returns nil when invoked at the end of the stream" do
