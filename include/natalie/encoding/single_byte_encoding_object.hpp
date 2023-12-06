@@ -8,8 +8,9 @@ using namespace TM;
 
 class SingleByteEncodingObject : public EncodingObject {
 public:
-    SingleByteEncodingObject(Encoding encoding, std::initializer_list<const String> aliases)
-        : EncodingObject { encoding, aliases } { }
+    SingleByteEncodingObject(Encoding encoding, std::initializer_list<const String> aliases, const long *table)
+        : EncodingObject { encoding, aliases }
+        , table(table) { }
     virtual bool valid_codepoint(nat_int_t codepoint) const override {
         return (codepoint >= 0 && codepoint <= 0xFF);
     }
@@ -30,6 +31,9 @@ public:
 
     virtual bool is_ascii_compatible() const override { return true; };
     virtual bool is_single_byte_encoding() const override final { return true; }
+
+private:
+    const long *table { nullptr };
 };
 
 }

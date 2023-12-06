@@ -26,12 +26,24 @@ String SingleByteEncodingObject::escaped_char(unsigned char c) const {
 nat_int_t SingleByteEncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
     if (codepoint >= 0x00 && codepoint <= 0x7F)
         return codepoint;
+    if (table) {
+        if (codepoint >= 0x80 && codepoint <= 0xFF)
+            return table[codepoint - 0x80];
+        return -1;
+    }
     NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 
 nat_int_t SingleByteEncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
     if (codepoint >= 0x00 && codepoint <= 0x7F)
         return codepoint;
+    if (table) {
+        for (long i = 0; i <= 127; i++) {
+            if (table[i] == codepoint)
+                return i + 0x80;
+        }
+        return -1;
+    }
     NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
 }
 

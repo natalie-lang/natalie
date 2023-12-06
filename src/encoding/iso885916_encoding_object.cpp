@@ -17,24 +17,8 @@ static const long ISO885916[] = {
     0xEE, 0xEF, 0x111, 0x144, 0xF2, 0xF3, 0xF4, 0x151, 0xF6, 0x15B,
     0x171, 0xF9, 0xFA, 0xFB, 0xFC, 0x119, 0x21B, 0xFF
 };
-static const long ISO885916_max = 127;
 
-nat_int_t Iso885916EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    if (codepoint >= 0x80 && codepoint <= 0xFF)
-        return ISO885916[codepoint - 0x80];
-    return -1;
-}
-
-nat_int_t Iso885916EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    for (long i = 0; i <= ISO885916_max; i++) {
-        if (ISO885916[i] == codepoint)
-            return i + 0x80;
-    }
-    return -1;
-}
+Iso885916EncodingObject::Iso885916EncodingObject()
+    : SingleByteEncodingObject { Encoding::ISO_8859_16, { "ISO-8859-16", "ISO8859-16" }, ISO885916 } { }
 
 }
