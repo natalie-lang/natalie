@@ -2,50 +2,23 @@
 
 namespace Natalie {
 
-std::pair<bool, StringView> Iso88596EncodingObject::prev_char(const String &string, size_t *index) const {
-    if (*index == 0)
-        return { true, StringView() };
-    (*index)--;
-    return { true, StringView(&string, *index, 1) };
-}
+static const long ISO88596[] = {
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
+    0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x93,
+    0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D,
+    0x9E, 0x9F, 0xA0, -1, -1, -1, 0xA4, -1, -1, -1,
+    -1, -1, -1, -1, 0x60C, 0xAD, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 0x61B,
+    -1, -1, -1, 0x61F, -1, 0x621, 0x622, 0x623, 0x624, 0x625,
+    0x626, 0x627, 0x628, 0x629, 0x62A, 0x62B, 0x62C, 0x62D, 0x62E, 0x62F,
+    0x630, 0x631, 0x632, 0x633, 0x634, 0x635, 0x636, 0x637, 0x638, 0x639,
+    0x63A, -1, -1, -1, -1, -1, 0x640, 0x641, 0x642, 0x643,
+    0x644, 0x645, 0x646, 0x647, 0x648, 0x649, 0x64A, 0x64B, 0x64C, 0x64D,
+    0x64E, 0x64F, 0x650, 0x651, 0x652, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1
+};
 
-std::pair<bool, StringView> Iso88596EncodingObject::next_char(const String &string, size_t *index) const {
-    if (*index >= string.size())
-        return { true, StringView() };
-    size_t i = *index;
-    (*index)++;
-    return { true, StringView(&string, i, 1) };
-}
-
-String Iso88596EncodingObject::escaped_char(unsigned char c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
-    return String(buf);
-}
-
-nat_int_t Iso88596EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-nat_int_t Iso88596EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-String Iso88596EncodingObject::encode_codepoint(nat_int_t codepoint) const {
-    return String((char)codepoint);
-}
-
-nat_int_t Iso88596EncodingObject::decode_codepoint(StringView &str) const {
-    switch (str.size()) {
-    case 1:
-        return (unsigned char)str[0];
-    default:
-        return -1;
-    }
-}
+Iso88596EncodingObject::Iso88596EncodingObject()
+    : SingleByteEncodingObject { Encoding::ISO_8859_6, { "ISO-8859-6", "ISO8859-6" }, ISO88596 } { }
 
 }
