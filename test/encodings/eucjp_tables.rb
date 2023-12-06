@@ -14,7 +14,7 @@ TABLES.each do |table_name, url|
     hash[idx.to_i] = value
   end
 
-  print "const long #{table_name}[] = {"
+  print "static const long #{table_name}[] = {"
 
   0.upto(index.keys.max).each do |i|
     value = index[i]
@@ -31,6 +31,6 @@ TABLES.each do |table_name, url|
   end
 
   puts '};'
-  puts "long #{table_name}_max = #{index.keys.max};"
+  puts "static const long #{table_name}_max = #{index.keys.max};"
   puts
 end

@@ -38,7 +38,7 @@ describe 'encodings' do
       end
     end
 
-    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
       [
         0x61,
         0xA1A1,
@@ -80,11 +80,11 @@ describe 'encodings' do
         0x8E => 0x8E,
         0xFF => 0xFF,
       }.each do |codepoint, expected|
-        codepoint.chr(Encoding::ISO_8859_1).encode(Encoding::ISO_8859_1).ord.to_s(16).should == expected.to_s(16)
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_1).ord.to_s(16).should == expected.to_s(16)
       end
     end
 
-    it 'can chop a character (this uses EncdoingObject::prev_char)' do
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
       [
         0x61,
         0x8E,

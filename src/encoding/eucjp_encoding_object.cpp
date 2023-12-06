@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-const long JIS0208[] = {
+static const long JIS0208[] = {
     0x3000, 0x3001, 0x3002, 0xFF0C, 0xFF0E, 0x30FB, 0xFF1A, 0xFF1B, 0xFF1F, 0xFF01,
     0x309B, 0x309C, 0xB4, 0xFF40, 0xA8, 0xFF3E, 0xFFE3, 0xFF3F, 0x30FD, 0x30FE,
     0x309D, 0x309E, 0x3003, 0x4EDD, 0x3005, 0x3006, 0x3007, 0x30FC, 0x2015, 0x2010,
@@ -1116,9 +1116,9 @@ const long JIS0208[] = {
     0x9A4E, 0x9AD9, 0x9ADC, 0x9B75, 0x9B72, 0x9B8F, 0x9BB1, 0x9BBB, 0x9C00, 0x9D70,
     0x9D6B, 0xFA2D, 0x9E19, 0x9ED1
 };
-long JIS0208_max = 11103;
+static const long JIS0208_max = 11103;
 
-const long JIS0212[] = {
+static const long JIS0212[] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1842,7 +1842,7 @@ const long JIS0212[] = {
     0x9F90, 0x9F91, 0x9F92, 0x9F94, 0x9F96, 0x9F97, 0x9F9E, 0x9FA1, 0x9FA2, 0x9FA3,
     0x9FA5
 };
-long JIS0212_max = 7210;
+static const long JIS0212_max = 7210;
 
 bool EucJpEncodingObject::valid_codepoint(nat_int_t codepoint) const {
     if (codepoint < 0 || codepoint > 0x8ffefe)

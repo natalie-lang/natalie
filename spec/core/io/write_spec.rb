@@ -124,8 +124,7 @@ describe "IO#write on a file" do
     end
   end
 
-  # NATFIXME: Conversion above Unicode Basic Latin (0x00..0x7F) not implemented
-  xit "writes binary data if no encoding is given" do
+  it "writes binary data if no encoding is given" do
     File.open(@filename, "w") do |file|
       file.write('Hëllö'.encode('ISO-8859-1'))
     end
@@ -210,8 +209,7 @@ describe "IO.write" do
     end
   end
 
-  # NATFIXME: Conversion above Unicode Basic Latin (0x00..0x7F) not implemented
-  xit "writes binary data if no encoding is given" do
+  it "writes binary data if no encoding is given" do
     IO.write(@filename, 'Hëllö'.encode('ISO-8859-1'))
     xEB = [235].pack('C*')
     xF6 = [246].pack('C*')
