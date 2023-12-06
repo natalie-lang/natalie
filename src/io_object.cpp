@@ -199,7 +199,14 @@ Value IoObject::getbyte(Env *env) {
 
 Value IoObject::getc(Env *env) {
     raise_if_closed(env);
-    return read(env, Value::integer(1), nullptr);
+    auto line = gets(env);
+    if (line->is_nil())
+        return line;
+    auto line_str = line->as_string();
+    auto result = line_str->chr(env);
+    line_str->delete_prefix_in_place(env, result);
+    m_read_buffer.prepend(line_str->string());
+    return result;
 }
 
 Value IoObject::inspect() const {
