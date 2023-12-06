@@ -247,8 +247,14 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     if (gettimeofday(&now, nullptr) != 0)
         env->raise_errno();
     wait.tv_sec = now.tv_sec + (int)timeout;
-    auto ms = (timeout - (int)timeout) * 1000;
-    wait.tv_nsec = (now.tv_usec + 1000 * (ms)) * 1000;
+    auto us = (timeout - (int)timeout) * 1000 * 1000;
+    auto ns = (now.tv_usec + us) * 1000;
+    constexpr long ns_in_sec = 1000 * 1000 * 1000;
+    if (ns >= ns_in_sec) {
+        wait.tv_sec += 1;
+        ns -= ns_in_sec;
+    }
+    wait.tv_nsec = ns;
 
     pthread_mutex_lock(&m_sleep_lock);
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
