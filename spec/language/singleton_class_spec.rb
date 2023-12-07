@@ -299,3 +299,27 @@ describe "Instantiating a singleton class" do
     }.should raise_error(TypeError)
   end
 end
+
+describe "Frozen properties" do
+  it "is frozen if the object it is created from is frozen" do
+    o = Object.new
+    o.freeze
+    klass = o.singleton_class
+    klass.frozen?.should == true
+  end
+
+  it "will be frozen if the object it is created from becomes frozen" do
+    o = Object.new
+    klass = o.singleton_class
+    klass.frozen?.should == false
+    o.freeze
+    klass.frozen?.should == true
+  end
+
+  it "will be unfrozen if the frozen object is cloned with freeze set to false" do
+    o = Object.new
+    o.freeze
+    o2 = o.clone(freeze: false)
+    o2.singleton_class.frozen?.should == false
+  end
+end
