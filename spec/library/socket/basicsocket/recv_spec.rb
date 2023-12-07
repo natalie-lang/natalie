@@ -37,7 +37,10 @@ describe "BasicSocket#recv" do
     it "accepts flags to specify unusual receiving behaviour" do
       t = Thread.new do
         client = @server.accept
-
+      rescue Errno::ECONNABORTED
+        # NATFIXME: NoMethodError below causes ECONNABORTED
+        puts 'stream closed in another thread'
+      else
         # in-band data (TCP), doesn't receive the flag.
         ScratchPad.record client.recv(10)
 
