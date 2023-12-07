@@ -21,14 +21,25 @@ describe 'Proc' do
       p.should be_kind_of(Proc)
     end
 
-    it 'creates a new Proc object from a block argument' do
-      def create_lambda(&block)
-        lambda(&block)
+    ruby_version_is ''...'3.3' do
+      it 'creates a new Proc object from a block argument' do
+        def create_lambda(&block)
+          lambda(&block)
+        end
+        result = suppress_warning do
+          create_lambda { 1 }
+        end
+        result.should be_kind_of(Proc)
       end
-      result = suppress_warning do
-        create_lambda { 1 }
+    end
+
+    ruby_version_is '3.3' do
+      it 'cannot create a new Proc object from a block argument' do
+        def create_lambda(&block)
+          lambda(&block)
+        end
+        -> { create_lambda { 1 } }.should raise_error(ArgumentError, 'the lambda method requires a literal block')
       end
-      result.should be_kind_of(Proc)
     end
   end
 
