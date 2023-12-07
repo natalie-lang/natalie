@@ -63,7 +63,7 @@ describe "BasicSocket#recv" do
   it "gets lines delimited with a custom separator"  do
     t = Thread.new do
       client = @server.accept
-      NATFIXME 'invalid utf-8', exception: ArgumentError do
+      NATFIXME 'invalid utf-8', exception: Encoding::CompatibilityError do
         ScratchPad.record client.gets("\377")
       end
 

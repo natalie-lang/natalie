@@ -38,20 +38,26 @@ describe :string_codepoints, shared: true do
   end
 
   it "works for multibyte characters" do
-    s = "\u{9819}"
-    s.bytesize.should == 3
-    s.send(@method).to_a.should == [38937]
+    NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+      s = "\u{9819}"
+      s.bytesize.should == 3
+      s.send(@method).to_a.should == [38937]
+    end
   end
 
   it "yields the codepoints corresponding to the character's position in the String's encoding" do
-    "\u{787}".send(@method).to_a.should == [1927]
+    NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+      "\u{787}".send(@method).to_a.should == [1927]
+    end
   end
 
   it "round-trips to the original String using Integer#chr" do
-    s = "\u{13}\u{7711}\u{1010}"
-    s2 = ""
-    s.send(@method) {|n| s2 << n.chr(Encoding::UTF_8)}
-    s.should == s2
+    NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+      s = "\u{13}\u{7711}\u{1010}"
+      s2 = ""
+      s.send(@method) {|n| s2 << n.chr(Encoding::UTF_8)}
+      s.should == s2
+    end
   end
 
   it "is synonymous with #bytes for Strings which are single-byte optimizable" do

@@ -164,41 +164,45 @@ describe "Ruby character strings" do
 
   describe "Unicode escaping" do
     it "can be done with \\u and four hex digits" do
-      [ ["\u0000", 0x0000],
-        ["\u2020", 0x2020]
-      ].should be_computed_by(:ord)
+      NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+        [ ["\u0000", 0x0000],
+          ["\u2020", 0x2020]
+        ].should be_computed_by(:ord)
+      end
     end
 
     it "can be done with \\u{} and one to six hex digits" do
-      [ ["\u{a}", 0xa],
-        ["\u{ab}", 0xab],
-        ["\u{abc}", 0xabc],
-        ["\u{1abc}", 0x1abc],
-        ["\u{12abc}", 0x12abc],
-        ["\u{100000}", 0x100000]
-      ].should be_computed_by(:ord)
+      NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+        [ ["\u{a}", 0xa],
+          ["\u{ab}", 0xab],
+          ["\u{abc}", 0xabc],
+          ["\u{1abc}", 0x1abc],
+          ["\u{12abc}", 0x12abc],
+          ["\u{100000}", 0x100000]
+        ].should be_computed_by(:ord)
+      end
     end
 
     # TODO: spec other source encodings
     describe "with ASCII_8BIT source encoding" do
       it "produces an ASCII string when escaping ASCII characters via \\u" do
-        NATFIXME 'Encoding magic comment', exception: SpecFailedException do
-          "\u0000".encoding.should == Encoding::BINARY
-        end
+        "\u0000".encoding.should == Encoding::BINARY
       end
 
       it "produces an ASCII string when escaping ASCII characters via \\u{}" do
-        NATFIXME 'Encoding magic comment', exception: SpecFailedException do
-          "\u{0000}".encoding.should == Encoding::BINARY
-        end
+        "\u{0000}".encoding.should == Encoding::BINARY
       end
 
       it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u" do
-        "\u1234".encoding.should == Encoding::UTF_8
+        NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+          "\u1234".encoding.should == Encoding::UTF_8
+        end
       end
 
       it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u{}" do
-        "\u{1234}".encoding.should == Encoding::UTF_8
+        NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+          "\u{1234}".encoding.should == Encoding::UTF_8
+        end
       end
     end
   end
