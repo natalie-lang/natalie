@@ -318,10 +318,6 @@ Env *build_top_env() {
     Encoding->const_set("ISO_8859_11"_s, EncodingIso885911);
     Encoding->const_set("ISO8859_11"_s, EncodingIso885911);
 
-    Value EncodingIso885912 = new Iso885912EncodingObject {};
-    Encoding->const_set("ISO_8859_12"_s, EncodingIso885912);
-    Encoding->const_set("ISO8859_12"_s, EncodingIso885912);
-
     Value EncodingIso885913 = new Iso885913EncodingObject {};
     Encoding->const_set("ISO_8859_13"_s, EncodingIso885913);
     Encoding->const_set("ISO8859_13"_s, EncodingIso885913);

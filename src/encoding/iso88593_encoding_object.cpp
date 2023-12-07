@@ -2,50 +2,23 @@
 
 namespace Natalie {
 
-std::pair<bool, StringView> Iso88593EncodingObject::prev_char(const String &string, size_t *index) const {
-    if (*index == 0)
-        return { true, StringView() };
-    (*index)--;
-    return { true, StringView(&string, *index, 1) };
-}
+static const long ISO88593[] = {
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
+    0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x93,
+    0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D,
+    0x9E, 0x9F, 0xA0, 0x126, 0x2D8, 0xA3, 0xA4, -1, 0x124, 0xA7,
+    0xA8, 0x130, 0x15E, 0x11E, 0x134, 0xAD, -1, 0x17B, 0xB0, 0x127,
+    0xB2, 0xB3, 0xB4, 0xB5, 0x125, 0xB7, 0xB8, 0x131, 0x15F, 0x11F,
+    0x135, 0xBD, -1, 0x17C, 0xC0, 0xC1, 0xC2, -1, 0xC4, 0x10A,
+    0x108, 0xC7, 0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
+    -1, 0xD1, 0xD2, 0xD3, 0xD4, 0x120, 0xD6, 0xD7, 0x11C, 0xD9,
+    0xDA, 0xDB, 0xDC, 0x16C, 0x15C, 0xDF, 0xE0, 0xE1, 0xE2, -1,
+    0xE4, 0x10B, 0x109, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED,
+    0xEE, 0xEF, -1, 0xF1, 0xF2, 0xF3, 0xF4, 0x121, 0xF6, 0xF7,
+    0x11D, 0xF9, 0xFA, 0xFB, 0xFC, 0x16D, 0x15D, 0x2D9
+};
 
-std::pair<bool, StringView> Iso88593EncodingObject::next_char(const String &string, size_t *index) const {
-    if (*index >= string.size())
-        return { true, StringView() };
-    size_t i = *index;
-    (*index)++;
-    return { true, StringView(&string, i, 1) };
-}
-
-String Iso88593EncodingObject::escaped_char(unsigned char c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
-    return String(buf);
-}
-
-nat_int_t Iso88593EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-nat_int_t Iso88593EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-String Iso88593EncodingObject::encode_codepoint(nat_int_t codepoint) const {
-    return String((char)codepoint);
-}
-
-nat_int_t Iso88593EncodingObject::decode_codepoint(StringView &str) const {
-    switch (str.size()) {
-    case 1:
-        return (unsigned char)str[0];
-    default:
-        return -1;
-    }
-}
+Iso88593EncodingObject::Iso88593EncodingObject()
+    : SingleByteEncodingObject { Encoding::ISO_8859_3, { "ISO-8859-3", "ISO8859-3" }, ISO88593 } { }
 
 }
