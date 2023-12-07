@@ -43,6 +43,13 @@ public:
     StringObject()
         : StringObject { "" } { }
 
+    StringObject(EncodingObject *encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str("", 0);
+    }
+
     StringObject(const char *str)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { EncodingObject::get(Encoding::UTF_8) } {

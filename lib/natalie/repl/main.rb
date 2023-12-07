@@ -38,7 +38,7 @@ module Natalie
           )
           ast.statements.body << puts_and_set_underscore_variable
           temp = Tempfile.create('natalie.so')
-          compiler = Compiler.new(ast, '(repl)')
+          compiler = Compiler.new(ast: ast, path: '(repl)')
           compiler.repl = true
           compiler.repl_num = (repl_num += 1)
           compiler.vars = vars

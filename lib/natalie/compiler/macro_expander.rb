@@ -226,8 +226,8 @@ module Natalie
 
         unless (loaded_file = @required_ruby_files[path])
           code = File.read(path)
-          ast = Natalie::Parser.new(code, path).ast
-          @required_ruby_files[path] = LoadedFile.new(path: path, ast: ast)
+          parser = Natalie::Parser.new(code, path)
+          @required_ruby_files[path] = LoadedFile.new(path: path, ast: parser.ast, encoding: parser.encoding)
         end
 
         [:load_file, path, require_once]

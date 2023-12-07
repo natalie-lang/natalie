@@ -212,7 +212,6 @@ module Natalie
           end
           out.join("\n")
         end
-
       end
     end
   end

@@ -149,7 +149,7 @@ class Runner
       repl.go(options)
     elsif options[:ast]
       require 'pp'
-      pp ast
+      pp parser.ast
     elsif options[:compile] && options[:bytecode]
       compiler.out_path = options[:compile]
       compiler.compile_to_bytecode
@@ -312,7 +312,11 @@ class Runner
   end
 
   def compiler
-    @compiler ||= Natalie::Compiler.new(ast, source_path, options).tap do |c|
+    return @compiler if @compiler
+
+    ast = parser.ast
+    encoding = parser.encoding
+    @compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: encoding, options: options).tap do |c|
       c.load_path = options[:load_path]
       c.write_obj_path = options[:write_obj_path]
     end
@@ -320,10 +324,6 @@ class Runner
 
   def parser
     @parser ||= Natalie::Parser.new(code, source_path)
-  end
-
-  def ast
-    @ast ||= parser.ast
   end
 
   def print_cpp_source(path)

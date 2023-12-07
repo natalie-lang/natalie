@@ -109,7 +109,7 @@ module Natalie
         raise SyntaxError, "syntax error #{node.location.path}##{node.location.start_line}"
       end
 
-      def visit_case_match_node(node)
+      def visit_case_match_node(_)
         raise SyntaxError, 'expected at least one when clause for case'
       end
     end
@@ -120,11 +120,20 @@ module Natalie
       @locals = locals
     end
 
+    def result
+      @result ||= Prism.parse(@code_str, filepath: @path, scopes: [@locals])
+    end
+
     def ast
-      Prism
-        .parse(@code_str, filepath: @path, scopes: [@locals])
-        .value
-        .accept(PathVisitor.new(@path))
+      result.value.accept(PathVisitor.new(@path))
+    end
+
+    def encoding
+      unless (name = result.magic_comments.detect { |c| c.key == 'encoding' }&.value)
+        return Encoding::UTF_8
+      end
+
+      Encoding.find(name)
     end
   end
 end
