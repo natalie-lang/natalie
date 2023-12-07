@@ -158,9 +158,7 @@ describe "File.basename" do
     File.basename('/path/Офис.m4a').should == "Офис.m4a"
   end
 
-  # NATFIXME: Encoding::Windows_1250 not currently handling outside of ascii range
-  # and encoding will trigger an assert()
-  xit "returns the basename with the same encoding as the original" do
+  it "returns the basename with the same encoding as the original" do
     basename = File.basename('C:/Users/Scuby Pagrubý'.encode(Encoding::Windows_1250))
     basename.should == 'Scuby Pagrubý'.encode(Encoding::Windows_1250)
     basename.encoding.should == Encoding::Windows_1250
