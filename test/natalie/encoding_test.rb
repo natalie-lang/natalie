@@ -818,6 +818,54 @@ describe 'encodings' do
     end
   end
 
+  describe 'Windows-1251' do
+    it 'can convert codepoints' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        codepoint.chr(Encoding::Windows_1251).ord.should == codepoint
+      end
+    end
+
+    it 'can convert to UTF-8' do
+      {
+        0x61 => 0x61,
+        0x8E => 0x40B,
+        0xA8 => 0x401,
+        0xFF => 0x44F,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::Windows_1251).encode(Encoding::UTF_8).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can convert from UTF-8' do
+      {
+        0x61  => 0x61,
+        0x40B => 0x8E,
+        0x401 => 0xA8,
+        0x44F => 0xFF,
+      }.each do |codepoint, expected|
+        codepoint.chr(Encoding::UTF_8).encode(Encoding::Windows_1251).ord.to_s(16).should == expected.to_s(16)
+      end
+    end
+
+    it 'can chop a character (this uses EncodingObject::prev_char)' do
+      [
+        0x61,
+        0x8E,
+        0xFF,
+      ].each do |codepoint|
+        string = 'a'.encode(Encoding::Windows_1251) + codepoint.chr(Encoding::Windows_1251)
+        string.encoding.should == Encoding::Windows_1251
+        string.chop!
+        string.encoding.should == Encoding::Windows_1251
+        string.bytes.should == 'a'.encode(Encoding::Windows_1251).bytes
+      end
+    end
+  end
+
   describe 'Windows-1252' do
     it 'can convert codepoints' do
       [
