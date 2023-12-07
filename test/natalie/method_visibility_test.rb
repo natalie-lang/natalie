@@ -83,15 +83,30 @@ describe 'method visibility' do
   end
 
   describe 'explicit private' do
-    it 'is not visible outside the class' do
-      -> { Foo.new.private_foo }.should raise_error(
-                                          NoMethodError,
-                                          /^private method `private_foo' called for #<Foo:0x\X+>/,
-                                        )
-      -> { Foo.new.private_foo2 }.should raise_error(
-                                           NoMethodError,
-                                           /^private method `private_foo2' called for #<Foo:0x\X+>/,
-                                         )
+    ruby_version_is ''...'3.3' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.private_foo }.should raise_error(
+                                            NoMethodError,
+                                            /^private method `private_foo' called for #<Foo:0x\X+>/,
+                                          )
+        -> { Foo.new.private_foo2 }.should raise_error(
+                                             NoMethodError,
+                                             /^private method `private_foo2' called for #<Foo:0x\X+>/,
+                                           )
+      end
+    end
+
+    ruby_version_is '3.3' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.private_foo }.should raise_error(
+                                            NoMethodError,
+                                            "private method `private_foo' called for an instance of Foo",
+                                          )
+        -> { Foo.new.private_foo2 }.should raise_error(
+                                             NoMethodError,
+                                             "private method `private_foo2' called for an instance of Foo",
+                                           )
+      end
     end
 
     it 'is visible inside the class' do
@@ -112,11 +127,22 @@ describe 'method visibility' do
   end
 
   describe 'explicit protected' do
-    it 'is not visible outside the class' do
-      -> { Foo.new.protected_foo }.should raise_error(
-                                            NoMethodError,
-                                            /^protected method `protected_foo' called for #<Foo:0x\X+>/,
-                                          )
+    ruby_version_is ''...'3.3' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.protected_foo }.should raise_error(
+                                              NoMethodError,
+                                              /^protected method `protected_foo' called for #<Foo:0x\X+>/,
+                                            )
+      end
+    end
+
+    ruby_version_is '3.3' do
+      it 'is not visible outside the class' do
+        -> { Foo.new.protected_foo }.should raise_error(
+                                              NoMethodError,
+                                              "protected method `protected_foo' called for an instance of Foo",
+                                            )
+      end
     end
 
     it 'is visible inside the class' do

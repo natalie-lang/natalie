@@ -546,17 +546,34 @@ describe 'method with keyword args' do
     -> { method_with_kwargs14(1, b: 2, c: 3) }.should_not raise_error
   end
 
-  it 'raises an error when the method is not defined' do
-    class Foo
+  ruby_version_is ''...'3.3' do
+    it 'raises an error when the method is not defined' do
+      class Foo
+      end
+      -> { Foo.new.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for #<Foo:0x.+>/)
     end
-    -> { Foo.new.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for #<Foo:0x.+>/)
+
+    it 'does not loop infinitely when trying to call inspect on BasicObject' do
+      -> { BasicObject.new.inspect }.should raise_error(
+                                              NoMethodError,
+                                              /undefined method `inspect' for #<BasicObject:0x.+>/,
+                                            )
+    end
   end
 
-  it 'does not loop infinitely when trying to call inspect on BasicObject' do
-    -> { BasicObject.new.inspect }.should raise_error(
-                                            NoMethodError,
-                                            /undefined method `inspect' for #<BasicObject:0x.+>/,
-                                          )
+  ruby_version_is '3.3' do
+    it 'raises an error when the method is not defined' do
+      class Foo
+      end
+      -> { Foo.new.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for an instance of Foo")
+    end
+
+    it 'does not loop infinitely when trying to call inspect on BasicObject' do
+      -> { BasicObject.new.inspect }.should raise_error(
+                                              NoMethodError,
+                                              "undefined method `inspect' for an instance of BasicObject",
+                                            )
+    end
   end
 end
 
