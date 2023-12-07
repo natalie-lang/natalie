@@ -2,50 +2,23 @@
 
 namespace Natalie {
 
-std::pair<bool, StringView> Windows1250EncodingObject::prev_char(const String &string, size_t *index) const {
-    if (*index == 0)
-        return { true, StringView() };
-    (*index)--;
-    return { true, StringView(&string, *index, 1) };
-}
+static const long WINDOWS1250[] = {
+    0x20AC, 0x81, 0x201A, 0x83, 0x201E, 0x2026, 0x2020, 0x2021, 0x88, 0x2030,
+    0x160, 0x2039, 0x15A, 0x164, 0x17D, 0x179, 0x90, 0x2018, 0x2019, 0x201C,
+    0x201D, 0x2022, 0x2013, 0x2014, 0x98, 0x2122, 0x161, 0x203A, 0x15B, 0x165,
+    0x17E, 0x17A, 0xA0, 0x2C7, 0x2D8, 0x141, 0xA4, 0x104, 0xA6, 0xA7,
+    0xA8, 0xA9, 0x15E, 0xAB, 0xAC, 0xAD, 0xAE, 0x17B, 0xB0, 0xB1,
+    0x2DB, 0x142, 0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0x105, 0x15F, 0xBB,
+    0x13D, 0x2DD, 0x13E, 0x17C, 0x154, 0xC1, 0xC2, 0x102, 0xC4, 0x139,
+    0x106, 0xC7, 0x10C, 0xC9, 0x118, 0xCB, 0x11A, 0xCD, 0xCE, 0x10E,
+    0x110, 0x143, 0x147, 0xD3, 0xD4, 0x150, 0xD6, 0xD7, 0x158, 0x16E,
+    0xDA, 0x170, 0xDC, 0xDD, 0x162, 0xDF, 0x155, 0xE1, 0xE2, 0x103,
+    0xE4, 0x13A, 0x107, 0xE7, 0x10D, 0xE9, 0x119, 0xEB, 0x11B, 0xED,
+    0xEE, 0x10F, 0x111, 0x144, 0x148, 0xF3, 0xF4, 0x151, 0xF6, 0xF7,
+    0x159, 0x16F, 0xFA, 0x171, 0xFC, 0xFD, 0x163, 0x2D9
+};
 
-std::pair<bool, StringView> Windows1250EncodingObject::next_char(const String &string, size_t *index) const {
-    if (*index >= string.size())
-        return { true, StringView() };
-    size_t i = *index;
-    (*index)++;
-    return { true, StringView(&string, i, 1) };
-}
-
-String Windows1250EncodingObject::escaped_char(unsigned char c) const {
-    char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
-    return String(buf);
-}
-
-nat_int_t Windows1250EncodingObject::to_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-nat_int_t Windows1250EncodingObject::from_unicode_codepoint(nat_int_t codepoint) const {
-    if (codepoint >= 0x00 && codepoint <= 0x7F)
-        return codepoint;
-    NAT_NOT_YET_IMPLEMENTED("Conversion above Unicode Basic Latin (0x00..0x7F) not implemented");
-}
-
-String Windows1250EncodingObject::encode_codepoint(nat_int_t codepoint) const {
-    return String((char)codepoint);
-}
-
-nat_int_t Windows1250EncodingObject::decode_codepoint(StringView &str) const {
-    switch (str.size()) {
-    case 1:
-        return (unsigned char)str[0];
-    default:
-        return -1;
-    }
-}
+Windows1250EncodingObject::Windows1250EncodingObject()
+    : SingleByteEncodingObject { Encoding::Windows_1250, { "Windows-1250", "CP1250" }, WINDOWS1250 } { }
 
 }
