@@ -122,7 +122,7 @@ module Natalie
     end
 
     def self.compile_and_run(ast, path:)
-      compiler = Compiler.new(ast, path, interpret: true)
+      compiler = Compiler.new(ast: ast, path: path, options: { interpret: true })
       VM.new(compiler.instructions, path: path).run
     end
 

@@ -19,10 +19,11 @@ module Natalie
     class CompileError < StandardError
     end
 
-    def initialize(ast, path, options = {})
+    def initialize(ast:, path:, encoding: Encoding::UTF_8, options: {})
       @ast = ast
       @var_num = 0
       @path = path
+      @encoding = encoding
       @options = options
       @inline_cpp_enabled = {}
     end
@@ -130,7 +131,8 @@ module Natalie
       instructions = Pass1.new(
         ast,
         compiler_context: @context,
-        macro_expander:   macro_expander
+        macro_expander:   macro_expander,
+        encoding:         @encoding,
       ).transform(
         used: keep_final_value_on_stack
       )
@@ -139,7 +141,7 @@ module Natalie
         exit
       end
 
-      main_file = LoadedFile.new(path: @path, instructions: instructions)
+      main_file = LoadedFile.new(path: @path, instructions: instructions, encoding: @encoding)
       files = [main_file] + @context[:required_ruby_files].values
       files.each do |file_info|
         {

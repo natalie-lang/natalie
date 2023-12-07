@@ -10,7 +10,7 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:, macro_expander:)
+      def initialize(ast, compiler_context:, macro_expander:, encoding:)
         super()
         @ast = ast
         @compiler_context = compiler_context
@@ -35,6 +35,9 @@ module Natalie
         # `next` and `break` need to know their enclosing scope type,
         # e.g. block vs while loop, so we'll use a stack to keep track.
         @next_or_break_context = []
+
+        # This changes depending on the magic comment in the current file.
+        @encoding = encoding
       end
 
       INLINE_CPP_MACROS = %i[
@@ -1646,10 +1649,13 @@ module Natalie
         loaded_file = @required_ruby_files.fetch(filename)
 
         unless loaded_file.instructions
+          encoding_was = @encoding
+          @encoding = loaded_file.encoding
           loaded_file.instructions = :generating # set this to avoid endless loop
           @depth = 0
           loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
           @depth = depth_was
+          @encoding = encoding_was
         end
 
         instructions = [
@@ -2042,7 +2048,7 @@ module Natalie
 
       def transform_string_node(node, used:)
         return [] unless used
-        PushStringInstruction.new(node.unescaped)
+        PushStringInstruction.new(node.unescaped, encoding: @encoding)
       end
 
       def transform_super_node(node, used:)

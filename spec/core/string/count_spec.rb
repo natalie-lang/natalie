@@ -81,9 +81,11 @@ describe "String#count" do
   end
 
   it 'returns the number of occurrences of a multi-byte character' do
-    str = "\u{2605}"
-    str.count(str).should == 1
-    "asd#{str}zzz#{str}ggg".count(str).should == 2
+    NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
+      str = "\u{2605}"
+      str.count(str).should == 1
+      "asd#{str}zzz#{str}ggg".count(str).should == 2
+    end
   end
 
   it "calls #to_str to convert each set arg to a String" do

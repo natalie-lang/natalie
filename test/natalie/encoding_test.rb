@@ -122,8 +122,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x104 => 0xA1,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_2).ord.to_s(16).should == expected.to_s(16)
@@ -168,8 +168,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x126 => 0xA1,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_3).ord.to_s(16).should == expected.to_s(16)
@@ -214,8 +214,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x101 => 0xE0,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_4).ord.to_s(16).should == expected.to_s(16)
@@ -260,8 +260,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x440 => 0xE0,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_5).ord.to_s(16).should == expected.to_s(16)
@@ -306,8 +306,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x640 => 0xE0,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_6).ord.to_s(16).should == expected.to_s(16)
@@ -353,9 +353,9 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
-        0xA8 => 0xA8,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
+        0xA8  => 0xA8,
         0x3B0 => 0xE0,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_7).ord.to_s(16).should == expected.to_s(16)
@@ -401,9 +401,9 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
-        0xA8 => 0xA8,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
+        0xA8  => 0xA8,
         0x5D0 => 0xE0,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_8).ord.to_s(16).should == expected.to_s(16)
@@ -500,8 +500,8 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x13B => 0xA8,
         0x138 => 0xFF,
       }.each do |codepoint, expected|
@@ -548,7 +548,9 @@ describe 'encodings' do
       end
 
       @unmapped.each do |codepoint|
-        -> { codepoint.chr(Encoding::ISO_8859_11).encode(Encoding::UTF_8) }.should raise_error(Encoding::UndefinedConversionError)
+        -> { codepoint.chr(Encoding::ISO_8859_11).encode(Encoding::UTF_8) }.should raise_error(
+          Encoding::UndefinedConversionError
+        )
       end
     end
 
@@ -600,9 +602,9 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
-        0xD8 => 0xA8,
+        0x61   => 0x61,
+        0x8E   => 0x8E,
+        0xD8   => 0xA8,
         0x2019 => 0xFF,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_13).ord.to_s(16).should == expected.to_s(16)
@@ -648,10 +650,10 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61   => 0x61,
+        0x8E   => 0x8E,
         0x1E80 => 0xA8,
-        0xFF => 0xFF,
+        0xFF   => 0xFF,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_14).ord.to_s(16).should == expected.to_s(16)
       end
@@ -696,10 +698,10 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x161 => 0xA8,
-        0xFF => 0xFF,
+        0xFF  => 0xFF,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_15).ord.to_s(16).should == expected.to_s(16)
       end
@@ -744,10 +746,10 @@ describe 'encodings' do
 
     it 'can convert from UTF-8' do
       {
-        0x61 => 0x61,
-        0x8E => 0x8E,
+        0x61  => 0x61,
+        0x8E  => 0x8E,
         0x161 => 0xA8,
-        0xFF => 0xFF,
+        0xFF  => 0xFF,
       }.each do |codepoint, expected|
         codepoint.chr(Encoding::UTF_8).encode(Encoding::ISO_8859_16).ord.to_s(16).should == expected.to_s(16)
       end
