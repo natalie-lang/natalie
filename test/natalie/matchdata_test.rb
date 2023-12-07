@@ -64,5 +64,19 @@ describe 'MatchData' do
       match[1...-2].should == []
       match[1...-3].should == []
     end
+
+    it 'supports ranges that results in added nil values' do
+      match = /(foo) (bar )?(baz)/.match('foo baz')
+      match[0..].should == ['foo baz', 'foo', nil, 'baz']
+      match[0..3].should == ['foo baz', 'foo', nil, 'baz']
+      match[0...4].should == ['foo baz', 'foo', nil, 'baz']
+      match[0..-1].should == ['foo baz', 'foo', nil, 'baz']
+
+      match = /(foo) bar(baz )?/.match('foo bar')
+      match[0..].should == ['foo bar', 'foo', nil]
+      match[0..2].should == ['foo bar', 'foo', nil]
+      match[0...3].should == ['foo bar', 'foo', nil]
+      match[0..-1].should == ['foo bar', 'foo', nil]
+    end
   end
 end
