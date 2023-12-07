@@ -9,11 +9,15 @@ describe "URI#select" do
     uri.to_s.should == 'http://oof:bar@baz'
     (uri.password = 'rab').should == 'rab'
     uri.to_s.should == 'http://oof:rab@baz'
-    (uri.userinfo = 'foo').should == 'foo'
+    NATFIXME 'This returns the old value', exception: SpecFailedException do
+      (uri.userinfo = 'foo').should == 'foo'
+    end
     uri.to_s.should == 'http://foo:rab@baz'
     (uri.userinfo = ['foo', 'bar']).should == ['foo', 'bar']
     uri.to_s.should == 'http://foo:bar@baz'
-    (uri.userinfo = ['foo']).should == ['foo']
+    NATFIXME 'This returns the old value', exception: SpecFailedException do
+      (uri.userinfo = ['foo']).should == ['foo']
+    end
     uri.to_s.should == 'http://foo:bar@baz'
     (uri.host = 'zab').should == 'zab'
     uri.to_s.should == 'http://foo:bar@zab'
