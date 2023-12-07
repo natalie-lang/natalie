@@ -297,8 +297,7 @@ describe "String#split with Regexp" do
     ",".split(/,/, -1).should == ["", ""]
   end
 
-  # NATFIXME: Slow or infinite loop
-  xit "defaults to $; when regexp isn't given or nil" do
+  it "defaults to $; when regexp isn't given or nil" do
     suppress_warning do
       old_fs = $;
       begin
@@ -340,8 +339,7 @@ describe "String#split with Regexp" do
     "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
   end
 
-  # NATFIXME: Slow or infinite loop
-  xit "respects unicode when splitting between characters" do
+  it "respects unicode when splitting between characters" do
     str = "こにちわ"
     reg = %r!!
     ary = str.split(reg)
@@ -349,8 +347,7 @@ describe "String#split with Regexp" do
     ary.should == ["こ", "に", "ち", "わ"]
   end
 
-  # NATFIXME: Slow or infinite loop
-  xit "respects the encoding of the regexp when splitting between characters" do
+  it "respects the encoding of the regexp when splitting between characters" do
     str = "\303\202"
     ary = str.split(//u)
     ary.size.should == 1
@@ -408,8 +405,7 @@ describe "String#split with Regexp" do
     "foo".split(/bar/, 3).should == ["foo"]
   end
 
-  # NATFIXME: Slow or infinite loop
-  xit "returns String instances based on self" do
+  it "returns String instances based on self" do
     ["", "x:y:z:", "  x  y  "].each do |str|
       [//, /:/, /\s+/].each do |pat|
         [-1, 0, 1, 2].each do |limit|
@@ -483,7 +479,7 @@ describe "String#split with Regexp" do
       end
     end
 
-    xit "yields each split substring with default pattern for a non-ASCII lazy substring" do
+    it "yields each split substring with default pattern for a non-ASCII lazy substring" do
       a = []
       returned_object = "l'été arrive bientôt"[1...-1].split { |str| a << str }
 
@@ -523,13 +519,14 @@ describe "String#split with Regexp" do
       end
     end
 
-    # NATFIXME: Slow or infinite loop
-    xit "yields each split substring with empty regexp pattern" do
+    it "yields each split substring with empty regexp pattern" do
       a = []
       returned_object = "chunky".split(//) { |str| a << str.capitalize }
 
-      returned_object.should == "chunky"
-      a.should == %w(C H U N K Y)
+      NATFIXME 'when a block is given', exception: SpecFailedException do
+        returned_object.should == "chunky"
+        a.should == %w(C H U N K Y)
+      end
     end
 
     it "yields each split substring with empty regexp pattern and limit" do
