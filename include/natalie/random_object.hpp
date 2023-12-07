@@ -43,12 +43,11 @@ public:
     }
 
     static Value srand(Env *env, Value seed) {
-        if (!seed || seed->is_nil())
+        if (!seed)
             seed = new_seed(env);
-        seed->assert_type(env, Type::Integer, "Integer");
         auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s)->as_random();
         auto old_seed = default_random->seed();
-        auto new_seed = seed->as_integer()->to_nat_int_t();
+        auto new_seed = seed->to_int(env)->to_nat_int_t();
         default_random->m_seed = new_seed;
         default_random->m_generator = new std::mt19937(new_seed);
         return old_seed;
