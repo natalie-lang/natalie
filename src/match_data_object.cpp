@@ -361,7 +361,11 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
     if (index_value->type() == Object::Type::Range) {
         auto range = index_value->as_range();
         const nat_int_t first = range->begin()->is_nil() ? 0 : IntegerObject::convert_to_nat_int_t(env, range->begin());
-        const nat_int_t last = range->end()->is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
+        nat_int_t last = range->end()->is_nil() ? size() - 1 : IntegerObject::convert_to_nat_int_t(env, range->end());
+        if (last < 0)
+            last += size();
+        if (range->exclude_end())
+            last--;
         if (last < first)
             return new ArrayObject {};
         auto first_result = group(first);

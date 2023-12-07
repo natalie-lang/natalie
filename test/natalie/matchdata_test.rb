@@ -47,5 +47,22 @@ describe 'MatchData' do
       match[2].should == 'baz'
       match[3].should == nil
     end
+
+    it 'supports exclusive ranges' do
+      match = /(foo) bar (baz)/.match('foo bar baz')
+      match[0...2].should == ['foo bar baz', 'foo']
+    end
+
+    it 'supports ranges with negative end values' do
+      match = /(foo) bar (baz)/.match('foo bar baz')
+      match[1..-1].should == ['foo', 'baz']
+      match[1..-2].should == ['foo']
+      match[1..-3].should == []
+      match[1..-4].should == []
+
+      match[1...-1].should == ['foo']
+      match[1...-2].should == []
+      match[1...-3].should == []
+    end
   end
 end
