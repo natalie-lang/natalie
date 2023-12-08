@@ -34,7 +34,7 @@ module Natalie
       end
 
       def raise_comptime_value_error(expected, node)
-        raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (#{node.location.path}##{node.location.start_line})"
+        raise ArgumentError, "expected #{expected} at compile time, but got: #{node.inspect} (##{node.location.start_line})"
       end
     end
   end
