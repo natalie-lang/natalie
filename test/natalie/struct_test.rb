@@ -14,12 +14,24 @@ describe 'Struct' do
     s.new(1, 2)
   end
 
-  it 'cannot be initialized without arguments' do
-    -> { Struct.new }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1+)')
+  ruby_version_is ''...'3.3' do
+    it 'cannot be initialized without arguments' do
+      -> { Struct.new }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1+)')
 
-    # But this is accepted in MRI, which feels like a bug
-    named_struct = Struct.new('NamedStruct')
-    named_struct.should == Struct::NamedStruct
+      # But this is accepted in MRI, which feels like a bug
+      named_struct = Struct.new('NamedStruct')
+      named_struct.should == Struct::NamedStruct
+    end
+  end
+
+  ruby_version_is '3.3' do
+    it 'can be initialized without arguments' do
+      -> { Struct.new }.should_not raise_error(ArgumentError)
+
+      # But this is accepted in MRI, which feels like a bug
+      named_struct = Struct.new('NamedStruct')
+      named_struct.should == Struct::NamedStruct
+    end
   end
 
   context 'keyword_init' do
