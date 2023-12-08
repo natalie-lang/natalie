@@ -6,8 +6,7 @@ module Natalie
       class MacroError < StandardError; end
       class LoadPathMacroError < MacroError; end
 
-      def initialize(path:, load_path:, interpret:, compiler_context:, log_load_error:)
-        @path = path
+      def initialize(load_path:, interpret:, compiler_context:, log_load_error:)
         @load_path = load_path
         @interpret = interpret
         @compiler_context = compiler_context
@@ -16,7 +15,7 @@ module Natalie
         @required_ruby_files = @compiler_context[:required_ruby_files]
       end
 
-      attr_reader :node, :path, :load_path, :depth
+      attr_reader :node, :load_path, :depth
 
       MACROS = %i[
         autoload
@@ -29,9 +28,9 @@ module Natalie
         require_relative
       ].freeze
 
-      def expand(call_node, locals:, depth:)
+      def expand(call_node, locals:, depth:, file:)
         if (macro_name = get_macro_name(call_node))
-          run_macro(macro_name, call_node, current_path: call_node.location.path, locals: locals, depth: depth)
+          run_macro(macro_name, call_node, current_path: file.path, locals: locals, depth: depth)
         else
           call_node
         end
@@ -82,14 +81,14 @@ module Natalie
 
       EXTENSIONS_TO_TRY = ['.rb', '.cpp', ''].freeze
 
-      def macro_autoload(expr:, **)
+      def macro_autoload(expr:, current_path:, **)
         args = expr.arguments&.arguments || []
         const_node, path_node = args
         const = comptime_symbol(const_node)
         begin
           path = comptime_string(path_node)
         rescue ArgumentError
-          return drop_load_error "cannot load such file #{path_node.inspect} at #{expr.location.path}##{expr.location.start_line}"
+          return drop_load_error "cannot load such file #{path_node.inspect} at #{current_path}##{expr.location.start_line}"
         end
 
         full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
@@ -97,7 +96,7 @@ module Natalie
         end.first
 
         unless full_path
-          return drop_load_error "cannot load such file #{path} at #{expr.location.path}##{expr.location.start_line}"
+          return drop_load_error "cannot load such file #{path} at #{current_path}##{expr.location.start_line}"
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
@@ -117,7 +116,7 @@ module Natalie
             return load_file(full_path, require_once: true, location: location(expr))
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
+        drop_load_error "cannot load such file #{name} at #{current_path}##{expr.location.start_line}"
       end
 
       def macro_require_relative(expr:, current_path:, **)
@@ -130,7 +129,7 @@ module Natalie
             return lf
           end
         end
-        drop_load_error "cannot load such file #{name} at #{expr.location.path}##{expr.location.start_line}"
+        drop_load_error "cannot load such file #{name} at #{current_path}##{expr.location.start_line}"
       end
 
       def macro_load(expr:, **)
@@ -148,7 +147,7 @@ module Natalie
         if node.type == :string_node
           begin
             Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
-          rescue SyntaxError => e
+          rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message)
           end
         else
@@ -170,7 +169,7 @@ module Natalie
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
           Prism.string_node(unescaped: File.read(full_path))
         else
-          raise IOError, "cannot find file #{name} at #{node.location.path}##{node.location.start_line}"
+          raise IOError, "cannot find file #{name} at #{current_path}##{node.location.start_line}"
         end
       end
 
@@ -183,7 +182,7 @@ module Natalie
           else
             name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           end
-          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{expr.location.path}##{expr.location.start_line})")
+          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{current_path}##{expr.location.start_line})")
         end
 
         path_to_add = VM.compile_and_run(

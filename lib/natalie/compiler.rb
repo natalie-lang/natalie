@@ -127,12 +127,14 @@ module Natalie
     def transform
       @context = build_context
 
+      main_file = LoadedFile.new(path: @path, encoding: @encoding)
+
       keep_final_value_on_stack = options[:interpret]
       instructions = Pass1.new(
         ast,
         compiler_context: @context,
         macro_expander:   macro_expander,
-        encoding:         @encoding,
+        loaded_file:      main_file,
       ).transform(
         used: keep_final_value_on_stack
       )
@@ -141,7 +143,7 @@ module Natalie
         exit
       end
 
-      main_file = LoadedFile.new(path: @path, instructions: instructions, encoding: @encoding)
+      main_file.instructions = instructions
       files = [main_file] + @context[:required_ruby_files].values
       files.each do |file_info|
         {
@@ -165,7 +167,6 @@ module Natalie
 
     def macro_expander
       @macro_expander ||= MacroExpander.new(
-        path:             @path,
         load_path:        load_path,
         interpret:        interpret?,
         log_load_error:   options[:log_load_error],

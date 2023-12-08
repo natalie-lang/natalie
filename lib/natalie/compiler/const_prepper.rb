@@ -17,7 +17,7 @@ module Natalie
             @namespace = PushObjectClassInstruction.new
           end
         else
-          raise "Unknown constant name type #{node.inspect} #{node.location.path}##{node.location.start_line}"
+          raise "Unknown constant name type #{node.inspect}"
         end
       end
 

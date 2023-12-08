@@ -8,9 +8,11 @@ module Natalie
         @encoding = encoding
       end
 
-      attr_accessor :ast,
-                    :instructions,
-                    :encoding
+      attr_reader :path,
+                  :ast,
+                  :encoding
+
+      attr_accessor :instructions
     end
   end
 end

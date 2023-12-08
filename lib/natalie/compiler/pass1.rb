@@ -10,7 +10,7 @@ module Natalie
     # Representation, which we implement using Instructions.
     # You can debug this pass with the `-d p1` CLI flag.
     class Pass1 < BasePass
-      def initialize(ast, compiler_context:, macro_expander:, encoding:)
+      def initialize(ast, compiler_context:, macro_expander:, loaded_file:)
         super()
         @ast = ast
         @compiler_context = compiler_context
@@ -36,8 +36,8 @@ module Natalie
         # e.g. block vs while loop, so we'll use a stack to keep track.
         @next_or_break_context = []
 
-        # This changes depending on the magic comment in the current file.
-        @encoding = encoding
+        # This points to the current LoadedFile being compiled.
+        @file = loaded_file
       end
 
       INLINE_CPP_MACROS = %i[
@@ -103,7 +103,7 @@ module Natalie
 
       def expand_macros(node)
         locals = @locals_stack.last
-        @macro_expander.expand(node, locals: locals, depth: @depth)
+        @macro_expander.expand(node, locals: locals, depth: @depth, file: @file)
       end
 
       def transform_body(body, used:)
@@ -514,7 +514,7 @@ module Natalie
           with_block: with_block,
           has_keyword_hash: call_args.fetch(:has_keyword_hash),
           forward_args: call_args[:forward_args],
-          file: node.location.path,
+          file: @file.path,
           line: node.location.start_line,
         )
 
@@ -544,7 +544,7 @@ module Natalie
             node.read_name,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -565,7 +565,7 @@ module Natalie
             node.write_name,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -603,7 +603,7 @@ module Natalie
             reader,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -617,7 +617,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -627,7 +627,7 @@ module Natalie
             writer,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
         ]
@@ -649,7 +649,7 @@ module Natalie
             node.read_name,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -673,7 +673,7 @@ module Natalie
             node.write_name,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -766,7 +766,7 @@ module Natalie
         instructions << DefineClassInstruction.new(
           name: name,
           is_private: is_private,
-          file: node.location.path,
+          file: @file.path,
           line: node.location.start_line,
         )
         with_locals(node.locals) do
@@ -802,7 +802,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line
           ),
           ClassVariableSetInstruction.new(node.name)
@@ -864,7 +864,7 @@ module Natalie
           ConstFindInstruction.new(
             node.name,
             strict: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line
           ),
         ]
@@ -1151,7 +1151,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
         ]
@@ -1287,7 +1287,7 @@ module Natalie
             :[],
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1316,7 +1316,7 @@ module Natalie
             :[]=,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1371,7 +1371,7 @@ module Natalie
             :[],
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1385,7 +1385,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1395,7 +1395,7 @@ module Natalie
             :[]=,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
         ]
@@ -1432,7 +1432,7 @@ module Natalie
             :[],
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1480,7 +1480,7 @@ module Natalie
             :[]=,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
 
@@ -1516,7 +1516,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
         ]
@@ -1615,7 +1615,7 @@ module Natalie
             :to_sym,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           )
         ]
@@ -1649,13 +1649,13 @@ module Natalie
         loaded_file = @required_ruby_files.fetch(filename)
 
         unless loaded_file.instructions
-          encoding_was = @encoding
-          @encoding = loaded_file.encoding
+          file_was = @file
+          @file = loaded_file
           loaded_file.instructions = :generating # set this to avoid endless loop
           @depth = 0
           loaded_file.instructions = transform_expression(loaded_file.ast, used: true)
           @depth = depth_was
-          @encoding = encoding_was
+          @file = file_was
         end
 
         instructions = [
@@ -1690,7 +1690,7 @@ module Natalie
             node.operator,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @current_path,
             line: node.location.start_line,
           ),
         ]
@@ -1743,7 +1743,7 @@ module Natalie
           :named_captures,
           receiver_is_self: false,
           with_block: false,
-          file: node.location.path,
+          file: @file.path,
           line: node.location.start_line,
         )
         node.targets.each do |target|
@@ -1756,7 +1756,7 @@ module Natalie
             :[],
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           )
           instructions << VariableSetInstruction.new(name)
@@ -1782,7 +1782,7 @@ module Natalie
         instructions << DefineModuleInstruction.new(
           name: name,
           is_private: is_private,
-          file: node.location.path,
+          file: @file.path,
           line: node.location.start_line,
         )
         with_locals(node.locals) do
@@ -1800,7 +1800,7 @@ module Natalie
           transform_expression(value, used: true),
           DupInstruction.new,
           ToArrayInstruction.new,
-          MultipleAssignment.new(self, file: node.location.path, line: node.location.start_line).transform(node),
+          MultipleAssignment.new(self, file: @file.path, line: node.location.start_line).transform(node),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -1834,7 +1834,7 @@ module Natalie
             :[],
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
           ElseInstruction.new(:if),
@@ -1917,7 +1917,7 @@ module Natalie
             :raise,
             receiver_is_self: false,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
           EndInstruction.new(:if),
@@ -1953,7 +1953,7 @@ module Natalie
               :raise,
               receiver_is_self: true,
               with_block: false,
-              file: node.location.path,
+              file: @file.path,
               line: node.location.start_line,
             )
           ]
@@ -2048,7 +2048,7 @@ module Natalie
 
       def transform_string_node(node, used:)
         return [] unless used
-        PushStringInstruction.new(node.unescaped, encoding: @encoding)
+        PushStringInstruction.new(node.unescaped, encoding: @file.encoding)
       end
 
       def transform_super_node(node, used:)
@@ -2129,7 +2129,7 @@ module Natalie
             :!,
             receiver_is_self: true,
             with_block: false,
-            file: node.location.path,
+            file: @file.path,
             line: node.location.start_line,
           ),
           WhileBodyInstruction.new,
@@ -2214,7 +2214,7 @@ module Natalie
       end
 
       def is_inline_macro_call_node?(node)
-        inline_enabled = @inline_cpp_enabled[node.location.path] ||
+        inline_enabled = @inline_cpp_enabled[@file.path] ||
                          node.name == :__internal_inline_code__
         inline_enabled &&
           node.receiver.nil? &&
