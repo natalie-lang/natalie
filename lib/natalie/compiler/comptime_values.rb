@@ -9,7 +9,7 @@ module Natalie
         node.elements.map { |item| comptime_string(item) }
       end
 
-      def comptime_string(node)
+      def comptime_string(node, error: true)
         if node.is_a?(::Prism::InterpolatedStringNode) && node.parts.all?(::Prism::StringNode)
           string_node = node.parts.first
           node.parts[1..].each do |next_node|
@@ -20,7 +20,11 @@ module Natalie
         end
 
         unless node.type == :string_node
-          raise_comptime_value_error('string', node)
+          if error
+            raise_comptime_value_error('string', node)
+          else
+            return nil
+          end
         end
 
         node.unescaped

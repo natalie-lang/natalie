@@ -144,9 +144,9 @@ module Natalie
         args = expr.arguments&.arguments || []
         node = args.first
         $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
-        if node.type == :string_node
+        if (string = comptime_string(node, error: false))
           begin
-            Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
+            Natalie::Parser.new(string, current_path, locals: locals).ast
           rescue Parser::ParseError => e
             drop_error(:SyntaxError, e.message)
           end
