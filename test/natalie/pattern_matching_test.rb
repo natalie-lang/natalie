@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 describe 'Pattern matching' do
   describe 'can be standalone assoc operator that' do
-    it "matches literal value" do
+    it 'matches literal value' do
       eval(<<-RUBY).should == 0
         [0, 1] => [a, 1]
         a
@@ -13,8 +13,8 @@ describe 'Pattern matching' do
       RUBY
     end
 
-    ruby_version_is "3.1" do
-      it "raises if a literal value does not match" do
+    it 'raises if a literal value does not match' do
+      ruby_version_is '3.1' do
         -> {
           eval(<<-RUBY)
             [0, 1] => [a, 2]
@@ -29,8 +29,10 @@ describe 'Pattern matching' do
           RUBY
         }.should raise_error(NoMatchingPatternError, /3 === 2 does not return true/)
       end
+    end
 
-      it 'raises if the number of array elements does not match' do
+    it 'raises if the number of array elements does not match' do
+      ruby_version_is '3.1' do
         -> {
           eval(<<-RUBY)
             [1, 2, 3] => [a, b]
