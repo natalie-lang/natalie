@@ -1194,9 +1194,7 @@ describe "The predefined standard object nil" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    NATFIXME 'raises a SyntaxError if assigned to', exception: SpecFailedException do
-      -> { eval("nil = true") }.should raise_error(SyntaxError)
-    end
+    -> { eval("nil = true") }.should raise_error(SyntaxError)
   end
 end
 
@@ -1206,9 +1204,7 @@ describe "The predefined standard object true" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    NATFIXME 'raises a SyntaxError if assigned to', exception: SpecFailedException do
-      -> { eval("true = false") }.should raise_error(SyntaxError)
-    end
+    -> { eval("true = false") }.should raise_error(SyntaxError)
   end
 end
 
@@ -1218,17 +1214,13 @@ describe "The predefined standard object false" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    NATFIXME 'raises a SyntaxError if assigned to', exception: SpecFailedException do
-      -> { eval("false = nil") }.should raise_error(SyntaxError)
-    end
+    -> { eval("false = nil") }.should raise_error(SyntaxError)
   end
 end
 
 describe "The self pseudo-variable" do
   it "raises a SyntaxError if assigned to" do
-    NATFIXME 'raises a SyntaxError if assigned to', exception: SpecFailedException do
-      -> { eval("self = 1") }.should raise_error(SyntaxError)
-    end
+    -> { eval("self = 1") }.should raise_error(SyntaxError)
   end
 end
 
