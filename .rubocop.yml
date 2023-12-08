@@ -54,6 +54,9 @@ Style/Documentation:
 Style/DoubleNegation:
   Enabled: false
 
+Style/EvalWithLocation:
+  Enabled: false
+
 Style/FormatString:
   Enabled: false
 
@@ -61,6 +64,9 @@ Style/GuardClause:
   Enabled: false
 
 Style/IfUnlessModifier:
+  Enabled: false
+
+Style/Lambda:
   Enabled: false
 
 Style/LambdaCall:
