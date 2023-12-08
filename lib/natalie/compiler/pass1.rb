@@ -3,6 +3,7 @@ require_relative './arity'
 require_relative './base_pass'
 require_relative './const_prepper'
 require_relative './multiple_assignment'
+require_relative './pattern_match'
 
 module Natalie
   class Compiler
@@ -1727,6 +1728,12 @@ module Natalie
         ]
         instructions << DupInstruction.new if used
         instructions << VariableSetInstruction.new(node.name)
+        instructions
+      end
+
+      def transform_match_required_node(node, used:)
+        instructions = PatternMatch.new(self, required: true).transform(node)
+        instructions << PopInstruction.new unless used
         instructions
       end
 

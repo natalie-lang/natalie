@@ -145,6 +145,8 @@ void handle_top_level_exception(Env *, ExceptionObject *, bool);
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array);
 Value to_ary_for_masgn(Env *env, Value obj);
 
+Value to_hash(Env *env, Value obj);
+
 struct ArgValueByPathOptions {
     TM::Vector<Value> &value;
     Value default_value;

@@ -19,6 +19,10 @@ class StandardError < Exception; end
     end
   # end IndexError subclasses
 
+  class IOError < StandardError; end
+    class EOFError < IOError; end
+  # end IOError subclasses
+
   class NameError < StandardError
     attr_reader :name, :receiver
     def initialize(message=nil, name=nil, receiver: nil)
@@ -41,9 +45,7 @@ class StandardError < Exception; end
     end
   # end NameError subclasses
 
-  class IOError < StandardError; end
-    class EOFError < IOError; end
-  # end IOError subclasses
+  class NoMatchingPatternError < StandardError; end
 
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end

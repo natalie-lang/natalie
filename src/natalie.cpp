@@ -566,6 +566,23 @@ Value to_ary_for_masgn(Env *env, Value obj) {
     return new ArrayObject { obj };
 }
 
+Value to_hash(Env *env, Value obj) {
+    if (obj->is_hash())
+        return obj->dup(env);
+
+    if (obj->respond_to(env, "to_hash"_s)) {
+        auto hash = obj.send(env, "to_hash"_s);
+        if (hash->is_hash()) {
+            return hash->dup(env);
+        } else {
+            auto class_name = obj->klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to Hash ({}#to_hash gives {})", class_name, class_name, hash->klass()->inspect_str());
+        }
+    }
+
+    env->raise("TypeError", "no implicit conversion to hash from {}", obj->klass()->inspect_str());
+}
+
 void arg_spread(Env *env, Args args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
