@@ -14,6 +14,11 @@ module Natalie
 
         transform_pattern(node.pattern)
 
+        # Pattern matching assoc is a void value expression,
+        # so we need to pop whatever we started with and push nil.
+        @instructions << PopInstruction.new
+        @instructions << PushNilInstruction.new
+
         @instructions
       end
 
