@@ -57,6 +57,7 @@ module Natalie
       NextInstruction,
       NotInstruction,
       PatternArraySizeCheckInstruction,
+      PatternEqualCheckInstruction,
       PopInstruction,
       PopKeywordArgsInstruction,
       PushArgInstruction,
