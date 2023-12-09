@@ -23,6 +23,12 @@ describe 'Pattern matching' do
       }.().should == nil
     end
 
+    it 'does not modify the original value' do
+      a = [0, 1]
+      a => [b, 1]
+      a.should == a
+    end
+
     it 'raises if a literal value does not match' do
       ruby_version_is '3.1' do
         -> {
