@@ -72,6 +72,9 @@ Style/Lambda:
 Style/LambdaCall:
   Enabled: false
 
+Style/NilComparison:
+  Enabled: false
+
 Style/NumericPredicate:
   Enabled: false
 
