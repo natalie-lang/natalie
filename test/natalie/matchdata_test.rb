@@ -78,5 +78,10 @@ describe 'MatchData' do
       match[0...3].should == ['foo bar', 'foo', nil]
       match[0..-1].should == ['foo bar', 'foo', nil]
     end
+
+    it 'support ranges when using optional capture groups' do
+      md = /(foo)?(bar)/.match('bar')
+      md[1..-1].should == [nil, 'bar']
+    end
   end
 end
