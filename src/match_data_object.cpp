@@ -368,12 +368,11 @@ Value MatchDataObject::ref(Env *env, Value index_value, Value size_value) {
             last--;
         if (last < first)
             return new ArrayObject {};
-        auto first_result = group(first);
-        if (first_result->is_nil())
+        if (first + static_cast<nat_int_t>(size()) <= 0)
             return NilObject::the();
-        auto result = new ArrayObject { first_result };
+        auto result = new ArrayObject {};
         if (last >= static_cast<nat_int_t>(size())) last = size() - 1;
-        for (auto i = first + 1; i <= last; i++) {
+        for (auto i = first; i <= last; i++) {
             auto next_result = group(i);
             result->push(next_result);
         }
