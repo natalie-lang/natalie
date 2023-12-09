@@ -1347,10 +1347,10 @@ describe "Pattern matching" do
         [a, b]
       RUBY
 
-      #eval(<<~RUBY).should == 1
-        #{a: 1} => a:
-        #a
-      #RUBY
+      eval(<<~RUBY).should == 1
+        {a: 1} => a:
+        a
+      RUBY
     end
 
     #it "supports pinning instance variables" do

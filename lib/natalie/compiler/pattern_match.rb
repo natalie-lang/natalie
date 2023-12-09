@@ -34,6 +34,9 @@ module Natalie
           transform_local_variable_target_node(pattern)
         when Prism::IntegerNode
           transform_literal_node(pattern)
+        when nil
+          # We don't care what the value is, so pop it back off the stack.
+          @instructions << PopInstruction.new
         else
           raise "I don't yet know how to compile the pattern: #{pattern.inspect}"
         end
