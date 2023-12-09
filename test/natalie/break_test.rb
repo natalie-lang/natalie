@@ -195,4 +195,18 @@ describe 'break' do
     r.should == 3
     lr.should == 2
   end
+
+  it 'can break from a case inside a loop' do
+    breaking = false
+    while true
+      case 1
+      when 0
+        nil
+      else
+        breaking = true
+        break
+      end
+    end
+    breaking.should == true
+  end
 end
