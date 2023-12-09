@@ -376,6 +376,7 @@ module Natalie
           instructions << BreakInstruction.new
         end
 
+        instructions << PopInstruction.new unless used
         instructions
       end
 
