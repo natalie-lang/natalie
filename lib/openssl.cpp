@@ -261,8 +261,7 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
     if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
         OpenSSL_raise_error(env, "EVP_DigestFinal_ex");
 
-    if (args.size() == 1)
-        OpenSSL_Digest_reset(env, self, {}, nullptr);
+    OpenSSL_Digest_reset(env, self, {}, nullptr);
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len, EncodingObject::get(Encoding::ASCII_8BIT) };
 }
