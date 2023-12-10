@@ -13,12 +13,6 @@ static StringObject *regexp_stringify(const TM::String &str, const size_t start,
     for (size_t i = start; i < len; i++) {
         char c = str[i];
         switch (c) {
-        case '\n':
-            out->append("\\n");
-            break;
-        case '\t':
-            out->append("\\t");
-            break;
         case '/':
             out->append("\\/");
             break;
