@@ -49,6 +49,20 @@ describe 'regexp' do
       r = /foo/
       r.inspect.should == '/foo/'
     end
+
+    it 'does not escape tabs or newlines' do
+      str = "\n\tfoo\n"
+      r = Regexp.new(str, Regexp::EXTENDED)
+      r.inspect.should == "/#{str}/x"
+    end
+  end
+
+  describe '#to_s' do
+    it 'does not escape tabs or newlines' do
+      str = "\n\tfoo\n"
+      r = Regexp.new(str, Regexp::EXTENDED)
+      r.to_s.should == "(?x-mi:#{str})"
+    end
   end
 
   describe '#match' do
