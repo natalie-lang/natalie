@@ -24,6 +24,16 @@ describe 'regexp' do
     /\#@bar/.should =~ '#@bar'
   end
 
+  it 'can embed regexp that ignores multiline and comments' do
+    r1 = /
+    foo
+    /x
+    r1.should =~ 'foo'
+
+    r2 = /\A#{r1}\z/
+    r2.should =~ 'foo'
+  end
+
   describe '.new' do
     it 'can be created with a string or another regexp' do
       r1 = Regexp.new('foo.*bar')
@@ -48,6 +58,20 @@ describe 'regexp' do
     it 'returns a string representation' do
       r = /foo/
       r.inspect.should == '/foo/'
+    end
+
+    it 'does not escape tabs or newlines' do
+      str = "\n\tfoo\n"
+      r = Regexp.new(str, Regexp::EXTENDED)
+      r.inspect.should == "/#{str}/x"
+    end
+  end
+
+  describe '#to_s' do
+    it 'does not escape tabs or newlines' do
+      str = "\n\tfoo\n"
+      r = Regexp.new(str, Regexp::EXTENDED)
+      r.to_s.should == "(?x-mi:#{str})"
     end
   end
 
