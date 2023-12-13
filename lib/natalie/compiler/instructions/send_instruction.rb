@@ -83,10 +83,23 @@ module Natalie
         end
 
         block = @with_block ? "to_block(env, #{transform.pop})" : 'nullptr'
-        transform.exec_and_push(
-          "send_#{@message}",
-          "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list}, #{block}, self)"
-        )
+
+        call = "#{receiver}.#{method}(env, #{transform.intern(@message)}, #{args_list}, #{block}, self)"
+
+        if message =~ /\w=$|\[\]=$/
+          transform.exec(call)
+          # Setters always return the value that was set.
+          # In the case of foo=, there is only one argument.
+          # In the case of []=, there can be multiple arguments.
+          # The last argument is the value we need to return.
+          if @args_array_on_stack
+            transform.push("#{args}->last()")
+          else
+            transform.push(args.last)
+          end
+        else
+          transform.exec_and_push("send_#{@message}", call)
+        end
       end
 
       def execute(vm)
