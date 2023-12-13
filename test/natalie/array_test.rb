@@ -1990,4 +1990,12 @@ describe 'array' do
       [].bsearch { true }.should == nil
     end
   end
+
+  describe '#*' do
+    it 'returns a new array with self repeated n times' do
+      expected = []
+      100.times { expected.push(1, 2, 3) }
+      ([1, 2, 3] * 100).should == expected
+    end
+  end
 end

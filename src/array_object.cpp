@@ -1022,7 +1022,7 @@ void ArrayObject::push_splat(Env *env, Value val) {
         val = val.send(env, "to_a"_s);
     }
     if (val->is_array()) {
-        m_vector.set_capacity(m_vector.capacity() + val->as_array()->size());
+        m_vector.set_capacity(m_vector.size() + val->as_array()->size());
         for (Value v : *val->as_array()) {
             push(v);
         }
