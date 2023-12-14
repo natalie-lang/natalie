@@ -35,9 +35,7 @@ describe :thread_wakeup, shared: true do
   end
 
   it "does not result in a deadlock" do
-    NATFIXME 'Implement Thread.stop', exception: SpecFailedException do
-      Thread.methods.should include(:stop)
-    end
+    Thread.methods.should include(:stop)
 
     t = Thread.new do
       #10.times { Thread.stop }
