@@ -51,12 +51,12 @@ static void *nat_create_thread(void *thread_object) {
     tl_current_thread = thread;
 
     thread->build_main_fiber();
-    thread->set_status(Natalie::ThreadObject::Status::Active);
 
     auto block = thread->block();
 
     Natalie::Env e {};
     try {
+        thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
         thread->set_value(return_value);
         pthread_exit(nullptr);
@@ -177,7 +177,7 @@ Value ThreadObject::kill(Env *) const {
     wait_until_running();
 
     std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
-    pthread_kill(m_thread_id, SIGINT);
+    pthread_cancel(m_thread_id);
     remove_from_list();
 
     return NilObject::the();
@@ -219,9 +219,6 @@ Value ThreadObject::wakeup(Env *env) {
 }
 
 Value ThreadObject::sleep(Env *env, float timeout) {
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-
     timespec t_begin;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
@@ -250,6 +247,9 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     };
 
     if (ThreadObject::i_am_main()) {
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+        ThreadObject::set_current_sleeping(true);
+
         if (timeout < 0.0) {
             while (true)
                 ::sleep(10000);
@@ -264,8 +264,13 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
     if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);
+
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+        ThreadObject::set_current_sleeping(true);
+
         handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
+
         return calculate_elapsed();
     }
 
@@ -284,6 +289,10 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     wait.tv_nsec = ns;
 
     pthread_mutex_lock(&m_sleep_lock);
+
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
 
@@ -375,9 +384,10 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visit_children_from_stack(visitor);
 }
 
-// If the thread status is Status::Created, it means we maybe haven't
-// set up our signal handler for it yet, so we should give
-// it a chance to switch to Status::Active.
+// If the thread status is Status::Created, it means its execution
+// has not reached the try/catch handler yet. We shouldn't do
+// anything to the thread that might cause it to terminate
+// until its status is Status::Active.
 void ThreadObject::wait_until_running() const {
     while (m_status == Status::Created)
         sched_yield();
