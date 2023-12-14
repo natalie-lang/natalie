@@ -1305,6 +1305,7 @@ gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: tru
 gen.static_binding('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'list', 'ThreadObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding('Thread', 'stop', 'ThreadObject', 'stop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]', 'ThreadObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', '[]=', 'ThreadObject', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'alive?', 'ThreadObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
@@ -1312,7 +1313,9 @@ gen.binding('Thread', 'initialize', 'ThreadObject', 'initialize', argc: 0, pass_
 gen.binding('Thread', 'join', 'ThreadObject', 'join', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'raise', 'ThreadObject', 'raise', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Thread', 'run', 'ThreadObject', 'run', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'status', 'ThreadObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Thread', 'stop?', 'ThreadObject', 'is_stopped', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'value', 'ThreadObject', 'value', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

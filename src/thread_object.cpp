@@ -75,8 +75,26 @@ namespace Natalie {
 std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
+Value ThreadObject::pass() {
+    // We need a cancellation point here so the thread can be interrupted.
+    usleep(0);
+
+    sched_yield();
+
+    return NilObject::the();
+}
+
 ThreadObject *ThreadObject::current() {
     return tl_current_thread;
+}
+
+Value ThreadObject::stop(Env *env) {
+    tl_current_thread->sleep(env, -1.0);
+    return NilObject::the();
+}
+
+bool ThreadObject::is_stopped() const {
+    return m_sleeping || m_status == Status::Dead;
 }
 
 void ThreadObject::build_main_thread(void *start_of_stack) {
@@ -132,6 +150,8 @@ Value ThreadObject::join(Env *env) {
     if (is_main())
         env->raise("ThreadError", "Target thread must not be main thread");
 
+    wait_until_running();
+
     if (m_joined)
         return this;
 
@@ -155,6 +175,8 @@ Value ThreadObject::join(Env *env) {
 Value ThreadObject::kill(Env *) const {
     if (is_main())
         exit(0);
+
+    wait_until_running();
 
     std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     pthread_kill(m_thread_id, SIGINT);
@@ -180,9 +202,16 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
     return NilObject::the();
 }
 
+Value ThreadObject::run(Env *env) {
+    wakeup(env);
+    return NilObject::the();
+}
+
 Value ThreadObject::wakeup(Env *env) {
     if (m_status == Status::Dead)
         env->raise("ThreadError", "killed thread");
+
+    wait_until_running();
 
     pthread_mutex_lock(&m_sleep_lock);
     pthread_cond_signal(&m_sleep_cond);
@@ -264,10 +293,6 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 }
 
 Value ThreadObject::value(Env *env) {
-    struct timespec request = { 0, 10000 };
-    while (m_status == Status::Created)
-        nanosleep(&request, nullptr);
-
     join(env);
 
     if (!m_value)
@@ -350,6 +375,14 @@ void ThreadObject::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
     visit_children_from_stack(visitor);
+}
+
+// If the thread status is Status::Created, it means we maybe haven't
+// set up our signal handler for it yet, so we should give
+// it a chance to switch to Status::Active.
+void ThreadObject::wait_until_running() const {
+    while (m_status == Status::Created)
+        sched_yield();
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
