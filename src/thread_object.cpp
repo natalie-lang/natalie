@@ -159,7 +159,7 @@ Value ThreadObject::join(Env *env) {
         if (e.code() == std::errc::invalid_argument) {
             // no biggie - thread was already joined
         } else {
-            printf("Unable to join thread: %s (%d)", e.what(), e.code().value());
+            fprintf(stderr, "Unable to join thread: %s (%d)", e.what(), e.code().value());
             abort();
         }
     }
