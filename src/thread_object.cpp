@@ -39,6 +39,7 @@ static void *nat_create_thread(void *thread_object) {
 #endif
 
     pthread_cleanup_push(nat_thread_finish, thread);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
 
     auto thread_id = pthread_self();
 
@@ -76,9 +77,6 @@ std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
 Value ThreadObject::pass() {
-    // We need a cancellation point here so the thread can be interrupted.
-    usleep(0);
-
     sched_yield();
 
     return NilObject::the();
