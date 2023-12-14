@@ -16,6 +16,12 @@ describe 'ruby/spec' do
            # I use this when I'm working on the compiler,
            # as it catches 99% of bugs and finishes a lot quicker.
            Dir['spec/language/*_spec.rb']
+         elsif (glob = ENV['GLOB'])
+           # GLOB="spec/core/io/*_spec.rb,spec/core/thread/*_spec.rb" rake test
+           Dir[*glob.split(',')].tap do |files|
+             puts "Matched files:"
+             puts files.to_a
+           end
          else
            Dir['spec/**/*_spec.rb']
          end
