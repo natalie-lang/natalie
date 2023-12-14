@@ -471,4 +471,18 @@ describe 'assignment' do
     x.should be_nil
     ran.should be_true
   end
+
+  it 'returns the value assigned, even if the setter returns something else' do
+    o = Object.new
+    def o.foo=(x)
+      :bar
+    end
+    def o.[]=(*args)
+      :baz
+    end
+    (o.foo = 1).should == 1
+    (o[:foo] = 2).should == 2
+    ary = ['a', 'b']
+    (o[*ary] = 3).should == 3
+  end
 end

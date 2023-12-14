@@ -504,7 +504,10 @@ module Natalie
         call_args = transform_call_args(args, with_block: with_block, instructions: instructions)
         with_block ||= call_args.fetch(:with_block_pass)
 
+        # `!~` becomes `not =~`
+        # FIXME: Implement Kernel#!~
         if node.name == :!~
+          mutate_negative_match = true
           message = :=~
         end
 
@@ -524,7 +527,7 @@ module Natalie
           instructions << EndInstruction.new(:if)
         end
 
-        if node.name == :!~
+        if mutate_negative_match
           instructions << NotInstruction.new
         end
 
@@ -2268,7 +2271,7 @@ module Natalie
       class << self
         def debug_instructions(instructions)
           instructions.each_with_index do |instruction, index|
-            desc = "#{instruction}"
+            desc = "#{index} #{instruction}"
             puts desc
           end
         end
