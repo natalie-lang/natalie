@@ -1,15 +1,5 @@
 require_relative '../../spec_helper'
 
-NATFIXME 'Implement Thread#stop?', exception: NoMethodError do
-  Thread.stop?
-end
-
-class Thread
-  def stop?
-    status != 'sleep'
-  end
-end
-
 describe "Mutex#sleep" do
   describe "when not locked by the current thread" do
     it "raises a ThreadError" do
@@ -47,10 +37,17 @@ describe "Mutex#sleep" do
     locked = false
     th = Thread.new { m.lock; locked = true; m.sleep }
     Thread.pass until locked
-    Thread.pass until th.stop?
-    m.locked?.should be_false
-    th.run
     NATFIXME 'Fix Mutex#sleep so it can be woken up by the thread', exception: SpecFailedException do
+      #Thread.pass until th.stop?
+      tries = 0
+      until th.stop?
+        tries += 1
+        if tries > 1000
+          raise SpecFailedException, 'Thread never stopped'
+        end
+      end
+      m.locked?.should be_false
+      th.run
       sleep 0.1
       th.should_not.alive?
       th.join
