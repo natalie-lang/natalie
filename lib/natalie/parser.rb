@@ -17,13 +17,13 @@ module Prism
 
   # Create an ArrayNode with the optionally given elements and location.
   def self.array_node(elements: [], location: nil)
-    ArrayNode.new(elements, nil, nil, 0, location)
+    ArrayNode.new(0, elements, nil, nil, location)
   end
 
   # Create a CallNode with the optionally given values.
   def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
-    arguments = ArgumentsNode.new(arguments, 0, location)
-    CallNode.new(receiver, nil, name, nil, nil, arguments, nil, block, flags, location)
+    arguments = ArgumentsNode.new(0, arguments, location)
+    CallNode.new(flags, receiver, nil, name, nil, nil, arguments, nil, block, location)
   end
 
   # Create a ClassVariableWriteNode with the optionally given values.

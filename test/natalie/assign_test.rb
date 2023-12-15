@@ -81,6 +81,8 @@ describe 'assignment' do
       b.should == 4
       c.should == nil
     end
+    a, = [10, 11]
+    a.should == 10
   end
 
   it 'does multiple assignment from an array for constants' do

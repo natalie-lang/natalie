@@ -22,14 +22,18 @@ module Natalie
 
       def transform_arg(arg)
         case arg.type
-        when :call_node
-          transform_attr_assign_arg(arg.receiver, arg.name, arg.arguments)
+        when :call_target_node
+          transform_attr_assign_arg(arg.receiver, arg.name)
         when :constant_target_node, :constant_path_target_node
           transform_constant(arg)
         when :class_variable_target_node
           transform_class_variable(arg.name)
         when :global_variable_target_node
           transform_global_variable(arg.name)
+        when :implicit_rest_node
+          transform_implicit_rest_arg(arg)
+        when :index_target_node
+          transform_attr_assign_arg(arg.receiver, :[]=, arg.arguments)
         when :instance_variable_target_node
           transform_instance_variable(arg.name)
         when :local_variable_target_node
@@ -39,11 +43,11 @@ module Natalie
         when :splat_node
           transform_splat_arg(arg.expression)
         else
-          raise "I don't yet know how to compile #{arg.inspect} #{arg.location.path}##{arg.location.start_line}"
+          raise "I don't yet know how to compile #{arg.inspect} #{@pass.file.path}##{arg.location.start_line}"
         end
       end
 
-      def transform_attr_assign_arg(receiver, message, args_node)
+      def transform_attr_assign_arg(receiver, message, args_node = nil)
         args = args_node&.arguments || []
         shift_or_pop_next_arg
         @instructions << @pass.transform_expression(receiver, used: true)
@@ -77,11 +81,15 @@ module Natalie
         @instructions << PopInstruction.new
       end
 
+      def transform_implicit_rest_arg(arg)
+        :reverse
+      end
+
       def transform_splat_arg(arg)
         return :reverse if arg.nil? # nameless splat
 
         case arg.type
-        when :call_node
+        when :call_target_node
           @instructions << @pass.transform_expression(arg.receiver, used: true)
           @instructions << SwapInstruction.new
           @instructions << PushArgcInstruction.new(1)
@@ -105,7 +113,7 @@ module Natalie
           @instructions << variable_set(arg.name)
           @instructions << VariableGetInstruction.new(arg.name)
         else
-          raise "I don't yet know how to compile splat arg #{arg.inspect}"
+          raise "I don't yet know how to compile splat arg #{arg.inspect} (#{@pass.file.path}##{arg.location.start_line})"
         end
 
         :reverse

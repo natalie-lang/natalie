@@ -202,7 +202,7 @@ describe 'method' do
     default_nils(1).should == [1, nil]
     default_nils(1, 2).should == [1, 2]
     out = `bin/natalie -e "def circular_argument_reference(a = a); a; end" 2>&1`
-    out.should =~ /circular argument reference - a \(SyntaxError\)/
+    out.should =~ /parameter default value references itself|circular argument reference - a/
   end
 
   def default_first1(x = 1)

@@ -802,15 +802,13 @@ end
 describe 'Assignment' do
   context 'dynamic assignment' do
     it 'raises SyntaxError' do
-      NATFIXME 'raises SyntaxError', exception: SpecFailedException do
-        -> do
-          eval <<-CODE
-            def test
-              B = 1
-            end
-          CODE
-        end.should raise_error(SyntaxError, /dynamic constant assignment/)
-      end
+      -> do
+        eval <<-CODE
+          def test
+            B = 1
+          end
+        CODE
+      end.should raise_error(SyntaxError, /dynamic constant assignment/)
     end
   end
 end

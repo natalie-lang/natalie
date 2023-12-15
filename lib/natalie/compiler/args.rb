@@ -50,15 +50,18 @@ module Natalie
           transform_required_arg(arg)
         when ::Prism::RestParameterNode
           clean_up_keyword_args
-          transform_splat_arg(arg)
+          transform_rest_arg(arg)
         when ::Prism::KeywordRestParameterNode
           transform_keyword_splat_arg(arg)
         when ::Prism::RequiredKeywordParameterNode
           transform_required_keyword_arg(arg)
         when ::Prism::OptionalKeywordParameterNode
           transform_optional_keyword_arg(arg)
+        when ::Prism::ImplicitRestNode
+          clean_up_keyword_args
+          transform_implicit_rest_arg(arg)
         else
-          raise "unhandled node: #{arg.inspect}"
+          raise "unhandled node: #{arg.inspect} (#{@pass.file.path}##{arg.location.start_line})"
         end
       end
 
@@ -139,25 +142,21 @@ module Natalie
         @instructions << PopInstruction.new
       end
 
-      def transform_splat_arg(arg)
-        # NOTE: Is this a bug?
-        #
-        #     def foo(*b); end      => RestParameterNode
-        #
-        #     vs
-        #
-        #     def foo((*b)); end    => SplatParameterNode
-        #
-        if arg.type == :splat_node
-          if arg.expression
-            unless arg.expression.type == :required_parameter_node
-              raise "I don't know how to splat #{arg.expression.inspect}"
-            end
+      def transform_rest_arg(arg)
+        if (name = arg.name)
+          @instructions << variable_set(name)
+          @instructions << VariableGetInstruction.new(name)
+        end
+        :reverse
+      end
 
-            name = arg.expression.name
+      def transform_splat_arg(arg)
+        if arg.expression
+          unless arg.expression.type == :required_parameter_node
+            raise "I don't know how to splat #{arg.expression.inspect}"
           end
-        else
-          name = arg.name
+
+          name = arg.expression.name
         end
         if name
           @instructions << variable_set(name)
@@ -174,6 +173,11 @@ module Natalie
         end
         @has_keyword_splat = true
         :reverse unless remaining_keyword_args.any?
+      end
+
+      def transform_implicit_rest_arg(arg)
+        # We don't need to do anything with this value.
+        :reverse
       end
 
       def variable_set(name)
