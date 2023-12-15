@@ -95,3 +95,7 @@ end
 describe 'optional and keyword argument followed by keyword rest' do
   optional_keyword_keyword_rest_arguments(:a, k: :b, c: :d).should == [:a, :b, { c: :d }]
 end
+
+describe 'implicit rest arg' do
+  [[1, 2, 3]].map { |x,| x }.should == [1]
+end

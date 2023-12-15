@@ -40,6 +40,8 @@ module Natalie
         @file = loaded_file
       end
 
+      attr_reader :file
+
       INLINE_CPP_MACROS = %i[
         __bind_method__
         __bind_static_method__
