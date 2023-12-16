@@ -908,7 +908,7 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
     if (::fcntl(pipefd[1], F_SETFD, write_flags | O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
 #else
-    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
+    if (pipe2(pipefd, O_CLOEXEC) < 0)
         env->raise_errno();
 #endif
 
