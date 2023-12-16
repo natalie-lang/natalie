@@ -164,23 +164,19 @@ describe "Ruby character strings" do
 
   describe "Unicode escaping" do
     it "can be done with \\u and four hex digits" do
-      NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
-        [ ["\u0000", 0x0000],
-          ["\u2020", 0x2020]
-        ].should be_computed_by(:ord)
-      end
+      [ ["\u0000", 0x0000],
+        ["\u2020", 0x2020]
+      ].should be_computed_by(:ord)
     end
 
     it "can be done with \\u{} and one to six hex digits" do
-      NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
-        [ ["\u{a}", 0xa],
-          ["\u{ab}", 0xab],
-          ["\u{abc}", 0xabc],
-          ["\u{1abc}", 0x1abc],
-          ["\u{12abc}", 0x12abc],
-          ["\u{100000}", 0x100000]
-        ].should be_computed_by(:ord)
-      end
+      [ ["\u{a}", 0xa],
+        ["\u{ab}", 0xab],
+        ["\u{abc}", 0xabc],
+        ["\u{1abc}", 0x1abc],
+        ["\u{12abc}", 0x12abc],
+        ["\u{100000}", 0x100000]
+      ].should be_computed_by(:ord)
     end
 
     # TODO: spec other source encodings
@@ -194,15 +190,11 @@ describe "Ruby character strings" do
       end
 
       it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u" do
-        NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
-          "\u1234".encoding.should == Encoding::UTF_8
-        end
+        "\u1234".encoding.should == Encoding::UTF_8
       end
 
       it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u{}" do
-        NATFIXME 'Need to change encoding of string based on escapes', exception: SpecFailedException do
-          "\u{1234}".encoding.should == Encoding::UTF_8
-        end
+        "\u{1234}".encoding.should == Encoding::UTF_8
       end
     end
   end
@@ -266,8 +258,8 @@ describe "Ruby String interpolation" do
   end
 
   it "returns a string with the source encoding by default" do
-    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
-      "a#{"b"}c".encoding.should == Encoding::BINARY
+    "a#{"b"}c".encoding.should == Encoding::BINARY
+    NATFIXME 'eval() only works on static strings', exception: TypeError, message: 'eval() only works on static strings' do
       eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
       eval("# coding: US-ASCII \n 'a#{"b"}c'").encoding.should == Encoding::US_ASCII
     end
@@ -275,14 +267,10 @@ describe "Ruby String interpolation" do
 
   it "returns a string with the source encoding, even if the components have another encoding" do
     a = "abc".force_encoding("euc-jp")
-    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
-      "#{a}".encoding.should == Encoding::BINARY
-    end
+    "#{a}".encoding.should == Encoding::BINARY
 
     b = "abc".encode("utf-8")
-    NATFIXME 'Encoding magic comment', exception: SpecFailedException do
-      "#{b}".encoding.should == Encoding::BINARY
-    end
+    "#{b}".encoding.should == Encoding::BINARY
   end
 
   it "raises an Encoding::CompatibilityError if the Encodings are not compatible" do
