@@ -322,21 +322,17 @@ describe "IO.copy_stream" do
       @from_in.close
 
       th = Thread.new do
-        # NATFIXME: "closed stream" error
-        #IO.copy_stream(@from_out, @to_in)
+        IO.copy_stream(@from_out, @to_in)
       end
 
       copied = ""
       4.times do
-        # NATFIXME: EAGAIN error
-        #copied += @to_out.read(1)
+        copied += @to_out.read(1)
       end
 
       th.join
 
-      NATFIXME 'above errors need to be fixed', exception: SpecFailedException do
-        copied.should == "1234"
-      end
+      copied.should == "1234"
     end
 
   end
