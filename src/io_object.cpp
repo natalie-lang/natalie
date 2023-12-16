@@ -309,6 +309,12 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
+static ssize_t blocking_read(int fileno, void *buf, int offset) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+    return ::read(fileno, buf, offset);
+}
+
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer->is_nil()) {
@@ -333,7 +339,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             return result;
         }
         TM::String buf(count - m_read_buffer.size(), '\0');
-        bytes_read = ::read(m_fileno, &buf[0], count - m_read_buffer.size());
+        bytes_read = blocking_read(m_fileno, &buf[0], count - m_read_buffer.size());
         if (bytes_read < 0)
             throw_unless_readable(env, this);
         buf.truncate(bytes_read);
@@ -356,7 +362,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         }
     }
     char buf[NAT_READ_BYTES + 1];
-    bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+    bytes_read = blocking_read(m_fileno, buf, NAT_READ_BYTES);
     StringObject *str = nullptr;
     if (buffer != nullptr) {
         str = buffer->as_string();
@@ -376,7 +382,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         str->set_str(buf, bytes_read);
     }
     while (1) {
-        bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+        bytes_read = blocking_read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read < 0) env->raise_errno();
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;

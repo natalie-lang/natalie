@@ -141,9 +141,6 @@ describe "IO#gets" do
             t = Thread.new do
               # Continue reading until the separator is encountered or the pipe is closed.
               read.gets("\r\n\r\n")
-            rescue IOError, Errno::EAGAIN
-              # NATFIXME: NoMethodError below causes IOError
-              puts 'stream closed in another thread'
             end
 
             # Write the other half of the separator, which should cause the `gets` call to now
@@ -153,10 +150,8 @@ describe "IO#gets" do
             write.write("\r\nelse\r\n\r\n")
             write.close
 
-            NATFIXME 'NoMethodError', exception: NoMethodError, message: "undefined method `bytes'" do
-              t.value.bytes.should == "Aquí está la línea tres\r\n\r\n".bytes
-              read.read(8).bytes.should == "else\r\n\r\n".bytes
-            end
+            t.value.bytes.should == "Aquí está la línea tres\r\n\r\n".bytes
+            read.read(8).bytes.should == "else\r\n\r\n".bytes
           end
         end
       end
