@@ -81,12 +81,14 @@ task :watch do
 end
 
 desc 'Test that the self-hosted compiler builds and runs'
-task test_self_hosted: :bootstrap do
+task test_self_hosted: %i[bootstrap build_test_support] do
   sh 'bin/nat --version'
-  # Until our test runner works with the self-hosted compiler, let's run the examples...
-  sh 'bin/nat examples/hello.rb'
-  sh 'bin/nat examples/fib.rb'
-  sh 'bin/nat examples/boardslam.rb 3 5 1'
+  # The self-hosted compiler is a bit slow yet, so let's run a core subset of the tests.
+  env = {
+    'NAT_BINARY' => 'bin/nat',
+    'GLOB'       => 'spec/language/*_spec.rb'
+  }
+  sh env, 'bundle exec ruby test/all.rb'
 end
 
 desc 'Test that some representatitve code runs with the AddressSanitizer enabled'
