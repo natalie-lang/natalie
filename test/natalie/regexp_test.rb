@@ -285,6 +285,12 @@ describe 'regexp' do
       age.should == '21'
     end
 
+    it 'works with hyphenated name' do
+      m = /(?<name-and-age>\w+ is \d+)/.match('Joe is 21 years old')
+      m.named_captures['name-and-age'].should == 'Joe is 21'
+    end
+
+
     it 'sets variables to nil when there is no match' do
       /(?<name>\w+) is (?'age'\d+) years/ =~ 'Joe is not yet 21 years old'
       name.should == nil

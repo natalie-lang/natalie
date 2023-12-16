@@ -1,0 +1,13 @@
+diff --git a/regparse.c b/regparse.c
+index dd41be0..57e3d77 100644
+--- a/regparse.c
++++ b/regparse.c
+@@ -2506,7 +2506,7 @@ get_name_end_code_point(OnigCodePoint start)
+ }
+ 
+ #ifdef USE_NAMED_GROUP
+-# ifdef RUBY
++# if 1
+ #  define ONIGENC_IS_CODE_NAME(enc, c)  TRUE
+ # else
+ #  define ONIGENC_IS_CODE_NAME(enc, c)  ONIGENC_IS_CODE_WORD(enc, c)

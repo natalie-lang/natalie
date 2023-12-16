@@ -405,12 +405,14 @@ end
 
 file 'build/onigmo/lib/libonigmo.a' do
   build_dir = File.expand_path('build/onigmo', __dir__)
+  patch_path = File.expand_path('ext/onigmo.patch', __dir__)
   rm_rf build_dir
   cp_r 'ext/onigmo', build_dir
   sh <<-SH
     cd #{build_dir} && \
     sh autogen.sh && \
     ./configure --with-pic --prefix #{build_dir} && \
+    git apply #{patch_path} && \
     make -j 4 && \
     make install
   SH
