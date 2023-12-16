@@ -96,11 +96,7 @@ module Natalie
     end
 
     def encoding
-      unless (name = result.magic_comments.detect { |c| c.key == 'encoding' }&.value)
-        return Encoding::UTF_8
-      end
-
-      Encoding.find(name)
+      result.source.source.encoding
     end
   end
 end
