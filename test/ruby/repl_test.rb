@@ -22,7 +22,11 @@ class ReplWrapper
 end
 
 describe 'REPL' do
-  describe 'MRI-hosted' do
+  if NAT_BINARY == 'bin/nat'
+    it 'can execute expressions and affect the environment' do
+      skip
+    end
+  else
     it 'can execute expressions and affect the environment' do
       execute(NAT_BINARY)
     end
