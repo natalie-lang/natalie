@@ -1580,11 +1580,22 @@ module Natalie
       def transform_interpolated_stringish_node(node, used:, unescaped:)
         parts = node.parts.dup
 
+        encoding = @file.encoding
+        parts.each do |part|
+          if part.respond_to?(:forced_utf8_encoding?) && part.forced_utf8_encoding?
+            encoding = Encoding::UTF_8
+            break
+          elsif part.respond_to?(:forced_binary_encoding?) && part.forced_binary_encoding?
+            encoding = Encoding::ASCII_8BIT
+            break
+          end
+        end
+
         starter = if parts.first.type == :string_node
                     part = parts.shift
-                    PushStringInstruction.new(unescaped ? part.unescaped : part.content)
+                    PushStringInstruction.new(unescaped ? part.unescaped : part.content, encoding: encoding)
                   else
-                    PushStringInstruction.new('')
+                    PushStringInstruction.new('', encoding: encoding)
                   end
 
         instructions = [starter]
@@ -1592,10 +1603,10 @@ module Natalie
         parts.each do |part|
           case part
           when Prism::StringNode
-            instructions << PushStringInstruction.new(unescaped ? part.unescaped : part.content)
+            instructions << PushStringInstruction.new(unescaped ? part.unescaped : part.content, encoding: encoding)
           when Prism::EmbeddedStatementsNode
             if part.statements.nil?
-              instructions << PushStringInstruction.new('')
+              instructions << PushStringInstruction.new('', encoding: encoding)
             else
               instructions << transform_expression(part.statements, used: true)
             end
@@ -2026,7 +2037,7 @@ module Natalie
 
       def transform_source_file_node(node, used:)
         return [] unless used
-        [PushStringInstruction.new(node.filepath)]
+        [PushStringInstruction.new(node.filepath, encoding: @file.encoding)]
       end
 
       def transform_source_line_node(node, used:)
@@ -2054,7 +2065,9 @@ module Natalie
 
       def transform_string_node(node, used:)
         return [] unless used
-        PushStringInstruction.new(node.unescaped, encoding: @file.encoding)
+
+        encoding = encoding_for_string_node(node)
+        PushStringInstruction.new(node.unescaped, encoding: encoding)
       end
 
       def transform_super_node(node, used:)
@@ -2183,6 +2196,16 @@ module Natalie
       end
 
       # HELPERS = = = = = = = = = = = = =
+
+      def encoding_for_string_node(node)
+        if node.forced_utf8_encoding?
+          Encoding::UTF_8
+        elsif  node.forced_binary_encoding?
+          Encoding::ASCII_8BIT
+        else
+          encoding = @file.encoding
+        end
+      end
 
       def retry_context(id)
         @retry_context << id
