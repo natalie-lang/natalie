@@ -86,6 +86,7 @@ public:
     Value join(Env *);
     Value kill(Env *) const;
     Value raise(Env *, Value = nullptr, Value = nullptr);
+    Value run(Env *);
     Value wakeup(Env *);
 
     Value sleep(Env *, float);
@@ -98,6 +99,8 @@ public:
 
     void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
     bool is_sleeping() const { return m_sleeping; }
+
+    bool is_stopped() const;
 
     void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
     pthread_t thread_id() const { return m_thread_id; }
@@ -121,8 +124,6 @@ public:
     void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
 
     virtual void visit_children(Visitor &) override final;
-    void visit_children_from_stack(Visitor &) const;
-    void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(
@@ -134,10 +135,12 @@ public:
             m_start_of_stack);
     }
 
-    static Value pass() { return NilObject::the(); }
+    static Value pass();
 
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
+
+    static Value stop(Env *);
 
     static pthread_t main_id() { return s_main_id; }
 
@@ -149,6 +152,11 @@ public:
     static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
 
 private:
+    void wait_until_running() const;
+
+    void visit_children_from_stack(Visitor &) const;
+    void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
+
     friend FiberObject;
 
     Block *m_block { nullptr };

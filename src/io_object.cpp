@@ -309,6 +309,31 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
+static ssize_t blocking_read(int fileno, void *buf, int offset) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    auto ret = ::read(fileno, buf, offset);
+    while (ret == -1 && errno == EAGAIN) {
+        sched_yield();
+
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(fileno, &rfds);
+
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 100;
+
+        ret = select(1, &rfds, nullptr, nullptr, &tv);
+        if (ret < 0) return ret;
+
+        ret = ::read(fileno, buf, offset);
+    }
+
+    return ret;
+}
+
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
     raise_if_closed(env);
     if (buffer != nullptr && !buffer->is_nil()) {
@@ -333,7 +358,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             return result;
         }
         TM::String buf(count - m_read_buffer.size(), '\0');
-        bytes_read = ::read(m_fileno, &buf[0], count - m_read_buffer.size());
+        bytes_read = blocking_read(m_fileno, &buf[0], count - m_read_buffer.size());
         if (bytes_read < 0)
             throw_unless_readable(env, this);
         buf.truncate(bytes_read);
@@ -356,7 +381,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         }
     }
     char buf[NAT_READ_BYTES + 1];
-    bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+    bytes_read = blocking_read(m_fileno, buf, NAT_READ_BYTES);
     StringObject *str = nullptr;
     if (buffer != nullptr) {
         str = buffer->as_string();
@@ -376,7 +401,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         str->set_str(buf, bytes_read);
     }
     while (1) {
-        bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
+        bytes_read = blocking_read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read < 0) env->raise_errno();
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;
@@ -891,16 +916,20 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
     // No pipe2, use pipe and set permissions afterwards
     if (::pipe(pipefd) < 0)
         env->raise_errno();
-    const auto read_flags = ::fcntl(pipefd[0], F_GETFD);
-    if (read_flags < 0)
-        env->raise_errno();
-    if (::fcntl(pipefd[0], F_SETFD, read_flags | O_CLOEXEC | O_NONBLOCK) < 0)
-        env->raise_errno();
-    const auto write_flags = ::fcntl(pipefd[1], F_GETFD);
-    if (write_flags < 0)
-        env->raise_errno();
-    if (::fcntl(pipefd[1], F_SETFD, write_flags | O_CLOEXEC | O_NONBLOCK) < 0)
-        env->raise_errno();
+
+    for (int i = 0; i < 2; i++) {
+        const auto fd_flags = ::fcntl(pipefd[i], F_GETFD);
+        if (fd_flags < 0)
+            env->raise_errno();
+        if (::fcntl(pipefd[i], F_SETFD, fd_flags | O_CLOEXEC) < 0)
+            env->raise_errno();
+
+        const auto fl_flags = ::fcntl(pipefd[i], F_GETFL);
+        if (fl_flags < 0)
+            env->raise_errno();
+        if (::fcntl(pipefd[i], F_SETFL, fl_flags | O_NONBLOCK) < 0)
+            env->raise_errno();
+    }
 #else
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();

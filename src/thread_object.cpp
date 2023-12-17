@@ -50,12 +50,12 @@ static void *nat_create_thread(void *thread_object) {
     tl_current_thread = thread;
 
     thread->build_main_fiber();
-    thread->set_status(Natalie::ThreadObject::Status::Active);
 
     auto block = thread->block();
 
     Natalie::Env e {};
     try {
+        thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
         thread->set_value(return_value);
         pthread_exit(nullptr);
@@ -75,8 +75,26 @@ namespace Natalie {
 std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
+Value ThreadObject::pass() {
+    // We need a cancellation point here so the thread can be canceled.
+    ::usleep(0);
+
+    sched_yield();
+
+    return NilObject::the();
+}
+
 ThreadObject *ThreadObject::current() {
     return tl_current_thread;
+}
+
+Value ThreadObject::stop(Env *env) {
+    tl_current_thread->sleep(env, -1.0);
+    return NilObject::the();
+}
+
+bool ThreadObject::is_stopped() const {
+    return m_sleeping || m_status == Status::Dead;
 }
 
 void ThreadObject::build_main_thread(void *start_of_stack) {
@@ -132,6 +150,8 @@ Value ThreadObject::join(Env *env) {
     if (is_main())
         env->raise("ThreadError", "Target thread must not be main thread");
 
+    wait_until_running();
+
     if (m_joined)
         return this;
 
@@ -141,7 +161,7 @@ Value ThreadObject::join(Env *env) {
         if (e.code() == std::errc::invalid_argument) {
             // no biggie - thread was already joined
         } else {
-            printf("Unable to join thread: %s (%d)", e.what(), e.code().value());
+            fprintf(stderr, "Unable to join thread: %s (%d)", e.what(), e.code().value());
             abort();
         }
     }
@@ -156,8 +176,10 @@ Value ThreadObject::kill(Env *) const {
     if (is_main())
         exit(0);
 
+    wait_until_running();
+
     std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
-    pthread_kill(m_thread_id, SIGINT);
+    pthread_cancel(m_thread_id);
     remove_from_list();
 
     return NilObject::the();
@@ -180,9 +202,16 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
     return NilObject::the();
 }
 
+Value ThreadObject::run(Env *env) {
+    wakeup(env);
+    return NilObject::the();
+}
+
 Value ThreadObject::wakeup(Env *env) {
     if (m_status == Status::Dead)
         env->raise("ThreadError", "killed thread");
+
+    wait_until_running();
 
     pthread_mutex_lock(&m_sleep_lock);
     pthread_cond_signal(&m_sleep_cond);
@@ -192,9 +221,6 @@ Value ThreadObject::wakeup(Env *env) {
 }
 
 Value ThreadObject::sleep(Env *env, float timeout) {
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-
     timespec t_begin;
     if (::clock_gettime(CLOCK_MONOTONIC, &t_begin) < 0)
         env->raise_errno();
@@ -223,6 +249,9 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     };
 
     if (ThreadObject::i_am_main()) {
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+        ThreadObject::set_current_sleeping(true);
+
         if (timeout < 0.0) {
             while (true)
                 ::sleep(10000);
@@ -237,8 +266,13 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
     if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);
+
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+        ThreadObject::set_current_sleeping(true);
+
         handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
+
         return calculate_elapsed();
     }
 
@@ -257,6 +291,10 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     wait.tv_nsec = ns;
 
     pthread_mutex_lock(&m_sleep_lock);
+
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
 
@@ -264,10 +302,6 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 }
 
 Value ThreadObject::value(Env *env) {
-    struct timespec request = { 0, 10000 };
-    while (m_status == Status::Created)
-        nanosleep(&request, nullptr);
-
     join(env);
 
     if (!m_value)
@@ -350,6 +384,15 @@ void ThreadObject::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
     visit_children_from_stack(visitor);
+}
+
+// If the thread status is Status::Created, it means its execution
+// has not reached the try/catch handler yet. We shouldn't do
+// anything to the thread that might cause it to terminate
+// until its status is Status::Active.
+void ThreadObject::wait_until_running() const {
+    while (m_status == Status::Created)
+        sched_yield();
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {

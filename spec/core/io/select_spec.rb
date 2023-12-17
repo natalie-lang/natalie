@@ -68,9 +68,7 @@ describe "IO.select" do
   it "returns the pipe read end in read set if the pipe write end is closed concurrently" do
     main = Thread.current
     t = Thread.new {
-      NATFIXME 'Threads', exception: NameError, message: "undefined method `stop?'" do
-        Thread.pass until main.stop?
-      end
+      Thread.pass until main.stop?
       @wr.close
     }
     IO.select([@rd]).should == [[@rd], [], []]
