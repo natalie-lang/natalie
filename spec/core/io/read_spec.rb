@@ -465,16 +465,9 @@ describe "IO#read" do
       end
 
       Thread.pass until t.stop?
-      NATFIXME 'closing read side of pipe should raise error in the thread', exception: SpecFailedException do
-        r.close
-        sleep 0.2
-        raise SpecFailedException if t.alive?
-      end
-      w.close # <--- NATFIXME: had to add this to get the test to complete
+      r.close
       t.join
-      NATFIXME 'exception should be returned from thread', exception: SpecFailedException do
-        t.value.should be_kind_of(IOError)
-      end
+      t.value.should be_kind_of(IOError)
       w.close
     end
   end

@@ -312,7 +312,26 @@ Value IoObject::write_file(Env *env, Args args) {
 static ssize_t blocking_read(int fileno, void *buf, int offset) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
-    return ::read(fileno, buf, offset);
+
+    auto ret = ::read(fileno, buf, offset);
+    while (ret == -1 && errno == EAGAIN) {
+        sched_yield();
+
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(fileno, &rfds);
+
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 100;
+
+        ret = select(1, &rfds, nullptr, nullptr, &tv);
+        if (ret < 0) return ret;
+
+        ret = ::read(fileno, buf, offset);
+    }
+
+    return ret;
 }
 
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
@@ -912,7 +931,7 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
             env->raise_errno();
     }
 #else
-    if (pipe2(pipefd, O_CLOEXEC) < 0)
+    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
 #endif
 
