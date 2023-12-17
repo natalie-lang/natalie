@@ -54,7 +54,7 @@ describe "IO#close" do
   it 'raises an IOError with a clear message' do
     matching_exception = nil
 
-    NATFIXME 'Fix close of read side of pipe' do
+    NATFIXME 'IOError message does not match', exception: SpecFailedException do
       -> do
         IOSpecs::THREAD_CLOSE_RETRIES.times do
           read_io, write_io = IO.pipe
@@ -76,12 +76,7 @@ describe "IO#close" do
           Thread.pass until going_to_read && thread.stop?
           sleep(0.001)
 
-          NATFIXME 'closing read side of pipe should raise error in the thread', exception: SpecFailedException do
-            read_io.close
-            sleep 0.2
-            raise SpecFailedException if thread.alive?
-          end
-          write_io.close # <--- NATFIXME: had to add this to get the test to complete
+          read_io.close
 
           thread.join
           write_io.close
