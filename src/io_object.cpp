@@ -897,16 +897,20 @@ Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding,
     // No pipe2, use pipe and set permissions afterwards
     if (::pipe(pipefd) < 0)
         env->raise_errno();
-    const auto read_flags = ::fcntl(pipefd[0], F_GETFD);
-    if (read_flags < 0)
-        env->raise_errno();
-    if (::fcntl(pipefd[0], F_SETFD, read_flags | O_CLOEXEC | O_NONBLOCK) < 0)
-        env->raise_errno();
-    const auto write_flags = ::fcntl(pipefd[1], F_GETFD);
-    if (write_flags < 0)
-        env->raise_errno();
-    if (::fcntl(pipefd[1], F_SETFD, write_flags | O_CLOEXEC | O_NONBLOCK) < 0)
-        env->raise_errno();
+
+    for (int i = 0; i < 2; i++) {
+        const auto fd_flags = ::fcntl(pipefd[i], F_GETFD);
+        if (fd_flags < 0)
+            env->raise_errno();
+        if (::fcntl(pipefd[i], F_SETFD, fd_flags | O_CLOEXEC) < 0)
+            env->raise_errno();
+
+        const auto fl_flags = ::fcntl(pipefd[i], F_GETFL);
+        if (fl_flags < 0)
+            env->raise_errno();
+        if (::fcntl(pipefd[i], F_SETFL, fl_flags | O_NONBLOCK) < 0)
+            env->raise_errno();
+    }
 #else
     if (pipe2(pipefd, O_CLOEXEC) < 0)
         env->raise_errno();
