@@ -3,12 +3,12 @@ module URI
   class RFC3986_Parser # :nodoc:
     # URI defined in RFC3986
     HOST = %r[
-      (?<IPliteral>\[(?:
+      (?<IP-literal>\[(?:
           (?<IPv6address>
             (?:\h{1,4}:){6}
             (?<ls32>\h{1,4}:\h{1,4}
-            | (?<IPv4address>(?<decoctet>[1-9]\d|1\d{2}|2[0-4]\d|25[0-5]|\d)
-                \.\g<decoctet>\.\g<decoctet>\.\g<decoctet>)
+            | (?<IPv4address>(?<dec-octet>[1-9]\d|1\d{2}|2[0-4]\d|25[0-5]|\d)
+                \.\g<dec-octet>\.\g<dec-octet>\.\g<dec-octet>)
             )
           | ::(?:\h{1,4}:){5}\g<ls32>
           | \h{1,4}?::(?:\h{1,4}:){4}\g<ls32>
@@ -22,7 +22,7 @@ module URI
         | (?<IPvFuture>v\h++\.[!$&-.0-9:;=A-Z_a-z~]++)
         )\])
     | \g<IPv4address>
-    | (?<regname>(?:%\h\h|[!$&-.0-9;=A-Z_a-z~])*+)
+    | (?<reg-name>(?:%\h\h|[!$&-.0-9;=A-Z_a-z~])*+)
     ]x
 
     USERINFO = /(?:%\h\h|[!$&-.0-9:;=A-Z_a-z~])*+/
@@ -36,16 +36,16 @@ module URI
     (?<seg>#{SEG}){0}
     (?<URI>
       (?<scheme>#{SCHEME}):
-      (?<hierpart>//
+      (?<hier-part>//
         (?<authority>
           (?:(?<userinfo>#{USERINFO.source})@)?
           (?<host>#{HOST.source.delete(" \n")})
           (?::(?<port>\d*+))?
         )
-        (?<pathabempty>(?:/\g<seg>*+)?)
-      | (?<pathabsolute>/((?!/)\g<seg>++)?)
-      | (?<pathrootless>(?!/)\g<seg>++)
-      | (?<pathempty>)
+        (?<path-abempty>(?:/\g<seg>*+)?)
+      | (?<path-absolute>/((?!/)\g<seg>++)?)
+      | (?<path-rootless>(?!/)\g<seg>++)
+      | (?<path-empty>)
       )
       (?:\?(?<query>[^\#]*+))?
       (?:\#(?<fragment>#{FRAGMENT}))?
@@ -53,17 +53,17 @@ module URI
 
     RFC3986_relative_ref = %r[\A
     (?<seg>#{SEG}){0}
-    (?<relativeref>
-      (?<relativepart>//
+    (?<relative-ref>
+      (?<relative-part>//
         (?<authority>
           (?:(?<userinfo>#{USERINFO.source})@)?
           (?<host>#{HOST.source.delete(" \n")}(?<!/))?
           (?::(?<port>\d*+))?
         )
-        (?<pathabempty>(?:/\g<seg>*+)?)
-      | (?<pathabsolute>/\g<seg>*+)
-      | (?<pathnoscheme>#{SEG_NC}++(?:/\g<seg>*+)?)
-      | (?<pathempty>)
+        (?<path-abempty>(?:/\g<seg>*+)?)
+      | (?<path-absolute>/\g<seg>*+)
+      | (?<path-noscheme>#{SEG_NC}++(?:/\g<seg>*+)?)
+      | (?<path-empty>)
       )
       (?:\?(?<query>[^#]*+))?
       (?:\#(?<fragment>#{FRAGMENT}))?
@@ -85,7 +85,7 @@ module URI
       if m = RFC3986_URI.match(uri)
         query = m["query"]
         scheme = m["scheme"]
-        opaque = m["pathrootless"]
+        opaque = m["path-rootless"]
         if opaque
           opaque << "?#{query}" if query
           [ scheme,
@@ -104,9 +104,9 @@ module URI
             m["host"],
             m["port"],
             nil, # registry
-            (m["pathabempty"] ||
-             m["pathabsolute"] ||
-             m["pathempty"]),
+            (m["path-abempty"] ||
+             m["path-absolute"] ||
+             m["path-empty"]),
             nil, # opaque
             query,
             m["fragment"]
@@ -118,10 +118,10 @@ module URI
           m["host"],
           m["port"],
           nil, # registry,
-          (m["pathabempty"] ||
-           m["pathabsolute"] ||
-           m["pathnoscheme"] ||
-           m["pathempty"]),
+          (m["path-abempty"] ||
+           m["path-absolute"] ||
+           m["path-noscheme"] ||
+           m["path-empty"]),
           nil, # opaque
           m["query"],
           m["fragment"]
