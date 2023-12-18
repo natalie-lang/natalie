@@ -24,6 +24,31 @@ describe 'regexp' do
     /\#@bar/.should =~ '#@bar'
   end
 
+  it 'can handle bracketed unicode escape sequences' do
+    /\n/.source.should == '\n'
+    /\u0000/.source.should == '\u0000'
+    /\u1234/.source.should == '\u1234'
+    /\x20/.source.should == '\x20'
+
+    r = /\u{1}/;      r.source.should == '\u{1}';      r.should =~ "\u{1}"
+    r = /\u{1F}/;     r.source.should == '\u{1F}';     r.should =~ "\u{1F}"
+    r = /\u{1fa}/;    r.source.should == '\u{1fa}';    r.should =~ "\u{1fa}"
+    r = /\u{aEaD}/;   r.source.should == '\u{aEaD}';   r.should =~ "\u{aEaD}"
+    r = /\u{f2345}/;  r.source.should == '\u{f2345}';  r.should =~ "\u{f2345}"
+    r = /\u{10FFFF}/; r.source.should == '\u{10FFFF}'; r.should =~ "\u{10FFFF}"
+
+    /^\u{1F90F  1F3FC}$/.should =~ [
+      240, 159, 164, 143, 240, 159, 143, 188
+    ].pack('C*').force_encoding(Encoding::UTF_8)
+
+    -> { eval('/\u{1111111}/') }.should raise_error(SyntaxError)
+
+    # NATFIXME: These break Natalie's compiler, so the test won't even compile
+    # We should fix this so the error is raised whenever eval is run.
+    #-> { eval('/\u{}/') }.should raise_error(SyntaxError)
+    #-> { eval('/\u{111111}/') }.should raise_error(SyntaxError)
+  end
+
   it 'can embed regexp that ignores multiline and comments' do
     r1 = /
     foo

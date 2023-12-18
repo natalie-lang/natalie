@@ -225,6 +225,108 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     return this;
 }
 
+static String prepare_pattern_for_onigmo(const String &pattern) {
+    String new_pattern;
+    auto length = pattern.length();
+    size_t index = 0;
+
+    auto next_char = [&length, &index, &pattern]() -> unsigned char {
+        if (index >= length)
+            return '\0';
+        return pattern[index++];
+    };
+
+    EncodingObject *utf8 = nullptr;
+
+    while (index < length) {
+        auto c = next_char();
+
+        switch (c) {
+
+        case '\\': {
+            c = next_char();
+            switch (c) {
+
+            case 'u': {
+                c = next_char();
+
+                if (!utf8)
+                    utf8 = EncodingObject::get(Encoding::UTF_8);
+
+                switch (c) {
+
+                // Convert \u{dd} to \udddd
+                case '{': {
+                    c = next_char();
+                    do {
+                        long codepoint = 0;
+                        while (isxdigit(c)) {
+                            codepoint *= 16;
+                            if (isdigit(c))
+                                codepoint += c - '0';
+                            else if (c >= 'a' && c <= 'f')
+                                codepoint += c - 'a' + 10;
+                            else if (c >= 'A' && c <= 'F')
+                                codepoint += c - 'A' + 10;
+                            else
+                                break;
+                            c = next_char();
+                        }
+                        if ((c == '}' || c == ' ') && utf8->in_encoding_codepoint_range(codepoint))
+                            new_pattern.append(utf8->encode_codepoint(codepoint));
+                        else
+                            new_pattern.append_char(c);
+                        while (c == ' ')
+                            c = next_char();
+                    } while (c != '}');
+                    break;
+                }
+
+                default:
+                    new_pattern.append_char('\\');
+                    new_pattern.append_char('u');
+                    new_pattern.append_char(c);
+                }
+
+                break;
+            }
+
+            default:
+                new_pattern.append_char('\\');
+                new_pattern.append_char(c);
+            }
+
+            break;
+        }
+
+        default:
+            new_pattern.append_char(c);
+        }
+    }
+
+    return new_pattern;
+}
+
+void RegexpObject::initialize(Env *env, const String &pattern, int options) {
+    regex_t *regex;
+    OnigErrorInfo einfo;
+    m_pattern = pattern;
+
+    auto tweaked_pattern = prepare_pattern_for_onigmo(pattern);
+
+    UChar *pat = (UChar *)tweaked_pattern.c_str();
+    // NATFIXME: Fully support character encodings in capture groups
+    int result = onig_new(&regex, pat, pat + tweaked_pattern.length(),
+        options, ONIG_ENCODING_UTF_8, ONIG_SYNTAX_DEFAULT, &einfo);
+    if (result != ONIG_NORMAL) {
+        OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
+        onig_error_code_to_str(s, result, &einfo);
+        env->raise("SyntaxError", (char *)s);
+    }
+    m_regex = regex;
+    m_options = options;
+}
+
 Value RegexpObject::inspect(Env *env) {
     if (!is_initialized())
         return KernelModule::inspect(env, this);

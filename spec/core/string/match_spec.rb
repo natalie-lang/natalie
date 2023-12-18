@@ -5,9 +5,7 @@ require_relative 'fixtures/classes'
 describe :string_match_escaped_literal, shared: true do
   not_supported_on :opal do
     it "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
-      NATFIXME 'support ASCII-only UTF-8 escape sequences', exception: SyntaxError, message: 'too short digits' do
-        "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
-      end
+      "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
     end
   end
 end
