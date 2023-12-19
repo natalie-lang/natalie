@@ -23,17 +23,17 @@ jobs:
           - gcc
           - clang
     steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: run tests
         run: rake docker_test_${{ matrix.compiler }} RUBY=${{ matrix.ruby_version }}
   macos:
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: install ruby
         run: brew install ruby autoconf automake libtool pkg-config
       - name: install openssl
@@ -47,16 +47,16 @@ jobs:
   self-hosted:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: build self-hosted binary
         run: rake docker_test_self_hosted
   asan:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
-      - name: checkout submodules
-        run: git submodule update --init --recursive
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: test with AddressSanitizer
         run: rake docker_test_asan
