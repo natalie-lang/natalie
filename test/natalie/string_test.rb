@@ -484,6 +484,16 @@ describe 'string' do
       'tim,morgan,rocks'.split(/,/, 2).should == %w[tim morgan,rocks]
       'tim,morgan,rocks'.split(',', 2).should == %w[tim morgan,rocks]
     end
+
+    it 'can split when the string contains a null byte' do
+      "foo\nbar\0baz".split("\n").should == ['foo', "bar\0baz"]
+      "foo\nbar\0baz\nbuz".split("\n").should == ['foo', "bar\0baz", "buz"]
+      "foo\nbar\0baz\nbuz".split("\n", 2).should == ['foo', "bar\0baz\nbuz"]
+
+      "foo\nbar\0baz".split(/\n/).should == ['foo', "bar\0baz"]
+      "foo\nbar\0baz\nbuz".split(/\n/).should == ['foo', "bar\0baz", "buz"]
+      "foo\nbar\0baz\nbuz".split(/\n/, 2).should == ['foo', "bar\0baz\nbuz"]
+    end
   end
 
   describe '#ljust' do
