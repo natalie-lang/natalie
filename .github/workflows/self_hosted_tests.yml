@@ -11,14 +11,5 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-      - run: rake bootstrap
-      - run: bash -c 'bundle exec ruby test/all.rb | tee >(egrep "[0-9]+ runs, [0-9]+ assertions" > out.log) || :'
-        env:
-          NAT_BINARY: bin/nat
-          REPORTER: none
-      - run: bash -c 'cat out.log | bundle exec ruby test/support/post_minitest_stats_to_api.rb'
-        env:
-          STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}
+      - name: run tests
+        run: rake docker_test_self_hosted_full RUBY=ruby3.2
