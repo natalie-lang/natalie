@@ -621,12 +621,25 @@ Value StringObject::index(Env *env, Value needle, size_t start) const {
 }
 
 nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
-    auto needle_str = needle->to_str(env)->as_string()->c_str();
+    auto needle_str = needle->to_str(env)->as_string();
 
-    const char *ptr = strstr(c_str() + start, needle_str);
+    if (needle_str->bytesize() == 0)
+        return 0;
+
+    if (bytesize() == 0)
+        return -1;
+
+    if (start >= bytesize())
+        return -1;
+
+    if (needle_str->bytesize() > bytesize() - start)
+        return -1;
+
+    auto ptr = memmem(c_str() + start, bytesize() - start, needle_str->c_str(), needle_str->bytesize());
     if (ptr == nullptr)
         return -1;
-    return ptr - c_str();
+
+    return (char *)ptr - c_str();
 }
 
 Value StringObject::rindex(Env *env, Value needle) const {
@@ -2352,13 +2365,13 @@ Value StringObject::split(Env *env, RegexpObject *splitter, int max_count) {
             ary->push(new StringObject { &c_str()[last_index], index - last_index, m_encoding });
             last_index = index + len;
             if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
                 onig_region_free(region, true);
                 return ary;
             }
             result = splitter->as_regexp()->search(string(), last_index, region, ONIG_OPTION_NONE);
         } while (result != ONIG_MISMATCH);
-        ary->push(new StringObject { &c_str()[last_index], m_encoding });
+        ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
     }
     onig_region_free(region, true);
     return ary;
@@ -2378,12 +2391,12 @@ Value StringObject::split(Env *env, StringObject *splitstr, int max_count) {
             ary->push(new StringObject { &c_str()[last_index], u_index - last_index, m_encoding });
             last_index = u_index + splitlen;
             if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                ary->push(new StringObject { &c_str()[last_index], m_encoding });
+                ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
                 return ary;
             }
             index = index_int(env, splitstr, last_index);
         } while (index != -1);
-        ary->push(new StringObject { &c_str()[last_index], m_encoding });
+        ary->push(new StringObject { &c_str()[last_index], bytesize() - last_index, m_encoding });
     }
     return ary;
 }
