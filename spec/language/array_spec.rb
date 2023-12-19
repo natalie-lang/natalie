@@ -91,4 +91,72 @@ describe "The unpacking splat operator (*)" do
     [*splatted_array].should == splatted_array
     [*splatted_array].should_not equal(splatted_array)
   end
+
+  it "unpacks the start and count arguments in an array slice assignment" do
+    alphabet_1 = ['a'..'z'].to_a
+    alphabet_2 = alphabet_1.dup
+    start_and_count_args = [1, 10]
+
+    alphabet_1[1, 10] = 'a'
+    alphabet_2[*start_and_count_args] = 'a'
+
+    alphabet_1.should == alphabet_2
+  end
+
+  it "unpacks arguments as if they were listed statically" do
+    static = [1,2,3,4]
+    receiver = static.dup
+    args = [0,1]
+    static[0,1] = []
+    static.should == [2,3,4]
+    receiver[*args] = []
+    receiver.should == static
+  end
+
+  it "unpacks a literal array into arguments in a method call" do
+    tester = ArraySpec::Splat.new
+    tester.unpack_3args(*[1, 2, 3]).should == [1, 2, 3]
+    tester.unpack_4args(1, 2, *[3, 4]).should == [1, 2, 3, 4]
+    tester.unpack_4args("a", %w(b c), *%w(d e)).should == ["a", ["b", "c"], "d", "e"]
+  end
+
+  it "unpacks a referenced array into arguments in a method call" do
+    args = [1, 2, 3]
+    tester = ArraySpec::Splat.new
+    tester.unpack_3args(*args).should == [1, 2, 3]
+    tester.unpack_4args(0, *args).should == [0, 1, 2, 3]
+  end
+
+  it "when applied to a non-Array value attempts to coerce it to Array if the object respond_to?(:to_a)" do
+    obj = mock("pseudo-array")
+    obj.should_receive(:to_a).and_return([2, 3, 4])
+    [1, *obj].should == [1, 2, 3, 4]
+  end
+
+  it "when applied to a non-Array value uses it unchanged if it does not respond_to?(:to_a)" do
+    obj = Object.new
+    obj.should_not respond_to(:to_a)
+    [1, *obj].should == [1, obj]
+  end
+
+  it "when applied to a BasicObject coerces it to Array if it respond_to?(:to_a)" do
+    obj = BasicObject.new
+    def obj.to_a; [2, 3, 4]; end
+    [1, *obj].should == [1, 2, 3, 4]
+  end
+
+  it "can be used before other non-splat elements" do
+    a = [1, 2]
+    [0, *a, 3].should == [0, 1, 2, 3]
+  end
+
+  it "can be used multiple times in the same containing array" do
+    a = [1, 2]
+    b = [1, 0]
+    [*a, 3, *a, *b].should == [1, 2, 3, 1, 2, 1, 0]
+  end
+end
+
+describe "The packing splat operator (*)" do
+
 end
