@@ -51,7 +51,7 @@ public:
 
     static void build_main_thread(void *start_of_stack);
 
-    ThreadObject *initialize(Env *env, Block *block);
+    ThreadObject *initialize(Env *env, Args args, Block *block);
 
     void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
     void *start_of_stack() { return m_start_of_stack; }
@@ -69,6 +69,7 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
 
+    ArrayObject *args() { return m_args; }
     Block *block() { return m_block; }
 
     bool is_alive() const {
@@ -159,6 +160,7 @@ private:
 
     friend FiberObject;
 
+    ArrayObject *m_args { nullptr };
     Block *m_block { nullptr };
     HashObject *m_storage { nullptr };
     void *m_start_of_stack { nullptr };

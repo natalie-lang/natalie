@@ -14,11 +14,9 @@ describe "Thread.new" do
   it "can pass arguments to the thread block" do
     arr = []
     a, b, c = 1, 2, 3
-    NATFIXME 'Arguments for Thread.new', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 0)' do
-      t = Thread.new(a,b,c) {|d,e,f| arr << d << e << f }
-      t.join
-      arr.should == [a,b,c]
-    end
+    t = Thread.new(a,b,c) {|d,e,f| arr << d << e << f }
+    t.join
+    arr.should == [a,b,c]
   end
 
   it "raises an exception when not given a block" do
@@ -27,11 +25,9 @@ describe "Thread.new" do
 
   it "creates a subclass of thread calls super with a block in initialize" do
     arr = []
-    NATFIXME 'Arguments for Thread.new', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
-      t = ThreadSpecs::SubThread.new(arr)
-      t.join
-      arr.should == [1]
-    end
+    t = ThreadSpecs::SubThread.new(arr)
+    t.join
+    arr.should == [1]
   end
 
   it "calls #initialize and raises an error if super not used" do
