@@ -118,7 +118,8 @@ void ThreadObject::build_main_fiber() {
 ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
     assert(this != ThreadObject::main()); // can never be main thread
 
-    env->ensure_block_given(block);
+    if (!block)
+        env->raise("ThreadError", "must be called with a block");
     m_block = block;
 
     m_file = env->file();
