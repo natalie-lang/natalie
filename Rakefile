@@ -80,13 +80,23 @@ task :watch do
   sh "ls #{files} | entr -c -s 'rake test_last_modified'"
 end
 
-desc 'Test that the self-hosted compiler builds and runs'
+# The self-hosted compiler is a bit slow yet, so let's run a core subset
+# of the tests during regular CI.
+desc 'Test that the self-hosted compiler builds and runs a core subset of the tests'
 task test_self_hosted: %i[bootstrap build_test_support] do
   sh 'bin/nat --version'
-  # The self-hosted compiler is a bit slow yet, so let's run a core subset of the tests.
   env = {
     'NAT_BINARY' => 'bin/nat',
-    'GLOB'       => 'spec/language/*_spec.rb'
+    'GLOB'       => 'spec/language/*_spec.rb',
+  }
+  sh env, 'bundle exec ruby test/all.rb'
+end
+
+desc 'Test that the self-hosted compiler builds and runs the full test suite'
+task test_self_hosted_full: %i[bootstrap build_test_support] do
+  sh 'bin/nat --version'
+  env = {
+    'NAT_BINARY' => 'bin/nat',
   }
   sh env, 'bundle exec ruby test/all.rb'
 end
@@ -277,6 +287,10 @@ end
 
 task docker_test_self_hosted: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted"
+end
+
+task docker_test_self_hosted_full: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_self_hosted_full"
 end
 
 task docker_test_asan: :docker_build_clang do
