@@ -3,29 +3,37 @@ require_relative 'fixtures/classes'
 
 describe "Thread.new" do
   it "creates a thread executing the given block" do
-    q = Queue.new
-    Thread.new { q << true }.join
-    q << false
-    q.pop.should == true
+    NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
+      q = Queue.new
+      Thread.new { q << true }.join
+      q << false
+      q.pop.should == true
+    end
   end
 
   it "can pass arguments to the thread block" do
     arr = []
     a, b, c = 1, 2, 3
-    t = Thread.new(a,b,c) {|d,e,f| arr << d << e << f }
-    t.join
-    arr.should == [a,b,c]
+    NATFIXME 'Arguments for Thread.new', exception: ArgumentError, message: 'wrong number of arguments (given 3, expected 0)' do
+      t = Thread.new(a,b,c) {|d,e,f| arr << d << e << f }
+      t.join
+      arr.should == [a,b,c]
+    end
   end
 
   it "raises an exception when not given a block" do
-    -> { Thread.new }.should raise_error(ThreadError)
+    NATFIXME 'raises an exception when not given a block', exception: SpecFailedException do
+      -> { Thread.new }.should raise_error(ThreadError)
+    end
   end
 
   it "creates a subclass of thread calls super with a block in initialize" do
     arr = []
-    t = ThreadSpecs::SubThread.new(arr)
-    t.join
-    arr.should == [1]
+    NATFIXME 'Arguments for Thread.new', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      t = ThreadSpecs::SubThread.new(arr)
+      t.join
+      arr.should == [1]
+    end
   end
 
   it "calls #initialize and raises an error if super not used" do
@@ -34,9 +42,11 @@ describe "Thread.new" do
       end
     end
 
-    -> {
-      c.new
-    }.should raise_error(ThreadError)
+    NATFIXME 'calls #initialize and raises an error if super not used', exception: SpecFailedException do
+      -> {
+        c.new
+      }.should raise_error(ThreadError)
+    end
   end
 
   it "calls and respects #initialize for the block to use" do
@@ -67,7 +77,8 @@ describe "Thread.new" do
     m2.should_not.locked?
   end
 
-  it "releases Mutexes held by the Thread when the Thread finishes, also with Mutex#synchronize" do
+  # NATFIXME: This creates a warning "deadlock; recursive locking (ThreadError)", which breaks running the full specs
+  xit "releases Mutexes held by the Thread when the Thread finishes, also with Mutex#synchronize" do
     m = Mutex.new
     t = Thread.new {
       m.synchronize {
