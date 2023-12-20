@@ -8,6 +8,7 @@ namespace Enumerator {
     class ArithmeticSequenceObject;
 };
 namespace Thread {
+    class ConditionVariableObject;
     class MutexObject;
 };
 class ArrayObject;

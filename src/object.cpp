@@ -101,6 +101,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ThreadObject { klass };
         break;
 
+    case Object::Type::ThreadConditionVariable:
+        obj = new Thread::ConditionVariableObject { klass };
+        break;
+
     case Object::Type::ThreadMutex:
         obj = new Thread::MutexObject { klass };
         break;
@@ -446,6 +450,16 @@ ThreadObject *Object::as_thread() {
 const ThreadObject *Object::as_thread() const {
     assert(is_thread());
     return static_cast<const ThreadObject *>(this);
+}
+
+Thread::ConditionVariableObject *Object::as_thread_condition_variable() {
+    assert(is_thread_condition_variable());
+    return static_cast<Thread::ConditionVariableObject *>(this);
+}
+
+const Thread::ConditionVariableObject *Object::as_thread_condition_variable() const {
+    assert(is_thread_condition_variable());
+    return static_cast<const Thread::ConditionVariableObject *>(this);
 }
 
 Thread::MutexObject *Object::as_thread_mutex() {

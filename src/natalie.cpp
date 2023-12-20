@@ -359,6 +359,10 @@ Env *build_top_env() {
     ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
     Object->const_set("Thread"_s, Thread);
 
+    ClassObject *ThreadConditionVariable = Object->subclass(env, "ConditionVariable", Object::Type::ThreadConditionVariable);
+    Thread->const_set("ConditionVariable"_s, ThreadConditionVariable);
+    Object->const_set("ConditionVariable"_s, ThreadConditionVariable);
+
     ClassObject *ThreadMutex = Object->subclass(env, "Mutex", Object::Type::ThreadMutex);
     Thread->const_set("Mutex"_s, ThreadMutex);
     Object->const_set("Mutex"_s, ThreadMutex);

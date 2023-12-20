@@ -32,6 +32,7 @@ enum class ObjectType {
     String,
     Symbol,
     Thread,
+    ThreadConditionVariable,
     ThreadMutex,
     Time,
     True,
