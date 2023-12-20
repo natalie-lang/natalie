@@ -14,6 +14,9 @@ public:
 
     ConditionVariableObject(ClassObject *klass)
         : Object { Object::Type::ThreadConditionVariable, klass } { }
+
+    Value signal(Env *);
+    Value wait(Env *, Value, Value = nullptr);
 };
 
 }
