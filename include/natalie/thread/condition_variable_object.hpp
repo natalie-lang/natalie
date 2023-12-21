@@ -5,6 +5,8 @@
 #include "natalie/symbol_object.hpp"
 #include "natalie/thread_object.hpp"
 
+#include <condition_variable>
+
 namespace Natalie {
 
 class Thread::ConditionVariableObject : public Object {
@@ -17,6 +19,9 @@ public:
 
     Value signal(Env *);
     Value wait(Env *, Value, Value = nullptr);
+
+private:
+    std::condition_variable m_cv {};
 };
 
 }
