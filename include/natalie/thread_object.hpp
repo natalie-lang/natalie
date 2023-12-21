@@ -95,6 +95,7 @@ public:
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
 
+    bool has_key(Env *, Value);
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
