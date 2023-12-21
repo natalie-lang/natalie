@@ -324,6 +324,8 @@ Value ThreadObject::ref(Env *env, Value key) {
 }
 
 Value ThreadObject::refeq(Env *env, Value key, Value value) {
+    if (is_frozen())
+        env->raise("FrozenError", "can't modify frozen thread locals");
     if (key->is_string())
         key = key->as_string()->to_sym(env);
     if (!key->is_symbol())

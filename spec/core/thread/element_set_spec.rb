@@ -10,11 +10,9 @@ describe "Thread#[]=" do
     Thread.new do
       th = Thread.current
       th.freeze
-      NATFIXME 'raises a FrozenError if the thread is frozen', exception: SpecFailedException do
-        -> {
-          th[:foo] = "bar"
-        }.should raise_error(FrozenError, /frozen/)
-      end
+      -> {
+        th[:foo] = "bar"
+      }.should raise_error(FrozenError, /frozen/)
     end.join
   end
 
