@@ -323,6 +323,12 @@ bool ThreadObject::has_key(Env *env, Value key) {
     return m_storage->has_key(env, key);
 }
 
+Value ThreadObject::keys(Env *env) {
+    if (!m_storage)
+        return new ArrayObject {};
+    return m_storage->keys(env);
+}
+
 Value ThreadObject::ref(Env *env, Value key) {
     if (key->is_string())
         key = key->as_string()->to_sym(env);

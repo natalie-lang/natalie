@@ -96,6 +96,7 @@ public:
     Value value(Env *);
 
     bool has_key(Env *, Value);
+    Value keys(Env *);
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
