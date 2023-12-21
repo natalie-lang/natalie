@@ -314,6 +314,8 @@ Value ThreadObject::value(Env *env) {
 }
 
 Value ThreadObject::ref(Env *env, Value key) {
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     if (!m_storage)
@@ -322,6 +324,8 @@ Value ThreadObject::ref(Env *env, Value key) {
 }
 
 Value ThreadObject::refeq(Env *env, Value key, Value value) {
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
     if (!key->is_symbol())
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     if (!m_storage)
