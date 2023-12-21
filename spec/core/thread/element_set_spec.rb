@@ -10,9 +10,11 @@ describe "Thread#[]=" do
     Thread.new do
       th = Thread.current
       th.freeze
-      -> {
-        th[:foo] = "bar"
-      }.should raise_error(FrozenError, /frozen/)
+      NATFIXME 'raises a FrozenError if the thread is frozen', exception: SpecFailedException do
+        -> {
+          th[:foo] = "bar"
+        }.should raise_error(FrozenError, /frozen/)
+      end
     end.join
   end
 
@@ -28,10 +30,12 @@ describe "Thread#[]=" do
       Thread.current[:value].should == 1
     end
     fib.resume
-    Thread.current[:value].should be_nil
-    Thread.current[:value] = 2
-    fib.resume
-    Thread.current[:value] = 2
+    NATFIXME 'is not shared across fibers', exception: SpecFailedException do
+      Thread.current[:value].should be_nil
+      Thread.current[:value] = 2
+      fib.resume
+      Thread.current[:value] = 2
+    end
   end
 
   it "stores a local in another thread when in a fiber" do
