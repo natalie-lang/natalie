@@ -51,12 +51,13 @@ static void *nat_create_thread(void *thread_object) {
 
     thread->build_main_fiber();
 
+    auto args = thread->args();
     auto block = thread->block();
 
     Natalie::Env e {};
     try {
         thread->set_status(Natalie::ThreadObject::Status::Active);
-        auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, Natalie::Args(), nullptr);
+        auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
         thread->set_value(return_value);
         pthread_exit(nullptr);
     } catch (Natalie::ExceptionObject *exception) {
@@ -115,10 +116,12 @@ void ThreadObject::build_main_fiber() {
     m_current_fiber = m_main_fiber = FiberObject::build_main_fiber(this, m_start_of_stack);
 }
 
-ThreadObject *ThreadObject::initialize(Env *env, Block *block) {
+ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     assert(this != ThreadObject::main()); // can never be main thread
 
-    env->ensure_block_given(block);
+    if (!block)
+        env->raise("ThreadError", "must be called with a block");
+    m_args = args.to_array();
     m_block = block;
 
     m_file = env->file();
@@ -374,6 +377,7 @@ void ThreadObject::unlock_mutexes() const {
 
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
+    visitor.visit(m_args);
     visitor.visit(m_block);
     visitor.visit(m_current_fiber);
     visitor.visit(m_exception);
