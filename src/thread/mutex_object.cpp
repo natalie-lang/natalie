@@ -55,7 +55,8 @@ Value MutexObject::synchronize(Env *env, Block *block) {
     try {
         lock(env);
         auto value = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
-        unlock(env);
+        if (is_owned())
+            unlock(env);
         return value;
     } catch (ExceptionObject *exception) {
         unlock(env);
