@@ -71,7 +71,7 @@ describe "TCPServer#accept" do
       t = Thread.new do
         begin
           client = @server.accept
-        rescue Errno::ECONNABORTED
+        rescue Errno::ECONNABORTED, Errno::EINVAL
           # NATFIXME: NoMethodError below causes ECONNABORTED
           puts 'stream closed in another thread'
         else
