@@ -130,6 +130,28 @@ Value Linenoise_set_hints_callback(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
+static const char *highlight_callback(const char *edit_buffer, int *length) {
+    Env e {};
+    auto proc = GlobalEnv::the()->Object()->const_fetch("Linenoise"_s)->as_module()->ivar_get(&e, "@highlight_callback"_s)->as_proc();
+    auto edit_buffer_string = new StringObject { edit_buffer };
+    auto env = proc->env();
+    auto string = proc->send(env, "call"_s, { edit_buffer_string })->as_string_or_raise(env);
+    *length = string->length();
+    return string->c_str();
+}
+
+Value Linenoise_set_highlight_callback(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    auto proc = args[0]->as_proc();
+
+    self->ivar_set(env, "@highlight_callback"_s, proc);
+
+    linenoiseSetHighlightCallback(highlight_callback);
+
+    return NilObject::the();
+}
+
 Value Linenoise_set_history(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto ary = args[0]->as_array_or_raise(env);
@@ -163,6 +185,7 @@ Value init(Env *env, Value self) {
     Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
     Linenoise->define_singleton_method(env, "clear_screen"_s, Linenoise_clear_screen, 0);
     Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
+    Linenoise->define_singleton_method(env, "highlight_callback="_s, Linenoise_set_highlight_callback, 1);
     Linenoise->define_singleton_method(env, "hints_callback="_s, Linenoise_set_hints_callback, 1);
     Linenoise->define_singleton_method(env, "history"_s, Linenoise_get_history, 0);
     Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);

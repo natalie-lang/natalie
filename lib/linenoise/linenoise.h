@@ -93,6 +93,10 @@ void linenoiseSetHintsCallback(linenoiseHintsCallback *);
 void linenoiseSetFreeHintsCallback(linenoiseFreeHintsCallback *);
 void linenoiseAddCompletion(linenoiseCompletions *, const char *);
 
+/* Highlight API. */
+typedef const char*(linenoiseHighlightCallback)(const char *, int *length);
+void linenoiseSetHighlightCallback(linenoiseHighlightCallback *);
+
 /* History API. */
 int linenoiseHistoryAdd(const char *line);
 int linenoiseHistorySetMaxLen(int len);
