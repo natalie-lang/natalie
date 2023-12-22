@@ -92,6 +92,44 @@ Value Linenoise_set_completion_callback(Env *env, Value self, Args args, Block *
     return NilObject::the();
 }
 
+static void free_hints_callback(void *hint) {
+    free(hint);
+}
+
+static char *hints_callback(const char *buf, int *color, int *bold) {
+    Env e {};
+    auto proc = GlobalEnv::the()->Object()->const_fetch("Linenoise"_s)->as_module()->ivar_get(&e, "@hints_callback"_s)->as_proc();
+    auto buf_string = new StringObject { buf };
+    auto env = proc->env();
+
+    auto ret = proc->send(env, "call"_s, { buf_string });
+    if (ret->is_nil())
+        return nullptr;
+
+    auto ary = ret->as_array_or_raise(env);
+    if (ary->size() < 2 || ary->size() > 3)
+        env->raise("ArgumentError", "hints callback must return an array of 2 or 3 elements");
+
+    auto hint = ary->at(0)->as_string_or_raise(env)->c_str();
+    *color = ary->at(1)->as_integer_or_raise(env)->to_nat_int_t();
+    *bold = ary->size() == 3 && ary->at(2)->is_truthy() ? 1 : 0;
+
+    return strdup(hint);
+}
+
+Value Linenoise_set_hints_callback(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    auto proc = args[0]->as_proc();
+
+    self->ivar_set(env, "@hints_callback"_s, proc);
+
+    linenoiseSetHintsCallback(hints_callback);
+    linenoiseSetFreeHintsCallback(free_hints_callback);
+
+    return NilObject::the();
+}
+
 Value Linenoise_set_history(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto ary = args[0]->as_array_or_raise(env);
@@ -125,6 +163,7 @@ Value init(Env *env, Value self) {
     Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
     Linenoise->define_singleton_method(env, "clear_screen"_s, Linenoise_clear_screen, 0);
     Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
+    Linenoise->define_singleton_method(env, "hints_callback="_s, Linenoise_set_hints_callback, 1);
     Linenoise->define_singleton_method(env, "history"_s, Linenoise_get_history, 0);
     Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);
     Linenoise->define_singleton_method(env, "history_max_len="_s, Linenoise_set_history_max_len, 1);

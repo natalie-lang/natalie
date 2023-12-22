@@ -8,6 +8,12 @@ Linenoise.completion_callback = lambda do |input|
   end
 end
 
+Linenoise.hints_callback = lambda do |input|
+  if input.strip == 'delete'
+    ['<index> or "all"', 35, false]
+  end
+end
+
 Linenoise.load_history(HISTORY_PATH)
 
 def help
