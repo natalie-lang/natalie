@@ -321,12 +321,12 @@ Value ThreadObject::value(Env *env) {
     return m_value;
 }
 
-Value ThreadObject::fetch(Env *env, Value key, Value default_value) {
+Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
     key = validate_key(env, key);
     HashObject *hash = m_storage;
     if (!hash)
         hash = new HashObject {};
-    return hash->fetch(env, key, default_value, nullptr);
+    return hash->fetch(env, key, default_value, block);
 }
 
 bool ThreadObject::has_key(Env *env, Value key) {

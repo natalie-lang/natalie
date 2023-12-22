@@ -95,7 +95,7 @@ public:
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
 
-    Value fetch(Env *, Value, Value = nullptr);
+    Value fetch(Env *, Value, Value = nullptr, Block * = nullptr);
     bool has_key(Env *, Value);
     Value keys(Env *);
     Value ref(Env *env, Value key);
