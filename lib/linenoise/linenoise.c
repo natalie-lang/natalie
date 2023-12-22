@@ -123,6 +123,7 @@ static const char *unsupported_term[] = {"dumb","cons25","emacs",NULL};
 static linenoiseCompletionCallback *completionCallback = NULL;
 static linenoiseHintsCallback *hintsCallback = NULL;
 static linenoiseFreeHintsCallback *freeHintsCallback = NULL;
+static linenoiseHighlightCallback *highlightCallback = NULL;
 static char *linenoiseNoTTY(void);
 static void refreshLineWithCompletion(struct linenoiseState *ls, linenoiseCompletions *lc, int flags);
 static void refreshLineWithFlags(struct linenoiseState *l, int flags);
@@ -475,6 +476,12 @@ void linenoiseAddCompletion(linenoiseCompletions *lc, const char *str) {
     lc->cvec[lc->len++] = copy;
 }
 
+/* ============================== Highlight ================================ */
+
+void linenoiseSetHighlightCallback(linenoiseHighlightCallback *fn) {
+    highlightCallback = fn;
+}
+
 /* =========================== Line editing ================================= */
 
 /* We define a very simple "append buffer" structure, that is an heap
@@ -565,6 +572,10 @@ static void refreshSingleLine(struct linenoiseState *l, int flags) {
         abAppend(&ab,l->prompt,strlen(l->prompt));
         if (maskmode == 1) {
             while (len--) abAppend(&ab,"*",1);
+        } else if (highlightCallback) {
+            int highlightedLen;
+            const char *highlighted = highlightCallback(buf, &highlightedLen);
+            abAppend(&ab, highlighted, highlightedLen);
         } else {
             abAppend(&ab,buf,len);
         }
@@ -638,6 +649,10 @@ static void refreshMultiLine(struct linenoiseState *l, int flags) {
         if (maskmode == 1) {
             unsigned int i;
             for (i = 0; i < l->len; i++) abAppend(&ab,"*",1);
+        } else if (highlightCallback) {
+            int highlightedLen;
+            const char *highlighted = highlightCallback(l->buf, &highlightedLen);
+            abAppend(&ab, highlighted, highlightedLen);
         } else {
             abAppend(&ab,l->buf,l->len);
         }

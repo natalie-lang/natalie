@@ -9,9 +9,30 @@ Linenoise.completion_callback = lambda do |input|
 end
 
 Linenoise.hints_callback = lambda do |input|
-  if input.strip == 'delete'
-    ['<index> or "all"', 35, false]
+  if input =~ /^delete\s*$/
+    [' <index> or all', 35, false]
   end
+end
+
+Linenoise.highlight_callback = lambda do |input|
+  input.split(' ').map do |word|
+    case word
+    when 'help'
+      "\e[31m#{word}\e[0m"
+    when 'history', 'delete'
+      "\e[33m#{word}\e[0m"
+    when 'all'
+      "\e[34m#{word}\e[0m"
+    when 'clear'
+      "\e[32m#{word}\e[0m"
+    when 'multi_line'
+      "\e[35m#{word}\e[0m"
+    when /^\d+$/
+      "\e[36m#{word}\e[0m"
+    else
+      word
+    end
+  end.join(' ')
 end
 
 Linenoise.load_history(HISTORY_PATH)
