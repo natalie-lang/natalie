@@ -313,6 +313,17 @@ Value ThreadObject::value(Env *env) {
     return m_value;
 }
 
+Value ThreadObject::fetch(Env *env, Value key, Value default_value) {
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    HashObject *hash = m_storage;
+    if (!hash)
+        hash = new HashObject {};
+    return hash->fetch(env, key, default_value, nullptr);
+}
+
 bool ThreadObject::has_key(Env *env, Value key) {
     if (key->is_string())
         key = key->as_string()->to_sym(env);
