@@ -44,6 +44,26 @@ Value Linenoise_save_history(Env *env, Value self, Args args, Block *) {
     return NilObject::the();
 }
 
+Value Linenoise_set_completion_callback(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    args[0]->assert_type(env, Object::Type::Proc, "Proc");
+    auto proc = args[0]->as_proc();
+
+    // Ensure the GC doesn't try to claim this object.
+    self->ivar_set(env, "@completion_callback"_s, proc);
+
+    linenoise::SetCompletionCallback([proc](const char *edit_buffer, std::vector<std::string> &completions) {
+        auto edit_buffer_string = new StringObject { edit_buffer };
+        auto env = proc->env();
+        auto ary = proc->send(env, "call"_s, { edit_buffer_string })->as_array_or_raise(env);
+        for (auto &completion : *ary) {
+            completions.push_back(completion->as_string()->c_str());
+        }
+    });
+
+    return NilObject::the();
+}
+
 Value Linenoise_set_history_max_len(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto length = args[0]->as_integer_or_raise(env)->to_nat_int_t();
@@ -62,6 +82,7 @@ Value init(Env *env, Value self) {
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
     Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
+    Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
     Linenoise->define_singleton_method(env, "history_max_len="_s, Linenoise_set_history_max_len, 1);
     Linenoise->define_singleton_method(env, "load_history"_s, Linenoise_load_history, 1);
     Linenoise->define_singleton_method(env, "multi_line="_s, Linenoise_set_multi_line, 1);
