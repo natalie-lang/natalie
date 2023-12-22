@@ -15,6 +15,7 @@ def help
   puts 'help             print this help'
   puts 'history          print the history list'
   puts 'delete <index>   delete the history item at the given index'
+  puts 'delete all       delete the entire history'
   puts 'clear            clear the screen'
   puts 'multi_line       toggle multi-line editing mode (aka word-wrap)'
 end
@@ -33,16 +34,17 @@ loop do
     help
   when 'history'
     p Linenoise.history
-  when /^delete($| )/
-    unless line =~ /^delete (\d+)$/
-      puts 'You must specify an index, e.g. delete 3'
-      next
-    end
+  when /^delete\s+(\d+)$/
     index = $1.to_i
     history = Linenoise.history
     history.delete_at(index)
     Linenoise.history = history
     p Linenoise.history
+  when /^delete\s+all$/
+    Linenoise.history = []
+    p Linenoise.history
+  when /^delete/
+    puts 'You must specify an index or "all"'
   when 'clear'
     Linenoise.clear_screen
   when 'multi_line'
