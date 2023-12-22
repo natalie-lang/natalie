@@ -12,6 +12,18 @@ Value Linenoise_add_history(Env *env, Value self, Args args, Block *) {
     return args[0];
 }
 
+Value Linenoise_get_history(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto history = linenoise::GetHistory();
+
+    auto ary = new ArrayObject {};
+    for (auto item : history)
+        ary->push(new StringObject { item.c_str() });
+
+    return ary;
+}
+
 Value Linenoise_load_history(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto path = args[0]->as_string_or_raise(env)->string();
@@ -64,6 +76,19 @@ Value Linenoise_set_completion_callback(Env *env, Value self, Args args, Block *
     return NilObject::the();
 }
 
+Value Linenoise_set_history(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto ary = args[0]->as_array_or_raise(env);
+
+    auto &history = linenoise::GetHistory();
+    history.clear();
+
+    for (auto item : *ary)
+        history.push_back(item->as_string_or_raise(env)->c_str());
+
+    return ary;
+}
+
 Value Linenoise_set_history_max_len(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto length = args[0]->as_integer_or_raise(env)->to_nat_int_t();
@@ -83,6 +108,8 @@ Value init(Env *env, Value self) {
 
     Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
     Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
+    Linenoise->define_singleton_method(env, "history"_s, Linenoise_get_history, 0);
+    Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);
     Linenoise->define_singleton_method(env, "history_max_len="_s, Linenoise_set_history_max_len, 1);
     Linenoise->define_singleton_method(env, "load_history"_s, Linenoise_load_history, 1);
     Linenoise->define_singleton_method(env, "multi_line="_s, Linenoise_set_multi_line, 1);

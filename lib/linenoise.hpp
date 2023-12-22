@@ -3847,7 +3847,7 @@ inline bool LoadHistory(const char *path) {
     return true;
 }
 
-inline const std::vector<std::string> &GetHistory() {
+inline std::vector<std::string> &GetHistory() {
     return history;
 }
 
