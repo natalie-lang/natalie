@@ -1,7 +1,7 @@
 require 'linenoise'
 
 Linenoise.completion_callback = lambda do |input|
-  ['help', 'history', 'delete'].select do |command|
+  ['help', 'history', 'delete', 'multi_line'].select do |command|
     command.start_with?(input) && command != input
   end
 end
@@ -9,7 +9,11 @@ end
 Linenoise.load_history('test/tmp/linenoise_history.txt')
 
 def help
-  puts 'commands: help, history, delete <index>'
+  puts 'commands:'
+  puts 'help             print this help'
+  puts 'history          print the history list'
+  puts 'delete <index>   delete the history item at the given index'
+  puts 'multi_line       toggle multi-line editing mode (aka word-wrap)'
 end
 help
 
@@ -20,6 +24,8 @@ loop do
   Linenoise.add_history(line)
 
   case line.strip
+  when ''
+    # noop
   when 'help'
     help
   when 'history'
@@ -34,6 +40,9 @@ loop do
     history.delete_at(index)
     Linenoise.history = history
     p Linenoise.history
+  when 'multi_line'
+    Linenoise.multi_line ^= true
+    puts "multi_line (aka word-wrap) is now #{Linenoise.multi_line ? 'on' : 'off'}"
   else
     puts "unknown command: #{line}"
   end

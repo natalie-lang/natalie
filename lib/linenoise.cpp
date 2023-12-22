@@ -24,6 +24,11 @@ Value Linenoise_get_history(Env *env, Value self, Args args, Block *) {
     return ary;
 }
 
+Value Linenoise_get_multi_line(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return bool_object(linenoise::GetMultiLine());
+}
+
 Value Linenoise_load_history(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto path = args[0]->as_string_or_raise(env)->string();
@@ -99,6 +104,7 @@ Value Linenoise_set_history_max_len(Env *env, Value self, Args args, Block *) {
 Value Linenoise_set_multi_line(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto enabled = args[0]->is_truthy();
+    linenoise::SetMultiLine(enabled);
     return bool_object(enabled);
 }
 
@@ -112,6 +118,7 @@ Value init(Env *env, Value self) {
     Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);
     Linenoise->define_singleton_method(env, "history_max_len="_s, Linenoise_set_history_max_len, 1);
     Linenoise->define_singleton_method(env, "load_history"_s, Linenoise_load_history, 1);
+    Linenoise->define_singleton_method(env, "multi_line"_s, Linenoise_get_multi_line, 0);
     Linenoise->define_singleton_method(env, "multi_line="_s, Linenoise_set_multi_line, 1);
     Linenoise->define_singleton_method(env, "readline"_s, Linenoise_readline, 1);
     Linenoise->define_singleton_method(env, "save_history"_s, Linenoise_save_history, 1);

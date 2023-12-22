@@ -3027,6 +3027,10 @@ inline void SetMultiLine(bool ml) {
     mlmode = ml;
 }
 
+inline bool GetMultiLine() {
+    return mlmode;
+}
+
 /* Return true if the terminal name is in the list of terminals we know are
  * not able to understand basic escape sequences. */
 inline bool isUnsupportedTerm(void) {
