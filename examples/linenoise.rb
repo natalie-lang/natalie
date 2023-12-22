@@ -1,12 +1,14 @@
 require 'linenoise'
 
+HISTORY_PATH = 'linenoise_history.txt'
+
 Linenoise.completion_callback = lambda do |input|
   ['help', 'history', 'delete', 'multi_line'].select do |command|
     command.start_with?(input) && command != input
   end
 end
 
-Linenoise.load_history('test/tmp/linenoise_history.txt')
+Linenoise.load_history(HISTORY_PATH)
 
 def help
   puts 'commands:'
@@ -50,4 +52,4 @@ loop do
     puts "unknown command: #{line}"
   end
 end
-Linenoise.save_history('test/tmp/linenoise_history.txt')
+Linenoise.save_history(HISTORY_PATH)
