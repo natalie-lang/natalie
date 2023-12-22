@@ -73,6 +73,14 @@ static void *nat_create_thread(void *thread_object) {
 
 namespace Natalie {
 
+static Value validate_key(Env *env, Value key) {
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
+    if (!key->is_symbol())
+        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    return key;
+}
+
 std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
@@ -313,11 +321,16 @@ Value ThreadObject::value(Env *env) {
     return m_value;
 }
 
+Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
+    key = validate_key(env, key);
+    HashObject *hash = m_storage;
+    if (!hash)
+        hash = new HashObject {};
+    return hash->fetch(env, key, default_value, block);
+}
+
 bool ThreadObject::has_key(Env *env, Value key) {
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
-    if (!key->is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    key = validate_key(env, key);
     if (!m_storage)
         return false;
     return m_storage->has_key(env, key);
@@ -330,10 +343,7 @@ Value ThreadObject::keys(Env *env) {
 }
 
 Value ThreadObject::ref(Env *env, Value key) {
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
-    if (!key->is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    key = validate_key(env, key);
     if (!m_storage)
         return NilObject::the();
     return m_storage->ref(env, key);
@@ -342,10 +352,7 @@ Value ThreadObject::ref(Env *env, Value key) {
 Value ThreadObject::refeq(Env *env, Value key, Value value) {
     if (is_frozen())
         env->raise("FrozenError", "can't modify frozen thread locals");
-    if (key->is_string())
-        key = key->as_string()->to_sym(env);
-    if (!key->is_symbol())
-        env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
+    key = validate_key(env, key);
     if (!m_storage)
         m_storage = new HashObject {};
     m_storage->refeq(env, key, value);
