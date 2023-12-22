@@ -71,8 +71,7 @@ describe "Thread.new" do
     m2.should_not.locked?
   end
 
-  # NATFIXME: This creates a warning "deadlock; recursive locking (ThreadError)", which breaks running the full specs
-  xit "releases Mutexes held by the Thread when the Thread finishes, also with Mutex#synchronize" do
+  it "releases Mutexes held by the Thread when the Thread finishes, also with Mutex#synchronize" do
     m = Mutex.new
     t = Thread.new {
       m.synchronize {

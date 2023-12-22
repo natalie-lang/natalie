@@ -54,7 +54,10 @@ Value MutexObject::sleep(Env *env, Value timeout) {
 Value MutexObject::synchronize(Env *env, Block *block) {
     try {
         lock(env);
-        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+        auto value = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, {}, nullptr);
+        if (is_owned())
+            unlock(env);
+        return value;
     } catch (ExceptionObject *exception) {
         unlock(env);
         throw exception;
