@@ -13,6 +13,7 @@ def help
   puts 'help             print this help'
   puts 'history          print the history list'
   puts 'delete <index>   delete the history item at the given index'
+  puts 'clear            clear the screen'
   puts 'multi_line       toggle multi-line editing mode (aka word-wrap)'
 end
 help
@@ -40,6 +41,8 @@ loop do
     history.delete_at(index)
     Linenoise.history = history
     p Linenoise.history
+  when 'clear'
+    Linenoise.clear_screen
   when 'multi_line'
     Linenoise.multi_line ^= true
     puts "multi_line (aka word-wrap) is now #{Linenoise.multi_line ? 'on' : 'off'}"

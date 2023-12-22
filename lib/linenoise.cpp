@@ -12,6 +12,12 @@ Value Linenoise_add_history(Env *env, Value self, Args args, Block *) {
     return args[0];
 }
 
+Value Linenoise_clear_screen(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    linenoise::linenoiseClearScreen();
+    return NilObject::the();
+}
+
 Value Linenoise_get_history(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
@@ -113,6 +119,7 @@ Value init(Env *env, Value self) {
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
     Linenoise->define_singleton_method(env, "add_history"_s, Linenoise_add_history, 1);
+    Linenoise->define_singleton_method(env, "clear_screen"_s, Linenoise_clear_screen, 0);
     Linenoise->define_singleton_method(env, "completion_callback="_s, Linenoise_set_completion_callback, 1);
     Linenoise->define_singleton_method(env, "history"_s, Linenoise_get_history, 0);
     Linenoise->define_singleton_method(env, "history="_s, Linenoise_set_history, 1);
