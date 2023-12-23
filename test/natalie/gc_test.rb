@@ -13,7 +13,7 @@ describe 'GC' do
     __inline__ <<~END
       ptr_var = new VoidPObject {
           nullptr,
-          [&self](auto p) {
+          [](auto p) {
               Env e {};
               GlobalEnv::the()->global_set(&e, "$gc_ran"_s, TrueObject::the());
           }
