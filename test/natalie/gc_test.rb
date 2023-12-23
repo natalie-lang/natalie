@@ -1,33 +1,45 @@
 require_relative '../spec_helper'
 require 'natalie/inline'
 
-$gc_result
-
 describe 'GC' do
-  describe '.start' do
-    def create_object
-      $gc_result = "GC has not yet run"
-      ptr = nil
-      # Our VoidPObject has a cleanup function that runs whenever
-      # the object is collected by the GC, so we can use that to
-      # test that it did indeed run.
-      __inline__ <<~END
-        ptr_var = new VoidPObject {
-            nullptr,
-            [&self](auto p) {
-                Env e {};
-                auto result = new StringObject { "object was collected" };
-                GlobalEnv::the()->global_set(&e, "$gc_result"_s, result);
-            }
-        };
-      END
-    end
+  def create_object
+    $gc_ran = false
+    ptr = nil
+    # Our VoidPObject has a cleanup function that runs whenever
+    # the object is collected by the GC, so we can use that to
+    # test that it did indeed run.
+    __inline__ <<~END
+      ptr_var = new VoidPObject {
+          nullptr,
+          [&self](auto p) {
+              Env e {};
+              GlobalEnv::the()->global_set(&e, "$gc_ran"_s, TrueObject::the());
+          }
+      };
+    END
+  end
 
+  describe '.start' do
     it 'collects unreachable objects' do
       create_object
-      $gc_result.should == "GC has not yet run"
+      $gc_ran.should == false
       GC.start
-      $gc_result.should == "object was collected"
+      $gc_ran.should == true
+    end
+  end
+
+  describe '.enable and .disable' do
+    it 'control automatic garbage collection' do
+      create_object
+      $gc_ran.should == false
+
+      GC.disable
+      1000.times { Object.new }
+      $gc_ran.should == false
+
+      GC.enable
+      1000.times { Object.new }
+      $gc_ran.should == true
     end
   end
 end
