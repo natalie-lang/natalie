@@ -88,8 +88,6 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 }
 
 void Heap::collect(bool guard = true) {
-    if (!m_gc_enabled) return;
-
     // Only collect on the main thread for now.
     if (ThreadObject::current() != ThreadObject::main()) return;
 

@@ -52,7 +52,6 @@ public:
     }
 
     void *allocate() {
-
         if (m_free_blocks.size() > 0) {
             auto *block = m_free_blocks.last();
             --m_free_cells;
