@@ -95,6 +95,9 @@ public:
     void set_value(Value value) { m_value = value; }
     Value value(Env *);
 
+    Value name(Env *);
+    Value set_name(Env *, Value);
+
     Value fetch(Env *, Value, Value = nullptr, Block * = nullptr);
     bool has_key(Env *, Value);
     Value keys(Env *);
@@ -179,6 +182,7 @@ private:
 #endif
     std::atomic<Status> m_status { Status::Created };
     std::atomic<bool> m_joined { false };
+    TM::Optional<TM::String> m_name {};
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
 

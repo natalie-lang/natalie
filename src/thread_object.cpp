@@ -321,6 +321,25 @@ Value ThreadObject::value(Env *env) {
     return m_value;
 }
 
+Value ThreadObject::name(Env *env) {
+    if (!m_name)
+        return NilObject::the();
+    return new StringObject { *m_name };
+}
+
+Value ThreadObject::set_name(Env *env, Value name) {
+    if (!name || name->is_nil()) {
+        m_name.clear();
+        return NilObject::the();
+    }
+
+    auto name_str = name->to_str(env);
+    if (strlen(name_str->c_str()) != name_str->bytesize())
+        env->raise("ArgumentError", "string contains null byte");
+    m_name = name_str->string();
+    return name;
+}
+
 Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
     key = validate_key(env, key);
     HashObject *hash = m_storage;
