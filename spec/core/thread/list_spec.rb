@@ -10,8 +10,10 @@ describe "Thread.list" do
   it "includes threads of non-default thread groups" do
     t = Thread.new { sleep }
     begin
-      ThreadGroup.new.add(t)
-      Thread.list.should include(t)
+      NATFIXME 'Add ThreadGroup', exception: NameError, message: 'uninitialized constant ThreadGroup' do
+        ThreadGroup.new.add(t)
+        Thread.list.should include(t)
+      end
     ensure
       t.kill
       t.join
@@ -25,14 +27,16 @@ describe "Thread.list" do
   end
 
   it "includes waiting threads" do
-    q = Queue.new
-    t = Thread.new { q.pop }
-    begin
-      Thread.pass while t.status and t.status != 'sleep'
-      Thread.list.should include(t)
-    ensure
-      q << nil
-      t.join
+    NATFIXME 'Add Queue', exception: NameError, message: 'uninitialized constant Queue' do
+      q = Queue.new
+      t = Thread.new { q.pop }
+      begin
+        Thread.pass while t.status and t.status != 'sleep'
+        Thread.list.should include(t)
+      ensure
+        q << nil
+        t.join
+      end
     end
   end
 
