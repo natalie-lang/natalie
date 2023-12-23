@@ -28,7 +28,7 @@ Value MutexObject::lock(Env *env) {
 }
 
 Value MutexObject::sleep(Env *env, Value timeout) {
-    if (!timeout) {
+    if (!timeout || timeout->is_nil()) {
         unlock(env);
         while (true)
             ::sleep(1000);
