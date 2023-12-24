@@ -10,6 +10,7 @@ STUB_LIBRARY_PATH = File.expand_path("../../build/test/support/ffi_stubs.#{SO_EX
 module TestStubs
   extend FFI::Library
   ffi_lib STUB_LIBRARY_PATH
+  attach_function :get_null, [], :pointer
   attach_function :test_bool, [:bool], :bool
   attach_function :test_char, [:char], :char
   attach_function :test_char_pointer, [:pointer], :pointer
@@ -118,7 +119,77 @@ describe 'FFI' do
     TestStubs.test_char_pointer(s).read_string(7).should == 'foo bar'
   end
 
+  it 'can pass and return null' do
+    null = TestStubs.get_null
+    null.should be_an_instance_of(FFI::Pointer)
+    null.should.null?
+    null.should == nil
+
+    result = TestStubs.test_char_pointer(null)
+    null.should be_an_instance_of(FFI::Pointer)
+    null.should.null?
+    result.should == nil
+
+    result = TestStubs.test_char_pointer(nil)
+    null.should be_an_instance_of(FFI::Pointer)
+    null.should.null?
+    result.should == nil
+  end
+
   it 'can pass and return integers' do
     TestStubs.test_size_t(3).should == 3
+  end
+
+  describe 'Pointer' do
+    describe '#initialize' do
+      it 'sets address and type_size' do
+        pointer = FFI::Pointer.new(:pointer, 123)
+        pointer.address.should == 123
+        pointer.type_size.should == 8
+
+        pointer = FFI::Pointer.new(123)
+        pointer.address.should == 123
+        pointer.type_size.should == 1
+      end
+
+      it 'sets autorelease to false' do
+        pointer = FFI::Pointer.new(:pointer, 123)
+        pointer.autorelease?.should == false
+      end
+    end
+
+    describe '#autorelease=' do
+      it 'changes the autorelease behavior' do
+        pointer = FFI::Pointer.new(:pointer, 123)
+        pointer.autorelease = true
+        pointer.autorelease?.should == true
+        pointer.autorelease = false
+        pointer.autorelease?.should == false
+      end
+    end
+  end
+
+  describe 'MemoryPointer' do
+    describe '#initialize' do
+      it 'sets address and type_size' do
+        pointer = FFI::MemoryPointer.new(100)
+        pointer.address.should be_an_instance_of(Integer)
+        pointer.type_size.should == 100
+      end
+
+      it 'sets autorelease to true' do
+        pointer = FFI::MemoryPointer.new(100)
+        pointer.autorelease?.should == true
+      end
+    end
+
+    describe '#free' do
+      it 'frees the pointer' do
+        pointer = FFI::MemoryPointer.new(100)
+        pointer.free
+        # I guess we have to trust that this worked because
+        # I don't see a way to check if a pointer has been freed.
+      end
+    end
   end
 end
