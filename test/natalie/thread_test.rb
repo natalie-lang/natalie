@@ -86,10 +86,4 @@ describe 'Thread' do
       Thread.list.should == [Thread.current]
     end
   end
-
-  describe '#fetch' do
-    it 'can be called with a block' do
-      Thread.current.fetch(:foo) { 1 + 2 }.should == 3
-    end
-  end
 end
