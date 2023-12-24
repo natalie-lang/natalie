@@ -18,6 +18,11 @@ public:
         return true;
     }
 
+    static Value start(Env *env) {
+        Heap::the().collect(false);
+        return NilObject::the();
+    }
+
     // prints stats from the GC
     // just the allocation count, for now,
     // but we can print more stuff later...

@@ -754,6 +754,7 @@ gen.binding('Float', 'zero?', 'FloatObject', 'is_zero', argc: 0, pass_env: false
 gen.static_binding('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Hash', '[]', 'HashObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
 gen.binding('Hash', '==', 'HashObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
