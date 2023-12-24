@@ -84,9 +84,11 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
         auto type = arg_types->at(i);
         if (type == pointer_sym) {
             if (val->is_a(env, Pointer))
-                arg_values[i].vp = val->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
+                arg_values[i].vp = (void *)val.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
             else if (val->is_string())
                 arg_values[i].vp = (void *)val->as_string()->c_str();
+            else if (val->is_nil())
+                arg_values[i].vp = nullptr;
             else
                 env->raise("ArgumentError", "Expected Pointer but got {} for arg {}", val->inspect_str(env), (int)i);
             arg_pointers[i] = &(arg_values[i].vp);
@@ -126,8 +128,7 @@ static Value FFI_Library_fn_call_block(Env *env, Value self, Args args, Block *b
         return Value::integer(result);
     } else if (return_type == pointer_sym) {
         auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s })->as_class();
-        auto pointer = Pointer->send(env, "new"_s);
-        pointer->ivar_set(env, "@address"_s, new VoidPObject { (void *)result });
+        auto pointer = Pointer->send(env, "new"_s, { "pointer"_s, Value::integer((nat_int_t)result) });
         return pointer;
     } else if (return_type == size_t_sym) {
         assert((uint64_t)result <= std::numeric_limits<nat_int_t>::max());
@@ -202,14 +203,14 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
 Value FFI_Pointer_address(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto address = self->ivar_get(env, "@address"_s)->as_void_p()->void_ptr();
+    auto address = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
     return Value::integer((nat_int_t)address);
 }
 
 Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
 
-    auto address = self->ivar_get(env, "@address"_s)->as_void_p()->void_ptr();
+    auto address = (void *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
 
     if (args.size() >= 1) {
         auto length = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
@@ -228,17 +229,51 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
     size->assert_type(env, Object::Type::Integer, "Integer");
     self->ivar_set(env, "@size"_s, size);
 
-    auto ptr = malloc(size->as_integer()->to_nat_int_t());
+    auto address = malloc(size->as_integer()->to_nat_int_t());
+    auto address_obj = Value::integer((nat_int_t)address);
+
+    super(env, self, { "pointer"_s, address_obj }, nullptr);
+
+    self->ivar_set(env, "@type_size"_s, size);
+
+    auto ptr_obj = self->ivar_get(env, "@ptr"_s);
+    ptr_obj->ivar_set(env, "@autorelease"_s, TrueObject::the());
+
+    return NilObject::the();
+}
+
+Value FFI_Pointer_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+
+    Value type, address;
+    int type_size = 1;
+
+    if (args.size() == 2) {
+        type = args.at(0);
+        address = args.at(1);
+        if (type == "pointer"_s)
+            type_size = sizeof(void *);
+        else
+            NAT_NOT_YET_IMPLEMENTED("I don't yet know how to handle type %s in FFI::Pointer.new", type->inspect_str(env).c_str());
+    } else {
+        type = NilObject::the();
+        address = args.at(0);
+    }
+
     auto ptr_obj = new VoidPObject {
-        ptr,
+        (void *)address->as_integer_or_raise(env)->to_nat_int_t(),
         [](auto p) {
-            if (p->void_ptr()) {
+            Env e;
+            if (p->void_ptr() && p->ivar_get(&e, "@autorelease"_s)->is_truthy()) {
                 free(p->void_ptr());
                 p->set_void_ptr(nullptr);
             }
         }
     };
+    ptr_obj->ivar_set(env, "@autorelease"_s, FalseObject::the());
+
     self->ivar_set(env, "@ptr"_s, ptr_obj);
+    self->ivar_set(env, "@type_size"_s, Value::integer(type_size));
 
     return NilObject::the();
 }
@@ -246,21 +281,36 @@ Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
 Value FFI_Pointer_free(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto ptr = self->ivar_get(env, "@ptr"_s)->as_void_p();
-    if (ptr->void_ptr()) {
-        free(ptr->void_ptr());
-        ptr->set_void_ptr(nullptr);
-    }
+    auto ptr_obj = self->ivar_get(env, "@ptr"_s)->as_void_p();
+    auto address = ptr_obj->void_ptr();
+
+    ptr_obj->set_void_ptr(nullptr);
+    free(address);
+
     return NilObject::the();
 }
 
 Value FFI_MemoryPointer_inspect(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
-    auto ptr = self->ivar_get(env, "@ptr"_s)->as_void_p();
+    auto ptr = (void *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
     auto size = self->ivar_get(env, "@size"_s)->as_integer();
     return StringObject::format(
         "#<FFI::MemoryPointer address={} size={}>",
-        TM::String::hex((uintptr_t)ptr->void_ptr(), TM::String::HexFormat::LowercaseAndPrefixed),
+        TM::String::hex((uintptr_t)ptr, TM::String::HexFormat::LowercaseAndPrefixed),
         size->to_nat_int_t());
+}
+
+Value FFI_Pointer_is_autorelease(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto ptr_obj = self->ivar_get(env, "@ptr"_s);
+    return ptr_obj->ivar_get(env, "@autorelease"_s);
+}
+
+Value FFI_Pointer_set_autorelease(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    auto ptr_obj = self->ivar_get(env, "@ptr"_s);
+    return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0)->is_truthy()));
 }

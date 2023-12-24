@@ -22,8 +22,28 @@ module FFI
 
   class Pointer
     __bind_method__ :address, :FFI_Pointer_address
+    __bind_method__ :autorelease?, :FFI_Pointer_is_autorelease
+    __bind_method__ :autorelease=, :FFI_Pointer_set_autorelease
+    __bind_method__ :initialize, :FFI_Pointer_initialize
     __bind_method__ :read_string, :FFI_Pointer_read_string
     __bind_method__ :free, :FFI_Pointer_free
+
+    attr_reader :type_size
+
+    def null?
+      address == 0
+    end
+
+    def ==(other)
+      case other
+      when nil
+        null?
+      when Pointer
+        address == other.address
+      else
+        false
+      end
+    end
   end
 
   class MemoryPointer < Pointer

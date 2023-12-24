@@ -13,6 +13,10 @@ const char *test_char_pointer(const char *arg) {
     return arg;
 }
 
+const void *get_null() {
+    return NULL;
+}
+
 size_t test_size_t(size_t arg) {
     return arg;
 }
