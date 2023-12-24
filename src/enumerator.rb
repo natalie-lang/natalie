@@ -200,6 +200,12 @@ class Enumerator
       lazy
     end
 
+    def compact
+      Lazy.new(self, nil) do |yielder, element|
+        yielder.yield(element) unless element.nil?
+      end
+    end
+
     def drop(n)
       size = @size ? [0, @size - n].max : nil
 
