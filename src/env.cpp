@@ -304,7 +304,7 @@ Backtrace *Env::backtrace() {
     return backtrace;
 }
 
-Value Env::var_get(const char *key, size_t index) {
+Value Env::var_get(const char *name, size_t index) {
     std::lock_guard<std::mutex> lock(g_var_mutex);
 
     if (!m_vars || index >= m_vars->size())
