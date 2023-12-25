@@ -36,6 +36,9 @@ class IO
     end
 
     def readlines(path, *args, **opts, &block)
+      if path.to_s.start_with?('|')
+        raise NotImplementedError, 'no support for pipe in IO.readlines'
+      end
       mode = opts.delete(:mode) || 'r'
       chomp = opts.delete(:chomp)
       File.open(path, mode, **opts) do |io|
