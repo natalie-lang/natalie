@@ -5,7 +5,13 @@ require 'tempfile'
 require 'linenoise'
 require 'natalie/inline'
 
-HISTORY_PATH = File.join(Dir.home, 'natalie_history.txt')
+state_dir = File.join(Dir.home, '.local/state')
+if File.directory?(state_dir)
+  FileUtils.mkdir_p(File.join(state_dir, 'natalie'))
+  HISTORY_PATH = File.join(state_dir, 'natalie/history.txt')
+else
+  HISTORY_PATH = File.join(Dir.home, '.natalie_history.txt')
+end
 
 Linenoise.load_history(HISTORY_PATH)
 
