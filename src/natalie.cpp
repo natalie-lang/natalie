@@ -406,7 +406,7 @@ Env *build_top_env() {
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
 
-    Value RUBY_VERSION = new StringObject { "3.2.0" };
+    Value RUBY_VERSION = new StringObject { "3.3.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
     Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2023 Tim Morgan and contributors" };
