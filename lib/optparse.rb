@@ -141,7 +141,6 @@ class OptionParser
   end
 
   def parse!(argv = ARGV, into: {})
-    left_over = []
     matched = []
     position_argv = []
     while argv.any? && @parsing_enabled
