@@ -79,9 +79,7 @@ describe "IO#ungetc" do
       empty.should.eof?
       empty.getc.should == nil
       empty.ungetc(100)
-      NATFIXME 'Change EOF state if there is a read buffer', exception: SpecFailedException do
-        empty.should_not.eof?
-      end
+      empty.should_not.eof?
     }
   end
 

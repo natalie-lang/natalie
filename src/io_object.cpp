@@ -243,6 +243,8 @@ bool IoObject::is_eof(Env *env) {
     raise_if_closed(env);
     if (!is_readable(m_fileno))
         env->raise("IOError", "not opened for reading");
+    if (!m_read_buffer.is_empty())
+        return false;
     size_t buffer = 0;
     if (::ioctl(m_fileno, FIONREAD, &buffer) < 0)
         env->raise_errno();
