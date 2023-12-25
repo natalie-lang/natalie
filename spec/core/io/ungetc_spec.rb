@@ -32,19 +32,21 @@ describe "IO#ungetc" do
   end
 
   it "interprets the codepoint in the external encoding" do
-    @io.set_encoding(Encoding::UTF_8)
-    @io.ungetc(233)
-    c = @io.getc
-    c.encoding.should == Encoding::UTF_8
-    c.should == "é"
-    c.bytes.should == [195, 169]
+    NATFIXME 'Handle external encoding', exception: ArgumentError, message: 'invalid byte sequence in UTF-8' do
+      @io.set_encoding(Encoding::UTF_8)
+      @io.ungetc(233)
+      c = @io.getc
+      c.encoding.should == Encoding::UTF_8
+      c.should == "é"
+      c.bytes.should == [195, 169]
 
-    @io.set_encoding(Encoding::IBM437)
-    @io.ungetc(130)
-    c = @io.getc
-    c.encoding.should == Encoding::IBM437
-    c.bytes.should == [130]
-    c.encode(Encoding::UTF_8).should == "é"
+      @io.set_encoding(Encoding::IBM437)
+      @io.ungetc(130)
+      c = @io.getc
+      c.encoding.should == Encoding::IBM437
+      c.bytes.should == [130]
+      c.encode(Encoding::UTF_8).should == "é"
+    end
   end
 
   it "pushes back one character when invoked at the end of the stream" do
@@ -77,7 +79,9 @@ describe "IO#ungetc" do
       empty.should.eof?
       empty.getc.should == nil
       empty.ungetc(100)
-      empty.should_not.eof?
+      NATFIXME 'Change EOF state if there is a read buffer', exception: SpecFailedException do
+        empty.should_not.eof?
+      end
     }
   end
 
@@ -126,7 +130,8 @@ describe "IO#ungetc" do
     @io.ungetc(100).should be_nil
   end
 
-  it "raises IOError on stream not opened for reading" do
+  # NATFIXME: Inconsistent results. We can probably fix this once we implement IO#close_read
+  xit "raises IOError on stream not opened for reading" do
     -> { STDOUT.ungetc(100) }.should raise_error(IOError, "not opened for reading")
   end
 

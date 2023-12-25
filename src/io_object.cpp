@@ -804,6 +804,12 @@ Value IoObject::ungetbyte(Env *env, Value byte) {
     return NilObject::the();
 }
 
+Value IoObject::ungetc(Env *env, Value c) {
+    if (c->is_integer())
+        return ungetbyte(env, c);
+    return ungetbyte(env, c->to_str(env));
+}
+
 int IoObject::rewind(Env *env) {
     raise_if_closed(env);
     errno = 0;
