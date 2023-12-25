@@ -315,6 +315,9 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 Value ThreadObject::value(Env *env) {
     join(env);
 
+    if (m_exception)
+        env->raise_exception(m_exception);
+
     if (!m_value)
         return NilObject::the();
 
