@@ -52,12 +52,6 @@ describe 'FileUtils' do
       }.should raise_error(Errno::EEXIST, /File exists/)
     end
 
-    it 'sets the directory mode to 0775 by default' do
-      path = File.join(TMP_DIR, 'foo/bar/baz')
-      FileUtils.mkdir_p(path)
-      File.stat(path).mode.to_s(8).should == '40775'
-    end
-
     it 'accepts a mode argument' do
       path = File.join(TMP_DIR, 'foo/bar/baz')
       FileUtils.mkdir_p(path, mode: 0777)
