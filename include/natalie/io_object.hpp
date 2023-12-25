@@ -80,6 +80,7 @@ public:
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
     int pos(Env *);
     Value pread(Env *, Value, Value, Value = nullptr);
+    Value putc(Env *, Value);
     Value puts(Env *, Args);
     void puts(Env *, Value);
     void putstr(Env *, StringObject *);

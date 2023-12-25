@@ -571,6 +571,18 @@ Value IoObject::pread(Env *env, Value count, Value offset, Value out_string) {
     return new StringObject { std::move(buf) };
 }
 
+Value IoObject::putc(Env *env, Value val) {
+    raise_if_closed(env);
+    Value ord;
+    if (val->is_string()) {
+        ord = val->as_string()->ord(env);
+    } else {
+        ord = Value::integer(IntegerObject::convert_to_nat_int_t(env, val) & 0xff);
+    }
+    send(env, "write"_s, { ord->as_integer()->chr(env, nullptr) });
+    return val;
+}
+
 void IoObject::putstr(Env *env, StringObject *str) {
     String sstr = str->string();
     this->send(env, "write"_s, Args({ str }));
