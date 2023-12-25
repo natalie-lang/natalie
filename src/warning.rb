@@ -3,7 +3,8 @@ module Warning
 
   FLAGS = {
     deprecated: nil,
-    experimental: true
+    experimental: true,
+    performance: false
   }
 
   private_constant :FLAGS
