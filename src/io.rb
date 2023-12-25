@@ -19,6 +19,9 @@ class IO
     end
 
     def foreach(path, *args, **opts)
+      if path.to_s.start_with?('|')
+        raise NotImplementedError, 'no support for pipe in IO.foreach'
+      end
       return enum_for(:foreach, path, *args, **opts) unless block_given?
 
       mode = opts.delete(:mode) || 'r'
