@@ -88,9 +88,11 @@ describe "Kernel#open" do
     # https://bugs.ruby-lang.org/issues/19630
     it "warns about deprecation given a path with a pipe" do
       cmd = "|echo ok"
-      -> {
-        open(cmd) { |f| f.read }
-      }.should complain(/Kernel#open with a leading '\|'/)
+      NATFIXME 'Pipes in open', exception: NotImplementedError, message: 'no support for pipe in Kernel#open' do
+        -> {
+          open(cmd) { |f| f.read }
+        }.should complain(/Kernel#open with a leading '\|'/)
+      end
     end
   end
 
