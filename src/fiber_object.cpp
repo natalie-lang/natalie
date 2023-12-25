@@ -99,7 +99,11 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
         env->raise("TypeError", "wrong argument type {} (expected Symbol)", key->klass()->inspect_str());
     if (current()->m_storage == nullptr)
         current()->m_storage = new HashObject {};
-    current()->m_storage->refeq(env, key, value);
+    if (!value || value->is_nil()) {
+        current()->m_storage->remove(env, key);
+    } else {
+        current()->m_storage->refeq(env, key, value);
+    }
     return value;
 }
 
