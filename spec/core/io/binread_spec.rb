@@ -49,9 +49,11 @@ describe "IO.binread" do
     # https://bugs.ruby-lang.org/issues/19630
     it "warns about deprecation given a path with a pipe" do
       cmd = "|echo ok"
-      -> {
-        IO.binread(cmd)
-      }.should complain(/IO process creation with a leading '\|'/)
+      NATFIXME 'Pipes in binread', exception: NotImplementedError, message: 'no support for pipe in IO.binread' do
+        -> {
+          IO.binread(cmd)
+        }.should complain(/IO process creation with a leading '\|'/)
+      end
     end
   end
 end

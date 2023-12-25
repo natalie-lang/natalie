@@ -109,6 +109,8 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
 
 Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.binread");
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
