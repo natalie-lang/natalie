@@ -576,7 +576,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         return FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
     }
 
-    if (!length)
+    if (!length || length->is_nil())
         return ThreadObject::current()->sleep(env, -1.0);
 
     float secs;
