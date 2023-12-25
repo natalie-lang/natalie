@@ -182,7 +182,7 @@ describe "IO.read from a pipe" do
     platform_is :windows do
       cmd = "|cmd.exe /C echo hello"
     end
-    NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
+    NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
       suppress_warning do # https://bugs.ruby-lang.org/issues/19630
         IO.read(cmd).should == "hello\n"
       end
@@ -191,7 +191,7 @@ describe "IO.read from a pipe" do
 
   platform_is_not :windows do
     it "opens a pipe to a fork if the rest is -" do
-      NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
+      NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
         str = nil
         suppress_warning do # https://bugs.ruby-lang.org/issues/19630
           str = IO.read("|-")
@@ -212,7 +212,7 @@ describe "IO.read from a pipe" do
     platform_is :windows do
       cmd = "|cmd.exe /C echo hello"
     end
-    NATFIXME 'Implement pipe in IO.read', exception: Errno::ENOENT, message: 'No such file or directory' do
+    NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
       suppress_warning do # https://bugs.ruby-lang.org/issues/19630
         IO.read(cmd, 1).should == "h"
       end
@@ -221,7 +221,7 @@ describe "IO.read from a pipe" do
 
   platform_is_not :windows do
     it "raises Errno::ESPIPE if passed an offset" do
-      NATFIXME 'Implement pipe in IO.read', exception: SpecFailedException do
+      NATFIXME 'Implement pipe in IO.read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
         -> {
           suppress_warning do # https://bugs.ruby-lang.org/issues/19630
             IO.read("|sh -c 'echo hello'", 1, 1)
@@ -249,9 +249,11 @@ end
     # https://bugs.ruby-lang.org/issues/19630
     it "warns about deprecation given a path with a pipe" do
       cmd = "|echo ok"
-      -> {
-        IO.read(cmd)
-      }.should complain(/IO process creation with a leading '\|'/)
+      NATFIXME 'Pipes in read', exception: NotImplementedError, message: 'no support for pipe in IO.read' do
+        -> {
+          IO.read(cmd)
+        }.should complain(/IO process creation with a leading '\|'/)
+      end
     end
   end
 end

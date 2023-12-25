@@ -274,6 +274,8 @@ Value IoObject::read_file(Env *env, Args args) {
     const ioutil::flags_struct flags { env, nullptr, kwargs };
     if (!flags_is_readable(flags.flags()))
         env->raise("IOError", "not opened for reading");
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.read");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
