@@ -297,6 +297,8 @@ Value IoObject::write_file(Env *env, Args args) {
         mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.write");
     Args open_args { { filename, mode, kwargs }, true };
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };
