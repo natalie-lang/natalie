@@ -19,7 +19,6 @@ module Natalie
 
       def generate(transform)
         if exp.is_a?(::Prism::CallNode)
-          type = exp.type
           name = exp.name
           rest = exp.arguments&.arguments || []
         else
@@ -159,6 +158,7 @@ module Natalie
         output << '}'
         transform.top(output)
         transform.exec("self->as_module()->define_method(env, #{transform.intern(name)}, #{fn}, -1)")
+        transform.push(transform.intern(name))
       end
 
       def generate_function(transform, name, args, return_type)
