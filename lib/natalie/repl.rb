@@ -59,6 +59,8 @@ repl_num = 0
 
 @env = nil
 
+GC.disable
+
 loop do
   line = Linenoise.readline('nat> ')
   break if line.nil?
