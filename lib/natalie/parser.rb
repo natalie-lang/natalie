@@ -81,6 +81,10 @@ module Natalie
       @locals = locals
     end
 
+    def tokenize
+      Prism.lex(@code_str)
+    end
+
     def result
       @result ||= Prism.parse(@code_str, filepath: @path, scopes: [@locals])
     end

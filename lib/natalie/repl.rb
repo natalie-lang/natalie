@@ -15,6 +15,45 @@ end
 
 Linenoise.load_history(HISTORY_PATH)
 
+Linenoise.highlight_callback = lambda do |input|
+  tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
+  highlighted = ''
+  offset = 0
+
+  tokens.each do |token|
+    until offset >= token.location.start_offset
+      highlighted << ' '
+      offset += 1
+    end
+
+    case token.type
+    when :INTEGER
+      highlighted << "\e[31m#{token.value}\e[0m"
+    when /^KEYWORD_/
+      highlighted << "\e[32m#{token.value}\e[0m"
+    when :FLOAT
+      highlighted << "\e[33m#{token.value}\e[0m"
+    when :STRING_BEGIN, :STRING_CONTENT, :STRING_END
+      highlighted << "\e[34m#{token.value}\e[0m"
+    when :PARENTHESIS_LEFT, :PARENTHESIS_RIGHT,
+         :BRACE_LEFT, :BRACE_RIGHT,
+         :BRACKET_LEFT_ARRAY, :BRACKET_RIGHT_ARRAY,
+         :PLUS, :MINUS, :STAR, :SLASH, :PERCENT, :CARET, :TILDE, :BANG,
+         :COMMA, :SEMICOLON, :DOT, :COLON, :DOUBLE_COLON, :QUESTION_MARK,
+         :AMPERSAND, :AMPERSAND_AMPERSAND, :PIPE, :PIPE_PIPE
+      highlighted << "\e[35m#{token.value}\e[0m"
+    when :IDENTIFIER
+      highlighted << "\e[36m#{token.value}\e[0m"
+    else
+      highlighted << token.value
+    end
+
+    offset = token.location.end_offset
+  end
+
+  highlighted
+end
+
 vars = {}
 repl_num = 0
 
