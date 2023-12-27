@@ -559,6 +559,25 @@ describe 'method with keyword args' do
                                               /undefined method `inspect' for #<BasicObject:0x.+>/,
                                             )
     end
+
+    it 'raises an error when the class method is not defined' do
+      class Foo
+      end
+      -> { Foo.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for Foo:Class/)
+    end
+
+    it 'raises an error when the module method is not defined' do
+      module Baz
+      end
+      -> { Baz.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for Baz:Module/)
+    end
+
+    it 'raises an error when the method of a singleton object is not defined' do
+      -> { true.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for true:TrueClass/)
+      -> { false.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for false:FalseClass/)
+      -> { nil.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for nil:NilClass/)
+      -> { not_a_method() }.should raise_error(NoMethodError, /undefined method `not_a_method' for main:Object/)
+    end
   end
 
   ruby_version_is '3.3' do
@@ -573,6 +592,25 @@ describe 'method with keyword args' do
                                               NoMethodError,
                                               "undefined method `inspect' for an instance of BasicObject",
                                             )
+    end
+
+    it 'raises an error when the class method is not defined' do
+      class Foo
+      end
+      -> { Foo.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for class Foo")
+    end
+
+    it 'raises an error when the module method is not defined' do
+      module Baz
+      end
+      -> { Baz.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for module Baz")
+    end
+
+    it 'raises an error when the method of a singleton object is not defined' do
+      -> { true.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for true")
+      -> { false.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for false")
+      -> { nil.not_a_method }.should raise_error(NoMethodError, "undefined method `not_a_method' for nil")
+      -> { not_a_method() }.should raise_error(NoMethodError, "undefined method `not_a_method' for main")
     end
   end
 end
