@@ -39,8 +39,16 @@ module Natalie
           code << '}'
 
           if if_size != else_size
+            puts 'code:'
             puts code
-            raise "branch sizes uneven! #{if_size} != #{else_size}"
+            puts
+            puts 'true body:'
+            puts true_body
+            puts
+            puts 'false body:'
+            puts false_body
+            raise "IfInstruction branch sizes are uneven! #{if_size} != #{else_size}\n" \
+                  'This is a bug in the compiler. Please report it.'
           end
         end
 

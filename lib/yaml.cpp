@@ -3,7 +3,7 @@
 
 using namespace Natalie;
 
-Value init(Env *env, Value self) {
+Value init_yaml(Env *env, Value self) {
     return NilObject::the();
 }
 

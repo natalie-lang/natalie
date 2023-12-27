@@ -469,13 +469,12 @@ Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat)
 }
 
 void run_at_exit_handlers(Env *env) {
-    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array();
-    assert(at_exit_handlers);
-    for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
-        Value proc = (*at_exit_handlers)[i];
-        assert(proc);
-        assert(proc->is_proc());
-        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), {}, nullptr);
+    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array_or_raise(env);
+
+    Value proc;
+    while (!(proc = at_exit_handlers->pop())->is_nil()) {
+        if (proc->is_proc())
+            NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), {}, nullptr);
     }
 }
 

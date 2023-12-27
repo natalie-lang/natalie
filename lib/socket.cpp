@@ -12,7 +12,7 @@
 
 using namespace Natalie;
 
-Value init(Env *env, Value self) {
+Value init_socket(Env *env, Value self) {
     return NilObject::the();
 }
 

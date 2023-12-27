@@ -40,7 +40,7 @@ Value passwd_to_struct(Env *env, Value self, struct passwd *pwd) {
     return pwdstruct;
 }
 
-Value init(Env *env, Value self) {
+Value init_etc(Env *env, Value self) {
     return NilObject::the();
 }
 

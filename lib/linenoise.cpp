@@ -178,7 +178,7 @@ Value Linenoise_set_multi_line(Env *env, Value self, Args args, Block *) {
     return bool_object(enabled);
 }
 
-Value init(Env *env, Value self) {
+Value init_linenoise(Env *env, Value self) {
     auto Linenoise = new ModuleObject { "Linenoise" };
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 

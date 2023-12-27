@@ -4,7 +4,7 @@
 
 using namespace Natalie;
 
-Value init(Env *env, Value self) {
+Value init_zlib(Env *env, Value self) {
     return NilObject::the();
 }
 

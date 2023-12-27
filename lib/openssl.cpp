@@ -444,7 +444,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<const char *>(out), outlen };
 }
 
-Value init(Env *env, Value self) {
+Value init_openssl(Env *env, Value self) {
     OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
 
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);

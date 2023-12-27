@@ -5,7 +5,7 @@
 
 using namespace Natalie;
 
-Value init(Env *env, Value self) {
+Value init_ffi(Env *env, Value self) {
     return NilObject::the();
 }
 
@@ -170,9 +170,13 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     dlerror(); // clear any previous error
     auto fn = dlsym(handle, name->string().c_str());
     auto error = dlerror();
-    if (error) {
+    if (error || !fn) {
         auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s })->as_class();
-        auto message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
+        Value message;
+        if (error)
+            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
+        else
+            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib->send(env, "name"_s)->as_string());
         auto exception = NotFoundError->send(env, "new"_s, { message })->as_exception();
         env->raise_exception(exception);
     }
@@ -220,6 +224,11 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
     }
 
     return new StringObject { (char *)address };
+}
+
+Value FFI_Pointer_to_obj(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return (Object *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
 }
 
 Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
@@ -313,4 +322,10 @@ Value FFI_Pointer_set_autorelease(Env *env, Value self, Args args, Block *) {
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
     return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0)->is_truthy()));
+}
+
+Value Object_to_ptr(Env *env, Value self, Args args, Block *) {
+    auto address = Value::integer((nat_int_t)self.object());
+    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s });
+    return Pointer.send(env, "new"_s, { address });
 }

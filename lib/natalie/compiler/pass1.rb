@@ -444,6 +444,7 @@ module Natalie
             end
           end
           instructions << InlineCppInstruction.new(node)
+          instructions << PopInstruction.new unless used
           return instructions
         end
 

@@ -237,13 +237,9 @@ module Natalie
         return false_node if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
-        init_function = "Value init(Env *env, Value self)"
-        transformed_init_function = "Value init_#{name}(Env *env, Value self)"
-        if cpp_source.include?(init_function);
-          cpp_source.sub!(init_function, transformed_init_function)
-        else
-          $stderr.puts "Expected #{path} to contain function: `#{init_function}`\n" \
-                       "...which will be rewritten to: `#{transformed_init_function}`"
+        init_function = "Value init_#{name}(Env *env, Value self)"
+        unless cpp_source.include?(init_function)
+          puts "Expected #{path} to contain function: `#{init_function}`"
           raise CompileError, "could not load #{name}"
         end
         ::Prism::StatementsNode.new(
