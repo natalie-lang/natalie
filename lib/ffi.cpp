@@ -169,9 +169,13 @@ Value FFI_Library_attach_function(Env *env, Value self, Args args, Block *) {
     dlerror(); // clear any previous error
     auto fn = dlsym(handle, name->string().c_str());
     auto error = dlerror();
-    if (error) {
+    if (error || !fn) {
         auto NotFoundError = fetch_nested_const({ "FFI"_s, "NotFoundError"_s })->as_class();
-        auto message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
+        Value message;
+        if (error)
+            message = StringObject::format("Function '{}' not found in [{}]", name->string(), lib->send(env, "name"_s)->as_string());
+        else
+            message = StringObject::format("Function '{}' not found in [{}] (unknown error)", name->string(), lib->send(env, "name"_s)->as_string());
         auto exception = NotFoundError->send(env, "new"_s, { message })->as_exception();
         env->raise_exception(exception);
     }
