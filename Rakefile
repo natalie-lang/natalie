@@ -494,7 +494,7 @@ end
 
 file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnatalie.a'] do |t|
   sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/natalie.rb'
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -DNAT_OBJECT_FILE -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
      "-o #{t.name} build/libnat.rb.cpp build/libnatalie.a"
 end
 

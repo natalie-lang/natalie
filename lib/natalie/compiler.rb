@@ -129,14 +129,13 @@ module Natalie
 
       main_file = LoadedFile.new(path: @path, encoding: @encoding)
 
-      keep_final_value_on_stack = options[:interpret]
       instructions = Pass1.new(
         ast,
         compiler_context: @context,
         macro_expander:   macro_expander,
         loaded_file:      main_file,
       ).transform(
-        used: keep_final_value_on_stack
+        used: true
       )
       if debug == 'p1'
         Pass1.debug_instructions(instructions)

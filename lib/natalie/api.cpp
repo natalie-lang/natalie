@@ -2,9 +2,17 @@
 
 using namespace Natalie;
 
-extern void init_libnat(Env *env, Value self);
+#ifdef NAT_OBJECT_FILE
+// This gets redefined just a bit later by `bin/natalie --write-obj` (see obj_unit.cpp).
+Value init_libnat(Env *env, Value self);
+#else
+Value init_libnat(Env *env, Value self) {
+    return NilObject::the();
+}
+#endif
 
-void init_api(Env *env, Value self) {
+Value init_api(Env *env, Value self) {
+    return NilObject::the();
 }
 
 extern "C" {

@@ -12,7 +12,8 @@
 
 using namespace Natalie;
 
-void init_socket(Env *env, Value self) {
+Value init_socket(Env *env, Value self) {
+    return NilObject::the();
 }
 
 Value Socket_const_name_to_i(Env *env, Value self, Args args, Block *) {

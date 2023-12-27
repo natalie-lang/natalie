@@ -128,7 +128,7 @@ module Natalie
           symbols:          @symbols,
           inline_functions: @inline_functions,
         )
-        transform.transform
+        transform.transform('return')
       end
 
       def merge_cpp_with_template(string_of_cpp)
@@ -279,7 +279,7 @@ module Natalie
       end
 
       def object_file_declarations
-        object_files.map { |name| "void init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
+        object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
       end
 
       def symbols_declaration

@@ -3,7 +3,8 @@
 
 using namespace Natalie;
 
-void init_yaml(Env *env, Value self) {
+Value init_yaml(Env *env, Value self) {
+    return NilObject::the();
 }
 
 static void emit(Env *env, yaml_emitter_t &emitter, yaml_event_t &event) {

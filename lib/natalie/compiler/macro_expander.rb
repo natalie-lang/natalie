@@ -237,7 +237,7 @@ module Natalie
         return false_node if @compiler_context[:required_cpp_files][path]
         @compiler_context[:required_cpp_files][path] = name
         cpp_source = File.read(path)
-        init_function = "void init_#{name}(Env *env, Value self)"
+        init_function = "Value init_#{name}(Env *env, Value self)"
         unless cpp_source.include?(init_function)
           puts "Expected #{path} to contain function: `#{init_function}`"
           raise CompileError, "could not load #{name}"

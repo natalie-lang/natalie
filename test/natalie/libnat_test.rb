@@ -64,8 +64,6 @@ describe 'libnat.so' do
       env_var = fetch_nested_const({ "FFI"_s, "Pointer"_s }).send(env, "new"_s, { Value::integer((uintptr_t)env) });
     END
     result = library.EVAL(env).to_obj
-    NATFIXME 'last value on stack not getting returned', exception: SpecFailedException do
-      result.should == 3
-    end
+    result.should == 3
   end
 end

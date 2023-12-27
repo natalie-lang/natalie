@@ -4,7 +4,8 @@
 
 using namespace Natalie;
 
-void init_zlib(Env *env, Value self) {
+Value init_zlib(Env *env, Value self) {
+    return NilObject::the();
 }
 
 void Zlib_stream_cleanup(VoidPObject *self) {

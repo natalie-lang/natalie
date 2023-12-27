@@ -5,7 +5,8 @@
 
 using namespace Natalie;
 
-void init_ffi(Env *env, Value self) {
+Value init_ffi(Env *env, Value self) {
+    return NilObject::the();
 }
 
 Value FFI_Library_ffi_lib(Env *env, Value self, Args args, Block *) {

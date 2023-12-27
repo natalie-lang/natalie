@@ -178,7 +178,7 @@ Value Linenoise_set_multi_line(Env *env, Value self, Args args, Block *) {
     return bool_object(enabled);
 }
 
-void init_linenoise(Env *env, Value self) {
+Value init_linenoise(Env *env, Value self) {
     auto Linenoise = new ModuleObject { "Linenoise" };
     GlobalEnv::the()->Object()->const_set("Linenoise"_s, Linenoise);
 
@@ -195,4 +195,6 @@ void init_linenoise(Env *env, Value self) {
     Linenoise->define_singleton_method(env, "multi_line="_s, Linenoise_set_multi_line, 1);
     Linenoise->define_singleton_method(env, "readline"_s, Linenoise_readline, 1);
     Linenoise->define_singleton_method(env, "save_history"_s, Linenoise_save_history, 1);
+
+    return NilObject::the();
 }
