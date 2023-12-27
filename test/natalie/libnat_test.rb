@@ -15,10 +15,7 @@ module LibNat
   attach_function :new_compiler, %i[pointer pointer pointer], :pointer
 
   def self.init
-    env = nil
-    __inline__ <<~END
-      env_var = fetch_nested_const({ "FFI"_s, "Pointer"_s }).send(env, "new"_s, { Value::integer((uintptr_t)env) });
-    END
+    env = FFI::Pointer.from_env
     init_libnat2(env, FFI::Pointer.new(:pointer, self.object_id))
   end
 
@@ -59,10 +56,7 @@ describe 'libnat.so' do
       attach_function :EVAL, [:pointer], :pointer
     end
 
-    env = nil
-    __inline__ <<~END
-      env_var = fetch_nested_const({ "FFI"_s, "Pointer"_s }).send(env, "new"_s, { Value::integer((uintptr_t)env) });
-    END
+    env = FFI::Pointer.from_env
     result = library.EVAL(env).to_obj
     result.should == 3
   end

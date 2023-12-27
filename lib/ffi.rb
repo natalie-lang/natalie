@@ -29,6 +29,15 @@ module FFI
     __bind_method__ :read_string, :FFI_Pointer_read_string
     __bind_method__ :to_obj, :FFI_Pointer_to_obj
 
+    def self.from_env
+      ptr = nil
+      __inline__ <<~END
+        auto e = env->caller();
+        ptr_var = self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
+      END
+      ptr
+    end
+
     attr_reader :type_size
 
     def null?
