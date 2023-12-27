@@ -38,6 +38,7 @@ task :clean do
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf "build/libnatalie_base.#{DL_EXT}"
+  rm_rf "build/libnat.#{SO_EXT}"
   rm_rf Rake::FileList['build/*.o']
 end
 
@@ -196,7 +197,7 @@ task test_parallel: :build do
 end
 
 desc 'Build the self-hosted version of Natalie at bin/nat'
-task bootstrap: [:build, 'bin/nat']
+task bootstrap: [:build, "build/libnat.#{SO_EXT}", 'bin/nat']
 
 desc 'Build MRI C Extension for Prism'
 task prism_c_ext: ["build/libprism.#{SO_EXT}", "build/prism/ext/prism/prism.#{DL_EXT}"]
@@ -390,7 +391,10 @@ task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
 end
 
-task build_test_support: "build/test/support/ffi_stubs.#{SO_EXT}"
+task build_test_support: [
+  "build/libnat.#{SO_EXT}",
+  "build/test/support/ffi_stubs.#{SO_EXT}",
+]
 
 multitask primary_objects: PRIMARY_OBJECT_FILES
 multitask ruby_objects: RUBY_OBJECT_FILES
@@ -486,6 +490,12 @@ end
 
 file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
   sh 'bin/natalie -c bin/nat bin/natalie'
+end
+
+file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnatalie.a'] do |t|
+  sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/natalie.rb'
+  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
+     "-o #{t.name} build/libnat.rb.cpp build/libnatalie.a"
 end
 
 rule '.c.o' => 'src/%n' do |t|

@@ -156,12 +156,10 @@ module Natalie
       end
 
       def obj_name
-        # FIXME: I don't like that this method "knows" how to ignore the build/generated directory
-        # Maybe we need another arg to specify the init name...
         @compiler
           .write_obj_path
           .sub(/\.rb\.cpp/, '')
-          .sub(%r{.*build/generated/}, '')
+          .sub(%r{.*build/(generated/)?}, '')
           .tr('/', '_')
       end
 

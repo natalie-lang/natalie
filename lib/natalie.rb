@@ -6,3 +6,7 @@ unless RUBY_ENGINE == 'natalie'
   # FIXME
   require_relative 'natalie/repl/main'
 end
+
+if RUBY_ENGINE == 'natalie'
+  require_relative 'natalie/api'
+end
