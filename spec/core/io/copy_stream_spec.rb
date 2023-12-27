@@ -279,7 +279,7 @@ describe "IO.copy_stream" do
     end
 
     it "calls #readpartial on the source Object if defined" do
-      NATFIXME 'Implement IO#readpartial', exception: NoMethodError, message: "undefined method `readpartial'" do
+      NATFIXME 'Implement IO#readpartial', exception: NoMethodError, message: "undefined method `readpartial' for an instance of File" do
         from = IOSpecs::CopyStreamReadPartial.new @io
 
         IO.copy_stream(from, @to_name)
@@ -340,7 +340,7 @@ end
 
 describe "IO.copy_stream" do
   it "does not use buffering when writing to STDOUT" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
       IO.popen([*ruby_exe, fixture(__FILE__ , "copy_in_out.rb")], "r+") do |io|
         io.write("bar")
         io.read(3).should == "bar"

@@ -209,7 +209,7 @@ describe "String#gsub with pattern and replacement" do
 
   it "sets $~ to MatchData of last match and nil when there's none" do
     'hello.'.gsub('hello', 'x')
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil:NilClass" do
+    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `[]' for nil" do
       $~[0].should == 'hello'
 
       'hello.'.gsub('not', 'x')
@@ -425,7 +425,7 @@ describe "String#gsub with pattern and block" do
 
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
     'hello.'.gsub('l') { 'x' }
-    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `begin' for nil:NilClass" do
+    NATFIXME 'Implement $~', exception: NoMethodError, message: "undefined method `begin' for nil" do
       $~.begin(0).should == 3
       $~[0].should == 'l'
 

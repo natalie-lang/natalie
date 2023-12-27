@@ -33,7 +33,7 @@ platform_is_not :windows do
     end
 
     after :each do
-      NATFIXME 'UNIXServer', exception: NoMethodError, message: 'for nil:NilClass' do
+      NATFIXME 'UNIXServer', exception: NoMethodError, message: 'for nil' do
         @server.close
       end
       rm_r @name
