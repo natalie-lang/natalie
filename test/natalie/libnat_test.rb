@@ -59,5 +59,7 @@ describe 'libnat.so' do
     env = FFI::Pointer.from_env
     result = library.EVAL(env).to_obj
     result.should == 3
+  ensure
+    File.unlink(temp_path)
   end
 end
