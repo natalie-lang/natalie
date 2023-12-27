@@ -281,7 +281,7 @@ module Natalie
       end
 
       def object_file_declarations
-        object_files.map { |name| "Value init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
+        object_files.map { |name| "void init_#{name.tr('/', '_')}(Env *env, Value self);" }.join("\n")
       end
 
       def symbols_declaration

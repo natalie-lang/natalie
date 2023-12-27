@@ -444,7 +444,7 @@ Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
     return new StringObject { reinterpret_cast<const char *>(out), outlen };
 }
 
-Value init(Env *env, Value self) {
+void init_openssl(Env *env, Value self) {
     OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, nullptr);
 
     auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
@@ -510,8 +510,6 @@ Value init(Env *env, Value self) {
     }
     KDF->define_singleton_method(env, "pbkdf2_hmac"_s, OpenSSL_KDF_pbkdf2_hmac, -1);
     KDF->define_singleton_method(env, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
-
-    return NilObject::the();
 }
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
