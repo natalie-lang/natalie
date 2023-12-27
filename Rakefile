@@ -494,7 +494,10 @@ end
 
 file "build/libnat.#{SO_EXT}" => SOURCES + ['lib/natalie/api.cpp', 'build/libnatalie.a'] do |t|
   sh 'bin/natalie --write-obj build/libnat.rb.cpp lib/natalie.rb'
-  sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -DNAT_OBJECT_FILE -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
+  if system("pkg-config --exists libffi")
+    flags = `pkg-config --cflags --libs libffi`.chomp
+  end
+  sh "#{cxx} #{cxx_flags.join(' ')} #{flags} -std=#{STANDARD} -DNAT_OBJECT_FILE -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup " \
      "-o #{t.name} build/libnat.rb.cpp build/libnatalie.a"
 end
 
