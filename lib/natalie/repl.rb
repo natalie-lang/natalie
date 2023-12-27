@@ -1,9 +1,23 @@
-require_relative '../natalie'
-require 'fiddle'
+require 'ffi'
 require 'fileutils'
-require 'tempfile'
 require 'linenoise'
 require 'natalie/inline'
+require 'tempfile'
+
+module LibNat
+  extend FFI::Library
+  ffi_lib "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
+
+  attach_function :init_libnat2, %i[pointer pointer], :pointer
+  attach_function :new_parser, %i[pointer pointer pointer], :pointer
+  attach_function :new_compiler, %i[pointer pointer pointer], :pointer
+
+  def self.init
+    env = FFI::Pointer.from_env
+    self_ptr = to_ptr
+    init_libnat2(env, self_ptr)
+  end
+end
 
 state_dir = File.join(Dir.home, '.local/state')
 if File.directory?(state_dir)
@@ -61,6 +75,8 @@ repl_num = 0
 
 GC.disable
 
+LibNat.init
+
 loop do
   line = Linenoise.readline('nat> ')
   break if line.nil?
@@ -70,7 +86,8 @@ loop do
   Linenoise.add_history(line)
 
   source_path = '(repl)'
-  parser = Natalie::Parser.new(line.strip, source_path, locals: vars.keys)
+  locals = vars.keys
+  parser = LibNat.new_parser(line.strip.to_ptr, source_path.to_ptr, locals.to_ptr).to_obj
   ast = begin
     parser.ast
   rescue Natalie::Parser::ParseError => e
@@ -79,7 +96,7 @@ loop do
     next
   end
 
-  compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: parser.encoding)
+  compiler = LibNat.new_compiler(ast.to_ptr, source_path.to_ptr, parser.encoding.to_ptr).to_obj
   compiler.repl = true
   compiler.repl_num = (repl_num += 1)
   compiler.vars = vars
@@ -97,27 +114,12 @@ loop do
     attach_function :EVAL, [:pointer], :pointer
   end
 
-  ffi_ptr_class = FFI::Pointer
-  result = nil
-  error = false
-  __inline__ <<~END
-    auto env_ptr = self->ivar_get(env, "@env"_s);
-    if (env_ptr->is_nil()) {
-        auto e = new Env { env };
-        env_ptr = ffi_ptr_class_var.send(env, "new"_s, { "pointer"_s, Value::integer((uintptr_t)e) });
-        self->ivar_set(env, "@env"_s, env_ptr);
-    }
-    auto result = library_var.public_send(env, "EVAL"_s, { env_ptr });
-    if (result.public_send(env, "null?"_s)->is_truthy()) {
-        result_var = NilObject::the();
-        error_var = TrueObject::the();
-    } else {
-        result_var = (Object *)result.send(env, "address"_s)->as_integer()->to_nat_int_t();
-        error_var = FalseObject::the();
-    }
-  END
+  env = FFI::Pointer.from_env
+  result_ptr = library.EVAL(env)
 
-  p result unless error
+  unless result_ptr.null?
+    p result_ptr.to_obj
+  end
 
   File.unlink(temp.path)
 end
