@@ -8,14 +8,12 @@ module LibNat
   extend FFI::Library
   ffi_lib "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
 
-  attach_function :init_libnat2, %i[pointer pointer], :pointer
-  attach_function :new_parser, %i[pointer pointer pointer], :pointer
-  attach_function :new_compiler, %i[pointer pointer pointer], :pointer
+  attach_function :libnat_init, %i[pointer pointer], :pointer
 
   def self.init
     env = FFI::Pointer.from_env
     self_ptr = to_ptr
-    init_libnat2(env, self_ptr)
+    libnat_init(env, self_ptr)
   end
 end
 
@@ -86,8 +84,7 @@ loop do
   Linenoise.add_history(line)
 
   source_path = '(repl)'
-  locals = vars.keys
-  parser = LibNat.new_parser(line.strip.to_ptr, source_path.to_ptr, locals.to_ptr).to_obj
+  parser = Natalie::Parser.new(line.strip, source_path, locals: vars.keys)
   ast = begin
     parser.ast
   rescue Natalie::Parser::ParseError => e
@@ -96,7 +93,7 @@ loop do
     next
   end
 
-  compiler = LibNat.new_compiler(ast.to_ptr, source_path.to_ptr, parser.encoding.to_ptr).to_obj
+  compiler = Natalie::Compiler.new(ast: ast, path: source_path, encoding: parser.encoding)
   compiler.repl = true
   compiler.repl_num = (repl_num += 1)
   compiler.vars = vars
