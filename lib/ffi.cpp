@@ -225,6 +225,11 @@ Value FFI_Pointer_read_string(Env *env, Value self, Args args, Block *) {
     return new StringObject { (char *)address };
 }
 
+Value FFI_Pointer_to_obj(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return (Object *)self.send(env, "address"_s)->as_integer_or_raise(env)->to_nat_int_t();
+}
+
 Value FFI_MemoryPointer_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
 
@@ -316,4 +321,10 @@ Value FFI_Pointer_set_autorelease(Env *env, Value self, Args args, Block *) {
 
     auto ptr_obj = self->ivar_get(env, "@ptr"_s);
     return ptr_obj->ivar_set(env, "@autorelease"_s, bool_object(args.at(0)->is_truthy()));
+}
+
+Value Object_to_ptr(Env *env, Value self, Args args, Block *) {
+    auto address = Value::integer((nat_int_t)self.object());
+    auto Pointer = fetch_nested_const({ "FFI"_s, "Pointer"_s });
+    return Pointer.send(env, "new"_s, { address });
 }
