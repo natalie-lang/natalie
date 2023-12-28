@@ -7,6 +7,7 @@ namespace {
         const MatchDataObject *match_data_object;
         Env *env;
         HashObject *named_captures;
+        bool symbolize_names;
     };
 };
 
@@ -254,12 +255,12 @@ Value MatchDataObject::match_length(Env *env, Value index) {
     return match->as_string()->size(env);
 }
 
-Value MatchDataObject::named_captures(Env *env) const {
+Value MatchDataObject::named_captures(Env *env, Value symbolize_names) const {
     if (!m_regexp)
         return new HashObject {};
 
     auto named_captures = new HashObject {};
-    named_captures_data data { this, env, named_captures };
+    named_captures_data data { this, env, named_captures, symbolize_names && symbolize_names->is_truthy() };
     onig_foreach_name(
         m_regexp->m_regex,
         [](const UChar *name, const UChar *name_end, int groups_size, int *groups, regex_t *regex, void *data) -> int {
@@ -267,7 +268,12 @@ Value MatchDataObject::named_captures(Env *env) const {
             auto env = (static_cast<named_captures_data *>(data))->env;
             auto named_captures = (static_cast<named_captures_data *>(data))->named_captures;
             const size_t length = name_end - name;
-            auto key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
+            Value key;
+            if ((static_cast<named_captures_data *>(data))->symbolize_names) {
+                key = SymbolObject::intern(reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc));
+            } else {
+                key = new StringObject { reinterpret_cast<const char *>(name), length, RegexpObject::onig_encoding_to_ruby_encoding(regex->enc) };
+            }
             Value value = NilObject::the();
             for (int i = groups_size - 1; i >= 0; i--) {
                 auto v = match_data_object->group(groups[i]);
