@@ -30,12 +30,17 @@ module FFI
     __bind_method__ :to_obj, :FFI_Pointer_to_obj
 
     def self.from_env
-      ptr = nil
       __inline__ <<~END
         auto e = env->caller();
-        ptr_var = self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
+        return self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
       END
-      ptr
+    end
+
+    def self.new_env
+      __inline__ <<~END
+        auto e = new Env { env->caller() };
+        return self.send(env, "new"_s, { Value::integer((uintptr_t)e) });
+      END
     end
 
     attr_reader :type_size

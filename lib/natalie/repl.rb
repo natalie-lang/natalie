@@ -111,8 +111,8 @@ loop do
     attach_function :EVAL, [:pointer], :pointer
   end
 
-  env = FFI::Pointer.from_env
-  result_ptr = library.EVAL(env)
+  @env ||= FFI::Pointer.new_env
+  result_ptr = library.EVAL(@env)
 
   unless result_ptr.null?
     p result_ptr.to_obj
