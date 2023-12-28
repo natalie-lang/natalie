@@ -35,6 +35,7 @@ describe 'REPL' do
     expect('def bar; 3; end').must_output(':bar')
     expect('foo = foo').must_output('nil') # does NOT call the function
     expect('foo = bar').must_output('3') # DOES call the function
+    expect('[1,2,3].to_enum.each {}').must_output('[1, 2, 3]')
     @repl.quit
   end
 
