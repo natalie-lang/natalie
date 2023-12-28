@@ -13,30 +13,28 @@ describe "TCPServer#accept" do
 
   it "accepts a connection and returns a TCPSocket" do
     data = nil
-    NATFIXME 'Threads', exception: NoMethodError, message: "undefined method `shutdown'" do
-      t = Thread.new do
-        begin
-          client = @server.accept
-        rescue Errno::ECONNABORTED
-          # NATFIXME: NoMethodError below causes ECONNABORTED
-          puts 'stream closed in another thread'
-        else
-          client.should be_kind_of(TCPSocket)
-          data = client.read(5)
-          client << "goodbye"
-          client.close
-        end
+    t = Thread.new do
+      begin
+        client = @server.accept
+      rescue Errno::ECONNABORTED
+        # NATFIXME: NoMethodError below causes ECONNABORTED
+        puts 'stream closed in another thread'
+      else
+        client.should be_kind_of(TCPSocket)
+        data = client.read(5)
+        client << "goodbye"
+        client.close
       end
-      Thread.pass while t.status and t.status != "sleep"
-
-      socket = TCPSocket.new('127.0.0.1', @port)
-      socket.write('hello')
-      socket.shutdown(1) # we are done with sending
-      socket.read.should == 'goodbye'
-      t.join
-      data.should == 'hello'
-      socket.close
     end
+    Thread.pass while t.status and t.status != "sleep"
+
+    socket = TCPSocket.new('127.0.0.1', @port)
+    socket.write('hello')
+    socket.shutdown(1) # we are done with sending
+    socket.read.should == 'goodbye'
+    t.join
+    data.should == 'hello'
+    socket.close
   end
 
   it "can be interrupted by Thread#kill" do

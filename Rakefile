@@ -229,7 +229,8 @@ end
 desc 'Generate tags file for development'
 task :ctags do
   if system('which ctags 2>&1 >/dev/null')
-    sh "ctags #{HEADERS + SOURCES}"
+    out = `ctags #{HEADERS + SOURCES} 2>&1`
+    puts out unless $?.success?
   else
     puts 'Note: ctags is not available on this system'
   end
