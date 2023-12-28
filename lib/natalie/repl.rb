@@ -47,13 +47,6 @@ Linenoise.highlight_callback = lambda do |input|
       highlighted << "\e[33m#{token.value}\e[0m"
     when :STRING_BEGIN, :STRING_CONTENT, :STRING_END
       highlighted << "\e[34m#{token.value}\e[0m"
-    when :PARENTHESIS_LEFT, :PARENTHESIS_RIGHT,
-         :BRACE_LEFT, :BRACE_RIGHT,
-         :BRACKET_LEFT_ARRAY, :BRACKET_RIGHT_ARRAY,
-         :PLUS, :MINUS, :STAR, :SLASH, :PERCENT, :CARET, :TILDE, :BANG,
-         :COMMA, :SEMICOLON, :DOT, :COLON, :DOUBLE_COLON, :QUESTION_MARK,
-         :AMPERSAND, :AMPERSAND_AMPERSAND, :PIPE, :PIPE_PIPE
-      highlighted << "\e[35m#{token.value}\e[0m"
     when :IDENTIFIER
       highlighted << "\e[36m#{token.value}\e[0m"
     else
