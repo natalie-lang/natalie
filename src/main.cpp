@@ -54,14 +54,18 @@ void sigint_handler(int sig) {
     }
 }
 
-void trap_sigint() {
+void sigpipe_handler(int unused) {
+    // TODO: do something here?
+}
+
+void trap_signal(int signal, void (*handler)(int)) {
     struct sigaction sa;
-    sa.sa_handler = sigint_handler;
+    sa.sa_handler = handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
 
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        printf("Failed to trap SIGINT\n");
+    if (sigaction(signal, &sa, nullptr) == -1) {
+        printf("Failed to trap %d\n", signal);
         exit(1);
     }
 }
@@ -76,7 +80,8 @@ int main(int argc, char *argv[]) {
     Env *env = ::build_top_env();
     ThreadObject::build_main_thread(__builtin_frame_address(0));
 
-    trap_sigint();
+    trap_signal(SIGINT, sigint_handler);
+    trap_signal(SIGPIPE, sigpipe_handler);
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
