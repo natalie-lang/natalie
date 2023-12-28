@@ -59,8 +59,28 @@ Linenoise.highlight_callback = lambda do |input|
   highlighted
 end
 
+KEYWORDS = %w[__ENCODING__ __LINE__ __FILE__ BEGIN END alias and begin break case class def defined? do else
+              elsif end ensure false for if in module next nil not or redo rescue retry return self super
+              then true undef unless until when while yield].freeze
+
 vars = {}
 repl_num = 0
+
+Linenoise.completion_callback = lambda do |input|
+  tokens = Natalie::Parser.new(input, '(repl)').tokenize.value.map(&:first)
+  tokens.pop if tokens.last.type == :EOF
+  token = tokens.last
+  locals = vars.keys.map(&:to_s)
+  completions = []
+  if token.type == :IDENTIFIER
+    (KEYWORDS + locals).each do |word|
+      if word.start_with?(token.value) && word != token.value
+        completions << input + word[token.value.length..]
+      end
+    end
+  end
+  completions
+end
 
 @env = nil
 
