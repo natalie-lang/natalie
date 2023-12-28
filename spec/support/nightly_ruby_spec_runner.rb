@@ -130,6 +130,11 @@ stats = {
 }
 p stats.reject { |k, _| k == "Details" }
 
+unless ENV['STATS_API_SECRET'].to_s.size > 0
+  puts "No STATS_API_SECRET set, not sending stats to server"
+  exit
+end
+
 uri = URI('https://stats.natalie-lang.org/stats')
 p uri
 https = Net::HTTP.new(uri.host, uri.port)
