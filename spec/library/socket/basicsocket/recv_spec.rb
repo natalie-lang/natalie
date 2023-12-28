@@ -51,15 +51,13 @@ describe "BasicSocket#recv" do
       Thread.pass while t.status and t.status != "sleep"
       t.status.should_not be_nil
 
-      NATFIXME 'Socket#shutdown', exception: NoMethodError, message: "undefined method `shutdown'" do
-        #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
-        socket = Socket.tcp('127.0.0.1', @port)
-        socket.send('helloU', Socket::MSG_OOB)
-        socket.shutdown(1)
-        t.join
-        socket.close
-        ScratchPad.recorded.should == 'hello'
-      end
+      #socket = TCPSocket.new('127.0.0.1', @port) # NATFIXME: TCPSocket.new blocks
+      socket = Socket.tcp('127.0.0.1', @port)
+      socket.send('helloU', Socket::MSG_OOB)
+      socket.shutdown(1)
+      t.join
+      socket.close
+      ScratchPad.recorded.should == 'hello'
     end
   end
 
