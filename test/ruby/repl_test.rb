@@ -12,8 +12,8 @@ class ReplWrapper
     @in.puts input
   end
 
-  def out
-    @out.read.strip
+  def readline
+    @out.readline
   end
 
   def quit
@@ -22,45 +22,27 @@ class ReplWrapper
 end
 
 describe 'REPL' do
-  if NAT_BINARY == 'bin/nat'
-    it 'can execute expressions and affect the environment' do
-      skip
-    end
-  else
-    it 'can execute expressions and affect the environment' do
-      execute(NAT_BINARY)
-    end
-  end
-
-  def execute(cmd)
-    @repl = ReplWrapper.new(cmd)
-    @repl.execute('x = 100')
-    @repl.execute('y = 3 * 4')
-    @repl.execute('@z = "z"')
-    @repl.execute('x')
-    @repl.execute('[y, @z]')
-    @repl.execute('self')
-    @repl.execute('def foo; 2; end')
-    @repl.execute('def bar; 3; end')
-    @repl.execute('foo = foo') # does NOT call the function
-    @repl.execute('foo = bar') # DOES call the function
+  it 'can execute expressions and affect the environment' do
+    @repl = ReplWrapper.new(NAT_BINARY)
+    expect('x = 100').must_output('100')
+    expect('x = 100').must_output('100')
+    expect('y = 3 * 4').must_output('12')
+    expect('@z = "z"').must_output('"z"')
+    expect('x').must_output('100')
+    expect('[y, @z]').must_output('[12, "z"]')
+    expect('self').must_output('main')
+    expect('def foo; 2; end').must_output(':foo')
+    expect('def bar; 3; end').must_output(':bar')
+    expect('foo = foo').must_output('nil') # does NOT call the function
+    expect('foo = bar').must_output('3') # DOES call the function
+    expect('[1,2,3].to_enum.each {}').must_output('[1, 2, 3]')
     @repl.quit
-    expect(@repl.out).must_equal dedent(<<-EOF)
-      nat> 100
-      nat> 12
-      nat> "z"
-      nat> 100
-      nat> [12, "z"]
-      nat> main
-      nat> :foo
-      nat> :bar
-      nat> nil
-      nat> 3
-      nat>
-    EOF
   end
 
-  def dedent(str)
-    str.split(/\n/).map(&:strip).join("\n")
+  def assert_repl_output(expected_output, input)
+    @repl.execute(input)
+    assert_equal expected_output, @repl.readline.strip
   end
+
+  String.infect_an_assertion :assert_repl_output, :must_output
 end

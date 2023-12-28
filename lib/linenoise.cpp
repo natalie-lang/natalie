@@ -77,7 +77,7 @@ static void completion_callback(const char *edit_buffer, linenoiseCompletions *c
     auto env = proc->env();
     auto ary = proc->send(env, "call"_s, { edit_buffer_string })->as_array_or_raise(env);
     for (auto &completion : *ary)
-        linenoiseAddCompletion(completions, completion->as_string()->c_str());
+        linenoiseAddCompletion(completions, completion->as_string_or_raise(env)->c_str());
 }
 
 Value Linenoise_set_completion_callback(Env *env, Value self, Args args, Block *) {

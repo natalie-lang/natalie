@@ -144,10 +144,7 @@ class Runner
 
   def run
     load_code
-    if @repl
-      repl = Natalie::REPL.new
-      repl.go(options)
-    elsif options[:ast]
+    if options[:ast]
       require 'pp'
       pp parser.ast
     elsif options[:compile] && options[:bytecode]
@@ -296,7 +293,8 @@ class Runner
       raise 'Expected a Ruby script, but none was given.'
     else
       @repl = true
-      @source_path = '.'
+      @source_path = File.expand_path('../lib/natalie/repl.rb', __dir__)
+      @code = File.read(source_path)
     end
     if options[:warnings] && !@code.nil?
       @code = '$VERBOSE = true' + "\n" + @code

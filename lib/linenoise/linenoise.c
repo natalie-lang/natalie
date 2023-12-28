@@ -743,7 +743,7 @@ int linenoiseEditInsert(struct linenoiseState *l, char c) {
             l->pos++;
             l->len++;
             l->buf[l->len] = '\0';
-            if ((!mlmode && l->plen+l->len < l->cols && !hintsCallback)) {
+            if ((!mlmode && l->plen+l->len < l->cols && !hintsCallback && !highlightCallback)) {
                 /* Avoid a full update of the line in the
                  * trivial case. */
                 char d = (maskmode==1) ? '*' : c;

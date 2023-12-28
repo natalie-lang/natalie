@@ -10,26 +10,20 @@ module LibNat
   extend FFI::Library
   ffi_lib "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
 
-  attach_function :init_libnat2, %i[pointer pointer], :pointer
-  attach_function :new_parser, %i[pointer pointer pointer], :pointer
-  attach_function :new_compiler, %i[pointer pointer pointer], :pointer
+  attach_function :libnat_init, %i[pointer pointer], :pointer
 
   def self.init
-    env = nil
-    __inline__ <<~END
-      env_var = fetch_nested_const({ "FFI"_s, "Pointer"_s }).send(env, "new"_s, { Value::integer((uintptr_t)env) });
-    END
-    init_libnat2(env, FFI::Pointer.new(:pointer, self.object_id))
+    env = FFI::Pointer.from_env
+    libnat_init(env, FFI::Pointer.new(:pointer, self.object_id))
   end
 
   def self.parse(code, path)
-    locals = []
-    parser = LibNat.new_parser(code.to_ptr, path.to_ptr, locals.to_ptr).to_obj
+    parser = Natalie::Parser.new(code, path, locals: [])
     parser.ast
   end
 
   def self.compile(ast, path, encoding)
-    compiler = LibNat.new_compiler(ast.to_ptr, path.to_ptr, encoding.to_ptr).to_obj
+    compiler = Natalie::Compiler.new(ast: ast, path: path, encoding: encoding)
     temp = Tempfile.create("natalie.#{RbConfig::CONFIG['SOEXT']}")
     compiler.repl = true # actually this should be called "shared"
     compiler.out_path = temp.path
@@ -59,11 +53,10 @@ describe 'libnat.so' do
       attach_function :EVAL, [:pointer], :pointer
     end
 
-    env = nil
-    __inline__ <<~END
-      env_var = fetch_nested_const({ "FFI"_s, "Pointer"_s }).send(env, "new"_s, { Value::integer((uintptr_t)env) });
-    END
+    env = FFI::Pointer.from_env
     result = library.EVAL(env).to_obj
     result.should == 3
+  ensure
+    File.unlink(temp_path)
   end
 end
