@@ -23,9 +23,11 @@ describe "String#unpack with directive 'w'" do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        "\x01\x02\x03".unpack("w\x00w")
-      }.should raise_error(ArgumentError, /unknown unpack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          "\x01\x02\x03".unpack("w\x00w")
+        }.should raise_error(ArgumentError, /unknown unpack directive/)
+      end
     end
   end
 

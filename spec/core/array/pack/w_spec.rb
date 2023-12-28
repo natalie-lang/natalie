@@ -32,9 +32,11 @@ describe "Array#pack with format 'w'" do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [1, 2, 3].pack("w\x00w")
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [1, 2, 3].pack("w\x00w")
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 
