@@ -4,9 +4,16 @@ require 'linenoise'
 require 'natalie/inline'
 require 'tempfile'
 
+LIBNAT_PATH = File.expand_path("../../build/libnat.#{RbConfig::CONFIG['SOEXT']}", __dir__)
+
+unless File.exist?(LIBNAT_PATH)
+  puts 'libnat.so not found. Please run `rake bootstrap`.'
+  exit 1
+end
+
 module LibNat
   extend FFI::Library
-  ffi_lib "build/libnat.#{RbConfig::CONFIG['SOEXT']}"
+  ffi_lib LIBNAT_PATH
 
   attach_function :libnat_init, %i[pointer pointer], :pointer
 
