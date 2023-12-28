@@ -181,6 +181,25 @@ task test_asan: :build_asan do
   end
 end
 
+task test_all_ruby_spec_nightly: :build do
+  unless ENV['CI'] || ENV['DOCKER']
+    puts 'This task only runs on CI and/or in Docker, because it is destructive.'
+    puts 'Please set CI=true if you really want to run this.'
+    exit 1
+  end
+
+  sh <<~END
+    bundle config set --local with 'run_all_specs'
+    bundle install
+    git clone https://github.com/ruby/spec /tmp/ruby_spec
+    mv spec/support spec/spec_helper.rb /tmp/ruby_spec
+    rm -rf spec
+    mv /tmp/ruby_spec spec
+  END
+
+  sh 'bundle exec ruby spec/support/nightly_ruby_spec_runner.rb'
+end
+
 def num_procs
   `command -v nproc 2>&1 >/dev/null && nproc || command -v sysctl 2>&1 >/dev/null && sysctl -n hw.ncpu || echo 4`.strip
 rescue SystemCallError
@@ -239,11 +258,13 @@ task gc_lint: %i[build gc_lint_internal]
 
 # # # # Docker Tasks (used for CI) # # # #
 
-DOCKER_FLAGS =
+DOCKER_FLAGS = '-e DOCKER=true ' +
   if !ENV['CI'] && $stdout.isatty
     '-i -t'
   elsif ENV['CI']
     "-e CI=#{ENV['CI']}"
+  else
+    ''
   end
 
 DEFAULT_HOST_RUBY_VERSION = 'ruby3.2'.freeze
@@ -296,6 +317,10 @@ end
 
 task docker_test_asan: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_asan"
+end
+
+task docker_test_all_ruby_spec_nightly: :docker_build_clang do
+  sh "docker run #{DOCKER_FLAGS} -e STATS_API_SECRET=#{(ENV['STATS_API_SECRET'] || '').inspect} --rm --entrypoint rake natalie_clang_#{ruby_version_string} test_all_ruby_spec_nightly"
 end
 
 task docker_tidy: :docker_build_clang do

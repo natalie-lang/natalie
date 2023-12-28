@@ -15,17 +15,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-      - run: rake
-      - uses: actions/checkout@v2
-        with:
-          repository: ruby/spec
-          path: ruby_spec
-      - run: mv spec/support ruby_spec
-      - run: rm -rf spec/*/
-      - run: mv ruby_spec/*/ spec
-      - run: bundle exec ruby spec/support/nightly_ruby_spec_runner.rb
+      - run: rake docker_test_all_ruby_spec_nightly
         env:
           STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}
