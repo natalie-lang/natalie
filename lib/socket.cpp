@@ -478,6 +478,42 @@ Value BasicSocket_setsockopt(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
+Value BasicSocket_shutdown(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+
+    int how = SHUT_RDWR;
+    if (args.size() > 0) {
+        auto arg = args.at(0);
+        if (arg->is_integer()) {
+            how = arg->as_integer()->to_nat_int_t();
+            switch (how) {
+            case SHUT_RD:
+            case SHUT_WR:
+            case SHUT_RDWR:
+                break;
+            default:
+                env->raise("ArgumentError", "invalid shutdown mode: {}", how);
+            }
+        } else {
+            auto how_sym = arg->to_symbol(env, Object::Conversion::Strict);
+            if (how_sym == "RD"_s || how_sym == "SHUT_RD"_s)
+                how = SHUT_RD;
+            else if (how_sym == "WR"_s || how_sym == "SHUT_WR"_s)
+                how = SHUT_WR;
+            else if (how_sym == "RDWR"_s || how_sym == "SHUT_RDWR"_s)
+                how = SHUT_RDWR;
+            else
+                env->raise("SocketError", "invalid shutdown mode: {}", how_sym->string());
+        }
+    }
+
+    auto result = ::shutdown(self->as_io()->fileno(), how);
+    if (result == -1)
+        env->raise_errno();
+
+    return NilObject::the();
+}
+
 Value IPSocket_addr(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 1);
     auto reverse_lookup = args.at(0, NilObject::the());

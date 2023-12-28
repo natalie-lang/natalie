@@ -11,6 +11,7 @@ class BasicSocket < IO
   __bind_method__ :recv, :BasicSocket_recv
   __bind_method__ :send, :BasicSocket_send
   __bind_method__ :setsockopt, :BasicSocket_setsockopt
+  __bind_method__ :shutdown, :BasicSocket_shutdown
 
   attr_writer :do_not_reverse_lookup
 
