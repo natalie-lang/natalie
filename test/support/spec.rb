@@ -259,6 +259,9 @@ def ruby_exe(code = nil, options: nil, args: nil, escape: true, exit_status: 0, 
              end
            end
 
+  if exit_status.is_a?(Symbol) || exit_status.is_a?(String)
+    exit_status = 128 + Signal.list.fetch(exit_status.to_s.delete_prefix('SIG'))
+  end
   if $?.exitstatus != exit_status
     raise SpecFailedException, "Expected exit status #{exit_status} but actual is #{$?.exitstatus}"
   end
