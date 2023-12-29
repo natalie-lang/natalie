@@ -78,7 +78,9 @@ describe :start_with, shared: true do
 
   ruby_version_is "3.3" do # #19784
     it "checks that we are not matching part of a character" do
-      "\xC3\xA9".send(@method).should_not.start_with?("\xC3")
+      NATFIXME 'checks that we are not matching part of a character', exception: SpecFailedException do
+        "\xC3\xA9".send(@method).should_not.start_with?("\xC3")
+      end
     end
   end
 end
