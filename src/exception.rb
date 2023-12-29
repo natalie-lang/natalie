@@ -5,13 +5,24 @@ class ScriptError < Exception; end
 
 class SignalException < Exception
   attr_reader :signo, :signm
-  def initialize(signo, message = nil)
-    signm = Signal.signame(signo)
-    raise ArgumentError, "invalid signal number (#{signo})" if signm.nil?
+  def initialize(signal, message = nil)
+    signal = signal.to_s if signal.is_a?(Symbol)
+    case signal
+    when Integer
+      signo, signm = signal, Signal.signame(signal)
+      raise ArgumentError, "invalid signal number (#{signo})" if signm.nil?
+    when String
+      raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' if message
+      signal = signal.delete_prefix('SIG')
+      signo, signm = Signal.list[signal], signal
+      raise ArgumentError, "unsupported signal `SIG#{signal}'" if signo.nil?
+    else
+      raise ArgumentError, "bad signal type #{signal.class}"
+    end
 
     @signo = signo
-    @signm = "SIG#{signm}"
-    super(message || @signm)
+    @signm = message || "SIG#{signm}"
+    super(@signm)
   end
 end
 
