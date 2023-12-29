@@ -3,6 +3,18 @@ class ScriptError < Exception; end
   class SyntaxError < ScriptError; end
 # end ScriptError subclasses
 
+class SignalException < Exception
+  attr_reader :signo, :signm
+  def initialize(signo, message = nil)
+    signm = Signal.signame(signo)
+    raise ArgumentError, "invalid signal number (#{signo})" if signm.nil?
+
+    @signo = signo
+    @signm = "SIG#{signm}"
+    super(message || @signm)
+  end
+end
+
 class StandardError < Exception; end
   class ArgumentError < StandardError; end
   class EncodingError < StandardError; end
