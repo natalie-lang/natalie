@@ -103,11 +103,16 @@ describe "SignalException" do
         raise SignalException, 'SIGKILL'
       RUBY
 
-      $?.termsig.should == Signal.list.fetch("KILL")
-      output.should == "hello\n"
+      NATFIXME 'Implement Process::Status#termsig', exception: NoMethodError, message: "undefined method `termsig' for an instance of Process::Status" do
+        $?.termsig.should == Signal.list.fetch("KILL")
+      end
+      NATFIXME 'Run at_exit handlers', exception: SpecFailedException do
+        output.should == "hello\n"
+      end
     end
 
-    it "cannot be trapped with Signal.trap" do
+    # NATFIXME: Implement Signal.trap
+    xit "cannot be trapped with Signal.trap" do
       ruby_exe(<<-RUBY, exit_status: :SIGPROF)
         Signal.trap("PROF") {}
         raise(SignalException, "PROF")
@@ -118,7 +123,9 @@ describe "SignalException" do
 
     it "self-signals for USR1" do
       ruby_exe("raise(SignalException, 'USR1')", exit_status: :SIGUSR1)
-      $?.termsig.should == Signal.list.fetch('USR1')
+      NATFIXME 'Implement Process::Status#termsig', exception: NoMethodError, message: "undefined method `termsig' for an instance of Process::Status" do
+        $?.termsig.should == Signal.list.fetch('USR1')
+      end
     end
   end
 end
