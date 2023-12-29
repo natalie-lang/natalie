@@ -27,4 +27,23 @@ describe 'Socket' do
     @socket.write("GET / HTTP/1.0\r\nHost: 71m.us\r\n\r\n")
     @socket.read.should =~ /this page left intentionally blank/
   end
+
+  it 'can respond to curl' do
+    server = TCPServer.new(0)
+    port = server.addr[1]
+    t = Thread.new do
+      conn = server.accept
+      conn.gets.should == "GET / HTTP/1.1\r\n"
+      line = conn.gets until line == "\r\n"
+      conn.write "HTTP/1.1 200\r\n"
+      conn.write "\r\n"
+      conn.write "hello world\r\n"
+      conn.close
+    end
+
+    out = `curl -s -v http://127.0.0.1:#{port} 2>&1`
+    out.should =~ /hello world/
+
+    t.join
+  end
 end
