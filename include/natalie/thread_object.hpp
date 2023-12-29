@@ -131,6 +131,16 @@ public:
     Value fiber_scheduler() const { return m_fiber_scheduler; }
     void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
 
+    bool report_on_exception() const { return m_report_on_exception; }
+    bool set_report_on_exception(bool report) {
+        m_report_on_exception = report;
+        return report;
+    }
+    bool set_report_on_exception(Value report) {
+        m_report_on_exception = report->is_truthy();
+        return report;
+    }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -158,6 +168,16 @@ public:
     static Value list(Env *);
 
     static void set_current_sleeping(bool is_sleeping) { current()->set_sleeping(is_sleeping); }
+
+    static bool default_report_on_exception() { return s_report_on_exception; }
+    static bool set_default_report_on_exception(bool report) {
+        s_report_on_exception = report;
+        return report;
+    }
+    static bool set_default_report_on_exception(Value report) {
+        s_report_on_exception = report->is_truthy();
+        return report;
+    }
 
 private:
     void wait_until_running() const;
@@ -187,6 +207,8 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
 
+    bool m_report_on_exception { true };
+
     bool m_sleeping { false };
     pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -198,6 +220,7 @@ private:
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
+    inline static bool s_report_on_exception { true };
 };
 
 }
