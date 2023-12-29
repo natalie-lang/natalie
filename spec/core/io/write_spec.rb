@@ -247,11 +247,13 @@ describe "IO.write" do
     ruby_version_is "3.3" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation given a path with a pipe" do
-        -> {
+        NATFIXME 'Implement pipe in IO.write', exception: NotImplementedError, message: 'no support for pipe in IO.write' do
           -> {
-            IO.write("|cat", "xxx")
-          }.should output_to_fd("xxx")
-        }.should complain(/IO process creation with a leading '\|'/)
+            -> {
+              IO.write("|cat", "xxx")
+            }.should output_to_fd("xxx")
+          }.should complain(/IO process creation with a leading '\|'/)
+        end
       end
     end
   end
@@ -304,7 +306,7 @@ describe "IO#write on STDOUT" do
     it "raises SignalException SIGPIPE if the stream is closed instead of Errno::EPIPE like other IOs" do
       stderr_file = tmp("stderr")
       begin
-        NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+        NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
           IO.popen([*ruby_exe, "-e", "loop { puts :ok }"], "r", err: stderr_file) do |io|
             io.gets.should == "ok\n"
             io.close

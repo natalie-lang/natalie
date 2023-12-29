@@ -448,14 +448,8 @@ module Natalie
           return instructions
         end
 
-        if receiver.nil? && message == :lambda && args.empty? && node.block.is_a?(Prism::BlockNode)
-          # NOTE: We need Kernel#lambda to behave just like the stabby
-          # lambda (->) operator so we can attach the "break point" to
-          # it. I realize this is a bit of a hack and if someone wants
-          # to alias Kernel#lambda, then their method will create a
-          # broken lambda, i.e. calling `break` won't work correctly.
-          # Maybe someday we can think of a better way to handle this...
-          return transform_lambda_node(node.block, used: used)
+        if (lambda_call_result = hack_lambda_call_node(node, used: used))
+          return lambda_call_result
         end
 
         instructions = []
@@ -2198,6 +2192,41 @@ module Natalie
 
       # HELPERS = = = = = = = = = = = = =
 
+      def hack_lambda_call_node(node, used:)
+        return nil unless is_lambda_call?(node)
+
+        if node.block.is_a?(Prism::BlockNode)
+          # NOTE: We need Kernel#lambda to behave just like the stabby
+          # lambda (->) operator so we can attach the "break point" to
+          # it. I realize this is a bit of a hack and if someone wants
+          # to alias Kernel#lambda, then their method will create a
+          # broken lambda, i.e. calling `break` won't work correctly.
+          # Maybe someday we can think of a better way to handle this...
+          return transform_lambda_node(node.block, used: used)
+        end
+
+        # As of Ruby 3.3, passing a block argument to Kernel#lambda
+        # is no longer supported.
+        if node.block.is_a?(Prism::BlockArgumentNode)
+          return [
+            PushSelfInstruction.new,
+            PushSelfInstruction.new,
+            ConstFindInstruction.new(:ArgumentError, strict: false),
+            PushStringInstruction.new('the lambda method requires a literal block'),
+            PushArgcInstruction.new(2),
+            SendInstruction.new(
+              :raise,
+              receiver_is_self: true,
+              with_block:       false,
+              file:             @file.path,
+              line:             node.location.start_line,
+            ),
+          ]
+        end
+
+        nil
+      end
+
       def encoding_for_string_node(node)
         if node.forced_utf8_encoding?
           Encoding::UTF_8
@@ -2239,8 +2268,11 @@ module Natalie
         [prepper.name, prepper.private?, prepper.namespace]
       end
 
-      def is_lambda_call?(exp)
-        exp.is_a?(::Prism::CallNode) && exp.receiver.nil? && exp.name == :lambda
+      def is_lambda_call?(node)
+        node.is_a?(::Prism::CallNode) &&
+          node.receiver.nil? &&
+          node.name == :lambda &&
+          (node.arguments.nil? || node.arguments.arguments.empty?)
       end
 
       def is_inline_macro_call_node?(node)

@@ -134,15 +134,8 @@ Value KernelModule::exit_bang(Env *env, Value status) {
 
 Value KernelModule::Integer(Env *env, Value value, Value base, Value exception) {
     nat_int_t base_int = 0; // default to zero if unset
-    if (base) {
-        if (!base->is_integer() && base->respond_to(env, "to_int"_s))
-            base = base->send(env, "to_int"_s);
-
-        // NATFIXME: Discard base argument if it still isn't an int
-        // Likely a bug in Ruby: https://bugs.ruby-lang.org/issues/19349
-        if (base->is_integer())
-            base_int = base->as_integer()->to_nat_int_t();
-    }
+    if (base)
+        base_int = base->to_int(env)->to_nat_int_t();
     return Integer(env, value, base_int, exception ? exception->is_true() : true);
 }
 
@@ -576,7 +569,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         return FiberObject::scheduler()->send(env, "kernel_sleep"_s, { length });
     }
 
-    if (!length)
+    if (!length || length->is_nil())
         return ThreadObject::current()->sleep(env, -1.0);
 
     float secs;

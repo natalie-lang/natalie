@@ -1,4 +1,4 @@
-ARG IMAGE=ruby:3.2
+ARG IMAGE=ruby:3.3
 FROM $IMAGE
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov clang-tidy libclang-dev lldb python3 python3-pip ccache

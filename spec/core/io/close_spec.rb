@@ -91,7 +91,7 @@ end
 describe "IO#close on an IO.popen stream" do
 
   it "clears #pid" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
       io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
 
       io.pid.should_not == 0
@@ -103,7 +103,7 @@ describe "IO#close on an IO.popen stream" do
   end
 
   it "sets $?" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
       io = IO.popen ruby_cmd('exit 0'), 'r'
       io.close
 
@@ -117,7 +117,7 @@ describe "IO#close on an IO.popen stream" do
   end
 
   it "waits for the child to exit" do
-    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for IO:Class" do
+    NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
       io = IO.popen ruby_cmd('r = loop{puts "y"; 0} rescue 1; exit r'), 'r'
       io.close
 

@@ -65,7 +65,10 @@ describe :array_pack_basic_non_float, shared: true do
     it "raise ArgumentError when a directive is unknown" do
       # additional directive ('a') is required for the X directive
       -> { [@obj, @obj].pack("a R" + pack_format) }.should raise_error(ArgumentError)
-      -> { [@obj, @obj].pack("a 0" + pack_format) }.should raise_error(ArgumentError)
+      # Exact error class depends on caller, both SpecFailedException and ArgumentError have been seen
+      NATFIXME 'raise ArgumentError when a directive is unknown' do
+        -> { [@obj, @obj].pack("a 0" + pack_format) }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
       -> { [@obj, @obj].pack("a :" + pack_format) }.should raise_error(ArgumentError)
     end
   end

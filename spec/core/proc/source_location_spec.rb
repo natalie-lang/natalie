@@ -77,7 +77,7 @@ describe "Proc#source_location" do
   it "returns the location of the proc's body; not necessarily the proc itself" do
     ProcSpecs::SourceLocation.my_detached_proc.source_location.last.should == 41
     ProcSpecs::SourceLocation.my_detached_proc_new.source_location.last.should == 51
-    NATFIXME 'wrong line number', exception: SpecFailedException, message: /\d+ should be == to 46/ do
+    NATFIXME 'Upstream issue?', exception: ArgumentError, message: 'the lambda method requires a literal block' do
       ProcSpecs::SourceLocation.my_detached_lambda.source_location.last.should == 46
     end
   end
@@ -86,7 +86,7 @@ describe "Proc#source_location" do
     method = ProcSpecs::SourceLocation.method(:my_proc)
     proc = method.to_proc
 
-    NATFIXME 'Implement Method#source_location', exception: NoMethodError, message: /undefined method `source_location' for .*:Method/ do
+    NATFIXME 'Implement Method#source_location', exception: NoMethodError, message: "undefined method `source_location' for an instance of Method" do
       method.source_location.should == proc.source_location
     end
   end

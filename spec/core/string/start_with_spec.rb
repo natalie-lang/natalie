@@ -21,7 +21,9 @@ describe "String#start_with?" do
   ruby_version_is "3.3" do # #19784
     it "checks we are matching only part of a character" do
       "\xe3\x81\x82".size.should == 1
-      "\xe3\x81\x82".should_not.start_with?("\xe3")
+      NATFIXME 'checks we are matching only part of a character', exception: SpecFailedException do
+        "\xe3\x81\x82".should_not.start_with?("\xe3")
+      end
     end
   end
 end

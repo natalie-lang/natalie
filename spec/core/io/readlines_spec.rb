@@ -176,7 +176,7 @@ describe "IO.readlines" do
 
   describe "when passed a string that starts with a |" do
     it "gets data from the standard out of the subprocess" do
-      NATFIXME 'subprocess', exception: Errno::ENOENT, message: 'No such file or directory' do
+      NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
         cmd = "|sh -c 'echo hello;echo line2'"
         platform_is :windows do
           cmd = "|cmd.exe /C echo hello&echo line2"
@@ -192,7 +192,7 @@ describe "IO.readlines" do
 
     platform_is_not :windows do
       it "gets data from a fork when passed -" do
-        NATFIXME 'forked process', exception: Errno::ENOENT, message: 'No such file or directory' do
+        NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
           lines = nil
           suppress_warning do # https://bugs.ruby-lang.org/issues/19630
             lines = IO.readlines("|-")
@@ -214,9 +214,11 @@ describe "IO.readlines" do
     # https://bugs.ruby-lang.org/issues/19630
     it "warns about deprecation given a path with a pipe" do
       cmd = "|echo ok"
-      -> {
-        IO.readlines(cmd)
-      }.should complain(/IO process creation with a leading '\|'/)
+      NATFIXME 'Implement pipe in IO.readlines', exception: NotImplementedError, message: 'no support for pipe in IO.readlines' do
+        -> {
+          IO.readlines(cmd)
+        }.should complain(/IO process creation with a leading '\|'/)
+      end
     end
   end
 

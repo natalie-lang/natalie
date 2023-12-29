@@ -33,9 +33,11 @@ describe :array_pack_float_le, shared: true do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [5.3, 9.2].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [5.3, 9.2].pack(pack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 
@@ -111,9 +113,11 @@ describe :array_pack_float_be, shared: true do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [5.3, 9.2].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [5.3, 9.2].pack(pack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 
@@ -181,9 +185,11 @@ describe :array_pack_double_le, shared: true do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [5.3, 9.2].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [5.3, 9.2].pack(pack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 
@@ -250,9 +256,11 @@ describe :array_pack_double_be, shared: true do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [5.3, 9.2].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [5.3, 9.2].pack(pack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 

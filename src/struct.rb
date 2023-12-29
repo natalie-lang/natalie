@@ -14,9 +14,6 @@ class Struct
     if respond_to?(:members)
       BasicObject.method(:new).unbind.bind(self).(*attrs)
     else
-      if attrs.empty?
-        raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)'
-      end
       if !attrs.first.is_a?(Symbol) && attrs.first.respond_to?(:to_str)
         klass = attrs.shift.to_str.to_sym
       elsif attrs.first.nil?

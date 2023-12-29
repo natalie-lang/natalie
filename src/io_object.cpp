@@ -109,6 +109,8 @@ Value IoObject::advise(Env *env, Value advice, Value offset, Value len) {
 
 Value IoObject::binread(Env *env, Value filename, Value length, Value offset) {
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.binread");
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     if (offset && !offset->is_nil())
         file->set_pos(env, offset);
@@ -272,11 +274,16 @@ Value IoObject::read_file(Env *env, Args args) {
     const ioutil::flags_struct flags { env, nullptr, kwargs };
     if (!flags_is_readable(flags.flags()))
         env->raise("IOError", "not opened for reading");
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.read");
     ClassObject *File = GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class();
     FileObject *file = _new(env, File, { filename }, nullptr)->as_file();
     file->set_encoding(env, flags.external_encoding(), flags.internal_encoding());
-    if (offset && !offset->is_nil())
+    if (offset && !offset->is_nil()) {
+        if (offset->is_integer() && offset->as_integer()->is_negative())
+            env->raise("ArgumentError", "negative offset {} given", offset->inspect_str(env));
         file->set_pos(env, offset);
+    }
     auto data = file->read(env, length, nullptr);
     file->close(env);
     return data;
@@ -293,6 +300,8 @@ Value IoObject::write_file(Env *env, Args args) {
         mode = Value::integer(IntegerObject::convert_to_nat_int_t(env, mode) | O_TRUNC);
     if (kwargs && kwargs->has_key(env, "mode"_s))
         mode = kwargs->delete_key(env, "mode"_s, nullptr);
+    if (filename->is_string() && filename->as_string()->string()[0] == '|')
+        env->raise("NotImplementedError", "no support for pipe in IO.write");
     Args open_args { { filename, mode, kwargs }, true };
     if (kwargs && kwargs->has_key(env, "open_args"_s)) {
         auto next_args = new ArrayObject { filename };

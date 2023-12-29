@@ -21,7 +21,7 @@ describe "IO.foreach" do
         cmd = "|cmd.exe /C echo hello&echo line2"
       end
 
-      NATFIXME 'data from subprocess', exception: Errno::ENOENT, message: 'No such file or directory' do
+      NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
         suppress_warning do # https://bugs.ruby-lang.org/issues/19630
           IO.foreach(cmd) { |l| ScratchPad << l }
         end
@@ -31,7 +31,7 @@ describe "IO.foreach" do
 
     platform_is_not :windows do
       it "gets data from a fork when passed -" do
-        NATFIXME 'data from fork', exception: Errno::ENOENT, message: 'No such file or directory' do
+        NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
           parent_pid = $$
 
           suppress_warning do # https://bugs.ruby-lang.org/issues/19630
@@ -53,9 +53,11 @@ describe "IO.foreach" do
       # https://bugs.ruby-lang.org/issues/19630
       it "warns about deprecation given a path with a pipe" do
         cmd = "|echo ok"
-        -> {
-          IO.foreach(cmd).to_a
-        }.should complain(/IO process creation with a leading '\|'/)
+        NATFIXME 'Implement pipe in IO.foreach', exception: NotImplementedError, message: 'no support for pipe in IO.foreach' do
+          -> {
+            IO.foreach(cmd).to_a
+          }.should complain(/IO process creation with a leading '\|'/)
+        end
       end
     end
   end

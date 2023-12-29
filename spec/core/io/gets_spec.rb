@@ -374,7 +374,9 @@ describe "IO#gets" do
       Encoding.default_internal = Encoding::UTF_8
       @io = new_io @name, 'r'
       @io.set_encoding Encoding::BINARY, Encoding::UTF_8
-      @io.gets.encoding.should == Encoding::BINARY
+      NATFIXME 'Transcoding', exception: SpecFailedException do
+        @io.gets.encoding.should == Encoding::BINARY
+      end
     end
   end
 end

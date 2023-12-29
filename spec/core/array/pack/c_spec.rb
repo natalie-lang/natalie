@@ -53,9 +53,11 @@ describe :array_pack_8bit, shared: true do
 
   ruby_version_is "3.3" do
     it "raise ArgumentError for NULL bytes between directives" do
-      -> {
-        [1, 2, 3].pack(pack_format("\000", 2))
-      }.should raise_error(ArgumentError, /unknown pack directive/)
+      NATFIXME 'raise ArgumentError for NULL bytes between directives', exception: SpecFailedException do
+        -> {
+          [1, 2, 3].pack(pack_format("\000", 2))
+        }.should raise_error(ArgumentError, /unknown pack directive/)
+      end
     end
   end
 
