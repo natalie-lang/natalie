@@ -698,6 +698,7 @@ Value HashObject::compact(Env *env) {
     auto new_hash = new HashObject {};
     new_hash->m_default_value = m_default_value;
     new_hash->m_default_proc = m_default_proc;
+    new_hash->m_is_comparing_by_identity = m_is_comparing_by_identity;
     auto nil = NilObject::the();
     for (auto pair : m_hashmap) {
         if (pair.second != nil)
