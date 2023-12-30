@@ -696,7 +696,8 @@ void HashObject::visit_children(Visitor &visitor) {
 
 Value HashObject::compact(Env *env) {
     auto new_hash = new HashObject {};
-    new_hash->set_default(env, m_default_value);
+    new_hash->m_default_value = m_default_value;
+    new_hash->m_default_proc = m_default_proc;
     auto nil = NilObject::the();
     for (auto pair : m_hashmap) {
         if (pair.second != nil)
