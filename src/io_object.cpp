@@ -320,11 +320,11 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-static ssize_t blocking_read(int fileno, void *buf, int offset) {
+static ssize_t blocking_read(int fileno, void *buf, int count) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    auto ret = ::read(fileno, buf, offset);
+    auto ret = ::read(fileno, buf, count);
     while (ret == -1 && errno == EAGAIN) {
         sched_yield();
 
@@ -339,7 +339,7 @@ static ssize_t blocking_read(int fileno, void *buf, int offset) {
         ret = select(1, &rfds, nullptr, nullptr, &tv);
         if (ret < 0) return ret;
 
-        ret = ::read(fileno, buf, offset);
+        ret = ::read(fileno, buf, count);
     }
 
     return ret;
