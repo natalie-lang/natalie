@@ -320,11 +320,11 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-static ssize_t blocking_read(int fileno, void *buf, int offset) {
+static ssize_t blocking_read(int fileno, void *buf, int count) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    auto ret = ::read(fileno, buf, offset);
+    auto ret = ::read(fileno, buf, count);
     while (ret == -1 && errno == EAGAIN) {
         sched_yield();
 
@@ -339,7 +339,7 @@ static ssize_t blocking_read(int fileno, void *buf, int offset) {
         ret = select(1, &rfds, nullptr, nullptr, &tv);
         if (ret < 0) return ret;
 
-        ret = ::read(fileno, buf, offset);
+        ret = ::read(fileno, buf, count);
     }
 
     return ret;
@@ -522,16 +522,25 @@ Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     if (sep->is_nil())
         return read(env, has_limit ? limit : nullptr, nullptr);
 
+    auto sep_string = sep->as_string_or_raise(env)->string();
+
     while (true) {
-        auto next_line = read(env, limit, nullptr);
-        if (next_line->is_nil()) {
-            if (line->is_empty()) {
-                env->set_last_line(NilObject::the());
-                return NilObject::the();
+        Value chunk;
+
+        if (m_read_buffer.find(sep_string) != -1) {
+            chunk = new StringObject { m_read_buffer };
+        } else {
+            chunk = read(env, limit, nullptr);
+            if (chunk->is_nil()) {
+                if (line->is_empty()) {
+                    env->set_last_line(NilObject::the());
+                    return NilObject::the();
+                }
+                break;
             }
-            break;
         }
-        line->append(next_line);
+
+        line->append(chunk);
         if (has_limit || line->include(env, sep))
             break;
     }

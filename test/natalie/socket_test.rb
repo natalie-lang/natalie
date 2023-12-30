@@ -27,4 +27,26 @@ describe 'Socket' do
     @socket.write("GET / HTTP/1.0\r\nHost: 71m.us\r\n\r\n")
     @socket.read.should =~ /this page left intentionally blank/
   end
+
+  it 'reads from buffer even if other end of socket has stopped writing' do
+    server = TCPServer.new(0)
+    port = server.addr[1]
+    t = Thread.new do
+      conn = server.accept
+      conn.gets.should == "GET / HTTP/1.1\r\n"
+      line = conn.gets until line == "\r\n"
+      conn.write "HTTP/1.1 200\r\n"
+      conn.write "\r\n"
+      conn.write "hello world\r\n"
+      conn.close
+    end
+
+    client = TCPSocket.new('127.0.0.1', port)
+    client.write "GET / HTTP/1.1\r\n" \
+                 "Host: localhost:#{port}\r\n" \
+                 "User-Agent: ruby\r\n" \
+                 "\r\n"
+
+    t.join
+  end
 end
