@@ -111,6 +111,7 @@ public:
 
     void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
     pthread_t thread_id() const { return m_thread_id; }
+    Value native_thread_id(Env *env) const;
 
     void build_main_fiber();
     FiberObject *main_fiber() { return m_main_fiber; }

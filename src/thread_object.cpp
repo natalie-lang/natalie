@@ -106,6 +106,10 @@ bool ThreadObject::is_stopped() const {
     return m_sleeping || m_status == Status::Dead;
 }
 
+Value ThreadObject::native_thread_id(Env *env) const {
+    return Value::integer((nat_int_t)m_thread_id);
+}
+
 void ThreadObject::build_main_thread(void *start_of_stack) {
     assert(!s_main && !s_main_id); // can only be built once
     auto thread = new ThreadObject;
