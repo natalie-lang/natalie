@@ -77,6 +77,8 @@ module Natalie
         File.write(@compiler.write_obj_path, cpp)
       end
 
+      CPP_STANDARD = 'c++20'.freeze
+
       def compiler_command
         [
           cc,
@@ -84,8 +86,8 @@ module Natalie
           (shared? ? '-fPIC -shared' : ''),
           inc_paths.map { |path| "-I #{path}" }.join(' '),
           "-o #{@compiler.out_path}",
-          '-x c++ -std=c++17',
-          (cpp_path || 'code.cpp'),
+          "-x c++ -std=#{CPP_STANDARD}",
+          cpp_path || 'code.cpp',
           lib_paths.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
           link_flags,

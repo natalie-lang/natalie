@@ -54,6 +54,8 @@ TEMPLATE_TYPES = {
   'ManagedVector<T>' => { canonical_name: 'Natalie::ManagedVector', superclass: 'Natalie::Cell' },
 }
 
+CPP_STANDARD = 'c++20'.freeze
+
 require 'bundler/inline'
 
 gemfile do
@@ -87,7 +89,7 @@ def get_class_details_for_path(path)
   code = File.read(path)
   code_lines = code.split(/\n/)
   index = FFI::Clang::Index.new
-  translation_unit = index.parse_translation_unit(path, ['-I', 'include', '-std=c++17'])
+  translation_unit = index.parse_translation_unit(path, ['-I', 'include', "-std=#{CPP_STANDARD}"])
   cursor = translation_unit.cursor
 
   cursor.visit_children do |cursor, parent|

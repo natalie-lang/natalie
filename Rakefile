@@ -366,7 +366,7 @@ end
 
 # # # # Internal Tasks and Rules # # # #
 
-STANDARD = 'c++17'.freeze
+STANDARD = 'c++20'.freeze
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
