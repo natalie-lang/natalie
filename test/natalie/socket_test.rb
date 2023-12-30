@@ -28,7 +28,7 @@ describe 'Socket' do
     @socket.read.should =~ /this page left intentionally blank/
   end
 
-  it 'can respond to curl' do
+  it 'reads from buffer even if other end of socket has stopped writing' do
     server = TCPServer.new(0)
     port = server.addr[1]
     t = Thread.new do
@@ -41,8 +41,11 @@ describe 'Socket' do
       conn.close
     end
 
-    out = `curl -s -v http://127.0.0.1:#{port} 2>&1`
-    out.should =~ /hello world/
+    client = TCPSocket.new('127.0.0.1', port)
+    client.write "GET / HTTP/1.1\r\n" \
+                 "Host: localhost:#{port}\r\n" \
+                 "User-Agent: ruby\r\n" \
+                 "\r\n"
 
     t.join
   end
