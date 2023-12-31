@@ -38,9 +38,7 @@ describe "Exception#cause" do
         1 / 0
       end
     }.should raise_error(ZeroDivisionError) { |e|
-      NATFIXME 'Save current exception as cause', exception: SpecFailedException do
-        e.cause.should equal(cause)
-      end
+      e.cause.should equal(cause)
     }
   end
 

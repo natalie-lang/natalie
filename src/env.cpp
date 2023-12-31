@@ -105,6 +105,11 @@ void Env::raise_exception(ExceptionObject *exception) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
     }
+    if (!exception->cause() || exception->cause()->is_nil()) {
+        auto cause = exception_object();
+        if (cause && cause->is_exception() && cause != exception)
+            exception->set_cause(cause->as_exception());
+    }
     throw exception;
 }
 
