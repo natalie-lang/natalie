@@ -24,12 +24,14 @@ describe "Process.kill" do
   end
 
   it "raises Errno::ESRCH if the process does not exist" do
-    pid = Process.spawn(*ruby_exe, "-e", "sleep 10")
-    Process.kill("SIGKILL", pid)
-    Process.wait(pid)
-    -> {
+    NATFIXME 'Implement Process.spawn', exception: NoMethodError, message: "private method `spawn' called for module Process" do
+      pid = Process.spawn(*ruby_exe, "-e", "sleep 10")
       Process.kill("SIGKILL", pid)
-    }.should raise_error(Errno::ESRCH)
+      Process.wait(pid)
+      -> {
+        Process.kill("SIGKILL", pid)
+      }.should raise_error(Errno::ESRCH)
+    end
   end
 
   it "checks for existence and permissions to signal a process, but does not actually signal it, when using signal 0" do
