@@ -38,7 +38,18 @@ describe "Process.kill" do
 end
 
 platform_is_not :windows do
-  describe "Process.kill" do
+  # NATFIXME: Signalizer depends on Signal.trap (whose specs depend on Process.kill)
+  #           Skip them for now, add a guard to ensure we put them back once we have
+  #           Signal.trap.
+  describe 'Process.kill' do
+    it 'should enable the specs below and remove this one' do
+      NATFIXME 'Implement Signal.trap', exception: NoMethodError do
+        Signal.trap('INT') {}
+      end
+    end
+  end
+
+  xdescribe "Process.kill" do
     ProcessSpecs.use_system_ruby(self)
 
     before :each do
@@ -80,7 +91,7 @@ platform_is_not :windows do
     end
   end
 
-  describe "Process.kill" do
+  xdescribe "Process.kill" do
     ProcessSpecs.use_system_ruby(self)
 
     before :each do
@@ -104,7 +115,7 @@ platform_is_not :windows do
     end
   end
 
-  describe "Process.kill" do
+  xdescribe "Process.kill" do
     after :each do
       @sp.cleanup if @sp
     end
