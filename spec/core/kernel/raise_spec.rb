@@ -28,14 +28,12 @@ describe "Kernel#raise" do
     ScratchPad.recorded.should be_nil
   end
 
-  # NATFIXME: This breaks with an assertion error
-  xit "accepts a cause keyword argument that sets the cause" do
+  it "accepts a cause keyword argument that sets the cause" do
     cause = StandardError.new
     -> { raise("error", cause: cause) }.should raise_error(RuntimeError) { |e| e.cause.should == cause }
   end
 
-  # NATFIXME: This breaks with an assertion error
-  xit "accepts a cause keyword argument that overrides the last exception" do
+  it "accepts a cause keyword argument that overrides the last exception" do
     begin
       raise "first raise"
     rescue => ignored
@@ -46,7 +44,7 @@ describe "Kernel#raise" do
 
   it "raises an ArgumentError when only cause is given" do
     cause = StandardError.new
-    NATFIXME 'Support keyword argument', exception: SpecFailedException do
+    NATFIXME 'raises an ArgumentError when only cause is given', exception: SpecFailedException do
       -> { raise(cause: cause) }.should raise_error(ArgumentError)
     end
   end

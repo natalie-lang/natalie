@@ -88,6 +88,7 @@ void ExceptionObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_message);
     visitor.visit(m_backtrace);
+    visitor.visit(m_cause);
 }
 
 }

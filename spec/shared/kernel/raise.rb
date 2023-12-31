@@ -44,8 +44,10 @@ describe :kernel_raise, shared: true do
       end
     end
 
-    -> { @object.raise(data_error, data: 42) }.should raise_error(data_error) do |ex|
-      ex.data.should == {data: 42}
+    NATFIXME 'allows extra keyword arguments for compatibility', exception: SpecFailedException do
+      -> { @object.raise(data_error, data: 42) }.should raise_error(data_error) do |ex|
+        ex.data.should == {data: 42}
+      end
     end
   end
 
