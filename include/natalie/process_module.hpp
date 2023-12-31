@@ -84,6 +84,12 @@ public:
         return 0;
     }
 
+    static int setsid(Env *env) {
+        const auto pid = ::setsid();
+        if (pid < 0) env->raise_errno();
+        return pid;
+    }
+
     static int getpriority(Env *env, Value which, Value who) {
         int whichnum = IntegerObject::convert_to_nat_int_t(env, which);
         id_t whonum = IntegerObject::convert_to_nat_int_t(env, who);
@@ -103,7 +109,7 @@ public:
         return new ArrayObject { curlim, maxlim };
     }
 
-    static int getsid(Env *env, Value pid) {
+    static int getsid(Env *env, Value pid = nullptr) {
         pid_t pidnum;
         if (!pid || pid->is_nil()) {
             pidnum = 0;
