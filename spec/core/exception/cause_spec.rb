@@ -11,10 +11,8 @@ describe "Exception#cause" do
         e.should be_an_instance_of(RuntimeError)
         e.message.should == "the consequence"
 
-        NATFIXME 'Save current exception as cause', exception: SpecFailedException do
-          e.cause.should be_an_instance_of(Exception)
-          e.cause.message.should == "the cause"
-        end
+        e.cause.should be_an_instance_of(Exception)
+        e.cause.message.should == "the cause"
       end
     end
   end
@@ -27,9 +25,7 @@ describe "Exception#cause" do
         raise "foo"
       end
     }.should raise_error(RuntimeError) { |e|
-      NATFIXME 'Save current exception as cause', exception: SpecFailedException do
-        e.cause.should be_kind_of(ZeroDivisionError)
-      end
+      e.cause.should be_kind_of(ZeroDivisionError)
     }
   end
 

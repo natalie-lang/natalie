@@ -483,8 +483,13 @@ Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace,
         }
     }
     auto to_be_raised = _new(env, klass->as_class(), { message }, nullptr)->as_exception();
-    if (cause && cause->is_exception())
+    if (cause && cause->is_exception()) {
         to_be_raised->set_cause(cause->as_exception());
+    } else {
+        auto exception_object = env->exception_object();
+        if (exception_object && exception_object->is_exception())
+            to_be_raised->set_cause(exception_object->as_exception());
+    }
     env->raise_exception(to_be_raised);
 }
 
