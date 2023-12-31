@@ -103,7 +103,7 @@ public:
         return new ArrayObject { curlim, maxlim };
     }
 
-    static int getsid(Env *env, Value pid) {
+    static int getsid(Env *env, Value pid = nullptr) {
         pid_t pidnum;
         if (!pid || pid->is_nil()) {
             pidnum = 0;
