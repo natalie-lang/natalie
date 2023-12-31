@@ -479,7 +479,8 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
-    env->raise(klass->as_class(), message->as_string());
+    Value to_be_raised = _new(env, klass->as_class(), { message }, nullptr);
+    env->raise_exception(to_be_raised->as_exception());
 }
 
 Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {
