@@ -457,7 +457,10 @@ Value KernelModule::puts(Env *env, Args args) {
     return _stdout->send(env, "puts"_s, args);
 }
 
-Value KernelModule::raise(Env *env, Value klass, Value message) {
+Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace) {
+    if (backtrace)
+        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
+
     if (!klass) {
         klass = env->exception();
         if (!klass) {
