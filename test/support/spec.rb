@@ -1565,9 +1565,11 @@ at_exit { run_specs }
 # If the code inside the block does not cause the error or the error it causes does
 # not match the exception (or exception/message) then NatalieFixMeException will be raised.
 #
-def NATFIXME(description, exception: nil, message: nil)
+def NATFIXME(description, exception: nil, condition: true, message: nil)
   raise SpecFailedException, "NATFIXME requires a block" unless block_given?
   exception ||= StandardError
+
+  return yield unless condition
 
   $natfixme_depth += 1
 
