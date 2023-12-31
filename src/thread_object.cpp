@@ -196,7 +196,18 @@ Value ThreadObject::kill(Env *) const {
     return NilObject::the();
 }
 
-Value ThreadObject::raise(Env *env, Value klass, Value message) {
+Value ThreadObject::raise(Env *env, Args args) {
+    if (args.has_keyword_hash())
+        env->raise("ArgumentError", "NATFIXME: keyword arguments are not yet supported in Thread#raise");
+
+    args.ensure_argc_between(env, 0, 3);
+    auto klass = args.at(0, nullptr);
+    auto message = args.at(1, nullptr);
+    auto backtrace = args.at(2, nullptr);
+
+    if (backtrace)
+        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
+
     if (m_status == Status::Dead)
         return NilObject::the();
 
@@ -207,8 +218,7 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
     } else if (klass && klass->is_class()) {
         if (!message)
             message = new StringObject { klass->inspect_str(env) };
-
-        exception = new ExceptionObject { klass->as_class_or_raise(env), message };
+        exception = new ExceptionObject { klass->as_class(), message };
     } else {
         if (klass && klass->is_string()) {
             message = klass;
@@ -225,9 +235,8 @@ Value ThreadObject::raise(Env *env, Value klass, Value message) {
 
     if (is_main())
         env->raise_exception(exception);
-    else
-        m_exception = exception;
 
+    m_exception = exception;
     wakeup(env);
 
     return NilObject::the();

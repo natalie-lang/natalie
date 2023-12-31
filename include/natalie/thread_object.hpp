@@ -87,7 +87,7 @@ public:
     Value join(Env *);
     static Value exit(Env *env) { return current()->kill(env); }
     Value kill(Env *) const;
-    Value raise(Env *, Value = nullptr, Value = nullptr);
+    Value raise(Env *, Args args);
     Value run(Env *);
     Value wakeup(Env *);
 
