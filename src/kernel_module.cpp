@@ -477,6 +477,11 @@ Value KernelModule::raise(Env *env, Args args) {
     if (!klass && !message && cause)
         env->raise("ArgumentError", "only cause is given with no arguments");
 
+    if (klass && klass->is_class() && !message) {
+        auto exception = _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
+        env->raise_exception(exception);
+    }
+
     if (!klass) {
         klass = env->exception();
         if (!klass) {
@@ -484,6 +489,7 @@ Value KernelModule::raise(Env *env, Args args) {
             message = new StringObject { "" };
         }
     }
+
     if (!message) {
         Value arg = klass;
         if (arg->is_string()) {
@@ -495,6 +501,7 @@ Value KernelModule::raise(Env *env, Args args) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
+
     Vector<Value> to_be_raised_args;
     if (message)
         to_be_raised_args.push(message);
