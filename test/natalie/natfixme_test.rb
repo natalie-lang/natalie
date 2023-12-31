@@ -54,4 +54,16 @@ describe "NATFIXME" do
       end
     }.should raise_error(NatalieFixMeException)
   end
+
+  it "can be skipped with a condition" do
+    x = 0
+    NATFIXME 'Division by 0', exception: ZeroDivisionError, condition: x == 0 do
+      1 / x
+    end
+
+    x = 1
+    NATFIXME 'Division by 0', exception: ZeroDivisionError, condition: x == 0 do
+      1 / x
+    end
+  end
 end
