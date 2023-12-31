@@ -457,7 +457,10 @@ Value KernelModule::puts(Env *env, Args args) {
     return _stdout->send(env, "puts"_s, args);
 }
 
-Value KernelModule::raise(Env *env, Value klass, Value message) {
+Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace, Value cause) {
+    if (backtrace)
+        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
+
     if (!klass) {
         klass = env->exception();
         if (!klass) {
@@ -479,8 +482,15 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
-    Value to_be_raised = _new(env, klass->as_class(), { message }, nullptr);
-    env->raise_exception(to_be_raised->as_exception());
+    auto to_be_raised = _new(env, klass->as_class(), { message }, nullptr)->as_exception();
+    if (cause && cause->is_exception()) {
+        to_be_raised->set_cause(cause->as_exception());
+    } else {
+        auto exception_object = env->exception_object();
+        if (exception_object && exception_object->is_exception())
+            to_be_raised->set_cause(exception_object->as_exception());
+    }
+    env->raise_exception(to_be_raised);
 }
 
 Value KernelModule::Rational(Env *env, Value x, Value y, Value exception) {

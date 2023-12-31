@@ -45,6 +45,9 @@ public:
     void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
     Value backtrace(Env *);
 
+    ExceptionObject *cause() const { return m_cause; }
+    void set_cause(ExceptionObject *e) { m_cause = e; }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -71,6 +74,7 @@ private:
 
     Value m_message { nullptr };
     Backtrace *m_backtrace { nullptr };
+    ExceptionObject *m_cause { nullptr };
     nat_int_t m_break_point { 0 };
     LocalJumpErrorType m_local_jump_error_type { LocalJumpErrorType::None };
 };
