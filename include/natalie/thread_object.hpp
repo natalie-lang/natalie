@@ -153,7 +153,7 @@ public:
             m_start_of_stack);
     }
 
-    static Value pass();
+    static Value pass(Env *env);
 
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
@@ -179,6 +179,8 @@ public:
         return report;
     }
 
+    static void cancelation_checkpoint(Env *env);
+
 private:
     void wait_until_running() const;
 
@@ -194,7 +196,7 @@ private:
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id { 0 };
     std::thread m_thread {};
-    ExceptionObject *m_exception { nullptr };
+    std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };

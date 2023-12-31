@@ -1313,7 +1313,7 @@ gen.static_binding('Thread', 'current', 'ThreadObject', 'current', argc: 0, pass
 gen.static_binding('Thread', 'exit', 'ThreadObject', 'exit', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'list', 'ThreadObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'main', 'ThreadObject', 'main', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
-gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.static_binding('Thread', 'pass', 'ThreadObject', 'pass', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Thread', 'default_report_on_exception', 'ThreadObject', 'default_report_on_exception', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding('Thread', 'default_report_on_exception=', 'ThreadObject', 'set_default_report_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding('Thread', 'stop', 'ThreadObject', 'stop', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
