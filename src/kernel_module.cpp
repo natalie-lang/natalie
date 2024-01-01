@@ -461,6 +461,9 @@ Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace,
     if (backtrace)
         env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
 
+    if (!klass && !message && cause)
+        env->raise("ArgumentError", "only cause is given with no arguments");
+
     if (!klass) {
         klass = env->exception();
         if (!klass) {
