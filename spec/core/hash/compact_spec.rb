@@ -30,11 +30,9 @@ describe "Hash#compact" do
     it "retains the default_proc" do
       pr = proc { |h, k| h[k] = [] }
       hash = Hash.new(&pr)
-      NATFIXME 'Comparison of proc fails', exception: SpecFailedException do
-        hash.compact.default_proc.should == pr
-        hash[:a] = 1
-        hash.compact.default_proc.should == pr
-      end
+      hash.compact.default_proc.should == pr
+      hash[:a] = 1
+      hash.compact.default_proc.should == pr
     end
 
     it "retains compare_by_identity_flag" do

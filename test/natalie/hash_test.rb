@@ -352,22 +352,4 @@ describe 'hash' do
       -> { hash[:b] = 2 }.should_not raise_error
     end
   end
-
-  describe '#default' do
-    ruby_version_is ''...'3.3' do
-      it 'does not retain the default_proc' do
-        pr = proc { |h, k| h[k] = [] }
-        hash = Hash.new(&pr)
-        hash.compact[:foo].should be_nil
-      end
-    end
-
-    ruby_version_is '3.3' do
-      it 'retains the default_proc' do
-        pr = proc { |h, k| h[k] = [] }
-        hash = Hash.new(&pr)
-        hash.compact[:foo].should == []
-      end
-    end
-  end
 end
