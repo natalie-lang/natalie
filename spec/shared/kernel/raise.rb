@@ -82,9 +82,7 @@ describe :kernel_raise, shared: true do
       def initialize
       end
     end
-    NATFIXME 'Fix Exception#message for constructors with no arguments', exception: SpecFailedException do
-      -> { @object.raise(klass) }.should raise_error(klass) { |e| e.message.should == klass.to_s }
-    end
+    -> { @object.raise(klass) }.should raise_error(klass) { |e| e.message.should == klass.to_s }
   end
 
   it "raises a TypeError when passed a non-Exception object" do

@@ -495,7 +495,10 @@ Value KernelModule::raise(Env *env, Args args) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
-    auto to_be_raised = _new(env, klass->as_class(), { message }, nullptr)->as_exception();
+    Vector<Value> to_be_raised_args;
+    if (message)
+        to_be_raised_args.push(message);
+    auto to_be_raised = _new(env, klass->as_class(), { std::move(to_be_raised_args), false }, nullptr)->as_exception();
     if (cause && cause->is_exception()) {
         to_be_raised->set_cause(cause->as_exception());
     }
