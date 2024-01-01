@@ -59,12 +59,13 @@ static void *nat_create_thread(void *thread_object) {
     try {
         thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
+        thread->cancelation_checkpoint(&e);
         thread->set_value(return_value);
-        pthread_exit(nullptr);
+        pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
-        pthread_exit(Natalie::NilObject::the());
+        pthread_exit(exception);
     }
 
     pthread_cleanup_pop(0);
@@ -342,6 +343,8 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
 
+    cancelation_checkpoint(env);
+
     return calculate_elapsed();
 }
 
@@ -490,6 +493,7 @@ void ThreadObject::cancelation_checkpoint(Env *env) {
     auto t = current();
     if (t->m_exception) {
         auto exception = Value(t->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+        t->set_exception(nullptr);
         env->raise_exception(exception);
     }
 }
