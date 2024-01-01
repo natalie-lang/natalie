@@ -59,15 +59,8 @@ class SpecVersion
       if @ceil
         tiny = 99 unless tiny
       end
-      parts =
-        [major, minor, tiny].map do |x|
-          x = x.to_i
-          x < 10 ? "0#{x}" : x.to_s
-        end
-      @integer = "1#{parts.join}".to_i
-      # NATFIXME: Implement String#%
-      # parts = [major, minor, tiny].map { |x| x.to_i }
-      # @integer = ("1%02d%02d%02d" % parts).to_i
+      parts = [major, minor, tiny].map { |x| x.to_i }
+      @integer = ("1%02d%02d%02d" % parts).to_i
     end
     @integer
   end
@@ -78,9 +71,7 @@ class SpecVersion
 
   def <=>(other)
     if other.respond_to? :to_int
-      other = other.to_int
-      # NATFIXME: Implement Kernel#Integer
-      # other = Integer(other.to_int)
+      other = Integer(other.to_int)
     else
       other = SpecVersion.new(String(other)).to_i
     end
