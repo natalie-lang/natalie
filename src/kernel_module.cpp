@@ -486,15 +486,12 @@ Value KernelModule::raise(Env *env, Args args) {
     }
     if (!message) {
         Value arg = klass;
-        if (arg->is_class()) {
-            klass = arg->as_class();
-            message = new StringObject { arg->as_class()->inspect_str() };
-        } else if (arg->is_string()) {
+        if (arg->is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());
-        } else {
+        } else if (!arg->is_class()) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
