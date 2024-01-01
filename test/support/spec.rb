@@ -410,6 +410,8 @@ end
 
 def guard(proc)
   yield if proc.call
+rescue
+  nil
 end
 
 def guard_not(proc)
