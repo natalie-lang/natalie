@@ -44,9 +44,7 @@ describe "Kernel#raise" do
 
   it "raises an ArgumentError when only cause is given" do
     cause = StandardError.new
-    NATFIXME 'raises an ArgumentError when only cause is given', exception: SpecFailedException do
-      -> { raise(cause: cause) }.should raise_error(ArgumentError)
-    end
+    -> { raise(cause: cause) }.should raise_error(ArgumentError)
   end
 end
 
