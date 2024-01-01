@@ -461,10 +461,15 @@ Value KernelModule::raise(Env *env, Args args) {
     auto kwargs = args.pop_keyword_hash();
     auto cause = kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
     args.ensure_argc_between(env, 0, 3);
-    env->ensure_no_extra_keywords(kwargs);
     auto klass = args.at(0, nullptr);
     auto message = args.at(1, nullptr);
     auto backtrace = args.at(2, nullptr);
+
+    if (!message && kwargs && !kwargs->is_empty()) {
+        message = kwargs;
+    } else {
+        env->ensure_no_extra_keywords(kwargs);
+    }
 
     if (backtrace)
         env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
