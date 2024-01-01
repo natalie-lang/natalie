@@ -49,6 +49,7 @@ public:
     }
 
     Value call(Env *, Args = {}, Block * = nullptr);
+    bool equal_value(Value) const;
     Value source_location();
 
     Env *env() { return m_block->env(); }

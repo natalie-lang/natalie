@@ -1066,6 +1066,7 @@ gen.binding('NilClass', 'to_s', 'NilObject', 'to_s', argc: 0, pass_env: true, pa
 gen.binding('Object', 'nil?', 'Object', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Object', 'itself', 'Object', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
+gen.binding('Proc', '==', 'ProcObject', 'equal_value', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Proc', 'initialize', 'ProcObject', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, aliases: ['[]', 'yield'], return_type: :Object)

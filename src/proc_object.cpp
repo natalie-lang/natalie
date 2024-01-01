@@ -21,6 +21,10 @@ Value ProcObject::call(Env *env, Args args, Block *block) {
     return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, args, block);
 }
 
+bool ProcObject::equal_value(Value other) const {
+    return other->is_proc() && other->as_proc()->m_block == m_block;
+}
+
 Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
