@@ -61,8 +61,7 @@ public:
         , m_default_value { NilObject::the() } { }
 
     HashObject(Env *env, const HashObject &other)
-        : Object { other }
-        , m_is_comparing_by_identity { other.m_is_comparing_by_identity } {
+        : Object { other } {
         for (auto node : other) {
             put(env, node.key, node.val);
         }
@@ -73,7 +72,6 @@ public:
         m_hashmap.clear();
         m_hashmap = std::move(other.m_hashmap);
         m_key_list = other.m_key_list;
-        m_is_comparing_by_identity = other.m_is_comparing_by_identity;
         m_default_value = other.m_default_value;
         m_default_proc = other.m_default_proc;
         other.m_key_list = nullptr;
