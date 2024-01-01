@@ -215,6 +215,8 @@ Value ThreadObject::raise(Env *env, Args args) {
 
     if (klass && klass->is_exception()) {
         exception = klass->as_exception();
+        if (message)
+            exception = Value(exception).send(env, "exception"_s, { message })->as_exception_or_raise(env);
     } else if (klass && klass->is_class()) {
         if (!message)
             message = new StringObject { klass->inspect_str(env) };
@@ -486,8 +488,10 @@ void ThreadObject::cancelation_checkpoint(Env *env) {
     ::usleep(0);
 
     auto t = current();
-    if (t->m_exception)
-        env->raise_exception(t->m_exception);
+    if (t->m_exception) {
+        auto exception = Value(t->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+        env->raise_exception(exception);
+    }
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {

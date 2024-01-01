@@ -106,29 +106,27 @@ describe "Thread#raise on a sleeping thread" do
   end
 
   it "calls #exception in both the caller and in the target thread" do
-    NATFIXME 'I have no idea what this means', exception: SpecFailedException do
-      cls = Class.new(Exception) do
-        attr_accessor :log
-        def initialize(*args)
-          @log = [] # This is shared because the super #exception uses a shallow clone
-          super
-        end
-
-        def exception(*args)
-          @log << [self, Thread.current, args]
-          super
-        end
+    cls = Class.new(Exception) do
+      attr_accessor :log
+      def initialize(*args)
+        @log = [] # This is shared because the super #exception uses a shallow clone
+        super
       end
-      exc = cls.new
 
-      @thr.raise exc, "Thread#raise #exception spec"
-      @thr.join
-      ScratchPad.recorded.should.is_a?(cls)
-      exc.log.should == [
-        [exc, Thread.current, ["Thread#raise #exception spec"]],
-        [ScratchPad.recorded, @thr, []]
-      ]
+      def exception(*args)
+        @log << [self, Thread.current, args]
+        super
+      end
     end
+    exc = cls.new
+
+    @thr.raise exc, "Thread#raise #exception spec"
+    @thr.join
+    ScratchPad.recorded.should.is_a?(cls)
+    exc.log.should == [
+      [exc, Thread.current, ["Thread#raise #exception spec"]],
+      [ScratchPad.recorded, @thr, []]
+    ]
   end
 end
 
