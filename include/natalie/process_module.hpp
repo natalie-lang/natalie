@@ -123,6 +123,7 @@ public:
 
     static Value clock_gettime(Env *, Value);
     static Value groups(Env *env);
+    static Value kill(Env *, Args);
 
 private:
     static uid_t value_to_uid(Env *env, Value idval) {
