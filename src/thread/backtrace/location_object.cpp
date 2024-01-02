@@ -2,6 +2,10 @@
 
 namespace Natalie::Thread::Backtrace {
 
+StringObject *LocationObject::inspect(Env *env) const {
+    return to_s()->inspect(env);
+}
+
 StringObject *LocationObject::to_s() const {
     return StringObject::format("{}:{}:in `{}'", m_file, m_line, m_source_location);
 }

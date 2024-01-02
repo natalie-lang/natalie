@@ -21,6 +21,7 @@ public:
         , m_file { new StringObject { file } }
         , m_line { new IntegerObject { static_cast<nat_int_t>(line) } } { }
 
+    StringObject *inspect(Env *) const;
     StringObject *to_s() const;
 
     void visit_children(Visitor &);

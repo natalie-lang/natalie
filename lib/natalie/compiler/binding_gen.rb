@@ -1343,6 +1343,7 @@ gen.binding('Thread', 'value', 'ThreadObject', 'value', argc: 0, pass_env: true,
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('ThreadBacktraceLocation', 'new')
+gen.binding('Thread::Backtrace::Location', 'inspect', 'Thread::Backtrace::LocationObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread::Backtrace::Location', 'to_s', 'Thread::Backtrace::LocationObject', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 
 gen.binding('Thread::Mutex', 'lock', 'Thread::MutexObject', 'lock', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
