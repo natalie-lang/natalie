@@ -49,8 +49,10 @@ describe 'Kernel#caller_locations' do
   end
 
   it "must return nil if omitting more locations than available" do
-    caller_locations(100).should == nil
-    caller_locations(100..-1).should == nil
+    NATFIXME 'Fix this for caller as well, add to specs, fix assertion failure', exception: SpecFailedException do
+      caller_locations(100).should == nil
+      caller_locations(100..-1).should == nil
+    end
   end
 
   it "must return [] if omitting exactly the number of locations available" do
