@@ -522,6 +522,12 @@ ClassObject *Object::as_class_or_raise(Env *env) {
     return static_cast<ClassObject *>(this);
 }
 
+ExceptionObject *Object::as_exception_or_raise(Env *env) {
+    if (!is_exception())
+        env->raise("TypeError", "{} can't be coerced into Exception", m_klass->inspect_str());
+    return static_cast<ExceptionObject *>(this);
+}
+
 FloatObject *Object::as_float_or_raise(Env *env) {
     if (!is_float())
         env->raise("TypeError", "{} can't be coerced into Float", m_klass->inspect_str());

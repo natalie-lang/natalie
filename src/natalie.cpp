@@ -511,7 +511,7 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
-    } else {
+    } else if (ThreadObject::i_am_main() || ThreadObject::current()->report_on_exception()) {
         print_exception_with_backtrace(env, exception);
     }
 }

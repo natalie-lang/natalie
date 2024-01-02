@@ -31,7 +31,6 @@ describe "BasicSocket#send" do
     t.status.should_not be_nil
 
     @socket.send('hello', 0).should == 5
-    p @socket.method(:shutdown)
     @socket.shutdown(1) # indicate, that we are done sending
     @socket.recv(10)
 

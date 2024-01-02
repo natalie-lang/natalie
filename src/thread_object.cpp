@@ -55,15 +55,17 @@ static void *nat_create_thread(void *thread_object) {
     auto block = thread->block();
 
     Natalie::Env e {};
+
     try {
         thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
+        thread->cancelation_checkpoint(&e);
         thread->set_value(return_value);
-        pthread_exit(nullptr);
+        pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
-        pthread_exit(Natalie::NilObject::the());
+        pthread_exit(exception);
     }
 
     pthread_cleanup_pop(0);
@@ -84,9 +86,8 @@ static Value validate_key(Env *env, Value key) {
 std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
-Value ThreadObject::pass() {
-    // We need a cancellation point here so the thread can be canceled.
-    ::usleep(0);
+Value ThreadObject::pass(Env *env) {
+    cancelation_checkpoint(env);
 
     sched_yield();
 
@@ -196,20 +197,18 @@ Value ThreadObject::kill(Env *) const {
     return NilObject::the();
 }
 
-Value ThreadObject::raise(Env *env, Value klass, Value message) {
-    if (klass && klass->is_string()) {
-        message = klass;
-        klass = nullptr;
-    }
-    if (!klass)
-        klass = GlobalEnv::the()->Object()->const_fetch("RuntimeError"_s);
-    auto exception = new ExceptionObject { klass->as_class_or_raise(env), new StringObject { "" } };
-    if (is_main()) {
+Value ThreadObject::raise(Env *env, Args args) {
+    if (m_status == Status::Dead)
+        return NilObject::the();
+
+    auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr, false);
+
+    if (is_main())
         env->raise_exception(exception);
-    } else {
-        m_exception = exception;
-        kill(env);
-    }
+
+    m_exception = exception;
+    wakeup(env);
+
     return NilObject::the();
 }
 
@@ -284,6 +283,8 @@ Value ThreadObject::sleep(Env *env, float timeout) {
         handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
 
+        cancelation_checkpoint(env);
+
         return calculate_elapsed();
     }
 
@@ -308,6 +309,8 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
+
+    cancelation_checkpoint(env);
 
     return calculate_elapsed();
 }
@@ -448,6 +451,18 @@ void ThreadObject::visit_children(Visitor &visitor) {
 void ThreadObject::wait_until_running() const {
     while (m_status == Status::Created)
         sched_yield();
+}
+
+void ThreadObject::cancelation_checkpoint(Env *env) {
+    // This call gives us a cancelation point that works with pthread_cancel(3).
+    ::usleep(0);
+
+    auto t = current();
+    if (t->m_exception) {
+        auto exception = Value(t->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+        t->set_exception(nullptr);
+        env->raise_exception(exception);
+    }
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
