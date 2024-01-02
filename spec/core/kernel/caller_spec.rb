@@ -13,7 +13,10 @@ describe 'Kernel#caller' do
   it 'returns an Array of caller locations using a custom offset' do
     locations = KernelSpecs::CallerTest.locations(2)
 
-    locations[0].should =~ %r{runner/mspec.rb}
+    NATFIXME "We're using different names for these files", exception: SpecFailedException do
+      locations[0].should =~ %r{runner/mspec.rb}
+    end
+    locations[0].should =~ %r{support/spec.rb}
   end
 
   it 'returns an Array of caller locations using a custom limit' do
