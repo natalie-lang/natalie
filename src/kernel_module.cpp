@@ -458,7 +458,7 @@ Value KernelModule::puts(Env *env, Args args) {
 }
 
 Value KernelModule::raise(Env *env, Args args) {
-    auto exception = ExceptionObject::create_for_raise(env, std::move(args), true);
+    auto exception = ExceptionObject::create_for_raise(env, std::move(args), env->exception(), true);
     env->raise_exception(exception);
 }
 

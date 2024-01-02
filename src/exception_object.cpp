@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, bool accept_cause) {
+ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, ExceptionObject *current_exception, bool accept_cause) {
     auto kwargs = args.pop_keyword_hash();
     auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
     args.ensure_argc_between(env, 0, 3);
@@ -24,12 +24,12 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, bool acc
     if (klass && klass->is_class() && !message)
         return _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
 
+    if (!klass && current_exception)
+        klass = current_exception;
+
     if (!klass) {
-        klass = env->exception();
-        if (!klass) {
-            klass = find_top_level_const(env, "RuntimeError"_s);
-            message = new StringObject { "" };
-        }
+        klass = find_top_level_const(env, "RuntimeError"_s);
+        message = new StringObject { "" };
     }
 
     if (!message) {
@@ -48,7 +48,13 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, bool acc
     if (message)
         exception_args.push(message);
 
-    auto exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr)->as_exception();
+    ExceptionObject *exception;
+    if (klass->is_class())
+        exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr)->as_exception();
+    else if (klass->is_exception())
+        exception = Value(klass).send(env, "exception"_s, { std::move(exception_args), false })->as_exception_or_raise(env);
+    else
+        env->raise("TypeError", "exception klass/object expected");
 
     if (accept_cause && cause && cause->is_exception()) {
         exception->set_cause(cause->as_exception());

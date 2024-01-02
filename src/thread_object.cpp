@@ -198,45 +198,10 @@ Value ThreadObject::kill(Env *) const {
 }
 
 Value ThreadObject::raise(Env *env, Args args) {
-    auto kwargs = args.pop_keyword_hash();
-
-    args.ensure_argc_between(env, 0, 3);
-    auto klass = args.at(0, nullptr);
-    auto message = args.at(1, nullptr);
-    auto backtrace = args.at(2, nullptr);
-
-    if (backtrace)
-        env->raise("ArgumentError", "NATFIXME: Unsupported backtrace argument to exception");
-
-    if (message && kwargs && !kwargs->is_empty())
-        env->raise("ArgumentError", "keyword arguments and message are not supported together");
-
     if (m_status == Status::Dead)
         return NilObject::the();
 
-    ExceptionObject *exception;
-
-    if (klass && klass->is_exception()) {
-        exception = klass->as_exception();
-        if (message)
-            exception = Value(exception).send(env, "exception"_s, { message })->as_exception_or_raise(env);
-    } else if (klass && klass->is_class()) {
-        if (!message)
-            message = new StringObject { klass->inspect_str(env) };
-        exception = new ExceptionObject { klass->as_class(), message };
-    } else {
-        if (klass && klass->is_string()) {
-            message = klass;
-            klass = nullptr;
-        }
-        if (!klass)
-            klass = GlobalEnv::the()->Object()->const_fetch("RuntimeError"_s);
-
-        if (!message)
-            message = new StringObject { "" };
-
-        exception = new ExceptionObject { klass->as_class_or_raise(env), message };
-    }
+    auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr, false);
 
     if (is_main())
         env->raise_exception(exception);

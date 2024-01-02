@@ -31,7 +31,7 @@ public:
         m_backtrace = other.m_backtrace;
     }
 
-    static ExceptionObject *create_for_raise(Env *env, Args args, bool accept_cause);
+    static ExceptionObject *create_for_raise(Env *env, Args args, ExceptionObject *current_exception, bool accept_cause);
 
     void set_message(Value message) { m_message = message; }
 
