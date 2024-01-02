@@ -603,6 +603,27 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
+static int blocking_accept(Env *env, int fd, struct sockaddr *addr, socklen_t *len) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    // temporarily set the fd to non-blocking
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+    int ret;
+    do {
+        ret = accept(fd, addr, len);
+        sched_yield();
+        ThreadObject::cancelation_checkpoint(env);
+    } while (ret == -1 && (errno == EWOULDBLOCK || errno == EAGAIN));
+
+    // revert to original flags
+    fcntl(fd, F_SETFL, flags);
+
+    return ret;
+}
+
 Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 0);
 
@@ -612,9 +633,7 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-    auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    auto fd = blocking_accept(env, self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
 
     if (fd == -1)
         env->raise_errno();
@@ -1033,6 +1052,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     auto fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
         env->raise_errno();
+
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
 
@@ -1072,6 +1092,7 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
     auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
         env->raise_errno();
+
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
 
     self.send(env, "setsockopt"_s, { "SOCKET"_s, "REUSEADDR"_s, TrueObject::the() });
@@ -1093,9 +1114,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
-    ThreadObject::set_current_sleeping(true);
-    auto fd = accept(self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
-    ThreadObject::set_current_sleeping(false);
+    auto fd = blocking_accept(env, self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
 
     if (fd == -1)
         env->raise_errno();
