@@ -630,9 +630,11 @@ static int blocking_accept(Env *env, int fd, struct sockaddr *addr, socklen_t *l
         ret = accept(fd, addr, len);
     }
 
-    // revert to original flags
-    fcntl(fd, F_SETFL, flags);
-    fcntl(ret, F_SETFL, flags);
+    if (ret != -1) {
+        // revert to original flags
+        fcntl(fd, F_SETFL, flags);
+        fcntl(ret, F_SETFL, flags);
+    }
 
     return ret;
 }
