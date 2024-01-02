@@ -139,7 +139,7 @@ Value splat(Env *env, Value obj);
 Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat);
 
 void run_at_exit_handlers(Env *env);
-void print_exception_with_backtrace(Env *env, ExceptionObject *exception);
+void print_exception_with_backtrace(Env *env, ExceptionObject *exception, ThreadObject *thread = nullptr);
 void handle_top_level_exception(Env *, ExceptionObject *, bool);
 
 ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array);

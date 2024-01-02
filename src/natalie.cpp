@@ -478,23 +478,34 @@ void run_at_exit_handlers(Env *env) {
     }
 }
 
-void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
+void print_exception_with_backtrace(Env *env, ExceptionObject *exception, ThreadObject *thread) {
     std::lock_guard<std::mutex> lock(g_backtrace_mutex);
 
-    IoObject *_stderr = env->global_get("$stderr"_s)->as_io();
-    int fd = _stderr->fileno();
+    auto out = env->global_get("$stderr"_s);
+
+    if (thread) {
+        auto formatted = StringObject::format("{} terminated with exception (report_on_exception is true):", thread->inspect_str(env));
+        out.send(env, "puts"_s, { formatted });
+    }
+
     ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
     if (backtrace && backtrace->size() > 0) {
-        dprintf(fd, "Traceback (most recent call last):\n");
+        out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
         for (int i = backtrace->size() - 1; i > 0; i--) {
-            StringObject *line = (*backtrace)[i]->as_string();
-            assert(line->type() == Object::Type::String);
-            dprintf(fd, "        %d: from %s\n", i, line->c_str());
+            auto line = backtrace->at(i)->as_string_or_raise(env);
+            auto formatted = StringObject::format("        {}: from {}", i, line->string());
+            out.send(env, "puts"_s, { formatted });
         }
-        StringObject *line = (*backtrace)[0]->as_string();
-        dprintf(fd, "%s: ", line->c_str());
+        auto line = backtrace->at(0)->as_string_or_raise(env);
+        auto formatted = StringObject::format("{}: ", line->string());
+        out.send(env, "print"_s, { formatted });
     }
-    dprintf(fd, "%s (%s)\n", exception->to_s(env)->c_str(), exception->klass()->inspect_str().c_str());
+
+    auto formatted = StringObject::format(
+        "{} ({})",
+        exception->to_s(env)->c_str(),
+        exception->klass()->inspect_str());
+    out.send(env, "puts"_s, { formatted });
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
@@ -511,8 +522,10 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
-    } else if (ThreadObject::i_am_main() || ThreadObject::current()->report_on_exception()) {
+    } else if (ThreadObject::i_am_main()) {
         print_exception_with_backtrace(env, exception);
+    } else if (ThreadObject::current()->report_on_exception()) {
+        print_exception_with_backtrace(env, exception, ThreadObject::current());
     }
 }
 

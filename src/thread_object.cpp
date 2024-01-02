@@ -181,10 +181,13 @@ Value ThreadObject::join(Env *env) {
     m_joined = true;
     remove_from_list();
 
+    if (m_exception)
+        env->raise_exception(m_exception);
+
     return this;
 }
 
-Value ThreadObject::kill(Env *) const {
+Value ThreadObject::kill(Env *env) const {
     if (is_main())
         exit(0);
 

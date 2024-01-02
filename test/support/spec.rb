@@ -763,9 +763,9 @@ class OutputExpectation
     actual_out, actual_err = capture_output do
       subject.call
     end
-    if @expected_out && (actual_out != @expected_out)
+    if @expected_out && !(@expected_out === actual_out)
       raise SpecFailedException, "expected $stdout to get #{@expected_out.inspect} but it got #{actual_out.inspect} instead"
-    elsif @expected_err && (actual_err != @expected_err)
+    elsif @expected_err && !(@expected_err === actual_err)
       raise SpecFailedException, "expected $stderr to get #{@expected_err.inspect} but it got #{actual_err.inspect} instead"
     end
   end
@@ -774,9 +774,9 @@ class OutputExpectation
     actual_out, actual_err = capture_output do
       subject.call
     end
-    if @expected_out && (actual_out == @expected_out)
+    if @expected_out && @expected_out === actual_out
       raise SpecFailedException, "expected $stdout not to get #{@expected_out.inspect} but it did"
-    elsif @expected_err && (actual_err == @expected_err)
+    elsif @expected_err && @expected_err === actual_err
       raise SpecFailedException, "expected $stderr not to get #{@expected_err.inspect} but it did"
     end
   end
