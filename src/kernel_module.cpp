@@ -54,11 +54,19 @@ Value KernelModule::binding(Env *env) {
     return new BindingObject { env };
 }
 
-Value KernelModule::caller(Env *env) {
+Value KernelModule::caller(Env *env, Value start, Value length) {
+    if (!start)
+        start = Value::integer(1); // remove the frame for the call site of Kernel#caller
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
-    ary->shift(); // remove the frame for the call site of Kernel#caller
+    if (start && start->is_range()) {
+        ary = ary->ref(env, start)->as_array();
+    } else {
+        ary->shift(env, start);
+        if (length)
+            ary = ary->first(env, length)->as_array();
+    }
     return ary;
 }
 
