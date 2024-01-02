@@ -325,7 +325,7 @@ static ssize_t blocking_read(Env *env, int fileno, void *buf, int count) {
     ThreadObject::set_current_sleeping(true);
 
     auto ret = ::read(fileno, buf, count);
-    while (ret == -1 && errno == EAGAIN) {
+    while (ret == -1 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
         sched_yield();
         ThreadObject::cancelation_checkpoint(env);
 
