@@ -359,6 +359,9 @@ Env *build_top_env() {
     ClassObject *Thread = Object->subclass(env, "Thread", Object::Type::Thread);
     Object->const_set("Thread"_s, Thread);
 
+    ModuleObject *ThreadBacktrace = new ModuleObject { "Backtrace" };
+    Thread->const_set("Backtrace"_s, ThreadBacktrace);
+
     ClassObject *ThreadMutex = Object->subclass(env, "Mutex", Object::Type::ThreadMutex);
     Thread->const_set("Mutex"_s, ThreadMutex);
     Object->const_set("Mutex"_s, ThreadMutex);
