@@ -19,6 +19,7 @@ public:
         m_items.push(Item { name, file, line });
     }
     ArrayObject *to_ruby_array();
+    ArrayObject *to_ruby_backtrace_locations_array();
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Backtrace %p size=%ld>", this, m_items.size());
