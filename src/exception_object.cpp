@@ -2,6 +2,61 @@
 
 namespace Natalie {
 
+ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, bool accept_cause) {
+    auto kwargs = args.pop_keyword_hash();
+    auto cause = accept_cause && kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
+    args.ensure_argc_between(env, 0, 3);
+    auto klass = args.at(0, nullptr);
+    auto message = args.at(1, nullptr);
+    auto backtrace = args.at(2, nullptr);
+
+    if (!message && kwargs && !kwargs->is_empty())
+        message = kwargs;
+    else
+        env->ensure_no_extra_keywords(kwargs);
+
+    if (backtrace)
+        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
+
+    if (!klass && !message && cause)
+        env->raise("ArgumentError", "only cause is given with no arguments");
+
+    if (klass && klass->is_class() && !message)
+        return _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
+
+    if (!klass) {
+        klass = env->exception();
+        if (!klass) {
+            klass = find_top_level_const(env, "RuntimeError"_s);
+            message = new StringObject { "" };
+        }
+    }
+
+    if (!message) {
+        Value arg = klass;
+        if (arg->is_string()) {
+            klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
+            message = arg;
+        } else if (arg->is_exception()) {
+            return arg->as_exception();
+        } else if (!arg->is_class()) {
+            env->raise("TypeError", "exception klass/object expected");
+        }
+    }
+
+    Vector<Value> exception_args;
+    if (message)
+        exception_args.push(message);
+
+    auto exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr)->as_exception();
+
+    if (accept_cause && cause && cause->is_exception()) {
+        exception->set_cause(cause->as_exception());
+    }
+
+    return exception;
+}
+
 Value ExceptionObject::initialize(Env *env, Value message) {
     if (message != nullptr)
         set_message(message);
