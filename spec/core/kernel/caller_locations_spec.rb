@@ -13,7 +13,10 @@ describe 'Kernel#caller_locations' do
   it 'returns an Array of caller locations using a custom offset' do
     locations = KernelSpecs::CallerLocationsTest.locations(2)
 
-    locations[0].absolute_path.should.end_with?('mspec.rb')
+    NATFIXME "We're using different names for these files", exception: SpecFailedException do
+      locations[0].absolute_path.should.end_with?('mspec.rb')
+    end
+    locations[0].absolute_path.should.end_with?('spec.rb')
   end
 
   it 'returns an Array of caller locations using a custom limit' do

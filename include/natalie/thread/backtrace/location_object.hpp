@@ -21,6 +21,7 @@ public:
         , m_file { new StringObject { file } }
         , m_line { new IntegerObject { static_cast<nat_int_t>(line) } } { }
 
+    Value absolute_path(Env *) const;
     StringObject *inspect(Env *) const;
     IntegerObject *lineno() const { return m_line; }
     StringObject *to_s() const;
