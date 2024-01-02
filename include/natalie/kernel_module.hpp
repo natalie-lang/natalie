@@ -57,7 +57,7 @@ public:
     static Value print(Env *env, Args args);
     static Value proc(Env *env, Block *block);
     static Value puts(Env *env, Args args);
-    static Value raise(Env *env, Value klass, Value message, Value backtrace, Value cause);
+    static Value raise(Env *env, Args args);
     static Value Rational(Env *env, Value x, Value y, Value exception);
     static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
     static RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);

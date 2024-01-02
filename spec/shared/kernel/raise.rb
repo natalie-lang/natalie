@@ -44,10 +44,8 @@ describe :kernel_raise, shared: true do
       end
     end
 
-    NATFIXME 'allows extra keyword arguments for compatibility', exception: SpecFailedException do
-      -> { @object.raise(data_error, data: 42) }.should raise_error(data_error) do |ex|
-        ex.data.should == {data: 42}
-      end
+    -> { @object.raise(data_error, data: 42) }.should raise_error(data_error) do |ex|
+      ex.data.should == {data: 42}
     end
   end
 
@@ -84,9 +82,7 @@ describe :kernel_raise, shared: true do
       def initialize
       end
     end
-    NATFIXME 'Fix Exception#message for constructors with no arguments', exception: SpecFailedException do
-      -> { @object.raise(klass) }.should raise_error(klass) { |e| e.message.should == klass.to_s }
-    end
+    -> { @object.raise(klass) }.should raise_error(klass) { |e| e.message.should == klass.to_s }
   end
 
   it "raises a TypeError when passed a non-Exception object" do

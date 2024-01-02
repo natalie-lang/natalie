@@ -457,7 +457,20 @@ Value KernelModule::puts(Env *env, Args args) {
     return _stdout->send(env, "puts"_s, args);
 }
 
-Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace, Value cause) {
+Value KernelModule::raise(Env *env, Args args) {
+    auto kwargs = args.pop_keyword_hash();
+    auto cause = kwargs ? kwargs->remove(env, "cause"_s) : nullptr;
+    args.ensure_argc_between(env, 0, 3);
+    auto klass = args.at(0, nullptr);
+    auto message = args.at(1, nullptr);
+    auto backtrace = args.at(2, nullptr);
+
+    if (!message && kwargs && !kwargs->is_empty()) {
+        message = kwargs;
+    } else {
+        env->ensure_no_extra_keywords(kwargs);
+    }
+
     if (backtrace)
         env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
 
@@ -473,19 +486,19 @@ Value KernelModule::raise(Env *env, Value klass, Value message, Value backtrace,
     }
     if (!message) {
         Value arg = klass;
-        if (arg->is_class()) {
-            klass = arg->as_class();
-            message = new StringObject { arg->as_class()->inspect_str() };
-        } else if (arg->is_string()) {
+        if (arg->is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());
-        } else {
+        } else if (!arg->is_class()) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
-    auto to_be_raised = _new(env, klass->as_class(), { message }, nullptr)->as_exception();
+    Vector<Value> to_be_raised_args;
+    if (message)
+        to_be_raised_args.push(message);
+    auto to_be_raised = _new(env, klass->as_class(), { std::move(to_be_raised_args), false }, nullptr)->as_exception();
     if (cause && cause->is_exception()) {
         to_be_raised->set_cause(cause->as_exception());
     }
