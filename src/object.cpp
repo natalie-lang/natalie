@@ -101,6 +101,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new ThreadObject { klass };
         break;
 
+    case Object::Type::ThreadBacktraceLocation:
+        obj = new Thread::Backtrace::LocationObject { klass };
+        break;
+
     case Object::Type::ThreadMutex:
         obj = new Thread::MutexObject { klass };
         break;
@@ -446,6 +450,16 @@ ThreadObject *Object::as_thread() {
 const ThreadObject *Object::as_thread() const {
     assert(is_thread());
     return static_cast<const ThreadObject *>(this);
+}
+
+Thread::Backtrace::LocationObject *Object::as_thread_backtrace_location() {
+    assert(is_thread_backtrace_location());
+    return static_cast<Thread::Backtrace::LocationObject *>(this);
+}
+
+const Thread::Backtrace::LocationObject *Object::as_thread_backtrace_location() const {
+    assert(is_thread_backtrace_location());
+    return static_cast<const Thread::Backtrace::LocationObject *>(this);
 }
 
 Thread::MutexObject *Object::as_thread_mutex() {

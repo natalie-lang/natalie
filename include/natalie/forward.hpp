@@ -8,6 +8,9 @@ namespace Enumerator {
     class ArithmeticSequenceObject;
 };
 namespace Thread {
+    namespace Backtrace {
+        class LocationObject;
+    }
     class MutexObject;
 };
 class ArrayObject;

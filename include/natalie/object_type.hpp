@@ -32,6 +32,7 @@ enum class ObjectType {
     String,
     Symbol,
     Thread,
+    ThreadBacktraceLocation,
     ThreadMutex,
     Time,
     True,
