@@ -105,6 +105,7 @@
 #include "natalie/string_object.hpp"
 #include "natalie/string_upto_iterator.hpp"
 #include "natalie/symbol_object.hpp"
+#include "natalie/thread/backtrace/location_object.hpp"
 #include "natalie/thread/mutex_object.hpp"
 #include "natalie/thread_object.hpp"
 #include "natalie/time_object.hpp"
