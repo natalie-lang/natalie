@@ -70,6 +70,22 @@ Value KernelModule::caller(Env *env, Value start, Value length) {
     return ary;
 }
 
+Value KernelModule::caller_locations(Env *env, Value start, Value length) {
+    if (!start)
+        start = Value::integer(1); // remove the frame for the call site of Kernel#caller_locations
+    auto backtrace = env->backtrace();
+    auto ary = backtrace->to_ruby_array();
+    ary->shift(); // remove the frame for Kernel#caller_locations itself
+    if (start && start->is_range()) {
+        ary = ary->ref(env, start)->as_array();
+    } else {
+        ary->shift(env, start);
+        if (length)
+            ary = ary->first(env, length)->as_array();
+    }
+    return ary;
+}
+
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
     return Complex(env, real, imaginary, exception ? exception->is_true() : true);
 }
