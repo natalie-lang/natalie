@@ -60,9 +60,13 @@ Value KernelModule::caller(Env *env, Value start, Value length) {
     auto backtrace = env->backtrace();
     auto ary = backtrace->to_ruby_array();
     ary->shift(); // remove the frame for Kernel#caller itself
-    ary->shift(env, start);
-    if (length)
-        ary = ary->first(env, length)->as_array();
+    if (start && start->is_range()) {
+        ary = ary->ref(env, start)->as_array();
+    } else {
+        ary->shift(env, start);
+        if (length)
+            ary = ary->first(env, length)->as_array();
+    }
     return ary;
 }
 
