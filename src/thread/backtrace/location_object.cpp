@@ -2,6 +2,10 @@
 
 namespace Natalie::Thread::Backtrace {
 
+Value LocationObject::absolute_path(Env *env) const {
+    return m_file->dup(env);
+}
+
 StringObject *LocationObject::inspect(Env *env) const {
     return to_s()->inspect(env);
 }
