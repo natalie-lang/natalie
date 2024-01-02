@@ -198,8 +198,7 @@ Value ThreadObject::kill(Env *) const {
 }
 
 Value ThreadObject::raise(Env *env, Args args) {
-    if (args.has_keyword_hash())
-        env->raise("ArgumentError", "NATFIXME: keyword arguments are not yet supported in Thread#raise");
+    auto kwargs = args.pop_keyword_hash();
 
     args.ensure_argc_between(env, 0, 3);
     auto klass = args.at(0, nullptr);
@@ -207,7 +206,10 @@ Value ThreadObject::raise(Env *env, Args args) {
     auto backtrace = args.at(2, nullptr);
 
     if (backtrace)
-        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
+        env->raise("ArgumentError", "NATFIXME: Unsupported backtrace argument to exception");
+
+    if (message && kwargs && !kwargs->is_empty())
+        env->raise("ArgumentError", "keyword arguments and message are not supported together");
 
     if (m_status == Status::Dead)
         return NilObject::the();
