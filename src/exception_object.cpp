@@ -117,6 +117,13 @@ Value ExceptionObject::backtrace(Env *env) {
     return NilObject::the();
 }
 
+Value ExceptionObject::backtrace_locations() {
+    if (m_backtrace)
+        return m_backtrace->to_ruby_backtrace_locations_array();
+
+    return NilObject::the();
+}
+
 Value ExceptionObject::match_rescue_array(Env *env, Value ary) {
     // NOTE: Even though LocalJumpError is a StandardError, we only
     // want it to match if it was explicitly given in the array,
