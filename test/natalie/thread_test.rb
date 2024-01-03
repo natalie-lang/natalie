@@ -130,4 +130,26 @@ describe 'Thread' do
       end
     end
   end
+
+  describe 'Thread#report_on_exception' do
+    before do
+      @report_setting = Thread.report_on_exception
+    end
+
+    after do
+      Thread.report_on_exception = @report_setting
+    end
+
+    it 'defaults to Thread.report_on_exception' do
+      Thread.report_on_exception = false
+      t1 = Thread.new {}
+      t1.report_on_exception.should == false
+
+      Thread.report_on_exception = true
+      t2 = Thread.new {}
+      t2.report_on_exception.should == true
+
+      t1.report_on_exception.should == false
+    end
+  end
 end

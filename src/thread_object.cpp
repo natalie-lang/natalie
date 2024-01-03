@@ -140,6 +140,8 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
 
     m_thread = std::thread { nat_create_thread, (void *)this };
 
+    m_report_on_exception = s_report_on_exception;
+
     return this;
 }
 
