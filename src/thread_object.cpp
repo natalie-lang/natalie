@@ -141,7 +141,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     return this;
 }
 
-Value ThreadObject::inspect(Env *env) {
+Value ThreadObject::to_s(Env *env) {
     String location;
 
     if (m_file && m_line)

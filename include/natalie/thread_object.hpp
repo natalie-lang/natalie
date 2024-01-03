@@ -67,7 +67,7 @@ public:
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
 
-    Value inspect(Env *);
+    Value to_s(Env *);
 
     void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
     void *start_of_stack() { return m_start_of_stack; }
