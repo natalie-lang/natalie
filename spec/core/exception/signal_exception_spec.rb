@@ -103,9 +103,7 @@ describe "SignalException" do
         raise SignalException, 'SIGKILL'
       RUBY
 
-      NATFIXME 'Implement Process::Status#termsig', exception: NoMethodError, message: "undefined method `termsig' for an instance of Process::Status" do
-        $?.termsig.should == Signal.list.fetch("KILL")
-      end
+      $?.termsig.should == Signal.list.fetch("KILL")
       NATFIXME 'Run at_exit handlers', exception: SpecFailedException do
         output.should == "hello\n"
       end
@@ -123,9 +121,7 @@ describe "SignalException" do
 
     it "self-signals for USR1" do
       ruby_exe("raise(SignalException, 'USR1')", exit_status: :SIGUSR1)
-      NATFIXME 'Implement Process::Status#termsig', exception: NoMethodError, message: "undefined method `termsig' for an instance of Process::Status" do
-        $?.termsig.should == Signal.list.fetch('USR1')
-      end
+      $?.termsig.should == Signal.list.fetch('USR1')
     end
   end
 end
