@@ -40,7 +40,9 @@ describe :thread_to_s, shared: true do
   end
 
   it "describes a dying sleeping thread" do
-    ThreadSpecs.status_of_dying_sleeping_thread.send(@method).should include('sleep')
+    NATFIXME 'Bug with sleeping a thread after it is killed', exception: ThreadError do
+      ThreadSpecs.status_of_dying_sleeping_thread.send(@method).should include('sleep')
+    end
   end
 
   it "reports aborting on a killed thread" do
@@ -48,6 +50,8 @@ describe :thread_to_s, shared: true do
   end
 
   it "reports aborting on a killed thread after sleep" do
-    ThreadSpecs.status_of_dying_thread_after_sleep.send(@method).should include('aborting')
+    NATFIXME 'Bug with stopping a thread after it is killed', exception: ThreadError do
+      ThreadSpecs.status_of_dying_thread_after_sleep.send(@method).should include('aborting')
+    end
   end
 end

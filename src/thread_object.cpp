@@ -149,16 +149,42 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     return this;
 }
 
+Value ThreadObject::to_s(Env *env) {
+    String location;
+
+    if (m_file && m_line)
+        location = String::format(" {}:{}", *m_file, *m_line);
+
+    auto formatted = String::format(
+        "#<{}:{}{} {}>",
+        m_klass->inspect_str(),
+        String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed),
+        location,
+        status());
+
+    return new StringObject { formatted, EncodingObject::get(Encoding::ASCII_8BIT) };
+}
+
 Value ThreadObject::status(Env *env) {
-    switch (m_status) {
-    case Status::Created:
-        return new StringObject { "run" };
-    case Status::Active:
-        return new StringObject { m_sleeping ? "sleep" : "run" };
-    case Status::Dead:
+    auto status_string = status();
+    if (m_status == Status::Dead) {
         if (m_exception)
             return NilObject::the();
         return FalseObject::the();
+    }
+    return new StringObject { status_string };
+}
+
+String ThreadObject::status() {
+    switch (m_status) {
+    case Status::Created:
+        return "run";
+    case Status::Active:
+        return m_sleeping ? "sleep" : "run";
+    case Status::Aborting:
+        return "aborting";
+    case Status::Dead:
+        return "dead";
     }
     NAT_UNREACHABLE();
 }
@@ -195,11 +221,13 @@ Value ThreadObject::join(Env *env) {
     return this;
 }
 
-Value ThreadObject::kill(Env *env) const {
+Value ThreadObject::kill(Env *env) {
     if (is_main())
         exit(0);
 
     wait_until_running();
+
+    m_status = Status::Aborting;
 
     std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     pthread_cancel(m_thread_id);

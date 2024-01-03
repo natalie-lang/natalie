@@ -1338,6 +1338,7 @@ gen.binding('Thread', 'report_on_exception=', 'ThreadObject', 'set_report_on_exc
 gen.binding('Thread', 'run', 'ThreadObject', 'run', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'status', 'ThreadObject', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'stop?', 'ThreadObject', 'is_stopped', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Thread', 'to_s', 'ThreadObject', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 gen.binding('Thread', 'value', 'ThreadObject', 'value', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'wakeup', 'ThreadObject', 'wakeup', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
