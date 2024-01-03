@@ -22,6 +22,7 @@ public:
         , m_line { new IntegerObject { static_cast<nat_int_t>(line) } } { }
 
     StringObject *inspect(Env *) const;
+    IntegerObject *lineno() const { return m_line; }
     StringObject *to_s() const;
 
     void visit_children(Visitor &);
