@@ -4,7 +4,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/natalie-lang/natalie/blob/master/LICENSE)
 [![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)
 
-Natalie is a very early-stage work-in-progress Ruby implementation.
+Natalie is a work-in-progress Ruby implementation.
 
 It provides an ahead-of-time compiler using C++ and gcc/clang as the backend.
 Also, the language has a REPL that performs incremental compilation.
