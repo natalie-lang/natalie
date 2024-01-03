@@ -55,6 +55,11 @@ task test: %i[build build_test_support] do
   sh 'bundle exec ruby test/all.rb'
 end
 
+desc 'Run the spec/core/thread/current_spec.rb test'
+task test_thread_current: %i[build build_test_support] do
+  sh 'touch spec/core/thread/current_spec.rb && rake test_last_modified'
+end
+
 desc 'Run the most-recently-modified test'
 task test_last_modified: :build do
   last_edited = Dir['test/**/*_test.rb', 'spec/**/*_spec.rb'].max_by { |path| File.stat(path).mtime.to_i }

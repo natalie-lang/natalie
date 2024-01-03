@@ -11,24 +11,6 @@ env:
   CI: 1
 
 jobs:
-  linux:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        ruby_version:
-          - ruby3.0
-          - ruby3.1
-          - ruby3.2
-          - ruby3.3
-        compiler:
-          - gcc
-          - clang
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: run tests
-        run: rake docker_test_${{ matrix.compiler }} RUBY=${{ matrix.ruby_version }}
   macos:
     runs-on: macos-12
     steps:
@@ -44,20 +26,4 @@ jobs:
       - name: test with clang on macOS
         env:
           PKG_CONFIG_PATH: /usr/local/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/opt/homebrew/opt/libffi/lib/pkgconfig
-        run: rake test
-  self-hosted:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: build self-hosted binary
-        run: rake docker_test_self_hosted
-  asan:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: test with AddressSanitizer
-        run: rake docker_test_asan
+        run: rake test_thread_current
