@@ -65,6 +65,8 @@ static void *nat_create_thread(void *thread_object) {
     } catch (Natalie::ExceptionObject *exception) {
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
+        if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
+            Natalie::ThreadObject::main()->raise(&e, { exception });
         pthread_exit(exception);
     }
 
@@ -206,7 +208,7 @@ Value ThreadObject::raise(Env *env, Args args) {
 
     auto exception = ExceptionObject::create_for_raise(env, std::move(args), nullptr, false);
 
-    if (is_main())
+    if (is_current())
         env->raise_exception(exception);
 
     m_exception = exception;
@@ -260,22 +262,6 @@ Value ThreadObject::sleep(Env *env, float timeout) {
             env->raise("ThreadError", "unknown error");
         }
     };
-
-    if (ThreadObject::i_am_main()) {
-        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-        ThreadObject::set_current_sleeping(true);
-
-        if (timeout < 0.0) {
-            while (true)
-                ::sleep(10000);
-        } else {
-            struct timespec ts;
-            ts.tv_sec = ::floor(timeout);
-            ts.tv_nsec = (timeout - ts.tv_sec) * 1000000000;
-            ::nanosleep(&ts, nullptr);
-        }
-        return calculate_elapsed();
-    }
 
     if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);

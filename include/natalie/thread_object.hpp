@@ -131,6 +131,16 @@ public:
     Value fiber_scheduler() const { return m_fiber_scheduler; }
     void set_fiber_scheduler(Value scheduler) { m_fiber_scheduler = scheduler; }
 
+    bool abort_on_exception() const { return m_abort_on_exception; }
+    bool set_abort_on_exception(bool abrt) {
+        m_abort_on_exception = abrt;
+        return abrt;
+    }
+    bool set_abort_on_exception(Value abrt) {
+        m_abort_on_exception = abrt->is_truthy();
+        return abrt;
+    }
+
     bool report_on_exception() const { return m_report_on_exception; }
     bool set_report_on_exception(bool report) {
         m_report_on_exception = report;
@@ -179,6 +189,16 @@ public:
         return report;
     }
 
+    static bool global_abort_on_exception() { return s_abort_on_exception; }
+    static bool set_global_abort_on_exception(bool abrt) {
+        s_abort_on_exception = abrt;
+        return abrt;
+    }
+    static bool set_global_abort_on_exception(Value abrt) {
+        s_abort_on_exception = abrt->is_truthy();
+        return abrt;
+    }
+
     static void cancelation_checkpoint(Env *env);
 
 private:
@@ -209,6 +229,7 @@ private:
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
 
+    bool m_abort_on_exception { false };
     bool m_report_on_exception { true };
 
     bool m_sleeping { false };
@@ -222,6 +243,7 @@ private:
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
+    inline static bool s_abort_on_exception { false };
     inline static bool s_report_on_exception { true };
 };
 
