@@ -1,5 +1,4 @@
 require_relative '../../spec_helper'
-require_relative 'fixtures/classes'
 
 describe "Thread.current" do
   it "returns a thread" do
