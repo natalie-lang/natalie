@@ -128,7 +128,11 @@ void ThreadObject::build_main_fiber() {
 }
 
 ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
-    assert(this != ThreadObject::main()); // can never be main thread
+    if (this == ThreadObject::main())
+        env->raise("ThreadError", "already initialized");
+
+    if (m_args)
+        env->raise("ThreadError", "already initialized");
 
     if (!block)
         env->raise("ThreadError", "must be called with a block");
