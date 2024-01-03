@@ -46,6 +46,7 @@ public:
     Backtrace *backtrace() { return m_backtrace; }
     void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
     Value backtrace(Env *);
+    Value backtrace_locations();
 
     ExceptionObject *cause() const { return m_cause; }
     void set_cause(ExceptionObject *e) { m_cause = e; }
