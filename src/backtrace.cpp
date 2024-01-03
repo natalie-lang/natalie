@@ -8,4 +8,13 @@ ArrayObject *Backtrace::to_ruby_array() {
     }
     return generated;
 }
+
+ArrayObject *Backtrace::to_ruby_backtrace_locations_array() {
+    ArrayObject *generated = new ArrayObject { m_items.size() };
+    for (auto item : m_items) {
+        generated->push(new Thread::Backtrace::LocationObject { item.source_location, item.file, item.line });
+    }
+    return generated;
+}
+
 }
