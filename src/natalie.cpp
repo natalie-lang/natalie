@@ -528,6 +528,18 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
         } else {
             clean_up_and_exit(1);
         }
+    } else if (exception->is_a(env, find_top_level_const(env, "SignalException"_s)->as_class())) {
+        Value signo = exception->ivar_get(env, "@signo"_s);
+        if (signo->type() == Object::Type::Integer) {
+            nat_int_t val = signo->as_integer()->to_nat_int_t();
+            if (val >= 0 && val <= 255) {
+                clean_up_and_exit(val + 128);
+            } else {
+                clean_up_and_exit(1);
+            }
+        } else {
+            clean_up_and_exit(1);
+        }
     } else if (ThreadObject::i_am_main()) {
         print_exception_with_backtrace(env, exception);
     } else if (ThreadObject::current()->report_on_exception()) {
