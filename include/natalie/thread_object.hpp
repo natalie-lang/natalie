@@ -15,9 +15,23 @@ namespace Natalie {
 class ThreadObject : public Object {
 public:
     enum class Status {
-        Created, // before thread is started
-        Active, // thread is running
-        Dead, // thread has exited (or had an exception)
+        // 'Created' is an internal state we use to track a thread
+        // that is just starting up. We may need to wait a bit
+        // before manipulating such a thread, thus you will see
+        // wait_until_running() called in a few places.
+        Created,
+
+        // 'Active' means the thread is indeed running. Yay!
+        Active,
+
+        // 'Aborting' is set by Thread#kill. It means the thread
+        // is about to die.
+        Aborting,
+
+        // 'Dead' means the thread is well and truly dead.
+        // It could have exited naturally, or had an unhandled exception,
+        // or it could have been killed.
+        Dead,
     };
 
     ThreadObject()
@@ -53,6 +67,8 @@ public:
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
 
+    Value inspect(Env *);
+
     void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
     void *start_of_stack() { return m_start_of_stack; }
 
@@ -65,6 +81,7 @@ public:
 
     void set_status(Status status) { m_status = status; }
     Value status(Env *env);
+    String status();
 
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
@@ -86,7 +103,7 @@ public:
 
     Value join(Env *);
     static Value exit(Env *env) { return current()->kill(env); }
-    Value kill(Env *) const;
+    Value kill(Env *);
     Value raise(Env *, Args args);
     Value run(Env *);
     Value wakeup(Env *);
