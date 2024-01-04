@@ -68,6 +68,10 @@ module Process
       other.is_a?(Integer) && to_i == other
     end
 
+    def signaled?
+      exitstatus & 128 == 128
+    end
+
     def success?
       exitstatus == 0
     end
