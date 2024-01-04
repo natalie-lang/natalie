@@ -71,6 +71,11 @@ module Process
     def success?
       exitstatus == 0
     end
+
+    def termsig
+      return nil if exitstatus & 128 == 0
+      exitstatus & 127
+    end
   end
 
   class << self
