@@ -77,7 +77,7 @@ module Process
     end
 
     def termsig
-      return nil if exitstatus & 128 == 0
+      return nil unless signaled?
       exitstatus & 127
     end
   end
