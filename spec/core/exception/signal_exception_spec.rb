@@ -65,8 +65,7 @@ describe "SignalException.new" do
 end
 
 describe "rescuing SignalException" do
-  # NATFIXME: Update Process.kill to raise a SignalException, and catch that one to call kill(2)
-  xit "raises a SignalException when sent a signal" do
+  it "raises a SignalException when sent a signal" do
     begin
       Process.kill :TERM, Process.pid
       sleep

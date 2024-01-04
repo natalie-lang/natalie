@@ -25,16 +25,12 @@ describe "Process::Status#termsig" do
 
   describe "for a child that was sent a signal" do
     before :each do
-      NATFIXME 'Use correct exit value with kill signal', exception: SpecFailedException do
-        ruby_exe("Process.kill(:KILL, $$); exit(42)", exit_status: platform_is(:windows) ? 0 : :SIGKILL)
-      end
+      ruby_exe("Process.kill(:KILL, $$); exit(42)", exit_status: platform_is(:windows) ? 0 : :SIGKILL)
     end
 
     platform_is_not :windows do
       it "returns the signal" do
-        NATFIXME 'Use correct exit value with kill signal', exception: SpecFailedException do
-          $?.termsig.should == Signal.list["KILL"]
-        end
+        $?.termsig.should == Signal.list["KILL"]
       end
     end
 
