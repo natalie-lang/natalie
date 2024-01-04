@@ -68,12 +68,16 @@ module Process
       other.is_a?(Integer) && to_i == other
     end
 
+    def signaled?
+      exitstatus & 128 == 128
+    end
+
     def success?
       exitstatus == 0
     end
 
     def termsig
-      return nil if exitstatus & 128 == 0
+      return nil unless signaled?
       exitstatus & 127
     end
   end
