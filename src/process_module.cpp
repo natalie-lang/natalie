@@ -36,6 +36,7 @@ Value ProcessModule::kill(Env *env, Args args) {
     auto signal = args.shift();
     auto pids = args.to_array();
     nat_int_t signo;
+    bool pid_contains_self = false;
 
     if (signal->is_symbol())
         signal = signal->to_s(env);
@@ -50,9 +51,20 @@ Value ProcessModule::kill(Env *env, Args args) {
     } else {
         env->raise("ArgumentError", "bad signal type {}", signal->klass()->inspect_str());
     }
+    const auto own_pid = getpid();
     for (Value pid : *pids) {
-        if (::kill(IntegerObject::convert_to_nat_int_t(env, pid), signo) < 0)
-            env->raise_errno();
+        const auto int_pid = IntegerObject::convert_to_nat_int_t(env, pid);
+        if (own_pid == int_pid && signo != 0) {
+            pid_contains_self = true;
+        } else {
+            if (::kill(int_pid, signo) < 0)
+                env->raise_errno();
+        }
+    }
+    if (pid_contains_self) {
+        auto signal_exception = GlobalEnv::the()->Object()->const_get("SignalException"_s)->as_class();
+        auto exception = _new(env, signal_exception, { signal }, nullptr)->as_exception();
+        env->raise_exception(exception);
     }
     return Value::integer(pids->size());
 }
