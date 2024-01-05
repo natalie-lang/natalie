@@ -895,7 +895,7 @@ module Natalie
         end
 
         instructions << [
-          DefineMethodInstruction.new(name: node.name, arity: arity),
+          DefineMethodInstruction.new(name: node.name, arity: arity, file: @file.path, line: node.location.start_line),
           transform_defn_args(node.parameters, used: true),
           with_locals(node.locals) do
             transform_body([node.body], used: true)

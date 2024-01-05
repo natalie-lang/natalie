@@ -19,6 +19,16 @@ public:
         assert(fn);
     }
 
+    Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity, const String &file, const size_t line)
+        : m_name { std::move(name) }
+        , m_owner { owner }
+        , m_fn { fn }
+        , m_arity { arity }
+        , m_file { file }
+        , m_line { line } {
+        assert(fn);
+    }
+
     Method(TM::String &&name, ModuleObject *owner, Block *block)
         : m_name { std::move(name) }
         , m_owner { owner }
@@ -29,10 +39,17 @@ public:
 
         if (block->is_from_method())
             m_self = block->self();
+
+        if (block->env()->file()) {
+            m_file = block->env()->file();
+            m_line = block->env()->line();
+        }
     }
 
     Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity)
         : Method(TM::String(name), owner, fn, arity) { }
+    Method(const TM::String &name, ModuleObject *owner, MethodFnPtr fn, int arity, const String &file, const size_t line)
+        : Method(TM::String(name), owner, fn, arity, file, line) { }
     Method(const TM::String &name, ModuleObject *owner, Block *block)
         : Method(TM::String(name), owner, block) { }
 
@@ -52,6 +69,9 @@ public:
 
     int arity() const { return m_arity; }
 
+    const Optional<String> &get_file() const { return m_file; }
+    const Optional<size_t> &get_line() const { return m_line; }
+
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);
@@ -68,6 +88,8 @@ private:
     MethodFnPtr m_fn;
     Value m_self { nullptr };
     int m_arity { 0 };
+    Optional<String> m_file {};
+    Optional<size_t> m_line {};
     Env *m_env { nullptr };
     bool m_optimized { false };
 };

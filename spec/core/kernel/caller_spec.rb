@@ -50,7 +50,7 @@ describe 'Kernel#caller' do
     lines.should == [
       "#{path}:6:in `foo'\n",
       "#{path}:2:in `block in block'\n",
-      "#{path}:1:in `<main>'\n"
+      "#{path}:5:in `<main>'\n"
     ]
   end
 

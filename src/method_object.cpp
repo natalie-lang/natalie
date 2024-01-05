@@ -11,6 +11,12 @@ bool MethodObject::eq(Env *env, Value other_value) {
     }
 }
 
+Value MethodObject::source_location() {
+    if (!m_method->get_file())
+        return NilObject::the();
+    return new ArrayObject { new StringObject { m_method->get_file().value() }, Value::integer(static_cast<nat_int_t>(m_method->get_line().value())) };
+}
+
 Value MethodObject::unbind(Env *env) {
     if (m_object->singleton_class()) {
         return new UnboundMethodObject { m_object->singleton_class(), m_method };
