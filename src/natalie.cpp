@@ -832,4 +832,34 @@ int hex_char_to_decimal_value(char c) {
     }
 };
 
+int pipe2(int pipefd[2], int flags) {
+    if (flags & (~O_NONBLOCK & ~O_CLOEXEC))
+        NAT_NOT_YET_IMPLEMENTED("Extra flags passed to our pipe2 that aren't supported.");
+
+#ifdef __APPLE__
+    if (pipe(pipefd) == -1)
+        return -1;
+
+    if (flags & O_NONBLOCK) {
+        if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) == -1 || fcntl(pipefd[1], F_SETFL, O_NONBLOCK) == -1) {
+            close(pipefd[0]);
+            close(pipefd[1]);
+            return -1;
+        }
+    }
+
+    if (flags & O_CLOEXEC) {
+        if (fcntl(pipefd[0], F_SETFD, O_CLOEXEC) == -1 || fcntl(pipefd[1], F_SETFD, O_CLOEXEC) == -1) {
+            close(pipefd[0]);
+            close(pipefd[1]);
+            return -1;
+        }
+    }
+
+    return 0;
+#else
+    return ::pipe2(pipefd, flags);
+#endif
+}
+
 }

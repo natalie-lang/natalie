@@ -320,30 +320,12 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-static ssize_t blocking_read(Env *env, int fileno, void *buf, int count) {
+ssize_t IoObject::blocking_read(Env *env, void *buf, int count) const {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    auto ret = ::read(fileno, buf, count);
-    while (ret == -1 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-        sched_yield();
-        ThreadObject::cancelation_checkpoint(env);
-
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(fileno, &rfds);
-
-        struct timeval tv;
-        tv.tv_sec = 0;
-        tv.tv_usec = 100;
-
-        ret = select(1, &rfds, nullptr, nullptr, &tv);
-        if (ret < 0) return ret;
-
-        ret = ::read(fileno, buf, count);
-    }
-
-    return ret;
+    select_read(env);
+    return ::read(m_fileno, buf, count);
 }
 
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
@@ -370,7 +352,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             return result;
         }
         TM::String buf(count - m_read_buffer.size(), '\0');
-        bytes_read = blocking_read(env, m_fileno, &buf[0], count - m_read_buffer.size());
+        bytes_read = blocking_read(env, &buf[0], count - m_read_buffer.size());
         if (bytes_read < 0)
             throw_unless_readable(env, this);
         buf.truncate(bytes_read);
@@ -393,7 +375,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         }
     }
     char buf[NAT_READ_BYTES + 1];
-    bytes_read = blocking_read(env, m_fileno, buf, NAT_READ_BYTES);
+    bytes_read = blocking_read(env, buf, NAT_READ_BYTES);
     StringObject *str = nullptr;
     if (buffer != nullptr) {
         str = buffer->as_string();
@@ -413,7 +395,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         str->set_str(buf, bytes_read);
     }
     while (1) {
-        bytes_read = blocking_read(env, m_fileno, buf, NAT_READ_BYTES);
+        bytes_read = blocking_read(env, buf, NAT_READ_BYTES);
         if (bytes_read < 0) env->raise_errno();
         if (bytes_read == 0) break;
         buf[bytes_read] = 0;
@@ -678,6 +660,11 @@ Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();
 
+    // Wake up all threads in case one is blocking on a read to this fd.
+    // It is undefined behavior on Linux to continue a read() or select()
+    // on a closed file descriptor.
+    ThreadObject::interrupt();
+
     int result = ::close(m_fileno);
     if (result == -1)
         env->raise_errno();
@@ -893,26 +880,45 @@ Value IoObject::syswrite(Env *env, Value obj) {
     return write(env, Args { obj });
 }
 
-Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
-    int nfds = 0;
-    timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
+static bool any_closed(ArrayObject *ios) {
+    for (auto io : *ios) {
+        if (io->is_io() && io->as_io()->is_closed())
+            return true;
+    }
+    return false;
+}
 
-    auto create_fd_set = [&](Value ios) {
-        fd_set result;
-        FD_ZERO(&result);
-        if (ios && !ios->is_nil()) {
-            for (Value io : *ios->to_ary(env)) {
-                const auto fd = io->to_io(env)->fileno();
-                FD_SET(fd, &result);
-                nfds = std::max(nfds, fd + 1);
-            }
-        }
+static fd_set create_fd_set(Env *env, ArrayObject *ios, int *nfds) {
+    fd_set result;
+    FD_ZERO(&result);
+
+    if (!ios)
         return result;
-    };
 
-    auto read_fds = create_fd_set(read_ios);
-    auto write_fds = create_fd_set(write_ios);
-    auto error_fds = create_fd_set(error_ios);
+    for (auto io : *ios) {
+        const auto fd = io->to_io(env)->fileno();
+        FD_SET(fd, &result);
+        *nfds = std::max(*nfds, fd + 1);
+    }
+    return result;
+};
+
+static ArrayObject *create_output_fds(Env *env, fd_set *fds, ArrayObject *ios) {
+    auto result = new ArrayObject {};
+
+    if (!ios)
+        return result;
+
+    for (auto io : *ios) {
+        const auto fd = io->to_io(env)->fileno();
+        if (FD_ISSET(fd, fds))
+            result->push(io);
+    }
+    return result;
+};
+
+Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
+    timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
 
     if (timeout && !timeout->is_nil()) {
         const auto timeout_f = timeout->to_f(env)->to_double();
@@ -923,56 +929,97 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         timeout_ptr = &timeout_tv;
     }
 
+    auto read_ios_ary = read_ios && !read_ios->is_nil() ? read_ios->to_ary(env) : new ArrayObject {};
+    auto write_ios_ary = write_ios && !write_ios->is_nil() ? write_ios->to_ary(env) : new ArrayObject {};
+    auto error_ios_ary = error_ios && !error_ios->is_nil() ? error_ios->to_ary(env) : new ArrayObject {};
+
+    auto interrupt_fileno = ThreadObject::interrupt_read_fileno();
+
+    int nfds = 0;
+    auto read_fds = create_fd_set(env, read_ios_ary, &nfds);
+    auto write_fds = create_fd_set(env, write_ios_ary, &nfds);
+    auto error_fds = create_fd_set(env, error_ios_ary, &nfds);
+
+    FD_SET(interrupt_fileno, &read_fds);
+    nfds = std::max(nfds, interrupt_fileno + 1);
+
+    fd_set read_fds_copy = read_fds;
+    fd_set write_fds_copy = write_fds;
+    fd_set error_fds_copy = error_fds;
+
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
-    const auto result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
 
-    if (result < 0)
+    int result;
+    for (;;) {
+        result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
+        if (result == -1)
+            break;
+
+        if (FD_ISSET(interrupt_fileno, &read_fds)) {
+            ThreadObject::clear_interrupt();
+            ThreadObject::cancelation_checkpoint(env);
+            if (any_closed(read_ios_ary) || any_closed(write_ios_ary) || any_closed(error_ios_ary))
+                env->raise("IOError", "closed stream");
+        } else {
+            break;
+        }
+
+        read_fds = read_fds_copy;
+        write_fds = write_fds_copy;
+        error_fds = error_fds_copy;
+    }
+
+    if (result == -1)
         env->raise_errno();
+
     if (result == 0)
         return NilObject::the();
 
-    auto create_output_fds = [&](fd_set *fds, Value ios) {
-        auto result = new ArrayObject {};
-        if (ios && !ios->is_nil()) {
-            for (auto io : *ios->to_ary(env)) {
-                if (FD_ISSET(io->to_io(env)->fileno(), fds))
-                    result->push(io);
-            }
-        }
-        return result;
-    };
+    FD_CLR(interrupt_fileno, &read_fds);
 
-    auto readable_ios = create_output_fds(&read_fds, read_ios);
-    auto writeable_ios = create_output_fds(&write_fds, write_ios);
-    auto errorable_ios = create_output_fds(&error_fds, error_ios);
+    auto readable_ios = create_output_fds(env, &read_fds, read_ios_ary);
+    auto writeable_ios = create_output_fds(env, &write_fds, write_ios_ary);
+    auto errorable_ios = create_output_fds(env, &error_fds, error_ios_ary);
     return new ArrayObject { readable_ios, writeable_ios, errorable_ios };
+}
+
+void IoObject::select_read(Env *env, timeval *timeout) const {
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(m_fileno, &readfds);
+    auto interrupt_fileno = ThreadObject::interrupt_read_fileno();
+    FD_SET(interrupt_fileno, &readfds);
+    auto nfds = std::max(m_fileno, interrupt_fileno) + 1;
+
+    fd_set readfds_copy = readfds;
+
+    int ret;
+    for (;;) {
+        ret = ::select(nfds, &readfds, nullptr, nullptr, timeout);
+        if (ret == -1)
+            break;
+
+        if (FD_ISSET(interrupt_fileno, &readfds)) {
+            ThreadObject::clear_interrupt();
+            ThreadObject::cancelation_checkpoint(env);
+            if (m_closed)
+                env->raise("IOError", "closed stream");
+        }
+
+        if (FD_ISSET(m_fileno, &readfds))
+            break;
+        readfds = readfds_copy;
+    }
+
+    if (ret == -1)
+        env->raise_errno();
 }
 
 Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {
     int pipefd[2];
-#ifdef __APPLE__
-    // No pipe2, use pipe and set permissions afterwards
-    if (::pipe(pipefd) < 0)
-        env->raise_errno();
-
-    for (int i = 0; i < 2; i++) {
-        const auto fd_flags = ::fcntl(pipefd[i], F_GETFD);
-        if (fd_flags < 0)
-            env->raise_errno();
-        if (::fcntl(pipefd[i], F_SETFD, fd_flags | O_CLOEXEC) < 0)
-            env->raise_errno();
-
-        const auto fl_flags = ::fcntl(pipefd[i], F_GETFL);
-        if (fl_flags < 0)
-            env->raise_errno();
-        if (::fcntl(pipefd[i], F_SETFL, fl_flags | O_NONBLOCK) < 0)
-            env->raise_errno();
-    }
-#else
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
-#endif
 
     auto io_read = _new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr);
     auto io_write = _new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr);

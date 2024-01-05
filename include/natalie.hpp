@@ -206,4 +206,6 @@ void dbg(const char *fmt, Args... args) {
     puts(out->c_str());
 }
 
+int pipe2(int pipefd[2], int flags);
+
 }

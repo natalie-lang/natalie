@@ -603,40 +603,12 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
-static int blocking_accept(Env *env, int fd, struct sockaddr *addr, socklen_t *len) {
+static int blocking_accept(Env *env, IoObject *io, struct sockaddr *addr, socklen_t *len) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    // temporarily set the fd to non-blocking
-    int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
-    int ret = accept(fd, addr, len);
-    while (ret == -1 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-        sched_yield();
-        ThreadObject::cancelation_checkpoint(env);
-
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(fd, &rfds);
-
-        struct timeval tv;
-        tv.tv_sec = 0;
-        tv.tv_usec = 100;
-
-        ret = select(1, &rfds, nullptr, nullptr, &tv);
-        if (ret < 0) return ret;
-
-        ret = accept(fd, addr, len);
-    }
-
-    if (ret != -1) {
-        // revert to original flags
-        fcntl(fd, F_SETFL, flags);
-        fcntl(ret, F_SETFL, flags);
-    }
-
-    return ret;
+    io->select_read(env);
+    return ::accept(io->fileno(), addr, len);
 }
 
 Value Socket_accept(Env *env, Value self, Args args, Block *block) {
@@ -648,7 +620,7 @@ Value Socket_accept(Env *env, Value self, Args args, Block *block) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
-    auto fd = blocking_accept(env, self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    auto fd = blocking_accept(env, self->as_io(), (struct sockaddr *)&buf, &len);
 
     if (fd == -1)
         env->raise_errno();
@@ -1129,7 +1101,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     socklen_t len = std::max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
     char buf[len];
 
-    auto fd = blocking_accept(env, self->as_io()->fileno(), (struct sockaddr *)&buf, &len);
+    auto fd = blocking_accept(env, self->as_io(), (struct sockaddr *)&buf, &len);
 
     if (fd == -1)
         env->raise_errno();

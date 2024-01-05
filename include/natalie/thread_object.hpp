@@ -63,7 +63,7 @@ public:
         } catch (...) { }
     }
 
-    static void build_main_thread(void *start_of_stack);
+    static void build_main_thread(Env *env, void *start_of_stack);
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
 
@@ -218,6 +218,11 @@ public:
 
     static void cancelation_checkpoint(Env *env);
 
+    static void setup_interrupt_pipe(Env *env);
+    static int interrupt_read_fileno() { return s_interrupt_read_fileno; }
+    static void interrupt();
+    static void clear_interrupt();
+
 private:
     void wait_until_running() const;
 
@@ -250,18 +255,32 @@ private:
     bool m_report_on_exception { true };
 
     bool m_sleeping { false };
-    pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
-    pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
 
     Value m_fiber_scheduler { nullptr };
+
+    // This condition variable is used to wake a sleeping thread,
+    // i.e. a thread where Kernel#sleep or Thread#sleep has been called.
+    pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 
     inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
     inline static bool s_abort_on_exception { false };
     inline static bool s_report_on_exception { true };
+
+    // In addition to m_sleep_cond which can wake a sleeping thread,
+    // we also need a way to wake a thread that is blocked on reading
+    // from a file descriptor. Any time select(2) is called, we can
+    // add this s_interrupt_read_fileno to the fd_set so we have
+    // a way to unblock the call. This is also signaled when any
+    // IO object is closed, since we'll need to wake up any blocking
+    // select() calls and check if the IO object was closed.
+    // TODO: we'll need to rebuild these after a fork :-/
+    inline static int s_interrupt_read_fileno { -1 };
+    inline static int s_interrupt_write_fileno { -1 };
 };
 
 }
