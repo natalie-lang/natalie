@@ -414,7 +414,8 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     assert_not_frozen(env, this);
-    Method *method = new Method { name->string(), this, fn, arity };
+    Method *method = env->file() ? new Method { name->string(), this, fn, arity, env->file(), env->line() }
+                                 : new Method { name->string(), this, fn, arity };
     if (optimized)
         method->set_optimized(true);
     auto visibility = m_method_visibility;
