@@ -61,11 +61,15 @@ public:
         try {
             m_thread.detach();
         } catch (...) { }
+        ::close(m_signal_read_fileno);
+        ::close(m_signal_write_fileno);
     }
 
-    static void build_main_thread(void *start_of_stack);
+    static void build_main_thread(Env *env, void *start_of_stack);
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
+
+    void setup_signal_pipe(Env *env);
 
     Value to_s(Env *);
 
@@ -168,6 +172,9 @@ public:
         return report;
     }
 
+    int signal_read_fileno() const { return m_signal_read_fileno; }
+    void clear_signal() const;
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -216,10 +223,13 @@ public:
         return abrt;
     }
 
+    static void wait_for_ready_fd(Env *env, int fd);
     static void cancelation_checkpoint(Env *env);
 
 private:
     void wait_until_running() const;
+
+    void write_signal() const;
 
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
@@ -250,8 +260,20 @@ private:
     bool m_report_on_exception { true };
 
     bool m_sleeping { false };
+
+    // This condition variable is used to wake a sleeping thread,
+    // i.e. a thread where Kernel#sleep or Thread#sleep has been called.
     pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
+
+    // In addition to m_sleep_cond which can wake a sleeping thread,
+    // we also need a way to wake a thread that is blocked on reading
+    // from a file descriptor. Any time select(2) is called, we can
+    // add this thread's signal_read_fileno to the fd_set so we have
+    // a way to unblock the select call.
+    // TODO: we'll need to rebuild these after a fork :-/
+    int m_signal_read_fileno { -1 };
+    int m_signal_write_fileno { -1 };
 
     TM::Hashmap<Thread::MutexObject *> m_mutexes {};
 

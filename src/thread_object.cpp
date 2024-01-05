@@ -109,7 +109,7 @@ bool ThreadObject::is_stopped() const {
     return m_sleeping || m_status == Status::Dead;
 }
 
-void ThreadObject::build_main_thread(void *start_of_stack) {
+void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     assert(!s_main && !s_main_id); // can only be built once
     auto thread = new ThreadObject;
     assert(start_of_stack);
@@ -121,6 +121,7 @@ void ThreadObject::build_main_thread(void *start_of_stack) {
     s_main = thread;
     s_main_id = thread->m_thread_id;
     tl_current_thread = thread;
+    thread->setup_signal_pipe(env);
 }
 
 void ThreadObject::build_main_fiber() {
@@ -142,11 +143,21 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
+    setup_signal_pipe(env);
+
     m_thread = std::thread { nat_create_thread, (void *)this };
 
     m_report_on_exception = s_report_on_exception;
 
     return this;
+}
+
+void ThreadObject::setup_signal_pipe(Env *env) {
+    int pipefd[2];
+    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+    m_signal_read_fileno = pipefd[0];
+    m_signal_write_fileno = pipefd[1];
 }
 
 Value ThreadObject::to_s(Env *env) {
@@ -265,6 +276,8 @@ Value ThreadObject::wakeup(Env *env) {
     pthread_mutex_lock(&m_sleep_lock);
     pthread_cond_signal(&m_sleep_cond);
     pthread_mutex_unlock(&m_sleep_lock);
+
+    write_signal();
 
     return NilObject::the();
 }
@@ -476,14 +489,71 @@ void ThreadObject::wait_until_running() const {
         sched_yield();
 }
 
+void ThreadObject::write_signal() const {
+    ::write(m_signal_write_fileno, "!", 1);
+}
+
+// It would be wrong if some code called Thread#wakeup a dozen times
+// and then the next dozen times the thread slept, it woke up immediately,
+// so let's clear the buffer after each time the thread gets signaled.
+void ThreadObject::clear_signal() const {
+    // arbitrarily-chosen buffer size just to avoid several single-byte reads
+    constexpr int BUF_SIZE = 8;
+    char buf[BUF_SIZE];
+    ssize_t bytes;
+    do {
+        // This fd is non-blocking, so this can set errno to EAGAIN,
+        // but we don't care -- we just want the buffer to be empty.
+        bytes = ::read(m_signal_read_fileno, buf, BUF_SIZE);
+    } while (bytes > 0);
+}
+
+void ThreadObject::wait_for_ready_fd(Env *env, int fd) {
+    auto thread = current();
+    auto signal_fd = IoObject::read_signal_fd(fd);
+    auto thread_signal_fd = thread->m_signal_read_fileno;
+
+    fd_set readfds;
+    FD_ZERO(&readfds);
+
+    // This is the file/socket/whatever we care about.
+    // We would like to start reading from this fd when it's ready!
+    FD_SET(fd, &readfds);
+    auto nfds = fd + 1;
+
+    // This is the sidecar signal fd that goes with the fd above.
+    // This lets us wake up before the fd gets closed.
+    // (Because Linux doesn't return from select(), poll(), or epoll(),
+    // when the fd gets closed. That really sucks.)
+    FD_SET(signal_fd, &readfds);
+    nfds = std::max(nfds, signal_fd + 1);
+
+    // This is the signal fd for the current thread.
+    // If Thread#wakeup gets called on this thread, this signals us to wake up.
+    FD_SET(thread_signal_fd, &readfds);
+    nfds = std::max(nfds, thread_signal_fd + 1);
+
+    // TODO: use poll() or epoll() instead?
+    auto ret = ::select(nfds, &readfds, nullptr, nullptr, nullptr);
+    if (ret != -1) {
+        if (FD_ISSET(signal_fd, &readfds)) {
+            env->raise("IOError", "closed stream");
+        } else if (FD_ISSET(thread_signal_fd, &readfds)) {
+            thread->clear_signal();
+            ThreadObject::cancelation_checkpoint(env);
+        }
+    }
+}
+
 void ThreadObject::cancelation_checkpoint(Env *env) {
+    auto thread = current();
+
     // This call gives us a cancelation point that works with pthread_cancel(3).
     ::usleep(0);
 
-    auto t = current();
-    if (t->m_exception) {
-        auto exception = Value(t->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
-        t->set_exception(nullptr);
+    if (thread->m_exception) {
+        auto exception = Value(thread->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+        thread->set_exception(nullptr);
         env->raise_exception(exception);
     }
 }

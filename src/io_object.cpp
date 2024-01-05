@@ -320,30 +320,13 @@ Value IoObject::write_file(Env *env, Args args) {
 
 #define NAT_READ_BYTES 1024
 
-static ssize_t blocking_read(Env *env, int fileno, void *buf, int count) {
+static ssize_t blocking_read(Env *env, int fd, void *buf, int count) {
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
-    auto ret = ::read(fileno, buf, count);
-    while (ret == -1 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-        sched_yield();
-        ThreadObject::cancelation_checkpoint(env);
+    ThreadObject::wait_for_ready_fd(env, fd);
 
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(fileno, &rfds);
-
-        struct timeval tv;
-        tv.tv_sec = 0;
-        tv.tv_usec = 100;
-
-        ret = select(1, &rfds, nullptr, nullptr, &tv);
-        if (ret < 0) return ret;
-
-        ret = ::read(fileno, buf, count);
-    }
-
-    return ret;
+    return ::read(fd, buf, count);
 }
 
 Value IoObject::read(Env *env, Value count_value, Value buffer) {
@@ -678,9 +661,14 @@ Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();
 
+    // wake up any threads waiting on this fd
+    write_signal(m_fileno);
+
     int result = ::close(m_fileno);
     if (result == -1)
         env->raise_errno();
+
+    s_signal_pipes.remove(m_fileno);
 
     m_closed = true;
     m_fileno = -1;
@@ -893,6 +881,22 @@ Value IoObject::syswrite(Env *env, Value obj) {
     return write(env, Args { obj });
 }
 
+static int blocking_select(Env *env, int nfds, fd_set *readfds, fd_set *writefds, fd_set *errorfds, timeval *timeout) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    auto signal_fd = ThreadObject::current()->signal_read_fileno();
+    FD_SET(signal_fd, readfds);
+    nfds = std::max(nfds, signal_fd + 1);
+
+    auto ret = ::select(nfds, readfds, writefds, errorfds, timeout);
+    if (ret != -1 && FD_ISSET(signal_fd, readfds))
+        ThreadObject::cancelation_checkpoint(env);
+    FD_CLR(signal_fd, readfds);
+
+    return ret;
+}
+
 Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_ios, Value timeout) {
     int nfds = 0;
     timeval timeout_tv = { 0, 0 }, *timeout_ptr = nullptr;
@@ -923,9 +927,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
         timeout_ptr = &timeout_tv;
     }
 
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-    const auto result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
+    const auto result = blocking_select(env, nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
 
     if (result < 0)
         env->raise_errno();
@@ -951,28 +953,8 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
 
 Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {
     int pipefd[2];
-#ifdef __APPLE__
-    // No pipe2, use pipe and set permissions afterwards
-    if (::pipe(pipefd) < 0)
-        env->raise_errno();
-
-    for (int i = 0; i < 2; i++) {
-        const auto fd_flags = ::fcntl(pipefd[i], F_GETFD);
-        if (fd_flags < 0)
-            env->raise_errno();
-        if (::fcntl(pipefd[i], F_SETFD, fd_flags | O_CLOEXEC) < 0)
-            env->raise_errno();
-
-        const auto fl_flags = ::fcntl(pipefd[i], F_GETFL);
-        if (fl_flags < 0)
-            env->raise_errno();
-        if (::fcntl(pipefd[i], F_SETFL, fl_flags | O_NONBLOCK) < 0)
-            env->raise_errno();
-    }
-#else
     if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
         env->raise_errno();
-#endif
 
     auto io_read = _new(env, klass, { IntegerObject::create(pipefd[0]) }, nullptr);
     auto io_write = _new(env, klass, { IntegerObject::create(pipefd[1]) }, nullptr);
@@ -1013,6 +995,26 @@ Value IoObject::readline(Env *env, Value sep, Value limit, Value chomp) {
     if (result->is_nil())
         env->raise("EOFError", "end of file reached");
     return result;
+}
+
+void IoObject::setup_signal_pipe(int fd) {
+    if (s_signal_pipes.get(fd).first)
+        return;
+    int pipefd[2];
+    assert(pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) == 0);
+    s_signal_pipes.put(fd, { pipefd[0], pipefd[1] });
+}
+
+void IoObject::write_signal(int fd) {
+    auto fds = s_signal_pipes.get(fd);
+    assert(fds.first);
+    ::write(fds.second, "!", 1);
+}
+
+int IoObject::read_signal_fd(int fd) {
+    auto fds = s_signal_pipes.get(fd);
+    assert(fds.first);
+    return fds.first;
 }
 
 }

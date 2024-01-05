@@ -25,15 +25,18 @@ public:
 
     IoObject(int fileno)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
-        , m_fileno { fileno }
-        , m_sync { fileno == STDERR_FILENO } { }
+        , m_sync { fileno == STDERR_FILENO } {
+        set_fileno(fileno);
+    }
 
     virtual ~IoObject() override {
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
             return;
         if (m_autoclose && !m_closed && m_fileno != -1) {
+            // TODO: actually ::close() the fd :-)
             m_closed = true;
             m_fileno = -1;
+            s_signal_pipes.remove(m_fileno);
         }
     }
 
@@ -90,7 +93,10 @@ public:
     Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
-    void set_fileno(int fileno) { m_fileno = fileno; }
+    void set_fileno(int fileno) {
+        m_fileno = fileno;
+        setup_signal_pipe(fileno);
+    }
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     Value stat(Env *) const;
@@ -118,11 +124,17 @@ public:
     void set_path(StringObject *path) { m_path = path; }
     void set_path(String path) { m_path = new StringObject { path }; }
 
+    static int read_signal_fd(int fd);
+    static void clear_signal(int fd);
+
 protected:
     void raise_if_closed(Env *) const;
     int write(Env *, Value);
 
 private:
+    static void setup_signal_pipe(int fd);
+    static void write_signal(int fd);
+
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
@@ -132,6 +144,9 @@ private:
     bool m_sync { false };
     StringObject *m_path { nullptr };
     TM::String m_read_buffer {};
+
+    // TODO: we'll need to rebuild all these after a fork :-/
+    inline static TM::Hashmap<int, std::pair<int, int>> s_signal_pipes {};
 };
 
 }
