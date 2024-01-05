@@ -3,22 +3,29 @@ require_relative './base_instruction'
 module Natalie
   class Compiler
     class DefineMethodInstruction < BaseInstruction
-      def initialize(name:, arity:)
+      def initialize(name:, arity:, file:, line:)
         @name = name
         @arity = arity
+
+        # source location info
+        @file = file
+        @line = line
       end
 
       def has_body?
         true
       end
 
-      attr_reader :name, :arity
+      attr_reader :name, :arity, :file, :line
 
       def to_s
         "define_method #{@name}"
       end
 
       def generate(transform)
+        transform.set_file(@file)
+        transform.set_line(@line)
+
         klass = transform.pop
         body = transform.fetch_block_of_instructions(expected_label: :define_method)
         fn = transform.temp("defn_#{@name}")
