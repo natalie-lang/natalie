@@ -69,6 +69,9 @@ public:
 
     int arity() const { return m_arity; }
 
+    const Optional<String> &get_file() const { return m_file; }
+    const Optional<size_t> &get_line() const { return m_line; }
+
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
         visitor.visit(m_env);

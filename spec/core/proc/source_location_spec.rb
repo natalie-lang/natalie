@@ -78,7 +78,7 @@ describe "Proc#source_location" do
     method = ProcSpecs::SourceLocation.method(:my_proc)
     proc = method.to_proc
 
-    NATFIXME 'Implement Method#source_location', exception: NoMethodError, message: "undefined method `source_location' for an instance of Method" do
+    NATFIXME 'returns the same value for a proc-ified method as the method reports', exception: SpecFailedException do
       method.source_location.should == proc.source_location
     end
   end

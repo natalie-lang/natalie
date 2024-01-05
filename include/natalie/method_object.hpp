@@ -17,6 +17,7 @@ public:
 
     Value unbind(Env *);
     bool eq(Env *, Value);
+    Value source_location();
 
     Value inspect(Env *env) {
         auto the_owner = owner();
