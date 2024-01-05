@@ -32,4 +32,15 @@ Value ProcObject::source_location() {
     return new ArrayObject { new StringObject { file }, Value::integer(static_cast<nat_int_t>(m_block->env()->line())) };
 }
 
+StringObject *ProcObject::to_s(Env *env) {
+    assert(m_block);
+    String suffix {};
+    if (m_block->env()->file())
+        suffix.append(String::format(" {}:{}", m_block->env()->file(), m_block->env()->line()));
+    if (is_lambda())
+        suffix.append(" (lambda)");
+    auto str = String::format("#<{}:{}{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed), suffix);
+    return new StringObject { std::move(str), Encoding::ASCII_8BIT };
+}
+
 }
