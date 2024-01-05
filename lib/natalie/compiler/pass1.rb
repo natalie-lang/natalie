@@ -1650,7 +1650,7 @@ module Natalie
         instructions = track_scope(node) do
           transform_block_node(node, used: true, is_lambda: true)
         end
-        instructions << CreateLambdaInstruction.new
+        instructions << CreateLambdaInstruction.new(file: @file.path, line: node.location.start_line)
         instructions << PopInstruction.new unless used
         instructions
       end

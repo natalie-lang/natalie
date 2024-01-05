@@ -27,9 +27,7 @@ describe "Proc#source_location" do
 
     file = @lambda.source_location.first
     file.should be_an_instance_of(String)
-    NATFIXME 'It currently uses a relative path for lambda', exception: SpecFailedException do
-      file.should == File.realpath('fixtures/source_location.rb', __dir__)
-    end
+    file.should == File.realpath('fixtures/source_location.rb', __dir__)
 
     file = @method.source_location.first
     file.should be_an_instance_of(String)
@@ -47,9 +45,7 @@ describe "Proc#source_location" do
 
     line = @lambda.source_location.last
     line.should be_an_instance_of(Integer)
-    NATFIXME 'Fix line in Env', exception: SpecFailedException do
-      line.should == 8
-    end
+    line.should == 8
 
     line = @method.source_location.last
     line.should be_an_instance_of(Integer)
@@ -61,17 +57,13 @@ describe "Proc#source_location" do
   it "works even if the proc was created on the same line" do
     proc { true }.source_location.should == [__FILE__, __LINE__]
     Proc.new { true }.source_location.should == [__FILE__, __LINE__]
-    NATFIXME 'Fix line in Env', exception: SpecFailedException do
-      -> { true }.source_location.should == [__FILE__, __LINE__]
-    end
+    -> { true }.source_location.should == [__FILE__, __LINE__]
   end
 
   it "returns the first line of a multi-line proc (i.e. the line containing 'proc do')" do
     ProcSpecs::SourceLocation.my_multiline_proc.source_location.last.should == 20
     ProcSpecs::SourceLocation.my_multiline_proc_new.source_location.last.should == 34
-    NATFIXME "returns the first line of a multi-line proc (i.e. the line containing 'proc do'", exception: SpecFailedException do
-      ProcSpecs::SourceLocation.my_multiline_lambda.source_location.last.should == 27
-    end
+    ProcSpecs::SourceLocation.my_multiline_lambda.source_location.last.should == 27
   end
 
   it "returns the location of the proc's body; not necessarily the proc itself" do
