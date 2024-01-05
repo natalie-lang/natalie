@@ -37,7 +37,7 @@ StringObject *ProcObject::to_s(Env *env) {
     String suffix {};
     if (m_block->env()->file())
         suffix.append(String::format(" {}:{}", m_block->env()->file(), m_block->env()->line()));
-    if (is_lambda())
+    if (is_lambda() || m_block->is_from_method())
         suffix.append(" (lambda)");
     if (m_block->self()->is_symbol())
         suffix.append(String::format(" (&:{})", m_block->self()->as_symbol()->string()));
