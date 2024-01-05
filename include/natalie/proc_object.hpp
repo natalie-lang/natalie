@@ -51,6 +51,7 @@ public:
     Value call(Env *, Args = {}, Block * = nullptr);
     bool equal_value(Value) const;
     Value source_location();
+    StringObject *to_s(Env *);
 
     Env *env() { return m_block->env(); }
 

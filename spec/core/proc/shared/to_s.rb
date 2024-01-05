@@ -33,10 +33,12 @@ describe :proc_to_s, shared: true do
     it "returns a description including '(lambda)' and optionally including file and line number" do
         def hello; end
         s = method("hello").to_proc.send(@method)
-        if s.include? __FILE__
-          s.should =~ /^#<Proc:([^ ]*?) #{Regexp.escape __FILE__}:#{__LINE__ - 3} \(lambda\)>$/
-        else
-          s.should =~ /^#<Proc:([^ ]*?) \(lambda\)>$/
+        NATFIXME 'Result of #to_proc should be a lambda', exception: SpecFailedException do
+          if s.include? __FILE__
+            s.should =~ /^#<Proc:([^ ]*?) #{Regexp.escape __FILE__}:#{__LINE__ - 3} \(lambda\)>$/
+          else
+            s.should =~ /^#<Proc:([^ ]*?) \(lambda\)>$/
+          end
         end
     end
 
@@ -49,7 +51,9 @@ describe :proc_to_s, shared: true do
   describe "for a proc created with Symbol#to_proc" do
     it "returns a description including '(&:symbol)'" do
       proc = :foobar.to_proc
-      proc.send(@method).should.include?('(&:foobar)')
+      NATFIXME "returns a description including '(&:symbol)' for a proc created with Symbol#to_proc", exception: SpecFailedException do
+        proc.send(@method).should.include?('(&:foobar)')
+      end
     end
 
     it "has a binary encoding" do
