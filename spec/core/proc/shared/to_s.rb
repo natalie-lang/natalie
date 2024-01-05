@@ -51,9 +51,7 @@ describe :proc_to_s, shared: true do
   describe "for a proc created with Symbol#to_proc" do
     it "returns a description including '(&:symbol)'" do
       proc = :foobar.to_proc
-      NATFIXME "returns a description including '(&:symbol)' for a proc created with Symbol#to_proc", exception: SpecFailedException do
-        proc.send(@method).should.include?('(&:foobar)')
-      end
+      proc.send(@method).should.include?('(&:foobar)')
     end
 
     it "has a binary encoding" do
