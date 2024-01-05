@@ -73,6 +73,7 @@ module Process
     end
 
     def success?
+      return nil if signaled?
       exitstatus == 0
     end
 
