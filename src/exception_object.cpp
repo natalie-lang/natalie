@@ -111,7 +111,7 @@ Value ExceptionObject::message(Env *env) {
 }
 
 Value ExceptionObject::backtrace(Env *env) {
-    if (!m_backtrace)
+    if (!m_backtrace && !m_backtrace_value)
         return NilObject::the();
     if (!m_backtrace_value)
         m_backtrace_value = m_backtrace->to_ruby_array();
@@ -124,6 +124,23 @@ Value ExceptionObject::backtrace_locations() {
     if (!m_backtrace_locations)
         m_backtrace_locations = m_backtrace->to_ruby_backtrace_locations_array();
     return m_backtrace_locations;
+}
+
+Value ExceptionObject::set_backtrace(Env *env, Value backtrace) {
+    if (backtrace->is_array()) {
+        for (auto element : *backtrace->as_array()) {
+            if (!element->is_string())
+                env->raise("TypeError", "backtrace must be Array of String");
+        }
+        m_backtrace_value = backtrace;
+    } else if (backtrace->is_string()) {
+        m_backtrace_value = new ArrayObject { backtrace };
+    } else if (backtrace->is_nil()) {
+        m_backtrace_value = nullptr;
+    } else {
+        env->raise("TypeError", "backtrace must be Array of String");
+    }
+    return m_backtrace_value;
 }
 
 Value ExceptionObject::match_rescue_array(Env *env, Value ary) {

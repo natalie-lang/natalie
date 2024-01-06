@@ -90,12 +90,10 @@ describe "Exception#backtrace" do
       err.dup.backtrace.should equal(bt)
 
       new_bt = ['hi']
-      NATFIXME 'returns the same array after duping', exception: NoMethodError, message: "undefined method `set_backtrace' for an instance of RuntimeError" do
-        err.set_backtrace new_bt
+      err.set_backtrace new_bt
 
-        err.backtrace.should == new_bt
-        err.dup.backtrace.should equal(new_bt)
-      end
+      err.backtrace.should == new_bt
+      err.dup.backtrace.should equal(new_bt)
     end
   end
 end
