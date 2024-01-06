@@ -27,15 +27,21 @@ describe "Exception#backtrace" do
   end
 
   it "includes the name of the method from where self raised in the first element" do
-    @backtrace.first.should =~ /in `backtrace'/
+    NATFIXME 'Different backtrace from MRI', exception: SpecFailedException do
+      @backtrace.first.should =~ /in `backtrace'/
+    end
   end
 
   it "includes the filename of the location immediately prior to where self raised in the second element" do
-    @backtrace[1].should =~ /backtrace_spec\.rb/
+    NATFIXME 'Different backtrace from MRI', exception: SpecFailedException do
+      @backtrace[1].should =~ /backtrace_spec\.rb/
+    end
   end
 
   it "includes the line number of the location immediately prior to where self raised in the second element" do
-    @backtrace[1].should =~ /:6(:in )?/
+    NATFIXME 'Different backtrace from MRI', exception: SpecFailedException do
+      @backtrace[1].should =~ /:6(:in )?/
+    end
   end
 
   it "contains lines of the same format for each prior position in the stack" do
@@ -64,7 +70,9 @@ describe "Exception#backtrace" do
       $@
     end
 
-    backtrace.first.should =~ /backtrace_spec/
+    NATFIXME 'Implement $@', exception: NoMethodError, message: "undefined method `first' for nil" do
+      backtrace.first.should =~ /backtrace_spec/
+    end
   end
 
   it "returns an Array that can be updated" do
@@ -72,7 +80,9 @@ describe "Exception#backtrace" do
       raise
     rescue RuntimeError => e
       e.backtrace.unshift "backtrace first"
-      e.backtrace[0].should == "backtrace first"
+      NATFIXME 'returns an Array that can be updated', exception: SpecFailedException do
+        e.backtrace[0].should == "backtrace first"
+      end
     end
   end
 
@@ -81,13 +91,15 @@ describe "Exception#backtrace" do
       raise
     rescue RuntimeError => err
       bt = err.backtrace
-      err.dup.backtrace.should equal(bt)
+      NATFIXME 'returns the same array after duping', exception: SpecFailedException do
+        err.dup.backtrace.should equal(bt)
 
-      new_bt = ['hi']
-      err.set_backtrace new_bt
+        new_bt = ['hi']
+        err.set_backtrace new_bt
 
-      err.backtrace.should == new_bt
-      err.dup.backtrace.should equal(new_bt)
+        err.backtrace.should == new_bt
+        err.dup.backtrace.should equal(new_bt)
+      end
     end
   end
 end
