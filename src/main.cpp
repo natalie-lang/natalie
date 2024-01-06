@@ -44,14 +44,10 @@ extern "C" Object *EVAL(Env *env) {
 }
 
 void sigint_handler(int sig) {
-    if (ThreadObject::i_am_main()) {
-        const char *msg = "Interrupt\n";
-        auto bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
-        if (bytes_written == -1) abort();
-        exit(128 + SIGINT);
-    } else {
-        pthread_cancel(pthread_self());
-    }
+    const char *msg = "Interrupt\n";
+    auto bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
+    if (bytes_written == -1) abort();
+    exit(128 + SIGINT);
 }
 
 void sigpipe_handler(int unused) {
