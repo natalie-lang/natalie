@@ -65,6 +65,10 @@ static void *nat_create_thread(void *thread_object) {
         thread->set_value(return_value);
         pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
+        if (exception->klass() == Natalie::ThreadObject::thread_kill_class()) {
+            // Our hidden ThreadKillError just silently kills the thread.
+            pthread_exit(exception);
+        }
         Natalie::handle_top_level_exception(&e, exception, false);
         thread->set_exception(exception);
         if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
@@ -185,7 +189,7 @@ String ThreadObject::status() {
     case Status::Active:
         return m_sleeping ? "sleep" : "run";
     case Status::Aborting:
-        return "aborting";
+        return m_sleeping ? "sleep" : "aborting";
     case Status::Dead:
         return "dead";
     }
@@ -225,18 +229,26 @@ Value ThreadObject::join(Env *env) {
 }
 
 Value ThreadObject::kill(Env *env) {
-    if (is_main())
+    if (is_main()) {
+        // FIXME: raise SystemExit
         exit(0);
+    }
 
     wait_until_running();
 
     m_status = Status::Aborting;
 
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
-    pthread_cancel(m_thread_id);
+    if (is_current()) {
+        auto exception = new ExceptionObject { thread_kill_class(env) };
+        env->raise_exception(exception);
+    } else {
+        m_exception = new ExceptionObject { thread_kill_class(env) };
+        wakeup(env);
+        ThreadObject::interrupt();
+    }
     remove_from_list();
 
-    return NilObject::the();
+    return this;
 }
 
 Value ThreadObject::raise(Env *env, Args args) {
@@ -309,6 +321,8 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);
 
+        check_exception(env);
+
         Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
         ThreadObject::set_current_sleeping(true);
 
@@ -336,6 +350,8 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
     pthread_mutex_lock(&m_sleep_lock);
 
+    check_exception(env);
+
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
@@ -349,9 +365,6 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
 Value ThreadObject::value(Env *env) {
     join(env);
-
-    if (m_exception)
-        env->raise_exception(m_exception);
 
     if (!m_value)
         return NilObject::the();
@@ -523,6 +536,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
     visit_children_from_stack(visitor);
+    visitor.visit(s_thread_kill_class);
 }
 
 // If the thread status is Status::Created, it means its execution
@@ -559,16 +573,26 @@ void ThreadObject::clear_interrupt() {
 }
 
 void ThreadObject::cancelation_checkpoint(Env *env) {
-    auto thread = current();
-
     // This call gives us a cancelation point that works with pthread_cancel(3).
     ::usleep(0);
 
-    if (thread->m_exception) {
-        auto exception = Value(thread->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
-        thread->set_exception(nullptr);
+    current()->check_exception(env);
+}
+
+void ThreadObject::check_exception(Env *env) {
+    if (!m_exception)
+        return;
+
+    auto exception = m_exception.load();
+
+    if (exception->klass() == s_thread_kill_class) {
+        m_exception = nullptr;
         env->raise_exception(exception);
     }
+
+    exception = Value(exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+    m_exception = nullptr;
+    env->raise_exception(exception);
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
