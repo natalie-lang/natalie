@@ -70,9 +70,7 @@ describe "Exception#backtrace" do
       $@
     end
 
-    NATFIXME 'Implement $@', exception: NoMethodError, message: "undefined method `first' for nil" do
-      backtrace.first.should =~ /backtrace_spec/
-    end
+    backtrace.first.should =~ /backtrace_spec/
   end
 
   it "returns an Array that can be updated" do

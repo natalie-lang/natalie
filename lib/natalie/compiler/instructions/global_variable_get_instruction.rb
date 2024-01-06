@@ -17,6 +17,8 @@ module Natalie
         case @name
         when :$!
           transform.exec_and_push(:exception, "env->exception_object()")
+        when :$@
+          transform.exec_and_push(:backtrace, "env->exception_object()->is_exception() ? static_cast<Value>(env->exception_object()->as_exception()->backtrace(env)) : static_cast<Value>(NilObject::the())")
         when :$~
           transform.exec_and_push(:exception, "env->last_match()")
         else
