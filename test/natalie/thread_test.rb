@@ -7,13 +7,23 @@ def create_threads
     Thread.new do
       x = "#{i}foo"
       $results << x
-      sleep 1
+      sleep 0.1
       $results << x + "bar"
     end
   end
 end
 
 describe 'Thread' do
+  before do
+    @report_setting = Thread.report_on_exception
+    @abort_setting = Thread.abort_on_exception
+  end
+
+  after do
+    Thread.report_on_exception = @report_setting
+    Thread.abort_on_exception = @abort_setting
+  end
+
   it 'works' do
     threads = create_threads
     1_000_000.times do
@@ -42,7 +52,7 @@ describe 'Thread' do
 
       # make sure thread id reuse doesn't cause later join to block
       other_threads = 1.upto(100).map { Thread.new { sleep } }
-      sleep 1
+      sleep 0.1
 
       # if the thread id gets reused and we are using pthread_join with that id,
       # then this will block on one of the above threads.
@@ -60,7 +70,7 @@ describe 'Thread' do
     end
 
     it 'calls join implicitly' do
-      t = Thread.new { sleep 1; 102 }
+      t = Thread.new { sleep 0.1; 102 }
       t.value.should == 102
     end
   end
@@ -80,7 +90,7 @@ describe 'Thread' do
   describe '.list' do
     it 'keeps a list of all threads' do
       Thread.list.should == [Thread.current]
-      t = Thread.new { sleep 0.5 }
+      t = Thread.new { sleep 0.1 }
       Thread.list.should == [Thread.current, t]
       t.join
       Thread.list.should == [Thread.current]
@@ -88,16 +98,6 @@ describe 'Thread' do
   end
 
   describe 'abort_on_exception' do
-    before do
-      @report_setting = Thread.report_on_exception
-      @abort_setting = Thread.abort_on_exception
-    end
-
-    after do
-      Thread.report_on_exception = @report_setting
-      Thread.abort_on_exception = @abort_setting
-    end
-
     it 'raises an error in the main thread if either Thread.abort_on_exception or Thread#abort_on_exception is true' do
       [
         [false, false],
@@ -132,14 +132,6 @@ describe 'Thread' do
   end
 
   describe 'Thread#report_on_exception' do
-    before do
-      @report_setting = Thread.report_on_exception
-    end
-
-    after do
-      Thread.report_on_exception = @report_setting
-    end
-
     it 'defaults to Thread.report_on_exception' do
       Thread.report_on_exception = false
       t1 = Thread.new {}
@@ -150,6 +142,29 @@ describe 'Thread' do
       t2.report_on_exception.should == true
 
       t1.report_on_exception.should == false
+    end
+  end
+
+  describe '#kill' do
+    describe 'killing a thread with no blocking IO/system calls' do
+      # NATFIXME: Need a way to interrupt a non-blocking thread.
+      xit 'works' do
+        running = false
+        ensure_ran = false
+        t = Thread.new do
+          running = true
+          loop do
+            # noop
+          end
+        ensure
+          ensure_ran = true
+        end
+        Thread.pass until running
+        t.kill
+        t.join
+        t.status.should == false
+        ensure_ran.should == true
+      end
     end
   end
 end
