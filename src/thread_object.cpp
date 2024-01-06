@@ -59,7 +59,9 @@ static void *nat_create_thread(void *thread_object) {
     try {
         thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
-        thread->cancelation_checkpoint(&e);
+        auto exception = thread->exception();
+        if (exception)
+            e.raise_exception(exception);
         thread->set_value(return_value);
         pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
