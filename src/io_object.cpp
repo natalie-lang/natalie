@@ -996,13 +996,17 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
 
     fd_set readfds_copy = readfds;
 
+    if (m_closed)
+        env->raise("IOError", "closed stream");
+
     int ret;
     for (;;) {
         ret = ::select(nfds, &readfds, nullptr, nullptr, timeout);
 
         if (ret == -1 && errno == EBADF && m_closed) {
-            // On macOS, the select() call returns an error immediately
-            // when the file is closed.
+            // On macOS, the blocking select() call returns an error
+            // when the file is closed. This can also happen on Linux
+            // if the file was closed just prior to our select() call.
             env->raise("IOError", "closed stream");
         }
 
