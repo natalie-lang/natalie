@@ -47,7 +47,7 @@ module Natalie
         File.join(BUILD_DIR, 'zlib'),
       ].freeze
 
-      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi].freeze
+      PACKAGES_REQUIRING_PKG_CONFIG = %w[openssl libffi yaml-0.1].freeze
 
       def initialize(instructions, compiler:, compiler_context:)
         @instructions = instructions
