@@ -1,7 +1,11 @@
+class NoMemoryError < Exception; end
+
 class ScriptError < Exception; end
   class NotImplementedError < ScriptError; end
   class SyntaxError < ScriptError; end
 # end ScriptError subclasses
+
+class SecurityError < Exception; end
 
 class SignalException < Exception
   attr_reader :signo, :signm
@@ -25,13 +29,19 @@ class SignalException < Exception
     super(@signm)
   end
 end
+  class Interrupt < SignalException; end
+# end SignalException subclasses
 
 class StandardError < Exception; end
   class ArgumentError < StandardError; end
+    class UncaughtThrowError < ArgumentError; end
+  # end ArgumentError subclasses
   class EncodingError < StandardError; end
   class FiberError < StandardError; end
   class IndexError < StandardError; end
     class StopIteration < IndexError; end
+      class ClosedQueueError < StopIteration; end
+    # end StopIteration subclasses
     class KeyError < IndexError
       attr_reader :receiver, :key
       def initialize(message=nil, receiver: nil, key: nil)
@@ -132,3 +142,5 @@ class SystemExit < Exception
     @status.zero?
   end
 end
+
+class SystemStackError < Exception; end
