@@ -120,15 +120,11 @@ class SystemExit < Exception
       if args.first.is_a?(Integer)
         super(args.last)
         @status = args.first
-      elsif args.last.is_a?(Integer)
-        super(args.first)
-        @status = args.last
       elsif args.first.is_a?(TrueClass) || args.first.is_a?(FalseClass)
         super(args.last)
         @status = args.first ? 0 : 1
-      elsif args.last.is_a?(TrueClass) || args.last.is_a?(FalseClass)
-        super(args.first)
-        @status = args.last ? 0 : 1
+      else
+        super(*args)
       end
     else
       raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0..2)"
