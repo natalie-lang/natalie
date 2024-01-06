@@ -59,7 +59,9 @@ static void *nat_create_thread(void *thread_object) {
     try {
         thread->set_status(Natalie::ThreadObject::Status::Active);
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
-        thread->cancelation_checkpoint(&e);
+        auto exception = thread->exception();
+        if (exception)
+            e.raise_exception(exception);
         thread->set_value(return_value);
         pthread_exit(return_value.object());
     } catch (Natalie::ExceptionObject *exception) {
@@ -109,7 +111,7 @@ bool ThreadObject::is_stopped() const {
     return m_sleeping || m_status == Status::Dead;
 }
 
-void ThreadObject::build_main_thread(void *start_of_stack) {
+void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     assert(!s_main && !s_main_id); // can only be built once
     auto thread = new ThreadObject;
     assert(start_of_stack);
@@ -121,6 +123,7 @@ void ThreadObject::build_main_thread(void *start_of_stack) {
     s_main = thread;
     s_main_id = thread->m_thread_id;
     tl_current_thread = thread;
+    setup_interrupt_pipe(env);
 }
 
 void ThreadObject::build_main_fiber() {
@@ -246,7 +249,13 @@ Value ThreadObject::raise(Env *env, Args args) {
         env->raise_exception(exception);
 
     m_exception = exception;
+
+    // Wake up the thread in case it is sleeping.
     wakeup(env);
+
+    // In case this thread is blocking on read/select/whatever,
+    // we may need to interrupt it (and all other threads, incidentally).
+    ThreadObject::interrupt();
 
     return NilObject::the();
 }
@@ -476,14 +485,39 @@ void ThreadObject::wait_until_running() const {
         sched_yield();
 }
 
+void ThreadObject::setup_interrupt_pipe(Env *env) {
+    int pipefd[2];
+    if (pipe2(pipefd, O_CLOEXEC | O_NONBLOCK) < 0)
+        env->raise_errno();
+    s_interrupt_read_fileno = pipefd[0];
+    s_interrupt_write_fileno = pipefd[1];
+}
+
+void ThreadObject::interrupt() {
+    ::write(s_interrupt_write_fileno, "!", 1);
+}
+
+void ThreadObject::clear_interrupt() {
+    // arbitrarily-chosen buffer size just to avoid several single-byte reads
+    constexpr int BUF_SIZE = 8;
+    char buf[BUF_SIZE];
+    ssize_t bytes;
+    do {
+        // This fd is non-blocking, so this can set errno to EAGAIN,
+        // but we don't care -- we just want the buffer to be empty.
+        bytes = ::read(s_interrupt_read_fileno, buf, BUF_SIZE);
+    } while (bytes > 0);
+}
+
 void ThreadObject::cancelation_checkpoint(Env *env) {
+    auto thread = current();
+
     // This call gives us a cancelation point that works with pthread_cancel(3).
     ::usleep(0);
 
-    auto t = current();
-    if (t->m_exception) {
-        auto exception = Value(t->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
-        t->set_exception(nullptr);
+    if (thread->m_exception) {
+        auto exception = Value(thread->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+        thread->set_exception(nullptr);
         env->raise_exception(exception);
     }
 }

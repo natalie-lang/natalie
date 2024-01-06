@@ -1,13 +1,13 @@
 #pragma once
 
-#include <assert.h>
-
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
+
+#include <atomic>
 
 #ifdef fileno
 #undef fileno
@@ -25,13 +25,15 @@ public:
 
     IoObject(int fileno)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
-        , m_fileno { fileno }
-        , m_sync { fileno == STDERR_FILENO } { }
+        , m_sync { fileno == STDERR_FILENO } {
+        set_fileno(fileno);
+    }
 
     virtual ~IoObject() override {
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
             return;
         if (m_autoclose && !m_closed && m_fileno != -1) {
+            // TODO: actually ::close() the fd :-)
             m_closed = true;
             m_fileno = -1;
         }
@@ -102,6 +104,7 @@ public:
     int rewind(Env *);
     int set_pos(Env *, Value);
     static Value select(Env *, Value, Value = nullptr, Value = nullptr, Value = nullptr);
+    void select_read(Env *env, timeval *timeout = nullptr) const;
     bool sync(Env *) const;
     Value sysread(Env *, Value, Value = nullptr);
     Value sysseek(Env *, Value, Value = nullptr);
@@ -123,15 +126,16 @@ protected:
     int write(Env *, Value);
 
 private:
+    ssize_t blocking_read(Env *env, void *buf, int count) const;
+
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     int m_lineno { 0 };
-    bool m_closed { false };
+    std::atomic<bool> m_closed { false };
     bool m_autoclose { true };
     bool m_sync { false };
     StringObject *m_path { nullptr };
     TM::String m_read_buffer {};
 };
-
 }
