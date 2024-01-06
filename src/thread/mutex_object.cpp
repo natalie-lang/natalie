@@ -14,8 +14,10 @@ Value MutexObject::lock(Env *env) {
             Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
             ThreadObject::set_current_sleeping(true);
             struct timespec request = { 0, 100000 };
-            while (!m_mutex.try_lock())
+            while (!m_mutex.try_lock()) {
+                ThreadObject::cancelation_checkpoint(env);
                 nanosleep(&request, nullptr);
+            }
         }
     }
 
@@ -67,7 +69,7 @@ Value MutexObject::unlock(Env *env) {
     if (!is_locked())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
-    if (m_thread->status(env)->is_falsey())
+    if (m_thread && m_thread->status(env)->is_falsey())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
 
     if (m_thread && m_thread != ThreadObject::current())

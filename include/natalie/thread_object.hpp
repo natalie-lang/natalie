@@ -228,6 +228,15 @@ public:
     static void interrupt();
     static void clear_interrupt();
 
+    static ClassObject *thread_kill_class() { return s_thread_kill_class; }
+    static ClassObject *thread_kill_class(Env *env) {
+        if (!s_thread_kill_class)
+            s_thread_kill_class = GlobalEnv::the()->Object()->subclass(env, "ThreadKillError");
+        return s_thread_kill_class;
+    }
+
+    void check_exception(Env *);
+
 private:
     void wait_until_running() const;
 
@@ -286,6 +295,12 @@ private:
     // TODO: we'll need to rebuild these after a fork :-/
     inline static int s_interrupt_read_fileno { -1 };
     inline static int s_interrupt_write_fileno { -1 };
+
+    // We use this special class as an off-the-books exception class
+    // for killing threads. It cannot be rescued in user code, but it
+    // does trigger `ensure` blocks.
+    // We only build this class once it is needed.
+    inline static ClassObject *s_thread_kill_class { nullptr };
 };
 
 }
