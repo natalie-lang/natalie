@@ -36,9 +36,7 @@ describe "Exception#backtrace_locations" do
       raise
     rescue RuntimeError => e
       e.backtrace_locations.unshift "backtrace first"
-      NATFIXME 'Make it a member variable (Exception#backtrace too)', exception: SpecFailedException do
-        e.backtrace_locations[0].should == "backtrace first"
-      end
+      e.backtrace_locations[0].should == "backtrace first"
     end
   end
 end

@@ -77,6 +77,7 @@ private:
 
     Value m_message { nullptr };
     Backtrace *m_backtrace { nullptr };
+    Value m_backtrace_locations { nullptr };
     ExceptionObject *m_cause { nullptr };
     nat_int_t m_break_point { 0 };
     LocalJumpErrorType m_local_jump_error_type { LocalJumpErrorType::None };
