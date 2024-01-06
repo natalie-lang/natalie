@@ -373,8 +373,15 @@ Value BasicSocket_local_address(Env *env, Value self, Args args, Block *) {
     return Addrinfo.send(env, "new"_s, { packed });
 }
 
+static ssize_t blocking_recv(Env *env, IoObject *io, char *buf, size_t len, int flags) {
+    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+    ThreadObject::set_current_sleeping(true);
+
+    io->select_read(env);
+    return ::recv(io->fileno(), buf, len, flags);
+}
+
 Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
-    // recv(maxlen[, flags[, outbuf]]) => mesg
     args.ensure_argc_between(env, 1, 3);
     auto maxlen = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
     auto flags = args.at(1, Value::integer(0))->as_integer_or_raise(env)->to_nat_int_t();
@@ -393,7 +400,7 @@ Value BasicSocket_recv(Env *env, Value self, Args args, Block *) {
     ThreadObject::set_current_sleeping(true);
 
     char buf[maxlen];
-    auto bytes = recv(self->as_io()->fileno(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
+    auto bytes = blocking_recv(env, self->as_io(), buf, static_cast<size_t>(maxlen), static_cast<int>(flags));
     if (bytes == -1)
         env->raise_errno();
 
