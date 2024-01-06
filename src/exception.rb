@@ -1,6 +1,7 @@
 class NoMemoryError < Exception; end
 
 class ScriptError < Exception; end
+  class LoadError < ScriptError ; end
   class NotImplementedError < ScriptError; end
   class SyntaxError < ScriptError; end
 # end ScriptError subclasses
@@ -95,7 +96,6 @@ class StandardError < Exception; end
 
   class TypeError < StandardError; end
   class ZeroDivisionError < StandardError; end
-  class LoadError < StandardError; end
 
   class LocalJumpError < StandardError
     attr_reader :exit_value
