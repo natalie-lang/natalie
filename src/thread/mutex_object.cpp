@@ -15,7 +15,7 @@ Value MutexObject::lock(Env *env) {
             ThreadObject::set_current_sleeping(true);
             struct timespec request = { 0, 100000 };
             while (!m_mutex.try_lock()) {
-                ThreadObject::cancelation_checkpoint(env);
+                ThreadObject::check_current_exception(env);
                 nanosleep(&request, nullptr);
             }
         }

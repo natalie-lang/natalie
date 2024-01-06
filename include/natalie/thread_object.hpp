@@ -221,7 +221,7 @@ public:
         return abrt;
     }
 
-    static void cancelation_checkpoint(Env *env);
+    static void check_current_exception(Env *env);
 
     static void setup_interrupt_pipe(Env *env);
     static int interrupt_read_fileno() { return s_interrupt_read_fileno; }

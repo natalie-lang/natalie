@@ -960,7 +960,7 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
 
         if (FD_ISSET(interrupt_fileno, &read_fds)) {
             ThreadObject::clear_interrupt();
-            ThreadObject::cancelation_checkpoint(env);
+            ThreadObject::check_current_exception(env);
             if (any_closed(read_ios_ary) || any_closed(write_ios_ary) || any_closed(error_ios_ary))
                 env->raise("IOError", "closed stream");
         } else {
@@ -1015,7 +1015,7 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
 
         if (FD_ISSET(interrupt_fileno, &readfds)) {
             ThreadObject::clear_interrupt();
-            ThreadObject::cancelation_checkpoint(env);
+            ThreadObject::check_current_exception(env);
             if (m_closed)
                 env->raise("IOError", "closed stream");
         }

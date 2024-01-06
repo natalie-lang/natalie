@@ -95,7 +95,7 @@ std::mutex g_thread_mutex;
 std::recursive_mutex g_thread_recursive_mutex;
 
 Value ThreadObject::pass(Env *env) {
-    cancelation_checkpoint(env);
+    check_current_exception(env);
 
     sched_yield();
 
@@ -329,7 +329,7 @@ Value ThreadObject::sleep(Env *env, float timeout) {
         handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
 
-        cancelation_checkpoint(env);
+        check_exception(env);
 
         return calculate_elapsed();
     }
@@ -358,7 +358,7 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
 
-    cancelation_checkpoint(env);
+    check_exception(env);
 
     return calculate_elapsed();
 }
@@ -572,10 +572,7 @@ void ThreadObject::clear_interrupt() {
     } while (bytes > 0);
 }
 
-void ThreadObject::cancelation_checkpoint(Env *env) {
-    // This call gives us a cancelation point that works with pthread_cancel(3).
-    ::usleep(0);
-
+void ThreadObject::check_current_exception(Env *env) {
     current()->check_exception(env);
 }
 
