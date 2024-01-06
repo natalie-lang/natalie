@@ -1,13 +1,13 @@
 #pragma once
 
-#include <assert.h>
-
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
+
+#include <atomic>
 
 #ifdef fileno
 #undef fileno
@@ -132,7 +132,7 @@ private:
     EncodingObject *m_internal_encoding { nullptr };
     int m_fileno { -1 };
     int m_lineno { 0 };
-    bool m_closed { false };
+    std::atomic<bool> m_closed { false };
     bool m_autoclose { true };
     bool m_sync { false };
     StringObject *m_path { nullptr };

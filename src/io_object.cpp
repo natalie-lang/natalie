@@ -660,6 +660,8 @@ Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();
 
+    m_closed = true;
+
     // Wake up all threads in case one is blocking on a read to this fd.
     // It is undefined behavior on Linux to continue a read() or select()
     // on a closed file descriptor.
@@ -669,8 +671,8 @@ Value IoObject::close(Env *env) {
     if (result == -1)
         env->raise_errno();
 
-    m_closed = true;
     m_fileno = -1;
+
     return NilObject::the();
 }
 
@@ -997,6 +999,13 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
     int ret;
     for (;;) {
         ret = ::select(nfds, &readfds, nullptr, nullptr, timeout);
+
+        if (ret == -1 && errno == EBADF && m_closed) {
+            // On macOS, the select() call returns an error immediately
+            // when the file is closed.
+            env->raise("IOError", "closed stream");
+        }
+
         if (ret == -1)
             break;
 
