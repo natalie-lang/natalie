@@ -111,10 +111,11 @@ Value ExceptionObject::message(Env *env) {
 }
 
 Value ExceptionObject::backtrace(Env *env) {
-    if (m_backtrace)
-        return m_backtrace->to_ruby_array();
-
-    return NilObject::the();
+    if (!m_backtrace)
+        return NilObject::the();
+    if (!m_backtrace_value)
+        m_backtrace_value = m_backtrace->to_ruby_array();
+    return m_backtrace_value;
 }
 
 Value ExceptionObject::backtrace_locations() {
@@ -157,6 +158,7 @@ void ExceptionObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_message);
     visitor.visit(m_backtrace);
+    visitor.visit(m_backtrace_value);
     visitor.visit(m_backtrace_locations);
     visitor.visit(m_cause);
 }
