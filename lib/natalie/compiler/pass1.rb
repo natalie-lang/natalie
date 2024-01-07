@@ -108,11 +108,12 @@ module Natalie
         @macro_expander.expand(node, locals: locals, depth: @depth, file: @file)
       end
 
-      def transform_body(body, used:)
+      def transform_body(body, location:, used:)
         body = body.body if body.is_a?(Prism::StatementsNode)
         *body, last = body
+        nil_node = Prism.nil_node(location: location)
         instructions = body.map { |exp| transform_expression(exp, used: false) }
-        instructions << transform_expression(last || Prism.nil_node, used: used)
+        instructions << transform_expression(last || nil_node, used: used)
         instructions
       end
 
@@ -267,7 +268,7 @@ module Natalie
         _, name, path, *body = exp
         instructions = [
           AutoloadConstInstruction.new(name: name, path: path),
-          transform_body(body, used: true),
+          transform_body(body, used: true, location: nil),
           EndInstruction.new(:autoload_const),
         ]
         instructions << PopInstruction.new unless used
@@ -290,7 +291,8 @@ module Natalie
         try_instruction = TryInstruction.new
         retry_id = try_instruction.object_id
 
-        instructions = transform_expression(node.statements || Prism.nil_node, used: true)
+        nil_node = Prism.nil_node(location: node.location)
+        instructions = transform_expression(node.statements || nil_node, used: true)
 
         if node.rescue_clause
           instructions.unshift(try_instruction)
@@ -316,7 +318,7 @@ module Natalie
         end
 
         if node.ensure_clause
-          raise_call = Prism.call_node(receiver: nil, name: :raise)
+          raise_call = Prism.call_node(receiver: nil, name: :raise, location: node.ensure_clause.location)
           instructions.unshift(TryInstruction.new(discard_catch_result: true))
           instructions += [
             CatchInstruction.new,
@@ -360,7 +362,8 @@ module Natalie
         end
 
         with_locals(node.locals) do
-          instructions << transform_expression(node.body || Prism.nil_node, used: true)
+          body = node.body || Prism.nil_node(location: node.location)
+          instructions << transform_expression(body, used: true)
         end
 
         instructions << EndInstruction.new(:define_block)
@@ -718,7 +721,7 @@ module Natalie
             instructions << PushFalseInstruction.new
             instructions << [EndInstruction.new(:if)] * options.length
             instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
+            instructions << transform_body(body, used: true, location: when_statement.location)
             instructions << ElseInstruction.new(:if)
           end
         else
@@ -731,11 +734,13 @@ module Natalie
             options = when_statement.conditions
             body = when_statement.statements&.body
 
-            options = options[1..].reduce(options[0]) { |prev, option| Prism.or_node(left: prev, right: option) }
+            options = options[1..].reduce(options[0]) do |prev, option|
+              Prism.or_node(left: prev, right: option, location: prev.location)
+            end
 
             instructions << transform_expression(options, used: true)
             instructions << IfInstruction.new
-            instructions << transform_body(body, used: true)
+            instructions << transform_body(body, used: true, location: when_statement.location)
             instructions << ElseInstruction.new(:if)
           end
         end
@@ -771,7 +776,7 @@ module Natalie
           line: node.location.start_line,
         )
         with_locals(node.locals) do
-          instructions += transform_body(node.body, used: true)
+          instructions += transform_body(node.body, used: true, location: node.location)
         end
         instructions << EndInstruction.new(:define_class)
         instructions << PopInstruction.new unless used
@@ -898,7 +903,7 @@ module Natalie
           DefineMethodInstruction.new(name: node.name, arity: arity, file: @file.path, line: node.location.start_line),
           transform_defn_args(node.parameters, used: true),
           with_locals(node.locals) do
-            transform_body([node.body], used: true)
+            transform_body([node.body], used: true, location: node.location)
           end,
           EndInstruction.new(:define_method),
         ]
@@ -1095,7 +1100,7 @@ module Natalie
         instructions += transform_block_args_for_for(node.index, used: true)
         instructions += transform_expression(node.statements, used: true)
         instructions << EndInstruction.new(:define_block)
-        call = Prism.call_node(receiver: node.collection, name: :each)
+        call = Prism.call_node(receiver: node.collection, name: :each, location: node.location)
         instructions << transform_call_node(call, used: used, with_block: true)
         instructions
       end
@@ -1219,8 +1224,10 @@ module Natalie
       end
 
       def transform_if_node(node, used:)
-        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
-        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        true_body = node.statements || Prism.nil_node(location: node.location)
+        false_body = node.consequent || Prism.nil_node(location: node.location)
+        true_instructions = transform_expression(true_body, used: true)
+        false_instructions = transform_expression(false_body, used: true)
         instructions = [
           transform_expression(node.predicate, used: true),
           IfInstruction.new,
@@ -1798,7 +1805,7 @@ module Natalie
           line: node.location.start_line,
         )
         with_locals(node.locals) do
-          instructions += transform_body(node.body, used: true)
+          instructions += transform_body(node.body, used: true, location: node.location)
         end
         instructions << EndInstruction.new(:define_module)
         instructions << PopInstruction.new unless used
@@ -1882,8 +1889,8 @@ module Natalie
 
       def transform_range_node(node, used:)
         instructions = [
-          transform_expression(node.right || Prism.nil_node, used: true),
-          transform_expression(node.left || Prism.nil_node, used: true),
+          transform_expression(node.right || Prism.nil_node(location: node.location), used: true),
+          transform_expression(node.left || Prism.nil_node(location: node.location), used: true),
           PushRangeInstruction.new(node.exclude_end?),
         ]
         instructions << PopInstruction.new unless used
@@ -1942,7 +1949,7 @@ module Natalie
       def transform_rescue_node(node, used:)
         exceptions = node.exceptions.dup
         unless exceptions.any?
-          exceptions << Prism.constant_read_node(name: :StandardError)
+          exceptions << Prism.constant_read_node(name: :StandardError, location: node.location)
         end
 
         instructions = [
@@ -1951,7 +1958,7 @@ module Natalie
           MatchExceptionInstruction.new,
           IfInstruction.new,
           transform_rescue_reference_node(node.reference),
-          transform_body(node.statements, used: true),
+          transform_body(node.statements, used: true, location: node.location),
         ]
 
         instructions << ElseInstruction.new(:if)
@@ -2023,7 +2030,7 @@ module Natalie
         instructions = [
           transform_expression(node.expression, used: true),
           WithSingletonInstruction.new,
-          transform_body(node.body, used: true),
+          transform_body(node.body, used: true, location: node.location),
           EndInstruction.new(:with_singleton),
         ]
         instructions << PopInstruction.new unless used
@@ -2045,7 +2052,7 @@ module Natalie
       end
 
       def transform_statements_node(node, used:)
-        transform_body(node.body, used: used)
+        transform_body(node.body, used: used, location: node.location)
       end
 
       def transform_string_concat_node(node, used:)
@@ -2118,8 +2125,10 @@ module Natalie
       end
 
       def transform_unless_node(node, used:)
-        true_instructions = transform_expression(node.statements || Prism.nil_node, used: true)
-        false_instructions = transform_expression(node.consequent || Prism.nil_node, used: true)
+        true_body = node.statements || Prism.nil_node(location: node.location)
+        false_body = node.consequent || Prism.nil_node(location: node.location)
+        true_instructions = transform_expression(true_body, used: true)
+        false_instructions = transform_expression(false_body, used: true)
         instructions = [
           transform_expression(node.predicate, used: true),
           IfInstruction.new,
@@ -2147,7 +2156,7 @@ module Natalie
             line: node.location.start_line,
           ),
           WhileBodyInstruction.new,
-          transform_expression(node.statements || Prism.nil_node, used: true),
+          transform_expression(node.statements || Prism.nil_node(location: node.location), used: true),
           EndInstruction.new(:while),
         ]
 
@@ -2162,7 +2171,7 @@ module Natalie
           WhileInstruction.new(pre: pre),
           transform_expression(node.predicate, used: true),
           WhileBodyInstruction.new,
-          transform_expression(node.statements || Prism.nil_node, used: true),
+          transform_expression(node.statements || Prism.nil_node(location: node.location), used: true),
           EndInstruction.new(:while),
         ]
 

@@ -16,53 +16,53 @@ module Prism
   end
 
   # Create an ArrayNode with the optionally given elements and location.
-  def self.array_node(elements: [], location: nil)
+  def self.array_node(location:, elements: [])
     ArrayNode.new(0, elements, nil, nil, location)
   end
 
   # Create a CallNode with the optionally given values.
-  def self.call_node(receiver:, name:, arguments: [], block: nil, flags: 0, location: nil)
+  def self.call_node(receiver:, name:, location:, arguments: [], block: nil, flags: 0)
     arguments = ArgumentsNode.new(0, arguments, location)
     CallNode.new(flags, receiver, nil, name, nil, nil, arguments, nil, block, location)
   end
 
   # Create a ClassVariableWriteNode with the optionally given values.
-  def self.class_variable_write_node(name:, value: nil, location: nil)
+  def self.class_variable_write_node(name:, location:, value: nil)
     ClassVariableWriteNode.new(name, nil, value, nil, location)
   end
 
   # Create a ConstantReadNode with the optionally given values.
-  def self.constant_read_node(name:, location: nil)
+  def self.constant_read_node(name:, location:)
     ConstantReadNode.new(name, location)
   end
 
   # Create a FalseNode with the optionally given location.
-  def self.false_node(location: nil)
+  def self.false_node(location:)
     FalseNode.new(location)
   end
 
   # Create an LocalVariableWriteNode with the optionally given location.
-  def self.local_variable_write_node(name:, value:, location: nil)
+  def self.local_variable_write_node(name:, value:, location:)
     LocalVariableWriteNode.new(name, 0, nil, value, nil, location)
   end
 
   # Create a NilNode with the optionally given location.
-  def self.nil_node(location: nil)
+  def self.nil_node(location:)
     NilNode.new(location)
   end
 
   # Create an OrNode with the optionally given left, right, and location.
-  def self.or_node(left: nil, right: nil, location: nil)
+  def self.or_node(location:, left: nil, right: nil)
     OrNode.new(left, right, nil, location)
   end
 
   # Create a StringNode with the optionally given location.
-  def self.string_node(unescaped:, location: nil)
+  def self.string_node(unescaped:, location:)
     StringNode.new(0, nil, nil, nil, unescaped, location)
   end
 
   # Create a TrueNode with the optionally given location.
-  def self.true_node(location: nil)
+  def self.true_node(location:)
     TrueNode.new(location)
   end
 end

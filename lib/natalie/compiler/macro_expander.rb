@@ -88,7 +88,10 @@ module Natalie
         begin
           path = comptime_string(path_node)
         rescue ArgumentError
-          return drop_load_error "cannot load such file #{path_node.inspect} at #{current_path}##{expr.location.start_line}"
+          return drop_load_error(
+            "cannot load such file #{path_node.inspect} at #{current_path}##{expr.location.start_line}",
+            location: expr.location
+          )
         end
 
         full_path = EXTENSIONS_TO_TRY.lazy.filter_map do |ext|
@@ -96,7 +99,10 @@ module Natalie
         end.first
 
         unless full_path
-          return drop_load_error "cannot load such file #{path} at #{current_path}##{expr.location.start_line}"
+          return drop_load_error(
+            "cannot load such file #{path} at #{current_path}##{expr.location.start_line}",
+            location: expr.location
+          )
         end
 
         body = load_file(full_path, require_once: true, location: location(expr))
@@ -116,7 +122,10 @@ module Natalie
             return load_file(full_path, require_once: true, location: location(expr))
           end
         end
-        drop_load_error "cannot load such file #{name} at #{current_path}##{expr.location.start_line}"
+        drop_load_error(
+          "cannot load such file #{name} at #{current_path}##{expr.location.start_line}",
+          location: expr.location
+        )
       end
 
       def macro_require_relative(expr:, current_path:, **)
@@ -129,7 +138,10 @@ module Natalie
             return lf
           end
         end
-        drop_load_error "cannot load such file #{name} at #{current_path}##{expr.location.start_line}"
+        drop_load_error(
+          "cannot load such file #{name} at #{current_path}##{expr.location.start_line}",
+          location: expr.location
+        )
       end
 
       def macro_load(expr:, **)
@@ -137,7 +149,10 @@ module Natalie
         path = comptime_string(args.first)
         full_path = find_full_path(path, base: Dir.pwd, search: true)
         return load_file(full_path, require_once: false, location: location(expr)) if full_path
-        drop_load_error "cannot load such file -- #{path}"
+        drop_load_error(
+          "cannot load such file -- #{path}",
+          location: expr.location
+        )
       end
 
       def macro_eval(expr:, current_path:, locals:, **)
@@ -148,10 +163,10 @@ module Natalie
           begin
             Natalie::Parser.new(node.unescaped, current_path, locals: locals).ast
           rescue Parser::ParseError => e
-            drop_error(:SyntaxError, e.message)
+            drop_error(:SyntaxError, e.message, location: node.location)
           end
         else
-          drop_error(:TypeError, 'eval() only works on static strings')
+          drop_error(:TypeError, 'eval() only works on static strings', location: node.location)
         end
       end
 
@@ -167,7 +182,7 @@ module Natalie
         args = expr.arguments&.arguments || []
         name = comptime_string(args.first)
         if (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
-          Prism.string_node(unescaped: File.read(full_path))
+          Prism.string_node(unescaped: File.read(full_path), location: expr)
         else
           raise IOError, "cannot find file #{name} at #{current_path}##{node.location.start_line}"
         end
@@ -182,7 +197,11 @@ module Natalie
           else
             name = expr.receiver[1] # receiver is $(gvar, :$LOAD_PATH)
           end
-          return drop_error(:LoadError, "Cannot manipulate #{name} at runtime (#{current_path}##{expr.location.start_line})")
+          return drop_error(
+            :LoadError,
+            "Cannot manipulate #{name} at runtime (#{current_path}##{expr.location.start_line})",
+            location: expr.location
+          )
         end
 
         path_to_add = VM.compile_and_run(
@@ -195,7 +214,7 @@ module Natalie
         end
 
         load_path << path_to_add
-        Prism.nil_node
+        Prism.nil_node(location: expr.location)
       end
 
       def interpret?
@@ -248,29 +267,31 @@ module Natalie
               receiver: nil,
               name: :__internal_inline_code__,
               arguments: [
-                Prism.string_node(unescaped: cpp_source)
-              ]
+                Prism.string_node(unescaped: cpp_source, location: location)
+              ],
+              location: location
             ),
-            ::Prism.true_node
+            ::Prism.true_node(location: location)
           ],
           location
         )
       end
 
-      def drop_error(exception_class, message, print_warning: false)
+      def drop_error(exception_class, message, location:, print_warning: false)
         warn(message) if print_warning
         Prism.call_node(
           receiver: nil,
           name: :raise,
           arguments: [
-            Prism.constant_read_node(name: exception_class),
-            Prism.string_node(unescaped: message)
-          ]
+            Prism.constant_read_node(name: exception_class, location: location),
+            Prism.string_node(unescaped: message, location: location)
+          ],
+          location: location
         )
       end
 
-      def drop_load_error(message)
-        drop_error(:LoadError, message, print_warning: @log_load_error)
+      def drop_load_error(message, location:)
+        drop_error(:LoadError, message, print_warning: @log_load_error, location: location)
       end
 
       def false_node
