@@ -45,7 +45,7 @@ class Enumerator
 
     new do |yielder|
       value = values.empty? ? block.call(nil) : values.first
-      while true
+      loop do
         yielder << value
         value = block.call(value)
       end
