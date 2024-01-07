@@ -47,6 +47,7 @@ public:
     void build_backtrace(Env *env) { m_backtrace = env->backtrace(); }
     Value backtrace(Env *);
     Value backtrace_locations();
+    Value set_backtrace(Env *, Value);
 
     ExceptionObject *cause() const { return m_cause; }
     void set_cause(ExceptionObject *e) { m_cause = e; }
@@ -77,6 +78,7 @@ private:
 
     Value m_message { nullptr };
     Backtrace *m_backtrace { nullptr };
+    Value m_backtrace_value { nullptr };
     Value m_backtrace_locations { nullptr };
     ExceptionObject *m_cause { nullptr };
     nat_int_t m_break_point { 0 };

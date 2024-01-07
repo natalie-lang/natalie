@@ -78,9 +78,7 @@ describe "Exception#backtrace" do
       raise
     rescue RuntimeError => e
       e.backtrace.unshift "backtrace first"
-      NATFIXME 'returns an Array that can be updated', exception: SpecFailedException do
-        e.backtrace[0].should == "backtrace first"
-      end
+      e.backtrace[0].should == "backtrace first"
     end
   end
 
@@ -89,15 +87,13 @@ describe "Exception#backtrace" do
       raise
     rescue RuntimeError => err
       bt = err.backtrace
-      NATFIXME 'returns the same array after duping', exception: SpecFailedException do
-        err.dup.backtrace.should equal(bt)
+      err.dup.backtrace.should equal(bt)
 
-        new_bt = ['hi']
-        err.set_backtrace new_bt
+      new_bt = ['hi']
+      err.set_backtrace new_bt
 
-        err.backtrace.should == new_bt
-        err.dup.backtrace.should equal(new_bt)
-      end
+      err.backtrace.should == new_bt
+      err.dup.backtrace.should equal(new_bt)
     end
   end
 end
