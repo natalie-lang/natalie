@@ -83,6 +83,12 @@ Value ExceptionObject::exception(Env *env, Value val) {
     return exc;
 }
 
+bool ExceptionObject::eq(Env *env, Value other) {
+    if (!other->is_exception()) return false;
+    auto exc = other->as_exception();
+    return m_klass == exc->m_klass && message(env)->send(env, "=="_s, { exc->message(env) })->is_truthy() && backtrace(env)->send(env, "=="_s, { exc->backtrace(env) })->is_truthy();
+}
+
 Value ExceptionObject::inspect(Env *env) {
     auto klassname = m_klass->inspect_str();
     auto msgstr = this->send(env, "to_s"_s);
