@@ -38,6 +38,7 @@ public:
     static Value exception(Env *, Value, ClassObject *klass);
     Value exception(Env *, Value);
     Value initialize(Env *, Value);
+    bool eq(Env *, Value);
     Value inspect(Env *);
 
     StringObject *to_s(Env *env);
