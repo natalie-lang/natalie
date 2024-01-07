@@ -655,9 +655,15 @@ void ThreadObject::check_exception(Env *env) {
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
+    // If this is the currently active thread,
+    // we don't need walk its stack a second time.
     if (pthread_self() == m_thread_id)
-        return; // this is the currently active thread, so don't walk its stack a second time
-    if (m_status != Status::Active)
+        return;
+
+    // If this thread is still in the state of being setup, the stack might not
+    // be known yet. Plus, there shouldn't be any GC-managed variables on the
+    // stack prior to it being set as Status::Active.
+    if (m_status == Status::Created)
         return;
 
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
