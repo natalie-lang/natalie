@@ -233,7 +233,7 @@ public:
     static ClassObject *thread_kill_class() { return s_thread_kill_class; }
     static ClassObject *thread_kill_class(Env *env) {
         if (!s_thread_kill_class)
-            s_thread_kill_class = GlobalEnv::the()->Object()->subclass(env, "ThreadKillError");
+            s_thread_kill_class = GlobalEnv::the()->BasicObject()->subclass(env, "ThreadKillError");
         return s_thread_kill_class;
     }
 
