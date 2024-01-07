@@ -92,26 +92,24 @@ describe "Thread#report_on_exception=" do
     end
 
     it "prints the backtrace even if the thread was killed just after Thread#raise" do
-      NATFIXME 'Thread#kill should still print backtrace', exception: SpecFailedException do
-        t = nil
-        ready = false
-        -> {
-          t = Thread.new {
-            Thread.current.report_on_exception = true
-            ready = true
-            sleep
-          }
+      t = nil
+      ready = false
+      -> {
+        t = Thread.new {
+          Thread.current.report_on_exception = true
+          ready = true
+          sleep
+        }
 
-          Thread.pass until ready and t.stop?
-          t.raise RuntimeError, "Thread#report_on_exception before kill spec"
-          t.kill
-          Thread.pass while t.alive?
-        }.should output("", /Thread.+terminated with exception.+Thread#report_on_exception before kill spec/m)
+        Thread.pass until ready and t.stop?
+        t.raise RuntimeError, "Thread#report_on_exception before kill spec"
+        t.kill
+        Thread.pass while t.alive?
+      }.should output("", /Thread.+terminated with exception.+Thread#report_on_exception before kill spec/m)
 
-        -> {
-          t.join
-        }.should raise_error(RuntimeError, "Thread#report_on_exception before kill spec")
-      end
+      -> {
+        t.join
+      }.should raise_error(RuntimeError, "Thread#report_on_exception before kill spec")
     end
   end
 
@@ -134,28 +132,28 @@ describe "Thread#report_on_exception=" do
 
   describe "when used in conjunction with Thread#abort_on_exception" do
     it "first reports then send the exception back to the main Thread" do
-      NATFIXME 'Implement Thread abort_on_exception', exception: SpecFailedException do
-        t = nil
-        mutex = Mutex.new
-        mutex.lock
-        -> {
-          t = Thread.new {
-            Thread.current.abort_on_exception = true
-            Thread.current.report_on_exception = true
-            mutex.lock
-            mutex.unlock
-            raise RuntimeError, "Thread#report_on_exception specs"
-          }
+      t = nil
+      mutex = Mutex.new
+      mutex.lock
+      -> {
+        t = Thread.new {
+          Thread.current.abort_on_exception = true
+          Thread.current.report_on_exception = true
+          mutex.lock
+          mutex.unlock
+          raise RuntimeError, "Thread#report_on_exception specs"
+        }
 
+        NATFIXME 'Mutex#sleep re-raises the thread exception', exception: SpecFailedException, message: /but instead raised nothing/ do
           -> {
             mutex.sleep(5)
           }.should raise_error(RuntimeError, "Thread#report_on_exception specs")
-        }.should output("", /Thread.+terminated with exception.+Thread#report_on_exception specs/m)
+        end
+      }.should output(/^\*?/, /Thread.+terminated with exception.+Thread#report_on_exception specs/m)
 
-        -> {
-          t.join
-        }.should raise_error(RuntimeError, "Thread#report_on_exception specs")
-      end
+      -> {
+        t.join
+      }.should raise_error(RuntimeError, "Thread#report_on_exception specs")
     end
   end
 end

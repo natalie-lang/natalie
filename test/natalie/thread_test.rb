@@ -26,9 +26,7 @@ describe 'Thread' do
 
   it 'works' do
     threads = create_threads
-    1_000_000.times do
-      'trigger gc'
-    end
+    GC.start
     threads.each(&:join)
     $results.size.should == 10
   end

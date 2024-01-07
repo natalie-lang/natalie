@@ -51,29 +51,84 @@ static void *nat_create_thread(void *thread_object) {
 
     thread->build_main_fiber();
 
+    Natalie::Env e {};
+
+    // The thread is now "Active", which means enough of the setup code has
+    // run that we should be able to handle anything the user code throws at us.
+    thread->set_status(Natalie::ThreadObject::Status::Active);
+
     auto args = thread->args();
     auto block = thread->block();
 
-    Natalie::Env e {};
-
     try {
-        thread->set_status(Natalie::ThreadObject::Status::Active);
+        // This is the guts of the thread --
+        // the user code that does what we came here to do.
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
+
+        // If we got here and the thread has an exception,
+        // this is our last chance to raise it. The catch directly below
+        // will catch this exception and do the right thing.
         auto exception = thread->exception();
         if (exception)
             e.raise_exception(exception);
+
+        // Store the value and exit the thread!
+        // The cleanup handler does some additional housekeeping
+        // as this thread is exiting.
         thread->set_value(return_value);
         pthread_exit(return_value.object());
+
     } catch (Natalie::ExceptionObject *exception) {
+        // This code handles exceptions not rescued by user code.
+        // This is where we report the error (if Thread#report_on_exception is true),
+        // handle SystemExit et al, and where we abort the whole program
+        // if Thread.abort_on_exception or Thread#abort_on_exception is true.
+
         if (exception->klass() == Natalie::ThreadObject::thread_kill_class()) {
-            // Our hidden ThreadKillError just silently kills the thread.
+            // This is the special ThreadKillError that user code
+            // should not see. This means Thread#kill was called and this
+            // exception has bubbled all the way up to this point.
+
+            // But wait! If the thread had a pending (unrescued) exception
+            // prior to the kill, we might need to print that out. Since
+            // the thread is getting killed, such an exception cannot
+            // abort the program. Saved by the bell!
+            auto pending_exception = exception->cause();
+            if (pending_exception) {
+                // Calling Thread#value and Thread#join need to raise this pending exception,
+                // so we need to store it on the thread for later use.
+                thread->set_exception(pending_exception);
+
+                // Now we can print it or handle SystemExit.
+                Natalie::handle_top_level_exception(&e, pending_exception, false);
+            } else {
+                // ThreadKillError shouldn't be visible to user code,
+                // which means it cannot be returned from Thread#value or Thread#join,
+                // so we set this back to null.
+                thread->set_exception(nullptr);
+            }
+
+            // OK, all good. Now we can exit the thread and let the
+            // cleanup handler do its thing.
+            pthread_exit(exception);
+
+        } else {
+            // Calling Thread#value and Thread#join need to raise this exception,
+            // so we need to store it on the thread for later use.
+            thread->set_exception(exception);
+
+            // This is a regular Ruby Exception. We need to potentially print it,
+            // handle SystemExit, and/or abort if necessary.
+            Natalie::handle_top_level_exception(&e, exception, false);
+
+            // The user might have said we should abort the whole program
+            // if any thread fails, so this is where we do that.
+            if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
+                Natalie::ThreadObject::main()->raise(&e, { exception });
+
+            // Finally, we can exit the thread and run the cleanup handler.
             pthread_exit(exception);
         }
-        Natalie::handle_top_level_exception(&e, exception, false);
-        thread->set_exception(exception);
-        if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
-            Natalie::ThreadObject::main()->raise(&e, { exception });
-        pthread_exit(exception);
     }
 
     pthread_cleanup_pop(0);
@@ -234,18 +289,30 @@ Value ThreadObject::kill(Env *env) {
         exit(0);
     }
 
+    if (m_status == Status::Dead)
+        return this;
+
     wait_until_running();
 
     m_status = Status::Aborting;
 
+    auto exception = new ExceptionObject { thread_kill_class(env) };
+
+    if (m_exception) {
+        // An pending exception was already raised on this thread,
+        // and we might need to print it out. We'll store it in the "cause"
+        // slot for now, but this might need a dedicated holder in the future.
+        exception->set_cause(m_exception);
+    }
+
     if (is_current()) {
-        auto exception = new ExceptionObject { thread_kill_class(env) };
         env->raise_exception(exception);
     } else {
-        m_exception = new ExceptionObject { thread_kill_class(env) };
+        m_exception = exception;
         wakeup(env);
         ThreadObject::interrupt();
     }
+
     remove_from_list();
 
     return this;
