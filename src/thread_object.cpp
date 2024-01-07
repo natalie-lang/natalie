@@ -117,8 +117,8 @@ static void *nat_create_thread(void *thread_object) {
             // so we need to store it on the thread for later use.
             thread->set_exception(exception);
 
-            // This is a regular Ruby Exception. We need to potentially print it,
-            // handle SystemExit, and/or abort if necessary.
+            // This is a regular Ruby Exception.
+            // We need to potentially print it and/or handle SystemExit.
             Natalie::handle_top_level_exception(&e, exception, false);
 
             // The user might have said we should abort the whole program
