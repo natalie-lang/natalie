@@ -666,6 +666,12 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
     if (m_status == Status::Created)
         return;
 
+    // If this thread is Dead, then it's possible the OS has already reclaimed
+    // the stack space. We shouldn't have any remaining variables on the stack
+    // that we need to keep anyway.
+    if (m_status == Status::Dead)
+        return;
+
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
