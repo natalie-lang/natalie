@@ -38,6 +38,20 @@ class Enumerator
     end
   end
 
+  def self.produce(*values, &block)
+    if values.size > 1
+      raise ArgumentError, "wrong number of arguments (given #{values.size}, expected 0..1)"
+    end
+
+    new do |yielder|
+      value = values.empty? ? block.call(nil) : values.first
+      while true
+        yielder << value
+        value = block.call(value)
+      end
+    end
+  end
+
   def initialize(size = nil, &enum_block)
     @size = size
     @enum_block = enum_block
