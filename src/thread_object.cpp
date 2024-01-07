@@ -275,7 +275,6 @@ Value ThreadObject::join(Env *env) {
     }
 
     m_joined = true;
-    remove_from_list();
 
     if (m_exception)
         env->raise_exception(m_exception);
@@ -312,8 +311,6 @@ Value ThreadObject::kill(Env *env) {
         wakeup(env);
         ThreadObject::interrupt();
     }
-
-    remove_from_list();
 
     return this;
 }
@@ -565,10 +562,8 @@ void ThreadObject::remove_from_list() const {
             break;
         }
     }
-    // We call remove_from_list() from a few different places,
-    // so it's possible it was already removed.
-    if (found)
-        s_list.remove(i);
+    assert(found);
+    s_list.remove(i);
 }
 
 void ThreadObject::add_mutex(Thread::MutexObject *mutex) {
