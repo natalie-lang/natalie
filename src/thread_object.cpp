@@ -327,7 +327,9 @@ Value ThreadObject::raise(Env *env, Args args) {
     m_exception = exception;
 
     // Wake up the thread in case it is sleeping.
-    wakeup(env);
+    pthread_mutex_lock(&m_sleep_lock);
+    pthread_cond_signal(&m_sleep_cond);
+    pthread_mutex_unlock(&m_sleep_lock);
 
     // In case this thread is blocking on read/select/whatever,
     // we may need to interrupt it (and all other threads, incidentally).
