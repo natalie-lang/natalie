@@ -204,9 +204,9 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
-    m_thread = std::thread { nat_create_thread, (void *)this };
-
     m_report_on_exception = s_report_on_exception;
+
+    m_thread = std::thread { nat_create_thread, (void *)this };
 
     return this;
 }
