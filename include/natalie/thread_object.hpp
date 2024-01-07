@@ -90,7 +90,7 @@ public:
     Block *block() { return m_block; }
 
     bool is_alive() const {
-        return m_status == Status::Active || m_status == Status::Created;
+        return m_status == Status::Active || m_status == Status::Created || m_status == Status::Aborting;
     }
 
     bool is_main() const {
