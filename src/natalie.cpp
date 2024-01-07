@@ -494,17 +494,19 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
         out.send(env, "puts"_s, { formatted });
     }
 
-    ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
-    if (backtrace && backtrace->size() > 0) {
-        out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
-        for (int i = backtrace->size() - 1; i > 0; i--) {
-            auto line = backtrace->at(i)->as_string_or_raise(env);
-            auto formatted = StringObject::format("        {}: from {}", i, line->string());
-            out.send(env, "puts"_s, { formatted });
+    if (exception->backtrace()) {
+        ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
+        if (backtrace->size() > 0) {
+            out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
+            for (int i = backtrace->size() - 1; i > 0; i--) {
+                auto line = backtrace->at(i)->as_string_or_raise(env);
+                auto formatted = StringObject::format("        {}: from {}", i, line->string());
+                out.send(env, "puts"_s, { formatted });
+            }
+            auto line = backtrace->at(0)->as_string_or_raise(env);
+            auto formatted = StringObject::format("{}: ", line->string());
+            out.send(env, "print"_s, { formatted });
         }
-        auto line = backtrace->at(0)->as_string_or_raise(env);
-        auto formatted = StringObject::format("{}: ", line->string());
-        out.send(env, "print"_s, { formatted });
     }
 
     auto formatted = StringObject::format(
