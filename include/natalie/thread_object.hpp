@@ -173,6 +173,8 @@ public:
         return report;
     }
 
+    void check_exception(Env *);
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -234,8 +236,6 @@ public:
             s_thread_kill_class = GlobalEnv::the()->Object()->subclass(env, "ThreadKillError");
         return s_thread_kill_class;
     }
-
-    void check_exception(Env *);
 
 private:
     void wait_until_running() const;
