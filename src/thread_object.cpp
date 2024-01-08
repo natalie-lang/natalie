@@ -656,6 +656,15 @@ void ThreadObject::check_exception(Env *env) {
     env->raise_exception(exception);
 }
 
+void ThreadObject::detach_all() {
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    for (auto thread : s_list) {
+        if (thread->is_main())
+            continue;
+        thread->detach();
+    }
+}
+
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
     // If this is the currently active thread,
     // we don't need walk its stack a second time.
