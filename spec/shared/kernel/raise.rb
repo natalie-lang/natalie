@@ -142,10 +142,8 @@ describe :kernel_raise, shared: true do
   end
 
   it "allows Exception, message, and backtrace parameters" do
-    NATFIXME 'backtrace parameter', exception: SpecFailedException do
-      -> do
-        @object.raise(ArgumentError, "message", caller)
-      end.should raise_error(ArgumentError, "message")
-    end
+    -> do
+      @object.raise(ArgumentError, "message", caller)
+    end.should raise_error(ArgumentError, "message")
   end
 end

@@ -15,9 +15,6 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, Exceptio
     else
         env->ensure_no_extra_keywords(kwargs);
 
-    if (backtrace)
-        env->raise("StandardError", "NATFIXME: Unsupported backtrace argument to exception");
-
     if (!klass && !message && cause)
         env->raise("ArgumentError", "only cause is given with no arguments");
 
@@ -59,6 +56,9 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, Exceptio
     if (accept_cause && cause && cause->is_exception()) {
         exception->set_cause(cause->as_exception());
     }
+
+    if (backtrace)
+        exception->set_backtrace(env, backtrace);
 
     return exception;
 }
