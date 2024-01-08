@@ -22,20 +22,18 @@ describe "Thread#key?" do
   end
 
   it "is not shared across fibers" do
-    NATFIXME 'is not shared across fibers', exception: SpecFailedException do
-      fib = Fiber.new do
-        Thread.current[:val1] = 1
-        Fiber.yield
-        Thread.current.key?(:val1).should be_true
-        Thread.current.key?(:val2).should be_false
-      end
-      Thread.current.key?(:val1).should_not be_true
-      fib.resume
-      Thread.current[:val2] = 2
-      fib.resume
-      Thread.current.key?(:val1).should be_false
-      Thread.current.key?(:val2).should be_true
+    fib = Fiber.new do
+      Thread.current[:val1] = 1
+      Fiber.yield
+      Thread.current.key?(:val1).should be_true
+      Thread.current.key?(:val2).should be_false
     end
+    Thread.current.key?(:val1).should_not be_true
+    fib.resume
+    Thread.current[:val2] = 2
+    fib.resume
+    Thread.current.key?(:val1).should be_false
+    Thread.current.key?(:val2).should be_true
   end
 
   it "stores a local in another thread when in a fiber" do

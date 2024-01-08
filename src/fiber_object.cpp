@@ -243,6 +243,7 @@ void FiberObject::visit_children(Visitor &visitor) {
     visitor.visit(m_block);
     visitor.visit(m_storage);
     visitor.visit(m_thread);
+    visitor.visit(m_thread_storage);
     visit_children_from_stack(visitor);
 }
 
@@ -286,6 +287,12 @@ void FiberObject::set_args(Args args) {
     for (size_t i = 0; i < args.size(); ++i) {
         m_args.push(args[i]);
     }
+}
+
+HashObject *FiberObject::ensure_thread_storage() {
+    if (!m_thread_storage)
+        m_thread_storage = new HashObject {};
+    return m_thread_storage;
 }
 
 FiberObject *FiberObject::current() {

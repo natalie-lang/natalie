@@ -233,7 +233,6 @@ private:
 
     ArrayObject *m_args { nullptr };
     Block *m_block { nullptr };
-    HashObject *m_storage { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     pthread_t m_thread_id { 0 };

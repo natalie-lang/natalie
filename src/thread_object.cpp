@@ -380,7 +380,9 @@ Value ThreadObject::set_name(Env *env, Value name) {
 
 Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block) {
     key = validate_key(env, key);
-    HashObject *hash = m_storage;
+    HashObject *hash = nullptr;
+    if (m_current_fiber)
+        hash = m_current_fiber->thread_storage();
     if (!hash)
         hash = new HashObject {};
     return hash->fetch(env, key, default_value, block);
@@ -388,31 +390,40 @@ Value ThreadObject::fetch(Env *env, Value key, Value default_value, Block *block
 
 bool ThreadObject::has_key(Env *env, Value key) {
     key = validate_key(env, key);
-    if (!m_storage)
+    HashObject *hash = nullptr;
+    if (m_current_fiber)
+        hash = m_current_fiber->thread_storage();
+    if (!hash)
         return false;
-    return m_storage->has_key(env, key);
+    return hash->has_key(env, key);
 }
 
 Value ThreadObject::keys(Env *env) {
-    if (!m_storage)
+    HashObject *hash = nullptr;
+    if (m_current_fiber)
+        hash = m_current_fiber->thread_storage();
+    if (!hash)
         return new ArrayObject {};
-    return m_storage->keys(env);
+    return hash->keys(env);
 }
 
 Value ThreadObject::ref(Env *env, Value key) {
     key = validate_key(env, key);
-    if (!m_storage)
+    HashObject *hash = nullptr;
+    if (m_current_fiber)
+        hash = m_current_fiber->thread_storage();
+    if (!hash)
         return NilObject::the();
-    return m_storage->ref(env, key);
+    return hash->ref(env, key);
 }
 
 Value ThreadObject::refeq(Env *env, Value key, Value value) {
     if (is_frozen())
         env->raise("FrozenError", "can't modify frozen thread locals");
     key = validate_key(env, key);
-    if (!m_storage)
-        m_storage = new HashObject {};
-    m_storage->refeq(env, key, value);
+    assert(m_current_fiber);
+    auto hash = m_current_fiber->ensure_thread_storage();
+    hash->refeq(env, key, value);
     return value;
 }
 
@@ -468,7 +479,6 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_current_fiber);
     visitor.visit(m_exception);
     visitor.visit(m_main_fiber);
-    visitor.visit(m_storage);
     visitor.visit(m_value);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);

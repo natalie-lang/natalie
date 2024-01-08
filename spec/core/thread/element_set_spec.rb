@@ -28,12 +28,10 @@ describe "Thread#[]=" do
       Thread.current[:value].should == 1
     end
     fib.resume
-    NATFIXME 'is not shared across fibers', exception: SpecFailedException do
-      Thread.current[:value].should be_nil
-      Thread.current[:value] = 2
-      fib.resume
-      Thread.current[:value] = 2
-    end
+    Thread.current[:value].should be_nil
+    Thread.current[:value] = 2
+    fib.resume
+    Thread.current[:value] = 2
   end
 
   it "stores a local in another thread when in a fiber" do
