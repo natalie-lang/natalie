@@ -122,6 +122,9 @@ public:
     ExceptionObject *error() { return m_error; }
     void set_error(ExceptionObject *error) { m_error = error; }
 
+    HashObject *thread_storage() { return m_thread_storage; }
+    HashObject *ensure_thread_storage();
+
 private:
     Block *m_block { nullptr };
     bool m_blocking { false };
@@ -130,6 +133,7 @@ private:
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     ThreadObject *m_thread { nullptr };
+    HashObject *m_thread_storage { nullptr };
 #ifdef __SANITIZE_ADDRESS__
     void *m_asan_fake_stack { nullptr };
 #endif
