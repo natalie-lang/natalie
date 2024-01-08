@@ -50,17 +50,11 @@ public:
     }
 
     virtual ~ThreadObject() {
-        // In normal operation, this destructor should only be called for threads that
-        // are well and truly dead. (See the is_collectible function.) But in one case --
-        // when you compile with the flag NAT_GC_COLLECT_ALL_AT_EXIT -- the GC will
-        // destroy every object at the end of the program, even threads that could still
-        // be running. In order to be able to safely destroy the std::thread object, we
-        // need to detatch any running system thread from the object. And in many cases,
-        // the thread will already be joined, so this could error. But we don't care
-        // about the error.
-        try {
-            m_thread.detach();
-        } catch (...) { }
+        // In normal running, this destructor should only be called for threads that
+        // are well and truly dead. See the is_collectible function.
+        // But just in case the ThreadObject is destroyed while it's still running,
+        // we don't want it throwing any exceptions.
+        detach();
     }
 
     static void build_main_thread(Env *env, void *start_of_stack);
@@ -101,8 +95,13 @@ public:
         return m_thread_id == pthread_self();
     }
 
+    void detach() {
+        try {
+            m_thread.detach();
+        } catch (...) { }
+    }
+
     Value join(Env *);
-    static Value exit(Env *env) { return current()->kill(env); }
     Value kill(Env *);
     Value raise(Env *, Args args);
     Value run(Env *);
@@ -192,6 +191,7 @@ public:
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
 
+    static Value exit(Env *env) { return current()->kill(env); }
     static Value stop(Env *);
 
     static pthread_t main_id() { return s_main_id; }
@@ -236,6 +236,8 @@ public:
             s_thread_kill_class = GlobalEnv::the()->BasicObject()->subclass(env, "ThreadKillError");
         return s_thread_kill_class;
     }
+
+    static void detach_all();
 
 private:
     void wait_until_running() const;
