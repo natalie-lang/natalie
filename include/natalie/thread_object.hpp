@@ -122,6 +122,7 @@ public:
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
+    bool has_thread_variable(Env *, Value) const;
     Value thread_variable_get(Env *, Value);
     Value thread_variable_set(Env *, Value, Value);
 

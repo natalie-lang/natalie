@@ -427,6 +427,10 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
     return value;
 }
 
+bool ThreadObject::has_thread_variable(Env *env, Value key) const {
+    return m_thread_variables && m_thread_variables->has_key(env, key);
+}
+
 Value ThreadObject::thread_variable_get(Env *env, Value key) {
     if (!m_thread_variables)
         return NilObject::the();
