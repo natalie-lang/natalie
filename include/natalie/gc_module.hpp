@@ -19,7 +19,7 @@ public:
     }
 
     static Value start(Env *env) {
-        Heap::the().collect(false);
+        Heap::the().collect();
         return NilObject::the();
     }
 
