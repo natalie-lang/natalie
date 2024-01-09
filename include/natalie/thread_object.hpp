@@ -122,6 +122,11 @@ public:
     Value ref(Env *env, Value key);
     Value refeq(Env *env, Value key, Value value);
 
+    bool has_thread_variable(Env *, Value) const;
+    Value thread_variable_get(Env *, Value);
+    Value thread_variable_set(Env *, Value, Value);
+    Value thread_variables(Env *) const;
+
     void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
     bool is_sleeping() const { return m_sleeping; }
 
@@ -239,6 +244,7 @@ private:
     std::thread m_thread {};
     std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
+    HashObject *m_thread_variables { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
 #ifdef __SANITIZE_ADDRESS__
