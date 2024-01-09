@@ -1335,7 +1335,7 @@ gen.binding('Thread', 'initialize', 'ThreadObject', 'initialize', argc: :any, pa
 gen.binding('Thread', 'join', 'ThreadObject', 'join', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'key?', 'ThreadObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'keys', 'ThreadObject', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, aliases: ['exit'], return_type: :Object)
+gen.binding('Thread', 'kill', 'ThreadObject', 'kill', argc: 0, pass_env: true, pass_block: false, aliases: ['exit', 'terminate'], return_type: :Object)
 gen.binding('Thread', 'name', 'ThreadObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'name=', 'ThreadObject', 'set_name', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'raise', 'ThreadObject', 'raise', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
