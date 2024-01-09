@@ -87,11 +87,15 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     return roots;
 }
 
-void Heap::collect(bool guard = true) {
+void Heap::collect() {
+    std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
+
+    collect_dangerously_without_mutex();
+}
+
+void Heap::collect_dangerously_without_mutex() {
     // Only collect on the main thread for now.
     if (ThreadObject::current() != ThreadObject::main()) return;
-
-    if (guard) NAT_GC_LOCK_GUARD();
 
     static auto is_profiled = NativeProfiler::the()->enabled();
 
@@ -166,7 +170,7 @@ void Heap::sweep() {
 }
 
 void *Heap::allocate(size_t size) {
-    NAT_GC_LOCK_GUARD();
+    std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
 
     static auto is_profiled = NativeProfiler::the()->enabled();
     NativeProfilerEvent *profiler_event;
@@ -180,13 +184,13 @@ void *Heap::allocate(size_t size) {
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
-        collect(false);
+        collect_dangerously_without_mutex();
 #else
 
         if (allocator.total_cells() == 0) {
             allocator.add_multiple_blocks(initial_blocks_per_allocator);
         } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
-            collect(false);
+            collect_dangerously_without_mutex();
             allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
         }
 #endif
