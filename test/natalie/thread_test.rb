@@ -20,6 +20,7 @@ describe 'Thread' do
   end
 
   after do
+    GC.start # Trigger GC bugs here ;-)
     Thread.report_on_exception = @report_setting
     Thread.abort_on_exception = @abort_setting
   end

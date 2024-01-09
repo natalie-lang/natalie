@@ -592,16 +592,26 @@ void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_args);
     visitor.visit(m_block);
-    visitor.visit(m_current_fiber);
     visitor.visit(m_exception);
-    visitor.visit(m_main_fiber);
     visitor.visit(m_value);
     visitor.visit(m_thread_variables);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
-    visit_children_from_stack(visitor);
     visitor.visit(s_thread_kill_class);
+
+    // Don't let the thread die until we're done scanning the stack(s).
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+
+    // If this thread is Dead, then it's possible the OS has already reclaimed
+    // the stack space. We shouldn't have any remaining variables on the stack
+    // that we need to keep anyway.
+    if (m_status == Status::Dead)
+        return;
+
+    visitor.visit(m_current_fiber);
+    visitor.visit(m_main_fiber);
+    visit_children_from_stack(visitor);
 }
 
 // If the thread status is Status::Created, it means its execution
@@ -678,15 +688,7 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
     if (m_status == Status::Created)
         return;
 
-    // Don't let the thread die until we're done scanning the stack.
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
-
-    // If this thread is Dead, then it's possible the OS has already reclaimed
-    // the stack space. We shouldn't have any remaining variables on the stack
-    // that we need to keep anyway.
-    if (m_status == Status::Dead)
-        return;
-
+    // Walk the stack looking for variables...
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
