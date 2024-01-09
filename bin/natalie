@@ -261,7 +261,8 @@ class Runner
 
   def run_temp_and_wait(path)
     build_dir = File.expand_path('../build', __dir__)
-    env = { 'LD_LIBRARY_PATH' => "#{build_dir}:#{build_dir}/onigmo/lib" }
+    var_name = RUBY_PLATFORM =~ /darwin/ ? 'DYLD_LIBRARY_PATH' : 'LD_LIBRARY_PATH'
+    env = { var_name => Natalie::Compiler::CppBackend::LIB_PATHS.join(':') }
     pid = spawn(env, path, *ARGV)
     Process.wait(pid)
     @run_result = $?
