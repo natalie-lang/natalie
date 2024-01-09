@@ -153,6 +153,38 @@ describe 'Thread' do
     end
   end
 
+  describe 'Thread#thread_variable?' do
+    before :each do
+      @t = Thread.new { }
+    end
+
+    after :each do
+      @t.join
+    end
+
+    it 'converts String keys to Symbol' do
+      @t.thread_variable_set(:a, 42)
+      @t.should.thread_variable?('a')
+    end
+
+    it 'tries to convert the key that is neither String nor Symbol with #to_str' do
+      key = mock('key')
+      key.should_receive(:to_str).and_return('a')
+      @t.thread_variable_set(:a, 42)
+      @t.should.thread_variable?(key)
+    end
+
+    it 'does not raise a TypeError if the key is not a Symbol' do
+      @t.should_not.thread_variable?(123)
+    end
+
+    it 'does not try to convert the key with #to_sym' do
+      key = mock('key')
+      key.should_not_receive(:to_sym)
+      @t.should_not.thread_variable?(key)
+    end
+  end
+
   describe 'Thread#thread_variable_get' do
     before :each do
       @t = Thread.new { }
