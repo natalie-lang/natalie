@@ -430,14 +430,22 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
 Value ThreadObject::thread_variable_get(Env *env, Value key) {
     if (!m_thread_variables)
         return NilObject::the();
+    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
+        key = key->to_str(env);
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
     return m_thread_variables->ref(env, key);
 }
 
 Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
     if (is_frozen())
         env->raise("FrozenError", "can't modify frozen thread locals");
+    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
+        key = key->to_str(env);
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
     if (!key->is_symbol())
-        env->raise("TypeError", "{} is not a Symbol", key->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", key->inspect_str(env));
     if (!m_thread_variables)
         m_thread_variables = new HashObject;
     return m_thread_variables->refeq(env, key, value);
