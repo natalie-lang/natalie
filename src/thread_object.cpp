@@ -459,6 +459,12 @@ Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
     return m_thread_variables->refeq(env, key, value);
 }
 
+Value ThreadObject::thread_variables(Env *env) const {
+    if (!m_thread_variables)
+        return new ArrayObject;
+    return m_thread_variables->keys(env);
+}
+
 Value ThreadObject::list(Env *env) {
     std::lock_guard<std::mutex> lock(g_thread_mutex);
     auto ary = new ArrayObject { s_list.size() };

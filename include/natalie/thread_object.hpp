@@ -125,6 +125,7 @@ public:
     bool has_thread_variable(Env *, Value) const;
     Value thread_variable_get(Env *, Value);
     Value thread_variable_set(Env *, Value, Value);
+    Value thread_variables(Env *) const;
 
     void set_sleeping(bool sleeping) { m_sleeping = sleeping; }
     bool is_sleeping() const { return m_sleeping; }
