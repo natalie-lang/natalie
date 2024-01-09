@@ -428,6 +428,10 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
 }
 
 bool ThreadObject::has_thread_variable(Env *env, Value key) const {
+    if (!key->is_symbol() && !key->is_string() && key->respond_to(env, "to_str"_s))
+        key = key->to_str(env);
+    if (key->is_string())
+        key = key->as_string()->to_sym(env);
     return m_thread_variables && m_thread_variables->has_key(env, key);
 }
 
