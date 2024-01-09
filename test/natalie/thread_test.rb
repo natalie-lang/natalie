@@ -152,4 +152,73 @@ describe 'Thread' do
       t1.report_on_exception.should == false
     end
   end
+
+  describe 'Thread#thread_variable_get' do
+    before :each do
+      @t = Thread.new { }
+    end
+
+    after :each do
+      @t.join
+    end
+
+    it 'converts String keys to Symbol' do
+      @t.thread_variable_set(:a, 42)
+      @t.thread_variable_get('a').should == 42
+    end
+
+    it 'tries to convert the key that is neither String nor Symbol with #to_str' do
+      key = mock('key')
+      key.should_receive(:to_str).and_return('a')
+      @t.thread_variable_set(:a, 42)
+      @t.thread_variable_get(key).should == 42
+    end
+
+    it 'does not raise a TypeError if the key is not a Symbol' do
+      @t.thread_variable_get(123).should be_nil
+    end
+
+    it 'does not try to convert the key with #to_sym' do
+      key = mock('key')
+      key.should_not_receive(:to_sym)
+      @t.thread_variable_get(key).should be_nil
+    end
+  end
+
+  describe 'Thread#thread_variable_set' do
+    before :each do
+      @t = Thread.new { }
+    end
+
+    after :each do
+      @t.join
+    end
+
+    it 'converts String keys to Symbol' do
+      @t.thread_variable_set('a', 42)
+      @t.thread_variable_get(:a).should == 42
+    end
+
+    it 'tries to convert the key that is neither String nor Symbol with #to_str' do
+      key = mock('key')
+      key.should_receive(:to_str).and_return('a')
+      @t.thread_variable_set(key, 42)
+      @t.thread_variable_get(:a).should == 42
+    end
+
+    it 'raises a FrozenError if the thread is frozen' do
+      @t.freeze
+      -> { @t.thread_variable_set(:a, 1) }.should raise_error(FrozenError, "can't modify frozen thread locals")
+    end
+
+    it 'raises a TypeError if the key is not a Symbol' do
+      -> { @t.thread_variable_set(123, 1) }.should raise_error(TypeError, '123 is not a symbol')
+    end
+
+    it 'does not try to convert the key with #to_sym' do
+      key = mock('key')
+      key.should_not_receive(:to_sym)
+      -> { @t.thread_variable_set(key, 42) }.should raise_error(TypeError, "#{key.inspect} is not a symbol")
+    end
+  end
 end
