@@ -427,6 +427,22 @@ Value ThreadObject::refeq(Env *env, Value key, Value value) {
     return value;
 }
 
+Value ThreadObject::thread_variable_get(Env *env, Value key) {
+    if (!m_thread_variables)
+        return NilObject::the();
+    return m_thread_variables->ref(env, key);
+}
+
+Value ThreadObject::thread_variable_set(Env *env, Value key, Value value) {
+    if (is_frozen())
+        env->raise("FrozenError", "can't modify frozen thread locals");
+    if (!key->is_symbol())
+        env->raise("TypeError", "{} is not a Symbol", key->inspect_str(env));
+    if (!m_thread_variables)
+        m_thread_variables = new HashObject;
+    return m_thread_variables->refeq(env, key, value);
+}
+
 Value ThreadObject::list(Env *env) {
     std::lock_guard<std::mutex> lock(g_thread_mutex);
     auto ary = new ArrayObject { s_list.size() };
@@ -480,6 +496,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_exception);
     visitor.visit(m_main_fiber);
     visitor.visit(m_value);
+    visitor.visit(m_thread_variables);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
