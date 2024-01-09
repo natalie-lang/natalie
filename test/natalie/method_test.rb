@@ -472,18 +472,9 @@ describe 'method with keyword args' do
     method_with_kwargs14([]).should == [[], {}]
   end
 
-  ruby_version_is ''...'3.1' do
-    it 'does not accept hash key shorthand' do
-      b = 2
-      eval('method_with_kwargs1(1, b: b)').should == [1, 2]
-    end
-  end
-
-  ruby_version_is '3.1' do
-    it 'accepts hash key shorthand' do
-      b = 2
-      eval('method_with_kwargs1(1, b:)').should == [1, 2]
-    end
+  it 'accepts hash key shorthand' do
+    b = 2
+    method_with_kwargs1(1, b:).should == [1, 2]
   end
 
   it 'accepts a keyword splat' do

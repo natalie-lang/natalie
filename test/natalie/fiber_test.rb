@@ -57,17 +57,15 @@ end
 
 describe 'Scheduler' do
   it 'validates the scheduler for required methods' do
-    ruby_version_is('3.1') do
-      # We should not be testing for ordering of these error messages
-      required_methods = [:block, :unblock, :kernel_sleep, :io_wait]
-      required_methods.each do |missing_method|
-        scheduler = Object.new
-        required_methods.difference([missing_method]).each do |method|
-          scheduler.define_singleton_method(method) {}
-        end
-
-        -> { Fiber.set_scheduler(scheduler) }.should raise_error(ArgumentError, /Scheduler must implement ##{missing_method}/)
+    # We should not be testing for ordering of these error messages
+    required_methods = [:block, :unblock, :kernel_sleep, :io_wait]
+    required_methods.each do |missing_method|
+      scheduler = Object.new
+      required_methods.difference([missing_method]).each do |method|
+        scheduler.define_singleton_method(method) {}
       end
+
+      -> { Fiber.set_scheduler(scheduler) }.should raise_error(ArgumentError, /Scheduler must implement ##{missing_method}/)
     end
   end
 

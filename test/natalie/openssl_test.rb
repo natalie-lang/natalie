@@ -128,20 +128,10 @@ describe "OpenSSL::SSL::SSLSocket#initialize" do
   #           For now, just disable this test on Darwin, it does not add anything and the tests are
   #           mostly relevant for developing.
   platform_is_not :darwin do
-    ruby_version_is ''...'3.1' do
-      it "tries to call sync on the first argument" do
-        -> {
-          OpenSSL::SSL::SSLSocket.new(42)
-        }.should raise_error(NoMethodError, "undefined method `sync' for 42:Integer")
-      end
-    end
-
-    ruby_version_is '3.1' do
-      it "raises a TypeError if the first argument is not an IO object" do
-        -> {
-          OpenSSL::SSL::SSLSocket.new(42)
-        }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
-      end
+    it "raises a TypeError if the first argument is not an IO object" do
+      -> {
+        OpenSSL::SSL::SSLSocket.new(42)
+      }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
     end
   end
 
