@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 3.0 # the oldest version we support (don't suggest syntax newer than that)
+  TargetRubyVersion: 3.1 # the oldest version we support (don't suggest syntax newer than that)
   Exclude:
     - build/generated/**/*
     - spec/**/*.rb

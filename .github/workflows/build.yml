@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         ruby_version:
-          - ruby3.0
           - ruby3.1
           - ruby3.2
           - ruby3.3
