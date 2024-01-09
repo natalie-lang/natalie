@@ -27,6 +27,7 @@ static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thr
 
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
+    std::lock_guard<std::recursive_mutex> lock(Natalie::g_thread_recursive_mutex);
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     thread->remove_from_list();
     thread->unlock_mutexes();
@@ -545,7 +546,7 @@ Value ThreadObject::thread_variables(Env *env) const {
 }
 
 Value ThreadObject::list(Env *env) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     auto ary = new ArrayObject { s_list.size() };
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
@@ -569,19 +570,19 @@ void ThreadObject::remove_from_list() const {
 }
 
 void ThreadObject::add_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
 
     m_mutexes.set(mutex);
 }
 
 void ThreadObject::remove_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
 
     m_mutexes.remove(mutex);
 }
 
 void ThreadObject::unlock_mutexes() const {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
 
     for (auto pair : m_mutexes)
         pair.first->unlock_without_checks();
@@ -676,6 +677,9 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
     // stack prior to it being set as Status::Active.
     if (m_status == Status::Created)
         return;
+
+    // Don't let the thread die until we're done scanning the stack.
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
 
     // If this thread is Dead, then it's possible the OS has already reclaimed
     // the stack space. We shouldn't have any remaining variables on the stack
