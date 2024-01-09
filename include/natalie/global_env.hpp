@@ -14,6 +14,7 @@ namespace Natalie {
 
 extern std::mutex g_backtrace_mutex;
 extern std::mutex g_thread_mutex;
+extern std::recursive_mutex g_thread_recursive_mutex;
 
 extern "C" {
 #include "onigmo.h"
