@@ -35,17 +35,15 @@ static void nat_thread_finish(void *thread_object) {
 
 static void *nat_create_thread(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
+
+    auto thread_id = pthread_self();
+    thread->set_thread_id(thread_id);
+
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
 
     pthread_cleanup_push(nat_thread_finish, thread);
-
-    auto thread_id = pthread_self();
-
-    // NOTE: We set the thread_id again here because *sometimes* the new thread
-    // starts executing *before* pthread_create() sets the thread_id. Fun!
-    thread->set_thread_id(thread_id);
 
     set_stack_for_thread(thread_id, thread);
     tl_current_thread = thread;
@@ -208,6 +206,8 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_report_on_exception = s_report_on_exception;
 
     m_thread = std::thread { nat_create_thread, (void *)this };
+    while (!m_thread_id)
+        sched_yield();
 
     return this;
 }

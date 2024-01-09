@@ -131,8 +131,16 @@ public:
 
     bool is_stopped() const;
 
-    void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
-    pthread_t thread_id() const { return m_thread_id; }
+    void set_thread_id(pthread_t thread_id) {
+        assert(!m_thread_id);
+        m_thread_id = thread_id;
+    }
+
+    pthread_t thread_id() const {
+        while (!m_thread_id)
+            sched_yield();
+        return m_thread_id;
+    }
 
     void build_main_fiber();
     FiberObject *main_fiber() { return m_main_fiber; }
