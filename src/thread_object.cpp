@@ -29,7 +29,7 @@ static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
     std::lock_guard<std::recursive_mutex> lock(Natalie::g_thread_recursive_mutex);
     thread->set_status(Natalie::ThreadObject::Status::Dead);
-    thread->remove_from_list();
+    Natalie::ThreadObject::remove_from_list(thread);
     thread->unlock_mutexes();
 }
 
@@ -555,12 +555,17 @@ Value ThreadObject::list(Env *env) {
     return ary;
 }
 
-void ThreadObject::remove_from_list() const {
+void ThreadObject::add_to_list(ThreadObject *thread) {
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    s_list.push(thread);
+}
+
+void ThreadObject::remove_from_list(ThreadObject *thread) {
     std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     size_t i;
     bool found = false;
     for (i = 0; i < s_list.size(); ++i) {
-        if (s_list.at(i) == this) {
+        if (s_list.at(i) == thread) {
             found = true;
             break;
         }

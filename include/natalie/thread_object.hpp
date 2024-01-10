@@ -36,17 +36,17 @@ public:
 
     ThreadObject()
         : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } {
-        s_list.push(this);
+        add_to_list(this);
     }
 
     ThreadObject(ClassObject *klass)
         : Object { Object::Type::Thread, klass } {
-        s_list.push(this);
+        add_to_list(this);
     }
 
     ThreadObject(ClassObject *klass, Block *block)
         : Object { Object::Type::Thread, klass } {
-        s_list.push(this);
+        add_to_list(this);
     }
 
     virtual ~ThreadObject() {
@@ -146,8 +146,6 @@ public:
     FiberObject *main_fiber() { return m_main_fiber; }
     FiberObject *current_fiber() { return m_current_fiber; }
 
-    void remove_from_list() const;
-
     virtual bool is_collectible() override {
         return m_status == Status::Dead && !m_thread.joinable();
     }
@@ -198,6 +196,9 @@ public:
 
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
+
+    static void add_to_list(ThreadObject *);
+    static void remove_from_list(ThreadObject *);
 
     static Value exit(Env *env) { return current()->kill(env); }
     static Value stop(Env *);
