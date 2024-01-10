@@ -274,7 +274,7 @@ private:
     Value m_fiber_scheduler { nullptr };
 
     // This condition variable is used to wake a sleeping thread,
-    // i.e. a thread where Kernel#sleep or Thread#sleep has been called.
+    // i.e. a thread where Kernel#sleep has been called.
     pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 

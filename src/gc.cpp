@@ -90,10 +90,6 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 void Heap::collect() {
     std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
-    collect_dangerously_without_mutex();
-}
-
-void Heap::collect_dangerously_without_mutex() {
     // Only collect on the main thread for now.
     if (ThreadObject::current() != ThreadObject::main()) return;
 
@@ -190,7 +186,7 @@ void *Heap::allocate(size_t size) {
         if (allocator.total_cells() == 0) {
             allocator.add_multiple_blocks(initial_blocks_per_allocator);
         } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
-            collect_dangerously_without_mutex();
+            collect();
             allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
         }
 #endif
