@@ -52,7 +52,7 @@
 #ifdef NAT_GC_GUARD
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
-        std::lock_guard<std::mutex> gc_lock(Natalie::g_gc_mutex);                             \
+        std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);         \
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
             void *dummy;                                                                      \

@@ -27,7 +27,12 @@ static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thr
 
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
-    std::lock_guard<std::recursive_mutex> lock(Natalie::g_thread_recursive_mutex);
+
+    // If the GC is running (in another thread, naturally), then this thread
+    // shouldn't exit because that would let the OS reclaim the stack space
+    // and can segfault our conservative scanning process.
+    std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
+
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     Natalie::ThreadObject::remove_from_list(thread);
     thread->unlock_mutexes();
@@ -546,8 +551,8 @@ Value ThreadObject::thread_variables(Env *env) const {
 }
 
 Value ThreadObject::list(Env *env) {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     auto ary = new ArrayObject { s_list.size() };
+    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);
@@ -604,9 +609,6 @@ void ThreadObject::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
     visitor.visit(s_thread_kill_class);
-
-    // Don't let the thread die until we're done scanning the stack(s).
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
 
     // If this thread is Dead, then it's possible the OS has already reclaimed
     // the stack space. We shouldn't have any remaining variables on the stack
