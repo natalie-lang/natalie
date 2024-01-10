@@ -10,6 +10,8 @@
 #include <atomic>
 #include <thread>
 
+extern thread_local Natalie::ThreadObject *tl_current_thread;
+
 namespace Natalie {
 
 class ThreadObject : public Object {
@@ -88,11 +90,11 @@ public:
     }
 
     bool is_main() const {
-        return m_thread_id == s_main_id;
+        return this == s_main;
     }
 
     bool is_current() const {
-        return m_thread_id == pthread_self();
+        return this == tl_current_thread;
     }
 
     void detach() {
@@ -130,17 +132,6 @@ public:
     bool is_sleeping() const { return m_sleeping; }
 
     bool is_stopped() const;
-
-    void set_thread_id(pthread_t thread_id) {
-        assert(!m_thread_id);
-        m_thread_id = thread_id;
-    }
-
-    pthread_t thread_id() const {
-        while (!m_thread_id)
-            sched_yield();
-        return m_thread_id;
-    }
 
     void build_main_fiber();
     FiberObject *main_fiber() { return m_main_fiber; }
@@ -203,9 +194,7 @@ public:
     static Value exit(Env *env) { return current()->kill(env); }
     static Value stop(Env *);
 
-    static pthread_t main_id() { return s_main_id; }
-
-    static bool i_am_main() { return pthread_self() == s_main_id; }
+    static bool i_am_main() { return tl_current_thread == s_main; }
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
     static Value list(Env *);
@@ -260,7 +249,6 @@ private:
     Block *m_block { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
-    pthread_t m_thread_id { 0 };
     std::thread m_thread {};
     std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
@@ -290,7 +278,6 @@ private:
     pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 
-    inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
     inline static bool s_abort_on_exception { false };
