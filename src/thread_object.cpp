@@ -145,9 +145,6 @@ static Value validate_key(Env *env, Value key) {
     return key;
 }
 
-std::mutex g_thread_mutex;
-std::recursive_mutex g_thread_recursive_mutex;
-
 Value ThreadObject::pass(Env *env) {
     check_current_exception(env);
 
@@ -543,7 +540,7 @@ Value ThreadObject::thread_variables(Env *env) const {
 
 Value ThreadObject::list(Env *env) {
     auto ary = new ArrayObject { s_list.size() };
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);
@@ -552,12 +549,12 @@ Value ThreadObject::list(Env *env) {
 }
 
 void ThreadObject::add_to_list(ThreadObject *thread) {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     s_list.push(thread);
 }
 
 void ThreadObject::remove_from_list(ThreadObject *thread) {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     size_t i;
     bool found = false;
     for (i = 0; i < s_list.size(); ++i) {
@@ -571,19 +568,19 @@ void ThreadObject::remove_from_list(ThreadObject *thread) {
 }
 
 void ThreadObject::add_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_mutexes.set(mutex);
 }
 
 void ThreadObject::remove_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_mutexes.remove(mutex);
 }
 
 void ThreadObject::unlock_mutexes() const {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     for (auto pair : m_mutexes)
         pair.first->unlock_without_checks();
@@ -666,7 +663,7 @@ void ThreadObject::check_exception(Env *env) {
 }
 
 void ThreadObject::detach_all() {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     for (auto thread : s_list) {
         if (thread->is_main())
             continue;
