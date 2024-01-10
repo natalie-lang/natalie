@@ -6,7 +6,8 @@
 
 thread_local Natalie::ThreadObject *tl_current_thread = nullptr;
 
-static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
+static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
+    auto thread_id = pthread_self();
 #if defined(__APPLE__)
     auto start = pthread_get_stackaddr_np(thread_id);
     assert(start);
@@ -40,21 +41,15 @@ static void nat_thread_finish(void *thread_object) {
 
 static void *nat_create_thread(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
-
-    auto thread_id = pthread_self();
-    thread->set_thread_id(thread_id);
+    tl_current_thread = thread;
 
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
 
     pthread_cleanup_push(nat_thread_finish, thread);
-
-    set_stack_for_thread(thread_id, thread);
-    tl_current_thread = thread;
-
+    set_stack_for_thread(thread);
     thread->build_main_fiber();
-
     Natalie::Env e {};
 
     // The thread is now "Active", which means enough of the setup code has
@@ -175,16 +170,14 @@ bool ThreadObject::is_stopped() const {
 }
 
 void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
-    assert(!s_main && !s_main_id); // can only be built once
+    assert(!s_main); // can only be built once
     auto thread = new ThreadObject;
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
-    thread->m_thread_id = pthread_self();
-    set_stack_for_thread(thread->m_thread_id, thread);
+    set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
-    s_main_id = thread->m_thread_id;
     tl_current_thread = thread;
     setup_interrupt_pipe(env);
 }
@@ -211,8 +204,6 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_report_on_exception = s_report_on_exception;
 
     m_thread = std::thread { nat_create_thread, (void *)this };
-    while (!m_thread_id)
-        sched_yield();
 
     return this;
 }
@@ -686,7 +677,7 @@ void ThreadObject::detach_all() {
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
     // If this is the currently active thread,
     // we don't need walk its stack a second time.
-    if (pthread_self() == m_thread_id)
+    if (tl_current_thread == this)
         return;
 
     // If this thread is still in the state of being setup, the stack might not
