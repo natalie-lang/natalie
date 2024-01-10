@@ -14,7 +14,7 @@
 
 namespace Natalie {
 
-extern std::mutex g_gc_mutex;
+extern std::recursive_mutex g_gc_recursive_mutex;
 
 using namespace TM;
 

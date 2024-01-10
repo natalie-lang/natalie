@@ -8,7 +8,7 @@ extern "C" void GC_disable() {
 
 namespace Natalie {
 
-std::mutex g_gc_mutex;
+std::recursive_mutex g_gc_recursive_mutex;
 
 void *Cell::operator new(size_t size) {
     auto *cell = Heap::the().allocate(size);
@@ -88,7 +88,7 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 }
 
 void Heap::collect() {
-    std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
+    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
     collect_dangerously_without_mutex();
 }
@@ -170,7 +170,7 @@ void Heap::sweep() {
 }
 
 void *Heap::allocate(size_t size) {
-    std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
+    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
     static auto is_profiled = NativeProfiler::the()->enabled();
     NativeProfilerEvent *profiler_event;
