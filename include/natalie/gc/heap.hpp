@@ -81,8 +81,6 @@ public:
     void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
 
 private:
-    void collect_dangerously_without_mutex();
-
     inline static Heap *s_instance = nullptr;
 
     Heap() {
