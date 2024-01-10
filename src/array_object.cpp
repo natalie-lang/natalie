@@ -12,8 +12,6 @@
 
 namespace Natalie {
 
-std::mutex g_array_mutex;
-
 ArrayObject::ArrayObject(std::initializer_list<Value> list)
     : ArrayObject {} {
     m_vector.set_capacity(list.size());
@@ -88,13 +86,13 @@ Value ArrayObject::initialize_copy(Env *env, Value other) {
 
 void ArrayObject::push(Value val) {
     NAT_GC_GUARD_VALUE(val);
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_vector.push(val);
 }
 
 Value ArrayObject::first() {
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -102,7 +100,7 @@ Value ArrayObject::first() {
 }
 
 Value ArrayObject::last() {
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -110,7 +108,7 @@ Value ArrayObject::last() {
 }
 
 Value ArrayObject::pop() {
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -118,7 +116,7 @@ Value ArrayObject::pop() {
 }
 
 Value ArrayObject::shift() {
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (m_vector.is_empty())
         return NilObject::the();
@@ -127,7 +125,7 @@ Value ArrayObject::shift() {
 
 void ArrayObject::set(size_t index, Value value) {
     NAT_GC_GUARD_VALUE(value);
-    std::lock_guard<std::mutex> lock(g_array_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (index == m_vector.size()) {
         m_vector.push(value);

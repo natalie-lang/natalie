@@ -2,8 +2,6 @@
 
 namespace Natalie::Thread {
 
-std::mutex g_mutex_mutex; // That's a funny name. :-)
-
 Value MutexObject::lock(Env *env) {
     auto locked = m_mutex.try_lock();
 
@@ -21,7 +19,7 @@ Value MutexObject::lock(Env *env) {
         }
     }
 
-    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     m_thread = ThreadObject::current();
     m_thread->add_mutex(this);
     m_fiber = FiberObject::current();
@@ -64,7 +62,7 @@ bool MutexObject::try_lock() {
 }
 
 Value MutexObject::unlock(Env *env) {
-    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!is_locked())
         env->raise("ThreadError", "Attempt to unlock a mutex which is not locked");
@@ -94,7 +92,7 @@ bool MutexObject::is_locked() {
 }
 
 bool MutexObject::is_owned() {
-    std::lock_guard<std::mutex> lock(g_mutex_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!is_locked()) return false;
 

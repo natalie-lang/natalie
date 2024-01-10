@@ -5,9 +5,6 @@
 
 namespace Natalie {
 
-std::mutex g_define_method_mutex;
-std::mutex g_ivar_mutex;
-
 Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
@@ -688,7 +685,7 @@ bool Object::ivar_defined(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {
-    std::lock_guard<std::mutex> lock(g_ivar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->string());
@@ -704,7 +701,7 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
 }
 
 Value Object::ivar_remove(Env *env, SymbolObject *name) {
-    std::lock_guard<std::mutex> lock(g_ivar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->string());
@@ -721,7 +718,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     NAT_GC_GUARD_VALUE(val);
-    std::lock_guard<std::mutex> lock(g_ivar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     assert_not_frozen(env);
 
@@ -810,7 +807,7 @@ nat_int_t Object::object_id() const {
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
-    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ClassObject *klass = singleton_class(env);
     if (klass->is_frozen())
@@ -820,7 +817,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Meth
 }
 
 SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Block *block) {
-    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ClassObject *klass = singleton_class(env);
     if (klass->is_frozen())
@@ -830,7 +827,7 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 }
 
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
-    std::lock_guard<std::mutex> lock(g_define_method_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     ClassObject *klass = singleton_class(env);
     klass->undefine_method(env, name);

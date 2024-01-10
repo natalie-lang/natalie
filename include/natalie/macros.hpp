@@ -52,9 +52,9 @@
 #ifdef NAT_GC_GUARD
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
-        std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);         \
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
+            std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);     \
             void *dummy;                                                                      \
             auto end_of_stack = (uintptr_t)(&dummy);                                          \
             auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
