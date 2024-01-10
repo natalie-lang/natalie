@@ -3,11 +3,8 @@
 
 namespace Natalie {
 
-std::mutex g_gvar_mutex;
-std::mutex g_gvar_alias_mutex;
-
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
-    std::lock_guard<std::mutex> lock(g_gvar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
@@ -20,7 +17,7 @@ bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
 }
 
 Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
-    std::lock_guard<std::mutex> lock(g_gvar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
@@ -33,7 +30,7 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
 }
 
 Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
-    std::lock_guard<std::mutex> lock(g_gvar_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_global_name())
         env->raise_name_error(name, "`{}' is not allowed as a global variable name", name->string());
@@ -49,7 +46,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    std::lock_guard<std::mutex> lock(g_gvar_alias_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!new_name->is_global_name())
         env->raise_name_error(new_name, "`{}' is not allowed as a global variable name", new_name->string());

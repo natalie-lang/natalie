@@ -8,8 +8,6 @@
 
 namespace Natalie {
 
-std::mutex g_backtrace_mutex;
-
 Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
     auto *env = new Env {};
@@ -485,7 +483,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception, ThreadObject *thread) {
-    std::lock_guard<std::mutex> lock(g_backtrace_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     auto out = env->global_get("$stderr"_s);
 

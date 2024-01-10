@@ -12,8 +12,6 @@
 
 namespace Natalie {
 
-extern std::mutex g_backtrace_mutex;
-
 extern "C" {
 #include "onigmo.h"
 }

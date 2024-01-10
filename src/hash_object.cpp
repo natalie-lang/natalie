@@ -35,7 +35,7 @@ bool HashObject::is_comparing_by_identity() const {
 }
 
 Value HashObject::get(Env *env, Value key) {
-    std::lock_guard<std::mutex> lock(m_hash_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     Key key_container;
     key_container.key = key;
@@ -72,7 +72,7 @@ Value HashObject::set_default(Env *env, Value value) {
 void HashObject::put(Env *env, Value key, Value val) {
     NAT_GC_GUARD_VALUE(key);
     NAT_GC_GUARD_VALUE(val);
-    std::lock_guard<std::mutex> lock(m_hash_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     assert_not_frozen(env);
     Key key_container;
@@ -97,7 +97,7 @@ void HashObject::put(Env *env, Value key, Value val) {
 }
 
 Value HashObject::remove(Env *env, Value key) {
-    std::lock_guard<std::mutex> lock(m_hash_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     Key key_container;
     key_container.key = key;
@@ -115,7 +115,7 @@ Value HashObject::remove(Env *env, Value key) {
 }
 
 Value HashObject::clear(Env *env) {
-    std::lock_guard<std::mutex> lock(m_hash_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     assert_not_frozen(env);
     m_hashmap.clear();
