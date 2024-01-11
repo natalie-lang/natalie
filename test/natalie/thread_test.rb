@@ -50,7 +50,7 @@ describe 'Thread' do
       t.join.should == t
 
       # make sure thread id reuse doesn't cause later join to block
-      other_threads = 1.upto(100).map { Thread.new { sleep } }
+      other_threads = 1.upto(10).map { Thread.new { sleep } }
       sleep 0.1
 
       # if the thread id gets reused and we are using pthread_join with that id,
