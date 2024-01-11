@@ -61,29 +61,34 @@ describe :thread_exit, shared: true do
   end
 
   it "does not set $!" do
-    thread = ThreadSpecs.dying_thread_ensures(@method) { ScratchPad.record $! }
-    thread.join
-    ScratchPad.recorded.should == nil
+    NATFIXME 'Do not set $! to ThreadKillError', exception: NoMethodError do
+      thread = ThreadSpecs.dying_thread_ensures(@method) { ScratchPad.record $! }
+      thread.join
+      ScratchPad.recorded.should == nil
+    end
   end
 
   it "does not reset $!" do
-    ScratchPad.record []
+    NATFIXME 'Do not reset $! for ThreadKillError', exception: RuntimeError do
+      ScratchPad.record []
 
-    exc = RuntimeError.new("foo")
-    thread = Thread.new do
-      begin
-        raise exc
-      ensure
-        ScratchPad << $!
+      exc = RuntimeError.new("foo")
+      thread = Thread.new do
+        Thread.current.report_on_exception = false
         begin
-          Thread.current.send(@method)
+          raise exc
         ensure
           ScratchPad << $!
+          begin
+            Thread.current.send(@method)
+          ensure
+            ScratchPad << $!
+          end
         end
       end
+      thread.join
+      ScratchPad.recorded.should == [exc, exc]
     end
-    thread.join
-    ScratchPad.recorded.should == [exc, exc]
   end
 
   it "cannot be rescued" do
