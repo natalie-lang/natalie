@@ -116,19 +116,21 @@ Value FiberObject::resume(Env *env, Args args) {
         env->raise("FiberError", "attempt to resume the current fiber");
 
     auto suspending_fiber = m_previous_fiber = current();
-    ThreadObject::current()->m_current_fiber = this;
-    ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-
-    set_args(args);
+    {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        ThreadObject::current()->m_current_fiber = this;
+        ThreadObject::current()->set_start_of_stack(m_start_of_stack);
+        set_args(args);
 
 #ifdef __SANITIZE_ADDRESS__
-    auto fake_stack = __asan_get_current_fake_stack();
-    void *real_stack = __asan_addr_is_in_fake_stack(fake_stack, &args, nullptr, nullptr);
-    suspending_fiber->m_end_of_stack = real_stack ? real_stack : &args;
-    suspending_fiber->m_asan_fake_stack = __asan_get_current_fake_stack();
+        auto fake_stack = __asan_get_current_fake_stack();
+        void *real_stack = __asan_addr_is_in_fake_stack(fake_stack, &args, nullptr, nullptr);
+        suspending_fiber->m_end_of_stack = real_stack ? real_stack : &args;
+        suspending_fiber->m_asan_fake_stack = __asan_get_current_fake_stack();
 #else
-    suspending_fiber->m_end_of_stack = &args;
+        suspending_fiber->m_end_of_stack = &args;
 #endif
+    }
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
@@ -209,9 +211,13 @@ Value FiberObject::yield(Env *env, Args args) {
     auto current_fiber = FiberObject::current();
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
-    current_fiber->set_status(Status::Suspended);
-    current_fiber->m_end_of_stack = &args;
-    current_fiber->swap_to_previous(env, args);
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        current_fiber->set_status(Status::Suspended);
+        current_fiber->m_end_of_stack = &args;
+        current_fiber->swap_to_previous(env, args);
+    }
 
     mco_yield(mco_running());
 
@@ -228,9 +234,12 @@ Value FiberObject::yield(Env *env, Args args) {
 void FiberObject::swap_to_previous(Env *env, Args args) {
     assert(m_previous_fiber);
     auto new_current = m_previous_fiber;
-    ThreadObject::current()->m_current_fiber = new_current;
-    ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
-    new_current->set_args(args);
+    {
+        std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+        ThreadObject::current()->m_current_fiber = new_current;
+        ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
+        new_current->set_args(args);
+    }
     m_previous_fiber = nullptr;
 }
 
@@ -311,8 +320,13 @@ void fiber_wrapper_func(mco_coro *co) {
     auto user_data = (coroutine_user_data *)co->user_data;
     auto env = user_data->env;
     auto fiber = user_data->fiber;
-    Natalie::ThreadObject::current()->set_start_of_stack(fiber->start_of_stack());
-    fiber->set_status(Natalie::FiberObject::Status::Resumed);
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
+        Natalie::ThreadObject::current()->set_start_of_stack(fiber->start_of_stack());
+        fiber->set_status(Natalie::FiberObject::Status::Resumed);
+    }
+
     assert(fiber->block());
     Natalie::Value return_arg = nullptr;
     bool reraise = false;
@@ -331,8 +345,11 @@ void fiber_wrapper_func(mco_coro *co) {
         reraise = true;
     }
 
-    fiber->set_status(Natalie::FiberObject::Status::Terminated);
-    fiber->set_end_of_stack(&fiber);
+    {
+        std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
+        fiber->set_status(Natalie::FiberObject::Status::Terminated);
+        fiber->set_end_of_stack(&fiber);
+    }
 
     if (reraise)
         fiber->swap_to_previous(env, {});
