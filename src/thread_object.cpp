@@ -347,7 +347,7 @@ Value ThreadObject::wakeup(Env *env) {
     pthread_cond_signal(&m_sleep_cond);
     pthread_mutex_unlock(&m_sleep_lock);
 
-    return NilObject::the();
+    return this;
 }
 
 Value ThreadObject::sleep(Env *env, float timeout) {
