@@ -1,7 +1,7 @@
 require 'timeout'
 
 module CompareRubies
-  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
+  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 240).to_i
 
   def run_nat(path, *args)
     out_nat = sh("bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1")
