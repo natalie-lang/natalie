@@ -11,6 +11,7 @@ FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_
     assert(start_of_stack);
     fiber->m_start_of_stack = start_of_stack;
     fiber->m_thread = thread;
+    fiber->m_status = Status::Resumed;
     return fiber;
 }
 
