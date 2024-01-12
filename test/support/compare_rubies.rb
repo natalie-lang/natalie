@@ -2,9 +2,10 @@ require 'timeout'
 
 module CompareRubies
   SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
+  NAT_BINARY = ENV['NAT_BINARY'] || 'bin/natalie'
 
   def run_nat(path, *args)
-    out_nat = sh("bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1")
+    out_nat = sh("#{NAT_BINARY} -I test/support #{path} #{args.join(' ')} 2>&1")
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
