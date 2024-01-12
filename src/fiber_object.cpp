@@ -257,8 +257,12 @@ void FiberObject::visit_children(Visitor &visitor) {
 }
 
 NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor) const {
-    if (m_start_of_stack == ThreadObject::current()->start_of_stack())
-        return; // this is the currently active fiber, so don't walk its stack a second time
+    // If this Fiber is the currently active Fiber for its parent Thread,
+    // then the Thread#visit_children_from_stack method will walk this Fiber's stack,
+    // and we can bail out here.
+    if (this == m_thread->current_fiber())
+        return;
+
     if (!m_end_of_stack) {
         assert(m_status == Status::Created);
         return; // this fiber hasn't been started yet, so the stack shouldn't have anything on it
