@@ -221,4 +221,6 @@ int pipe2(int pipefd[2], int flags);
 void gc_get_push_other_roots();
 void gc_push_fiber_roots();
 
+void gc_warn_proc(char *msg, GC_word arg);
+
 }

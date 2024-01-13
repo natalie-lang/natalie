@@ -16,8 +16,6 @@ namespace Natalie {
 
 using namespace TM;
 
-static void ignore_warning(char *msg, GC_word arg) { }
-
 class Heap {
 public:
     NAT_MAKE_NONCOPYABLE(Heap);
@@ -32,14 +30,7 @@ public:
     void collect() const { GC_gcollect(); }
 
     bool gc_enabled() const { return !GC_is_disabled(); }
-
-    void gc_enable() const {
-        auto warn_proc = GC_get_warn_proc();
-        GC_set_warn_proc(ignore_warning);
-        GC_enable();
-        GC_set_warn_proc(warn_proc);
-    }
-
+    void gc_enable() const { GC_enable(); }
     void gc_disable() const { GC_disable(); }
 
     bool collect_all_at_exit() const { return m_collect_all_at_exit; }

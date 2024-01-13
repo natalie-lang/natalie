@@ -880,4 +880,10 @@ void gc_push_fiber_roots() {
     });
 }
 
+void gc_warn_proc(char *msg, GC_word arg) {
+    if (strcmp(msg, "while GC was disabled") != -1)
+        return;
+    printf(msg, arg);
+}
+
 }

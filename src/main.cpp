@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     GC_INIT();
+    GC_set_warn_proc(gc_warn_proc);
 
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
