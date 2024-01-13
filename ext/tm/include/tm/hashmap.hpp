@@ -11,6 +11,11 @@
 #include "tm/macros.hpp"
 #include "tm/string.hpp"
 
+#ifndef TM_CALLOC
+#define TM_CALLOC calloc
+#define TM_FREE free
+#endif
+
 namespace TM {
 
 enum class HashType {
@@ -308,7 +313,7 @@ public:
         : m_capacity { other.m_capacity }
         , m_hash_fn { other.m_hash_fn }
         , m_compare_fn { other.m_compare_fn } {
-        m_map = new Item *[m_capacity] {};
+        m_map = build_map(m_capacity);
         copy_items_from(other);
     }
 
@@ -352,9 +357,9 @@ public:
         m_compare_fn = other.m_compare_fn;
         if (m_map) {
             clear();
-            delete[] m_map;
+            TM_FREE(m_map);
         }
-        m_map = new Item *[m_capacity] {};
+        m_map = build_map(m_capacity);
         copy_items_from(other);
         return *this;
     }
@@ -375,7 +380,7 @@ public:
     Hashmap &operator=(Hashmap &&other) {
         if (m_map) {
             clear();
-            delete[] m_map;
+            TM_FREE(m_map);
         }
         m_size = other.m_size;
         m_capacity = other.m_capacity;
@@ -425,7 +430,7 @@ public:
         if (m_cleanup_fn)
             m_cleanup_fn(*this);
         clear();
-        delete[] m_map;
+        TM_FREE(m_map);
     }
 
     /**
@@ -541,7 +546,7 @@ public:
      */
     void put(KeyT key, T value, void *data = nullptr) {
         if (!m_map)
-            m_map = new Item *[m_capacity] {};
+            m_map = build_map(m_capacity);
         if (load_factor() > HASHMAP_MAX_LOAD_FACTOR)
             rehash();
         auto hash = m_hash_fn(key);
@@ -822,7 +827,7 @@ private:
     void rehash() {
         auto old_capacity = m_capacity;
         m_capacity = calculate_map_size(m_size);
-        auto new_map = new Item *[m_capacity] {};
+        auto new_map = build_map(m_capacity);
         for (size_t i = 0; i < old_capacity; i++) {
             auto item = m_map[i];
             while (item) {
@@ -834,7 +839,7 @@ private:
         }
         auto old_map = m_map;
         m_map = new_map;
-        delete[] old_map;
+        TM_FREE(old_map);
     }
 
     void insert_item(Item **map, size_t index, Item *item) {
@@ -898,10 +903,14 @@ private:
 
     void free_key(KeyT &key) {
         if constexpr (std::is_same_v<char *, KeyT> || std::is_same_v<const char *, KeyT>) {
-            free(key);
+            TM_FREE(key);
         } else {
             (void)key; // don't warn/error about unused parameter
         }
+    }
+
+    Item **build_map(size_t capacity) {
+        return (Item **)TM_CALLOC(capacity, sizeof(Item *));
     }
 
     size_t m_size { 0 };

@@ -7,6 +7,12 @@
 #include <string.h>
 #include <type_traits>
 
+#ifndef TM_CALLOC
+#define TM_CALLOC calloc
+#define TM_REALLOC realloc
+#define TM_FREE free
+#endif
+
 namespace TM {
 
 const int VECTOR_GROW_FACTOR = 2;
@@ -733,23 +739,20 @@ protected:
         , m_data(data) { }
 
     static T *array_of_size(size_t size) {
-        if constexpr (std::is_trivially_copyable<T>::value)
-            return reinterpret_cast<T *>(malloc(size * sizeof(T)));
-        else
-            return new T[size] {};
+        return reinterpret_cast<T *>(TM_CALLOC(size, sizeof(T)));
     }
 
     void grow(size_t capacity) {
         if (m_capacity >= capacity)
             return;
         if constexpr (std::is_trivially_copyable<T>::value) {
-            m_data = static_cast<T *>(realloc(m_data, capacity * sizeof(T)));
+            m_data = static_cast<T *>(TM_REALLOC(m_data, capacity * sizeof(T)));
         } else {
             auto old_data = m_data;
-            m_data = new T[capacity] {};
+            m_data = array_of_size(capacity);
             for (size_t i = 0; i < m_size; ++i)
                 m_data[i] = old_data[i];
-            delete[] old_data;
+            TM_FREE(old_data);
         }
         m_capacity = capacity;
     }
@@ -803,10 +806,7 @@ protected:
     }
 
     void delete_memory() {
-        if constexpr (std::is_trivially_copyable<T>::value)
-            free(m_data);
-        else
-            delete[] m_data;
+        TM_FREE(m_data);
     }
 
     void insert_prepare(size_t index) {
