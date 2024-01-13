@@ -50,24 +50,27 @@
     c &operator=(const c &) = delete
 
 #ifdef NAT_GC_GUARD
-#define NAT_GC_GUARD_VALUE(val)                                                               \
-    {                                                                                         \
-        Object *ptr;                                                                          \
-        if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
-            void *dummy;                                                                      \
-            auto end_of_stack = (uintptr_t)(&dummy);                                          \
-            auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
-            assert(start_of_stack > end_of_stack);                                            \
-            if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
-                fprintf(                                                                      \
-                    stderr,                                                                   \
-                    "This object (%p) is stack allocated, but you allowed it to be captured " \
-                    "in a Ruby variable or another data structure.\n"                         \
-                    "Be sure to heap-allocate the object with `new`.",                        \
-                    ptr);                                                                     \
-                abort();                                                                      \
-            }                                                                                 \
-        }                                                                                     \
+#define NAT_GC_GUARD_VALUE(val)                                                                   \
+    {                                                                                             \
+        Object *ptr;                                                                              \
+        if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                           \
+            void *dummy;                                                                          \
+            auto end_of_stack = (uintptr_t)(&dummy);                                              \
+            auto current_thread = ThreadObject::current();                                        \
+            if (current_thread) { /* early in main.cpp we don't yet know the current thread */    \
+                auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
+                assert(start_of_stack > end_of_stack);                                            \
+                if ((uintptr_t)ptr > end_of_stack && (uintptr_t)ptr < start_of_stack) {           \
+                    fprintf(                                                                      \
+                        stderr,                                                                   \
+                        "This object (%p) is stack allocated, but you allowed it to be captured " \
+                        "in a Ruby variable or another data structure.\n"                         \
+                        "Be sure to heap-allocate the object with `new`.",                        \
+                        ptr);                                                                     \
+                    abort();                                                                      \
+                }                                                                                 \
+            }                                                                                     \
+        }                                                                                         \
     }
 #else
 #define NAT_GC_GUARD_VALUE(val)

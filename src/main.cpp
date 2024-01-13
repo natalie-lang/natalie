@@ -75,6 +75,8 @@ int main(int argc, char *argv[]) {
     NativeProfiler::enable();
 #endif
 
+    GC_INIT();
+
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
     Env *env = ::build_top_env();
@@ -83,9 +85,8 @@ int main(int argc, char *argv[]) {
     trap_signal(SIGINT, sigint_handler);
     trap_signal(SIGPIPE, sigpipe_handler);
 
-    GC_INIT();
-#ifndef NAT_GC_DISABLE
-    Heap::the().gc_enable();
+#ifdef NAT_GC_DISABLE
+    Heap::the().gc_disable();
 #endif
 #ifdef NAT_GC_COLLECT_ALL_AT_EXIT
     Heap::the().set_collect_all_at_exit(true);
