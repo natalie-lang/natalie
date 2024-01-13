@@ -73,11 +73,6 @@ Value Value::send(Env *env, SymbolObject *name, Args args, Block *block, Value s
 }
 
 void Value::hydrate() {
-    // Running GC while we're in the processes of hydrating this Value makes
-    // debugging VERY confusing.
-    Defer done_hydrating([] { Heap::the().gc_enable(); });
-    Heap::the().gc_disable();
-
     switch (m_type) {
     case Type::Integer: {
         auto i = m_integer;
