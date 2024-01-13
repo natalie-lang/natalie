@@ -14,6 +14,7 @@
 #include <utility>
 
 #define GC_THREADS
+#include "gc/gc_mark.h"
 #include "gc_cpp.h"
 
 #include "natalie/args.hpp"
@@ -211,5 +212,8 @@ void dbg(const char *fmt, Args... args) {
 }
 
 int pipe2(int pipefd[2], int flags);
+
+void gc_get_push_other_roots();
+void gc_push_fiber_roots();
 
 }

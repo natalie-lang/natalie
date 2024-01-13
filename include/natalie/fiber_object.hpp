@@ -27,6 +27,8 @@ typedef struct {
 
 namespace Natalie {
 
+extern std::mutex g_fiber_mutex;
+
 class FiberObject : public Object {
 public:
     enum class Status {
@@ -37,12 +39,17 @@ public:
     };
 
     FiberObject()
-        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s)->as_class() } { }
+        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s)->as_class() } {
+        add_to_list(this);
+    }
 
     FiberObject(ClassObject *klass)
-        : Object { Object::Type::Fiber, klass } { }
+        : Object { Object::Type::Fiber, klass } {
+        add_to_list(this);
+    }
 
     ~FiberObject() {
+        remove_from_list(this);
         if (!m_coroutine) {
             // FiberObject::initialize() can raise before the m_coroutine is created.
             return;
@@ -77,10 +84,11 @@ public:
     void swap_to_previous(Env *env, Args args);
 
     void *start_of_stack() { return m_start_of_stack; }
+    void *end_of_stack() { return m_end_of_stack; }
+    void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
     mco_coro *coroutine() { return m_coroutine; }
     Block *block() { return m_block; }
-    void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
     void set_status(Status status) { m_status = status; }
     SymbolObject *status(Env *env) {
@@ -111,6 +119,34 @@ public:
     static FiberObject *current();
     static FiberObject *main();
 
+    bool is_current() const;
+    bool is_main() const;
+
+    static void each_fiber(std::function<void(FiberObject *)> callback) {
+        std::lock_guard<std::mutex> lock(g_thread_mutex);
+        for (auto fiber : s_list)
+            callback(fiber);
+    }
+
+    static void add_to_list(FiberObject *fiber) {
+        std::lock_guard<std::mutex> lock(g_thread_mutex);
+        s_list.push(fiber);
+    }
+
+    static void remove_from_list(FiberObject *fiber) {
+        std::lock_guard<std::mutex> lock(g_thread_mutex);
+        size_t i;
+        bool found = false;
+        for (i = 0; i < s_list.size(); ++i) {
+            if (s_list.at(i) == fiber) {
+                found = true;
+                break;
+            }
+        }
+        assert(found);
+        s_list.remove(i);
+    }
+
     Vector<Value> &args() { return m_args; }
     void set_args(Args args);
 
@@ -138,6 +174,8 @@ private:
     Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
+
+    inline static TM::Vector<FiberObject *> s_list {};
 };
 
 }

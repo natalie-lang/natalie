@@ -6,12 +6,22 @@
 
 namespace Natalie {
 
+std::mutex g_fiber_mutex;
+
 FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_stack) {
     auto fiber = new FiberObject;
     assert(start_of_stack);
     fiber->m_start_of_stack = start_of_stack;
     fiber->m_thread = thread;
     return fiber;
+}
+
+bool FiberObject::is_current() const {
+    return m_thread->current_fiber() == this;
+}
+
+bool FiberObject::is_main() const {
+    return m_thread->main_fiber() == this;
 }
 
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
