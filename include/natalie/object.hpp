@@ -357,6 +357,11 @@ public:
     virtual String dbg_inspect() const;
 
     virtual void gc_inspect(char *buf, size_t len) const;
+    virtual void gc_print() const {
+        char buf[1000];
+        gc_inspect(buf, 1000);
+        printf("%s\n", buf);
+    }
 
     ArrayObject *to_ary(Env *env);
     FloatObject *to_f(Env *env);
