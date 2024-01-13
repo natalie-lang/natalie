@@ -8,6 +8,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef TM_CALLOC
+#define TM_CALLOC calloc
+#define TM_REALLOC realloc
+#define TM_FREE free
+#endif
+
 namespace TM {
 
 class String final {
@@ -300,7 +306,7 @@ public:
     }
 
     ~String() {
-        delete[] m_str;
+        TM_FREE(m_str);
     }
 
     /**
@@ -334,7 +340,7 @@ public:
         if (m_str == other.m_str)
             m_length = other.m_length;
         else {
-            delete[] m_str;
+            TM_FREE(m_str);
 
             m_str = other.m_str;
             m_length = other.m_length;
@@ -625,8 +631,8 @@ public:
             m_length = length;
             return;
         }
-        delete[] m_str;
-        m_str = new char[length + 1];
+        TM_FREE(m_str);
+        m_str = (char *)TM_CALLOC(length + 1, sizeof(char));
         memcpy(m_str, str, sizeof(char) * length);
         m_str[length] = 0;
         m_length = length;
@@ -1277,7 +1283,7 @@ public:
     void truncate(const size_t length) {
         assert(length <= m_length);
         if (length == 0) {
-            delete[] m_str;
+            TM_FREE(m_str);
             m_str = nullptr;
             m_length = 0;
             m_capacity = 0;
@@ -1709,12 +1715,12 @@ protected:
     void grow(const size_t new_capacity) {
         assert(new_capacity >= m_length);
         auto old_str = m_str;
-        m_str = new char[new_capacity + 1];
+        m_str = (char *)TM_CALLOC(new_capacity + 1, sizeof(char));
         if (old_str)
             memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
         else
             m_str[0] = '\0';
-        delete[] old_str;
+        TM_FREE(old_str);
         m_capacity = new_capacity;
     }
 
