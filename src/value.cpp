@@ -74,10 +74,9 @@ Value Value::send(Env *env, SymbolObject *name, Args args, Block *block, Value s
 
 void Value::hydrate() {
     // Running GC while we're in the processes of hydrating this Value makes
-    // debugging VERY confusing. Maybe someday we can remove this GC stuff...
-    bool garbage_collection_enabled = Heap::the().gc_enabled();
-    if (garbage_collection_enabled)
-        Heap::the().gc_disable();
+    // debugging VERY confusing.
+    Defer done_hydrating([] { Heap::the().gc_enable(); });
+    Heap::the().gc_disable();
 
     switch (m_type) {
     case Type::Integer: {
@@ -95,9 +94,6 @@ void Value::hydrate() {
     case Type::Pointer:
         break;
     }
-
-    if (garbage_collection_enabled)
-        Heap::the().gc_enable();
 }
 
 double Value::as_double() const {
