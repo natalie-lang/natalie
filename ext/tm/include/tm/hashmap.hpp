@@ -9,12 +9,8 @@
 #include <string.h>
 
 #include "tm/macros.hpp"
+#include "tm/memory.hpp"
 #include "tm/string.hpp"
-
-#ifndef TM_CALLOC
-#define TM_CALLOC calloc
-#define TM_FREE free
-#endif
 
 namespace TM {
 

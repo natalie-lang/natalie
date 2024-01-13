@@ -7,11 +7,7 @@
 #include <string.h>
 #include <type_traits>
 
-#ifndef TM_CALLOC
-#define TM_CALLOC calloc
-#define TM_REALLOC realloc
-#define TM_FREE free
-#endif
+#include "tm/memory.hpp"
 
 namespace TM {
 
