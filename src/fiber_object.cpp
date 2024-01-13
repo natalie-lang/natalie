@@ -107,6 +107,11 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
     return value;
 }
 
+static void *GC_CALLBACK set_stackbottom(void *cd) {
+    GC_set_stackbottom(nullptr, (GC_stack_base *)cd);
+    return nullptr;
+}
+
 Value FiberObject::resume(Env *env, Args args) {
     if (m_thread != ThreadObject::current())
         env->raise("FiberError", "fiber called across threads");
@@ -129,6 +134,9 @@ Value FiberObject::resume(Env *env, Args args) {
 #else
     suspending_fiber->m_end_of_stack = &args;
 #endif
+
+    GC_stack_base base = { m_start_of_stack };
+    GC_call_with_reader_lock(set_stackbottom, (void *)&base, 1);
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
@@ -230,6 +238,10 @@ void FiberObject::swap_to_previous(Env *env, Args args) {
     auto new_current = m_previous_fiber;
     ThreadObject::current()->m_current_fiber = new_current;
     ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
+
+    GC_stack_base base = { new_current->start_of_stack() };
+    GC_call_with_reader_lock(set_stackbottom, (void *)&base, 1);
+
     new_current->set_args(args);
     m_previous_fiber = nullptr;
 }
