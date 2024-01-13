@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #include <assert.h>
 #include <mutex>
@@ -29,8 +30,16 @@ public:
     void collect() { GC_gcollect(); }
 
     bool gc_enabled() const { return !GC_is_disabled(); }
-    void gc_enable() { GC_enable(); }
-    void gc_disable() { GC_disable(); }
+
+    void gc_enable() {
+        assert(GC_dont_gc != 0);
+        GC_dont_gc--;
+    }
+
+    void gc_disable() {
+        GC_dont_gc++;
+        assert(GC_dont_gc != 0);
+    }
 
     bool collect_all_at_exit() const { return m_collect_all_at_exit; }
     void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
