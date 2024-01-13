@@ -91,6 +91,8 @@ int main(int argc, char *argv[]) {
 #ifdef NAT_GC_COLLECT_ALL_AT_EXIT
     Heap::the().set_collect_all_at_exit(true);
 #endif
+
+    GC_allow_register_threads();
     gc_get_push_other_roots();
     GC_set_push_other_roots(gc_push_fiber_roots);
 

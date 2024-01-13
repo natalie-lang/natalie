@@ -30,6 +30,7 @@ static void nat_thread_finish(void *thread_object) {
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     thread->remove_from_list();
     thread->unlock_mutexes();
+    GC_unregister_my_thread();
 }
 
 static void *nat_create_thread(void *thread_object) {
@@ -48,6 +49,9 @@ static void *nat_create_thread(void *thread_object) {
 
     set_stack_for_thread(thread_id, thread);
     tl_current_thread = thread;
+
+    GC_stack_base base = { thread->start_of_stack() };
+    GC_register_my_thread(&base);
 
     thread->build_main_fiber();
 

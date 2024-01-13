@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <utility>
 
+#define GC_THREADS
 #include "gc/gc_mark.h"
 #include "gc_cpp.h"
 
