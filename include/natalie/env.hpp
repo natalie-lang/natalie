@@ -3,8 +3,8 @@
 #include <memory>
 #include <stdlib.h>
 
+#include "gc/gc_cpp.h"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/managed_vector.hpp"
@@ -15,7 +15,7 @@ namespace Natalie {
 
 using namespace TM;
 
-class Env : public Cell {
+class Env : public gc {
 public:
     Env() { }
 
@@ -33,8 +33,6 @@ public:
         , m_module { other.m_module } { }
 
     Env &operator=(Env &other) = delete;
-
-    virtual ~Env() override { }
 
     bool global_defined(SymbolObject *);
     Value global_get(SymbolObject *);
@@ -154,9 +152,7 @@ public:
 
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
-    virtual void visit_children(Visitor &visitor) override final;
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<Env %p>", this);
     }
 

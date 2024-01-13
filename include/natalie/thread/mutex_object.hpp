@@ -29,8 +29,6 @@ public:
     bool is_locked();
     bool is_owned();
 
-    void visit_children(Visitor &);
-
 private:
     std::mutex m_mutex;
     ThreadObject *m_thread { nullptr };

@@ -65,31 +65,4 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
     return info->object();
 }
 
-void GlobalEnv::visit_children(Visitor &visitor) {
-    for (auto pair : m_global_variables) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.second);
-    }
-    for (size_t i = 0; i < EncodingCount; i++)
-        visitor.visit(m_Encodings[i]);
-    visitor.visit(m_Array);
-    visitor.visit(m_BasicObject);
-    visitor.visit(m_Binding);
-    visitor.visit(m_Class);
-    visitor.visit(m_Complex);
-    visitor.visit(m_Float);
-    visitor.visit(m_Hash);
-    visitor.visit(m_Integer);
-    visitor.visit(m_Module);
-    visitor.visit(m_Object);
-    visitor.visit(m_Random);
-    visitor.visit(m_Rational);
-    visitor.visit(m_Regexp);
-    visitor.visit(m_String);
-    visitor.visit(m_Symbol);
-    visitor.visit(m_Time);
-    visitor.visit(m_main_obj);
-    visitor.visit(m_main_env);
-}
-
 }

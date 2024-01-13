@@ -39,13 +39,6 @@ public:
         }
     }
 
-    virtual void visit_children(Visitor &visitor) override {
-        Object::visit_children(visitor);
-        visitor.visit(m_external_encoding);
-        visitor.visit(m_internal_encoding);
-        visitor.visit(m_path);
-    }
-
     static Value size_fn(Env *env, Value self, Args, Block *) {
         return Value(NilObject::the());
     }

@@ -2,11 +2,10 @@
 
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "tm/hashmap.hpp"
 
 namespace Natalie {
-class Backtrace : public Cell {
+class Backtrace : public gc {
 public:
     struct Item {
         String source_location;
@@ -21,7 +20,7 @@ public:
     ArrayObject *to_ruby_array();
     ArrayObject *to_ruby_backtrace_locations_array();
 
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<Backtrace %p size=%ld>", this, m_items.size());
     }
 

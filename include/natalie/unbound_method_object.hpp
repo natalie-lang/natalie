@@ -50,12 +50,6 @@ public:
         }
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        AbstractMethodObject::visit_children(visitor);
-        visitor.visit(m_module_or_class);
-        visitor.visit(m_method);
-    }
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<UnboundMethodObject %p method=%p>", this, m_method);
     }

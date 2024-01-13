@@ -6,7 +6,6 @@
 
 #include "natalie/args.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc/heap.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
 

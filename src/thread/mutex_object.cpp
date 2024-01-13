@@ -105,10 +105,4 @@ bool MutexObject::is_owned() {
     return true;
 }
 
-void MutexObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    visitor.visit(m_thread);
-    visitor.visit(m_fiber);
-}
-
 }

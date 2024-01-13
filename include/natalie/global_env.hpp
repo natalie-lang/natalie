@@ -5,7 +5,6 @@
 
 #include "natalie/encodings.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "natalie/global_variable_info.hpp"
 #include "natalie/method_missing_reason.hpp"
 #include "tm/hashmap.hpp"
@@ -19,7 +18,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-class GlobalEnv : public Cell {
+class GlobalEnv : public gc {
 public:
     static GlobalEnv *the() {
         if (s_instance)
@@ -27,8 +26,6 @@ public:
         s_instance = new GlobalEnv();
         return s_instance;
     }
-
-    virtual ~GlobalEnv() override { }
 
     ClassObject *Array() { return m_Array; }
     void set_Array(ClassObject *Array) { m_Array = Array; }
@@ -100,9 +97,7 @@ public:
 
     friend class SymbolObject;
 
-    virtual void visit_children(Visitor &visitor) override final;
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<GlobalEnv %p>", this);
     }
 

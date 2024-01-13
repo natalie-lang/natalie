@@ -10,7 +10,6 @@
 #include "natalie/array_object.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/nil_object.hpp"
@@ -97,10 +96,6 @@ public:
         }
         NAT_UNREACHABLE();
     }
-
-    virtual void visit_children(Visitor &) override final;
-    void visit_children_from_stack(Visitor &) const;
-    void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         auto size = m_coroutine ? m_coroutine->stack_size : 0;

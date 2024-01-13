@@ -3,7 +3,7 @@
 #include "natalie/value.hpp"
 
 namespace Natalie {
-class Constant : public Cell {
+class Constant : public gc {
 public:
     Constant(SymbolObject *name, Value value)
         : m_name(name)
@@ -33,8 +33,6 @@ public:
     bool needs_load() const { return !m_value && m_autoload_fn; }
     StringObject *autoload_path() const { return m_autoload_path; }
     void autoload(Env *, Value);
-
-    void visit_children(Visitor &visitor);
 
 private:
     SymbolObject *m_name;

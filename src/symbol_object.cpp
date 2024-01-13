@@ -11,7 +11,8 @@ SymbolObject *SymbolObject::intern(const String &name, EncodingObject *encoding)
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)
         return symbol;
-    symbol = new SymbolObject { name, encoding };
+    auto mem = GC_MALLOC_UNCOLLECTABLE(sizeof(SymbolObject));
+    symbol = new (mem) SymbolObject { name, encoding };
     s_symbols.put(name, symbol);
     return symbol;
 }

@@ -177,13 +177,4 @@ bool ExceptionObject::is_local_jump_error_with_break_point(nat_int_t match_break
     return m_break_point == match_break_point;
 }
 
-void ExceptionObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    visitor.visit(m_message);
-    visitor.visit(m_backtrace);
-    visitor.visit(m_backtrace_value);
-    visitor.visit(m_backtrace_locations);
-    visitor.visit(m_cause);
-}
-
 }

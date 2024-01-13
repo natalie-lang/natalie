@@ -19,11 +19,6 @@ public:
     Method *method() { return m_method; }
     int arity() { return m_method->arity(); }
 
-    virtual void visit_children(Visitor &visitor) override {
-        Object::visit_children(visitor);
-        visitor.visit(m_method);
-    }
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<AbstractMethodObject %p>", this);
     }

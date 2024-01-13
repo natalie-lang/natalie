@@ -16,20 +16,13 @@ namespace Natalie {
 
 class HashObject : public Object {
 public:
-    struct Key : public Cell {
+    struct Key : public gc {
         Key *prev { nullptr };
         Key *next { nullptr };
         Value key { nullptr };
         Value val { nullptr };
         size_t hash { 0 };
         bool removed { false };
-
-        virtual void visit_children(Visitor &visitor) override final {
-            visitor.visit(prev);
-            visitor.visit(next);
-            visitor.visit(key);
-            visitor.visit(val);
-        }
     };
 
     HashObject()
@@ -199,8 +192,6 @@ public:
 
     Value to_h(Env *, Block *);
     Value to_hash() { return this; }
-
-    virtual void visit_children(Visitor &) override final;
 
     virtual String dbg_inspect() const override;
 

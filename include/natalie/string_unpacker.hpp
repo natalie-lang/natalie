@@ -5,7 +5,7 @@
 
 namespace Natalie {
 
-class StringUnpacker : public Cell {
+class StringUnpacker : public gc {
     using Tokenizer = ArrayPacker::Tokenizer;
     using Token = ArrayPacker::Token;
     using Endianness = ArrayPacker::Endianness;
@@ -20,12 +20,6 @@ public:
 
     ArrayObject *unpack(Env *env);
     Value unpack1(Env *env);
-
-    virtual void visit_children(Visitor &visitor) override {
-        visitor.visit(m_source);
-        visitor.visit(m_unpacked_value);
-        visitor.visit(m_unpacked_array);
-    }
 
 private:
     void unpack_token(Env *env, Token &);

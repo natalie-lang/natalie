@@ -161,8 +161,6 @@ public:
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
 
-    virtual void visit_children(Visitor &) override final;
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         if (m_class_name)
             snprintf(buf, len, "<ModuleObject %p name=%s>", this, m_class_name.value().c_str());

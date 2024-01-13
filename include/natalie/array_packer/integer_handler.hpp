@@ -8,17 +8,13 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class IntegerHandler : public Cell {
+    class IntegerHandler : public gc {
     public:
         IntegerHandler(IntegerObject *source, Token token)
             : m_source { source }
             , m_token { token } { }
 
         String pack(Env *env);
-
-        virtual void visit_children(Visitor &visitor) override {
-            visitor.visit(m_source);
-        }
 
     private:
         void pack_U();

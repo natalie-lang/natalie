@@ -3,13 +3,12 @@
 #include "natalie/block.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/module_object.hpp"
 
 namespace Natalie {
 
-class Method : public Cell {
+class Method : public gc {
 public:
     Method(TM::String &&name, ModuleObject *owner, MethodFnPtr fn, int arity)
         : m_name { std::move(name) }
@@ -72,13 +71,7 @@ public:
     const Optional<String> &get_file() const { return m_file; }
     const Optional<size_t> &get_line() const { return m_line; }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(m_owner);
-        visitor.visit(m_env);
-        visitor.visit(m_self);
-    }
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
     }
 

@@ -52,10 +52,4 @@ Value NilObject::inspect(const Env *env) const {
     return new StringObject { "nil" };
 }
 
-void NilObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    if (s_string)
-        visitor.visit(s_string);
-}
-
 }

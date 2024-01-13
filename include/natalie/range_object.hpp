@@ -43,12 +43,6 @@ public:
         return Value::integer(self->as_range()->to_a(env)->as_array()->size());
     }
 
-    virtual void visit_children(Visitor &visitor) override {
-        Object::visit_children(visitor);
-        visitor.visit(m_begin);
-        visitor.visit(m_end);
-    }
-
     virtual String dbg_inspect() const override;
 
     virtual void gc_inspect(char *buf, size_t len) const override {

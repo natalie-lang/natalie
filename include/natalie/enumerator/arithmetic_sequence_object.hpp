@@ -43,13 +43,6 @@ public:
         snprintf(buf, len, "<Enumerator::ArithmeticSequence %p>", this);
     }
 
-    virtual void visit_children(Visitor &visitor) override {
-        Object::visit_children(visitor);
-        visitor.visit(m_begin);
-        visitor.visit(m_end);
-        visitor.visit(m_step);
-    }
-
 private:
     enum class Origin {
         Range,

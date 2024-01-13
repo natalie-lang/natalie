@@ -25,6 +25,7 @@ module Natalie
         File.join(ROOT_DIR, 'ext/minicoro'),
         File.join(BUILD_DIR),
         File.join(BUILD_DIR, 'onigmo/include'),
+        File.join(BUILD_DIR, 'bdwgc/include'),
       ].freeze
 
       CRYPT_LIBRARIES = DARWIN ? [] : %w[-lcrypt]
@@ -33,6 +34,8 @@ module Natalie
       LIBRARIES_FOR_DYNAMIC_LINKING = %w[
         -lnatalie_base
         -lonigmo
+        -lgc
+        -lgccpp
       ] + CRYPT_LIBRARIES
 
       # When using the REPL or compiling a binary with the `-c` option,
@@ -43,6 +46,7 @@ module Natalie
 
       LIB_PATHS = [
         BUILD_DIR,
+        File.join(BUILD_DIR, 'bdwgc/.libs'),
         File.join(BUILD_DIR, 'onigmo/lib'),
         File.join(BUILD_DIR, 'zlib'),
       ].freeze

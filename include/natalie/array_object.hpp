@@ -207,13 +207,6 @@ public:
     Value values_at(Env *, Args);
     Value zip(Env *, Args, Block *);
 
-    virtual void visit_children(Visitor &visitor) override final {
-        Object::visit_children(visitor);
-        for (auto val : m_vector) {
-            visitor.visit(val);
-        }
-    }
-
     virtual String dbg_inspect() const override;
 
     virtual void gc_inspect(char *buf, size_t len) const override {

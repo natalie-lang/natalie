@@ -39,13 +39,6 @@ public:
         return m_method->call(env, m_object, args, block);
     }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        AbstractMethodObject::visit_children(visitor);
-        visitor.visit(m_object);
-        visitor.visit(m_method);
-        visitor.visit(m_method_missing_name);
-    }
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<MethodObject %p method=", this);
     }

@@ -26,8 +26,6 @@ public:
     IntegerObject *lineno() const { return m_line; }
     StringObject *to_s() const;
 
-    void visit_children(Visitor &);
-
 private:
     StringObject *m_source_location { nullptr };
     StringObject *m_file { nullptr };

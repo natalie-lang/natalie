@@ -1269,18 +1269,6 @@ Value Object::enum_for(Env *env, const char *method, Args args) {
     return this->public_send(env, "enum_for"_s, Args(std::move(args2), args.has_keyword_hash()));
 }
 
-void Object::visit_children(Visitor &visitor) {
-    visitor.visit(m_klass);
-    visitor.visit(m_singleton_class);
-    visitor.visit(m_owner);
-    if (m_ivars) {
-        for (auto pair : *m_ivars) {
-            visitor.visit(pair.first);
-            visitor.visit(pair.second);
-        }
-    }
-}
-
 void Object::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Object %p type=%d class=%p>", this, (int)m_type, m_klass);
 }

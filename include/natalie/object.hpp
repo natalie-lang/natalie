@@ -4,7 +4,6 @@
 
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
@@ -18,7 +17,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-class Object : public Cell {
+class Object : public gc {
 public:
     using Type = ObjectType;
 
@@ -90,7 +89,7 @@ public:
         return *this;
     }
 
-    virtual ~Object() override {
+    virtual ~Object() {
         m_type = ObjectType::Nil;
         delete m_ivars;
     }
@@ -355,11 +354,9 @@ public:
 
     Value enum_for(Env *env, const char *method, Args args = {});
 
-    virtual void visit_children(Visitor &visitor) override;
-
     virtual String dbg_inspect() const;
 
-    virtual void gc_inspect(char *buf, size_t len) const override;
+    virtual void gc_inspect(char *buf, size_t len) const;
 
     ArrayObject *to_ary(Env *env);
     FloatObject *to_f(Env *env);

@@ -3,11 +3,10 @@
 #include "natalie/args.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 
 namespace Natalie {
 
-class Block : public Cell {
+class Block : public gc {
     friend ProcObject;
 
 public:
@@ -53,13 +52,7 @@ public:
 
     void copy_fn_pointer_to_method(Method *);
 
-    virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(m_env);
-        visitor.visit(m_calling_env);
-        visitor.visit(m_self);
-    }
-
-    virtual void gc_inspect(char *buf, size_t len) const override {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<Block %p fn=%p>", this, m_fn);
     }
 

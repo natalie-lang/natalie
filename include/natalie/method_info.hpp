@@ -1,6 +1,5 @@
 #pragma once
 
-#include "natalie/gc.hpp"
 #include "natalie/method_visibility.hpp"
 
 namespace Natalie {
@@ -29,8 +28,6 @@ public:
     operator bool() const { return m_method || m_undefined; }
 
     bool is_defined() const { return !m_undefined && m_method; }
-
-    void visit_children(Cell::Visitor &);
 
 private:
     MethodVisibility m_visibility { MethodVisibility::Public };

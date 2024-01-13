@@ -682,18 +682,6 @@ Value HashObject::slice(Env *env, Args args) {
     return new_hash;
 }
 
-void HashObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    for (auto pair : m_hashmap) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.first->key);
-        visitor.visit(pair.first->val);
-        visitor.visit(pair.second);
-    }
-    visitor.visit(m_default_value);
-    visitor.visit(m_default_proc);
-}
-
 Value HashObject::compact(Env *env) {
     auto new_hash = new HashObject {};
     new_hash->m_default_value = m_default_value;

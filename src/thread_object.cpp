@@ -510,21 +510,6 @@ void ThreadObject::unlock_mutexes() const {
         pair.first->unlock_without_checks();
 }
 
-void ThreadObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    visitor.visit(m_args);
-    visitor.visit(m_block);
-    visitor.visit(m_current_fiber);
-    visitor.visit(m_exception);
-    visitor.visit(m_main_fiber);
-    visitor.visit(m_value);
-    visitor.visit(m_thread_variables);
-    for (auto pair : m_mutexes)
-        visitor.visit(pair.first);
-    visitor.visit(m_fiber_scheduler);
-    visit_children_from_stack(visitor);
-}
-
 // If the thread status is Status::Created, it means its execution
 // has not reached the try/catch handler yet. We shouldn't do
 // anything to the thread that might cause it to terminate
@@ -571,37 +556,4 @@ void ThreadObject::cancelation_checkpoint(Env *env) {
     }
 }
 
-NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
-    if (pthread_self() == m_thread_id)
-        return; // this is the currently active thread, so don't walk its stack a second time
-    if (m_status != Status::Active)
-        return;
-
-    for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
-#ifdef __SANITIZE_ADDRESS__
-        visit_children_from_asan_fake_stack(visitor, potential_cell);
-#endif
-    }
-}
-
-#ifdef __SANITIZE_ADDRESS__
-NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
-    void *begin = nullptr;
-    void *end = nullptr;
-    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack, potential_cell, &begin, &end);
-
-    if (!real_stack) return;
-
-    for (char *ptr = reinterpret_cast<char *>(begin); ptr < end; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
-    }
-}
-#else
-void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
-#endif
 }

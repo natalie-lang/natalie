@@ -234,54 +234,6 @@ void FiberObject::swap_to_previous(Env *env, Args args) {
     m_previous_fiber = nullptr;
 }
 
-void FiberObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    for (auto arg : m_args)
-        visitor.visit(arg);
-    visitor.visit(m_previous_fiber);
-    visitor.visit(m_error);
-    visitor.visit(m_block);
-    visitor.visit(m_storage);
-    visitor.visit(m_thread);
-    visitor.visit(m_thread_storage);
-    visit_children_from_stack(visitor);
-}
-
-NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor) const {
-    if (m_start_of_stack == ThreadObject::current()->start_of_stack())
-        return; // this is the currently active fiber, so don't walk its stack a second time
-    if (!m_end_of_stack) {
-        assert(m_status == Status::Created);
-        return; // this fiber hasn't been started yet, so the stack shouldn't have anything on it
-    }
-    for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
-#ifdef __SANITIZE_ADDRESS__
-        visit_children_from_asan_fake_stack(visitor, potential_cell);
-#endif
-    }
-}
-
-#ifdef __SANITIZE_ADDRESS__
-NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const {
-    void *begin = nullptr;
-    void *end = nullptr;
-    void *real_stack = __asan_addr_is_in_fake_stack(m_asan_fake_stack, potential_cell, &begin, &end);
-
-    if (!real_stack) return;
-
-    for (char *ptr = reinterpret_cast<char *>(begin); ptr < end; ptr += sizeof(intptr_t)) {
-        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
-            visitor.visit(potential_cell);
-    }
-}
-#else
-void FiberObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
-#endif
-
 void FiberObject::set_args(Args args) {
     m_args.clear();
     for (size_t i = 0; i < args.size(); ++i) {

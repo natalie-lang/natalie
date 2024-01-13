@@ -1000,25 +1000,4 @@ Value ModuleObject::undef_method(Env *env, Args args) {
     return this;
 }
 
-void ModuleObject::visit_children(Visitor &visitor) {
-    Object::visit_children(visitor);
-    visitor.visit(m_env);
-    visitor.visit(m_superclass);
-    for (auto pair : m_constants) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.second);
-    }
-    for (auto pair : m_methods) {
-        visitor.visit(pair.first);
-        pair.second.visit_children(visitor);
-    }
-    for (auto pair : m_class_vars) {
-        visitor.visit(pair.first);
-        visitor.visit(pair.second);
-    }
-    for (auto module : m_included_modules) {
-        visitor.visit(module);
-    }
-}
-
 }

@@ -50,14 +50,10 @@ public:
     }
 
     virtual ~ThreadObject() {
-        // In normal operation, this destructor should only be called for threads that
-        // are well and truly dead. (See the is_collectible function.) But in one case --
-        // when you compile with the flag NAT_GC_COLLECT_ALL_AT_EXIT -- the GC will
-        // destroy every object at the end of the program, even threads that could still
-        // be running. In order to be able to safely destroy the std::thread object, we
-        // need to detatch any running system thread from the object. And in many cases,
-        // the thread will already be joined, so this could error. But we don't care
-        // about the error.
+        // In order to be able to safely destroy the std::thread object, we need to
+        // detatch any running system thread from the object. And in many cases,
+        // the thread will already be joined, so this could error. But we don't
+        // care about the error.
         try {
             m_thread.detach();
         } catch (...) { }
@@ -141,10 +137,6 @@ public:
 
     void remove_from_list() const;
 
-    virtual bool is_collectible() override {
-        return m_status == Status::Dead && !m_thread.joinable();
-    }
-
     void add_mutex(Thread::MutexObject *mutex);
     void remove_mutex(Thread::MutexObject *mutex);
 
@@ -172,8 +164,6 @@ public:
         m_report_on_exception = report->is_truthy();
         return report;
     }
-
-    virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(
@@ -230,9 +220,6 @@ public:
 
 private:
     void wait_until_running() const;
-
-    void visit_children_from_stack(Visitor &) const;
-    void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
 
     friend FiberObject;
 

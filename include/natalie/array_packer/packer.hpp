@@ -13,7 +13,7 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class Packer : public Cell {
+    class Packer : public gc {
     public:
         Packer(ArrayObject *source, String directives)
             : m_source { source }
@@ -23,11 +23,6 @@ namespace ArrayPacker {
         ~Packer() { delete m_directives; }
 
         StringObject *pack(Env *env, StringObject *buffer);
-
-        virtual void visit_children(Visitor &visitor) override {
-            visitor.visit(m_source);
-            visitor.visit(m_encoding);
-        }
 
     private:
         template <typename Fn>

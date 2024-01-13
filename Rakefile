@@ -254,9 +254,6 @@ end
 desc 'Run clang-tidy'
 task tidy: %i[build tidy_internal]
 
-desc 'Lint GC visiting code'
-task gc_lint: %i[build gc_lint_internal]
-
 # # # # Docker Tasks (used for CI) # # # #
 
 DOCKER_FLAGS = '-e DOCKER=true ' +
@@ -326,10 +323,6 @@ end
 
 task docker_tidy: :docker_build_clang do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} tidy"
-end
-
-task docker_gc_lint: :docker_build_clang do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_clang_#{ruby_version_string} gc_lint"
 end
 
 def ruby_version_string
@@ -404,6 +397,10 @@ task libnatalie: [
   'build/onigmo/lib/libonigmo.a',
   'build/libprism.a',
   "build/libprism.#{SO_EXT}",
+  "build/bdwgc/.libs/libgc.a",
+  "build/bdwgc/.libs/libgccpp.a",
+  "build/bdwgc/.libs/libgc.#{SO_EXT}",
+  "build/bdwgc/.libs/libgccpp.#{SO_EXT}",
   'build/generated/numbers.rb',
   :primary_objects,
   :ruby_objects,
@@ -429,6 +426,8 @@ multitask special_objects: SPECIAL_OBJECT_FILES
 file 'build/libnatalie.a' => %w[
   build/libnatalie_base.a
   build/onigmo/lib/libonigmo.a
+  build/bdwgc/.libs/libgc.a
+  build/bdwgc/.libs/libgccpp.a
 ] do |t|
   if RUBY_PLATFORM =~ /darwin/
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
@@ -583,6 +582,24 @@ file "build/prism/ext/prism/prism.#{DL_EXT}" => Rake::FileList['ext/prism/**/*.{
   SH
 end
 
+file "build/bdwgc/.libs/libgc.a" => ['build/bdwgc/.libs/libgccpp.a']
+file "build/bdwgc/.libs/libgc.#{SO_EXT}" => ['build/bdwgc/.libs/libgccpp.a']
+file "build/bdwgc/.libs/libgccpp.#{SO_EXT}" => ['build/bdwgc/.libs/libgccpp.a']
+
+file 'build/bdwgc/.libs/libgccpp.a' do
+  build_dir = File.expand_path('build/bdwgc', __dir__)
+
+  rm_rf build_dir
+  cp_r 'ext/bdwgc', build_dir
+
+  sh <<-SH
+    cd #{build_dir} && \
+    ./autogen.sh && \
+    ./configure --enable-static --enable-cplusplus && \
+    make -j 4
+  SH
+end
+
 file "build/test/support/ffi_stubs.#{SO_EXT}" => 'test/support/ffi_stubs.c' do |t|
   mkdir_p 'build/test/support'
   sh "#{cc} -shared -fPIC -rdynamic -Wl,-undefined,dynamic_lookup -o #{t.name} #{t.source}"
@@ -590,10 +607,6 @@ end
 
 task :tidy_internal do
   sh "clang-tidy --warnings-as-errors='*' #{PRIMARY_SOURCES.exclude('src/dtoa.c')}"
-end
-
-task :gc_lint_internal do
-  sh "ruby test/gc_lint.rb"
 end
 
 task :bundle_install do
@@ -657,5 +670,6 @@ def include_paths
     File.expand_path('build', __dir__),
     File.expand_path('build/onigmo/include', __dir__),
     File.expand_path('build/prism/include', __dir__),
+    File.expand_path('build/bdwgc/include', __dir__),
   ]
 end

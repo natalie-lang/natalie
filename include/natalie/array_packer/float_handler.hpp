@@ -8,17 +8,13 @@ namespace Natalie {
 
 namespace ArrayPacker {
 
-    class FloatHandler : public Cell {
+    class FloatHandler : public gc {
     public:
         FloatHandler(FloatObject *source, Token token)
             : m_source { source }
             , m_token { token } { }
 
         String pack(Env *env);
-
-        virtual void visit_children(Visitor &visitor) override {
-            visitor.visit(m_source);
-        }
 
     private:
         void pack_d();

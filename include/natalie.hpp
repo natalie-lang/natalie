@@ -13,6 +13,9 @@
 #include <unistd.h>
 #include <utility>
 
+#define GC_THREADS
+#include "gc_cpp.h"
+
 #include "natalie/args.hpp"
 #include "natalie/array_object.hpp"
 #include "natalie/backtrace.hpp"
@@ -22,6 +25,7 @@
 #include "natalie/complex_object.hpp"
 #include "natalie/constant.hpp"
 #include "natalie/dir_object.hpp"
+#include "natalie/heap.hpp"
 
 #include "natalie/encoding/ascii_8bit_encoding_object.hpp"
 #include "natalie/encoding/eucjp_encoding_object.hpp"

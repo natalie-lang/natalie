@@ -19,11 +19,3 @@ jobs:
         run: git submodule update --init --recursive
       - name: run clang-tidy
         run: rake docker_tidy
-  gc-lint:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: checkout submodules
-        run: git submodule update --init --recursive
-      - name: run gc-lint
-        run: rake docker_gc_lint

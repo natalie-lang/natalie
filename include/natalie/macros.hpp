@@ -52,7 +52,6 @@
 #ifdef NAT_GC_GUARD
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
-        NAT_GC_LOCK_GUARD();                                                                  \
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
             void *dummy;                                                                      \
@@ -75,5 +74,3 @@
 #endif
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
-
-#define NAT_GC_LOCK_GUARD() std::lock_guard<std::mutex> gc_lock(g_gc_mutex);

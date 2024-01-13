@@ -53,8 +53,6 @@ public:
     ExceptionObject *cause() const { return m_cause; }
     void set_cause(ExceptionObject *e) { m_cause = e; }
 
-    virtual void visit_children(Visitor &) override final;
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         if (m_message == nullptr) {
             snprintf(buf, len, "<ExceptionObject %p message=(null)>", this);

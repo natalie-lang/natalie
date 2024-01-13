@@ -48,12 +48,6 @@ public:
     Value to_s(Env *);
     Value truncate(Env *, Value);
 
-    virtual void visit_children(Visitor &visitor) override {
-        Object::visit_children(visitor);
-        visitor.visit(m_numerator);
-        visitor.visit(m_denominator);
-    }
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RationalObject %p>", this);
     }

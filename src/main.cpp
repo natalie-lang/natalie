@@ -83,6 +83,7 @@ int main(int argc, char *argv[]) {
     trap_signal(SIGINT, sigint_handler);
     trap_signal(SIGPIPE, sigpipe_handler);
 
+    GC_INIT();
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
 #endif

@@ -18,7 +18,8 @@ public:
             assert(s_instance->flags() == Flag::Frozen);
             return s_instance;
         }
-        s_instance = new NilObject();
+        auto mem = GC_MALLOC_UNCOLLECTABLE(sizeof(NilObject));
+        s_instance = new (mem) NilObject();
         s_instance->freeze();
         return s_instance;
     }
@@ -36,14 +37,8 @@ public:
     Value to_r(const Env *) const;
     Value inspect(const Env *) const;
 
-    virtual void visit_children(Visitor &visitor) override final;
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<NilObject %p>", this);
-    }
-
-    virtual bool is_collectible() override {
-        return false;
     }
 
 private:
