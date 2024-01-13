@@ -2,6 +2,7 @@
 
 #include "natalie/big_int.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/tm_allocator.hpp"
 #include "natalie/types.hpp"
 #include "tm/string.hpp"
 

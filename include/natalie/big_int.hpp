@@ -50,6 +50,7 @@
 
 #pragma once
 
+#include "natalie/tm_allocator.hpp"
 #include "tm/string.hpp"
 
 class BigInt {

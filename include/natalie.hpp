@@ -17,12 +17,9 @@
 #include "gc/gc_mark.h"
 #include "gc_cpp.h"
 
-#ifndef TM_CALLOC
-#define TM_CALLOC(count, size) GC_malloc(count *size)
-#define TM_REALLOC GC_realloc
-#define TM_FREE (void)sizeof
-#endif
+#include "natalie/tm_allocator.hpp"
 #include "tm/hashmap.hpp"
+#include "tm/string.hpp"
 #include "tm/vector.hpp"
 
 #include "natalie/args.hpp"
