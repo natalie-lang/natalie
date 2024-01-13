@@ -26,10 +26,6 @@ public:
         , m_cleanup_fn { cleanup_fn } { }
 
     virtual ~VoidPObject() override {
-        // FIXME: Allocating an object here can cause the GC to deadlock,
-        // since an allocation can trigger a second nested GC, which cannot
-        // work. We may need to disable the GC inside the destructor here,
-        // or teach the GC to recognize and ignore a nested collection.
         if (m_cleanup_fn)
             m_cleanup_fn.value()(this);
     }

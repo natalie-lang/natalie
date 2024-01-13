@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "natalie/cell.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
@@ -17,7 +18,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-class Object : public gc {
+class Object : public Cell {
 public:
     using Type = ObjectType;
 
@@ -91,7 +92,6 @@ public:
 
     virtual ~Object() {
         m_type = ObjectType::Nil;
-        delete m_ivars;
     }
 
     static Value create(Env *, ClassObject *);
