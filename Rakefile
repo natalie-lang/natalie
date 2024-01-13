@@ -595,7 +595,7 @@ file 'build/bdwgc/.libs/libgccpp.a' do
   sh <<-SH
     cd #{build_dir} && \
     ./autogen.sh && \
-    ./configure --enable-static --enable-cplusplus && \
+    ./configure --enable-static --enable-cplusplus --with-pic && \
     make -j 4
   SH
 end
