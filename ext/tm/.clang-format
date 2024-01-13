@@ -1,0 +1,6 @@
+---
+BasedOnStyle: WebKit
+PointerAlignment: Right
+BreakBeforeBraces: Attach
+AllowShortIfStatementsOnASingleLine: WithoutElse
+TabWidth: 4

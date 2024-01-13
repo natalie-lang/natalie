@@ -1,0 +1,25 @@
+name: Format Code
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: "."
+          extensions: "hpp,cpp"
+          clangFormatVersion: 12
+          inplace: True
+      - uses: EndBug/add-and-commit@v4
+        with:
+          author_name: Tim Morgan
+          author_email: tim@timmorgan.org
+          message: "Format code with clang-format (automated)"

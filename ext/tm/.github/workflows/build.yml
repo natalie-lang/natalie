@@ -1,0 +1,21 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  DOCKER_FLAGS: ""
+  CI: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: test with gcc
+        run: rake docker_test
