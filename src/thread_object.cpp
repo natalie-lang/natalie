@@ -149,6 +149,14 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_file = env->file();
     m_line = env->line();
 
+    {
+        std::lock_guard<std::mutex> lock(g_thread_mutex);
+        if (!s_gc_threads_enabled) {
+            GC_allow_register_threads();
+            s_gc_threads_enabled = true;
+        }
+    }
+
     m_thread = std::thread { nat_create_thread, (void *)this };
 
     m_report_on_exception = s_report_on_exception;

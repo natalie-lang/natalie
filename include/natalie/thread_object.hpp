@@ -273,6 +273,8 @@ private:
     // TODO: we'll need to rebuild these after a fork :-/
     inline static int s_interrupt_read_fileno { -1 };
     inline static int s_interrupt_write_fileno { -1 };
+
+    inline static bool s_gc_threads_enabled { false };
 };
 
 }
