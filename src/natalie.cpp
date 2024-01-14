@@ -871,12 +871,10 @@ void gc_get_push_other_roots() {
 void gc_push_fiber_roots() {
     gc_push_other_roots_proc();
     FiberObject::each_fiber([](FiberObject *fiber) {
-        if (!fiber->is_current()) {
-            auto end = fiber->end_of_stack();
-            auto start = fiber->start_of_stack();
-            if (end && start)
-                GC_push_all_eager(end, start);
-        }
+        auto end = fiber->end_of_stack();
+        auto start = fiber->start_of_stack();
+        if (end && start)
+            GC_push_all_eager(end, start);
     });
 }
 
