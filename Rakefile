@@ -596,7 +596,7 @@ file 'build/bdwgc/.libs/libgccpp.a' do
     cd #{build_dir} && \
     ./autogen.sh && \
     ./configure --enable-static --enable-cplusplus --with-pic && \
-    make -j 4
+    CFLAGS_EXTRA="-DGC_THREADS -DPARALLEL_MARK -DTHREAD_LOCAL_ALLOC" make -j 4
   SH
 end
 
