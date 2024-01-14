@@ -129,8 +129,10 @@ public:
     }
 
     static void add_to_list(FiberObject *fiber) {
+        GC_disable();
         std::lock_guard<std::mutex> lock(g_thread_mutex);
         s_list.push(fiber);
+        GC_enable();
     }
 
     static void remove_from_list(FiberObject *fiber) {
