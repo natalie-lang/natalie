@@ -1,5 +1,6 @@
 #pragma once
 
+#define GC_THREADS
 #include "gc/gc.h"
 
 #ifndef TM_CALLOC

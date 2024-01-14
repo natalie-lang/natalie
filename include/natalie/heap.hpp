@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GC_THREADS
 #include "gc/gc.h"
 #include "natalie/macros.hpp"
+#include "natalie/tm_allocator.hpp"
 #include "tm/hashmap.hpp"
 #include "tm/vector.hpp"
 
