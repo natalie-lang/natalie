@@ -955,15 +955,22 @@ Value IoObject::select(Env *env, Value read_ios, Value write_ios, Value error_io
     int result;
     for (;;) {
         result = ::select(nfds, &read_fds, &write_fds, &error_fds, timeout_ptr);
-        if (result == -1)
+        if (result == -1 && errno == EINTR) {
+            // Interrupted by a signal -- probably the GC stopping the world.
+            // Try again.
+        } else if (result == -1) {
+            // An error the user needs to handle.
             break;
-
-        if (FD_ISSET(interrupt_fileno, &read_fds)) {
+        } else if (FD_ISSET(interrupt_fileno, &read_fds)) {
+            // Interrupted by our thread file descriptor.
+            // This thread may need to raise or exit.
             ThreadObject::clear_interrupt();
             ThreadObject::cancelation_checkpoint(env);
             if (any_closed(read_ios_ary) || any_closed(write_ios_ary) || any_closed(error_ios_ary))
                 env->raise("IOError", "closed stream");
         } else {
+            // Only thing left is one of the file descriptors
+            // we were waiting on got an update.
             break;
         }
 
@@ -1003,15 +1010,21 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
     for (;;) {
         ret = ::select(nfds, &readfds, nullptr, nullptr, timeout);
 
-        if (ret == -1 && errno == EBADF && m_closed) {
-            // On macOS, the blocking select() call returns an error
-            // when the file is closed. This can also happen on Linux
-            // if the file was closed just prior to our select() call.
-            env->raise("IOError", "closed stream");
+        if (ret == -1) {
+            if (errno == EINTR) {
+                // Interrupted by a signal -- probably the GC stopping the world.
+                // Try again.
+                readfds = readfds_copy;
+                continue;
+            } else if (errno == EBADF && m_closed) {
+                // On macOS, the blocking select() call returns an error
+                // when the file is closed. This can also happen on Linux
+                // if the file was closed just prior to our select() call.
+                env->raise("IOError", "closed stream");
+            } else {
+                env->raise_errno();
+            }
         }
-
-        if (ret == -1)
-            break;
 
         if (FD_ISSET(interrupt_fileno, &readfds)) {
             ThreadObject::clear_interrupt();
@@ -1022,11 +1035,11 @@ void IoObject::select_read(Env *env, timeval *timeout) const {
 
         if (FD_ISSET(m_fileno, &readfds))
             break;
+
         readfds = readfds_copy;
     }
 
-    if (ret == -1)
-        env->raise_errno();
+    assert(ret != -1);
 }
 
 Value IoObject::pipe(Env *env, Value external_encoding, Value internal_encoding, Block *block, ClassObject *klass) {
