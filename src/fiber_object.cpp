@@ -6,7 +6,40 @@
 
 namespace Natalie {
 
-std::mutex g_fiber_mutex;
+void *FiberObject::add_to_fiber_list(void *info) {
+    auto item = (FiberObject *)info;
+    if (s_list_size == 0) {
+        s_list_size = 1;
+        s_list = (FiberObject **)malloc(sizeof(FiberObject *));
+    } else {
+        s_list_size++;
+        s_list = (FiberObject **)realloc(s_list, s_list_size * sizeof(FiberObject *));
+    }
+    s_list[s_list_size - 1] = item;
+    return item;
+}
+
+void *FiberObject::remove_from_fiber_list(void *info) {
+    assert(s_list_size != 0);
+    auto item = (FiberObject *)info;
+    bool found = false;
+    for (size_t i = 0; i < s_list_size; ++i) {
+        if (!found && s_list[i] == item) {
+            found = true;
+            continue;
+        }
+        if (found)
+            s_list[i - 1] = s_list[i];
+    }
+    s_list_size--;
+    if (s_list_size == 0) {
+        free(s_list);
+        s_list = nullptr;
+    } else {
+        s_list = (FiberObject **)realloc(s_list, s_list_size * sizeof(FiberObject *));
+    }
+    return item;
+}
 
 FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_stack) {
     auto fiber = new FiberObject;

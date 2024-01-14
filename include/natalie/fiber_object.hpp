@@ -27,8 +27,6 @@ typedef struct {
 
 namespace Natalie {
 
-extern std::mutex g_fiber_mutex;
-
 class FiberObject : public Object {
 public:
     enum class Status {
@@ -122,31 +120,18 @@ public:
     bool is_current() const;
     bool is_main() const;
 
+    // This must be called with a GC reader lock already in place!
     static void each_fiber(std::function<void(FiberObject *)> callback) {
-        std::lock_guard<std::mutex> lock(g_thread_mutex);
-        for (auto fiber : s_list)
-            callback(fiber);
+        for (size_t i = 0; i < s_list_size; i++)
+            callback(s_list[i]);
     }
 
     static void add_to_list(FiberObject *fiber) {
-        GC_disable();
-        std::lock_guard<std::mutex> lock(g_thread_mutex);
-        s_list.push(fiber);
-        GC_enable();
+        GC_call_with_reader_lock(add_to_fiber_list, (void *)fiber, 1);
     }
 
     static void remove_from_list(FiberObject *fiber) {
-        std::lock_guard<std::mutex> lock(g_thread_mutex);
-        size_t i;
-        bool found = false;
-        for (i = 0; i < s_list.size(); ++i) {
-            if (s_list.at(i) == fiber) {
-                found = true;
-                break;
-            }
-        }
-        assert(found);
-        s_list.remove(i);
+        GC_call_with_reader_lock(remove_from_fiber_list, (void *)fiber, 1);
     }
 
     Vector<Value> &args() { return m_args; }
@@ -159,6 +144,9 @@ public:
     HashObject *ensure_thread_storage();
 
 private:
+    static void *add_to_fiber_list(void *info);
+    static void *remove_from_fiber_list(void *info);
+
     Block *m_block { nullptr };
     bool m_blocking { false };
     HashObject *m_storage { nullptr };
@@ -177,7 +165,8 @@ private:
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
 
-    inline static TM::Vector<FiberObject *> s_list {};
+    inline static FiberObject **s_list { nullptr };
+    inline static size_t s_list_size { 0 };
 };
 
 }
