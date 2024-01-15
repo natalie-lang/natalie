@@ -72,7 +72,7 @@ module Natalie
         out = `#{cmd} 2>&1`
         File.unlink(@cpp_path) unless @compiler.keep_cpp? || $? != 0
         puts "cpp file path is: #{@cpp_path}" if @compiler.keep_cpp?
-        warn out if out.strip != ''
+        warn out if $? != 0
         raise Compiler::CompileError, 'There was an error compiling.' if $? != 0
       end
 
