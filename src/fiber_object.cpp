@@ -158,13 +158,13 @@ Value FiberObject::resume(Env *env, Args args) {
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
 
+    set_args(args);
+
     GC_alloc_lock();
 
     auto suspending_fiber = m_previous_fiber = current();
     ThreadObject::current()->m_current_fiber = this;
     ThreadObject::current()->set_start_of_stack(m_start_of_stack);
-
-    set_args(args);
 
 #ifdef __SANITIZE_ADDRESS__
     auto fake_stack = __asan_get_current_fake_stack();
@@ -180,6 +180,7 @@ Value FiberObject::resume(Env *env, Args args) {
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
+
     GC_alloc_unlock();
 
     if (m_error)
@@ -260,9 +261,11 @@ Value FiberObject::yield(Env *env, Args args) {
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
 
+    current_fiber->m_previous_fiber->set_args(args);
+
     GC_alloc_lock();
     current_fiber->m_end_of_stack = &args;
-    current_fiber->swap_to_previous(env, args);
+    current_fiber->swap_to_previous(env);
     mco_yield(mco_running());
     GC_alloc_unlock();
 
@@ -276,7 +279,7 @@ Value FiberObject::yield(Env *env, Args args) {
     }
 }
 
-void FiberObject::swap_to_previous(Env *env, Args args) {
+void FiberObject::swap_to_previous(Env *env) {
     assert(m_previous_fiber);
     auto new_current = m_previous_fiber;
     ThreadObject::current()->m_current_fiber = new_current;
@@ -285,7 +288,6 @@ void FiberObject::swap_to_previous(Env *env, Args args) {
     GC_stack_base base = { new_current->start_of_stack() };
     GC_set_stackbottom(nullptr, &base);
 
-    new_current->set_args(args);
     m_previous_fiber = nullptr;
 }
 
@@ -339,14 +341,22 @@ void fiber_wrapper_func(mco_coro *co) {
         reraise = true;
     }
 
+    auto previous_fiber = fiber->previous_fiber();
+    if (reraise) {
+        previous_fiber->set_args({});
+    } else {
+        Natalie::Value args[] = { return_arg };
+        previous_fiber->set_args(Natalie::Args(1, args));
+    }
+
     GC_alloc_lock();
 
     fiber->set_status(Natalie::FiberObject::Status::Terminated);
     fiber->set_end_of_stack(&fiber);
 
     if (reraise)
-        fiber->swap_to_previous(env, {});
+        fiber->swap_to_previous(env);
     else
-        fiber->swap_to_previous(env, { return_arg });
+        fiber->swap_to_previous(env);
 }
 }

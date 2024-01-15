@@ -79,7 +79,9 @@ public:
     static Value set_scheduler(Env *, Value);
     Value set_storage(Env *, Value);
     Value storage(Env *) const;
-    void swap_to_previous(Env *env, Args args);
+
+    void swap_to_previous(Env *env);
+    FiberObject *previous_fiber() { return m_previous_fiber; }
 
     void *start_of_stack() { return m_start_of_stack; }
     void *end_of_stack() { return m_end_of_stack; }
