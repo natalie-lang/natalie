@@ -121,7 +121,7 @@ public:
     bool is_main() const;
 
     // This must be called with a GC reader lock already in place!
-    static void each_fiber(std::function<void(FiberObject *)> callback) {
+    static void each_fiber_for_gc(std::function<void(FiberObject *)> callback) {
         for (size_t i = 0; i < s_list_size; i++)
             callback(s_list[i]);
     }
