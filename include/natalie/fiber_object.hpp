@@ -91,6 +91,7 @@ public:
     Block *block() { return m_block; }
 
     void set_status(Status status) { m_status = status; }
+    Status status() { return m_status; }
     SymbolObject *status(Env *env) {
         switch (m_status) {
         case Status::Created:

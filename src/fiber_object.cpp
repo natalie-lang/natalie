@@ -50,11 +50,11 @@ FiberObject *FiberObject::build_main_fiber(ThreadObject *thread, void *start_of_
 }
 
 bool FiberObject::is_current() const {
-    return m_thread->current_fiber() == this;
+    return m_thread && m_thread->current_fiber() == this;
 }
 
 bool FiberObject::is_main() const {
-    return m_thread->main_fiber() == this;
+    return m_thread && m_thread->main_fiber() == this;
 }
 
 FiberObject *FiberObject::initialize(Env *env, Value blocking, Value storage, Block *block) {
