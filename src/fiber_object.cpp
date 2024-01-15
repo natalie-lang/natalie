@@ -150,11 +150,6 @@ Value FiberObject::refeq(Env *env, Value key, Value value) {
     return value;
 }
 
-static void *GC_CALLBACK set_stackbottom(void *cd) {
-    GC_set_stackbottom(nullptr, (GC_stack_base *)cd);
-    return nullptr;
-}
-
 Value FiberObject::resume(Env *env, Args args) {
     if (m_thread != ThreadObject::current())
         env->raise("FiberError", "fiber called across threads");
@@ -162,6 +157,8 @@ Value FiberObject::resume(Env *env, Args args) {
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
         env->raise("FiberError", "attempt to resume the current fiber");
+
+    GC_alloc_lock();
 
     auto suspending_fiber = m_previous_fiber = current();
     ThreadObject::current()->m_current_fiber = this;
@@ -179,10 +176,11 @@ Value FiberObject::resume(Env *env, Args args) {
 #endif
 
     GC_stack_base base = { m_start_of_stack };
-    GC_call_with_reader_lock(set_stackbottom, (void *)&base, 1);
+    GC_set_stackbottom(nullptr, &base);
 
     auto res = mco_resume(m_coroutine);
     assert(res == MCO_SUCCESS);
+    GC_alloc_unlock();
 
     if (m_error)
         env->raise_exception(m_error);
@@ -261,10 +259,12 @@ Value FiberObject::yield(Env *env, Args args) {
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
+
+    GC_alloc_lock();
     current_fiber->m_end_of_stack = &args;
     current_fiber->swap_to_previous(env, args);
-
     mco_yield(mco_running());
+    GC_alloc_unlock();
 
     auto fiber_args = FiberObject::current()->args();
     if (fiber_args.size() == 0) {
@@ -283,7 +283,7 @@ void FiberObject::swap_to_previous(Env *env, Args args) {
     ThreadObject::current()->set_start_of_stack(new_current->start_of_stack());
 
     GC_stack_base base = { new_current->start_of_stack() };
-    GC_call_with_reader_lock(set_stackbottom, (void *)&base, 1);
+    GC_set_stackbottom(nullptr, &base);
 
     new_current->set_args(args);
     m_previous_fiber = nullptr;
@@ -315,6 +315,7 @@ FiberObject *FiberObject::main() {
 extern "C" {
 
 void fiber_wrapper_func(mco_coro *co) {
+    GC_alloc_unlock();
     auto user_data = (coroutine_user_data *)co->user_data;
     auto env = user_data->env;
     auto fiber = user_data->fiber;
@@ -337,6 +338,8 @@ void fiber_wrapper_func(mco_coro *co) {
         fiber->set_error(exception);
         reraise = true;
     }
+
+    GC_alloc_lock();
 
     fiber->set_status(Natalie::FiberObject::Status::Terminated);
     fiber->set_end_of_stack(&fiber);
