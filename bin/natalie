@@ -9,6 +9,8 @@ if RUBY_ENGINE != 'natalie' && ENV.fetch('DEBUG', false)
   end
 end
 
+DARWIN = RUBY_PLATFORM.match?(/darwin/)
+
 require_relative '../lib/optparse'
 require 'tempfile'
 
@@ -222,7 +224,7 @@ class Runner
       elsif options[:interpret]
         Natalie::VM.new(compiler.instructions, path: source_path).run
       else
-        compiler.options[:dynamic_linking] = true
+        compiler.options[:dynamic_linking] = !DARWIN
         compiler.compile
         begin
           run_temp_and_wait(out.path)
@@ -261,7 +263,7 @@ class Runner
 
   def run_temp_and_wait(path)
     build_dir = File.expand_path('../build', __dir__)
-    var_name = RUBY_PLATFORM =~ /darwin/ ? 'DYLD_LIBRARY_PATH' : 'LD_LIBRARY_PATH'
+    var_name = DARWIN ? 'DYLD_LIBRARY_PATH' : 'LD_LIBRARY_PATH'
     env = { var_name => Natalie::Compiler::CppBackend::LIB_PATHS.join(':') }
     pid = spawn(env, path, *ARGV)
     Process.wait(pid)
