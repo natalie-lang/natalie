@@ -4,11 +4,10 @@
         abort();                                                              \
     }
 
-#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                                                         \
-    {                                                                                             \
-        fprintf(stderr, "NOT YET IMPLEMENTED in %s#%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__); \
-        fprintf(stderr, "\n");                                                                    \
-        abort();                                                                                  \
+#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                                                              \
+    {                                                                                                  \
+        fprintf(stderr, "NOT YET IMPLEMENTED in %s#%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
+        abort();                                                                                       \
     }
 
 #define NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, on_break_flag) ({ \
@@ -75,3 +74,10 @@
 #endif
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
+
+#ifdef NAT_DEBUG_THREADS
+#define NAT_THREAD_DEBUG(msg, ...) \
+    fprintf(stderr, "THREAD DEBUG: " msg "\n", ##__VA_ARGS__)
+#else
+#define NAT_THREAD_DEBUG(msg, ...)
+#endif

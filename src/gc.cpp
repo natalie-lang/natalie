@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdexcept>
 
 #include "natalie.hpp"
@@ -88,10 +89,12 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 }
 
 void Heap::collect() {
-    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
-
     // Only collect on the main thread for now.
     if (ThreadObject::current() != ThreadObject::main()) return;
+
+    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
+
+    ThreadObject::stop_the_world_and_save_context();
 
     static auto is_profiled = NativeProfiler::the()->enabled();
 
@@ -136,6 +139,8 @@ void Heap::collect() {
         mark_profiler_event->end_now();
 
     sweep();
+
+    ThreadObject::wake_up_the_world();
 }
 
 void Heap::sweep() {

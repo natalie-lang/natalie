@@ -104,6 +104,7 @@ private:
                 return *allocator;
             }
         }
+        fprintf(stderr, "No allocator found for size %zu\n", size);
         NAT_UNREACHABLE();
     }
 

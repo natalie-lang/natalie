@@ -8,11 +8,13 @@
 #include "natalie/symbol_object.hpp"
 
 #include <atomic>
+#include <sys/ucontext.h>
 #include <thread>
-
-extern thread_local Natalie::ThreadObject *tl_current_thread;
+#include <ucontext.h>
 
 namespace Natalie {
+
+extern thread_local ThreadObject *tl_current_thread;
 
 class ThreadObject : public Object {
 public:
@@ -37,21 +39,16 @@ public:
     };
 
     ThreadObject()
-        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } {
-        add_to_list(this);
-    }
+        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } { }
 
     ThreadObject(ClassObject *klass)
-        : Object { Object::Type::Thread, klass } {
-        add_to_list(this);
-    }
+        : Object { Object::Type::Thread, klass } { }
 
     ThreadObject(ClassObject *klass, Block *block)
-        : Object { Object::Type::Thread, klass } {
-        add_to_list(this);
-    }
+        : Object { Object::Type::Thread, klass } { }
 
     virtual ~ThreadObject() {
+        free(m_context);
         // In normal running, this destructor should only be called for threads that
         // are well and truly dead. See the is_collectible function.
         // But just in case the ThreadObject is destroyed while it's still running,
@@ -62,6 +59,10 @@ public:
     static void build_main_thread(Env *env, void *start_of_stack);
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
+
+    std::thread::native_handle_type native_thread_handle() const {
+        return m_native_thread_handle;
+    }
 
     Value to_s(Env *);
 
@@ -171,6 +172,12 @@ public:
 
     void check_exception(Env *);
 
+    ucontext_t *get_context() const { return m_context; }
+    bool context_saved() const { return m_context_saved; }
+    void set_context_saved(bool saved) { m_context_saved = saved; }
+
+    void set_launched(bool launched) { m_launched = launched; }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -237,32 +244,41 @@ public:
 
     static void detach_all();
 
+    static void stop_the_world_and_save_context();
+    static void wake_up_the_world();
+
 private:
     void wait_until_running() const;
 
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
+    void visit_children_from_context(Visitor &) const;
 
     friend FiberObject;
 
     ArrayObject *m_args { nullptr };
     Block *m_block { nullptr };
-    void *m_start_of_stack { nullptr };
-    void *m_end_of_stack { nullptr };
     std::thread m_thread {};
+    std::thread::native_handle_type m_native_thread_handle { 0 };
     std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
     HashObject *m_thread_variables { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
-#ifdef __SANITIZE_ADDRESS__
-    void *m_asan_fake_stack { nullptr };
-#endif
     std::atomic<Status> m_status { Status::Created };
     std::atomic<bool> m_joined { false };
     TM::Optional<TM::String> m_name {};
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+
+    void *m_start_of_stack { nullptr };
+    void *m_end_of_stack { nullptr };
+#ifdef __SANITIZE_ADDRESS__
+    void *m_asan_fake_stack { nullptr };
+#endif
+    ucontext_t *m_context { nullptr };
+    std::atomic<bool> m_context_saved { false };
+    std::atomic<bool> m_launched { false };
 
     bool m_abort_on_exception { false };
     bool m_report_on_exception { true };

@@ -4,8 +4,6 @@
 #include "natalie.hpp"
 #include "natalie/thread_object.hpp"
 
-thread_local Natalie::ThreadObject *tl_current_thread = nullptr;
-
 static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
     auto thread_id = pthread_self();
 #if defined(__APPLE__)
@@ -29,19 +27,18 @@ static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
 
-    // If the GC is running (in another thread, naturally), then this thread
-    // shouldn't exit because that would let the OS reclaim the stack space
-    // and can segfault our conservative scanning process.
-    std::lock_guard<std::recursive_mutex> lock(Natalie::g_gc_recursive_mutex);
-
     thread->set_status(Natalie::ThreadObject::Status::Dead);
     Natalie::ThreadObject::remove_from_list(thread);
     thread->unlock_mutexes();
 }
 
 static void *nat_create_thread(void *thread_object) {
+    NAT_THREAD_DEBUG("Thread launched %p", thread_object);
+
     auto thread = (Natalie::ThreadObject *)thread_object;
-    tl_current_thread = thread;
+    Natalie::tl_current_thread = thread;
+
+    thread->set_launched(true);
 
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
@@ -55,6 +52,7 @@ static void *nat_create_thread(void *thread_object) {
     // The thread is now "Active", which means enough of the setup code has
     // run that we should be able to handle anything the user code throws at us.
     thread->set_status(Natalie::ThreadObject::Status::Active);
+    NAT_THREAD_DEBUG("Thread status set to Active %p", thread);
 
     auto args = thread->args();
     auto block = thread->block();
@@ -137,6 +135,8 @@ static void *nat_create_thread(void *thread_object) {
 
 namespace Natalie {
 
+thread_local ThreadObject *tl_current_thread = nullptr;
+
 static Value validate_key(Env *env, Value key) {
     if (key->is_string())
         key = key->as_string()->to_sym(env);
@@ -172,10 +172,12 @@ void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
+    thread->m_launched = true;
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
     tl_current_thread = thread;
+    add_to_list(thread);
     setup_interrupt_pipe(env);
 }
 
@@ -192,6 +194,9 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
 
     if (!block)
         env->raise("ThreadError", "must be called with a block");
+
+    m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
+
     m_args = args.to_array();
     m_block = block;
 
@@ -200,7 +205,11 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
 
     m_report_on_exception = s_report_on_exception;
 
+    NAT_THREAD_DEBUG("Creating thread %p", this);
     m_thread = std::thread { nat_create_thread, (void *)this };
+    m_native_thread_handle = m_thread.native_handle();
+
+    add_to_list(this);
 
     return this;
 }
@@ -671,6 +680,70 @@ void ThreadObject::detach_all() {
     }
 }
 
+void ThreadObject::stop_the_world_and_save_context() {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    assert(current()->is_main());
+
+    NAT_THREAD_DEBUG("waiting till all threads have launched");
+    bool all_launched;
+    do {
+        all_launched = true;
+        for (auto thread : ThreadObject::list()) {
+            if (!thread->m_launched.load()) {
+                all_launched = false;
+                break;
+            }
+        }
+        sched_yield();
+    } while (!all_launched);
+
+    NAT_THREAD_DEBUG("sending signals to stop all threads except main");
+    for (auto thread : ThreadObject::list()) {
+        if (thread->is_main()) continue;
+
+        auto handle = thread->native_thread_handle();
+        if (!handle) continue;
+
+        thread->set_context_saved(false);
+
+        pthread_kill(handle, SIGUSR1);
+        NAT_THREAD_DEBUG("sent halt signal to thread %p", thread);
+    }
+
+    NAT_THREAD_DEBUG("waiting for threads to stop");
+    bool ready = false;
+    while (!ready) {
+        ready = true;
+        for (auto thread : ThreadObject::list()) {
+            if (thread->is_main()) continue;
+            if (thread->context_saved()) {
+                continue;
+            } else {
+                ready = false;
+                break;
+            }
+        }
+        NAT_THREAD_DEBUG("spinning...");
+        sched_yield();
+    }
+
+    NAT_THREAD_DEBUG("all threads indicated they have stopped");
+}
+
+void ThreadObject::wake_up_the_world() {
+    // Now we can wake up all the threads that are waiting.
+    for (auto thread : ThreadObject::list()) {
+        if (thread->is_main()) continue;
+
+        auto handle = thread->native_thread_handle();
+        if (!handle) continue;
+
+        NAT_THREAD_DEBUG("sending wake up signal to thread %p", thread);
+        pthread_kill(handle, SIGUSR2);
+    }
+}
+
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
     // If this is the currently active thread,
     // we don't need walk its stack a second time.
@@ -692,6 +765,9 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
         visit_children_from_asan_fake_stack(visitor, potential_cell);
 #endif
     }
+
+    // Check in the registers for any variables...
+    visit_children_from_context(visitor);
 }
 
 #ifdef __SANITIZE_ADDRESS__
@@ -711,4 +787,13 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visit
 #else
 void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
 #endif
+
+NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_context(Visitor &visitor) const {
+    for (char *i = (char *)m_context; i < (char *)m_context + sizeof(ucontext_t); ++i) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(i);
+        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
+            visitor.visit(potential_cell);
+    }
+}
+
 }
