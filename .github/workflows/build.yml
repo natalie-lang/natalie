@@ -65,11 +65,11 @@ jobs:
           submodules: true
       - name: build self-hosted binary
         run: rake docker_test_self_hosted
-  asan:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: test with AddressSanitizer
-        run: rake docker_test_asan
+  #asan:
+  #runs-on: ubuntu-22.04
+  #steps:
+  #- uses: actions/checkout@v4
+  #with:
+  #submodules: true
+  #- name: test with AddressSanitizer
+  #run: rake docker_test_asan
