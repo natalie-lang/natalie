@@ -129,6 +129,7 @@ void Heap::collect() {
     visitor.visit(NilObject::the());
     visitor.visit(TrueObject::the());
     visitor.visit(FalseObject::the());
+    visitor.visit(tl_current_exception);
     for (auto thread : ThreadObject::list())
         visitor.visit(thread);
 

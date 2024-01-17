@@ -6,6 +6,8 @@ namespace Natalie {
 
 using namespace TM;
 
+thread_local ExceptionObject *tl_current_exception = nullptr;
+
 void Env::build_vars(size_t size) {
     m_vars = new ManagedVector<Value>(size, NilObject::the());
 }
@@ -99,6 +101,8 @@ void Env::raise(const char *class_name, String message) {
 }
 
 void Env::raise_exception(ExceptionObject *exception) {
+    tl_current_exception = exception;
+
     if (!exception->backtrace()) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
