@@ -61,7 +61,11 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
         if (!thread || thread->is_main()) return;
 
         auto ctx = thread->get_context();
-        assert(ctx);
+        if (!ctx) {
+            char msg[] = "Fatal: Could not get pointer for thread context.";
+            ::write(STDERR_FILENO, msg, sizeof(msg));
+            abort();
+        }
         memcpy(ctx, ucontext, sizeof(ucontext_t));
         thread->set_context_saved(true);
 #ifdef NAT_DEBUG_THREADS
