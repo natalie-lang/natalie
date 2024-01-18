@@ -205,11 +205,11 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
 
     m_report_on_exception = s_report_on_exception;
 
+    add_to_list(this);
+
     NAT_THREAD_DEBUG("Creating thread %p", this);
     m_thread = std::thread { nat_create_thread, (void *)this };
     m_native_thread_handle = m_thread.native_handle();
-
-    add_to_list(this);
 
     return this;
 }
