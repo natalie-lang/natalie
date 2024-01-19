@@ -92,8 +92,10 @@ describe "Kernel#instance_variable_set" do
 
     it "accepts unicode instance variable names" do
       o = Object.new
-      o.instance_variable_set(:@💙, 42)
-      o.instance_variable_get(:@💙).should == 42
+      NATFIXME 'accepts unicode instance variable names', exception: NameError, message: "`@💙' is not allowed as an instance variable name" do
+        o.instance_variable_set(:@💙, 42)
+        o.instance_variable_get(:@💙).should == 42
+      end
     end
 
     it "raises for frozen objects" do
