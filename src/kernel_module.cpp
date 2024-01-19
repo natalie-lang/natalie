@@ -289,6 +289,10 @@ Value KernelModule::get_usage(Env *env) {
     return hash;
 }
 
+Value KernelModule::global_variables(Env *env) {
+    return GlobalEnv::the()->global_list(env);
+}
+
 Value KernelModule::Hash(Env *env, Value value) {
     if (value->is_hash()) {
         return value;

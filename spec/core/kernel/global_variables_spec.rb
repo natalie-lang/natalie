@@ -15,9 +15,11 @@ describe "Kernel.global_variables" do
     a = global_variables.size
     gvar_name = "$foolish_global_var#{@i += 1}"
     global_variables.include?(gvar_name.to_sym).should == false
-    eval("#{gvar_name} = 1")
-    global_variables.size.should == a+1
-    global_variables.should include(gvar_name.to_sym)
+    NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+      eval("#{gvar_name} = 1")
+      global_variables.size.should == a+1
+      global_variables.should include(gvar_name.to_sym)
+    end
   end
 end
 

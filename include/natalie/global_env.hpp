@@ -85,6 +85,7 @@ public:
     Value global_get(Env *, SymbolObject *);
     Value global_set(Env *, SymbolObject *, Value);
     Value global_alias(Env *, SymbolObject *, SymbolObject *);
+    ArrayObject *global_list(Env *);
 
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }
