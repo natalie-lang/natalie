@@ -362,8 +362,8 @@ Value KernelModule::instance_variable_get(Env *env, Value name_val) {
 }
 
 Value KernelModule::instance_variable_set(Env *env, Value name_val, Value value) {
-    this->assert_not_frozen(env);
     auto name = name_val->to_instance_variable_name(env);
+    this->assert_not_frozen(env);
     ivar_set(env, name, value);
     return value;
 }
