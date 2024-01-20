@@ -38,6 +38,7 @@ static void *nat_create_thread(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
     Natalie::tl_current_thread = thread;
 
+    thread->set_native_thread_handle(pthread_self());
     thread->set_launched(true);
 
 #ifdef __SANITIZE_ADDRESS__
@@ -548,8 +549,8 @@ Value ThreadObject::thread_variables(Env *env) const {
 }
 
 Value ThreadObject::list(Env *env) {
-    auto ary = new ArrayObject { s_list.size() };
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+    auto ary = new ArrayObject { s_list.size() };
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
             ary->push(thread);
@@ -703,8 +704,12 @@ void ThreadObject::stop_the_world_and_save_context() {
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
 
-        auto handle = thread->native_thread_handle();
-        if (!handle) continue;
+        std::thread::native_handle_type handle = thread->native_thread_handle();
+        while (!handle) {
+            NAT_THREAD_DEBUG("waiting for thread handle for %p", thread);
+            sched_yield();
+            handle = thread->native_thread_handle();
+        }
 
         thread->set_context_saved(false);
 
@@ -751,9 +756,8 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
     if (tl_current_thread == this)
         return;
 
-    // If this thread is still in the state of being setup, the stack might not
-    // be known yet. Plus, there shouldn't be any GC-managed variables on the
-    // stack prior to it being set as Status::Active.
+    // If this thread is still in the state of being setup, the stack might not be
+    // known yet. Plus, there shouldn't be any GC-managed variables on the stack yet.
     if (!m_launched)
         return;
 

@@ -65,6 +65,10 @@ public:
         return m_native_thread_handle;
     }
 
+    void set_native_thread_handle(std::thread::native_handle_type handle) {
+        m_native_thread_handle = handle;
+    }
+
     Value to_s(Env *);
 
     void set_start_of_stack(void *ptr) { m_start_of_stack = ptr; }
