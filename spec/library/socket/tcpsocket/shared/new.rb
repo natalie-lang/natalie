@@ -38,8 +38,7 @@ describe :tcpsocket_new, shared: true do
     end
   end
 
-  # NATFIXME: Threads in SpecTCPServer
-  xdescribe "with a running server" do
+  describe "with a running server" do
     before :each do
       @server = SocketSpecs::SpecTCPServer.new
       @hostname = @server.hostname
