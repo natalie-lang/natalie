@@ -27,22 +27,16 @@ platform_is_not :windows do
       # We need a really short name here.
       # On Linux the path length is limited to 107, see unix(7).
       @name = tmp("s")
-      NATFIXME 'UNIXServer', exception: NameError, message: 'uninitialized constant UNIXServer' do
-        @server = UNIXServer.new @name
-      end
+      @server = UNIXServer.new @name
     end
 
     after :each do
-      NATFIXME 'UNIXServer', exception: NoMethodError, message: 'for nil' do
-        @server.close
-      end
+      @server.close
       rm_r @name
     end
 
     it "returns true if the file is a socket" do
-      NATFIXME 'UNIXServer', exception: SpecFailedException do
-        File.socket?(@name).should == true
-      end
+      File.socket?(@name).should == true
     end
   end
 end
