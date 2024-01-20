@@ -14,7 +14,9 @@ describe :unixserver_new, shared: true do
 
   it "creates a new UNIXServer" do
     @server = UNIXServer.send(@method, @path)
-    @server.path.should == @path
+    NATFIXME 'Implement UNIXServer#path', exception: SpecFailedException do
+      @server.path.should == @path
+    end
     @server.addr.should == ["AF_UNIX", @path]
   end
 end

@@ -65,6 +65,15 @@ class TCPServer < TCPSocket
   __bind_method__ :accept, :TCPServer_accept
 end
 
+class UNIXSocket < BasicSocket
+  __bind_method__ :initialize, :UNIXSocket_initialize
+  __bind_method__ :addr, :UNIXSocket_addr
+end
+
+class UNIXServer < UNIXSocket
+  __bind_method__ :initialize, :UNIXServer_initialize
+end
+
 require_relative './socket/constants'
 
 class Socket < BasicSocket
