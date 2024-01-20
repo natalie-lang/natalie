@@ -1254,10 +1254,18 @@ void IoObject::set_fd_to_fileno(Env *env) {
 }
 
 void IoObject::set_fileno_to_fd(Env *env) {
-    const auto fileno = ::fileno(m_file);
-    if (fileno < 1)
-        env->raise_errno();
-    m_fileno = fileno;
+    if (m_file == stdin) {
+        m_fileno = STDIN_FILENO;
+    } else if (m_file == stdout) {
+        m_fileno = STDOUT_FILENO;
+    } else if (m_file == stderr) {
+        m_fileno = STDERR_FILENO;
+    } else {
+        const auto fileno = ::fileno(m_file);
+        if (fileno < 1)
+            env->raise_errno();
+        m_fileno = fileno;
+    }
 }
 
 }

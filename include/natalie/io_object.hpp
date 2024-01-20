@@ -23,10 +23,10 @@ public:
     IoObject(ClassObject *klass)
         : Object { Object::Type::Io, klass } { }
 
-    IoObject(int fileno, Env *env)
+    IoObject(FILE *fd, Env *env)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
-        , m_sync { fileno == STDERR_FILENO } {
-        set_fileno(fileno, env);
+        , m_sync { fd == stderr } {
+        set_fd(fd, env);
     }
 
     virtual ~IoObject() override {

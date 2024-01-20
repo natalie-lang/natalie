@@ -396,17 +396,17 @@ Env *build_top_env() {
     auto main_obj = new Natalie::Object {};
     GlobalEnv::the()->set_main_obj(main_obj);
 
-    Value _stdin = new IoObject { STDIN_FILENO, env };
+    Value _stdin = new IoObject { stdin, env };
     env->global_set("$stdin"_s, _stdin);
     Object->const_set("STDIN"_s, _stdin);
 
-    Value _stdout = new IoObject { STDOUT_FILENO, env };
+    Value _stdout = new IoObject { stdout, env };
     env->global_set("$stdout"_s, _stdout);
     GlobalEnv::the()->global_set_write_hook(env, "$stdout"_s, GlobalVariableAccessHooks::WriteHooks::set_stdout);
     env->global_alias("$>"_s, "$stdout"_s);
     Object->const_set("STDOUT"_s, _stdout);
 
-    Value _stderr = new IoObject { STDERR_FILENO, env };
+    Value _stderr = new IoObject { stderr, env };
     env->global_set("$stderr"_s, _stderr);
     Object->const_set("STDERR"_s, _stderr);
 
