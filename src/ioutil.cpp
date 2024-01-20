@@ -49,6 +49,7 @@ namespace ioutil {
             m_flags = flags_obj->as_integer()->to_nat_int_t();
             break;
         case Object::Type::String: {
+            m_flags_str = flags_obj->as_string()->string();
             auto colon = new StringObject { ":" };
             auto flagsplit = flags_obj->as_string()->split(env, colon, nullptr)->as_array();
             auto flags_str = flagsplit->fetch(env, IntegerObject::create(static_cast<nat_int_t>(0)), new StringObject { "" }, nullptr)->as_string()->string();
