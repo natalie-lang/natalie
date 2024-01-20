@@ -15,6 +15,8 @@ namespace Natalie {
 
 using namespace TM;
 
+extern thread_local ExceptionObject *tl_current_exception;
+
 class Env : public Cell {
 public:
     Env() { }

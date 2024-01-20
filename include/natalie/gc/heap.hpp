@@ -14,7 +14,7 @@
 
 namespace Natalie {
 
-extern std::mutex g_gc_mutex;
+extern std::recursive_mutex g_gc_recursive_mutex;
 
 using namespace TM;
 
@@ -41,7 +41,7 @@ public:
 
     void *allocate(size_t size);
 
-    void collect(bool);
+    void collect();
 
     void return_cell_to_free_list(Cell *cell);
 
@@ -104,6 +104,7 @@ private:
                 return *allocator;
             }
         }
+        fprintf(stderr, "No allocator found for size %zu\n", size);
         NAT_UNREACHABLE();
     }
 

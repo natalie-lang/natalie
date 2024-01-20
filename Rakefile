@@ -290,12 +290,26 @@ task docker_bash: :docker_build_clang do
   sh "docker run -it --rm --entrypoint bash natalie_clang_#{ruby_version_string}"
 end
 
+task docker_bash_gcc: :docker_build_gcc do
+  sh "docker run -it --rm --entrypoint bash natalie_gcc_#{ruby_version_string}"
+end
+
 task docker_bash_lldb: :docker_build_clang do
   sh 'docker run -it --rm ' \
      '--entrypoint bash ' \
      '--cap-add=SYS_PTRACE ' \
      '--security-opt seccomp=unconfined ' \
      "natalie_clang_#{ruby_version_string}"
+end
+
+task docker_bash_gdb: :docker_build_gcc do
+  sh 'docker run -it --rm ' \
+     '--entrypoint bash ' \
+     '--cap-add=SYS_PTRACE ' \
+     '--security-opt seccomp=unconfined ' \
+     '-m 2g ' \
+     '--cpus=2 ' \
+     "natalie_gcc_#{ruby_version_string}"
 end
 
 task docker_test: %i[docker_test_gcc docker_test_clang docker_test_self_hosted docker_test_asan]

@@ -4,9 +4,9 @@
 
 namespace Natalie {
 
-std::mutex g_var_mutex;
-
 using namespace TM;
+
+thread_local ExceptionObject *tl_current_exception = nullptr;
 
 void Env::build_vars(size_t size) {
     m_vars = new ManagedVector<Value>(size, NilObject::the());
@@ -101,6 +101,8 @@ void Env::raise(const char *class_name, String message) {
 }
 
 void Env::raise_exception(ExceptionObject *exception) {
+    tl_current_exception = exception;
+
     if (!exception->backtrace()) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
@@ -316,7 +318,7 @@ Backtrace *Env::backtrace() {
 }
 
 Value Env::var_get(const char *name, size_t index) {
-    std::lock_guard<std::mutex> lock(g_var_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!m_vars || index >= m_vars->size())
         return NilObject::the();
@@ -330,7 +332,7 @@ Value Env::var_get(const char *name, size_t index) {
 
 Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
     NAT_GC_GUARD_VALUE(val);
-    std::lock_guard<std::mutex> lock(g_var_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;

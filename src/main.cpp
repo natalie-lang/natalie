@@ -43,26 +43,52 @@ extern "C" Object *EVAL(Env *env) {
     }
 }
 
-void sigint_handler(int sig) {
-    if (ThreadObject::i_am_main()) {
-        const char *msg = "Interrupt\n";
-        auto bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
-        if (bytes_written == -1) abort();
-        exit(128 + SIGINT);
-    } else {
-        pthread_cancel(pthread_self());
-    }
+void sigint_handler(int, siginfo_t *, void *) {
+    const char *msg = "Interrupt\n";
+    auto bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
+    if (bytes_written == -1) abort();
+    exit(128 + SIGINT);
 }
 
-void sigpipe_handler(int unused) {
+void sigpipe_handler(int, siginfo_t *, void *) {
     // TODO: do something here?
 }
 
-void trap_signal(int signal, void (*handler)(int)) {
+void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
+    switch (signal) {
+    case SIGUSR1: {
+        auto thread = ThreadObject::current();
+        if (!thread || thread->is_main()) return;
+
+        auto ctx = thread->get_context();
+        if (!ctx) {
+            char msg[] = "Fatal: Could not get pointer for thread context.";
+            ::write(STDERR_FILENO, msg, sizeof(msg));
+            abort();
+        }
+        memcpy(ctx, ucontext, sizeof(ucontext_t));
+        thread->set_context_saved(true);
+#ifdef NAT_DEBUG_THREADS
+        char msg[] = "THREAD DEBUG: Thread paused\n";
+        ::write(STDERR_FILENO, msg, sizeof(msg));
+#endif
+        pause();
+        break;
+    }
+    case SIGUSR2:
+#ifdef NAT_DEBUG_THREADS
+        char msg2[] = "THREAD DEBUG: Thread woke up\n";
+        ::write(STDERR_FILENO, msg2, sizeof(msg2));
+#endif
+        break;
+    }
+}
+
+void trap_signal(int signal, void (*handler)(int, siginfo_t *, void *)) {
     struct sigaction sa;
-    sa.sa_handler = handler;
+    sa.sa_sigaction = handler;
     sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+    sa.sa_flags = SA_SIGINFO;
 
     if (sigaction(signal, &sa, nullptr) == -1) {
         printf("Failed to trap %d\n", signal);
@@ -82,6 +108,8 @@ int main(int argc, char *argv[]) {
 
     trap_signal(SIGINT, sigint_handler);
     trap_signal(SIGPIPE, sigpipe_handler);
+    trap_signal(SIGUSR1, gc_signal_handler);
+    trap_signal(SIGUSR2, gc_signal_handler);
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();

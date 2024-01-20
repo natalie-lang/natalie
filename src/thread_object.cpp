@@ -4,9 +4,8 @@
 #include "natalie.hpp"
 #include "natalie/thread_object.hpp"
 
-thread_local Natalie::ThreadObject *tl_current_thread = nullptr;
-
-static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thread_object) {
+static void set_stack_for_thread(Natalie::ThreadObject *thread_object) {
+    auto thread_id = pthread_self();
 #if defined(__APPLE__)
     auto start = pthread_get_stackaddr_np(thread_id);
     assert(start);
@@ -27,49 +26,107 @@ static void set_stack_for_thread(pthread_t thread_id, Natalie::ThreadObject *thr
 
 static void nat_thread_finish(void *thread_object) {
     auto thread = (Natalie::ThreadObject *)thread_object;
+
     thread->set_status(Natalie::ThreadObject::Status::Dead);
-    thread->remove_from_list();
+    Natalie::ThreadObject::remove_from_list(thread);
     thread->unlock_mutexes();
 }
 
 static void *nat_create_thread(void *thread_object) {
+    NAT_THREAD_DEBUG("Thread launched %p", thread_object);
+
     auto thread = (Natalie::ThreadObject *)thread_object;
+    Natalie::tl_current_thread = thread;
+
+    thread->set_native_thread_handle(pthread_self());
+    thread->set_launched(true);
+
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
 #endif
 
     pthread_cleanup_push(nat_thread_finish, thread);
-
-    auto thread_id = pthread_self();
-
-    // NOTE: We set the thread_id again here because *sometimes* the new thread
-    // starts executing *before* pthread_create() sets the thread_id. Fun!
-    thread->set_thread_id(thread_id);
-
-    set_stack_for_thread(thread_id, thread);
-    tl_current_thread = thread;
-
+    set_stack_for_thread(thread);
     thread->build_main_fiber();
+    Natalie::Env e {};
+
+    // The thread is now "Active", which means enough of the setup code has
+    // run that we should be able to handle anything the user code throws at us.
+    thread->set_status(Natalie::ThreadObject::Status::Active);
+    NAT_THREAD_DEBUG("Thread status set to Active %p", thread);
 
     auto args = thread->args();
     auto block = thread->block();
 
-    Natalie::Env e {};
-
     try {
-        thread->set_status(Natalie::ThreadObject::Status::Active);
+        // This is the guts of the thread --
+        // the user code that does what we came here to do.
         auto return_value = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), block, args, nullptr);
+
+        // If we got here and the thread has an exception,
+        // this is our last chance to raise it. The catch directly below
+        // will catch this exception and do the right thing.
         auto exception = thread->exception();
         if (exception)
             e.raise_exception(exception);
+
+        // Store the value and exit the thread!
+        // The cleanup handler does some additional housekeeping
+        // as this thread is exiting.
         thread->set_value(return_value);
         pthread_exit(return_value.object());
+
     } catch (Natalie::ExceptionObject *exception) {
-        Natalie::handle_top_level_exception(&e, exception, false);
-        thread->set_exception(exception);
-        if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
-            Natalie::ThreadObject::main()->raise(&e, { exception });
-        pthread_exit(exception);
+        // This code handles exceptions not rescued by user code.
+        // This is where we report the error (if Thread#report_on_exception is true),
+        // handle SystemExit et al, and where we abort the whole program
+        // if Thread.abort_on_exception or Thread#abort_on_exception is true.
+
+        if (exception->klass() == Natalie::ThreadObject::thread_kill_class()) {
+            // This is the special ThreadKillError that user code
+            // should not see. This means Thread#kill was called and this
+            // exception has bubbled all the way up to this point.
+
+            // But wait! If the thread had a pending (unrescued) exception
+            // prior to the kill, we might need to print that out. Since
+            // the thread is getting killed, such an exception cannot
+            // abort the program. Saved by the bell!
+            auto pending_exception = exception->cause();
+            if (pending_exception) {
+                // Calling Thread#value and Thread#join need to raise this pending exception,
+                // so we need to store it on the thread for later use.
+                thread->set_exception(pending_exception);
+
+                // Now we can print it or handle SystemExit.
+                Natalie::handle_top_level_exception(&e, pending_exception, false);
+            } else {
+                // ThreadKillError shouldn't be visible to user code,
+                // which means it cannot be returned from Thread#value or Thread#join,
+                // so we set this back to null.
+                thread->set_exception(nullptr);
+            }
+
+            // OK, all good. Now we can exit the thread and let the
+            // cleanup handler do its thing.
+            pthread_exit(exception);
+
+        } else {
+            // Calling Thread#value and Thread#join need to raise this exception,
+            // so we need to store it on the thread for later use.
+            thread->set_exception(exception);
+
+            // This is a regular Ruby Exception.
+            // We need to potentially print it and/or handle SystemExit.
+            Natalie::handle_top_level_exception(&e, exception, false);
+
+            // The user might have said we should abort the whole program
+            // if any thread fails, so this is where we do that.
+            if (thread->abort_on_exception() || Natalie::ThreadObject::global_abort_on_exception())
+                Natalie::ThreadObject::main()->raise(&e, { exception });
+
+            // Finally, we can exit the thread and run the cleanup handler.
+            pthread_exit(exception);
+        }
     }
 
     pthread_cleanup_pop(0);
@@ -79,6 +136,8 @@ static void *nat_create_thread(void *thread_object) {
 
 namespace Natalie {
 
+thread_local ThreadObject *tl_current_thread = nullptr;
+
 static Value validate_key(Env *env, Value key) {
     if (key->is_string())
         key = key->as_string()->to_sym(env);
@@ -87,11 +146,8 @@ static Value validate_key(Env *env, Value key) {
     return key;
 }
 
-std::mutex g_thread_mutex;
-std::recursive_mutex g_thread_recursive_mutex;
-
 Value ThreadObject::pass(Env *env) {
-    cancelation_checkpoint(env);
+    check_current_exception(env);
 
     sched_yield();
 
@@ -112,17 +168,17 @@ bool ThreadObject::is_stopped() const {
 }
 
 void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
-    assert(!s_main && !s_main_id); // can only be built once
+    assert(!s_main); // can only be built once
     auto thread = new ThreadObject;
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
-    thread->m_thread_id = pthread_self();
-    set_stack_for_thread(thread->m_thread_id, thread);
+    thread->m_launched = true;
+    set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
-    s_main_id = thread->m_thread_id;
     tl_current_thread = thread;
+    add_to_list(thread);
     setup_interrupt_pipe(env);
 }
 
@@ -134,20 +190,43 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     if (this == ThreadObject::main())
         env->raise("ThreadError", "already initialized");
 
-    if (m_args)
+    if (m_block)
         env->raise("ThreadError", "already initialized");
 
     if (!block)
         env->raise("ThreadError", "must be called with a block");
-    m_args = args.to_array();
+
+    add_to_list(this);
+
+    // DANGER ZONE ===========================================
+    // Do not allocate any GC-managed object after this point
+    // in this function. The ThreadObject::add_to_list() call
+    // is protected by mutex, thus any thread added to the
+    // list is guaranteed to be seen by the Garbage Collector
+    // and the GC will wait until:
+    //
+    // 1. The thread is launched (m_launched == true)
+    // 2. The thread is subsequently stopped by a SIGUSR1 signal.
+    //
+    // If you allocate GC-managed memory beyond this point,
+    // you *will* lock the GC, and this thread (and thus the
+    // whole program) will hang forever.
+
+    m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
+
+    m_args = args;
     m_block = block;
 
     m_file = env->file();
     m_line = env->line();
 
-    m_thread = std::thread { nat_create_thread, (void *)this };
-
     m_report_on_exception = s_report_on_exception;
+
+    NAT_THREAD_DEBUG("Creating thread %p", this);
+    m_thread = std::thread { nat_create_thread, (void *)this };
+    m_native_thread_handle = m_thread.native_handle();
+
+    // END DANGER ZONE =======================================
 
     return this;
 }
@@ -185,7 +264,7 @@ String ThreadObject::status() {
     case Status::Active:
         return m_sleeping ? "sleep" : "run";
     case Status::Aborting:
-        return "aborting";
+        return m_sleeping ? "sleep" : "aborting";
     case Status::Dead:
         return "dead";
     }
@@ -216,7 +295,6 @@ Value ThreadObject::join(Env *env) {
     }
 
     m_joined = true;
-    remove_from_list();
 
     if (m_exception)
         env->raise_exception(m_exception);
@@ -225,18 +303,36 @@ Value ThreadObject::join(Env *env) {
 }
 
 Value ThreadObject::kill(Env *env) {
-    if (is_main())
+    if (is_main()) {
+        // FIXME: raise SystemExit
         exit(0);
+    }
+
+    if (m_status == Status::Dead)
+        return this;
 
     wait_until_running();
 
     m_status = Status::Aborting;
 
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
-    pthread_cancel(m_thread_id);
-    remove_from_list();
+    auto exception = new ExceptionObject { thread_kill_class(env) };
 
-    return NilObject::the();
+    if (m_exception) {
+        // An pending exception was already raised on this thread,
+        // and we might need to print it out. We'll store it in the "cause"
+        // slot for now, but this might need a dedicated holder in the future.
+        exception->set_cause(m_exception);
+    }
+
+    if (is_current()) {
+        env->raise_exception(exception);
+    } else {
+        m_exception = exception;
+        wakeup(env);
+        ThreadObject::interrupt();
+    }
+
+    return this;
 }
 
 Value ThreadObject::raise(Env *env, Args args) {
@@ -251,7 +347,9 @@ Value ThreadObject::raise(Env *env, Args args) {
     m_exception = exception;
 
     // Wake up the thread in case it is sleeping.
-    wakeup(env);
+    pthread_mutex_lock(&m_sleep_lock);
+    pthread_cond_signal(&m_sleep_cond);
+    pthread_mutex_unlock(&m_sleep_lock);
 
     // In case this thread is blocking on read/select/whatever,
     // we may need to interrupt it (and all other threads, incidentally).
@@ -275,7 +373,7 @@ Value ThreadObject::wakeup(Env *env) {
     pthread_cond_signal(&m_sleep_cond);
     pthread_mutex_unlock(&m_sleep_lock);
 
-    return NilObject::the();
+    return this;
 }
 
 Value ThreadObject::sleep(Env *env, float timeout) {
@@ -309,13 +407,15 @@ Value ThreadObject::sleep(Env *env, float timeout) {
     if (timeout < 0.0) {
         pthread_mutex_lock(&m_sleep_lock);
 
+        check_exception(env);
+
         Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
         ThreadObject::set_current_sleeping(true);
 
         handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
         pthread_mutex_unlock(&m_sleep_lock);
 
-        cancelation_checkpoint(env);
+        check_exception(env);
 
         return calculate_elapsed();
     }
@@ -336,22 +436,21 @@ Value ThreadObject::sleep(Env *env, float timeout) {
 
     pthread_mutex_lock(&m_sleep_lock);
 
+    check_exception(env);
+
     Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
     ThreadObject::set_current_sleeping(true);
 
     handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
     pthread_mutex_unlock(&m_sleep_lock);
 
-    cancelation_checkpoint(env);
+    check_exception(env);
 
     return calculate_elapsed();
 }
 
 Value ThreadObject::value(Env *env) {
     join(env);
-
-    if (m_exception)
-        env->raise_exception(m_exception);
 
     if (!m_value)
         return NilObject::the();
@@ -466,7 +565,7 @@ Value ThreadObject::thread_variables(Env *env) const {
 }
 
 Value ThreadObject::list(Env *env) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     auto ary = new ArrayObject { s_list.size() };
     for (auto thread : s_list) {
         if (thread->m_status != ThreadObject::Status::Dead)
@@ -475,36 +574,39 @@ Value ThreadObject::list(Env *env) {
     return ary;
 }
 
-void ThreadObject::remove_from_list() const {
-    std::lock_guard<std::recursive_mutex> lock(g_thread_recursive_mutex);
+void ThreadObject::add_to_list(ThreadObject *thread) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+    s_list.push(thread);
+}
+
+void ThreadObject::remove_from_list(ThreadObject *thread) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
     size_t i;
     bool found = false;
     for (i = 0; i < s_list.size(); ++i) {
-        if (s_list.at(i) == this) {
+        if (s_list.at(i) == thread) {
             found = true;
             break;
         }
     }
-    // We call remove_from_list() from a few different places,
-    // so it's possible it was already removed.
-    if (found)
-        s_list.remove(i);
+    assert(found);
+    s_list.remove(i);
 }
 
 void ThreadObject::add_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_mutexes.set(mutex);
 }
 
 void ThreadObject::remove_mutex(Thread::MutexObject *mutex) {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     m_mutexes.remove(mutex);
 }
 
 void ThreadObject::unlock_mutexes() const {
-    std::lock_guard<std::mutex> lock(g_thread_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     for (auto pair : m_mutexes)
         pair.first->unlock_without_checks();
@@ -512,16 +614,26 @@ void ThreadObject::unlock_mutexes() const {
 
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
-    visitor.visit(m_args);
+    for (auto arg : m_args.vector())
+        visitor.visit(arg);
     visitor.visit(m_block);
-    visitor.visit(m_current_fiber);
     visitor.visit(m_exception);
-    visitor.visit(m_main_fiber);
     visitor.visit(m_value);
     visitor.visit(m_thread_variables);
     for (auto pair : m_mutexes)
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
+    visitor.visit(s_thread_kill_class);
+
+    visitor.visit(m_current_fiber);
+    visitor.visit(m_main_fiber);
+
+    // If this thread is Dead, then it's possible the OS has already reclaimed
+    // the stack space. We shouldn't have any remaining variables on the stack
+    // that we need to keep anyway.
+    if (m_status == Status::Dead)
+        return;
+
     visit_children_from_stack(visitor);
 }
 
@@ -558,25 +670,115 @@ void ThreadObject::clear_interrupt() {
     } while (bytes > 0);
 }
 
-void ThreadObject::cancelation_checkpoint(Env *env) {
-    auto thread = current();
+void ThreadObject::check_current_exception(Env *env) {
+    current()->check_exception(env);
+}
 
-    // This call gives us a cancelation point that works with pthread_cancel(3).
-    ::usleep(0);
+void ThreadObject::check_exception(Env *env) {
+    if (!m_exception)
+        return;
 
-    if (thread->m_exception) {
-        auto exception = Value(thread->m_exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
-        thread->set_exception(nullptr);
+    auto exception = m_exception.load();
+
+    if (exception->klass() == s_thread_kill_class) {
+        m_exception = nullptr;
         env->raise_exception(exception);
+    }
+
+    exception = Value(exception).send(env, "exception"_s, {})->as_exception_or_raise(env);
+    m_exception = nullptr;
+    env->raise_exception(exception);
+}
+
+void ThreadObject::detach_all() {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+    for (auto thread : s_list) {
+        if (thread->is_main())
+            continue;
+        thread->detach();
+    }
+}
+
+void ThreadObject::stop_the_world_and_save_context() {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    assert(current()->is_main());
+
+    NAT_THREAD_DEBUG("waiting till all threads have launched");
+    bool all_launched;
+    do {
+        all_launched = true;
+        for (auto thread : ThreadObject::list()) {
+            if (!thread->m_launched.load()) {
+                all_launched = false;
+                break;
+            }
+        }
+        sched_yield();
+    } while (!all_launched);
+
+    NAT_THREAD_DEBUG("sending signals to stop all threads except main");
+    for (auto thread : ThreadObject::list()) {
+        if (thread->is_main()) continue;
+
+        std::thread::native_handle_type handle = thread->native_thread_handle();
+        while (!handle) {
+            NAT_THREAD_DEBUG("waiting for thread handle for %p", thread);
+            sched_yield();
+            handle = thread->native_thread_handle();
+        }
+
+        thread->set_context_saved(false);
+
+        pthread_kill(handle, SIGUSR1);
+        NAT_THREAD_DEBUG("sent halt signal to thread %p", thread);
+    }
+
+    NAT_THREAD_DEBUG("waiting for threads to stop");
+    bool ready = false;
+    while (!ready) {
+        ready = true;
+        for (auto thread : ThreadObject::list()) {
+            if (thread->is_main()) continue;
+            if (thread->context_saved()) {
+                continue;
+            } else {
+                ready = false;
+                break;
+            }
+        }
+        NAT_THREAD_DEBUG("spinning...");
+        sched_yield();
+    }
+
+    NAT_THREAD_DEBUG("all threads indicated they have stopped");
+}
+
+void ThreadObject::wake_up_the_world() {
+    // Now we can wake up all the threads that are waiting.
+    for (auto thread : ThreadObject::list()) {
+        if (thread->is_main()) continue;
+
+        auto handle = thread->native_thread_handle();
+        if (!handle) continue;
+
+        NAT_THREAD_DEBUG("sending wake up signal to thread %p", thread);
+        pthread_kill(handle, SIGUSR2);
     }
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
-    if (pthread_self() == m_thread_id)
-        return; // this is the currently active thread, so don't walk its stack a second time
-    if (m_status != Status::Active)
+    // If this is the currently active thread,
+    // we don't need walk its stack a second time.
+    if (tl_current_thread == this)
         return;
 
+    // If this thread is still in the state of being setup, the stack might not be
+    // known yet. Plus, there shouldn't be any GC-managed variables on the stack yet.
+    if (!m_launched)
+        return;
+
+    // Walk the stack looking for variables...
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
@@ -585,6 +787,9 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
         visit_children_from_asan_fake_stack(visitor, potential_cell);
 #endif
     }
+
+    // Check in the registers for any variables...
+    visit_children_from_context(visitor);
 }
 
 #ifdef __SANITIZE_ADDRESS__
@@ -604,4 +809,15 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_asan_fake_stack(Visit
 #else
 void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *potential_cell) const { }
 #endif
+
+NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_context(Visitor &visitor) const {
+    for (char *i = (char *)m_context; i < (char *)m_context + sizeof(ucontext_t); ++i) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(i);
+        if (!potential_cell)
+            continue;
+        if (Heap::the().is_a_heap_cell_in_use(potential_cell))
+            visitor.visit(potential_cell);
+    }
+}
+
 }

@@ -8,8 +8,6 @@
 
 namespace Natalie {
 
-std::mutex g_backtrace_mutex;
-
 Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
     auto *env = new Env {};
@@ -485,7 +483,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception, ThreadObject *thread) {
-    std::lock_guard<std::mutex> lock(g_backtrace_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     auto out = env->global_get("$stderr"_s);
 
@@ -494,17 +492,19 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception, Thread
         out.send(env, "puts"_s, { formatted });
     }
 
-    ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
-    if (backtrace && backtrace->size() > 0) {
-        out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
-        for (int i = backtrace->size() - 1; i > 0; i--) {
-            auto line = backtrace->at(i)->as_string_or_raise(env);
-            auto formatted = StringObject::format("        {}: from {}", i, line->string());
-            out.send(env, "puts"_s, { formatted });
+    if (exception->backtrace()) {
+        ArrayObject *backtrace = exception->backtrace()->to_ruby_array();
+        if (backtrace->size() > 0) {
+            out.send(env, "puts"_s, { new StringObject { "Traceback (most recent call last):" } });
+            for (int i = backtrace->size() - 1; i > 0; i--) {
+                auto line = backtrace->at(i)->as_string_or_raise(env);
+                auto formatted = StringObject::format("        {}: from {}", i, line->string());
+                out.send(env, "puts"_s, { formatted });
+            }
+            auto line = backtrace->at(0)->as_string_or_raise(env);
+            auto formatted = StringObject::format("{}: ", line->string());
+            out.send(env, "print"_s, { formatted });
         }
-        auto line = backtrace->at(0)->as_string_or_raise(env);
-        auto formatted = StringObject::format("{}: ", line->string());
-        out.send(env, "print"_s, { formatted });
     }
 
     auto formatted = StringObject::format(
@@ -806,6 +806,7 @@ Value super(Env *env, Value self, Args args, Block *block) {
 }
 
 void clean_up_and_exit(int status) {
+    ThreadObject::detach_all();
     if (Heap::the().collect_all_at_exit()) {
         delete &Heap::the();
         delete NativeProfiler::the();

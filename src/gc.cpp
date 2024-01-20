@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdexcept>
 
 #include "natalie.hpp"
@@ -8,7 +9,7 @@ extern "C" void GC_disable() {
 
 namespace Natalie {
 
-std::mutex g_gc_mutex;
+std::recursive_mutex g_gc_recursive_mutex;
 
 void *Cell::operator new(size_t size) {
     auto *cell = Heap::the().allocate(size);
@@ -77,7 +78,7 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     setjmp(jump_buf);
     for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
-        if (roots.get(potential_cell))
+        if (!potential_cell || roots.get(potential_cell))
             continue;
         if (is_a_heap_cell_in_use(potential_cell)) {
             roots.set(potential_cell);
@@ -87,11 +88,13 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     return roots;
 }
 
-void Heap::collect(bool guard = true) {
+void Heap::collect() {
     // Only collect on the main thread for now.
     if (ThreadObject::current() != ThreadObject::main()) return;
 
-    if (guard) NAT_GC_LOCK_GUARD();
+    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
+
+    ThreadObject::stop_the_world_and_save_context();
 
     static auto is_profiled = NativeProfiler::the()->enabled();
 
@@ -126,6 +129,7 @@ void Heap::collect(bool guard = true) {
     visitor.visit(NilObject::the());
     visitor.visit(TrueObject::the());
     visitor.visit(FalseObject::the());
+    visitor.visit(tl_current_exception);
     for (auto thread : ThreadObject::list())
         visitor.visit(thread);
 
@@ -136,6 +140,8 @@ void Heap::collect(bool guard = true) {
         mark_profiler_event->end_now();
 
     sweep();
+
+    ThreadObject::wake_up_the_world();
 }
 
 void Heap::sweep() {
@@ -166,7 +172,7 @@ void Heap::sweep() {
 }
 
 void *Heap::allocate(size_t size) {
-    NAT_GC_LOCK_GUARD();
+    std::lock_guard<std::recursive_mutex> gc_lock(g_gc_recursive_mutex);
 
     static auto is_profiled = NativeProfiler::the()->enabled();
     NativeProfilerEvent *profiler_event;
@@ -180,13 +186,13 @@ void *Heap::allocate(size_t size) {
 
     if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
-        collect(false);
+        collect_dangerously_without_mutex();
 #else
 
         if (allocator.total_cells() == 0) {
             allocator.add_multiple_blocks(initial_blocks_per_allocator);
         } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
-            collect(false);
+            collect();
             allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
         }
 #endif

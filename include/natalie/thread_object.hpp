@@ -3,14 +3,19 @@
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/hash_object.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
+#ifdef __APPLE__
+#define _XOPEN_SOURCE
+#endif
 #include <atomic>
+#include <sys/ucontext.h>
 #include <thread>
 
 namespace Natalie {
+
+extern thread_local ThreadObject *tl_current_thread;
 
 class ThreadObject : public Object {
 public:
@@ -35,37 +40,34 @@ public:
     };
 
     ThreadObject()
-        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } {
-        s_list.push(this);
-    }
+        : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } { }
 
     ThreadObject(ClassObject *klass)
-        : Object { Object::Type::Thread, klass } {
-        s_list.push(this);
-    }
+        : Object { Object::Type::Thread, klass } { }
 
     ThreadObject(ClassObject *klass, Block *block)
-        : Object { Object::Type::Thread, klass } {
-        s_list.push(this);
-    }
+        : Object { Object::Type::Thread, klass } { }
 
     virtual ~ThreadObject() {
-        // In normal operation, this destructor should only be called for threads that
-        // are well and truly dead. (See the is_collectible function.) But in one case --
-        // when you compile with the flag NAT_GC_COLLECT_ALL_AT_EXIT -- the GC will
-        // destroy every object at the end of the program, even threads that could still
-        // be running. In order to be able to safely destroy the std::thread object, we
-        // need to detatch any running system thread from the object. And in many cases,
-        // the thread will already be joined, so this could error. But we don't care
-        // about the error.
-        try {
-            m_thread.detach();
-        } catch (...) { }
+        free(m_context);
+        // In normal running, this destructor should only be called for threads that
+        // are well and truly dead. See the is_collectible function.
+        // But just in case the ThreadObject is destroyed while it's still running,
+        // we don't want it throwing any exceptions.
+        detach();
     }
 
     static void build_main_thread(Env *env, void *start_of_stack);
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
+
+    std::thread::native_handle_type native_thread_handle() const {
+        return m_native_thread_handle;
+    }
+
+    void set_native_thread_handle(std::thread::native_handle_type handle) {
+        m_native_thread_handle = handle;
+    }
 
     Value to_s(Env *);
 
@@ -86,23 +88,28 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
 
-    ArrayObject *args() { return m_args; }
+    ArrayObject *args() { return m_args.to_array(); }
     Block *block() { return m_block; }
 
     bool is_alive() const {
-        return m_status == Status::Active || m_status == Status::Created;
+        return m_status == Status::Active || m_status == Status::Created || m_status == Status::Aborting;
     }
 
     bool is_main() const {
-        return m_thread_id == s_main_id;
+        return this == s_main;
     }
 
     bool is_current() const {
-        return m_thread_id == pthread_self();
+        return this == tl_current_thread;
+    }
+
+    void detach() {
+        try {
+            m_thread.detach();
+        } catch (...) { }
     }
 
     Value join(Env *);
-    static Value exit(Env *env) { return current()->kill(env); }
     Value kill(Env *);
     Value raise(Env *, Args args);
     Value run(Env *);
@@ -132,14 +139,9 @@ public:
 
     bool is_stopped() const;
 
-    void set_thread_id(pthread_t thread_id) { m_thread_id = thread_id; }
-    pthread_t thread_id() const { return m_thread_id; }
-
     void build_main_fiber();
     FiberObject *main_fiber() { return m_main_fiber; }
     FiberObject *current_fiber() { return m_current_fiber; }
-
-    void remove_from_list() const;
 
     virtual bool is_collectible() override {
         return m_status == Status::Dead && !m_thread.joinable();
@@ -173,6 +175,14 @@ public:
         return report;
     }
 
+    void check_exception(Env *);
+
+    ucontext_t *get_context() const { return m_context; }
+    bool context_saved() const { return m_context_saved; }
+    void set_context_saved(bool saved) { m_context_saved = saved; }
+
+    void set_launched(bool launched) { m_launched = launched; }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -190,11 +200,13 @@ public:
     static ThreadObject *current();
     static ThreadObject *main() { return s_main; }
 
+    static void add_to_list(ThreadObject *);
+    static void remove_from_list(ThreadObject *);
+
+    static Value exit(Env *env) { return current()->kill(env); }
     static Value stop(Env *);
 
-    static pthread_t main_id() { return s_main_id; }
-
-    static bool i_am_main() { return pthread_self() == s_main_id; }
+    static bool i_am_main() { return tl_current_thread == s_main; }
 
     static TM::Vector<ThreadObject *> &list() { return s_list; }
     static Value list(Env *);
@@ -221,40 +233,57 @@ public:
         return abrt;
     }
 
-    static void cancelation_checkpoint(Env *env);
+    static void check_current_exception(Env *env);
 
     static void setup_interrupt_pipe(Env *env);
     static int interrupt_read_fileno() { return s_interrupt_read_fileno; }
     static void interrupt();
     static void clear_interrupt();
 
+    static ClassObject *thread_kill_class() { return s_thread_kill_class; }
+    static ClassObject *thread_kill_class(Env *env) {
+        if (!s_thread_kill_class)
+            s_thread_kill_class = GlobalEnv::the()->BasicObject()->subclass(env, "ThreadKillError");
+        return s_thread_kill_class;
+    }
+
+    static void detach_all();
+
+    static void stop_the_world_and_save_context();
+    static void wake_up_the_world();
+
 private:
     void wait_until_running() const;
 
     void visit_children_from_stack(Visitor &) const;
     void visit_children_from_asan_fake_stack(Visitor &, Cell *) const;
+    void visit_children_from_context(Visitor &) const;
 
     friend FiberObject;
 
-    ArrayObject *m_args { nullptr };
+    Args m_args {};
     Block *m_block { nullptr };
-    void *m_start_of_stack { nullptr };
-    void *m_end_of_stack { nullptr };
-    pthread_t m_thread_id { 0 };
     std::thread m_thread {};
+    std::thread::native_handle_type m_native_thread_handle { 0 };
     std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
     HashObject *m_thread_variables { nullptr };
     FiberObject *m_main_fiber { nullptr };
     FiberObject *m_current_fiber { nullptr };
-#ifdef __SANITIZE_ADDRESS__
-    void *m_asan_fake_stack { nullptr };
-#endif
     std::atomic<Status> m_status { Status::Created };
     std::atomic<bool> m_joined { false };
     TM::Optional<TM::String> m_name {};
     TM::Optional<TM::String> m_file {};
     TM::Optional<size_t> m_line {};
+
+    void *m_start_of_stack { nullptr };
+    void *m_end_of_stack { nullptr };
+#ifdef __SANITIZE_ADDRESS__
+    void *m_asan_fake_stack { nullptr };
+#endif
+    ucontext_t *m_context { nullptr };
+    std::atomic<bool> m_context_saved { false };
+    std::atomic<bool> m_launched { false };
 
     bool m_abort_on_exception { false };
     bool m_report_on_exception { true };
@@ -266,11 +295,10 @@ private:
     Value m_fiber_scheduler { nullptr };
 
     // This condition variable is used to wake a sleeping thread,
-    // i.e. a thread where Kernel#sleep or Thread#sleep has been called.
+    // i.e. a thread where Kernel#sleep has been called.
     pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
 
-    inline static pthread_t s_main_id = 0;
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
     inline static bool s_abort_on_exception { false };
@@ -286,6 +314,12 @@ private:
     // TODO: we'll need to rebuild these after a fork :-/
     inline static int s_interrupt_read_fileno { -1 };
     inline static int s_interrupt_write_fileno { -1 };
+
+    // We use this special class as an off-the-books exception class
+    // for killing threads. It cannot be rescued in user code, but it
+    // does trigger `ensure` blocks.
+    // We only build this class once it is needed.
+    inline static ClassObject *s_thread_kill_class { nullptr };
 };
 
 }

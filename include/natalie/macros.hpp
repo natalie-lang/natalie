@@ -4,11 +4,10 @@
         abort();                                                              \
     }
 
-#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                                                         \
-    {                                                                                             \
-        fprintf(stderr, "NOT YET IMPLEMENTED in %s#%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__); \
-        fprintf(stderr, "\n");                                                                    \
-        abort();                                                                                  \
+#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                                                              \
+    {                                                                                                  \
+        fprintf(stderr, "NOT YET IMPLEMENTED in %s#%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
+        abort();                                                                                       \
     }
 
 #define NAT_RUN_BLOCK_GENERIC(env, the_block, args, block, on_break_flag) ({ \
@@ -52,9 +51,9 @@
 #ifdef NAT_GC_GUARD
 #define NAT_GC_GUARD_VALUE(val)                                                               \
     {                                                                                         \
-        NAT_GC_LOCK_GUARD();                                                                  \
         Object *ptr;                                                                          \
         if ((ptr = val.object_or_null()) && Heap::the().gc_enabled()) {                       \
+            std::lock_guard<std::recursive_mutex> gc_lock(Natalie::g_gc_recursive_mutex);     \
             void *dummy;                                                                      \
             auto end_of_stack = (uintptr_t)(&dummy);                                          \
             auto start_of_stack = (uintptr_t)(ThreadObject::current()->start_of_stack());     \
@@ -76,4 +75,9 @@
 
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
 
-#define NAT_GC_LOCK_GUARD() std::lock_guard<std::mutex> gc_lock(g_gc_mutex);
+#ifdef NAT_DEBUG_THREADS
+#define NAT_THREAD_DEBUG(msg, ...) \
+    fprintf(stderr, "THREAD DEBUG: " msg "\n", ##__VA_ARGS__)
+#else
+#define NAT_THREAD_DEBUG(msg, ...)
+#endif
