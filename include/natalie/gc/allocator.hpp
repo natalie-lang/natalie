@@ -34,7 +34,7 @@ public:
     }
 
     size_t cell_count_per_block() const {
-        return (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size;
+        return (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size / CELL_SPREAD;
     }
 
     size_t total_cells() {

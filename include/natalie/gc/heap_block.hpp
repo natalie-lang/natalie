@@ -14,6 +14,7 @@ namespace Natalie {
 constexpr const size_t HEAP_BLOCK_SIZE = 32 * 1024;
 constexpr const size_t HEAP_BLOCK_MASK = ~(HEAP_BLOCK_SIZE - 1);
 constexpr const size_t HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes is the smallest cell we will allocate
+constexpr const size_t CELL_SPREAD = 2;
 
 class HeapBlock {
 public:
@@ -26,11 +27,12 @@ public:
 
     HeapBlock(size_t size)
         : m_cell_size { size }
-        , m_total_count { (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size }
+        , m_total_count { (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / (m_cell_size * CELL_SPREAD) }
         , m_free_count { m_total_count } {
         memset(m_memory, 0, HEAP_BLOCK_SIZE - sizeof(HeapBlock));
         for (int i = m_total_count - 1; i >= 0; --i) {
             auto node = reinterpret_cast<FreeCellNode *>(cell_from_index(i));
+            assert(cell_in_block_range(node));
             node->next = m_free_list;
             node->index = i;
             m_free_list = node;
@@ -49,7 +51,7 @@ public:
     }
 
     Cell *cell_from_index(size_t index) {
-        void *cell = &m_memory[index * m_cell_size];
+        void *cell = &m_memory[index * CELL_SPREAD * m_cell_size];
         return static_cast<Cell *>(cell);
     }
 
@@ -68,6 +70,8 @@ public:
     Cell *find_next_free_cell();
 
     void return_cell_to_free_list(const Cell *cell);
+
+    void check_for_overruns() const;
 
     size_t total_count() const { return m_total_count; }
 
@@ -130,13 +134,17 @@ public:
         }
     }
 
+    bool cell_in_block_range(const void *node) const {
+        return (uintptr_t)node >= (uintptr_t)m_memory && (uintptr_t)node <= (uintptr_t)m_memory + HEAP_BLOCK_SIZE - sizeof(HeapBlock);
+    }
+
 private:
     // returns -1 if it's a bad pointer or doesn't belong to this block
     ssize_t index_from_cell(const Cell *cell) const {
         auto diff = reinterpret_cast<const char *>(cell) - m_memory;
-        if (diff < 0 || diff % m_cell_size != 0)
+        if (diff < 0 || (diff / CELL_SPREAD) % m_cell_size != 0)
             return -1;
-        auto index = diff / m_cell_size;
+        auto index = diff / CELL_SPREAD / m_cell_size;
         if (index >= m_total_count)
             return -1;
         return index;

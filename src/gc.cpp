@@ -227,10 +227,13 @@ void Heap::dump() const {
 }
 
 Cell *HeapBlock::find_next_free_cell() {
+    check_for_overruns();
     assert(has_free());
     --m_free_count;
     auto node = m_free_list;
     assert(node);
+    assert(cell_in_block_range(node));
+    if (node->next) assert(cell_in_block_range(node->next));
     m_free_list = node->next;
     assert(m_free_list || m_free_count == 0);
     auto cell = reinterpret_cast<Cell *>(node);
@@ -242,16 +245,36 @@ Cell *HeapBlock::find_next_free_cell() {
 
 void HeapBlock::return_cell_to_free_list(const Cell *cell) {
     // printf("returning %p to free list\n", cell);
+    assert(cell_in_block_range(cell));
     auto index = index_from_cell(cell);
     assert(index > -1);
     m_used_map[index] = false;
     cell->~Cell();
-    memset(&m_memory[index * m_cell_size], 0, m_cell_size);
+    assert((void *)cell_from_index(index) == (void *)cell);
+    memset((void *)cell_from_index(index), 0, m_cell_size);
     auto node = reinterpret_cast<FreeCellNode *>(cell_from_index(index));
     node->next = m_free_list;
+    assert(cell_in_block_range(node));
+    if (node->next) assert(cell_in_block_range(node->next));
     node->index = index;
     m_free_list = node;
+    assert(cell_in_block_range(node));
     ++m_free_count;
+    check_for_overruns();
+}
+
+void HeapBlock::check_for_overruns() const {
+    char compare[m_cell_size];
+    memset(compare, 0, m_cell_size);
+    // printf("checking...\n");
+    for (size_t i = 0; i < m_total_count; ++i) {
+        auto base_offset = i * CELL_SPREAD * m_cell_size;
+        void *cell = (void *)&m_memory[base_offset];
+        void *margin = (void *)&m_memory[base_offset + m_cell_size];
+        // printf("checking margin %p (right after cell %p)\n", margin, cell);
+        assert(memcmp(margin, compare, m_cell_size) == 0);
+    }
+    // printf("...done checking\n");
 }
 
 }
