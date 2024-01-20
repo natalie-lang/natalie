@@ -792,6 +792,8 @@ void ThreadObject::visit_children_from_asan_fake_stack(Visitor &visitor, Cell *p
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_context(Visitor &visitor) const {
     for (char *i = (char *)m_context; i < (char *)m_context + sizeof(ucontext_t); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
+        if (!potential_cell)
+            continue;
         if (Heap::the().is_a_heap_cell_in_use(potential_cell))
             visitor.visit(potential_cell);
     }

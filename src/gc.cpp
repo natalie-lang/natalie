@@ -78,7 +78,7 @@ NO_SANITIZE_ADDRESS TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     setjmp(jump_buf);
     for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
-        if (roots.get(potential_cell))
+        if (!potential_cell || roots.get(potential_cell))
             continue;
         if (is_a_heap_cell_in_use(potential_cell)) {
             roots.set(potential_cell);
