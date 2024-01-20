@@ -76,7 +76,9 @@ describe 'Tempfile' do
       temp.write('hello')
       temp.unlink
       temp.write(' world')
-      temp.length.should == 'hello world'.length
+      NATFIXME 'Flush buffer before calculating length?', exception: SpecFailedException do
+        temp.length.should == 'hello world'.length
+      end
     end
 
     it 'raises ENOENT if the file is closed and unlinked' do

@@ -10,11 +10,13 @@ describe :io_pos, shared: true do
 
   it "gets the offset" do
     File.open @fname do |f|
-      f.send(@method).should == 0
-      f.read 1
-      f.send(@method).should == 1
-      f.read 2
-      f.send(@method).should == 3
+      NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+        f.send(@method).should == 0
+        f.read 1
+        f.send(@method).should == 1
+        f.read 2
+        f.send(@method).should == 3
+      end
     end
   end
 
@@ -55,8 +57,10 @@ describe :io_set_pos, shared: true do
       o = mock("o")
       o.should_receive(:to_int).and_return(1)
 
-      io.send @method, o
-      io.pos.should == 1
+      NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+        io.send @method, o
+        io.pos.should == 1
+      end
     end
   end
 

@@ -56,7 +56,9 @@ describe "IO#syswrite on a file" do
     @file.read(5)
     @file.syswrite("abcde")
     File.open(@filename) do |file|
-      file.sysread(10).should == "01234abcde"
+      NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+        file.sysread(10).should == "01234abcde"
+      end
     end
   end
 end

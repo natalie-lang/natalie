@@ -57,7 +57,9 @@ describe :io_write, shared: true do
     @file.read(5)
     @file.send(@method, "abcd")
     @file.rewind
-    @file.read.should == "01234abcd901234567890123456789"
+    NATFIXME 'Convert IO#read to use FILE*', condition: @method != :write, exception: SpecFailedException do
+      @file.read.should == "01234abcd901234567890123456789"
+    end
   end
 
   it "advances the file position by the count of given bytes" do

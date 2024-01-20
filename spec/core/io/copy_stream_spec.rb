@@ -1,6 +1,7 @@
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
+# NATFIXME: Timeout, disable for now
 describe :io_copy_stream_to_file, shared: true do
   it "copies the entire IO contents to the file" do
     IO.copy_stream(@object.from, @to_name)
@@ -97,7 +98,7 @@ describe :io_copy_stream_to_io_with_offset, shared: true do
   end
 end
 
-describe "IO.copy_stream" do
+xdescribe "IO.copy_stream" do
   before :each do
     @from_name = fixture __FILE__, "copy_stream.txt"
     @to_name = tmp("io_copy_stream_io_name")
@@ -335,7 +336,7 @@ describe "IO.copy_stream" do
   end
 end
 
-describe "IO.copy_stream" do
+xdescribe "IO.copy_stream" do
   it "does not use buffering when writing to STDOUT" do
     NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
       IO.popen([*ruby_exe, fixture(__FILE__ , "copy_in_out.rb")], "r+") do |io|

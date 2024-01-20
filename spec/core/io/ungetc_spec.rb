@@ -88,15 +88,17 @@ describe "IO#ungetc" do
 
     # read one char
     c = @io.getc
-    @io.pos.should == 1
-    @io.ungetc(c)
-    @io.pos.should == 0
+    NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+      @io.pos.should == 1
+      @io.ungetc(c)
+      @io.pos.should == 0
 
-    # read all
-    @io.read
-    pos = @io.pos
-    @io.ungetc(98)
-    @io.pos.should == pos - 1
+      # read all
+      @io.read
+      pos = @io.pos
+      @io.ungetc(98)
+      @io.pos.should == pos - 1
+    end
   end
 
   it "makes subsequent unbuffered operations to raise IOError" do

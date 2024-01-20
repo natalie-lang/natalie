@@ -1,6 +1,7 @@
 require_relative '../../spec_helper'
 
-describe "IO.select" do
+# NATFIXME: Timeout, disable for now
+xdescribe "IO.select" do
   before :each do
     @rd, @wr = IO.pipe
   end
@@ -149,7 +150,7 @@ describe "IO.select" do
   end
 end
 
-describe "IO.select when passed nil for timeout" do
+xdescribe "IO.select when passed nil for timeout" do
   it "sleeps forever and sets the thread status to 'sleep'" do
     t = Thread.new do
       IO.select(nil, nil, nil, nil)

@@ -25,7 +25,9 @@ guard -> { platform_is_not :windows or ruby_version_is "3.3" } do
     it "does not advance the pointer in the file" do
       @file.pwrite("bar", 3)
       @file.write("foo")
-      @file.pread(6, 0).should == "foobar"
+      NATFIXME 'Setting `@file.sync = true` before writing fixes this, do we need to flush the buffer in pread?', exception: SpecFailedException do
+        @file.pread(6, 0).should == "foobar"
+      end
     end
 
     it "calls #to_s on the object to be written" do

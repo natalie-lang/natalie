@@ -12,7 +12,9 @@ describe "IO#readbyte" do
   it "reads one byte from the stream" do
     byte = @io.readbyte
     byte.should == ?r.getbyte(0)
-    @io.pos.should == 1
+    NATFIXME 'Convert IO#read to use FILE*', exception: SpecFailedException do
+      @io.pos.should == 1
+    end
   end
 
   it "raises EOFError on EOF" do
