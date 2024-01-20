@@ -88,7 +88,7 @@ public:
     void set_exception(ExceptionObject *exception) { m_exception = exception; }
     ExceptionObject *exception() { return m_exception; }
 
-    ArrayObject *args() { return m_args; }
+    ArrayObject *args() { return m_args.to_array(); }
     Block *block() { return m_block; }
 
     bool is_alive() const {
@@ -261,7 +261,7 @@ private:
 
     friend FiberObject;
 
-    ArrayObject *m_args { nullptr };
+    Args m_args {};
     Block *m_block { nullptr };
     std::thread m_thread {};
     std::thread::native_handle_type m_native_thread_handle { 0 };

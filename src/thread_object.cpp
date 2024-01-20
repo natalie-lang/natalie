@@ -190,7 +190,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     if (this == ThreadObject::main())
         env->raise("ThreadError", "already initialized");
 
-    if (m_args)
+    if (m_block)
         env->raise("ThreadError", "already initialized");
 
     if (!block)
@@ -198,9 +198,23 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
 
     add_to_list(this);
 
+    // DANGER ZONE ===========================================
+    // Do not allocate any GC-managed object after this point
+    // in this function. The ThreadObject::add_to_list() call
+    // is protected by mutex, thus any thread added to the
+    // list is guaranteed to be seen by the Garbage Collector
+    // and the GC will wait until:
+    //
+    // 1. The thread is launched (m_launched == true)
+    // 2. The thread is subsequently stopped by a SIGUSR1 signal.
+    //
+    // If you allocate GC-managed memory beyond this point,
+    // you *will* lock the GC, and this thread (and thus the
+    // whole program) will hang forever.
+
     m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
 
-    m_args = args.to_array();
+    m_args = args;
     m_block = block;
 
     m_file = env->file();
@@ -211,6 +225,8 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     NAT_THREAD_DEBUG("Creating thread %p", this);
     m_thread = std::thread { nat_create_thread, (void *)this };
     m_native_thread_handle = m_thread.native_handle();
+
+    // END DANGER ZONE =======================================
 
     return this;
 }
@@ -598,7 +614,8 @@ void ThreadObject::unlock_mutexes() const {
 
 void ThreadObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
-    visitor.visit(m_args);
+    for (auto arg : m_args.vector())
+        visitor.visit(arg);
     visitor.visit(m_block);
     visitor.visit(m_exception);
     visitor.visit(m_value);

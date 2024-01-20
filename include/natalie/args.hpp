@@ -65,6 +65,8 @@ public:
     size_t size() const { return m_data.size(); }
     const Value *data() const { return m_data.data(); }
 
+    Vector<Value> &vector() { return m_data; }
+
     bool has_keyword_hash() const { return m_has_keyword_hash; }
     HashObject *keyword_hash() const;
     HashObject *pop_keyword_hash();
