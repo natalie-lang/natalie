@@ -65,6 +65,18 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
     return info->object();
 }
 
+ArrayObject *GlobalEnv::global_list(Env *env) {
+    std::lock_guard<std::mutex> lock(g_gvar_alias_mutex);
+    auto result = new ArrayObject { m_global_variables.size() + 2 };
+    for (const auto &[key, _] : m_global_variables) {
+        result->push(key);
+    }
+    // $! and $@ are handled compile time in Natalie
+    result->push("$!"_s);
+    result->push("$@"_s);
+    return result;
+}
+
 void GlobalEnv::visit_children(Visitor &visitor) {
     for (auto pair : m_global_variables) {
         visitor.visit(pair.first);

@@ -52,6 +52,7 @@ public:
     static Value fork(Env *env, Block *);
     static Value gets(Env *env);
     static Value get_usage(Env *env);
+    static Value global_variables(Env *env);
     static Value Hash(Env *env, Value value);
     static Value lambda(Env *env, Block *block);
     static Value p(Env *env, Args args);

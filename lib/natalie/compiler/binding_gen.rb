@@ -928,6 +928,7 @@ gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1,
 gen.module_function_binding('Kernel', 'fork', 'KernelModule', 'fork', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', 'gets', 'KernelModule', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'get_usage', 'KernelModule', 'get_usage', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.module_function_binding('Kernel', 'global_variables', 'KernelModule', 'global_variables', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'Hash', 'KernelModule', 'Hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.module_function_binding('Kernel', 'lambda', 'KernelModule', 'lambda', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.module_function_binding('Kernel', '__method__', 'KernelModule', 'this_method', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
