@@ -3,14 +3,15 @@
 #include "natalie/block.hpp"
 #include "natalie/class_object.hpp"
 #include "natalie/hash_object.hpp"
-#include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/symbol_object.hpp"
 
+#ifdef __APPLE__
+#define _XOPEN_SOURCE
+#endif
 #include <atomic>
 #include <sys/ucontext.h>
 #include <thread>
-#include <ucontext.h>
 
 namespace Natalie {
 
