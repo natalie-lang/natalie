@@ -18,9 +18,7 @@ with_feature :unix_socket do
 
     it "yields the new UNIXServer object to the block, if given" do
       UNIXServer.open(@path) do |unix|
-        NATFIXME 'Implement UNIXServer#path', exception: SpecFailedException do
-          unix.path.should == @path
-        end
+        unix.path.should == @path
         unix.addr.should == ["AF_UNIX", @path]
       end
     end

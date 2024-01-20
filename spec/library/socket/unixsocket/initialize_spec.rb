@@ -27,9 +27,7 @@ with_feature :unix_socket do
       end
 
       it 'sets the socket path to an empty String' do
-        NATFIXME 'Implement UNIXSocket#path', exception: SpecFailedException do
-          @socket.path.should == ''
-        end
+        @socket.path.should == ''
       end
 
       it 'sets the socket to binmode' do
