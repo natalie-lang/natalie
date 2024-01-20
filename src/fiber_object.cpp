@@ -260,7 +260,7 @@ NO_SANITIZE_ADDRESS void FiberObject::visit_children_from_stack(Visitor &visitor
     // If this Fiber is the currently active Fiber for its parent Thread,
     // then the Thread#visit_children_from_stack method will walk this Fiber's stack,
     // and we can bail out here.
-    if (this == m_thread->current_fiber())
+    if (m_thread && this == m_thread->current_fiber())
         return;
 
     if (!m_end_of_stack) {
