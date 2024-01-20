@@ -62,28 +62,7 @@ Value IoObject::initialize(Env *env, Args args, Block *block) {
             env->raise_errno();
         }
     }
-    set_fileno(fileno);
-    // NATFIXME: We're effectively reversing the loging from ioutil.cpp, this should be rewritten
-    const auto flags = actual_flags & (O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_TRUNC | O_APPEND);
-    String mode;
-    if (flags == O_RDONLY || flags == (O_RDONLY | O_APPEND)) {
-        mode = "r";
-    } else if (flags == O_RDWR) {
-        mode = "r+";
-    } else if (flags == O_WRONLY || flags == (O_WRONLY | O_CREAT | O_TRUNC)) {
-        mode = "w";
-    } else if (flags == (O_RDWR | O_CREAT | O_TRUNC)) {
-        mode = "w+";
-    } else if (flags == (O_WRONLY | O_CREAT | O_APPEND) || flags == (O_WRONLY | O_APPEND)) {
-        mode = "a";
-    } else if (flags == (O_RDWR | O_CREAT | O_APPEND) || flags == (O_RDWR | O_APPEND)) {
-        mode = "a+";
-    } else {
-        env->raise("ArgumentError", "Unknown flags: {}", flags);
-    }
-    m_file = fdopen(m_fileno, mode.c_str());
-    if (!m_file)
-        env->raise_errno();
+    set_fileno(fileno, env);
     set_encoding(env, wanted_flags.external_encoding(), wanted_flags.internal_encoding());
     m_autoclose = wanted_flags.autoclose();
     m_path = wanted_flags.path();
@@ -1245,6 +1224,40 @@ void IoObject::build_constants(Env *, ClassObject *klass) {
     klass->const_set("READABLE"_s, Value::integer(WAIT_READABLE));
     klass->const_set("PRIORITY"_s, Value::integer(WAIT_PRIORITY));
     klass->const_set("WRITABLE"_s, Value::integer(WAIT_WRITABLE));
+}
+
+void IoObject::set_fd_to_fileno(Env *env) {
+    // NATFIXME: We're effectively reversing the loging from ioutil.cpp, this should be rewritten
+    const auto actual_flags = ::fcntl(m_fileno, F_GETFL);
+    if (actual_flags < 0)
+        env->raise_errno();
+    const auto flags = actual_flags & (O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_TRUNC | O_APPEND);
+    String mode;
+    if (flags == O_RDONLY || flags == (O_RDONLY | O_APPEND)) {
+        mode = "r";
+    } else if (flags == O_RDWR) {
+        mode = "r+";
+    } else if (flags == O_WRONLY || flags == (O_WRONLY | O_CREAT | O_TRUNC)) {
+        mode = "w";
+    } else if (flags == (O_RDWR | O_CREAT | O_TRUNC)) {
+        mode = "w+";
+    } else if (flags == (O_WRONLY | O_CREAT | O_APPEND) || flags == (O_WRONLY | O_APPEND)) {
+        mode = "a";
+    } else if (flags == (O_RDWR | O_CREAT | O_APPEND) || flags == (O_RDWR | O_APPEND)) {
+        mode = "a+";
+    } else {
+        env->raise("ArgumentError", "Unknown flags: {}", flags);
+    }
+    m_file = fdopen(m_fileno, mode.c_str());
+    if (!m_file)
+        env->raise_errno();
+}
+
+void IoObject::set_fileno_to_fd(Env *env) {
+    const auto fileno = ::fileno(m_file);
+    if (fileno < 1)
+        env->raise_errno();
+    m_fileno = fileno;
 }
 
 }

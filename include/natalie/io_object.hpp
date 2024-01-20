@@ -23,14 +23,16 @@ public:
     IoObject(ClassObject *klass)
         : Object { Object::Type::Io, klass } { }
 
-    IoObject(int fileno)
+    IoObject(int fileno, Env *env)
         : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
         , m_sync { fileno == STDERR_FILENO } {
-        set_fileno(fileno);
+        set_fileno(fileno, env);
     }
 
     virtual ~IoObject() override {
         if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
+            return;
+        if (m_file == stdin || m_file == stdout || m_file == stderr)
             return;
         if (m_autoclose && !m_closed && m_fileno != -1) {
             // TODO: actually ::close() the fd :-)
@@ -93,7 +95,14 @@ public:
     Value seek(Env *, Value, Value);
     Value set_close_on_exec(Env *, Value);
     Value set_encoding(Env *, Value, Value = nullptr);
-    void set_fileno(int fileno) { m_fileno = fileno; }
+    void set_fd(FILE *fd, Env *env) {
+        m_file = fd;
+        set_fileno_to_fd(env);
+    }
+    void set_fileno(int fileno, Env *env) {
+        m_fileno = fileno;
+        set_fd_to_fileno(env);
+    }
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
     void set_nonblock(Env *, bool) const;
@@ -139,6 +148,8 @@ private:
     static const nat_int_t WAIT_WRITABLE = 4;
 
     ssize_t blocking_read(Env *env, void *buf, int count) const;
+    void set_fd_to_fileno(Env *);
+    void set_fileno_to_fd(Env *);
 
     EncodingObject *m_external_encoding { nullptr };
     EncodingObject *m_internal_encoding { nullptr };
