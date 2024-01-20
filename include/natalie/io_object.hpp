@@ -34,9 +34,10 @@ public:
             return;
         if (m_file == stdin || m_file == stdout || m_file == stderr)
             return;
-        if (m_autoclose && !m_closed && m_fileno != -1) {
+        if (m_autoclose && !m_closed && m_file != nullptr && m_fileno != -1) {
             // TODO: actually ::close() the fd :-)
             m_closed = true;
+            m_file = nullptr;
             m_fileno = -1;
         }
     }

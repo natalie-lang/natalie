@@ -706,6 +706,7 @@ Value IoObject::close(Env *env) {
     if (result == -1)
         env->raise_errno();
 
+    m_file = nullptr;
     m_fileno = -1;
 
     return NilObject::the();
