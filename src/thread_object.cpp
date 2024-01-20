@@ -754,7 +754,7 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
     // If this thread is still in the state of being setup, the stack might not
     // be known yet. Plus, there shouldn't be any GC-managed variables on the
     // stack prior to it being set as Status::Active.
-    if (m_status == Status::Created)
+    if (!m_launched)
         return;
 
     // Walk the stack looking for variables...
