@@ -195,6 +195,8 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     if (!block)
         env->raise("ThreadError", "must be called with a block");
 
+    add_to_list(this);
+
     m_context = (ucontext_t *)malloc(sizeof(ucontext_t));
 
     m_args = args.to_array();
@@ -204,8 +206,6 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     m_line = env->line();
 
     m_report_on_exception = s_report_on_exception;
-
-    add_to_list(this);
 
     NAT_THREAD_DEBUG("Creating thread %p", this);
     m_thread = std::thread { nat_create_thread, (void *)this };
@@ -607,14 +607,15 @@ void ThreadObject::visit_children(Visitor &visitor) {
     visitor.visit(m_fiber_scheduler);
     visitor.visit(s_thread_kill_class);
 
+    visitor.visit(m_current_fiber);
+    visitor.visit(m_main_fiber);
+
     // If this thread is Dead, then it's possible the OS has already reclaimed
     // the stack space. We shouldn't have any remaining variables on the stack
     // that we need to keep anyway.
     if (m_status == Status::Dead)
         return;
 
-    visitor.visit(m_current_fiber);
-    visitor.visit(m_main_fiber);
     visit_children_from_stack(visitor);
 }
 
