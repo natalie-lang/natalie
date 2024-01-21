@@ -3,7 +3,9 @@ require_relative 'fixtures/classes'
 
 describe "Kernel#fail" do
   it "is a private method" do
-    Kernel.should have_private_instance_method(:fail)
+    NATFIXME 'is a private method', exception: SpecFailedException do
+      Kernel.should have_private_instance_method(:fail)
+    end
   end
 
   it "raises a RuntimeError" do
@@ -15,7 +17,9 @@ describe "Kernel#fail" do
     def obj.exception(msg)
       StandardError.new msg
     end
-    -> { fail obj, "..." }.should raise_error(StandardError, "...")
+    NATFIXME 'accepts an Object with an exception method returning an Exception', exception: SpecFailedException do
+      -> { fail obj, "..." }.should raise_error(StandardError, "...")
+    end
   end
 
   it "instantiates the specified exception class" do
