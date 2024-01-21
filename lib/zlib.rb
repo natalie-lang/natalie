@@ -42,7 +42,10 @@ module Zlib
   end
 
   #class << self
+  __bind_static_method__ :adler32, :Zlib_adler32
   __bind_static_method__ :crc32, :Zlib_crc32
+  __bind_static_method__ :crc_table, :Zlib_crc_table
+  __bind_static_method__ :zlib_version, :Zlib_zlib_version
   #end
   
   class Deflate

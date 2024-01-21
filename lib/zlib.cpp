@@ -174,6 +174,15 @@ Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value Zlib_adler32(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 2);
+    auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto checksum = args.at(1, Value::integer(1))->to_int(env);
+    checksum->assert_fixnum(env);
+    const nat_int_t result = adler32_z(checksum->to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
+    return Value::integer(result);
+}
+
 Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     unsigned long crc;
@@ -196,4 +205,18 @@ Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
         crc = ::crc32(crc, (Bytef *)(string->as_string()->c_str()), string->as_string()->string().size());
     }
     return new IntegerObject { (nat_int_t)crc };
+}
+
+Value Zlib_crc_table(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto res = new ArrayObject { 256 };
+    auto table = get_crc_table();
+    for (size_t i = 0; i < 256; i++)
+        res->push(Value::integer(static_cast<nat_int_t>(table[i])));
+    return res;
+}
+
+Value Zlib_zlib_version(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return new StringObject { ZLIB_VERSION, Encoding::ASCII_8BIT };
 }
