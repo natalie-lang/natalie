@@ -21,12 +21,6 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, Exceptio
     if (klass && klass->is_class() && !message)
         return _new(env, klass->as_class(), {}, nullptr)->as_exception_or_raise(env);
 
-    if (klass && !klass->is_class() && klass->respond_to(env, "exception"_s)) {
-        Vector<Value> args;
-        if (message) args.push(message);
-        klass = klass->send(env, "exception"_s, args);
-    }
-
     if (!klass && current_exception)
         klass = current_exception;
 
