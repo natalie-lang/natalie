@@ -655,7 +655,7 @@ void ThreadObject::setup_interrupt_pipe(Env *env) {
 }
 
 void ThreadObject::interrupt() {
-    ::write(s_interrupt_write_fileno, "!", 1);
+    assert(::write(s_interrupt_write_fileno, "!", 1) != -1);
 }
 
 void ThreadObject::clear_interrupt() {
