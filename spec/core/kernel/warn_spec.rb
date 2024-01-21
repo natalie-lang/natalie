@@ -24,12 +24,10 @@ describe "Kernel#warn" do
   end
 
   it "does not append line-end if last character is line-end" do
-    NATFIXME 'does not append line-end if last character is line-end', exception: SpecFailedException do
-      -> {
-        $VERBOSE = true
-        warn("this is some simple text with line-end\n")
-      }.should output(nil, "this is some simple text with line-end\n")
-    end
+    -> {
+      $VERBOSE = true
+      warn("this is some simple text with line-end\n")
+    }.should output(nil, "this is some simple text with line-end\n")
   end
 
   it "calls #write on $stderr if $VERBOSE is true" do

@@ -58,7 +58,11 @@ module Kernel
 
   def warn(*msgs, category: nil)
     msgs = msgs[0] if msgs.size == 1 && msgs[0].is_a?(Array)
-    msgs.each { |message| Warning.warn(message.to_s + "\n", category: category&.to_sym) }
+    msgs.each do |message|
+      message = message.to_s
+      message = message + "\n" unless message.end_with?("\n")
+      Warning.warn(message, category: category&.to_sym)
+    end
     nil
   end
 
