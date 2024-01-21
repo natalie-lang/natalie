@@ -14,7 +14,9 @@ describe "Kernel#warn" do
   end
 
   it "is a private method" do
-    Kernel.should have_private_instance_method(:warn)
+    NATFIXME 'is a private method', exception: SpecFailedException do
+      Kernel.should have_private_instance_method(:warn)
+    end
   end
 
   it "accepts multiple arguments" do
@@ -22,10 +24,12 @@ describe "Kernel#warn" do
   end
 
   it "does not append line-end if last character is line-end" do
-    -> {
-      $VERBOSE = true
-      warn("this is some simple text with line-end\n")
-    }.should output(nil, "this is some simple text with line-end\n")
+    NATFIXME 'does not append line-end if last character is line-end', exception: SpecFailedException do
+      -> {
+        $VERBOSE = true
+        warn("this is some simple text with line-end\n")
+      }.should output(nil, "this is some simple text with line-end\n")
+    end
   end
 
   it "calls #write on $stderr if $VERBOSE is true" do
@@ -43,10 +47,12 @@ describe "Kernel#warn" do
   end
 
   it "does not call #write on $stderr if $VERBOSE is nil" do
-    -> {
-      $VERBOSE = nil
-      warn("this is some simple text")
-    }.should output(nil, "")
+    NATFIXME 'does not call #write on $stderr if $VERBOSE is nil', exception: SpecFailedException do
+      -> {
+        $VERBOSE = nil
+        warn("this is some simple text")
+      }.should output(nil, "")
+    end
   end
 
   it "writes each argument on a line when passed multiple arguments" do
@@ -57,10 +63,12 @@ describe "Kernel#warn" do
   end
 
   it "writes each array element on a line when passes an array" do
-    -> {
-      $VERBOSE = true
-      warn(["line 1", "line 2"])
-    }.should output(nil, "line 1\nline 2\n")
+    NATFIXME 'writes each array element on a line when passes an array', exception: TypeError, message: 'no implicit conversion of String into Array' do
+      -> {
+        $VERBOSE = true
+        warn(["line 1", "line 2"])
+      }.should output(nil, "line 1\nline 2\n")
+    end
   end
 
   it "does not write strings when passed no arguments" do
@@ -79,12 +87,14 @@ describe "Kernel#warn" do
   end
 
   it "writes to_s representation if passed a non-string" do
-    obj = mock("obj")
-    obj.should_receive(:to_s).and_return("to_s called")
-    -> {
-      $VERBOSE = true
-      warn(obj)
-    }.should output(nil, "to_s called\n")
+  NATFIXME 'writes to_s representation if passed a non-string', exception: NoMethodError, message: "undefined method `+' for an instance of MockObject" do
+      obj = mock("obj")
+      obj.should_receive(:to_s).and_return("to_s called")
+      -> {
+        $VERBOSE = true
+        warn(obj)
+      }.should output(nil, "to_s called\n")
+    end
   end
 
   describe ":uplevel keyword argument" do
@@ -95,21 +105,27 @@ describe "Kernel#warn" do
     it "prepends a message with specified line from the backtrace" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      -> { w.f4("foo", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: foo|)
-      -> { w.f4("foo", 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: foo|)
-      -> { w.f4("foo", 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: foo|)
-      -> { w.f4("foo", 3) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f3_call_lineno}: warning: foo|)
+      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
+        -> { w.f4("foo", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: foo|)
+        -> { w.f4("foo", 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: foo|)
+        -> { w.f4("foo", 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: foo|)
+        -> { w.f4("foo", 3) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f3_call_lineno}: warning: foo|)
+      end
     end
 
     # Test both explicitly without and with RubyGems as RubyGems overrides Kernel#warn
     it "shows the caller of #require and not #require itself without RubyGems" do
       file = fixture(__FILE__ , "warn_require_caller.rb")
-      ruby_exe(file, options: "--disable-gems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
+      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
+        ruby_exe(file, options: "--disable-gems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
+      end
     end
 
     it "shows the caller of #require and not #require itself with RubyGems loaded" do
       file = fixture(__FILE__ , "warn_require_caller.rb")
-      ruby_exe(file, options: "-rrubygems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
+      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
+        ruby_exe(file, options: "-rrubygems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
+      end
     end
 
     guard -> { Kernel.instance_method(:tap).source_location } do
@@ -152,39 +168,49 @@ describe "Kernel#warn" do
     end
 
     it "raises if :category keyword is not nil and not convertible to symbol" do
-      -> {
-        $VERBOSE = true
-        warn("message", category: Object.new)
-      }.should raise_error(TypeError)
+      NATFIXME 'raises if :category keyword is not nil and not convertible to symbol', exception: SpecFailedException do
+        -> {
+          $VERBOSE = true
+          warn("message", category: Object.new)
+        }.should raise_error(TypeError)
+      end
     end
 
     it "converts first arg using to_s" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      -> { w.f4(false, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: false|)
-      -> { w.f4(nil, 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: |)
-      obj = mock("obj")
-      obj.should_receive(:to_s).and_return("to_s called")
-      -> { w.f4(obj, 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: to_s called|)
+      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
+        -> { w.f4(false, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: false|)
+        -> { w.f4(nil, 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: |)
+        obj = mock("obj")
+        obj.should_receive(:to_s).and_return("to_s called")
+        -> { w.f4(obj, 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: to_s called|)
+      end
     end
 
     it "does not prepend caller information if the uplevel argument is too large" do
       w = KernelSpecs::WarnInNestedCall.new
-      -> { w.f4("foo", 100) }.should output(nil, "warning: foo\n")
+      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
+        -> { w.f4("foo", 100) }.should output(nil, "warning: foo\n")
+      end
     end
 
     it "prepends even if a message is empty or nil" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      -> { w.f4("", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
-      -> { w.f4(nil, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
+      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
+        -> { w.f4("", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
+        -> { w.f4(nil, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
+      end
     end
 
     it "converts value to Integer" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      -> { w.f4(0.1) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
-      -> { w.f4(Rational(1, 2)) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
+      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
+        -> { w.f4(0.1) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
+        -> { w.f4(Rational(1, 2)) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
+      end
     end
 
     it "raises ArgumentError if passed negative value" do
@@ -197,10 +223,12 @@ describe "Kernel#warn" do
     end
 
     it "raises TypeError if passed not Integer" do
-      -> { warn "", uplevel: "" }.should raise_error(TypeError)
-      -> { warn "", uplevel: [] }.should raise_error(TypeError)
-      -> { warn "", uplevel: {} }.should raise_error(TypeError)
-      -> { warn "", uplevel: Object.new }.should raise_error(TypeError)
+      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
+        -> { warn "", uplevel: "" }.should raise_error(TypeError)
+        -> { warn "", uplevel: [] }.should raise_error(TypeError)
+        -> { warn "", uplevel: {} }.should raise_error(TypeError)
+        -> { warn "", uplevel: Object.new }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -222,11 +250,13 @@ describe "Kernel#warn" do
 
     begin
       ScratchPad.clear
-      Kernel.warn("Chunky bacon!")
-      ScratchPad.recorded.should == "Chunky bacon!\n"
+      NATFIXME 'calls Warning.warn without keyword arguments if Warning.warn does not accept keyword arguments', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        Kernel.warn("Chunky bacon!")
+        ScratchPad.recorded.should == "Chunky bacon!\n"
 
-      Kernel.warn("Deprecated bacon!", category: :deprecated)
-      ScratchPad.recorded.should == "Deprecated bacon!\n"
+        Kernel.warn("Deprecated bacon!", category: :deprecated)
+        ScratchPad.recorded.should == "Deprecated bacon!\n"
+      end
     ensure
       class << Warning
         remove_method :warn
@@ -267,9 +297,11 @@ describe "Kernel#warn" do
     end
     Kernel.instance_method(:warn).bind(Warning).call('Kernel#warn spec edge case')
     RUBY
-    out = ruby_exe(code, args: "2>&1", options: "--disable-gems")
-    out.should == "Kernel#warn spec edge case\n"
-    $?.should.success?
+    NATFIXME 'does not call Warning.warn if self is the Warning module', exception: SpecFailedException do
+      out = ruby_exe(code, args: "2>&1", options: "--disable-gems")
+      out.should == "Kernel#warn spec edge case\n"
+      $?.should.success?
+    end
   end
 
   it "avoids recursion if Warning#warn is redefined and calls super" do
@@ -285,8 +317,10 @@ describe "Kernel#warn" do
     end
     warn "avoid infinite recursion"
     RUBY
-    out = ruby_exe(code, args: "2>&1", options: "--disable-gems")
-    out.should == "avoid infinite recursion\n"
-    $?.should.success?
+    NATFIXME 'avoids recursion if Warning#warn is redefined and calls super', exception: SpecFailedException do
+      out = ruby_exe(code, args: "2>&1", options: "--disable-gems")
+      out.should == "avoid infinite recursion\n"
+      $?.should.success?
+    end
   end
 end
