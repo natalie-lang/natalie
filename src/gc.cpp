@@ -139,9 +139,9 @@ void Heap::collect() {
     if (is_profiled)
         mark_profiler_event->end_now();
 
-    sweep();
-
     ThreadObject::wake_up_the_world();
+
+    sweep();
 }
 
 void Heap::sweep() {
