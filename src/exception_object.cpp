@@ -55,7 +55,7 @@ ExceptionObject *ExceptionObject::create_for_raise(Env *env, Args args, Exceptio
     if (klass->is_class())
         exception = _new(env, klass->as_class(), { std::move(exception_args), false }, nullptr)->as_exception();
     else if (klass->is_exception())
-        exception = Value(klass).send(env, "exception"_s, { std::move(exception_args), false })->as_exception_or_raise(env);
+        exception = klass->as_exception();
     else
         env->raise("TypeError", "exception klass/object expected");
 
