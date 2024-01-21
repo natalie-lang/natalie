@@ -63,14 +63,14 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
         auto ctx = thread->get_context();
         if (!ctx) {
             char msg[] = "Fatal: Could not get pointer for thread context.";
-            ::write(STDERR_FILENO, msg, sizeof(msg));
+            assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
             abort();
         }
         memcpy(ctx, ucontext, sizeof(ucontext_t));
         thread->set_context_saved(true);
 #ifdef NAT_DEBUG_THREADS
         char msg[] = "THREAD DEBUG: Thread paused\n";
-        ::write(STDERR_FILENO, msg, sizeof(msg));
+        assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
 #endif
         pause();
         break;
@@ -78,7 +78,7 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
     case SIGUSR2:
 #ifdef NAT_DEBUG_THREADS
         char msg2[] = "THREAD DEBUG: Thread woke up\n";
-        ::write(STDERR_FILENO, msg2, sizeof(msg2));
+        assert(::write(STDERR_FILENO, msg2, sizeof(msg2)) != -1);
 #endif
         break;
     }
