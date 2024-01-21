@@ -10,6 +10,7 @@ module Natalie
 
       DEBUG_FLAGS = %w[
         -pthread
+        -Og
         -g
         -Wall
         -Wextra
