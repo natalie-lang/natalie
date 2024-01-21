@@ -42,6 +42,7 @@ module Zlib
   end
 
   #class << self
+  __bind_static_method__ :adler32, :Zlib_adler32
   __bind_static_method__ :crc32, :Zlib_crc32
   #end
   

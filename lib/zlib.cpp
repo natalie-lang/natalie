@@ -174,6 +174,15 @@ Value Zlib_inflate_close(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value Zlib_adler32(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 2);
+    auto string = args.at(0, new StringObject { "", Encoding::ASCII_8BIT })->to_str(env);
+    auto checksum = args.at(1, Value::integer(1))->to_int(env);
+    checksum->assert_fixnum(env);
+    const nat_int_t result = adler32_z(checksum->to_nat_int_t(), reinterpret_cast<const Bytef *>(string->c_str()), string->bytesize());
+    return Value::integer(result);
+}
+
 Value Zlib_crc32(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 0, 2);
     unsigned long crc;
