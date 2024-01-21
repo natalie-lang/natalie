@@ -162,12 +162,10 @@ describe "Kernel#warn" do
     end
 
     it "raises if :category keyword is not nil and not convertible to symbol" do
-      NATFIXME 'raises if :category keyword is not nil and not convertible to symbol', exception: SpecFailedException do
-        -> {
-          $VERBOSE = true
-          warn("message", category: Object.new)
-        }.should raise_error(TypeError)
-      end
+      -> {
+        $VERBOSE = true
+        warn("message", category: Object.new)
+      }.should raise_error(TypeError)
     end
 
     it "converts first arg using to_s" do
