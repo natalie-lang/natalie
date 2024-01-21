@@ -215,3 +215,8 @@ Value Zlib_crc_table(Env *env, Value self, Args args, Block *) {
         res->push(Value::integer(static_cast<nat_int_t>(table[i])));
     return res;
 }
+
+Value Zlib_zlib_version(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    return new StringObject { ZLIB_VERSION, Encoding::ASCII_8BIT };
+}
