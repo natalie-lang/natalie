@@ -17,9 +17,7 @@ describe "Kernel#fail" do
     def obj.exception(msg)
       StandardError.new msg
     end
-    NATFIXME 'accepts an Object with an exception method returning an Exception', exception: SpecFailedException do
-      -> { fail obj, "..." }.should raise_error(StandardError, "...")
-    end
+    -> { fail obj, "..." }.should raise_error(StandardError, "...")
   end
 
   it "instantiates the specified exception class" do
