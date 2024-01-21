@@ -63,7 +63,7 @@ describe "Kernel#warn" do
   end
 
   it "writes each array element on a line when passes an array" do
-    NATFIXME 'writes each array element on a line when passes an array', exception: TypeError, message: 'no implicit conversion of String into Array' do
+    NATFIXME 'writes each array element on a line when passes an array', exception: SpecFailedException do
       -> {
         $VERBOSE = true
         warn(["line 1", "line 2"])
@@ -87,14 +87,12 @@ describe "Kernel#warn" do
   end
 
   it "writes to_s representation if passed a non-string" do
-  NATFIXME 'writes to_s representation if passed a non-string', exception: NoMethodError, message: "undefined method `+' for an instance of MockObject" do
-      obj = mock("obj")
-      obj.should_receive(:to_s).and_return("to_s called")
-      -> {
-        $VERBOSE = true
-        warn(obj)
-      }.should output(nil, "to_s called\n")
-    end
+    obj = mock("obj")
+    obj.should_receive(:to_s).and_return("to_s called")
+    -> {
+      $VERBOSE = true
+      warn(obj)
+    }.should output(nil, "to_s called\n")
   end
 
   describe ":uplevel keyword argument" do

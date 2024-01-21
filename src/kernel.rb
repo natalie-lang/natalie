@@ -57,7 +57,7 @@ module Kernel
   end
 
   def warn(*msgs, category: nil)
-    msgs.each { |message| Warning.warn(message + "\n", category: category&.to_sym) }
+    msgs.each { |message| Warning.warn(message.to_s + "\n", category: category&.to_sym) }
     nil
   end
 
