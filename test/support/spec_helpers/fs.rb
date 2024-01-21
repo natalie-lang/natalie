@@ -58,7 +58,7 @@ end
 # a file.
 def rm_r(*paths)
   paths.each do |path|
-    path = File.expand_path path
+    path = path.is_a?(File) ? path.to_path : File.expand_path(path)
 
     prefix = SPEC_TEMP_DIR
     unless path[0, prefix.size] == prefix
