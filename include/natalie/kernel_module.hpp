@@ -67,6 +67,7 @@ public:
     static Value sleep(Env *env, Value length);
     static Value spawn(Env *, Args);
     static Value String(Env *env, Value value);
+    static Value test(Env *, Value, Value);
     static Value this_method(Env *env);
     static bool block_given(Env *env, Block *block) { return !!block; }
 

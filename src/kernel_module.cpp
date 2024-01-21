@@ -694,6 +694,36 @@ Value KernelModule::tap(Env *env, Block *block) {
     return this;
 }
 
+Value KernelModule::test(Env *env, Value cmd, Value file) {
+    switch (cmd->to_str(env)->string()[0]) {
+    case 'A':
+        return FileObject::stat(env, file)->as_file_stat()->atime(env);
+    case 'C':
+        return FileObject::stat(env, file)->as_file_stat()->ctime(env);
+    case 'd':
+        return FileObject::is_directory(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'e':
+        return FileObject::exist(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'f':
+        return FileObject::is_file(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'l':
+        return FileObject::is_symlink(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'M':
+        return FileObject::stat(env, file)->as_file_stat()->mtime(env);
+    case 'r':
+        return FileObject::is_readable(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'R':
+        return FileObject::is_readable_real(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'w':
+        return FileObject::is_writable(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    case 'W':
+        return FileObject::is_writable_real(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+    default:
+        env->raise("ArgumentError", "unknown command '{}'", cmd->to_str(env)->string()[0]);
+    }
+    NAT_UNREACHABLE();
+}
+
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
     return SymbolObject::intern(method->name());
