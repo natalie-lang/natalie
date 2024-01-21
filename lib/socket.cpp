@@ -1035,13 +1035,15 @@ Value Socket_Option_linger(Env *env, Value self, Args, Block *) {
 }
 
 Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_between(env, 2, 5);
+    auto kwargs = args.pop_keyword_hash();
+    args.ensure_argc_between(env, 2, 4);
 
     auto host = args.at(0);
     auto port = args.at(1);
     auto local_host = args.at(2, NilObject::the());
     auto local_port = args.at(3, NilObject::the());
-    auto connect_timeout = args.keyword_arg(env, "connect_timeout"_s);
+    auto connect_timeout = kwargs ? kwargs->remove(env, "connect_timeout"_s) : NilObject::the();
+    env->ensure_no_extra_keywords(kwargs);
 
     auto fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
