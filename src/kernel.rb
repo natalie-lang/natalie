@@ -57,7 +57,17 @@ module Kernel
   end
 
   def warn(*msgs, category: nil)
-    msgs.each { |message| Warning.warn(message + "\n", category: category&.to_sym) }
+    if !category.nil? && !category.is_a?(Symbol)
+      category = category.to_sym if category.respond_to?(:to_sym)
+      raise TypeError, "no implicit conversion of #{category.class} into Symbol" unless category.is_a?(Symbol)
+    end
+
+    msgs = msgs[0] if msgs.size == 1 && msgs[0].is_a?(Array)
+    msgs.each do |message|
+      message = message.to_s
+      message = message + "\n" unless message.end_with?("\n")
+      Warning.warn(message, category: category)
+    end
     nil
   end
 
