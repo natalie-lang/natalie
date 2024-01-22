@@ -40,6 +40,7 @@ public:
     };
 
     enum class SuspendStatus {
+        Launching,
         Running,
         Suspended,
     };
@@ -186,8 +187,6 @@ public:
     SuspendStatus suspend_status() const { return m_suspend_status; }
     void set_suspend_status(SuspendStatus status) { m_suspend_status = status; }
 
-    void set_launched(bool launched) { m_launched = launched; }
-
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -289,10 +288,7 @@ private:
 #endif
     ucontext_t *m_context { nullptr };
 
-    std::atomic<SuspendStatus> m_suspend_status { SuspendStatus::Running };
-
-    // TODO: move this into the SuspendStatus enum
-    std::atomic<bool> m_launched { false };
+    std::atomic<SuspendStatus> m_suspend_status { SuspendStatus::Launching };
 
     bool m_abort_on_exception { false };
     bool m_report_on_exception { true };

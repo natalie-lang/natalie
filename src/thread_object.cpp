@@ -39,7 +39,7 @@ static void *nat_create_thread(void *thread_object) {
     Natalie::tl_current_thread = thread;
 
     thread->set_native_thread_handle(pthread_self());
-    thread->set_launched(true);
+    thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
 
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
@@ -180,7 +180,7 @@ void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
-    thread->m_launched = true;
+    thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
@@ -212,7 +212,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     // list is guaranteed to be seen by the Garbage Collector
     // and the GC will wait until:
     //
-    // 1. The thread is launched (m_launched == true)
+    // 1. The thread is running (m_suspend_status == SuspendStatus::Running)
     // 2. The thread is subsequently stopped by a SIGUSR1 signal.
     //
     // If you allocate GC-managed memory beyond this point,
@@ -716,7 +716,7 @@ void ThreadObject::stop_the_world_and_save_context() {
     do {
         all_launched = true;
         for (auto thread : ThreadObject::list()) {
-            if (!thread->m_launched.load()) {
+            if (thread->suspend_status() == SuspendStatus::Launching) {
                 all_launched = false;
                 break;
             }
@@ -780,7 +780,7 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
 
     // If this thread is still in the state of being setup, the stack might not be
     // known yet. Plus, there shouldn't be any GC-managed variables on the stack yet.
-    if (!m_launched)
+    if (m_suspend_status == SuspendStatus::Launching)
         return;
 
     // Walk the stack looking for variables...
