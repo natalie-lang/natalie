@@ -204,6 +204,7 @@ public:
     static void remove_from_list(ThreadObject *);
 
     static Value exit(Env *env) { return current()->kill(env); }
+    static Value thread_kill(Env *, Value);
     static Value stop(Env *);
 
     static bool i_am_main() { return tl_current_thread == s_main; }
