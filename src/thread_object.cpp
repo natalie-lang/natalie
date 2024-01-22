@@ -735,8 +735,6 @@ void ThreadObject::stop_the_world_and_save_context() {
             handle = thread->native_thread_handle();
         }
 
-        thread->set_context_saved(false);
-
         pthread_kill(handle, SIGUSR1);
         NAT_THREAD_DEBUG("sent halt signal to thread %p", thread);
     }
@@ -747,7 +745,7 @@ void ThreadObject::stop_the_world_and_save_context() {
         ready = true;
         for (auto thread : ThreadObject::list()) {
             if (thread->is_main()) continue;
-            if (thread->context_saved()) {
+            if (thread->suspend_status() == SuspendStatus::Suspended) {
                 continue;
             } else {
                 ready = false;

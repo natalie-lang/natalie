@@ -39,6 +39,11 @@ public:
         Dead,
     };
 
+    enum class SuspendStatus {
+        Running,
+        Suspended,
+    };
+
     ThreadObject()
         : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } { }
 
@@ -178,8 +183,8 @@ public:
     void check_exception(Env *);
 
     ucontext_t *get_context() const { return m_context; }
-    bool context_saved() const { return m_context_saved; }
-    void set_context_saved(bool saved) { m_context_saved = saved; }
+    SuspendStatus suspend_status() const { return m_suspend_status; }
+    void set_suspend_status(SuspendStatus status) { m_suspend_status = status; }
 
     void set_launched(bool launched) { m_launched = launched; }
 
@@ -283,7 +288,10 @@ private:
     void *m_asan_fake_stack { nullptr };
 #endif
     ucontext_t *m_context { nullptr };
-    std::atomic<bool> m_context_saved { false };
+
+    std::atomic<SuspendStatus> m_suspend_status { SuspendStatus::Running };
+
+    // TODO: move this into the SuspendStatus enum
     std::atomic<bool> m_launched { false };
 
     bool m_abort_on_exception { false };

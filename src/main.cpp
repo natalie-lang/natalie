@@ -55,11 +55,11 @@ void sigpipe_handler(int, siginfo_t *, void *) {
 }
 
 void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
+    auto thread = ThreadObject::current();
+    if (!thread || thread->is_main()) return;
+
     switch (signal) {
     case SIGUSR1: {
-        auto thread = ThreadObject::current();
-        if (!thread || thread->is_main()) return;
-
         auto ctx = thread->get_context();
         if (!ctx) {
             char msg[] = "Fatal: Could not get pointer for thread context.";
@@ -67,19 +67,21 @@ void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
             abort();
         }
         memcpy(ctx, ucontext, sizeof(ucontext_t));
-        thread->set_context_saved(true);
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Suspended);
 #ifdef NAT_DEBUG_THREADS
-        char msg[] = "THREAD DEBUG: Thread paused\n";
+        char msg[] = "THREAD DEBUG: Thread suspended\n";
         assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
 #endif
         pause();
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Running);
         break;
     }
     case SIGUSR2:
 #ifdef NAT_DEBUG_THREADS
-        char msg2[] = "THREAD DEBUG: Thread woke up\n";
+        char msg2[] = "THREAD DEBUG: Thread resumed\n";
         assert(::write(STDERR_FILENO, msg2, sizeof(msg2)) != -1);
 #endif
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Running);
         break;
     }
 }
