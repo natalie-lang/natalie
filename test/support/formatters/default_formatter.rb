@@ -2,19 +2,19 @@ class DefaultFormatter
   def print_context(*) ; end
   
   def print_success(*)
-    print '.'
+    STDOUT.print '.'
   end
 
   def print_error(*)
-    print 'E'
+    STDOUT.print 'E'
   end
 
   def print_failure(*)
-    print 'F'
+    STDOUT.print 'F'
   end
 
   def print_skipped(*)
-    print '*'
+    STDOUT.print '*'
   end
 
   def print_finish(test_count, failures, errors, skipped)
