@@ -836,6 +836,10 @@ module Kernel
   end
   private :open
 
+  def putc(char)
+    $stdout.putc(char)
+  end
+
   alias format sprintf
 
   def printf(*args)
