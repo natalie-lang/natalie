@@ -229,8 +229,7 @@ describe "Predefined globals $1..N" do
   end
 end
 
-# NATFIXME: Redefining $stdout results in formatting errors
-xdescribe "Predefined global $stdout" do
+describe "Predefined global $stdout" do
   before :each do
     @old_stdout = $stdout
   end
@@ -240,12 +239,16 @@ xdescribe "Predefined global $stdout" do
   end
 
   it "raises TypeError error if assigned to nil" do
-    -> { $stdout = nil }.should raise_error(TypeError)
+    NATFIXME 'raises TypeError error if assigned to nil', exception: SpecFailedException do
+      -> { $stdout = nil }.should raise_error(TypeError)
+    end
   end
 
   it "raises TypeError error if assigned to object that doesn't respond to #write" do
     obj = mock('object')
-    -> { $stdout = obj }.should raise_error(TypeError)
+    NATFIXME "raises TypeError error if assigned to object that doesn't respond to #write", exception: SpecFailedException do
+      -> { $stdout = obj }.should raise_error(TypeError)
+    end
 
     obj.stub!(:write)
     $stdout = obj
