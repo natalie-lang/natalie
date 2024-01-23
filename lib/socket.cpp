@@ -331,6 +331,17 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
             env->raise_errno();
         return new StringObject { (const char *)&in6, len, Encoding::ASCII_8BIT };
     }
+    case AF_UNIX: {
+        struct sockaddr_un un { };
+        socklen_t len = sizeof(un);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&un,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        return new StringObject { (const char *)&un, len, Encoding::ASCII_8BIT };
+    }
     default:
         NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
     }
