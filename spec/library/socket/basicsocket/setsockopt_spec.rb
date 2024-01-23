@@ -316,8 +316,7 @@ describe 'BasicSocket#setsockopt' do
   end
 
   with_feature :unix_socket do
-    # NATFIXME: UNIXServer
-    xdescribe 'using a UNIX socket' do
+    describe 'using a UNIX socket' do
       before do
         @path = SocketSpecs.socket_path
         @server = UNIXServer.new(@path)
