@@ -158,6 +158,13 @@ ThreadObject *ThreadObject::current() {
     return tl_current_thread;
 }
 
+Value ThreadObject::thread_kill(Env *env, Value thread) {
+    if (!thread->is_thread())
+        env->raise("TypeError", "wrong argument type {} (expected VM/thread)", thread->klass()->inspect_str());
+
+    return thread->as_thread()->kill(env);
+}
+
 Value ThreadObject::stop(Env *env) {
     tl_current_thread->sleep(env, -1.0);
     return NilObject::the();

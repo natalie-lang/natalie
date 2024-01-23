@@ -11,13 +11,11 @@ platform_is_not :mingw do
 
   describe "Thread.kill" do
     it "causes the given thread to exit" do
-      NATFIXME 'Implement Thread.kill', exception: NoMethodError do
-        thread = Thread.new { sleep }
-        Thread.pass while thread.status and thread.status != "sleep"
-        Thread.kill(thread).should == thread
-        thread.join
-        thread.status.should be_false
-      end
+      thread = Thread.new { sleep }
+      Thread.pass while thread.status and thread.status != "sleep"
+      Thread.kill(thread).should == thread
+      thread.join
+      thread.status.should be_false
     end
   end
 end
