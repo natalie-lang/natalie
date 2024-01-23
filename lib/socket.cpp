@@ -704,6 +704,21 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
 
         return Value::integer(result);
     }
+    case AF_INET6: {
+        struct sockaddr_in6 addr { };
+        auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
+        memcpy(&addr, packed->c_str(), std::min(sizeof(addr), packed->length()));
+
+        auto result = bind(self->as_io()->fileno(), (const struct sockaddr *)&addr, sizeof(addr));
+        if (result == -1)
+            env->raise_errno();
+
+        auto addr_ary = IPSocket_addr(env, self, {}, nullptr)->as_array_or_raise(env);
+        packed = Socket.send(env, "pack_sockaddr_in6"_s, { addr_ary->at(1), addr_ary->at(3) }, nullptr)->as_string_or_raise(env);
+        sockaddr = Addrinfo.send(env, "new"_s, { packed });
+
+        return Value::integer(result);
+    }
     case AF_UNIX: {
         struct sockaddr_un addr { };
         auto packed = sockaddr.send(env, "to_sockaddr"_s)->as_string_or_raise(env);
