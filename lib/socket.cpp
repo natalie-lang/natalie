@@ -804,12 +804,12 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     switch (addr->ai_family) {
     case AF_INET: {
         auto in = (struct sockaddr_in *)addr->ai_addr;
-        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in) };
+        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in), Encoding::ASCII_8BIT };
         break;
     }
     case AF_INET6: {
         auto in = (struct sockaddr_in6 *)addr->ai_addr;
-        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in6) };
+        packed = new StringObject { (const char *)in, sizeof(struct sockaddr_in6), Encoding::ASCII_8BIT };
         break;
     }
     default:
@@ -835,7 +835,7 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 
     un.sun_family = AF_UNIX;
     memcpy(un.sun_path, path_string->c_str(), path_string->length());
-    return new StringObject { (const char *)&un, sizeof(un) };
+    return new StringObject { (const char *)&un, sizeof(un), Encoding::ASCII_8BIT };
 }
 
 Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
