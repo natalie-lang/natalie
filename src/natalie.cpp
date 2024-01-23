@@ -863,4 +863,59 @@ int pipe2(int pipefd[2], int flags) {
 #endif
 }
 
+void trap_signal(int signal, void (*handler)(int, siginfo_t *, void *)) {
+    struct sigaction sa;
+    sa.sa_sigaction = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_SIGINFO;
+
+    if (sigaction(signal, &sa, nullptr) == -1) {
+        printf("Failed to trap %d\n", signal);
+        exit(1);
+    }
+}
+
+void gc_signal_handler(int signal, siginfo_t *, void *ucontext) {
+    auto thread = ThreadObject::current();
+    if (!thread || thread->is_main()) return;
+
+    switch (signal) {
+    case SIGUSR1: {
+        auto ctx = thread->get_context();
+        if (!ctx) {
+            char msg[] = "Fatal: Could not get pointer for thread context.";
+            assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
+            abort();
+        }
+        memcpy(ctx, ucontext, sizeof(ucontext_t));
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Suspended);
+#ifdef NAT_DEBUG_THREADS
+        char msg[] = "THREAD DEBUG: Thread suspended\n";
+        assert(::write(STDERR_FILENO, msg, sizeof(msg)) != -1);
+#endif
+        pause();
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Running);
+        break;
+    }
+    case SIGUSR2:
+#ifdef NAT_DEBUG_THREADS
+        char msg2[] = "THREAD DEBUG: Thread resumed\n";
+        assert(::write(STDERR_FILENO, msg2, sizeof(msg2)) != -1);
+#endif
+        thread->set_suspend_status(ThreadObject::SuspendStatus::Running);
+        break;
+    }
+}
+
+void sigint_handler(int, siginfo_t *, void *) {
+    const char *msg = "Interrupt\n";
+    auto bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
+    if (bytes_written == -1) abort();
+    exit(128 + SIGINT);
+}
+
+void sigpipe_handler(int, siginfo_t *, void *) {
+    // TODO: do something here?
+}
+
 }
