@@ -291,12 +291,10 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
     auto fd = args.at(0);
 
-    auto BasicSocket = find_top_level_const(env, "BasicSocket"_s);
-
-    auto sock = BasicSocket.send(env, "new"_s);
+    auto sock = Object::allocate(env, self->as_class(), {}, nullptr);
     sock->as_io()->initialize(env, { fd }, block);
 
-    return self;
+    return sock;
 }
 
 Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {

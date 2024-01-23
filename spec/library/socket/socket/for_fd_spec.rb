@@ -10,7 +10,9 @@ describe "Socket.for_fd" do
 
   after :each do
     @socket.close
-    @client.close
+    NATFIXME 'Fix IO#autoclose', exception: Errno::EBADF do
+      @client.close
+    end
     @host.close
     @server.close
   end
