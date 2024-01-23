@@ -347,7 +347,7 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
         if (count > std::numeric_limits<off_t>::max())
             env->raise("RangeError", "bignum too big to convert into `long'");
         if (m_read_buffer.size() >= static_cast<size_t>(count)) {
-            auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), EncodingObject::get(Encoding::ASCII_8BIT) };
+            auto result = new StringObject { m_read_buffer.c_str(), static_cast<size_t>(count), Encoding::ASCII_8BIT };
             m_read_buffer = String { m_read_buffer.c_str() + count, m_read_buffer.size() - count };
             return result;
         }
@@ -364,14 +364,14 @@ Value IoObject::read(Env *env, Value count_value, Value buffer) {
             if (count == 0) {
                 if (buffer != nullptr)
                     return buffer;
-                return new StringObject { "", 0, EncodingObject::get(Encoding::ASCII_8BIT) };
+                return new StringObject { "", 0, Encoding::ASCII_8BIT };
             }
             return NilObject::the();
         } else if (buffer != nullptr) {
             buffer->as_string()->set_str(buf.c_str(), static_cast<size_t>(bytes_read));
             return buffer;
         } else {
-            return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+            return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
         }
     }
     char buf[NAT_READ_BYTES + 1];

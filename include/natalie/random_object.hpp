@@ -67,7 +67,7 @@ public:
 #else
         arc4random_buf(buffer, length);
 #endif
-        return new StringObject { buffer, length, EncodingObject::get(Encoding::ASCII_8BIT) };
+        return new StringObject { buffer, length, Encoding::ASCII_8BIT };
     }
 
 private:

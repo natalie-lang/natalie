@@ -32,7 +32,7 @@ Value RandomObject::bytes(Env *env, Value size) {
     for (size_t i = 0; i < blocks; i++)
         output[i] = random_number(*m_generator);
 
-    return new StringObject { reinterpret_cast<char *>(output), static_cast<size_t>(isize), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { reinterpret_cast<char *>(output), static_cast<size_t>(isize), Encoding::ASCII_8BIT };
 }
 
 Value RandomObject::rand(Env *env, Value arg) {

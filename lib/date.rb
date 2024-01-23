@@ -338,7 +338,7 @@ class Date
       int maxsize = 32;
       char buffer[maxsize];
       auto length = ::strftime(buffer, maxsize, format_var->as_string()->c_str(), &time);
-      return new StringObject { buffer, length, EncodingObject::get(Encoding::US_ASCII) };
+      return new StringObject { buffer, length, Encoding::US_ASCII };
     END
   end
 

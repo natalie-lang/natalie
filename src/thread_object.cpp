@@ -251,7 +251,7 @@ Value ThreadObject::to_s(Env *env) {
         location,
         status());
 
-    return new StringObject { formatted, EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { formatted, Encoding::ASCII_8BIT };
 }
 
 Value ThreadObject::status(Env *env) {
