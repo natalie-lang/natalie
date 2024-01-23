@@ -762,7 +762,7 @@ void ThreadObject::wake_up_the_world() {
     }
 }
 
-void ThreadObject::suspend() {
+void ThreadObject::suspend() { // NOLINT "can be made const" warning only for Linux
 #ifdef __APPLE__
     assert(m_mach_thread_port != MACH_PORT_NULL);
     int result;
@@ -778,7 +778,7 @@ void ThreadObject::suspend() {
 #endif
 }
 
-void ThreadObject::resume() {
+void ThreadObject::resume() { // NOLINT "can be made const" warning only for Linux
 #ifdef __APPLE__
     assert(m_mach_thread_port != MACH_PORT_NULL);
     int result;
