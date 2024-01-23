@@ -293,6 +293,7 @@ Value BasicSocket_s_for_fd(Env *env, Value self, Args args, Block *block) {
 
     auto sock = Object::allocate(env, self->as_class(), {}, nullptr);
     sock->as_io()->initialize(env, { fd }, block);
+    sock->as_io()->binmode(env);
 
     return sock;
 }

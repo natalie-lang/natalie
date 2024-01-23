@@ -33,8 +33,6 @@ describe "BasicSocket.for_fd" do
     socket2 = Socket.for_fd(@socket1.fileno)
     socket2.autoclose = false
 
-    NATFIXME 'Set socket to binary mode', exception: SpecFailedException do
-      socket2.binmode?.should be_true
-    end
+    socket2.binmode?.should be_true
   end
 end
