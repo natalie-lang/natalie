@@ -39,6 +39,10 @@ static void *nat_create_thread(void *thread_object) {
     Natalie::tl_current_thread = thread;
 
     thread->set_native_thread_handle(pthread_self());
+#ifdef __APPLE__
+    thread->set_mach_thread_port(mach_thread_self());
+#endif
+    thread->set_native_thread_handle(pthread_self());
     thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
 
 #ifdef __SANITIZE_ADDRESS__
@@ -727,16 +731,7 @@ void ThreadObject::stop_the_world_and_save_context() {
     NAT_THREAD_DEBUG("sending signals to stop all threads except main");
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
-
-        std::thread::native_handle_type handle = thread->native_thread_handle();
-        while (!handle) {
-            NAT_THREAD_DEBUG("waiting for thread handle for %p", thread);
-            sched_yield();
-            handle = thread->native_thread_handle();
-        }
-
-        pthread_kill(handle, SIGUSR1);
-        NAT_THREAD_DEBUG("sent halt signal to thread %p", thread);
+        thread->suspend();
     }
 
     NAT_THREAD_DEBUG("waiting for threads to stop");
@@ -763,13 +758,40 @@ void ThreadObject::wake_up_the_world() {
     // Now we can wake up all the threads that are waiting.
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
-
-        auto handle = thread->native_thread_handle();
-        if (!handle) continue;
-
-        NAT_THREAD_DEBUG("sending wake up signal to thread %p", thread);
-        pthread_kill(handle, SIGUSR2);
+        thread->resume();
     }
+}
+
+void ThreadObject::suspend() {
+#ifdef __APPLE__
+    assert(m_mach_thread_port != MACH_PORT_NULL);
+    int result;
+    do {
+        result = thread_suspend(m_mach_thread_port);
+    } while (result == KERN_ABORTED);
+    assert(result == KERN_SUCCESS);
+    m_suspend_status = SuspendStatus::Suspended;
+#else
+    assert(m_native_thread_handle);
+    pthread_kill(m_native_thread_handle, SIGUSR1);
+    NAT_THREAD_DEBUG("sent suspend signal to thread %p", this);
+#endif
+}
+
+void ThreadObject::resume() {
+#ifdef __APPLE__
+    assert(m_mach_thread_port != MACH_PORT_NULL);
+    int result;
+    do {
+        result = thread_resume(m_mach_thread_port);
+    } while (result == KERN_ABORTED);
+    assert(result == KERN_SUCCESS);
+    m_suspend_status = SuspendStatus::Running;
+#else
+    assert(m_native_thread_handle);
+    pthread_kill(m_native_thread_handle, SIGUSR2);
+    NAT_THREAD_DEBUG("sent resume signal to thread %p", this);
+#endif
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
