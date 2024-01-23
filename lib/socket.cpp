@@ -323,7 +323,7 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
             &len);
         if (getsockname_result == -1)
             env->raise_errno();
-        return new StringObject { (const char *)&in, len };
+        return new StringObject { (const char *)&in, len, Encoding::ASCII_8BIT };
     }
     case AF_INET6: {
         struct sockaddr_in in6 { };
@@ -334,7 +334,7 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
             &len);
         if (getsockname_result == -1)
             env->raise_errno();
-        return new StringObject { (const char *)&in6, len };
+        return new StringObject { (const char *)&in6, len, Encoding::ASCII_8BIT };
     }
     default:
         NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
