@@ -1,6 +1,7 @@
 require_relative '../spec_helper'
 
 require 'socket'
+require_relative '../../spec/library/socket/fixtures/classes'
 
 describe 'Addrinfo' do
   describe '.new' do
@@ -48,5 +49,23 @@ describe 'Socket' do
                  "\r\n"
 
     t.join
+  end
+end
+
+describe 'UNIXServer' do
+  before :each do
+    @path = SocketSpecs.socket_path
+    @server = UNIXServer.new(@path)
+  end
+
+  after :each do
+    @server.close if @server
+    rm_r @path
+  end
+
+  describe '#inspect' do
+    it 'includes the path' do
+      @server.inspect.should.include?(@path)
+    end
   end
 end

@@ -1210,7 +1210,8 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
     if (fd == -1)
         env->raise_errno();
 
-    self->as_io()->initialize(env, { Value::integer(fd) }, block);
+    auto kwargs = new HashObject { env, { "path"_s, path } };
+    self->as_io()->initialize(env, Args({ Value::integer(fd), kwargs }, true), block);
     self->as_io()->binmode(env);
 
     auto Socket = find_top_level_const(env, "Socket"_s);
