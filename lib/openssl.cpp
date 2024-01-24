@@ -125,7 +125,7 @@ Value OpenSSL_Cipher_final(Env *env, Value self, Args args, Block *) {
     if (!EVP_CipherFinal_ex(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size))
         OpenSSL_Cipher_raise_error(env, "EVP_CipherFinal_ex");
     buf.truncate(size);
-    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
 }
 
 Value OpenSSL_Cipher_iv_set(Env *env, Value self, Args args, Block *) {
@@ -180,7 +180,7 @@ Value OpenSSL_Cipher_update(Env *env, Value self, Args args, Block *) {
     if (!EVP_CipherUpdate(ctx, reinterpret_cast<unsigned char *>(&buf[0]), &size, reinterpret_cast<const unsigned char *>(data->c_str()), data->bytesize()))
         OpenSSL_Cipher_raise_error(env, "EVP_CipherUpdate");
     buf.truncate(size);
-    return new StringObject { std::move(buf), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { std::move(buf), Encoding::ASCII_8BIT };
 }
 
 Value OpenSSL_Cipher_ciphers(Env *env, Value self, Args args, Block *) {
@@ -263,7 +263,7 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
 
     OpenSSL_Digest_reset(env, self, {}, nullptr);
 
-    return new StringObject { reinterpret_cast<const char *>(buf), md_len, EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { reinterpret_cast<const char *>(buf), md_len, Encoding::ASCII_8BIT };
 }
 
 Value OpenSSL_Digest_digest_length(Env *env, Value self, Args args, Block *) {
@@ -395,7 +395,7 @@ Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
         OpenSSL_raise_error(env, "PKCS5_PBKDF2_HMAC", KDFError->as_class());
     }
 
-    return new StringObject { reinterpret_cast<char *>(out), out_size, EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { reinterpret_cast<char *>(out), out_size, Encoding::ASCII_8BIT };
 }
 
 Value OpenSSL_KDF_scrypt(Env *env, Value self, Args args, Block *) {
@@ -525,7 +525,7 @@ Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     if (RAND_bytes(buf, num) != 1)
         OpenSSL_raise_error(env, "RAND_bytes");
 
-    return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), EncodingObject::get(Encoding::ASCII_8BIT) };
+    return new StringObject { reinterpret_cast<char *>(buf), static_cast<size_t>(num), Encoding::ASCII_8BIT };
 }
 
 Value OpenSSL_X509_Name_add_entry(Env *env, Value self, Args args, Block *) {

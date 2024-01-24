@@ -64,6 +64,13 @@ public:
         set_str(str);
     }
 
+    StringObject(const char *str, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
+        assert(m_encoding);
+        set_str(str);
+    }
+
     StringObject(const char *str, size_t length)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { EncodingObject::get(Encoding::UTF_8) } {
@@ -74,6 +81,13 @@ public:
     StringObject(const char *str, size_t length, EncodingObject *encoding)
         : Object { Object::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
+        assert(m_encoding);
+        set_str(str, length);
+    }
+
+    StringObject(const char *str, size_t length, Encoding encoding)
+        : Object { Object::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { EncodingObject::get(encoding) } {
         assert(m_encoding);
         set_str(str, length);
     }
