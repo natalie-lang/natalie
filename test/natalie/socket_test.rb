@@ -15,6 +15,11 @@ describe 'Addrinfo' do
       addrinfo = Addrinfo.new(Socket.pack_sockaddr_un('socket'))
       addrinfo.afamily.should == Socket::AF_UNIX
     end
+
+    it 'works with the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr))' do
+      addrinfo = Addrinfo.new("\x01\x00/tmp/sock\x00".b)
+      addrinfo.afamily.should == Socket::AF_UNIX
+    end
   end
 end
 
