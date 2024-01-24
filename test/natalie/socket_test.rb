@@ -50,6 +50,23 @@ describe 'Socket' do
 
     t.join
   end
+
+  describe 'Socket.unpack_sockaddr_un' do
+    before :each do
+      @path = SocketSpecs.socket_path
+      @server = UNIXServer.new(@path)
+    end
+
+    after :each do
+      @server.close if @server
+      rm_r @path
+    end
+
+    it 'can unpack the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr_un))' do
+      packed = @server.getsockname
+      Socket.unpack_sockaddr_un(packed).should == @path
+    end
+  end
 end
 
 describe 'UNIXServer' do
