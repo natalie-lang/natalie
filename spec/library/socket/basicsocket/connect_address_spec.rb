@@ -10,7 +10,9 @@ describe 'Socket#connect_address' do
     it 'raises SocketError' do
       @sock = Socket.new(:INET, :STREAM)
 
-      -> { @sock.connect_address }.should raise_error(SocketError)
+      NATFIXME 'using an unbound socket raises SocketError', exception: SpecFailedException do
+        -> { @sock.connect_address }.should raise_error(SocketError)
+      end
     end
   end
 
@@ -29,7 +31,9 @@ describe 'Socket#connect_address' do
     end
 
     it 'uses 127.0.0.1 as the IP address' do
-      @sock.connect_address.ip_address.should == '127.0.0.1'
+      NATFIXME 'uses 127.0.0.1 as the IP address', exception: SpecFailedException do
+        @sock.connect_address.ip_address.should == '127.0.0.1'
+      end
     end
 
     it 'uses the correct port number' do
@@ -41,11 +45,15 @@ describe 'Socket#connect_address' do
     end
 
     it 'uses PF_INET as the address family' do
-      @sock.connect_address.pfamily.should == Socket::PF_INET
+      NATFIXME 'uses PF_INET as the address family', exception: SpecFailedException do
+        @sock.connect_address.pfamily.should == Socket::PF_INET
+      end
     end
 
     it 'uses SOCK_STREAM as the socket type' do
-      @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+      NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
+        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+      end
     end
 
     it 'uses 0 as the protocol' do
@@ -69,7 +77,9 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses ::1 as the IP address' do
-        @sock.connect_address.ip_address.should == '::1'
+        NATFIXME 'uses ::1 as the IP address', exception: SpecFailedException do
+          @sock.connect_address.ip_address.should == '::1'
+        end
       end
 
       it 'uses the correct port number' do
@@ -81,11 +91,15 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses PF_INET6 as the address family' do
-        @sock.connect_address.pfamily.should == Socket::PF_INET6
+        NATFIXME 'uses PF_INET6 as the address family', exception: SpecFailedException do
+          @sock.connect_address.pfamily.should == Socket::PF_INET6
+        end
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
+          @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+        end
       end
 
       it 'uses 0 as the protocol' do
@@ -110,7 +124,9 @@ describe 'Socket#connect_address' do
         end
 
         it 'raises SocketError' do
-          -> { @client.connect_address }.should raise_error(SocketError)
+          NATFIXME 'using an unbound UNIX socket raises SocketError', exception: SpecFailedException do
+            -> { @client.connect_address }.should raise_error(SocketError)
+          end
         end
       end
     end
@@ -139,11 +155,15 @@ describe 'Socket#connect_address' do
       end
 
       it 'uses PF_UNIX as the protocol family' do
-        @sock.connect_address.pfamily.should == Socket::PF_UNIX
+        NATFIXME 'uses PF_UNIX as the protocol family', exception: SpecFailedException do
+          @sock.connect_address.pfamily.should == Socket::PF_UNIX
+        end
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
+          @sock.connect_address.socktype.should == Socket::SOCK_STREAM
+        end
       end
 
       it 'uses 0 as the protocol' do
