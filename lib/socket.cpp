@@ -88,7 +88,7 @@ static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
 }
 
 static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
-    if (sockaddr->bytesize() < sizeof(struct sockaddr))
+    if (sockaddr->bytesize() < offsetof(struct sockaddr, sa_family) + sizeof(sa_family_t))
         env->raise("ArgumentError", "bad sockaddr");
     return ((struct sockaddr *)(sockaddr->c_str()))->sa_family;
 }
