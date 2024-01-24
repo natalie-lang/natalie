@@ -176,7 +176,7 @@ class Socket < BasicSocket
 end
 
 class Addrinfo
-  attr_reader :afamily, :family, :pfamily, :protocol, :socktype, :unix_path
+  attr_reader :afamily, :family, :pfamily, :protocol, :socktype
 
   class << self
     def ip(ip)
@@ -219,5 +219,10 @@ class Addrinfo
 
   def unix?
     afamily == Socket::AF_UNIX
+  end
+
+  def unix_path
+    raise SocketError, 'need AF_UNIX address' unless unix?
+    @unix_path
   end
 end
