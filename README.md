@@ -28,7 +28,7 @@ We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and
 
 ## Building
 
-Natalie is tested on macOS, OpenBSD, and Ubuntu Linux. Windows is not yet supported.
+Natalie is tested on macOS and Ubuntu Linux. Windows is not yet supported.
 
 Natalie requires a system Ruby (MRI) to host the compiler, for now.
 

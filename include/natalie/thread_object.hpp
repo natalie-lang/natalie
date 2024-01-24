@@ -8,6 +8,7 @@
 
 #ifdef __APPLE__
 #define _XOPEN_SOURCE
+#include <mach/mach.h>
 #endif
 #include <atomic>
 #include <sys/ucontext.h>
@@ -39,6 +40,12 @@ public:
         Dead,
     };
 
+    enum class SuspendStatus {
+        Launching,
+        Running,
+        Suspended,
+    };
+
     ThreadObject()
         : Object { Object::Type::Thread, GlobalEnv::the()->Object()->const_fetch("Thread"_s)->as_class() } { }
 
@@ -61,13 +68,13 @@ public:
 
     ThreadObject *initialize(Env *env, Args args, Block *block);
 
-    std::thread::native_handle_type native_thread_handle() const {
-        return m_native_thread_handle;
-    }
+    std::thread::native_handle_type native_thread_handle() const { return m_native_thread_handle; }
+    void set_native_thread_handle(std::thread::native_handle_type handle) { m_native_thread_handle = handle; }
 
-    void set_native_thread_handle(std::thread::native_handle_type handle) {
-        m_native_thread_handle = handle;
-    }
+#ifdef __APPLE__
+    thread_t mach_thread_port() const { return m_mach_thread_port; }
+    void set_mach_thread_port(thread_t port) { m_mach_thread_port = port; }
+#endif
 
     Value to_s(Env *);
 
@@ -178,10 +185,11 @@ public:
     void check_exception(Env *);
 
     ucontext_t *get_context() const { return m_context; }
-    bool context_saved() const { return m_context_saved; }
-    void set_context_saved(bool saved) { m_context_saved = saved; }
 
-    void set_launched(bool launched) { m_launched = launched; }
+    void suspend();
+    void resume();
+    SuspendStatus suspend_status() const { return m_suspend_status; }
+    void set_suspend_status(SuspendStatus status) { m_suspend_status = status; }
 
     virtual void visit_children(Visitor &) override final;
 
@@ -266,6 +274,9 @@ private:
     Block *m_block { nullptr };
     std::thread m_thread {};
     std::thread::native_handle_type m_native_thread_handle { 0 };
+#ifdef __APPLE__
+    thread_t m_mach_thread_port { MACH_PORT_NULL };
+#endif
     std::atomic<ExceptionObject *> m_exception { nullptr };
     Value m_value { nullptr };
     HashObject *m_thread_variables { nullptr };
@@ -283,8 +294,8 @@ private:
     void *m_asan_fake_stack { nullptr };
 #endif
     ucontext_t *m_context { nullptr };
-    std::atomic<bool> m_context_saved { false };
-    std::atomic<bool> m_launched { false };
+
+    std::atomic<SuspendStatus> m_suspend_status { SuspendStatus::Launching };
 
     bool m_abort_on_exception { false };
     bool m_report_on_exception { true };

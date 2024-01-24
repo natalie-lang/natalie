@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <float.h>
 #include <inttypes.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -207,5 +208,12 @@ void dbg(const char *fmt, Args... args) {
 }
 
 int pipe2(int pipefd[2], int flags);
+
+void trap_signal(int signal, void (*handler)(int, siginfo_t *, void *));
+
+void gc_signal_handler(int signal, siginfo_t *, void *ucontext);
+
+void sigint_handler(int, siginfo_t *, void *);
+void sigpipe_handler(int, siginfo_t *, void *);
 
 }

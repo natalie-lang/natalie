@@ -39,7 +39,11 @@ static void *nat_create_thread(void *thread_object) {
     Natalie::tl_current_thread = thread;
 
     thread->set_native_thread_handle(pthread_self());
-    thread->set_launched(true);
+#ifdef __APPLE__
+    thread->set_mach_thread_port(mach_thread_self());
+#endif
+    thread->set_native_thread_handle(pthread_self());
+    thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
 
 #ifdef __SANITIZE_ADDRESS__
     thread->set_asan_fake_stack(__asan_get_current_fake_stack());
@@ -180,7 +184,7 @@ void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     assert(start_of_stack);
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
-    thread->m_launched = true;
+    thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
@@ -212,7 +216,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
     // list is guaranteed to be seen by the Garbage Collector
     // and the GC will wait until:
     //
-    // 1. The thread is launched (m_launched == true)
+    // 1. The thread is running (m_suspend_status == SuspendStatus::Running)
     // 2. The thread is subsequently stopped by a SIGUSR1 signal.
     //
     // If you allocate GC-managed memory beyond this point,
@@ -716,7 +720,7 @@ void ThreadObject::stop_the_world_and_save_context() {
     do {
         all_launched = true;
         for (auto thread : ThreadObject::list()) {
-            if (!thread->m_launched.load()) {
+            if (thread->suspend_status() == SuspendStatus::Launching) {
                 all_launched = false;
                 break;
             }
@@ -727,18 +731,7 @@ void ThreadObject::stop_the_world_and_save_context() {
     NAT_THREAD_DEBUG("sending signals to stop all threads except main");
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
-
-        std::thread::native_handle_type handle = thread->native_thread_handle();
-        while (!handle) {
-            NAT_THREAD_DEBUG("waiting for thread handle for %p", thread);
-            sched_yield();
-            handle = thread->native_thread_handle();
-        }
-
-        thread->set_context_saved(false);
-
-        pthread_kill(handle, SIGUSR1);
-        NAT_THREAD_DEBUG("sent halt signal to thread %p", thread);
+        thread->suspend();
     }
 
     NAT_THREAD_DEBUG("waiting for threads to stop");
@@ -747,7 +740,7 @@ void ThreadObject::stop_the_world_and_save_context() {
         ready = true;
         for (auto thread : ThreadObject::list()) {
             if (thread->is_main()) continue;
-            if (thread->context_saved()) {
+            if (thread->suspend_status() == SuspendStatus::Suspended) {
                 continue;
             } else {
                 ready = false;
@@ -765,13 +758,40 @@ void ThreadObject::wake_up_the_world() {
     // Now we can wake up all the threads that are waiting.
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
-
-        auto handle = thread->native_thread_handle();
-        if (!handle) continue;
-
-        NAT_THREAD_DEBUG("sending wake up signal to thread %p", thread);
-        pthread_kill(handle, SIGUSR2);
+        thread->resume();
     }
+}
+
+void ThreadObject::suspend() { // NOLINT "can be made const" warning only for Linux
+#ifdef __APPLE__
+    assert(m_mach_thread_port != MACH_PORT_NULL);
+    int result;
+    do {
+        result = thread_suspend(m_mach_thread_port);
+    } while (result == KERN_ABORTED);
+    assert(result == KERN_SUCCESS);
+    m_suspend_status = SuspendStatus::Suspended;
+#else
+    assert(m_native_thread_handle);
+    pthread_kill(m_native_thread_handle, SIGUSR1);
+    NAT_THREAD_DEBUG("sent suspend signal to thread %p", this);
+#endif
+}
+
+void ThreadObject::resume() { // NOLINT "can be made const" warning only for Linux
+#ifdef __APPLE__
+    assert(m_mach_thread_port != MACH_PORT_NULL);
+    int result;
+    do {
+        result = thread_resume(m_mach_thread_port);
+    } while (result == KERN_ABORTED);
+    assert(result == KERN_SUCCESS);
+    m_suspend_status = SuspendStatus::Running;
+#else
+    assert(m_native_thread_handle);
+    pthread_kill(m_native_thread_handle, SIGUSR2);
+    NAT_THREAD_DEBUG("sent resume signal to thread %p", this);
+#endif
 }
 
 NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visitor) const {
@@ -782,7 +802,7 @@ NO_SANITIZE_ADDRESS void ThreadObject::visit_children_from_stack(Visitor &visito
 
     // If this thread is still in the state of being setup, the stack might not be
     // known yet. Plus, there shouldn't be any GC-managed variables on the stack yet.
-    if (!m_launched)
+    if (m_suspend_status == SuspendStatus::Launching)
         return;
 
     // Walk the stack looking for variables...
