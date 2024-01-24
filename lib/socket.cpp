@@ -768,9 +768,9 @@ Value Socket_listen(Env *env, Value self, Args args, Block *block) {
 }
 
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_between(env, 0, 2);
-    auto service = args.at(0, NilObject::the());
-    auto host = args.at(1, NilObject::the());
+    args.ensure_argc_is(env, 2);
+    auto service = args.at(0);
+    auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
     if (host->is_string() && host->as_string()->is_empty())
@@ -817,8 +817,8 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 }
 
 Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_between(env, 0, 1);
-    auto path = args.at(0, NilObject::the());
+    args.ensure_argc_is(env, 1);
+    auto path = args.at(0);
     path->assert_type(env, Object::Type::String, "String");
     auto path_string = path->as_string();
 
@@ -834,8 +834,8 @@ Value Socket_pack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 }
 
 Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_between(env, 0, 1);
-    auto sockaddr = args.at(0, NilObject::the());
+    args.ensure_argc_is(env, 1);
+    auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer()->to_nat_int_t();
@@ -887,8 +887,8 @@ Value Socket_unpack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
 }
 
 Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
-    args.ensure_argc_between(env, 0, 1);
-    auto sockaddr = args.at(0, NilObject::the());
+    args.ensure_argc_is(env, 1);
+    auto sockaddr = args.at(0);
 
     if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict))) {
         auto afamily = sockaddr.send(env, "afamily"_s).send(env, "to_i"_s)->as_integer()->to_nat_int_t();
