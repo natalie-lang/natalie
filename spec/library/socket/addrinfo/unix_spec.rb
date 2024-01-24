@@ -15,17 +15,23 @@ with_feature :unix_socket do
     end
 
     it 'sets the protocol family' do
-      Addrinfo.unix('socket').pfamily.should == Socket::PF_UNIX
+      NATFIXME 'sets the protocol family', exception: SpecFailedException do
+        Addrinfo.unix('socket').pfamily.should == Socket::PF_UNIX
+      end
     end
 
     it 'sets the socket type' do
-      Addrinfo.unix('socket').socktype.should == Socket::SOCK_STREAM
+      NATFIXME 'sets the socket type', exception: SpecFailedException do
+        Addrinfo.unix('socket').socktype.should == Socket::SOCK_STREAM
+      end
     end
 
     it 'sets a custom socket type' do
-      addr = Addrinfo.unix('socket', Socket::SOCK_DGRAM)
+      NATFIXME 'Support socket type argument', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+        addr = Addrinfo.unix('socket', Socket::SOCK_DGRAM)
 
-      addr.socktype.should == Socket::SOCK_DGRAM
+        addr.socktype.should == Socket::SOCK_DGRAM
+      end
     end
 
     it 'sets the socket protocol to 0' do
