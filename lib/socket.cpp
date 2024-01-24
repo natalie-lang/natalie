@@ -969,6 +969,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     memcpy(&addr, sockaddr->as_string()->c_str(), std::min(sizeof(addr), sockaddr->as_string()->bytesize()));
     if (addr.sun_family != AF_UNIX)
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+    // NATFIXME: Change to ASCII_8BIT, but this currently breaks the specs due to a missing String#encode with 2 arguments
     return new StringObject { addr.sun_path };
 }
 
