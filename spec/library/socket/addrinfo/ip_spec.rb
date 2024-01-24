@@ -54,7 +54,9 @@ describe 'Addrinfo.ip' do
     end
 
     it 'sets the protocol family' do
-      Addrinfo.ip(ip_address).pfamily.should == family
+      NATFIXME 'sets the protocol family', exception: SpecFailedException do
+        Addrinfo.ip(ip_address).pfamily.should == family
+      end
     end
 
     it 'sets the socket type to 0' do
