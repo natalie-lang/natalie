@@ -326,7 +326,7 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
         return new StringObject { (const char *)&in, len };
     }
     case AF_INET6: {
-        struct sockaddr_in in6 { };
+        struct sockaddr_in6 in6 { };
         socklen_t len = sizeof(in6);
         auto getsockname_result = getsockname(
             self->as_io()->fileno(),
