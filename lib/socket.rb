@@ -213,8 +213,16 @@ class Addrinfo
     @ip_port
   end
 
+  def ipv4?
+    afamily == Socket::AF_INET
+  end
+
+  def ipv6?
+    afamily == Socket::AF_INET6
+  end
+
   def ip?
-    [Socket::AF_INET, Socket::AF_INET6].include?(afamily)
+    ipv4? || ipv6?
   end
 
   def unix?
