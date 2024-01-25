@@ -217,6 +217,10 @@ class Addrinfo
     afamily == Socket::AF_INET
   end
 
+  def ipv6?
+    afamily == Socket::AF_INET6
+  end
+
   def ip?
     [Socket::AF_INET, Socket::AF_INET6].include?(afamily)
   end
