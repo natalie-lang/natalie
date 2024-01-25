@@ -222,7 +222,7 @@ class Addrinfo
   end
 
   def ip?
-    [Socket::AF_INET, Socket::AF_INET6].include?(afamily)
+    ipv4? || ipv6?
   end
 
   def unix?
