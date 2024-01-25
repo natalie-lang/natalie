@@ -1131,7 +1131,11 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
         hostname = new StringObject { "0.0.0.0" };
     }
 
-    auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    auto domain = AF_INET;
+    if (hostname->is_string() && hostname->as_string()->string().find(':') >= 0)
+        domain = AF_INET6;
+
+    auto fd = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
         env->raise_errno();
 
