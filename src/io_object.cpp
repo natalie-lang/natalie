@@ -213,10 +213,12 @@ Value IoObject::getc(Env *env) {
 
 Value IoObject::inspect() const {
     TM::String details;
-    if (m_closed) {
-        details = "(closed)";
-    } else if (m_path) {
+    if (m_path) {
         details = m_path->string();
+        if (m_closed)
+            details.append(" (closed)");
+    } else if (m_closed) {
+        details = "(closed)";
     } else {
         details = TM::String::format("fd {}", m_fileno);
     }
