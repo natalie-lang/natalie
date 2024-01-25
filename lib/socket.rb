@@ -212,4 +212,12 @@ class Addrinfo
     end
     @ip_port
   end
+
+  def ip?
+    [Socket::AF_INET, Socket::AF_INET6].include?(afamily)
+  end
+
+  def unix?
+    afamily == Socket::AF_UNIX
+  end
 end
