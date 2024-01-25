@@ -1140,6 +1140,7 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
         env->raise_errno();
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
+    self->as_io()->binmode(env);
 
     self.send(env, "setsockopt"_s, { "SOCKET"_s, "REUSEADDR"_s, TrueObject::the() });
 
