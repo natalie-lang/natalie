@@ -285,7 +285,23 @@ describe 'File' do
     it "should include the filename" do
       f = File.new('test/support/file.txt')
       f.inspect.should.include?('test/support/file.txt')
+      f.inspect.should_not.include?('(closed)')
+
+      f2 = File.new(f.fileno)
+      f2.autoclose = false
+      f2.inspect.should.include?("fd #{f.fileno}")
+      f2.inspect.should_not.include?('(closed)')
+
       f.close
+      f.inspect.should.include?('test/support/file.txt')
+      f.inspect.should.include?('(closed)')
+
+      f = File.new('test/support/file.txt')
+      f.autoclose = false
+      f2 = File.new(f.fileno)
+      f2.close
+      f2.inspect.should_not.include?("fd #{f.fileno}")
+      f2.inspect.should.include?('(closed)')
     end
   end
 end
