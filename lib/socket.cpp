@@ -708,7 +708,7 @@ Value Socket_bind(Env *env, Value self, Args args, Block *block) {
             env->raise_errno();
 
         auto addr_ary = IPSocket_addr(env, self, {}, nullptr)->as_array_or_raise(env);
-        packed = Socket.send(env, "pack_sockaddr_in6"_s, { addr_ary->at(1), addr_ary->at(3) }, nullptr)->as_string_or_raise(env);
+        packed = Socket.send(env, "pack_sockaddr_in"_s, { addr_ary->at(1), addr_ary->at(3) }, nullptr)->as_string_or_raise(env);
         sockaddr = Addrinfo.send(env, "new"_s, { packed });
 
         return Value::integer(result);
@@ -1131,7 +1131,11 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
         hostname = new StringObject { "0.0.0.0" };
     }
 
-    auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    auto domain = AF_INET;
+    if (hostname->is_string() && hostname->as_string()->string().find(':') >= 0)
+        domain = AF_INET6;
+
+    auto fd = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     if (fd == -1)
         env->raise_errno();
 
