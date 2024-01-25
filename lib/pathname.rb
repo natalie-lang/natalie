@@ -5,6 +5,14 @@ class Pathname
 
   attr_reader :path
 
+  class << self
+    def pwd
+      new(Dir.getwd)
+    end
+
+    alias getwd pwd
+  end
+
   def initialize(value)
     if value.is_a?(Pathname)
       @path = value.path
