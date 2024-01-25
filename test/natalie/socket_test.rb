@@ -16,9 +16,12 @@ describe 'Addrinfo' do
       addrinfo.afamily.should == Socket::AF_UNIX
     end
 
-    it 'works with the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr))' do
-      addrinfo = Addrinfo.new("\x01\x00/tmp/sock\x00".b)
-      addrinfo.afamily.should == Socket::AF_UNIX
+    # This test uses a binary dump of struct sockaddr, which may differ between platforms.
+    platform_is :linux do
+      it 'works with the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr))' do
+        addrinfo = Addrinfo.new("\x01\x00/tmp/sock\x00".b)
+        addrinfo.afamily.should == Socket::AF_UNIX
+      end
     end
   end
 end
