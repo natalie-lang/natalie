@@ -69,3 +69,20 @@ describe 'UNIXServer' do
     end
   end
 end
+
+describe "Socket::BasicSocket#getsockname" do
+  before :each do
+    @path = SocketSpecs.socket_path
+    @server = UNIXServer.new(@path)
+  end
+
+  after :each do
+    @server.close if @server
+    rm_r @path
+  end
+
+  it 'returns the sockaddr associated with the socket' do
+    sockaddr = Socket.unpack_sockaddr_un(@server.getsockname)
+    sockaddr.should == @path
+  end
+end
