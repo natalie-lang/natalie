@@ -959,6 +959,42 @@ module Natalie
         instructions
       end
 
+      # Foo::Bar ||= 1
+      def transform_constant_path_or_write_node(node, used:)
+        # Translates to
+        #    if defined?(PATH::CONST) && PATH::CONST
+        #        PATH::CONST
+        #    else
+        #        PATH::CONST = value
+        #    end
+        name, _is_private, prep_instruction = constant_name(node.target)
+        # FIXME: is_private shouldn't be ignored I think
+        instructions = [
+          IsDefinedInstruction.new(type: 'constant'),
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+          EndInstruction.new(:is_defined),
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+          ElseInstruction.new(:if),
+          EndInstruction.new(:if),
+          IfInstruction.new,
+          prep_instruction,
+          ConstFindInstruction.new(name, strict: true),
+          ElseInstruction.new(:if),
+          transform_expression(node.value, used: true),
+          DupInstruction.new,
+          prep_instruction,
+          ConstSetInstruction.new(name),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_constant_path_write_node(node, used:)
         instructions = [transform_expression(node.value, used: true)]
         instructions << DupInstruction.new if used
