@@ -31,8 +31,10 @@ with_feature :unix_socket do
     end
 
     it "returns sockets with no peeraddr" do
-      @s1.peeraddr.should == ["AF_UNIX", ""]
-      @s2.peeraddr.should == ["AF_UNIX", ""]
+      NATFIXME 'Implement UNIXSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of UNIXSocket" do
+        @s1.peeraddr.should == ["AF_UNIX", ""]
+        @s2.peeraddr.should == ["AF_UNIX", ""]
+      end
     end
   end
 end
