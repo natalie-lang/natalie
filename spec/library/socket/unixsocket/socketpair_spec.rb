@@ -33,10 +33,8 @@ with_feature :unix_socket do
     end
 
     it 'sets the socket peer addresses to empty Strings' do
-      NATFIXME 'Implement UNIXSocket#peeraddr', exception: NoMethodError, message: "undefined method `peeraddr' for an instance of UNIXSocket" do
-        @s1.peeraddr.should == ['AF_UNIX', '']
-        @s2.peeraddr.should == ['AF_UNIX', '']
-      end
+      @s1.peeraddr.should == ['AF_UNIX', '']
+      @s2.peeraddr.should == ['AF_UNIX', '']
     end
   end
 end

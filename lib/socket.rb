@@ -68,6 +68,7 @@ end
 class UNIXSocket < BasicSocket
   __bind_method__ :initialize, :UNIXSocket_initialize
   __bind_method__ :addr, :UNIXSocket_addr
+  __bind_method__ :peeraddr, :UNIXSocket_peeraddr
 
   def path
     addr[1]

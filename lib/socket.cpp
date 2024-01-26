@@ -611,6 +611,25 @@ Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
     };
 }
 
+Value UNIXSocket_peeraddr(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_is(env, 0);
+
+    struct sockaddr_un addr { };
+    socklen_t addr_len = sizeof(addr);
+
+    auto getsockname_result = getpeername(
+        self->as_io()->fileno(),
+        reinterpret_cast<struct sockaddr *>(&addr),
+        &addr_len);
+    if (getsockname_result == -1)
+        env->raise_errno();
+
+    return new ArrayObject {
+        new StringObject { "AF_UNIX" },
+        new StringObject { addr.sun_path }
+    };
+}
+
 Value UNIXSocket_pair(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 0, 2);
     // NATFIXME: Add support for symbolized type (like :SOCK_STREAM)
