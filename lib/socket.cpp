@@ -611,6 +611,22 @@ Value UNIXSocket_addr(Env *env, Value self, Args args, Block *block) {
     };
 }
 
+Value UNIXSocket_pair(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 0, 2);
+    // NATFIXME: Add support for symbolized type (like :SOCK_STREAM)
+    const auto type = IntegerObject::convert_to_nat_int_t(env, args.at(0, Value::integer(SOCK_STREAM)));
+    const auto protocol = IntegerObject::convert_to_nat_int_t(env, args.at(1, Value::integer(0)));
+
+    int fd[2];
+    if (socketpair(AF_UNIX, type, protocol, fd) < 0)
+        env->raise_errno();
+
+    return new ArrayObject {
+        self->send(env, "for_fd"_s, { Value::integer(fd[0]) }),
+        self->send(env, "for_fd"_s, { Value::integer(fd[1]) })
+    };
+}
+
 Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_between(env, 2, 3);
     auto afamily = Socket_const_get(env, args.at(0), true);

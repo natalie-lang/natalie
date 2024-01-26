@@ -72,6 +72,11 @@ class UNIXSocket < BasicSocket
   def path
     addr[1]
   end
+
+  class << self
+    __bind_method__ :pair, :UNIXSocket_pair
+    alias socketpair pair
+  end
 end
 
 class UNIXServer < UNIXSocket
