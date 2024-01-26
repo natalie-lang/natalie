@@ -103,6 +103,7 @@ class Socket < BasicSocket
     STREAM: SOCK_STREAM,
     TTL: IP_TTL,
     TYPE: SO_TYPE,
+    UNIX: AF_UNIX,
   }.freeze
 
   class Option
@@ -167,6 +168,21 @@ class Socket < BasicSocket
           socket.bind(local_sockaddr)
         end
         sockaddr = Socket.pack_sockaddr_in(port, host)
+        socket.connect(sockaddr)
+        if block_given
+          begin
+            yield socket
+          ensure
+            socket.close
+          end
+        end
+      end
+    end
+
+    def unix(path, &block)
+      block_given = block_given?
+      Socket.new(:UNIX, :STREAM).tap do |socket|
+        sockaddr = Socket.pack_sockaddr_un(path)
         socket.connect(sockaddr)
         if block_given
           begin
