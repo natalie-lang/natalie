@@ -297,6 +297,19 @@ void ModuleObject::remove_const(SymbolObject *name) {
     m_constants.remove(name);
 }
 
+Value ModuleObject::remove_const(Env *env, Value name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
+    if (!name_as_sym->is_constant_name())
+        env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
+    auto constant = m_constants.get(name_as_sym);
+    if (!constant)
+        env->raise("NameError", "constant {} not defined", name_as_sym->string());
+    remove_const(name_as_sym);
+    return constant->value();
+}
+
 Value ModuleObject::constants(Env *env, Value inherit) const {
     auto ary = new ArrayObject;
     for (auto pair : m_constants)

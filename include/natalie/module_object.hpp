@@ -58,6 +58,7 @@ public:
     Value const_get(Env *, Value, Value = nullptr);
     Value const_set(Env *, Value, Value);
     void remove_const(SymbolObject *);
+    Value remove_const(Env *, Value);
     Value constants(Env *, Value) const;
     Value const_missing(Env *, Value);
 
