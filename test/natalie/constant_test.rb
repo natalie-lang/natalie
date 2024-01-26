@@ -101,4 +101,21 @@ describe 'constants' do
   it 'raises NameError for missing const' do
     -> { UnknownConst; nil }.should raise_error(NameError, /uninitialized constant UnknownConst/)
   end
+
+  describe 'using &&= assignment' do
+    it 'can assign a value' do
+      module ModuleA
+        -> { QUUX &&= nil }.should raise_error(NameError, /uninitialized constant ModuleA::QUUX/)
+
+        QUUX = nil
+        QUUX &&= 1
+        QUUX.should be_nil
+
+        remove_const(:QUUX)
+        QUUX = 1
+        -> { QUUX &&= 2 }.should complain(/already initialized constant/)
+        QUUX.should == 2
+      end
+    end
+  end
 end
