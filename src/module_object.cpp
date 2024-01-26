@@ -235,7 +235,7 @@ Value ModuleObject::const_find_with_autoload(Env *env, Value self, SymbolObject 
 
     if (constant->needs_load()) {
         assert(module);
-        module->const_remove(name);
+        module->remove_const(name);
         constant->autoload(env, self);
     }
 
@@ -293,7 +293,7 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
     return const_set(name_as_sym, val);
 }
 
-void ModuleObject::const_remove(SymbolObject *name) {
+void ModuleObject::remove_const(SymbolObject *name) {
     m_constants.remove(name);
 }
 
