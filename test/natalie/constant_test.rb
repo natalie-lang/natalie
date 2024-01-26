@@ -113,7 +113,7 @@ describe 'constants' do
 
         remove_const(:QUUX)
         QUUX = 1
-        -> { QUUX &&= 2 }.should complain(/already initialized constant/)
+        suppress_warning { QUUX &&= 2 }
         QUUX.should == 2
       end
     end

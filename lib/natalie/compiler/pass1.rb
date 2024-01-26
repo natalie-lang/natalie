@@ -844,6 +844,24 @@ module Natalie
         instructions
       end
 
+      def transform_constant_and_write_node(node, used:)
+        instructions = [
+          PushSelfInstruction.new,
+          ConstFindInstruction.new(node.name, strict: false),
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          transform_expression(node.value, used: true),
+          DupInstruction.new,
+          PushSelfInstruction.new,
+          ConstSetInstruction.new(node.name),
+          ElseInstruction.new(:if),
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_constant_or_write_node(node, used:)
         instructions = [
           IsDefinedInstruction.new(type: 'constant'),
