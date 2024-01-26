@@ -398,27 +398,31 @@ end
 
 describe 'Optional constant assignment' do
   describe 'with ||=' do
-#    NATFIXME: Implement transform_constant_or_write_node
-#    it "assigns a scoped constant if previously undefined" do
-#      ConstantSpecs.should_not have_constant(:OpAssignUndefined)
-#      module ConstantSpecs
-#        OpAssignUndefined ||= 42
-#      end
-#      ConstantSpecs::OpAssignUndefined.should == 42
-#      ConstantSpecs::OpAssignUndefinedOutside ||= 42
-#      ConstantSpecs::OpAssignUndefinedOutside.should == 42
-#      ConstantSpecs.send(:remove_const, :OpAssignUndefined)
-#      ConstantSpecs.send(:remove_const, :OpAssignUndefinedOutside)
-#    end
-#
-#    it "assigns a global constant if previously undefined" do
-#      OpAssignGlobalUndefined ||= 42
-#      ::OpAssignGlobalUndefinedExplicitScope ||= 42
-#      OpAssignGlobalUndefined.should == 42
-#      ::OpAssignGlobalUndefinedExplicitScope.should == 42
-#      Object.send :remove_const, :OpAssignGlobalUndefined
-#      Object.send :remove_const, :OpAssignGlobalUndefinedExplicitScope
-#    end
+    it "assigns a scoped constant if previously undefined" do
+      ConstantSpecs.should_not have_constant(:OpAssignUndefined)
+      module ConstantSpecs
+        OpAssignUndefined ||= 42
+      end
+      ConstantSpecs::OpAssignUndefined.should == 42
+#     NATFIXME: Implement transform_constant_path_or_write_node
+#     ConstantSpecs::OpAssignUndefinedOutside ||= 42
+#     ConstantSpecs::OpAssignUndefinedOutside.should == 42
+      ConstantSpecs.send(:remove_const, :OpAssignUndefined)
+#     NATFIXME: Implement transform_constant_path_or_write_node
+#     ConstantSpecs.send(:remove_const, :OpAssignUndefinedOutside)
+    end
+
+    it "assigns a global constant if previously undefined" do
+      OpAssignGlobalUndefined ||= 42
+#     NATFIXME: Implement transform_constant_path_or_write_node
+#     ::OpAssignGlobalUndefinedExplicitScope ||= 42
+      OpAssignGlobalUndefined.should == 42
+#     NATFIXME: Implement transform_constant_path_or_write_node
+#     ::OpAssignGlobalUndefinedExplicitScope.should == 42
+      Object.send :remove_const, :OpAssignGlobalUndefined
+#     NATFIXME: Implement transform_constant_path_or_write_node
+#     Object.send :remove_const, :OpAssignGlobalUndefinedExplicitScope
+    end
 
 #    NATFIXME: Implement transform_constant_path_or_write_node
 #    it 'correctly defines non-existing constants' do
