@@ -962,11 +962,13 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
-    if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
+    if (sockaddr->as_string()->bytesize() > sizeof(struct sockaddr_un))
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
 
     const char *str = sockaddr->as_string()->c_str();
     auto un = (struct sockaddr_un *)str;
+    if (un->sun_family != AF_UNIX)
+        env->raise("ArgumentError", "not an AF_UNIX sockaddr");
     return new StringObject { un->sun_path };
 }
 
