@@ -294,12 +294,12 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 }
 
 void ModuleObject::remove_const(SymbolObject *name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
     m_constants.remove(name);
 }
 
 Value ModuleObject::remove_const(Env *env, Value name) {
-    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
-
     auto name_as_sym = name->to_symbol(env, Object::Conversion::Strict);
     if (!name_as_sym->is_constant_name())
         env->raise_name_error(name_as_sym, "wrong constant name {}", name_as_sym->string());
