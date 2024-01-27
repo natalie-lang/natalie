@@ -657,6 +657,7 @@ Value Socket_initialize(Env *env, Value self, Args args, Block *block) {
         env->raise_errno();
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
+    self->as_io()->binmode(env);
 
     return self;
 }
