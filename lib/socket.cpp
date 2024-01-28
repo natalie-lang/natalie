@@ -1209,6 +1209,20 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     return tcpsocket;
 }
 
+Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 0, 1);
+    auto family = Socket_const_name_to_i(env, self, { args.at(0, Value::integer(AF_INET)) }, nullptr);
+
+    auto fd = socket(family->as_integer_or_raise(env)->to_nat_int_t(), SOCK_DGRAM, 0);
+    if (fd == -1)
+        env->raise_errno();
+
+    self->as_io()->initialize(env, { Value::integer(fd) }, block);
+    self->as_io()->binmode(env);
+
+    return self;
+}
+
 Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 1);
 
