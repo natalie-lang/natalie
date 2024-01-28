@@ -65,6 +65,10 @@ class TCPServer < TCPSocket
   __bind_method__ :accept, :TCPServer_accept
 end
 
+class UDPSocket < IPSocket
+  __bind_method__ :initialize, :UDPSocket_initialize
+end
+
 class UNIXSocket < BasicSocket
   __bind_method__ :initialize, :UNIXSocket_initialize
   __bind_method__ :addr, :UNIXSocket_addr
