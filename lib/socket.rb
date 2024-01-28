@@ -150,6 +150,7 @@ class Socket < BasicSocket
   __bind_method__ :listen, :Socket_listen
 
   class << self
+    __bind_method__ :pair, :Socket_pair
     __bind_method__ :pack_sockaddr_in, :Socket_pack_sockaddr_in
     __bind_method__ :pack_sockaddr_un, :Socket_pack_sockaddr_un
     __bind_method__ :unpack_sockaddr_in, :Socket_unpack_sockaddr_in
@@ -159,6 +160,7 @@ class Socket < BasicSocket
 
     __bind_method__ :const_name_to_i, :Socket_const_name_to_i
 
+    alias socketpair pair
     alias sockaddr_in pack_sockaddr_in
     alias sockaddr_un pack_sockaddr_un
 

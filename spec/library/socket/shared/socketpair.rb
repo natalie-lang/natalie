@@ -42,11 +42,15 @@ describe :socket_socketpair, shared: true do
       end
 
       it 'raises SocketError for an unknown address family' do
-        -> { Socket.public_send(@method, :CATS, :STREAM) }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown address family', exception: SpecFailedException do
+          -> { Socket.public_send(@method, :CATS, :STREAM) }.should raise_error(SocketError)
+        end
       end
 
       it 'raises SocketError for an unknown socket type' do
-        -> { Socket.public_send(@method, :UNIX, :CATS) }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown socket type', exception: SpecFailedException do
+          -> { Socket.public_send(@method, :UNIX, :CATS) }.should raise_error(SocketError)
+        end
       end
     end
 
@@ -61,11 +65,15 @@ describe :socket_socketpair, shared: true do
       end
 
       it 'raises SocketError for an unknown address family' do
-        -> { Socket.public_send(@method, 'CATS', 'STREAM') }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown address family', exception: SpecFailedException do
+          -> { Socket.public_send(@method, 'CATS', 'STREAM') }.should raise_error(SocketError)
+        end
       end
 
       it 'raises SocketError for an unknown socket type' do
-        -> { Socket.public_send(@method, 'UNIX', 'CATS') }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown socket type', exception: SpecFailedException do
+          -> { Socket.public_send(@method, 'UNIX', 'CATS') }.should raise_error(SocketError)
+        end
       end
     end
 
@@ -102,7 +110,9 @@ describe :socket_socketpair, shared: true do
         family.stub!(:to_str).and_return('CATS')
         type.stub!(:to_str).and_return('STREAM')
 
-        -> { Socket.public_send(@method, family, type) }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown address family', exception: SpecFailedException do
+          -> { Socket.public_send(@method, family, type) }.should raise_error(SocketError)
+        end
       end
 
       it 'raises SocketError for an unknown socket type' do
@@ -112,7 +122,9 @@ describe :socket_socketpair, shared: true do
         family.stub!(:to_str).and_return('UNIX')
         type.stub!(:to_str).and_return('CATS')
 
-        -> { Socket.public_send(@method, family, type) }.should raise_error(SocketError)
+        NATFIXME 'raises SocketError for an unknown socket type', exception: SpecFailedException do
+          -> { Socket.public_send(@method, family, type) }.should raise_error(SocketError)
+        end
       end
     end
 

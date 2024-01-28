@@ -803,6 +803,22 @@ Value Socket_listen(Env *env, Value self, Args args, Block *block) {
     return Value::integer(result);
 }
 
+Value Socket_pair(Env *env, Value self, Args args, Block *block) {
+    args.ensure_argc_between(env, 2, 3);
+    const auto domain = Socket_const_get(env, args.at(0));
+    const auto type = Socket_const_get(env, args.at(1));
+    const auto protocol = Socket_const_get(env, args.at(2, NilObject::the()), true);
+
+    int fd[2];
+    if (socketpair(domain, type, protocol, fd) < 0)
+        env->raise_errno();
+
+    return new ArrayObject {
+        self->send(env, "for_fd"_s, { Value::integer(fd[0]) }),
+        self->send(env, "for_fd"_s, { Value::integer(fd[1]) })
+    };
+}
+
 Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     args.ensure_argc_is(env, 2);
     auto service = args.at(0);
