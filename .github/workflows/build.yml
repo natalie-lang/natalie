@@ -38,7 +38,7 @@ jobs:
         run: |
           brew uninstall -f ruby
           brew uninstall -f ruby@3.0
-          brew install ruby@3.2
+          brew install ruby@3.3
       - name: check ruby
         env:
           PATH: "/usr/local/opt/ruby/bin:/usr/local/bin/:/usr/bin"
