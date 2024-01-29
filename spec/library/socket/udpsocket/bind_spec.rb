@@ -70,13 +70,11 @@ describe 'UDPSocket#bind' do
       addr   = @socket.connect_address
       client = UDPSocket.new(family)
 
-      NATFIXME 'Implement UDPSocket#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of UDPSocket" do
-        client.connect(addr.ip_address, addr.ip_port)
-        client.write('hello')
+      client.connect(addr.ip_address, addr.ip_port)
+      client.write('hello')
 
-        begin
-          @socket.recv(6).should == 'hello'
-        end
+      begin
+        @socket.recv(6).should == 'hello'
       ensure
         client.close
       end

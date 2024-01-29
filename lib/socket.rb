@@ -68,6 +68,7 @@ end
 class UDPSocket < IPSocket
   __bind_method__ :initialize, :UDPSocket_initialize
   __bind_method__ :bind, :UDPSocket_bind
+  __bind_method__ :connect, :UDPSocket_connect
 end
 
 class UNIXSocket < BasicSocket
