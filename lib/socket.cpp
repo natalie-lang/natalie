@@ -965,11 +965,11 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     if (sockaddr->as_string()->bytesize() > sizeof(struct sockaddr_un))
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
 
-    const char *str = sockaddr->as_string()->c_str();
-    auto un = (struct sockaddr_un *)str;
-    if (un->sun_family != AF_UNIX)
+    struct sockaddr_un addr { };
+    memcpy(&addr, sockaddr->as_string()->c_str(), std::min(sizeof(addr), sockaddr->as_string()->bytesize()));
+    if (addr.sun_family != AF_UNIX)
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
-    return new StringObject { un->sun_path };
+    return new StringObject { addr.sun_path };
 }
 
 static String Socket_family_to_string(int family) {
