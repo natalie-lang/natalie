@@ -1307,3 +1307,8 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
 
     return self;
 }
+
+Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    return Socket_listen(env, self, args, nullptr);
+}

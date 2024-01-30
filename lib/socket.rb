@@ -88,6 +88,7 @@ end
 
 class UNIXServer < UNIXSocket
   __bind_method__ :initialize, :UNIXServer_initialize
+  __bind_method__ :listen, :UNIXServer_listen
 end
 
 require_relative './socket/constants'
