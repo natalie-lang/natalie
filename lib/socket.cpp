@@ -331,6 +331,17 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
             env->raise_errno();
         return new StringObject { (const char *)&in6, len, Encoding::ASCII_8BIT };
     }
+    case AF_UNIX: {
+        struct sockaddr_un un { };
+        socklen_t len = sizeof(un);
+        auto getsockname_result = getsockname(
+            self->as_io()->fileno(),
+            (struct sockaddr *)&un,
+            &len);
+        if (getsockname_result == -1)
+            env->raise_errno();
+        return new StringObject { (const char *)&un, len, Encoding::ASCII_8BIT };
+    }
     default:
         NAT_NOT_YET_IMPLEMENTED("BasicSocket#local_address for family %d", addr.sa_family);
     }
@@ -951,12 +962,14 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
 
     sockaddr->assert_type(env, Object::Type::String, "String");
 
-    if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
+    if (sockaddr->as_string()->bytesize() > sizeof(struct sockaddr_un))
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
 
-    const char *str = sockaddr->as_string()->c_str();
-    auto un = (struct sockaddr_un *)str;
-    return new StringObject { un->sun_path };
+    struct sockaddr_un addr { };
+    memcpy(&addr, sockaddr->as_string()->c_str(), std::min(sizeof(addr), sockaddr->as_string()->bytesize()));
+    if (addr.sun_family != AF_UNIX)
+        env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+    return new StringObject { addr.sun_path };
 }
 
 static String Socket_family_to_string(int family) {
