@@ -1244,9 +1244,7 @@ Value UDPSocket_bind(Env *env, Value self, Args args, Block *block) {
 
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto sockaddr = Socket->send(env, "sockaddr_in"_s, { args.at(1), args.at(0) }, nullptr);
-    Socket_bind(env, self, { sockaddr }, nullptr);
-
-    return Value::integer(0);
+    return Socket_bind(env, self, { sockaddr }, nullptr);
 }
 
 Value UDPSocket_connect(Env *env, Value self, Args args, Block *block) {
@@ -1254,9 +1252,7 @@ Value UDPSocket_connect(Env *env, Value self, Args args, Block *block) {
 
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto sockaddr = Socket->send(env, "sockaddr_in"_s, { args.at(1), args.at(0) }, nullptr);
-    Socket_connect(env, self, { sockaddr }, nullptr);
-
-    return Value::integer(0);
+    return Socket_connect(env, self, { sockaddr }, nullptr);
 }
 
 Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
