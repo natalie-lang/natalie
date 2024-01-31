@@ -88,7 +88,7 @@ static String Socket_reverse_lookup_address(Env *env, struct sockaddr *addr) {
 }
 
 static int Addrinfo_sockaddr_family(Env *env, StringObject *sockaddr) {
-    if (sockaddr->bytesize() < sizeof(struct sockaddr))
+    if (sockaddr->bytesize() < offsetof(struct sockaddr, sa_family) + sizeof(sa_family_t))
         env->raise("ArgumentError", "bad sockaddr");
     return ((struct sockaddr *)(sockaddr->c_str()))->sa_family;
 }
@@ -969,6 +969,7 @@ Value Socket_unpack_sockaddr_un(Env *env, Value self, Args args, Block *block) {
     memcpy(&addr, sockaddr->as_string()->c_str(), std::min(sizeof(addr), sockaddr->as_string()->bytesize()));
     if (addr.sun_family != AF_UNIX)
         env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+    // NATFIXME: Change to ASCII_8BIT, but this currently breaks the specs due to a missing String#encode with 2 arguments
     return new StringObject { addr.sun_path };
 }
 

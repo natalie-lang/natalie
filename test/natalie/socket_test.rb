@@ -15,6 +15,14 @@ describe 'Addrinfo' do
       addrinfo = Addrinfo.new(Socket.pack_sockaddr_un('socket'))
       addrinfo.afamily.should == Socket::AF_UNIX
     end
+
+    # This test uses a binary dump of struct sockaddr, which may differ between platforms.
+    platform_is :linux do
+      it 'works with the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr))' do
+        addrinfo = Addrinfo.new("\x01\x00/tmp/sock\x00".b)
+        addrinfo.afamily.should == Socket::AF_UNIX
+      end
+    end
   end
 end
 
@@ -49,6 +57,23 @@ describe 'Socket' do
                  "\r\n"
 
     t.join
+  end
+
+  describe 'Socket.unpack_sockaddr_un' do
+    before :each do
+      @path = SocketSpecs.socket_path
+      @server = UNIXServer.new(@path)
+    end
+
+    after :each do
+      @server.close if @server
+      rm_r @path
+    end
+
+    it 'can unpack the result of BasicSocket#getsockname (which is often smaller than sizeof(struct sockaddr_un))' do
+      packed = @server.getsockname
+      Socket.unpack_sockaddr_un(packed).should == @path
+    end
   end
 end
 
