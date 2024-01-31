@@ -180,6 +180,11 @@ bool FileObject::exist(Env *env, Value path) {
     return ::stat(path->as_string()->c_str(), &sb) != -1;
 }
 
+bool FileObject::is_absolute_path(Env *env, Value path) {
+    path = ioutil::convert_using_to_path(env, path);
+    return path->as_string()->string()[0] == '/';
+}
+
 bool FileObject::is_file(Env *env, Value path) {
     struct stat sb;
     path = ioutil::convert_using_to_path(env, path);

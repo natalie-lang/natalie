@@ -29,6 +29,7 @@ public:
 
     static bool exist(Env *env, Value path);
 
+    static bool is_absolute_path(Env *env, Value path);
     static bool is_blockdev(Env *env, Value path);
     static bool is_chardev(Env *env, Value path);
     static bool is_directory(Env *env, Value path);
