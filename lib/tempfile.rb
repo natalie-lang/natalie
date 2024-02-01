@@ -1,4 +1,5 @@
 require 'natalie/inline'
+require 'tempfile.cpp'
 
 class Tempfile
   class << self
@@ -16,23 +17,7 @@ class Tempfile
     end
   end
 
-  __define_method__ :initialize, [:basename], <<~CPP
-    basename->assert_type(env, Object::Type::String, "String");
-    auto tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s)->as_string();
-    char path[PATH_MAX+1];
-    auto written = snprintf(path, PATH_MAX+1, "%s/%sXXXXXX", tmpdir->c_str(), basename->as_string()->c_str());
-    assert(written < PATH_MAX+1);
-    int fileno = mkstemp(path);
-    if (fileno == -1)
-        env->raise_errno();
-
-    auto file = new FileObject {};
-    file->set_fileno(fileno);
-    file->set_path(path);
-
-    self->ivar_set(env, "@tmpfile"_s, file);
-    return self;
-  CPP
+  __bind_method__ :initialize, :Tempfile_initialize
 
   def unlink
     File.unlink(@tmpfile.path)
