@@ -7,10 +7,7 @@ describe "Tempfile#path" do
   end
 
   after :each do
-    NATFIXME 'Implement Tempfile#close!', exception: NoMethodError, message: "undefined method `close!'" do
-      @tempfile.close!
-    end
-    @tempfile.unlink # NATFIXME: Remove this once Tempfile#close! works
+    @tempfile.close!
   end
 
   it "returns the path to the tempfile" do

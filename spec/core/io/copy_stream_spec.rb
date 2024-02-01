@@ -169,16 +169,16 @@ describe "IO.copy_stream" do
       it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
     end
 
-    # NATFIXME: Multiple issues:
-    # - No keyword arguments for Tempfile#initialize
-    # - No Tempfile#close!
-    xdescribe "to a Tempfile" do
+    describe "to a Tempfile" do
       before :all do
         require 'tempfile'
       end
 
       before :each do
-        @to_io = Tempfile.new("rubyspec_copy_stream", encoding: Encoding::BINARY, mode: File::RDONLY)
+        NATFIXME 'Keyword arguments for Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Hash into String' do
+          @to_io = Tempfile.new("rubyspec_copy_stream", encoding: Encoding::BINARY, mode: File::RDONLY)
+        end
+        @to_io = Tempfile.new("rubyspec_copy_stream")
         @to_name = @to_io.path
       end
 

@@ -7,10 +7,8 @@ describe "Tempfile#initialize" do
   end
 
   after :each do
-    NATFIXME 'Implement Tempfile#close!', exception: NoMethodError, message: "undefined method `close!' for an instance of Tempfile" do
-      @tempfile.close!
-    end
-    @tempfile.unlink if @tempfile.instance_variable_get(:@tmpfile) # NATFIXME: Remove this once Tempfile#close! works
+    @tempfile.close!
+  rescue NoMethodError # NATFIXME: This should be removed once the Array argument works
   end
 
   it "opens a new tempfile with the passed name in the passed directory" do

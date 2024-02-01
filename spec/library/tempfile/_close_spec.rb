@@ -7,9 +7,7 @@ describe "Tempfile#_close" do
   end
 
   after :each do
-    NATFIXME 'Implement Tempfile#close!', exception: NoMethodError, message: "undefined method `close!'" do
-      @tempfile.close!
-    end
+    @tempfile.close!
   end
 
   it "is protected" do
