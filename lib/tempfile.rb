@@ -28,6 +28,11 @@ class Tempfile
     close(true)
   end
 
+  def _close
+    @tmpfile.close
+  end
+  protected :_close
+
   def path
     return nil unless File.exist?(@tmpfile.path)
     @tmpfile.path
