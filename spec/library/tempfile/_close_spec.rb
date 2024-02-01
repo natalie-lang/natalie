@@ -7,15 +7,21 @@ describe "Tempfile#_close" do
   end
 
   after :each do
-    @tempfile.close!
+    NATFIXME 'Implement Tempfile#close!', exception: NoMethodError, message: "undefined method `close!'" do
+      @tempfile.close!
+    end
   end
 
   it "is protected" do
-    Tempfile.should have_protected_instance_method(:_close)
+    NATFIXME 'Implement Tempfile#_close', exception: SpecFailedException do
+      Tempfile.should have_protected_instance_method(:_close)
+    end
   end
 
   it "closes self" do
-    @tempfile.send(:_close)
-    @tempfile.closed?.should be_true
+    NATFIXME 'Implement Tempfile#_close', exception: NoMethodError, message: "undefined method `_close'" do
+      @tempfile.send(:_close)
+      @tempfile.closed?.should be_true
+    end
   end
 end
