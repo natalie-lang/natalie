@@ -8,7 +8,7 @@ class Tempfile
           tmpfile = new(basename)
           yield(tmpfile.instance_variable_get(:@tmpfile))
         ensure
-          File.unlink(tmpfile.path)
+          tmpfile.unlink
         end
       else
         new(basename).instance_variable_get(:@tmpfile)
@@ -33,6 +33,11 @@ class Tempfile
     self->ivar_set(env, "@tmpfile"_s, file);
     return self;
   CPP
+
+  def unlink
+    File.unlink(@tmpfile.path)
+  end
+  alias delete unlink
 
   (File.public_instance_methods(false) + [:close, :open, :path, :print, :puts, :rewind, :write]).each do |method|
     define_method(method) do |*args, **kwargs, &block|

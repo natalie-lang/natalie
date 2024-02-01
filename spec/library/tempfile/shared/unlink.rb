@@ -6,9 +6,7 @@ describe :tempfile_unlink, shared: true do
   it "unlinks self" do
     @tempfile.close
     path = @tempfile.path
-    NATFIXME "Implement Tempfile##{@method}", exception: NoMethodError, message: "undefined method `#{@method}'" do
-      @tempfile.send(@method)
-      File.should_not.exist?(path)
-    end
+    @tempfile.send(@method)
+    File.should_not.exist?(path)
   end
 end
