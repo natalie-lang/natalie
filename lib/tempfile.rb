@@ -28,12 +28,17 @@ class Tempfile
     close(true)
   end
 
+  def path
+    return nil unless File.exist?(@tmpfile.path)
+    @tmpfile.path
+  end
+
   def unlink
     File.unlink(@tmpfile.path)
   end
   alias delete unlink
 
-  (File.public_instance_methods(false) + [:closed?, :open, :path, :pos, :print, :puts, :rewind, :write]).each do |method|
+  (File.public_instance_methods(false) + [:closed?, :open, :pos, :print, :puts, :rewind, :write]).each do |method|
     define_method(method) do |*args, **kwargs, &block|
       @tmpfile.public_send(method, *args, **kwargs, &block)
     end
