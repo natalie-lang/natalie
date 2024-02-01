@@ -10,45 +10,42 @@ describe "Tempfile#initialize" do
     NATFIXME 'Implement Tempfile#close!', exception: NoMethodError, message: "undefined method `close!' for an instance of Tempfile" do
       @tempfile.close!
     end
+    @tempfile.unlink if @tempfile.instance_variable_get(:@tmpfile) # NATFIXME: Remove this once Tempfile#close! works
   end
 
   it "opens a new tempfile with the passed name in the passed directory" do
-    NATFIXME 'Support argument in Tempfile#initialize', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-      @tempfile.send(:initialize, "basename", tmp(""))
-      File.should.exist?(@tempfile.path)
+    @tempfile.send(:initialize, "basename", tmp(""))
+    File.should.exist?(@tempfile.path)
 
-      tmpdir = tmp("")
-      path = @tempfile.path
+    tmpdir = tmp("")
+    path = @tempfile.path
 
-      platform_is :windows do
-        # on Windows, both types of slashes are OK,
-        # but the tmp helper always uses '/'
-        path.gsub!('\\', '/')
-      end
-
-      path[0, tmpdir.length].should == tmpdir
-      path.should include("basename")
+    platform_is :windows do
+      # on Windows, both types of slashes are OK,
+      # but the tmp helper always uses '/'
+      path.gsub!('\\', '/')
     end
+
+    path[0, tmpdir.length].should == tmpdir
+    path.should include("basename")
   end
 
   platform_is_not :windows do
     it "sets the permissions on the tempfile to 0600" do
-      NATFIXME 'Support argument in Tempfile#initialize', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
-        @tempfile.send(:initialize, "basename", tmp(""))
-        File.stat(@tempfile.path).mode.should == 0100600
-      end
+      @tempfile.send(:initialize, "basename", tmp(""))
+      File.stat(@tempfile.path).mode.should == 0100600
     end
   end
 
   it "accepts encoding options" do
-    NATFIXME 'Support argument in Tempfile#initialize', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Support Array type argument in Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Array into String' do
       @tempfile.send(:initialize, ['shiftjis', 'yml'], encoding: 'SHIFT_JIS')
       @tempfile.external_encoding.should == Encoding::Shift_JIS
     end
   end
 
   it "does not try to modify the arguments" do
-    NATFIXME 'Support argument in Tempfile#initialize', exception: ArgumentError, message: 'wrong number of arguments (given 2, expected 1)' do
+    NATFIXME 'Support Array type argument in Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Array into String' do
       @tempfile.send(:initialize, ['frozen'.freeze, 'txt'.freeze], encoding: Encoding::IBM437)
       @tempfile.external_encoding.should == Encoding::IBM437
     end

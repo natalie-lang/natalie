@@ -7,13 +7,18 @@ Value init_tempfile(Env *env, Value self) {
 }
 
 Value Tempfile_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_is(env, 1);
+    args.ensure_argc_between(env, 1, 2);
     auto basename = args.at(0);
+    auto tmpdir = args.at(1, nullptr);
 
     basename->assert_type(env, Object::Type::String, "String");
-    auto tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s)->as_string();
+    if (tmpdir && !tmpdir->is_nil()) {
+        tmpdir->assert_type(env, Object::Type::String, "String");
+    } else {
+        tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s);
+    }
     char path[PATH_MAX + 1];
-    auto written = snprintf(path, PATH_MAX + 1, "%s/%sXXXXXX", tmpdir->c_str(), basename->as_string()->c_str());
+    auto written = snprintf(path, PATH_MAX + 1, "%s/%sXXXXXX", tmpdir->as_string()->c_str(), basename->as_string()->c_str());
     assert(written < PATH_MAX + 1);
     int fileno = mkstemp(path);
     if (fileno == -1)
