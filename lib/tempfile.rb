@@ -43,7 +43,7 @@ class Tempfile
   end
   alias delete unlink
 
-  (File.public_instance_methods(false) + [:closed?, :open, :pos, :print, :puts, :rewind, :write]).each do |method|
+  (File.public_instance_methods - public_instance_methods).each do |method|
     define_method(method) do |*args, **kwargs, &block|
       @tmpfile.public_send(method, *args, **kwargs, &block)
     end
