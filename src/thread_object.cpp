@@ -42,7 +42,6 @@ static void *nat_create_thread(void *thread_object) {
 #ifdef __APPLE__
     thread->set_mach_thread_port(mach_thread_self());
 #endif
-    thread->set_native_thread_handle(pthread_self());
     thread->set_suspend_status(Natalie::ThreadObject::SuspendStatus::Running);
 
 #ifdef __SANITIZE_ADDRESS__
@@ -728,13 +727,13 @@ void ThreadObject::stop_the_world_and_save_context() {
         sched_yield();
     } while (!all_launched);
 
-    NAT_THREAD_DEBUG("sending signals to stop all threads except main");
+    NAT_THREAD_DEBUG("sending signals to suspend all threads except main");
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
         thread->suspend();
     }
 
-    NAT_THREAD_DEBUG("waiting for threads to stop");
+    NAT_THREAD_DEBUG("waiting for threads to suspend");
     bool ready = false;
     while (!ready) {
         ready = true;
@@ -751,15 +750,34 @@ void ThreadObject::stop_the_world_and_save_context() {
         sched_yield();
     }
 
-    NAT_THREAD_DEBUG("all threads indicated they have stopped");
+    NAT_THREAD_DEBUG("all threads indicated they have suspended");
 }
 
 void ThreadObject::wake_up_the_world() {
-    // Now we can wake up all the threads that are waiting.
+    NAT_THREAD_DEBUG("sending signals to resume all threads except main");
     for (auto thread : ThreadObject::list()) {
         if (thread->is_main()) continue;
         thread->resume();
     }
+
+    NAT_THREAD_DEBUG("waiting for threads to resume");
+    bool ready = false;
+    while (!ready) {
+        ready = true;
+        for (auto thread : ThreadObject::list()) {
+            if (thread->is_main()) continue;
+            if (thread->suspend_status() == SuspendStatus::Running) {
+                continue;
+            } else {
+                ready = false;
+                break;
+            }
+        }
+        NAT_THREAD_DEBUG("spinning...");
+        sched_yield();
+    }
+
+    NAT_THREAD_DEBUG("all threads indicated they have resumed");
 }
 
 void ThreadObject::suspend() { // NOLINT "can be made const" warning only for Linux
