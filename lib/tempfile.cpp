@@ -7,6 +7,7 @@ Value init_tempfile(Env *env, Value self) {
 }
 
 Value Tempfile_initialize(Env *env, Value self, Args args, Block *) {
+    auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_between(env, 1, 2);
     auto basename = args.at(0);
     auto tmpdir = args.at(1, nullptr);
@@ -25,7 +26,7 @@ Value Tempfile_initialize(Env *env, Value self, Args args, Block *) {
         env->raise_errno();
 
     auto file = new FileObject {};
-    file->set_fileno(fileno);
+    file->initialize(env, Args({ Value::integer(fileno), kwargs }, true), nullptr);
     file->set_path(path);
 
     self->ivar_set(env, "@tmpfile"_s, file);

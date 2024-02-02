@@ -175,10 +175,7 @@ describe "IO.copy_stream" do
       end
 
       before :each do
-        NATFIXME 'Keyword arguments for Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Hash into String' do
-          @to_io = Tempfile.new("rubyspec_copy_stream", encoding: Encoding::BINARY, mode: File::RDONLY)
-        end
-        @to_io = Tempfile.new("rubyspec_copy_stream")
+        @to_io = Tempfile.new("rubyspec_copy_stream", encoding: Encoding::BINARY, mode: File::RDONLY)
         @to_name = @to_io.path
       end
 
