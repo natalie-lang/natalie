@@ -11,4 +11,12 @@ describe 'Tempfile' do
       File.read(temp.path).should == 'hello world'
     end
   end
+
+  describe '#path' do
+    it 'returns nil if the file is unlinked' do
+      temp = Tempfile.new('foo')
+      temp.unlink
+      temp.path.should be_nil
+    end
+  end
 end

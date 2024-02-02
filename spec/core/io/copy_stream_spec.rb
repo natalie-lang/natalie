@@ -169,10 +169,7 @@ describe "IO.copy_stream" do
       it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
     end
 
-    # NATFIXME: Multiple issues:
-    # - No keyword arguments for Tempfile#initialize
-    # - No Tempfile#close!
-    xdescribe "to a Tempfile" do
+    describe "to a Tempfile" do
       before :all do
         require 'tempfile'
       end
