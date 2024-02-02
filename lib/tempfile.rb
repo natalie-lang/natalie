@@ -38,6 +38,18 @@ class Tempfile
     @tmpfile.path
   end
 
+  def size
+    path = self.path
+    if path
+      File.size(path)
+    elsif !closed?
+      @tmpfile.size
+    else
+      raise Errno::ENOENT, "No such file or directory"
+    end
+  end
+  alias length size
+
   def unlink
     File.unlink(@tmpfile.path)
   end
