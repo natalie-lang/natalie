@@ -12,6 +12,38 @@ describe 'Tempfile' do
     end
   end
 
+  describe '#initialize' do
+    before :each do
+      @temp = nil
+    end
+
+    after :each do
+      @temp.close! if @temp
+    end
+
+    it 'works with no arguments' do
+      @temp = Tempfile.new
+    end
+
+    it 'works with a String basename argument' do
+      @temp = Tempfile.new('basename')
+      @temp.path.should.include?('basename')
+    end
+
+    it 'converts a basename argument with #to_str' do
+      basename = mock('basename')
+      basename.should_receive(:to_str).and_return('basename')
+      @temp = Tempfile.new(basename)
+      @temp.path.should.include?('basename')
+    end
+
+    it 'does not converts a basename argument with #to_path' do
+      basename = mock('basename')
+      basename.define_singleton_method(:to_path) { 'basename' }
+      -> { Tempfile.new(basename) }.should raise_error(ArgumentError, /unexpected prefix: /)
+    end
+  end
+
   describe '#path' do
     it 'returns nil if the file is unlinked' do
       temp = Tempfile.new('foo')
