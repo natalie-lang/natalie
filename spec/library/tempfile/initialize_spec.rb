@@ -8,7 +8,6 @@ describe "Tempfile#initialize" do
 
   after :each do
     @tempfile.close!
-  rescue NoMethodError # NATFIXME: This should be removed once the Array argument works
   end
 
   it "opens a new tempfile with the passed name in the passed directory" do
@@ -36,16 +35,12 @@ describe "Tempfile#initialize" do
   end
 
   it "accepts encoding options" do
-    NATFIXME 'Support Array type argument in Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Array into String' do
-      @tempfile.send(:initialize, ['shiftjis', 'yml'], encoding: 'SHIFT_JIS')
-      @tempfile.external_encoding.should == Encoding::Shift_JIS
-    end
+    @tempfile.send(:initialize, ['shiftjis', 'yml'], encoding: 'SHIFT_JIS')
+    @tempfile.external_encoding.should == Encoding::Shift_JIS
   end
 
   it "does not try to modify the arguments" do
-    NATFIXME 'Support Array type argument in Tempfile#initialize', exception: TypeError, message: 'no implicit conversion of Array into String' do
-      @tempfile.send(:initialize, ['frozen'.freeze, 'txt'.freeze], encoding: Encoding::IBM437)
-      @tempfile.external_encoding.should == Encoding::IBM437
-    end
+    @tempfile.send(:initialize, ['frozen'.freeze, 'txt'.freeze], encoding: Encoding::IBM437)
+    @tempfile.external_encoding.should == Encoding::IBM437
   end
 end
