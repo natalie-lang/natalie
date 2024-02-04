@@ -13,10 +13,6 @@ describe 'Tempfile' do
   end
 
   describe '#initialize' do
-    before :each do
-      @temp = nil
-    end
-
     after :each do
       @temp.close! if @temp
     end

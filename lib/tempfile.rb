@@ -51,7 +51,7 @@ class Tempfile
   alias length size
 
   def unlink
-    File.unlink(@tmpfile.path)
+    File.unlink(@tmpfile.path) if File.exist?(@tmpfile.path)
   end
   alias delete unlink
 
