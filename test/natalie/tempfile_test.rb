@@ -12,6 +12,56 @@ describe 'Tempfile' do
     end
   end
 
+  describe '#initialize' do
+    after :each do
+      @temp.close! if @temp
+    end
+
+    it 'works with no arguments' do
+      @temp = Tempfile.new
+    end
+
+    it 'works with a String basename argument' do
+      @temp = Tempfile.new('basename')
+      @temp.path.should.include?('basename')
+    end
+
+    it 'converts a basename argument with #to_str' do
+      basename = mock('basename')
+      basename.should_receive(:to_str).and_return('basename')
+      @temp = Tempfile.new(basename)
+      @temp.path.should.include?('basename')
+    end
+
+    it 'does not converts a basename argument with #to_path' do
+      basename = mock('basename')
+      basename.define_singleton_method(:to_path) { 'basename' }
+      -> { Tempfile.new(basename) }.should raise_error(ArgumentError, /unexpected prefix: /)
+    end
+
+    it 'accepts an array with 1 element' do
+      @temp = Tempfile.new(['basename'])
+      @temp.path.should.include?('basename')
+    end
+
+    it 'accepts an array with 2 elements' do
+      @temp = Tempfile.new(['basename', '.ext'])
+      @temp.path.should.include?('basename')
+      @temp.path.should.end_with?('.ext')
+    end
+
+    it 'accepts an array with 3 elements, but ignores the third element' do
+      @temp = Tempfile.new(['basename', '.ext', 'foobarbaz'])
+      @temp.path.should.include?('basename')
+      @temp.path.should.end_with?('.ext')
+      @temp.path.should_not.include?('foobarbaz')
+    end
+
+    it 'threats an array with 0 elements as a nil argument' do
+      -> { Tempfile.new([]) }.should raise_error(ArgumentError, 'unexpected prefix: nil')
+    end
+  end
+
   describe '#path' do
     it 'returns nil if the file is unlinked' do
       temp = Tempfile.new('foo')

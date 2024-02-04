@@ -3,16 +3,16 @@ require 'tempfile.cpp'
 
 class Tempfile
   class << self
-    def create(basename)
+    def create(*args, **kwargs, &block)
       if block_given?
         begin
-          tmpfile = new(basename)
+          tmpfile = new(*args, **kwargs, &block)
           yield(tmpfile.instance_variable_get(:@tmpfile))
         ensure
           tmpfile.close!
         end
       else
-        new(basename).instance_variable_get(:@tmpfile)
+        new(*args, **kwargs, &block).instance_variable_get(:@tmpfile)
       end
     end
   end
@@ -51,7 +51,7 @@ class Tempfile
   alias length size
 
   def unlink
-    File.unlink(@tmpfile.path)
+    File.unlink(@tmpfile.path) if File.exist?(@tmpfile.path)
   end
   alias delete unlink
 
