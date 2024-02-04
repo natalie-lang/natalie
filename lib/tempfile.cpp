@@ -8,11 +8,17 @@ Value init_tempfile(Env *env, Value self) {
 
 Value Tempfile_initialize(Env *env, Value self, Args args, Block *) {
     auto kwargs = args.pop_keyword_hash();
-    args.ensure_argc_between(env, 1, 2);
-    auto basename = args.at(0);
+    args.ensure_argc_between(env, 0, 2);
+    auto basename = args.at(0, nullptr);
     auto tmpdir = args.at(1, nullptr);
 
-    basename->assert_type(env, Object::Type::String, "String");
+    if (!basename) {
+        basename = new StringObject { "" };
+    } else if (!basename->is_string() && basename->respond_to(env, "to_str"_s)) {
+        basename = basename->to_str(env);
+    } else if (!basename->is_string()) {
+        env->raise("ArgumentError", "unexpected prefix: {}", basename->inspect_str(env));
+    }
     if (tmpdir && !tmpdir->is_nil()) {
         tmpdir->assert_type(env, Object::Type::String, "String");
     } else {
