@@ -1235,6 +1235,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     auto TCPSocket = find_top_level_const(env, "TCPSocket"_s)->as_class_or_raise(env);
     auto tcpsocket = new IoObject { TCPSocket };
     tcpsocket->as_io()->set_fileno(fd);
+    tcpsocket->as_io()->set_close_on_exec(env, TrueObject::the());
 
     return tcpsocket;
 }
