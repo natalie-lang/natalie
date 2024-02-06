@@ -116,6 +116,23 @@ describe 'TCPServer#accept' do
         @socket = @server.accept
         @socket.should be_an_instance_of(TCPSocket)
       end
+
+      platform_is_not :windows do
+        it "returns a TCPSocket which is set to nonblocking" do
+          NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
+            require 'io/nonblock'
+            @socket = @server.accept
+            @socket.should.nonblock?
+          end
+        end
+      end
+
+      it "returns a TCPSocket which is set to close on exec" do
+        @socket = @server.accept
+        NATFIXME 'returns a TCPSocket which is set to close on exec', exception: SpecFailedException do
+          @socket.should.close_on_exec?
+        end
+      end
     end
   end
 end
