@@ -20,10 +20,12 @@ with_feature :unix_socket do
 
       sock = @server.accept
       begin
-        data, info = sock.recvfrom(5)
+        NATFIXME 'Implement UNIXSocket#recvfrom', exception: NoMethodError, message: "undefined method `recvfrom' for an instance of UNIXSocket" do
+          data, info = sock.recvfrom(5)
 
-        data.should == 'hello'
-        info.should_not be_empty
+          data.should == 'hello'
+          info.should_not be_empty
+        end
       ensure
         sock.close
         client.close
@@ -112,9 +114,11 @@ with_feature :unix_socket do
           end
 
           it "is set to nonblocking" do
-            require 'io/nonblock'
-            @socket = @server.accept
-            @socket.should.nonblock?
+            NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
+              require 'io/nonblock'
+              @socket = @server.accept
+              @socket.should.nonblock?
+            end
           end
 
           it "is set to close on exec" do
