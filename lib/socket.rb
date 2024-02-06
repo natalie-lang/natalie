@@ -224,7 +224,7 @@ class Addrinfo
     end
 
     def unix(path)
-      Addrinfo.new(Socket.pack_sockaddr_un(path))
+      Addrinfo.new([:UNIX, path])
     end
   end
 
