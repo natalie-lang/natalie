@@ -1256,6 +1256,7 @@ Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    self->as_io()->set_close_on_exec(env, TrueObject::the());
 
     return self;
 }
