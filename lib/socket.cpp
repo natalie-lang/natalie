@@ -1163,6 +1163,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    self->as_io()->set_close_on_exec(env, TrueObject::the());
 
     auto Socket = find_top_level_const(env, "Socket"_s);
 
