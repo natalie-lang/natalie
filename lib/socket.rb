@@ -105,6 +105,7 @@ class Socket < BasicSocket
     INET: AF_INET,
     INET6: AF_INET6,
     IP: IPPROTO_IP,
+    IPV6: IPPROTO_IPV6,
     KEEPALIVE: SO_KEEPALIVE,
     LINGER: SO_LINGER,
     OOBINLINE: SO_OOBINLINE,
@@ -114,6 +115,7 @@ class Socket < BasicSocket
     TTL: IP_TTL,
     TYPE: SO_TYPE,
     UNIX: AF_UNIX,
+    V6ONLY: IPV6_V6ONLY,
   }.freeze
 
   class Option

@@ -241,10 +241,8 @@ describe 'BasicSocket#setsockopt' do
         it 'sets an IPv6 boolean option' do
           socket = Socket.new(:INET6, :STREAM)
           begin
-            NATFIXME 'Add IPv6 boolean option', exception: NameError, message: 'uninitialized constant Socket::IPV6' do
-              socket.setsockopt(:IPV6, :V6ONLY, true).should == 0
-              socket.getsockopt(:IPV6, :V6ONLY).bool.should == true
-            end
+            socket.setsockopt(:IPV6, :V6ONLY, true).should == 0
+            socket.getsockopt(:IPV6, :V6ONLY).bool.should == true
           ensure
             socket.close
           end
