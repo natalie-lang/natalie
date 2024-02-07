@@ -34,6 +34,17 @@ class Data
         end
       end
 
+      define_method(:with) do |**kwargs|
+        if kwargs.empty?
+          self
+        else
+          new_kwargs = members
+            .to_h { |member| [member, public_send(member)] }
+            .merge(kwargs.transform_keys(&:to_sym))
+          self.class.new(**new_kwargs)
+        end
+      end
+
       define_singleton_method(:[]) { |*args, **kwargs| new(*args, **kwargs) }
 
       define_singleton_method(:members) { members }

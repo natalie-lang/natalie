@@ -27,9 +27,11 @@ ruby_version_is "3.2" do
     it "raises ArgumentError if no keyword arguments are given" do
       data = DataSpecs::Measure.new(amount: 42, unit: "km")
 
-      -> {
-        data.with(4, "m")
-      }.should raise_error(ArgumentError, "wrong number of arguments (given 2, expected 0)")
+      NATFIXME 'Issue with define_method and arity specification', exception: SpecFailedException do
+        -> {
+          data.with(4, "m")
+        }.should raise_error(ArgumentError, "wrong number of arguments (given 2, expected 0)")
+      end
     end
   end
 end
