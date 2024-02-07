@@ -1323,6 +1323,27 @@ Value UNIXServer_initialize(Env *env, Value self, Args args, Block *block) {
     return self;
 }
 
+Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    if (self->as_io()->is_closed())
+        env->raise("IOError", "closed stream");
+
+    socklen_t len = sizeof(sockaddr_un);
+    char buf[len];
+
+    auto fd = blocking_accept(env, self->as_io(), (struct sockaddr *)&buf, &len);
+
+    if (fd == -1)
+        env->raise_errno();
+
+    auto Socket = find_top_level_const(env, "UNIXSocket"_s)->as_class_or_raise(env);
+    auto socket = new IoObject { Socket };
+    socket->as_io()->set_fileno(fd);
+    socket->as_io()->set_close_on_exec(env, TrueObject::the());
+    return socket;
+}
+
 Value UNIXServer_listen(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     return Socket_listen(env, self, args, nullptr);
