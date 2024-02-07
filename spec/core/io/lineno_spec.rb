@@ -27,7 +27,8 @@ describe "IO#lineno" do
 
   it "raises an IOError on a duplexed stream with the read side closed" do
     NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
-      IO.popen('cat', 'r+') do |p|
+      cmd = platform_is(:windows) ? 'rem' : 'cat'
+      IO.popen(cmd, 'r+') do |p|
         p.close_read
         -> { p.lineno }.should raise_error(IOError)
       end
@@ -73,7 +74,8 @@ describe "IO#lineno=" do
 
   it "raises an IOError on a duplexed stream with the read side closed" do
     NATFIXME 'Implement IO.popen', exception: NoMethodError, message: "undefined method `popen' for class IO" do
-      IO.popen('cat', 'r+') do |p|
+      cmd = platform_is(:windows) ? 'rem' : 'cat'
+      IO.popen(cmd, 'r+') do |p|
         p.close_read
         -> { p.lineno = 0 }.should raise_error(IOError)
       end

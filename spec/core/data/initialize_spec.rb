@@ -31,12 +31,21 @@ ruby_version_is "3.2" do
       data.unit.should == "km"
     end
 
+    it "accepts String keyword arguments" do
+      NATFIXME 'accepts String keyword arguments', exception: ArgumentError, message: /missing keywords:/ do
+        data = DataSpecs::Measure.new("amount" => 42, "unit" => "km")
+
+        data.amount.should == 42
+        data.unit.should == "km"
+      end
+    end
+
     it "raises ArgumentError if no arguments are given" do
-        -> {
-          DataSpecs::Measure.new
-        }.should raise_error(ArgumentError) { |e|
-          e.message.should.include?("missing keywords: :amount, :unit")
-        }
+      -> {
+        DataSpecs::Measure.new
+      }.should raise_error(ArgumentError) { |e|
+        e.message.should.include?("missing keywords: :amount, :unit")
+      }
     end
 
     it "raises ArgumentError if at least one argument is missing" do

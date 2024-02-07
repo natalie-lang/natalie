@@ -30,6 +30,23 @@ describe 'UDPSocket#initialize' do
     @socket.binmode?.should be_true
   end
 
+  platform_is_not :windows do
+    it 'sets the socket to nonblock' do
+      NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
+        require 'io/nonblock'
+        @socket = UDPSocket.new(:INET)
+        @socket.should.nonblock?
+      end
+    end
+  end
+
+  it 'sets the socket to close on exec' do
+    @socket = UDPSocket.new(:INET)
+    NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
+      @socket.should.close_on_exec?
+    end
+  end
+
   it 'raises Errno::EAFNOSUPPORT or Errno::EPROTONOSUPPORT when given an invalid address family' do
     -> {
       UDPSocket.new(666)

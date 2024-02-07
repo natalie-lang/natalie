@@ -4,6 +4,29 @@ require_relative 'shared/new'
 
 describe 'TCPSocket#initialize' do
   it_behaves_like :tcpsocket_new, :new
+
+  describe "with a running server" do
+    before :each do
+      @server = SocketSpecs::SpecTCPServer.new
+      @hostname = @server.hostname
+    end
+
+    after :each do
+      if @socket
+        NATFIXME 'Trying to write to a closed stream', exception: IOError, message: 'closed stream' do
+          @socket.write "QUIT"
+        end
+        @socket.close
+      end
+      @server.shutdown
+    end
+
+    it "does not use the given block and warns to use TCPSocket::open" do
+      -> {
+        @socket = TCPSocket.new(@hostname, @server.port, nil) { raise }
+      }.should complain(/warning: TCPSocket::new\(\) does not take block; use TCPSocket::open\(\) instead/)
+    end
+  end
 end
 
 describe 'TCPSocket#initialize' do
@@ -47,9 +70,26 @@ describe 'TCPSocket#initialize' do
       it 'connects to the right address' do
         @client = TCPSocket.new(ip_address, @port)
 
-        NATFIXME 'Implement IO#remote_address', exception: NoMethodError, message: "undefined method `remote_address'" do
+        NATFIXME 'Implement TCPSocket#remote_address', exception: NoMethodError, message: "undefined method `remote_address' for an instance of TCPSocket" do
           @client.remote_address.ip_address.should == @server.local_address.ip_address
           @client.remote_address.ip_port.should    == @server.local_address.ip_port
+        end
+      end
+
+      platform_is_not :windows do
+        it "creates a socket which is set to nonblocking" do
+          NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
+            require 'io/nonblock'
+            @client = TCPSocket.new(ip_address, @port)
+            @client.should.nonblock?
+          end
+        end
+      end
+
+      it "creates a socket which is set to close on exec" do
+        @client = TCPSocket.new(ip_address, @port)
+        NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
+          @client.should.close_on_exec?
         end
       end
 

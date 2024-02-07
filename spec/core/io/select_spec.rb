@@ -16,7 +16,6 @@ describe "IO.select" do
 
   it "returns immediately all objects that are ready for I/O when timeout is 0" do
     @wr.syswrite("be ready")
-    @wr.write("be ready")
     IO.pipe do |_, wr|
       result = IO.select [@rd], [wr], nil, 0
       result.should == [[@rd], [wr], []]
@@ -114,6 +113,39 @@ describe "IO.select" do
 
   it "raises an ArgumentError when passed a negative timeout" do
     -> { IO.select(nil, nil, nil, -5)}.should raise_error(ArgumentError)
+  end
+
+  describe "returns the available descriptors when the file descriptor" do
+    it "is in both read and error arrays" do
+      @wr.write("foobar")
+      result = IO.select([@rd], nil, [@rd])
+      result.should == [[@rd], [], []]
+    end
+
+    it "is in both write and error arrays" do
+      result = IO.select(nil, [@wr], [@wr])
+      result.should == [[], [@wr], []]
+    end
+
+    it "is in both read and write arrays" do
+      filename = tmp("IO_select_read_write_file")
+      w = File.open(filename, 'w+')
+      begin
+        IO.select([w], [w], []).should == [[w], [w], []]
+      ensure
+        w.close
+        rm_r filename
+      end
+
+      IO.select([@wr], [@wr], []).should == [[], [@wr], []]
+
+      @wr.write("foobar")
+      # CRuby on macOS returns [[@rd], [@rd], []], weird but we accept it here, probably only for pipe read-end
+      [
+        [[@rd], [], []],
+        [[@rd], [@rd], []]
+      ].should.include? IO.select([@rd], [@rd], [])
+    end
   end
 end
 

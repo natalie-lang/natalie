@@ -33,6 +33,20 @@ with_feature :unix_socket do
       it 'sets the socket to binmode' do
         @socket.binmode?.should be_true
       end
+
+      it 'sets the socket to nonblock' do
+        NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
+          require 'io/nonblock'
+          @socket.should.nonblock?
+        end
+      end
+
+      it 'sets the socket to close on exec' do
+        NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
+          @socket.should.close_on_exec?
+        end
+      end
+
     end
   end
 end

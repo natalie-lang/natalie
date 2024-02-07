@@ -9,22 +9,32 @@ describe "Range#bsearch" do
   it_behaves_like :enumeratorized_with_unknown_size, :bsearch, (1..3)
 
   it "raises a TypeError if the block returns an Object" do
-    -> { (0..1).bsearch { Object.new } }.should raise_error(TypeError)
+    -> { (0..1).bsearch { Object.new } }.should raise_error(TypeError, "wrong argument type Object (must be numeric, true, false or nil)")
   end
 
-  it "raises a TypeError if the block returns a String" do
-    -> { (0..1).bsearch { "1" } }.should raise_error(TypeError)
+  it "raises a TypeError if the block returns a String and boundaries are Integer values" do
+    -> { (0..1).bsearch { "1" } }.should raise_error(TypeError, "wrong argument type String (must be numeric, true, false or nil)")
+  end
+
+  it "raises a TypeError if the block returns a String and boundaries are Float values" do
+    -> { (0.0..1.0).bsearch { "1" } }.should raise_error(TypeError, "wrong argument type String (must be numeric, true, false or nil)")
   end
 
   it "raises a TypeError if the Range has Object values" do
     value = mock("range bsearch")
     r = Range.new value, value
 
-    -> { r.bsearch { true } }.should raise_error(TypeError)
+    -> { r.bsearch { true } }.should raise_error(TypeError, "can't do binary search for MockObject")
   end
 
   it "raises a TypeError if the Range has String values" do
-    -> { ("a".."e").bsearch { true } }.should raise_error(TypeError)
+    -> { ("a".."e").bsearch { true } }.should raise_error(TypeError, "can't do binary search for String")
+  end
+
+  it "raises TypeError when non-Numeric begin/end and block not passed" do
+    NATFIXME 'raises TypeError when non-Numeric begin/end and block not passed', exception: SpecFailedException do
+      -> { ("a".."e").bsearch }.should raise_error(TypeError, "can't do binary search for String")
+    end
   end
 
   context "with Integer values" do
@@ -94,6 +104,10 @@ describe "Range#bsearch" do
       (4..2).bsearch { 0 }.should == nil
       (4..2).bsearch { -1 }.should == nil
     end
+
+    it "returns enumerator when block not passed" do
+      (0...3).bsearch.kind_of?(Enumerator).should == true
+    end
   end
 
   context "with Float values" do
@@ -156,7 +170,6 @@ describe "Range#bsearch" do
 
       it "returns nil if the block returns greater than zero for every element" do
         (0.3..3.0).bsearch { |x| x <=> -1 }.should be_nil
-
       end
 
       it "returns nil if the block never returns zero" do
@@ -213,6 +226,10 @@ describe "Range#bsearch" do
         (0...inf).bsearch { |x| x >= Float::MAX ? 0 : 1 }.should == Float::MAX
       end
     end
+
+    it "returns enumerator when block not passed" do
+      (0.1...2.3).bsearch.kind_of?(Enumerator).should == true
+    end
   end
 
   context "with endless ranges and Integer values" do
@@ -250,6 +267,10 @@ describe "Range#bsearch" do
         [1, 2, 3].should include(result)
       end
     end
+
+    it "returns enumerator when block not passed" do
+      eval("(-2..)").bsearch.kind_of?(Enumerator).should == true
+    end
   end
 
   context "with endless ranges and Float values" do
@@ -276,17 +297,10 @@ describe "Range#bsearch" do
 
       it "works with infinity bounds" do
         inf = Float::INFINITY
-        (inf..).bsearch { |x| true }.should == inf
-        (inf...).bsearch { |x| true }.should == nil
-        (-inf..).bsearch { |x| true }.should == -inf
-        (-inf...).bsearch { |x| true }.should == -inf
-
-        NATFIXME 'Support eval with using the current binding', exception: NoMethodError, message: "undefined method `inf' for main" do
-          eval("(inf..)").bsearch { |x| true }.should == inf
-          eval("(inf...)").bsearch { |x| true }.should == nil
-          eval("(-inf..)").bsearch { |x| true }.should == -inf
-          eval("(-inf...)").bsearch { |x| true }.should == -inf
-        end
+        eval("(inf..)").bsearch { |x| true }.should == inf
+        eval("(inf...)").bsearch { |x| true }.should == nil
+        eval("(-inf..)").bsearch { |x| true }.should == -inf
+        eval("(-inf...)").bsearch { |x| true }.should == -inf
       end
     end
 
@@ -323,31 +337,22 @@ describe "Range#bsearch" do
 
       it "works with infinity bounds" do
         inf = Float::INFINITY
-        (inf..).bsearch { |x| 1 }.should == nil
-        (inf...).bsearch { |x| 1 }.should == nil
-        (inf..).bsearch { |x| x == inf ? 0 : 1 }.should == inf
-        (inf...).bsearch { |x| x == inf ? 0 : 1 }.should == nil
-        (-inf..).bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-        (-inf...).bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-        (-inf..).bsearch { |x| 3 - x }.should == 3
-        (-inf...).bsearch { |x| 3 - x }.should == 3
-        (0.0...).bsearch { 0 }.should != inf
-
-        NATFIXME 'Support eval with using the current binding', exception: NoMethodError, message: "undefined method `inf' for main" do
-          eval("(inf..)").bsearch { |x| 1 }.should == nil
-          eval("(inf...)").bsearch { |x| 1 }.should == nil
-          eval("(inf..)").bsearch { |x| x == inf ? 0 : 1 }.should == inf
-          eval("(inf...)").bsearch { |x| x == inf ? 0 : 1 }.should == nil
-          eval("(-inf..)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-          eval("(-inf...)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
-          eval("(-inf..)").bsearch { |x| 3 - x }.should == 3
-          eval("(-inf...)").bsearch { |x| 3 - x }.should == 3
-          eval("(0.0...)").bsearch { 0 }.should != inf
-        end
+        eval("(inf..)").bsearch { |x| 1 }.should == nil
+        eval("(inf...)").bsearch { |x| 1 }.should == nil
+        eval("(inf..)").bsearch { |x| x == inf ? 0 : 1 }.should == inf
+        eval("(inf...)").bsearch { |x| x == inf ? 0 : 1 }.should == nil
+        eval("(-inf..)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
+        eval("(-inf...)").bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
+        eval("(-inf..)").bsearch { |x| 3 - x }.should == 3
+        eval("(-inf...)").bsearch { |x| 3 - x }.should == 3
+        eval("(0.0...)").bsearch { 0 }.should != inf
       end
     end
-  end
 
+    it "returns enumerator when block not passed" do
+      eval("(0.1..)").bsearch.kind_of?(Enumerator).should == true
+    end
+  end
 
   context "with beginless ranges and Integer values" do
     context "with a block returning true or false" do
@@ -379,6 +384,10 @@ describe "Range#bsearch" do
         result = (...10).bsearch { |x| x < 1 ? 1 : x > 3 ? -1 : 0 }
         [1, 2, 3].should include(result)
       end
+    end
+
+    it "returns enumerator when block not passed" do
+      (..10).bsearch.kind_of?(Enumerator).should == true
     end
   end
 
@@ -450,6 +459,10 @@ describe "Range#bsearch" do
         (..inf).bsearch { |x| 3 - x }.should == 3
         (...inf).bsearch { |x| 3 - x }.should == 3
       end
+    end
+
+    it "returns enumerator when block not passed" do
+      (..-0.1).bsearch.kind_of?(Enumerator).should == true
     end
   end
 end
