@@ -88,9 +88,7 @@ describe 'TCPSocket#initialize' do
 
       it "creates a socket which is set to close on exec" do
         @client = TCPSocket.new(ip_address, @port)
-        NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
-          @client.should.close_on_exec?
-        end
+        @client.should.close_on_exec?
       end
 
       describe 'using a local address and service' do

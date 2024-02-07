@@ -1163,6 +1163,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    self->as_io()->set_close_on_exec(env, TrueObject::the());
 
     auto Socket = find_top_level_const(env, "Socket"_s);
 
@@ -1235,6 +1236,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     auto TCPSocket = find_top_level_const(env, "TCPSocket"_s)->as_class_or_raise(env);
     auto tcpsocket = new IoObject { TCPSocket };
     tcpsocket->as_io()->set_fileno(fd);
+    tcpsocket->as_io()->set_close_on_exec(env, TrueObject::the());
 
     return tcpsocket;
 }
@@ -1254,6 +1256,7 @@ Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    self->as_io()->set_close_on_exec(env, TrueObject::the());
 
     return self;
 }
@@ -1285,6 +1288,7 @@ Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    self->as_io()->set_close_on_exec(env, TrueObject::the());
 
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto sockaddr = Socket.send(env, "pack_sockaddr_un"_s, { path });

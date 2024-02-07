@@ -42,9 +42,7 @@ with_feature :unix_socket do
       end
 
       it 'sets the socket to close on exec' do
-        NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
-          @socket.should.close_on_exec?
-        end
+        @socket.should.close_on_exec?
       end
 
     end

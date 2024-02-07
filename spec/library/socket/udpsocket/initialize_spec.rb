@@ -42,9 +42,7 @@ describe 'UDPSocket#initialize' do
 
   it 'sets the socket to close on exec' do
     @socket = UDPSocket.new(:INET)
-    NATFIXME 'sets the socket to close on exec', exception: SpecFailedException do
-      @socket.should.close_on_exec?
-    end
+    @socket.should.close_on_exec?
   end
 
   it 'raises Errno::EAFNOSUPPORT or Errno::EPROTONOSUPPORT when given an invalid address family' do

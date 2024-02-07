@@ -129,9 +129,7 @@ describe 'TCPServer#accept' do
 
       it "returns a TCPSocket which is set to close on exec" do
         @socket = @server.accept
-        NATFIXME 'returns a TCPSocket which is set to close on exec', exception: SpecFailedException do
-          @socket.should.close_on_exec?
-        end
+        @socket.should.close_on_exec?
       end
     end
   end
