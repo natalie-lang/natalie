@@ -9,7 +9,8 @@ class Data
 
       define_method(:initialize) do |*args, **kwargs|
         if args.empty? && !kwargs.empty?
-          missing = members- kwargs.keys
+          kwargs = kwargs.transform_keys(&:to_sym)
+          missing = members - kwargs.keys
           unless missing.empty?
             raise ArgumentError, "missing keyword#{missing.size == 1 ? '' : 's'}: #{missing.map(&:inspect).join(', ')}"
           end
