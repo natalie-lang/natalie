@@ -207,6 +207,21 @@ class Socket < BasicSocket
         end
       end
     end
+
+    def unix_server_socket(path, &block)
+      block_given = block_given?
+      Socket.new(:UNIX, :STREAM).tap do |socket|
+        sockaddr = Socket.pack_sockaddr_un(path)
+        socket.bind(sockaddr)
+        if block_given
+          begin
+            yield socket
+          ensure
+            socket.close
+          end
+        end
+      end
+    end
   end
 end
 
