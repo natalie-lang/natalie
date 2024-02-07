@@ -2,7 +2,7 @@ require_relative '../../spec_helper'
 require 'socket'
 
 # NATFIXME: enable as needed
-#MSpec.enable_feature :sock_packet if Socket.const_defined?(:SOCK_PACKET)
+MSpec.enable_feature :sock_packet if Socket.const_defined?(:SOCK_PACKET)
 MSpec.enable_feature :unix_socket unless PlatformGuard.windows?
 #MSpec.enable_feature :udp_cork if Socket.const_defined?(:UDP_CORK)
 #MSpec.enable_feature :tcp_cork if Socket.const_defined?(:TCP_CORK)
