@@ -3,15 +3,17 @@ require_relative 'fixtures/classes'
 
 describe "Literal Regexps" do
   it "matches against $_ (last input) in a conditional if no explicit matchee provided" do
-    -> {
-      eval <<-EOR
-      $_ = nil
-      (true if /foo/).should_not == true
+    NATFIXME 'Warn for regexp literal in condtion', exception: SpecFailedException, message: /should have printed a warning/ do
+      -> {
+        eval <<-EOR
+        $_ = nil
+        (true if /foo/).should_not == true
 
-      $_ = "foo"
-      (true if /foo/).should == true
-      EOR
-    }.should complain(/regex literal in condition/)
+        $_ = "foo"
+        (true if /foo/).should == true
+        EOR
+      }.should complain(/regex literal in condition/)
+    end
   end
 
   it "yields a Regexp" do
@@ -27,12 +29,15 @@ describe "Literal Regexps" do
     2.times do |i|
       rs << /foo/
     end
-    rs[0].should equal(rs[1])
+    NATFIXME 'caches the Regexp object', exception: SpecFailedException do
+      rs[0].should equal(rs[1])
+    end
   end
 
-  it "throws SyntaxError for malformed literals" do
-    -> { eval('/(/') }.should raise_error(SyntaxError)
-  end
+  # NATFIXME: Compile error for invalid Regexp syntax
+  #it "throws SyntaxError for malformed literals" do
+    #-> { eval('/(/') }.should raise_error(SyntaxError)
+  #end
 
   #############################################################################
   # %r
@@ -40,31 +45,41 @@ describe "Literal Regexps" do
 
   it "supports paired delimiters with %r" do
     LanguageSpecs.paired_delimiters.each do |p0, p1|
-      eval("%r#{p0} foo #{p1}").should == / foo /
+      NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+        eval("%r#{p0} foo #{p1}").should == / foo /
+      end
     end
   end
 
   it "supports grouping constructs that are also paired delimiters" do
     LanguageSpecs.paired_delimiters.each do |p0, p1|
-      eval("%r#{p0} () [c]{1} #{p1}").should == / () [c]{1} /
+      NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+        eval("%r#{p0} () [c]{1} #{p1}").should == / () [c]{1} /
+      end
     end
   end
 
   it "allows second part of paired delimiters to be used as non-paired delimiters" do
     LanguageSpecs.paired_delimiters.each do |p0, p1|
-      eval("%r#{p1} foo #{p1}").should == / foo /
+      NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+        eval("%r#{p1} foo #{p1}").should == / foo /
+      end
     end
   end
 
   it "disallows first part of paired delimiters to be used as non-paired delimiters" do
     LanguageSpecs.paired_delimiters.each do |p0, p1|
-      -> { eval("%r#{p0} foo #{p0}") }.should raise_error(SyntaxError)
+      NATFIXME 'Eval', exception: SpecFailedException, message: 'eval() only works on static strings' do
+        -> { eval("%r#{p0} foo #{p0}") }.should raise_error(SyntaxError)
+      end
     end
   end
 
   it "supports non-paired delimiters delimiters with %r" do
     LanguageSpecs.non_paired_delimiters.each do |c|
-      eval("%r#{c} foo #{c}").should == / foo /
+      NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+        eval("%r#{c} foo #{c}").should == / foo /
+      end
     end
   end
 
