@@ -1787,6 +1787,24 @@ module Natalie
         instructions
       end
 
+      def transform_match_last_line_node(node, used:)
+        regexp = Regexp.new(node.unescaped, node.options)
+        instructions = [
+          PushRegexpInstruction.new(regexp),
+          GlobalVariableGetInstruction.new(:$_),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :=~,
+            receiver_is_self: false,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_match_write_node(node, used:)
         instructions = []
         instructions << transform_expression(node.call, used: used)
