@@ -358,8 +358,6 @@ Value BasicSocket_getsockname(Env *env, Value self, Args args, Block *) {
     if (getsockname_result == -1)
         env->raise_errno();
 
-    auto Addrinfo = find_top_level_const(env, "Addrinfo"_s);
-
     switch (addr.sa_family) {
     case AF_INET: {
         struct sockaddr_in in { };
