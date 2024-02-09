@@ -152,7 +152,9 @@ def xit(test, &block)
   @specs << [$context.dup, test, nil]
 end
 
-alias skip xit
+def skip(test = nil, &block)
+  xit(test, &block)
+end
 
 def it_behaves_like(behavior, method, obj = nil)
   before :all do

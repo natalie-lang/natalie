@@ -60,15 +60,13 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'can be used to connect to the server' do
-      NATFIXME 'Fix `skip` without arguments', condition: @method == :local_address, exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-        skip if @method == :local_address
-          NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
-          b = @addr.connect
-          begin
-            b.remote_address.to_s.should == @addr.to_s
-          ensure
-            b.close
-          end
+      skip if @method == :local_address
+      NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+        b = @addr.connect
+        begin
+          b.remote_address.to_s.should == @addr.to_s
+        ensure
+          b.close
         end
       end
     end
@@ -198,15 +196,13 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'can be used to connect to the server' do
-        NATFIXME 'Fix `skip` without arguments', condition: @method == :local_address, exception: ArgumentError, message: 'wrong number of arguments (given 0, expected 1)' do
-          skip if @method == :local_address
-          NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
-            b = @addr.connect
-            begin
-              b.remote_address.to_s.should == @addr.to_s
-            ensure
-              b.close
-            end
+        skip if @method == :local_address
+        NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+          b = @addr.connect
+          begin
+            b.remote_address.to_s.should == @addr.to_s
+          ensure
+            b.close
           end
         end
       end
