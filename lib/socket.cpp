@@ -886,6 +886,8 @@ Value Socket_pack_sockaddr_in(Env *env, Value self, Args args, Block *block) {
     auto host = args.at(1);
     if (host->is_nil())
         host = new StringObject { "127.0.0.1" };
+    if (host->is_integer() && host->as_integer()->is_fixnum() && host->as_integer()->to_nat_int_t() == INADDR_ANY)
+        host = new StringObject { "0.0.0.0" };
     if (host->is_string() && host->as_string()->is_empty())
         host = new StringObject { "0.0.0.0" };
 
