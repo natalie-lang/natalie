@@ -70,10 +70,8 @@ describe 'TCPSocket#initialize' do
       it 'connects to the right address' do
         @client = TCPSocket.new(ip_address, @port)
 
-        NATFIXME 'Implement TCPSocket#remote_address', exception: NoMethodError, message: "undefined method `remote_address' for an instance of TCPSocket" do
-          @client.remote_address.ip_address.should == @server.local_address.ip_address
-          @client.remote_address.ip_port.should    == @server.local_address.ip_port
-        end
+        @client.remote_address.ip_address.should == @server.local_address.ip_address
+        @client.remote_address.ip_port.should    == @server.local_address.ip_port
       end
 
       platform_is_not :windows do
