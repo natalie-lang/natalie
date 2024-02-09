@@ -51,6 +51,10 @@ class BasicSocket < IO
   def connect_address
     local_address
   end
+
+  def remote_address
+    Addrinfo.new(getpeername)
+  end
 end
 
 class IPSocket < BasicSocket
