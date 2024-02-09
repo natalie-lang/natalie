@@ -5,6 +5,7 @@ class SocketError < StandardError
 end
 
 class BasicSocket < IO
+  __bind_method__ :getpeername, :BasicSocket_getpeername
   __bind_method__ :getsockname, :BasicSocket_getsockname
   __bind_method__ :getsockopt, :BasicSocket_getsockopt
   __bind_method__ :local_address, :BasicSocket_local_address
