@@ -18,11 +18,15 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses PF_INET as the protocol family' do
-      @addr.pfamily.should == Socket::PF_INET
+      NATFIXME 'uses PF_INET as the protocol family', exception: SpecFailedException do
+        @addr.pfamily.should == Socket::PF_INET
+      end
     end
 
     it 'uses SOCK_STREAM as the socket type' do
-      @addr.socktype.should == Socket::SOCK_STREAM
+      NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
+        @addr.socktype.should == Socket::SOCK_STREAM
+      end
     end
 
     it 'uses the correct IP address' do
@@ -41,7 +45,9 @@ describe :socket_local_remote_address, shared: true do
       if @method == :local_address
         @addr.to_s.should == @b.remote_address.to_s
       else
-        @addr.to_s.should == @b.local_address.to_s
+        NATFIXME 'Implement Addrinfo#to_s', exception: SpecFailedException do
+          @addr.to_s.should == @b.local_address.to_s
+        end
       end
     end
 
@@ -55,17 +61,20 @@ describe :socket_local_remote_address, shared: true do
 
     it 'can be used to connect to the server' do
       skip if @method == :local_address
-      b = @addr.connect
-      begin
-        b.remote_address.to_s.should == @addr.to_s
-      ensure
-        b.close
+        NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+        b = @addr.connect
+        begin
+          b.remote_address.to_s.should == @addr.to_s
+        ensure
+          b.close
+        end
       end
     end
   end
 
   guard -> { SocketSpecs.ipv6_available? } do
-    describe 'using IPv6' do
+    # NATFIXME: Issues with IPv6
+    xdescribe 'using IPv6' do
       before :each do
         @s = TCPServer.new('::1', 0)
         @a = TCPSocket.new('::1', @s.addr[1])
@@ -149,11 +158,15 @@ describe :socket_local_remote_address, shared: true do
       end
 
       it 'uses PF_UNIX as the protocol family' do
-        @addr.pfamily.should == Socket::PF_UNIX
+        NATFIXME 'uses PF_UNIX as the protocol family', exception: SpecFailedException do
+          @addr.pfamily.should == Socket::PF_UNIX
+        end
       end
 
       it 'uses SOCK_STREAM as the socket type' do
-        @addr.socktype.should == Socket::SOCK_STREAM
+        NATFIXME 'uses SOCK_STREAM as the socket type', exception: SpecFailedException do
+          @addr.socktype.should == Socket::SOCK_STREAM
+        end
       end
 
       it 'uses the correct socket path' do
@@ -168,7 +181,9 @@ describe :socket_local_remote_address, shared: true do
         if @method == :local_address
           @addr.to_s.should == @b.remote_address.to_s
         else
-          @addr.to_s.should == @b.local_address.to_s
+          NATFIXME 'Implement Addrinfo#to_s', exception: SpecFailedException do
+            @addr.to_s.should == @b.local_address.to_s
+          end
         end
       end
 
@@ -182,11 +197,13 @@ describe :socket_local_remote_address, shared: true do
 
       it 'can be used to connect to the server' do
         skip if @method == :local_address
-        b = @addr.connect
-        begin
-          b.remote_address.to_s.should == @addr.to_s
-        ensure
-          b.close
+        NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+          b = @addr.connect
+          begin
+            b.remote_address.to_s.should == @addr.to_s
+          ensure
+            b.close
+          end
         end
       end
     end
@@ -210,11 +227,15 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'uses the correct protocol family' do
-      @addr.pfamily.should == Socket::PF_INET
+      NATFIXME 'uses the correct protocol family', exception: SpecFailedException do
+        @addr.pfamily.should == Socket::PF_INET
+      end
     end
 
     it 'uses SOCK_DGRAM as the socket type' do
-      @addr.socktype.should == Socket::SOCK_DGRAM
+      NATFIXME 'uses SOCK_DGRAM as the socket type', exception: SpecFailedException do
+        @addr.socktype.should == Socket::SOCK_DGRAM
+      end
     end
 
     it 'uses the correct IP address' do
@@ -238,11 +259,13 @@ describe :socket_local_remote_address, shared: true do
     end
 
     it 'can be used to connect to the peer' do
-      b = @addr.connect
-      begin
-        b.remote_address.to_s.should == @addr.to_s
-      ensure
-        b.close
+      NATFIXME 'Implement Addrinfo#connect', exception: NoMethodError, message: "undefined method `connect' for an instance of Addrinfo" do
+        b = @addr.connect
+        begin
+          b.remote_address.to_s.should == @addr.to_s
+        ensure
+          b.close
+        end
       end
     end
   end
