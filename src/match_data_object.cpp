@@ -133,11 +133,13 @@ Value MatchDataObject::begin(Env *env, Value start) const {
     if (start->is_string() || start->is_symbol()) {
         const auto &str = start->type() == Object::Type::String ? start->as_string()->string() : start->as_symbol()->string();
         index = onig_name_to_backref_number(m_regexp->m_regex, reinterpret_cast<const UChar *>(str.c_str()), reinterpret_cast<const UChar *>(str.c_str() + str.size()), m_region);
+        if (index < 0 || index >= m_region->num_regs)
+            env->raise("IndexError", "undefined group name reference: {}", start->to_s(env)->c_str());
     } else {
         index = start->to_int(env)->to_nat_int_t();
+        if (index < 0 || index >= m_region->num_regs)
+            env->raise("IndexError", "index {} out of matches", index);
     }
-    if (index < 0)
-        env->raise("IndexError", "bad index");
     if (group(index)->is_nil())
         return NilObject::the();
     return IntegerObject::from_ssize_t(env, beg_char_index(env, (size_t)index));
