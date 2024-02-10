@@ -4,23 +4,27 @@ require 'English'
 
 describe "English" do
   it "aliases $ERROR_INFO to $!" do
-    begin
-      raise "error"
-    rescue
-      $ERROR_INFO.should_not be_nil
-      $ERROR_INFO.should == $!
+    NATFIXME '$! is rewritten at compile time, impossible to alias', exception: SpecFailedException do
+      begin
+        raise "error"
+      rescue
+        $ERROR_INFO.should_not be_nil
+        $ERROR_INFO.should == $!
+      end
+      $ERROR_INFO.should be_nil
     end
-    $ERROR_INFO.should be_nil
   end
 
   it "aliases $ERROR_POSITION to $@" do
-    begin
-      raise "error"
-    rescue
-      $ERROR_POSITION.should_not be_nil
-      $ERROR_POSITION.should == $@
+    NATFIXME '$@ is rewritten at compile time, impossible to alias', exception: SpecFailedException do
+      begin
+        raise "error"
+      rescue
+        $ERROR_POSITION.should_not be_nil
+        $ERROR_POSITION.should == $@
+      end
+      $ERROR_POSITION.should be_nil
     end
-    $ERROR_POSITION.should be_nil
   end
 
   it "aliases $FS to $;" do
@@ -82,6 +86,11 @@ describe "English" do
   end
 
   it "aliases $INPUT_LINE_NUMBER to $." do
+    NATFIXME '$. is initialized with 0 in MRI, but is nil in Natalie, work around this limitation by reading a line', exception: SpecFailedException do
+      $..should_not be_nil
+    end
+    File.open(__FILE__) { |f| f.readline }
+    # NATFIXME: Remove the read above once this issue is fixed
     $INPUT_LINE_NUMBER.should_not be_nil
     $INPUT_LINE_NUMBER.should == $.
   end
@@ -99,8 +108,10 @@ describe "English" do
   end
 
   it "aliases $DEFAULT_INPUT to $<" do
-    $DEFAULT_INPUT.should_not be_nil
-    $DEFAULT_INPUT.should == $<
+    NATFIXME 'Implement ARGF and its alias $<', exception: SpecFailedException do
+      $DEFAULT_INPUT.should_not be_nil
+      $DEFAULT_INPUT.should == $<
+    end
   end
 
   it "aliases $PID to $$" do
@@ -121,7 +132,10 @@ describe "English" do
   it "aliases $CHILD_STATUS to $?" do
     ruby_exe('exit 0')
     $CHILD_STATUS.should_not be_nil
-    $CHILD_STATUS.should == $?
+    NATFIXME 'Issue with Process::Status#==', exception: SpecFailedException do
+      $CHILD_STATUS.should == $?
+    end
+    $CHILD_STATUS.to_s.should == $?.to_s
   end
 
   it "aliases $LAST_MATCH_INFO to $~" do
@@ -143,14 +157,20 @@ describe "English" do
   end
 
   it "aliases $ARGV to $*" do
-    $ARGV.should_not be_nil
+    NATFIXME '$ARGV is initialized with nil', exception: SpecFailedException do
+      $ARGV.should_not be_nil
+    end
+    $ARGV = ['a', 'b']
+    # NATFIXME: Remove the assignment above once this issue is fixed
     $ARGV.should == $*
   end
 
   it "aliases $MATCH to $&" do
-    /c(a)t/ =~ "cat"
-    $MATCH.should_not be_nil
-    $MATCH.should == $&
+    NATFIXME '$& is rewritten at compile time, impossible to alias', exception: SpecFailedException do
+      /c(a)t/ =~ "cat"
+      $MATCH.should_not be_nil
+      $MATCH.should == $&
+    end
   end
 
   it "aliases $PREMATCH to $`" do
