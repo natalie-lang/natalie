@@ -306,6 +306,9 @@ bool RangeObject::include(Env *env, Value arg) {
 }
 
 Value RangeObject::bsearch(Env *env, Block *block) {
+    if ((!m_begin->is_numeric() && !m_begin->is_nil()) || (!m_end->is_numeric() && !m_end->is_nil()))
+        env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
+
     if (!block)
         return enum_for(env, "bsearch");
 
@@ -339,9 +342,8 @@ Value RangeObject::bsearch(Env *env, Block *block) {
         double right = m_end->is_nil() ? std::numeric_limits<double>::infinity() : m_end->to_f(env)->to_double();
 
         return binary_search_float(env, left, right, block, m_exclude_end);
-    } else {
-        env->raise("TypeError", "can't do binary search for {}", m_begin->klass()->inspect_str());
     }
+    NAT_UNREACHABLE();
 }
 
 Value RangeObject::step(Env *env, Value n, Block *block) {

@@ -32,9 +32,7 @@ describe "Range#bsearch" do
   end
 
   it "raises TypeError when non-Numeric begin/end and block not passed" do
-    NATFIXME 'raises TypeError when non-Numeric begin/end and block not passed', exception: SpecFailedException do
-      -> { ("a".."e").bsearch }.should raise_error(TypeError, "can't do binary search for String")
-    end
+    -> { ("a".."e").bsearch }.should raise_error(TypeError, "can't do binary search for String")
   end
 
   context "with Integer values" do
