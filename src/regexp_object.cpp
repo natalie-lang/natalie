@@ -222,6 +222,8 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
                         options |= RegexOpts::MultiLine;
                     } else if (c == "x") {
                         options |= RegexOpts::Extended;
+                    } else {
+                        env->raise("ArgumentError", "unknown regexp option: {}", opts->as_string()->string());
                     }
                 }
             } else if (opts->is_truthy()) {
