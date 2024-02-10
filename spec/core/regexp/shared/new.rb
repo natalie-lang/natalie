@@ -29,9 +29,7 @@ describe :regexp_new_non_string_or_regexp, shared: true do
     obj = Object.new
     def obj.to_str() "a" end
 
-    NATFIXME "calls #to_str method for non-String/Regexp argument", exception: TypeError do
-      Regexp.send(@method, obj).should == /a/
-    end
+    Regexp.send(@method, obj).should == /a/
   end
 
   it "raises TypeError if there is no #to_str method for non-String/Regexp argument" do
@@ -48,9 +46,7 @@ describe :regexp_new_non_string_or_regexp, shared: true do
     obj = Object.new
     def obj.to_str() [] end
 
-    NATFIXME "raises TypeError if #to_str returns non-String value", exception: SpecFailedException do
-      -> { Regexp.send(@method, obj) }.should raise_error(TypeError, /can't convert Object to String/)
-    end
+    -> { Regexp.send(@method, obj) }.should raise_error(TypeError, /can't convert Object to String/)
   end
 end
 

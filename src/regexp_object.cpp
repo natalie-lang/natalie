@@ -208,7 +208,6 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         auto other = pattern->as_regexp();
         initialize(env, other->pattern(), other->options());
     } else {
-        pattern->assert_type(env, Object::Type::String, "String");
         nat_int_t options = 0;
         if (opts != nullptr) {
             if (opts.is_fast_integer()) {
@@ -220,7 +219,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
             }
         }
 
-        initialize(env, pattern->as_string()->c_str(), static_cast<int>(options));
+        initialize(env, pattern->to_str(env)->c_str(), static_cast<int>(options));
     }
     return this;
 }
