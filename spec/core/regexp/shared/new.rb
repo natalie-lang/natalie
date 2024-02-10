@@ -189,26 +189,20 @@ describe :regexp_new_string, shared: true do
 
       r = Regexp.send(@method, 'Hi', 'imx')
       (r.options & Regexp::IGNORECASE).should_not == 0
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::MULTILINE).should_not == 0
-        not_supported_on :opal do
-          (r.options & Regexp::EXTENDED).should_not == 0
-        end
+      (r.options & Regexp::MULTILINE).should_not == 0
+      not_supported_on :opal do
+        (r.options & Regexp::EXTENDED).should_not == 0
       end
 
       r = Regexp.send(@method, 'Hi', 'mimi')
       (r.options & Regexp::IGNORECASE).should_not == 0
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::MULTILINE).should_not == 0
-      end
+      (r.options & Regexp::MULTILINE).should_not == 0
       not_supported_on :opal do
         (r.options & Regexp::EXTENDED).should == 0
       end
 
       r = Regexp.send(@method, 'Hi', '')
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::IGNORECASE).should == 0
-      end
+      (r.options & Regexp::IGNORECASE).should == 0
       (r.options & Regexp::MULTILINE).should == 0
       not_supported_on :opal do
         (r.options & Regexp::EXTENDED).should == 0
