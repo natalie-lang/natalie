@@ -189,26 +189,20 @@ describe :regexp_new_string, shared: true do
 
       r = Regexp.send(@method, 'Hi', 'imx')
       (r.options & Regexp::IGNORECASE).should_not == 0
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::MULTILINE).should_not == 0
-        not_supported_on :opal do
-          (r.options & Regexp::EXTENDED).should_not == 0
-        end
+      (r.options & Regexp::MULTILINE).should_not == 0
+      not_supported_on :opal do
+        (r.options & Regexp::EXTENDED).should_not == 0
       end
 
       r = Regexp.send(@method, 'Hi', 'mimi')
       (r.options & Regexp::IGNORECASE).should_not == 0
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::MULTILINE).should_not == 0
-      end
+      (r.options & Regexp::MULTILINE).should_not == 0
       not_supported_on :opal do
         (r.options & Regexp::EXTENDED).should == 0
       end
 
       r = Regexp.send(@method, 'Hi', '')
-      NATFIXME "accepts a String of supported flags as the second argument", exception: SpecFailedException do
-        (r.options & Regexp::IGNORECASE).should == 0
-      end
+      (r.options & Regexp::IGNORECASE).should == 0
       (r.options & Regexp::MULTILINE).should == 0
       not_supported_on :opal do
         (r.options & Regexp::EXTENDED).should == 0
@@ -216,14 +210,12 @@ describe :regexp_new_string, shared: true do
     end
 
     it "raises an Argument error if the second argument contains unsupported chars" do
-      NATFIXME "raises an Argument error if the second argument contains unsupported chars", exception: SpecFailedException do
-        -> { Regexp.send(@method, 'Hi', 'e') }.should raise_error(ArgumentError, "unknown regexp option: e")
-        -> { Regexp.send(@method, 'Hi', 'n') }.should raise_error(ArgumentError, "unknown regexp option: n")
-        -> { Regexp.send(@method, 'Hi', 's') }.should raise_error(ArgumentError, "unknown regexp option: s")
-        -> { Regexp.send(@method, 'Hi', 'u') }.should raise_error(ArgumentError, "unknown regexp option: u")
-        -> { Regexp.send(@method, 'Hi', 'j') }.should raise_error(ArgumentError, "unknown regexp option: j")
-        -> { Regexp.send(@method, 'Hi', 'mjx') }.should raise_error(ArgumentError, /unknown regexp option: mjx\b/)
-      end
+      -> { Regexp.send(@method, 'Hi', 'e') }.should raise_error(ArgumentError, "unknown regexp option: e")
+      -> { Regexp.send(@method, 'Hi', 'n') }.should raise_error(ArgumentError, "unknown regexp option: n")
+      -> { Regexp.send(@method, 'Hi', 's') }.should raise_error(ArgumentError, "unknown regexp option: s")
+      -> { Regexp.send(@method, 'Hi', 'u') }.should raise_error(ArgumentError, "unknown regexp option: u")
+      -> { Regexp.send(@method, 'Hi', 'j') }.should raise_error(ArgumentError, "unknown regexp option: j")
+      -> { Regexp.send(@method, 'Hi', 'mjx') }.should raise_error(ArgumentError, /unknown regexp option: mjx\b/)
     end
   end
 

@@ -214,6 +214,18 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
                 options = opts.get_fast_integer();
             } else if (opts->is_integer()) {
                 options = opts->as_integer()->to_nat_int_t();
+            } else if (opts->is_string()) {
+                for (auto c : *opts->as_string()) {
+                    if (c == "i") {
+                        options |= RegexOpts::IgnoreCase;
+                    } else if (c == "m") {
+                        options |= RegexOpts::MultiLine;
+                    } else if (c == "x") {
+                        options |= RegexOpts::Extended;
+                    } else {
+                        env->raise("ArgumentError", "unknown regexp option: {}", opts->as_string()->string());
+                    }
+                }
             } else if (opts->is_truthy()) {
                 options = 1;
             }
