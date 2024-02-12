@@ -47,6 +47,14 @@ module Zlib
   __bind_static_method__ :crc_table, :Zlib_crc_table
   __bind_static_method__ :zlib_version, :Zlib_zlib_version
   #end
+
+  def self.deflate(...)
+    Deflate.deflate(...)
+  end
+
+  def self.inflate(...)
+    Inflate.inflate(...)
+  end
   
   class Deflate
     __bind_method__ :initialize, :Zlib_deflate_initialize
