@@ -112,6 +112,18 @@ Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value Zlib_deflate_deflate(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto string = args[0]->as_string_or_raise(env);
+    auto flush = Z_NO_FLUSH;
+    if (auto flush_obj = args.at(1, nullptr); flush_obj)
+        flush = flush_obj->as_integer_or_raise(env)->to_nat_int_t();
+
+    Zlib_do_deflate(env, self, string->string(), flush);
+
+    return string;
+}
+
 Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto dictionary = args.at(0)->to_str(env);
