@@ -99,7 +99,6 @@ void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
             int have = ZLIB_BUF_SIZE - strm->avail_out;
             result->append((char *)out, have);
         } while (strm->avail_out == 0);
-        assert(strm->avail_in == 0);
     } while (index < string.length());
 }
 
