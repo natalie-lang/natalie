@@ -145,12 +145,12 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
             case Z_NEED_DICT:
                 ret = Z_DATA_ERROR;
                 inflateEnd(strm);
-                self->send(env, "_error"_s, { Value::integer(ret) });
+                self->klass()->send(env, "_error"_s, { Value::integer(ret) });
                 break;
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
                 inflateEnd(strm);
-                self->send(env, "_error"_s, { Value::integer(ret) });
+                self->klass()->send(env, "_error"_s, { Value::integer(ret) });
                 break;
             case Z_STREAM_ERROR: {
                 auto Error = fetch_nested_const({ "Zlib"_s, "Error"_s })->as_class_or_raise(env);
