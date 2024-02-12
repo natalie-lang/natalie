@@ -13,6 +13,7 @@ Value init_zlib(Env *env, Value self) {
     Zlib->const_set("BEST_COMPRESSION"_s, Value::integer(Z_BEST_COMPRESSION));
     Zlib->const_set("BEST_SPEED"_s, Value::integer(Z_BEST_SPEED));
     Zlib->const_set("DEFAULT_COMPRESSION"_s, Value::integer(Z_DEFAULT_COMPRESSION));
+    Zlib->const_set("FINISH"_s, Value::integer(Z_FINISH));
     Zlib->const_set("NO_COMPRESSION"_s, Value::integer(Z_NO_COMPRESSION));
     return NilObject::the();
 }
