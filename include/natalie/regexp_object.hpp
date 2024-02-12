@@ -50,7 +50,6 @@ public:
     }
 
     static Value compile(Env *env, Value pattern, Value flags = nullptr, ClassObject *klass = nullptr) {
-        pattern->assert_type(env, Object::Type::String, "String");
         if (!klass)
             klass = GlobalEnv::the()->Regexp();
         RegexpObject *regexp = new RegexpObject { klass };
