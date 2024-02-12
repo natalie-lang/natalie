@@ -143,7 +143,6 @@ void Zlib_do_inflate(Env *env, Value self, const String &string, int flush) {
 
             switch (ret) {
             case Z_NEED_DICT:
-                ret = Z_DATA_ERROR;
                 inflateEnd(strm);
                 self->klass()->send(env, "_error"_s, { Value::integer(ret) });
                 break;
