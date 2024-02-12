@@ -86,7 +86,7 @@ Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
 
     Zlib_do_deflate(env, self, string->string(), Z_NO_FLUSH);
 
-    return string;
+    return self;
 }
 
 Value Zlib_deflate_close(Env *env, Value self, Args args, Block *) {
@@ -167,7 +167,7 @@ Value Zlib_inflate_append(Env *env, Value self, Args args, Block *) {
 
     Zlib_do_inflate(env, self, string->string(), Z_NO_FLUSH);
 
-    return string;
+    return self;
 }
 
 Value Zlib_inflate_finish(Env *env, Value self, Args args, Block *) {

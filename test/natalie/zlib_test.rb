@@ -23,13 +23,19 @@ describe 'Zlib' do
 
     it 'deflates in chunks' do
       inflated = 'xyz' * 100
-      zstream = Zlib::Deflate.new                                                                                                                                                             
+      zstream = Zlib::Deflate.new
       inflated.chars.each_slice(50) do |chunk|
         zstream << chunk.join
       end
-      deflated = zstream.finish                                                                                                                                                               
-      zstream.close                                                                                                                                                                           
+      deflated = zstream.finish
+      zstream.close
       deflated.bytes.should == "x\x9C\xAB\xA8\xAC\xAA\x18E\xC4!\x00a\xAF\x8D\xCD".force_encoding('ASCII-8BIT').bytes
+    end
+
+    it 'returns itself in the streaming interface' do
+      zstream = Zlib::Deflate.new
+      zstream << 'foo' << 'bar'
+      zstream.finish.should == Zlib.deflate('foobar')
     end
 
     it 'raises an error after the stream is closed' do
@@ -63,6 +69,17 @@ describe 'Zlib' do
       end
       inflated = zstream.finish                                                                                                                                                               
       zstream.close                                                                                                                                                                           
+      inflated.should == 'hello world'
+    end
+
+    it 'returns itself in the streaming interface' do
+      deflated = "x\x9C\xCBH\xCD\xC9\xC9W(\xCF/\xCAI\x01\x00\x1A\v\x04]".force_encoding('ASCII-8BIT')
+      zstream = Zlib::Inflate.new
+      deflated.chars.each_slice(5) do |chunk|
+        (zstream << chunk.join).should == zstream
+      end
+      inflated = zstream.finish
+      zstream.close
       inflated.should == 'hello world'
     end
 
