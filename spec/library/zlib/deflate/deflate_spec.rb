@@ -46,9 +46,7 @@ describe "Zlib::Deflate#deflate" do
     zipped = @deflator.deflate data, Zlib::FINISH
     @deflator.finish
 
-    NATFIXME 'Mark as binary and set size', exception: SpecFailedException do
-      zipped.should == [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1].pack('C*')
-    end
+    zipped.should == [120, 156, 99, 96, 128, 1, 0, 0, 10, 0, 1].pack('C*')
   end
 
   it "deflates lots of data" do
@@ -57,7 +55,7 @@ describe "Zlib::Deflate#deflate" do
     zipped = @deflator.deflate data, Zlib::FINISH
     @deflator.finish
 
-    NATFIXME 'Mark as binary and set size', exception: SpecFailedException do
+    NATFIXME 'Large data still breaks', exception: SpecFailedException do
       zipped.should == ([120, 156, 237, 193, 1, 1, 0, 0] +
                         [0, 128, 144, 254, 175, 238, 8, 10] +
                         Array.new(31, 0) +
@@ -66,10 +64,8 @@ describe "Zlib::Deflate#deflate" do
   end
 
   it "has a binary encoding" do
-    NATFIXME 'Fix binary encoding', exception: SpecFailedException do
-      @deflator.deflate("").encoding.should == Encoding::BINARY
-      @deflator.finish.encoding.should == Encoding::BINARY
-    end
+    @deflator.deflate("").encoding.should == Encoding::BINARY
+    @deflator.finish.encoding.should == Encoding::BINARY
   end
 end
 

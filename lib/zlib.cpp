@@ -55,7 +55,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
-    self->ivar_set(env, "@result"_s, new StringObject);
+    self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
@@ -120,7 +120,7 @@ Value Zlib_deflate_deflate(Env *env, Value self, Args args, Block *) {
 
     Zlib_do_deflate(env, self, string->string(), flush);
 
-    return string;
+    return self->ivar_get(env, "@result"_s);
 }
 
 Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
