@@ -23,12 +23,12 @@ describe 'Zlib' do
 
     it 'deflates in chunks' do
       inflated = 'xyz' * 100
-      zstream = Zlib::Deflate.new                                                                                                                                                             
+      zstream = Zlib::Deflate.new
       inflated.chars.each_slice(50) do |chunk|
         zstream << chunk.join
       end
-      deflated = zstream.finish                                                                                                                                                               
-      zstream.close                                                                                                                                                                           
+      deflated = zstream.finish
+      zstream.close
       deflated.bytes.should == "x\x9C\xAB\xA8\xAC\xAA\x18E\xC4!\x00a\xAF\x8D\xCD".force_encoding('ASCII-8BIT').bytes
     end
 
