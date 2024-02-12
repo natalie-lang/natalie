@@ -113,7 +113,7 @@ describe "Zlib::Deflate#deflate" do
     it "deflates chunked data without errors" do
       final = @deflator.finish
       @chunks << final
-      NATFIXME 'Implement Zlib.inflate', exception: NoMethodError, message: "undefined method `inflate'" do
+      NATFIXME 'deflates chunked data', exception: SpecFailedException do
         @original.should == Zlib.inflate(@chunks.join)
       end
     end
@@ -148,7 +148,7 @@ describe "Zlib::Deflate#deflate" do
     it "deflates chunked data without errors" do
       final = @deflator.finish
       @chunks << final
-      NATFIXME 'Implement Zlib.inflate', exception: NoMethodError, message: "undefined method `inflate'" do
+      NATFIXME 'deflates chunked data', exception: SpecFailedException do
         @input.should == Zlib.inflate(@chunks.join)
       end
     end

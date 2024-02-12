@@ -51,6 +51,10 @@ module Zlib
   def self.deflate(...)
     Deflate.deflate(...)
   end
+
+  def self.inflate(...)
+    Inflate.inflate(...)
+  end
   
   class Deflate
     __bind_method__ :initialize, :Zlib_deflate_initialize
