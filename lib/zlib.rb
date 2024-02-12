@@ -4,11 +4,6 @@ require 'zlib.cpp'
 __ld_flags__ '-lz'
 
 module Zlib
-  DEFAULT_COMPRESSION = -1
-  NO_COMPRESSION = 0
-  BEST_SPEED = 1
-  BEST_COMPRESSION = 9
-
   class Error < StandardError; end
   class BufError < Error; end
   class DataError < Error; end

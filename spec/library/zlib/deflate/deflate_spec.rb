@@ -43,7 +43,7 @@ describe "Zlib::Deflate#deflate" do
   it "deflates some data" do
     data = "\000" * 10
 
-    NATFIXME 'Add Zlib::FINISH', exception: NameError, message: 'uninitialized constant Zlib::FINISH' do
+    NATFIXME 'Implement Zlib::Deflate#deflate', exception: NoMethodError, message: "undefined method `deflate' for an instance of Zlib::Deflate" do
       zipped = @deflator.deflate data, Zlib::FINISH
       @deflator.finish
 
@@ -54,7 +54,7 @@ describe "Zlib::Deflate#deflate" do
   it "deflates lots of data" do
     data = "\000" * 32 * 1024
 
-    NATFIXME 'Add Zlib::FINISH', exception: NameError, message: 'uninitialized constant Zlib::FINISH' do
+    NATFIXME 'Implement Zlib::Deflate#deflate', exception: NoMethodError, message: "undefined method `deflate' for an instance of Zlib::Deflate" do
       zipped = @deflator.deflate data, Zlib::FINISH
       @deflator.finish
 
