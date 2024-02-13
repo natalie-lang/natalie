@@ -106,6 +106,15 @@ Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto dictionary = args.at(0)->to_str(env);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    if (const auto ret = deflateSetDictionary(strm, reinterpret_cast<const Bytef *>(dictionary->c_str()), dictionary->bytesize()); ret != Z_OK)
+        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+    return self;
+}
+
 Value Zlib_deflate_close(Env *env, Value self, Args args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     deflateEnd(strm);

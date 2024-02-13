@@ -54,6 +54,7 @@ module Zlib
   class Deflate
     __bind_method__ :initialize, :Zlib_deflate_initialize
     __bind_method__ :<<, :Zlib_deflate_append
+    __bind_method__ :set_dictionary, :Zlib_deflate_set_dictionary
     __bind_method__ :finish, :Zlib_deflate_finish
     __bind_method__ :close, :Zlib_deflate_close
 
