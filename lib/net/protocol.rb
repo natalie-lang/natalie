@@ -215,7 +215,7 @@ module Net # :nodoc:
 
     def rbuf_fill
       tmp = @rbuf_empty ? @rbuf : nil
-      case rv = @io.read_nonblock(BUFSIZE, tmp, exception: false)
+      case rv = @io.read(BUFSIZE, tmp)
       when String
         @rbuf_empty = false
         if rv.equal?(tmp)
@@ -313,7 +313,7 @@ module Net # :nodoc:
       orig_written_bytes = @written_bytes
       strs.each_with_index do |str, i|
         need_retry = true
-        case len = @io.write_nonblock(str, exception: false)
+        case len = @io.write(str)
         when Integer
           @written_bytes += len
           len -= str.bytesize
