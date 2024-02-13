@@ -21,7 +21,7 @@
 
 require 'socket'
 require 'timeout'
-require 'io/wait'
+# require 'io/wait'
 
 module Net # :nodoc:
 
