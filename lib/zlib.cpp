@@ -118,6 +118,9 @@ Value Zlib_deflate_finish(Env *env, Value self, Args args, Block *) {
 }
 
 Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s }))->as_integer_or_raise(env);
+
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject);
@@ -126,7 +129,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
     auto out = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
 
-    int ret = inflateInit(stream);
+    int ret = inflateInit2(stream, (int)window_bits->to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
