@@ -13,8 +13,16 @@ Value init_zlib(Env *env, Value self) {
     Zlib->const_set("BEST_COMPRESSION"_s, Value::integer(Z_BEST_COMPRESSION));
     Zlib->const_set("BEST_SPEED"_s, Value::integer(Z_BEST_SPEED));
     Zlib->const_set("DEFAULT_COMPRESSION"_s, Value::integer(Z_DEFAULT_COMPRESSION));
+    Zlib->const_set("DEFAULT_STRATEGY"_s, Value::integer(Z_DEFAULT_STRATEGY));
+    Zlib->const_set("DEF_MEM_LEVEL"_s, Value::integer(8)); // Not defined in the zlib source, value copied from MRI documentation
+    Zlib->const_set("FILTERED"_s, Value::integer(Z_FILTERED));
     Zlib->const_set("FINISH"_s, Value::integer(Z_FINISH));
+    Zlib->const_set("FIXED"_s, Value::integer(Z_FIXED));
+    Zlib->const_set("HUFFMAN_ONLY"_s, Value::integer(Z_HUFFMAN_ONLY));
+    Zlib->const_set("MAX_MEM_LEVEL"_s, Value::integer(MAX_MEM_LEVEL));
+    Zlib->const_set("MAX_WBITS"_s, Value::integer(MAX_WBITS));
     Zlib->const_set("NO_COMPRESSION"_s, Value::integer(Z_NO_COMPRESSION));
+    Zlib->const_set("RLE"_s, Value::integer(Z_RLE));
     return NilObject::the();
 }
 
@@ -32,8 +40,12 @@ void Zlib_buffer_cleanup(VoidPObject *self) {
 static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
 Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_between(env, 0, 1);
-    auto level = args.size() > 0 ? args[0]->as_integer_or_raise(env) : Value::integer(-1);
+    args.ensure_argc_between(env, 0, 4);
+    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
+    auto level = args.at(0, Zlib->const_get("DEFAULT_COMPRESSION"_s))->as_integer_or_raise(env);
+    auto window_bits = args.at(1, Zlib->const_get("MAX_WBITS"_s))->as_integer_or_raise(env);
+    auto mem_level = args.at(2, Zlib->const_get("DEF_MEM_LEVEL"_s))->as_integer_or_raise(env);
+    auto strategy = args.at(3, Zlib->const_get("DEFAULT_STRATEGY"_s))->as_integer_or_raise(env);
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
@@ -43,7 +55,12 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
     auto out = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
 
-    int ret = deflateInit(stream, (int)level->as_integer()->to_nat_int_t());
+    int ret = deflateInit2(stream,
+        (int)level->to_nat_int_t(),
+        Z_DEFLATED,
+        (int)window_bits->to_nat_int_t(),
+        (int)mem_level->to_nat_int_t(),
+        (int)strategy->to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
@@ -101,6 +118,9 @@ Value Zlib_deflate_finish(Env *env, Value self, Args args, Block *) {
 }
 
 Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    auto window_bits = args.at(0, fetch_nested_const({ "Zlib"_s, "MAX_WBITS"_s }))->as_integer_or_raise(env);
+
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
     self->ivar_set(env, "@result"_s, new StringObject);
@@ -109,7 +129,7 @@ Value Zlib_inflate_initialize(Env *env, Value self, Args args, Block *) {
     auto out = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@out"_s, new VoidPObject(out, Zlib_buffer_cleanup));
 
-    int ret = inflateInit(stream);
+    int ret = inflateInit2(stream, (int)window_bits->to_nat_int_t());
     if (ret != Z_OK)
         self->klass()->send(env, "_error"_s, { Value::integer(ret) });
 
