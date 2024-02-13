@@ -13,7 +13,9 @@ end
 
 # NATFIXME: Update this example with the changes made to support net/http
 TCPSocket.open('natalie-lang.org', 443) do |sock|
-  ssl_sock = OpenSSL::SSL::SSLSocket.new(sock)
+  ssl_context = OpenSSL::SSL::SSLContext.new
+  ssl_context.set_params({ verify_mode: OpenSSL::SSL::VERIFY_PEER })
+  ssl_sock = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
   ssl_sock.connect
   ssl_sock.write("GET / HTTP/1.1\nHost: natalie-lang.org\nConnection: close\n\n")
   puts ssl_sock.read
