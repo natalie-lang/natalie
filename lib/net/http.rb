@@ -1019,8 +1019,8 @@ module Net   #:nodoc:
         if opt[:use_ssl]
           opt = {verify_mode: OpenSSL::SSL::VERIFY_PEER}.update(opt)
         end
-        http.methods.grep(/\A(\w+)=\z/) do |meth|
-          key = $1.to_sym
+        http.methods.grep(/\A\w+=\z/) do |meth|
+          key = meth.to_s.delete_suffix('=').to_sym
           opt.key?(key) or next
           http.__send__(meth, opt[key])
         end
