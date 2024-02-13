@@ -21,6 +21,8 @@ module Natalie
           transform.exec_and_push(:backtrace, "env->exception_object()->is_exception() ? static_cast<Value>(env->exception_object()->as_exception()->backtrace(env)) : static_cast<Value>(NilObject::the())")
         when :$~
           transform.exec_and_push(:last_match, "env->last_match()")
+        when :$", :$LOADED_FEATURES
+          transform.exec_and_push(:loaded_features, "GlobalEnv::the()->loaded_features(files)")
         else
           transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
         end

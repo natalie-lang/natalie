@@ -959,7 +959,10 @@ end
 
 describe "Global variable $\"" do
   it "is an alias for $LOADED_FEATURES" do
-    $".should equal $LOADED_FEATURES
+    NATFIXME 'Cache this value', exception: SpecFailedException do
+      $".should equal $LOADED_FEATURES
+    end
+    $".should == $LOADED_FEATURES
   end
 
   it "is read-only" do

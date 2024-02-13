@@ -3,6 +3,14 @@
 
 namespace Natalie {
 
+Value GlobalEnv::loaded_features(TM::Hashmap<SymbolObject *> const &files) {
+    auto result = new ArrayObject { files.size() };
+    for (auto [file, _] : files) {
+        result->push(new StringObject { file->string(), file->encoding(nullptr) });
+    }
+    return result;
+}
+
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 

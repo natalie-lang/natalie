@@ -78,6 +78,8 @@ public:
     Natalie::Object *main_obj() { return m_main_obj; }
     void set_main_obj(Natalie::Object *main_obj) { m_main_obj = main_obj; }
 
+    Value loaded_features(TM::Hashmap<SymbolObject *> const &);
+
     bool global_defined(Env *, SymbolObject *);
     Value global_get(Env *, SymbolObject *);
     Value global_set(Env *, SymbolObject *, Value);
