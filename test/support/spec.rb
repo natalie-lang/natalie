@@ -1157,6 +1157,24 @@ class IncludeExpectation
   end
 end
 
+class IncludeAnyExpectation
+  def initialize(values)
+    @values = values
+  end
+
+  def match(subject)
+    if @values.none? { |value| subject.include?(value) }
+      raise SpecFailedException, "#{subject.inspect} should include any of #{@values}"
+    end
+  end
+
+  def inverted_match(subject)
+    if @values.any? { |value| subject.include?(value) }
+      raise SpecFailedException, "#{subject.inspect} should not include any of #{@values}"
+    end
+  end
+end
+
 class HaveConstantExpectation
   def initialize(constant)
     @constant = constant.to_sym
@@ -1402,6 +1420,10 @@ class Object
 
   def include(*values)
     IncludeExpectation.new(values)
+  end
+
+  def include_any_of(*values)
+    IncludeAnyExpectation.new(values)
   end
 
   # FIXME: the above method is visible to tests in **Natalie** but not MRI, and I don't know why.
