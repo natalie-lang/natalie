@@ -50,8 +50,11 @@ module Zlib
   def self.inflate(...)
     Inflate.inflate(...)
   end
+
+  class ZStream
+  end
   
-  class Deflate
+  class Deflate < ZStream
     __bind_method__ :initialize, :Zlib_deflate_initialize
     __bind_method__ :<<, :Zlib_deflate_append
     __bind_method__ :set_dictionary, :Zlib_deflate_set_dictionary
@@ -73,7 +76,7 @@ module Zlib
     end
   end
 
-  class Inflate
+  class Inflate < ZStream
     __bind_method__ :initialize, :Zlib_inflate_initialize
     __bind_method__ :<<, :Zlib_inflate_append
     __bind_method__ :finish, :Zlib_inflate_finish
