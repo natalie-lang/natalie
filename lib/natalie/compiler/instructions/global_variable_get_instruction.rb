@@ -22,7 +22,7 @@ module Natalie
         when :$~
           transform.exec_and_push(:last_match, "env->last_match()")
         when :$", :$LOADED_FEATURES
-          transform.exec_and_push(:loaded_features, "GlobalEnv::the()->loaded_features(files)")
+          transform.exec_and_push(:loaded_features, "GlobalEnv::the()->loaded_features()")
         else
           transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
         end

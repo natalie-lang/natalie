@@ -3,9 +3,9 @@
 
 namespace Natalie {
 
-Value GlobalEnv::loaded_features(TM::Hashmap<SymbolObject *> const &files) {
-    auto result = new ArrayObject { files.size() };
-    for (auto [file, _] : files) {
+Value GlobalEnv::loaded_features() const {
+    auto result = new ArrayObject { m_files.size() };
+    for (auto [file, _] : m_files) {
         result->push(new StringObject { file->string(), file->encoding(nullptr) });
     }
     return result;
@@ -90,6 +90,8 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     }
     for (size_t i = 0; i < EncodingCount; i++)
         visitor.visit(m_Encodings[i]);
+    for (auto pair : m_files)
+        visitor.visit(pair.first);
     visitor.visit(m_Array);
     visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);

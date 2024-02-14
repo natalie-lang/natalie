@@ -182,7 +182,7 @@ module Natalie
         end
 
         def files_var_name
-          "#{@compiler_context[:var_prefix]}files"
+          'GlobalEnv::the()->files()'
         end
 
         private

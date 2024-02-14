@@ -78,7 +78,7 @@ public:
     Natalie::Object *main_obj() { return m_main_obj; }
     void set_main_obj(Natalie::Object *main_obj) { m_main_obj = main_obj; }
 
-    Value loaded_features(TM::Hashmap<SymbolObject *> const &);
+    Value loaded_features() const;
 
     bool global_defined(Env *, SymbolObject *);
     Value global_get(Env *, SymbolObject *);
@@ -97,6 +97,8 @@ public:
 
     bool rescued() const { return m_rescued; }
     void set_rescued(bool rescued) { m_rescued = rescued; }
+
+    TM::Hashmap<SymbolObject *> &files() { return m_files; }
 
     friend class SymbolObject;
 
@@ -137,5 +139,7 @@ private:
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
     bool m_instance_evaling { false };
     bool m_rescued { false };
+
+    TM::Hashmap<SymbolObject *> m_files {};
 };
 }
