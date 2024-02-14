@@ -10,8 +10,10 @@ Value init_zlib(Env *env, Value self) {
         Zlib = new ModuleObject { "Zlib" };
         GlobalEnv::the()->Object()->const_set("Zlib"_s, Zlib);
     }
+    Zlib->const_set("ASCII"_s, Value::integer(Z_ASCII));
     Zlib->const_set("BEST_COMPRESSION"_s, Value::integer(Z_BEST_COMPRESSION));
     Zlib->const_set("BEST_SPEED"_s, Value::integer(Z_BEST_SPEED));
+    Zlib->const_set("BINARY"_s, Value::integer(Z_BINARY));
     Zlib->const_set("DEFAULT_COMPRESSION"_s, Value::integer(Z_DEFAULT_COMPRESSION));
     Zlib->const_set("DEFAULT_STRATEGY"_s, Value::integer(Z_DEFAULT_STRATEGY));
     Zlib->const_set("DEF_MEM_LEVEL"_s, Value::integer(8)); // Not defined in the zlib source, value copied from MRI documentation
@@ -23,6 +25,7 @@ Value init_zlib(Env *env, Value self) {
     Zlib->const_set("MAX_WBITS"_s, Value::integer(MAX_WBITS));
     Zlib->const_set("NO_COMPRESSION"_s, Value::integer(Z_NO_COMPRESSION));
     Zlib->const_set("RLE"_s, Value::integer(Z_RLE));
+    Zlib->const_set("UNKNOWN"_s, Value::integer(Z_UNKNOWN));
     return NilObject::the();
 }
 
@@ -35,6 +38,30 @@ void Zlib_stream_cleanup(VoidPObject *self) {
 void Zlib_buffer_cleanup(VoidPObject *self) {
     auto buffer = (unsigned char *)self->void_ptr();
     delete[] buffer;
+}
+
+Value Zlib_ZStream_adler(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    return Value::integer(strm->adler);
+}
+
+Value Zlib_ZStream_avail_in(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    return Value::integer(strm->avail_in);
+}
+
+Value Zlib_ZStream_avail_out(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    return Value::integer(strm->avail_out);
+}
+
+Value Zlib_ZStream_data_type(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    return Value::integer(strm->data_type);
 }
 
 static constexpr size_t ZLIB_BUF_SIZE = 16384;
