@@ -372,6 +372,8 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
     if (!ctx)
         OpenSSL_SSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
+    auto params = new HashObject { env, { "min_version"_s, Value::integer(TLS1_VERSION), "verify_mode"_s, Value::integer(SSL_VERIFY_PEER), "verify_hostname"_s, TrueObject::the() } };
+    self->ivar_set(env, "@params"_s, params);
     return self;
 }
 
@@ -455,6 +457,14 @@ Value OpenSSL_SSL_SSLContext_set_verify_mode(Env *env, Value self, Args args, Bl
     SSL_CTX_set_verify(ctx, verify_mode, nullptr);
 
     return args[0];
+}
+
+Value OpenSSL_SSL_SSLContext_set_params(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 0, 1);
+    if (args.size() == 0)
+        return self->ivar_get(env, "@params"_s);
+
+    NAT_NOT_YET_IMPLEMENTED("Unable to set params");
 }
 
 Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
