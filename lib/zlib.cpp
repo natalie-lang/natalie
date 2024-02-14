@@ -49,6 +49,12 @@ Value Zlib_ZStream_avail_in(Env *env, Value self, Args args, Block *) {
     return Value::integer(strm->avail_in);
 }
 
+Value Zlib_ZStream_avail_out(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+    return Value::integer(strm->avail_out);
+}
+
 static constexpr size_t ZLIB_BUF_SIZE = 16384;
 
 Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
