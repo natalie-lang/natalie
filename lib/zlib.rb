@@ -52,6 +52,7 @@ module Zlib
   end
 
   class ZStream
+    __bind_method__ :adler, :Zlib_ZStream_adler
   end
   
   class Deflate < ZStream
