@@ -80,6 +80,7 @@ module Zlib
     __bind_method__ :<<, :Zlib_deflate_append, 1
     __bind_method__ :deflate, :Zlib_deflate_deflate
     __bind_method__ :set_dictionary, :Zlib_deflate_set_dictionary, 1
+    __bind_method__ :params, :Zlib_deflate_params, 2
     __bind_method__ :finish, :Zlib_deflate_finish, 0
     __bind_method__ :close, :Zlib_deflate_close, 0
 

@@ -132,6 +132,43 @@ Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value Zlib_deflate_params(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 2);
+    auto level = args.at(0)->as_integer_or_raise(env);
+    auto strategy = args.at(1)->as_integer_or_raise(env);
+    auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
+
+    // Ruby supports changing the params for a stream with content, zlib does not. So instead of simply changing the
+    // params, we need a few extra steps.
+    //
+    // 1. Finish the current stream and save that in a temporary variable
+    // 2. Inflate the temporary variable
+    // 3. Reset the stream and change the params
+    // 4. Deflate the temporary variable to put the original stream back in
+
+    auto original_stream = self->send(env, "finish"_s);
+
+    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
+    auto inflated = Zlib->send(env, "inflate"_s, { original_stream });
+
+    if (const auto ret = deflateReset(strm); ret != Z_OK)
+        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+
+    const auto ret = deflateParams(
+        strm,
+        (int)level->to_nat_int_t(),
+        (int)strategy->to_nat_int_t());
+    if (ret != Z_OK)
+        self->klass()->send(env, "_error"_s, { Value::integer(ret) });
+
+    auto result = self->ivar_get(env, "@result"_s)->as_string_or_raise(env);
+    result->clear(env);
+
+    self->send(env, "<<"_s, { inflated });
+
+    return self;
+}
+
 Value Zlib_deflate_close(Env *env, Value self, Args args, Block *) {
     auto *strm = (z_stream *)self->ivar_get(env, "@stream"_s)->as_void_p()->void_ptr();
     deflateEnd(strm);
