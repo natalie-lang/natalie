@@ -98,7 +98,8 @@ public:
     bool rescued() const { return m_rescued; }
     void set_rescued(bool rescued) { m_rescued = rescued; }
 
-    TM::Hashmap<SymbolObject *> &files() { return m_files; }
+    bool has_file(SymbolObject *name) const { return m_files.get(name); }
+    void add_file(SymbolObject *name) { m_files.set(name); }
 
     friend class SymbolObject;
 

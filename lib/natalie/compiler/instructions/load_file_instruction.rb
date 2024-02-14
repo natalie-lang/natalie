@@ -28,9 +28,9 @@ module Natalie
           transform.with_new_scope(loaded_file.instructions) do |t|
             fn_code = []
             fn_code << "Value #{fn}(Env *env, Value self, bool require_once) {"
-            fn_code << "if (require_once && #{transform.files_var_name}.get(#{filename_sym})) "
+            fn_code << "if (require_once && #{transform.has_file(filename_sym)}) "
             fn_code << '  return FalseObject::the();'
-            fn_code << "#{transform.files_var_name}.set(#{filename_sym});"
+            fn_code << "#{transform.add_file(filename_sym)};"
             fn_code << t.transform
             fn_code << 'return TrueObject::the();'
             fn_code << '}'
