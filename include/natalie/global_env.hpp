@@ -78,8 +78,6 @@ public:
     Natalie::Object *main_obj() { return m_main_obj; }
     void set_main_obj(Natalie::Object *main_obj) { m_main_obj = main_obj; }
 
-    Value loaded_features() const;
-
     bool global_defined(Env *, SymbolObject *);
     Value global_get(Env *, SymbolObject *);
     Value global_set(Env *, SymbolObject *, Value);
@@ -99,7 +97,7 @@ public:
     void set_rescued(bool rescued) { m_rescued = rescued; }
 
     bool has_file(SymbolObject *name) const { return m_files.get(name); }
-    void add_file(SymbolObject *name) { m_files.set(name); }
+    void add_file(Env *env, SymbolObject *name);
 
     friend class SymbolObject;
 

@@ -186,7 +186,7 @@ module Natalie
         end
 
         def add_file(name)
-          "GlobalEnv::the()->add_file(#{name})"
+          "GlobalEnv::the()->add_file(env, #{name})"
         end
 
         private

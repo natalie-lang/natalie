@@ -3,12 +3,16 @@
 
 namespace Natalie {
 
-Value GlobalEnv::loaded_features() const {
-    auto result = new ArrayObject { m_files.size() };
+void GlobalEnv::add_file(Env *env, SymbolObject *name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    m_files.set(name);
+
+    auto loaded_features = new ArrayObject { m_files.size() };
     for (auto [file, _] : m_files) {
-        result->push(new StringObject { file->string(), file->encoding(nullptr) });
+        loaded_features->push(file->to_s(env));
     }
-    return result;
+    global_set(env, "$\""_s, loaded_features);
 }
 
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
