@@ -842,6 +842,14 @@ Value IoObject::wait_readable(Env *env, Value timeout) {
     return this;
 }
 
+Value IoObject::wait_writable(Env *env, Value timeout) {
+    auto write_ios = new ArrayObject { this };
+    auto select_result = IoObject::select(env, nullptr, write_ios, nullptr, timeout);
+    if (select_result->is_nil())
+        return NilObject::the();
+    return this;
+}
+
 int IoObject::rewind(Env *env) {
     raise_if_closed(env);
     errno = 0;

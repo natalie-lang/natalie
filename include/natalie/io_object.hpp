@@ -114,6 +114,7 @@ public:
     Value ungetbyte(Env *, Value);
     Value ungetc(Env *, Value);
     Value wait_readable(Env *, Value = nullptr);
+    Value wait_writable(Env *, Value = nullptr);
 
     Value write(Env *, Args);
     static Value write_file(Env *, Args);
