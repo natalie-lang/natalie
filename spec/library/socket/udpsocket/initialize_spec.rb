@@ -34,9 +34,7 @@ describe 'UDPSocket#initialize' do
     it 'sets the socket to nonblock' do
       require 'io/nonblock'
       @socket = UDPSocket.new(:INET)
-      NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
-        @socket.should.nonblock?
-      end
+      @socket.should.nonblock?
     end
   end
 

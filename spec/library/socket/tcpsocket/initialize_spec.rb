@@ -78,9 +78,7 @@ describe 'TCPSocket#initialize' do
         it "creates a socket which is set to nonblocking" do
           require 'io/nonblock'
           @client = TCPSocket.new(ip_address, @port)
-          NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
-            @client.should.nonblock?
-          end
+          @client.should.nonblock?
         end
       end
 

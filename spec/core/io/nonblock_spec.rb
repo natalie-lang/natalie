@@ -26,9 +26,7 @@ platform_is_not :windows do
     it "returns true for socket by default" do
       require 'socket'
       TCPServer.open(0) do |socket|
-        NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
-          socket.nonblock?.should == true
-        end
+        socket.nonblock?.should == true
       end
     end
   end

@@ -36,9 +36,7 @@ with_feature :unix_socket do
 
       it 'sets the socket to nonblock' do
         require 'io/nonblock'
-        NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
-          @socket.should.nonblock?
-        end
+        @socket.should.nonblock?
       end
 
       it 'sets the socket to close on exec' do

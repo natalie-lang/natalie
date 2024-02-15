@@ -116,9 +116,7 @@ with_feature :unix_socket do
           it "is set to nonblocking" do
             require 'io/nonblock'
             @socket = @server.accept
-            NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
-              @socket.should.nonblock?
-            end
+            @socket.should.nonblock?
           end
 
           it "is set to close on exec" do
