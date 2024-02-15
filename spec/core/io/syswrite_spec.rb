@@ -63,19 +63,17 @@ end
 
 describe "IO#syswrite on a pipe" do
   it "returns the written bytes if the fd is in nonblock mode and write would block" do
-    NATFIXME 'Add "io/nonblock"', exception: LoadError, message: 'cannot load such file io/nonblock' do
-      require 'io/nonblock'
-      r, w = IO.pipe
-      begin
-        w.nonblock = true
-        larger_than_pipe_capacity = 2 * 1024 * 1024
-        written = w.syswrite("a"*larger_than_pipe_capacity)
-        written.should > 0
-        written.should < larger_than_pipe_capacity
-      ensure
-        w.close
-        r.close
-      end
+    require 'io/nonblock'
+    r, w = IO.pipe
+    begin
+      w.nonblock = true
+      larger_than_pipe_capacity = 2 * 1024 * 1024
+      written = w.syswrite("a"*larger_than_pipe_capacity)
+      written.should > 0
+      written.should < larger_than_pipe_capacity
+    ensure
+      w.close
+      r.close
     end
   end
 end

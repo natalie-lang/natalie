@@ -119,9 +119,9 @@ describe 'TCPServer#accept' do
 
       platform_is_not :windows do
         it "returns a TCPSocket which is set to nonblocking" do
-          NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
-            require 'io/nonblock'
-            @socket = @server.accept
+          require 'io/nonblock'
+          @socket = @server.accept
+          NATFIXME 'Set sockets to nonblock', exception: SpecFailedException do
             @socket.should.nonblock?
           end
         end
