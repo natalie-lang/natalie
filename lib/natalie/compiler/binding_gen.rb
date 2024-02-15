@@ -911,6 +911,7 @@ gen.binding('IO', 'tell', 'IoObject', 'pos', argc: 0, pass_env: true, pass_block
 gen.binding('IO', 'to_io', 'IoObject', 'to_io', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'ungetbyte', 'IoObject', 'ungetbyte', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'ungetc', 'IoObject', 'ungetc', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('IO', 'wait_readable', 'IoObject', 'wait_readable', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('IO', 'write', 'IoObject', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 
 gen.module_function_binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
