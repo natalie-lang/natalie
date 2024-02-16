@@ -5,27 +5,6 @@
 using namespace Natalie;
 
 Value init_zlib(Env *env, Value self) {
-    auto Zlib = GlobalEnv::the()->Object()->const_get("Zlib"_s);
-    if (!Zlib) {
-        Zlib = new ModuleObject { "Zlib" };
-        GlobalEnv::the()->Object()->const_set("Zlib"_s, Zlib);
-    }
-    Zlib->const_set("ASCII"_s, Value::integer(Z_ASCII));
-    Zlib->const_set("BEST_COMPRESSION"_s, Value::integer(Z_BEST_COMPRESSION));
-    Zlib->const_set("BEST_SPEED"_s, Value::integer(Z_BEST_SPEED));
-    Zlib->const_set("BINARY"_s, Value::integer(Z_BINARY));
-    Zlib->const_set("DEFAULT_COMPRESSION"_s, Value::integer(Z_DEFAULT_COMPRESSION));
-    Zlib->const_set("DEFAULT_STRATEGY"_s, Value::integer(Z_DEFAULT_STRATEGY));
-    Zlib->const_set("DEF_MEM_LEVEL"_s, Value::integer(8)); // Not defined in the zlib source, value copied from MRI documentation
-    Zlib->const_set("FILTERED"_s, Value::integer(Z_FILTERED));
-    Zlib->const_set("FINISH"_s, Value::integer(Z_FINISH));
-    Zlib->const_set("FIXED"_s, Value::integer(Z_FIXED));
-    Zlib->const_set("HUFFMAN_ONLY"_s, Value::integer(Z_HUFFMAN_ONLY));
-    Zlib->const_set("MAX_MEM_LEVEL"_s, Value::integer(MAX_MEM_LEVEL));
-    Zlib->const_set("MAX_WBITS"_s, Value::integer(MAX_WBITS));
-    Zlib->const_set("NO_COMPRESSION"_s, Value::integer(Z_NO_COMPRESSION));
-    Zlib->const_set("RLE"_s, Value::integer(Z_RLE));
-    Zlib->const_set("UNKNOWN"_s, Value::integer(Z_UNKNOWN));
     return NilObject::the();
 }
 
