@@ -4,6 +4,23 @@ require 'zlib.cpp'
 __ld_flags__ '-lz'
 
 module Zlib
+  __constant__ 'ASCII', 'int', 'Z_ASCII'
+  __constant__ 'BEST_COMPRESSION', 'int', 'Z_BEST_COMPRESSION'
+  __constant__ 'BEST_SPEED', 'int', 'Z_BEST_SPEED'
+  __constant__ 'BINARY', 'int', 'Z_BINARY'
+  __constant__ 'DEFAULT_COMPRESSION', 'int', 'Z_DEFAULT_COMPRESSION'
+  __constant__ 'DEFAULT_STRATEGY', 'int', 'Z_DEFAULT_STRATEGY'
+  DEF_MEM_LEVEL = 8 # Not defined in the zlib source, value copied from MRI documentation
+  __constant__ 'FILTERED', 'int', 'Z_FILTERED'
+  __constant__ 'FINISH', 'int', 'Z_FINISH'
+  __constant__ 'FIXED', 'int', 'Z_FIXED'
+  __constant__ 'HUFFMAN_ONLY', 'int', 'Z_HUFFMAN_ONLY'
+  __constant__ 'MAX_MEM_LEVEL', 'int', 'MAX_MEM_LEVEL'
+  __constant__ 'MAX_WBITS', 'int', 'MAX_WBITS'
+  __constant__ 'NO_COMPRESSION', 'int', 'Z_NO_COMPRESSION'
+  __constant__ 'RLE', 'int', 'Z_RLE'
+  __constant__ 'UNKNOWN', 'int', 'Z_UNKNOWN'
+
   class Error < StandardError; end
   class BufError < Error; end
   class DataError < Error; end
