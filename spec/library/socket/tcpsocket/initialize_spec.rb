@@ -76,11 +76,9 @@ describe 'TCPSocket#initialize' do
 
       platform_is_not :windows do
         it "creates a socket which is set to nonblocking" do
-          NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
-            require 'io/nonblock'
-            @client = TCPSocket.new(ip_address, @port)
-            @client.should.nonblock?
-          end
+          require 'io/nonblock'
+          @client = TCPSocket.new(ip_address, @port)
+          @client.should.nonblock?
         end
       end
 

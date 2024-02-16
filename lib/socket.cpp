@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -44,6 +45,17 @@ Value Socket_const_name_to_i(Env *env, Value self, Args args, Block *) {
         if (default_zero)
             return Value::integer(0);
         env->raise("TypeError", "{} can't be coerced into String or Integer", name->klass()->inspect_str());
+    }
+}
+
+static void Socket_set_nonblock(Env *env, const int fd) {
+    auto flags = fcntl(fd, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if ((flags & O_NONBLOCK) != O_NONBLOCK) {
+        flags |= O_NONBLOCK;
+        if (fcntl(fd, F_SETFL, flags) < 0)
+            env->raise_errno();
     }
 }
 
@@ -1226,6 +1238,7 @@ Value TCPSocket_initialize(Env *env, Value self, Args args, Block *block) {
 
     auto sockaddr = Socket.send(env, "pack_sockaddr_in"_s, { port, host });
     Socket_connect(env, self, { sockaddr }, nullptr);
+    Socket_set_nonblock(env, fd);
 
     if (block) {
         try {
@@ -1260,6 +1273,7 @@ Value TCPServer_initialize(Env *env, Value self, Args args, Block *block) {
 
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
+    Socket_set_nonblock(env, fd);
 
     self.send(env, "setsockopt"_s, { "SOCKET"_s, "REUSEADDR"_s, TrueObject::the() });
 
@@ -1289,6 +1303,7 @@ Value TCPServer_accept(Env *env, Value self, Args args, Block *) {
     auto tcpsocket = new IoObject { TCPSocket };
     tcpsocket->as_io()->set_fileno(fd);
     tcpsocket->as_io()->set_close_on_exec(env, TrueObject::the());
+    Socket_set_nonblock(env, fd);
 
     return tcpsocket;
 }
@@ -1309,6 +1324,7 @@ Value UDPSocket_initialize(Env *env, Value self, Args args, Block *block) {
     self->as_io()->initialize(env, { Value::integer(fd) }, block);
     self->as_io()->binmode(env);
     self->as_io()->set_close_on_exec(env, TrueObject::the());
+    Socket_set_nonblock(env, fd);
 
     return self;
 }
@@ -1345,6 +1361,7 @@ Value UNIXSocket_initialize(Env *env, Value self, Args args, Block *block) {
     auto Socket = find_top_level_const(env, "Socket"_s);
     auto sockaddr = Socket.send(env, "pack_sockaddr_un"_s, { path });
     Socket_connect(env, self, { sockaddr }, nullptr);
+    Socket_set_nonblock(env, fd);
 
     if (block) {
         try {
@@ -1397,6 +1414,7 @@ Value UNIXServer_accept(Env *env, Value self, Args args, Block *) {
     auto socket = new IoObject { Socket };
     socket->as_io()->set_fileno(fd);
     socket->as_io()->set_close_on_exec(env, TrueObject::the());
+    Socket_set_nonblock(env, fd);
     return socket;
 }
 

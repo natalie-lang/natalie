@@ -114,11 +114,9 @@ with_feature :unix_socket do
           end
 
           it "is set to nonblocking" do
-            NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
-              require 'io/nonblock'
-              @socket = @server.accept
-              @socket.should.nonblock?
-            end
+            require 'io/nonblock'
+            @socket = @server.accept
+            @socket.should.nonblock?
           end
 
           it "is set to close on exec" do

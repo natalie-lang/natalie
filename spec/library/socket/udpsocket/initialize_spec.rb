@@ -32,11 +32,9 @@ describe 'UDPSocket#initialize' do
 
   platform_is_not :windows do
     it 'sets the socket to nonblock' do
-      NATFIXME 'Implement io/nonblock.rb', exception: LoadError, message: 'cannot load such file io/nonblock' do
-        require 'io/nonblock'
-        @socket = UDPSocket.new(:INET)
-        @socket.should.nonblock?
-      end
+      require 'io/nonblock'
+      @socket = UDPSocket.new(:INET)
+      @socket.should.nonblock?
     end
   end
 
