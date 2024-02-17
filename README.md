@@ -40,9 +40,9 @@ Prerequisites:
 - libtool
 - GNU make
 - gcc or clang
-- Ruby 3.0 or higher with dev headers
+- Ruby 3.1 or higher with dev headers
   - Using [rbenv](https://github.com/rbenv/rbenv) to install Ruby is preferred.
-  - Installing [rbenv-aliases](https://github.com/tpope/rbenv-aliases) along with rbenv helps with matching Ruby versions like `3.0` to the latest patch release.
+  - Installing [rbenv-aliases](https://github.com/tpope/rbenv-aliases) along with rbenv helps with matching Ruby versions like `3.1` to the latest patch release.
   - If not using rbenv or another version manager, you'll need the `ruby` and `ruby-dev` package from your system.
 - ccache (optional, but recommended)
 - compiledb (optional, but recommended)
