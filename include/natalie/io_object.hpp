@@ -77,6 +77,7 @@ public:
     bool is_closed() const { return m_closed; }
     bool is_close_on_exec(Env *) const;
     bool is_eof(Env *);
+    bool is_nonblock(Env *) const;
     bool isatty(Env *) const;
     int lineno(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
@@ -95,6 +96,7 @@ public:
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
+    void set_nonblock(Env *, bool) const;
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value);
@@ -113,11 +115,13 @@ public:
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);
     Value ungetc(Env *, Value);
+    Value wait(Env *, Args);
     Value wait_readable(Env *, Value = nullptr);
     Value wait_writable(Env *, Value = nullptr);
 
     Value write(Env *, Args);
     static Value write_file(Env *, Args);
+    Value write_nonblock(Env *, Value, Value = nullptr);
 
     Value get_path() const;
     void set_path(StringObject *path) { m_path = path; }
@@ -130,6 +134,10 @@ protected:
     int write(Env *, Value);
 
 private:
+    static const nat_int_t WAIT_READABLE = 1;
+    static const nat_int_t WAIT_PRIORITY = 2;
+    static const nat_int_t WAIT_WRITABLE = 4;
+
     ssize_t blocking_read(Env *env, void *buf, int count) const;
 
     EncodingObject *m_external_encoding { nullptr };

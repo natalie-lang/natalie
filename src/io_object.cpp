@@ -255,6 +255,13 @@ bool IoObject::is_eof(Env *env) {
     return buffer == 0;
 }
 
+bool IoObject::is_nonblock(Env *env) const {
+    const auto flags = ::fcntl(m_fileno, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    return (flags & O_NONBLOCK);
+}
+
 bool IoObject::isatty(Env *env) const {
     raise_if_closed(env);
     return ::isatty(m_fileno) == 1;
@@ -477,6 +484,27 @@ Value IoObject::write(Env *env, Args args) {
         bytes_written += write(env, args[i]);
     }
     return Value::integer(bytes_written);
+}
+
+Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
+    raise_if_closed(env);
+    obj = obj->to_s(env);
+    set_nonblock(env, true);
+    obj->assert_type(env, Object::Type::String, "String");
+    const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
+    if (result == -1) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (exception && exception->is_false())
+                return "wait_writable"_s;
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitWritable = klass()->const_fetch("WaitWritable"_s)->as_module();
+            error->extend_once(env, WaitWritable);
+            env->raise_exception(error);
+        }
+        throw_unless_writable(env, this);
+    }
+    return Value::integer(result);
 }
 
 Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
@@ -771,6 +799,25 @@ Value IoObject::set_sync(Env *env, Value value) {
     return value;
 }
 
+void IoObject::set_nonblock(Env *env, bool enable) const {
+    auto flags = ::fcntl(fileno(), F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if (enable) {
+        if (!(flags & O_NONBLOCK)) {
+            flags |= O_NONBLOCK;
+            if (::fcntl(fileno(), F_SETFL, flags) < 0)
+                env->raise_errno();
+        }
+    } else {
+        if (flags & O_NONBLOCK) {
+            flags &= ~O_NONBLOCK;
+            if (::fcntl(fileno(), F_SETFL, flags) < 0)
+                env->raise_errno();
+        }
+    }
+}
+
 Value IoObject::stat(Env *env) const {
     struct stat sb;
     auto file_desc = fileno(env); // current file descriptor
@@ -834,20 +881,76 @@ Value IoObject::ungetc(Env *env, Value c) {
     return ungetbyte(env, c->to_str(env));
 }
 
-Value IoObject::wait_readable(Env *env, Value timeout) {
-    auto read_ios = new ArrayObject { this };
-    auto select_result = IoObject::select(env, read_ios, nullptr, nullptr, timeout);
-    if (select_result->is_nil())
+Value IoObject::wait(Env *env, Args args) {
+    raise_if_closed(env);
+
+    nat_int_t events = 0;
+    Value timeout = NilObject::the();
+    bool return_self = false;
+
+    if (args.size() == 2 && args.at(0, NilObject::the())->is_integer() && args.at(1, NilObject::the())->is_numeric()) {
+        events = args[0]->to_int(env)->to_nat_int_t();
+        timeout = args[1];
+
+        if (events <= 0)
+            env->raise("ArgumentError", "Events must be positive integer!");
+    } else {
+        return_self = true;
+        for (size_t i = 0; i < args.size(); i++) {
+            if (!args[i]) {
+                continue;
+            } else if (args[i]->is_numeric()) {
+                if (!timeout->is_nil())
+                    env->raise("ArgumentError", "timeout given more than once");
+                timeout = args[i];
+            } else if (args[i]->is_symbol()) {
+                const auto &str = args[i]->as_symbol()->string();
+                if (str == "r" || str == "read" || str == "readable") {
+                    events |= WAIT_READABLE;
+                } else if (str == "w" || str == "write" || str == "writable") {
+                    events |= WAIT_WRITABLE;
+                } else if (str == "rw" || str == "read_write" || str == "readable_writable") {
+                    events |= (WAIT_READABLE | WAIT_WRITABLE);
+                } else {
+                    env->raise("ArgumentError", "unsupported mode: {}", str);
+                }
+            } else {
+                env->raise("ArgumentError", "invalid input in IO#wait");
+            }
+        }
+        if (events == 0)
+            events = WAIT_READABLE;
+    }
+
+    auto read_ios = new ArrayObject {};
+    if (events & WAIT_READABLE)
+        read_ios->push(this);
+    auto write_ios = new ArrayObject {};
+    if (events & WAIT_WRITABLE)
+        write_ios->push(this);
+    auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, timeout);
+    nat_int_t result = 0;
+    if (select_result->is_array()) {
+        auto select_array = select_result->as_array();
+        if (!select_array->at(0)->as_array()->is_empty())
+            result |= WAIT_READABLE;
+        if (!select_array->at(1)->as_array()->is_empty())
+            result |= WAIT_WRITABLE;
+    }
+
+    if (result == 0)
         return NilObject::the();
-    return this;
+    if (return_self)
+        return this;
+    return Value::integer(result);
+}
+
+Value IoObject::wait_readable(Env *env, Value timeout) {
+    return wait(env, { "read"_s, timeout });
 }
 
 Value IoObject::wait_writable(Env *env, Value timeout) {
-    auto write_ios = new ArrayObject { this };
-    auto select_result = IoObject::select(env, nullptr, write_ios, nullptr, timeout);
-    if (select_result->is_nil())
-        return NilObject::the();
-    return this;
+    return wait(env, { "write"_s, timeout });
 }
 
 int IoObject::rewind(Env *env) {
@@ -1112,6 +1215,10 @@ void IoObject::build_constants(Env *, ClassObject *klass) {
     klass->const_set("SEEK_END"_s, Value::integer(SEEK_END));
     klass->const_set("SEEK_DATA"_s, Value::integer(SEEK_DATA));
     klass->const_set("SEEK_HOLE"_s, Value::integer(SEEK_HOLE));
+
+    klass->const_set("READABLE"_s, Value::integer(WAIT_READABLE));
+    klass->const_set("PRIORITY"_s, Value::integer(WAIT_PRIORITY));
+    klass->const_set("WRITABLE"_s, Value::integer(WAIT_WRITABLE));
 }
 
 }
