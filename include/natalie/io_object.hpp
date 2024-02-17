@@ -123,6 +123,8 @@ public:
     void set_path(StringObject *path) { m_path = path; }
     void set_path(String path) { m_path = new StringObject { path }; }
 
+    static void build_constants(Env *env, ClassObject *klass);
+
 protected:
     void raise_if_closed(Env *) const;
     int write(Env *, Value);
