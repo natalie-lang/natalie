@@ -1106,4 +1106,12 @@ Value IoObject::readline(Env *env, Value sep, Value limit, Value chomp) {
     return result;
 }
 
+void IoObject::build_constants(Env *, ClassObject *klass) {
+    klass->const_set("SEEK_SET"_s, Value::integer(SEEK_SET));
+    klass->const_set("SEEK_CUR"_s, Value::integer(SEEK_CUR));
+    klass->const_set("SEEK_END"_s, Value::integer(SEEK_END));
+    klass->const_set("SEEK_DATA"_s, Value::integer(SEEK_DATA));
+    klass->const_set("SEEK_HOLE"_s, Value::integer(SEEK_HOLE));
+}
+
 }
