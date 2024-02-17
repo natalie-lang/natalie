@@ -486,6 +486,27 @@ Value IoObject::write(Env *env, Args args) {
     return Value::integer(bytes_written);
 }
 
+Value IoObject::write_nonblock(Env *env, Value obj, Value exception) {
+    raise_if_closed(env);
+    obj = obj->to_s(env);
+    set_nonblock(env, true);
+    obj->assert_type(env, Object::Type::String, "String");
+    const auto result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->bytesize());
+    if (result == -1) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (exception && exception->is_false())
+                return "wait_writable"_s;
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
+            ExceptionObject *error = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
+            auto WaitWritable = klass()->const_fetch("WaitWritable"_s)->as_module();
+            error->extend_once(env, WaitWritable);
+            env->raise_exception(error);
+        }
+        throw_unless_writable(env, this);
+    }
+    return Value::integer(result);
+}
+
 Value IoObject::gets(Env *env, Value sep, Value limit, Value chomp) {
     raise_if_closed(env);
     auto line = new StringObject {};

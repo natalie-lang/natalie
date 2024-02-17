@@ -60,9 +60,9 @@ describe "IO#wait" do
     end
 
     it "waits for the WRITABLE event to be ready" do
-      NATFIXME 'Implement IO#write_nonblock', exception: NoMethodError, message: "undefined method `write_nonblock' for an instance of IO" do
-        written_bytes = IOWaitSpec.exhaust_write_buffer(@w)
+      written_bytes = IOWaitSpec.exhaust_write_buffer(@w)
 
+      NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
         queue = Queue.new
         thread = Thread.new { queue.pop; sleep 1; @r.read(written_bytes) };
 
@@ -78,10 +78,8 @@ describe "IO#wait" do
     end
 
     it "returns nil when the WRITABLE event is not ready during the timeout" do
-      NATFIXME 'Implement IO#write_nonblock', exception: NoMethodError, message: "undefined method `write_nonblock' for an instance of IO" do
-        IOWaitSpec.exhaust_write_buffer(@w)
-        @w.wait(IO::WRITABLE, 0).should == nil
-      end
+      IOWaitSpec.exhaust_write_buffer(@w)
+      @w.wait(IO::WRITABLE, 0).should == nil
     end
 
     it "raises IOError when io is closed (closed stream (IOError))" do
