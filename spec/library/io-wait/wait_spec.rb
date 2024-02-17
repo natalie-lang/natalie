@@ -99,58 +99,44 @@ describe "IO#wait" do
 
   context "[timeout, mode] passed" do
     it "accepts :r, :read, :readable mode to check READABLE event" do
-      NATFIXME 'accepts :r, :read, :readable mode to check READABLE event', exception: SpecFailedException do
-        @io.wait(0, :r).should == @io
-        @io.wait(0, :read).should == @io
-        @io.wait(0, :readable).should == @io
-      end
+      @io.wait(0, :r).should == @io
+      @io.wait(0, :read).should == @io
+      @io.wait(0, :readable).should == @io
     end
 
     it "accepts :w, :write, :writable mode to check WRITABLE event" do
-      NATFIXME 'accepts :w, :write, :writable mode to check WRITABLE event', exception: SpecFailedException do
-        @io.wait(0, :w).should == @io
-        @io.wait(0, :write).should == @io
-        @io.wait(0, :writable).should == @io
-      end
+      @io.wait(0, :w).should == @io
+      @io.wait(0, :write).should == @io
+      @io.wait(0, :writable).should == @io
     end
 
     it "accepts :rw, :read_write, :readable_writable mode to check READABLE and WRITABLE events" do
-      NATFIXME 'accepts :rw, :read_write, :readable_writable mode to check READABLE and WRITABLE events', exception: SpecFailedException do
-        @io.wait(0, :rw).should == @io
-        @io.wait(0, :read_write).should == @io
-        @io.wait(0, :readable_writable).should == @io
-      end
+      @io.wait(0, :rw).should == @io
+      @io.wait(0, :read_write).should == @io
+      @io.wait(0, :readable_writable).should == @io
     end
 
     it "accepts a list of modes" do
-      NATFIXME 'accepts a list of modes', exception: SpecFailedException do
-        @io.wait(0, :r, :w, :rw).should == @io
-      end
+      @io.wait(0, :r, :w, :rw).should == @io
     end
 
     # It works at least since 2.7 but by some reason may fail on 3.1
     ruby_version_is "3.2" do
       it "accepts timeout and mode in any order" do
-        NATFIXME 'accepts timeout and mode in any order', exception: SpecFailedException do
-          @io.wait(0, :r).should == @io
-          @io.wait(:r, 0).should == @io
-          @io.wait(:r, 0, :w).should == @io
-        end
+        @io.wait(0, :r).should == @io
+        @io.wait(:r, 0).should == @io
+        @io.wait(:r, 0, :w).should == @io
       end
     end
 
     it "raises ArgumentError when passed wrong Symbol value as mode argument" do
-      NATFIXME 'raises ArgumentError when passed wrong Symbol value as mode argument', exception: SpecFailedException do
-        -> { @io.wait(0, :wrong) }.should raise_error(ArgumentError, "unsupported mode: wrong")
-      end
+      -> { @io.wait(0, :wrong) }.should raise_error(ArgumentError, "unsupported mode: wrong")
     end
 
     # It works since 3.0 but by some reason may fail on 3.1
     ruby_version_is "3.2" do
       it "raises ArgumentError when several Integer arguments passed" do
-        NATFIXME 'raises ArgumentError when several Integer arguments passed', exception: SpecFailedException do
-          -> { @w.wait(0, 10, :r) }.should raise_error(ArgumentError, "timeout given more than once")
-        end
+        -> { @w.wait(0, 10, :r) }.should raise_error(ArgumentError, "timeout given more than once")
       end
     end
 

@@ -860,6 +860,50 @@ Value IoObject::wait(Env *env, Args args) {
         if (result == 0)
             return NilObject::the();
         return Value::integer(result);
+    } else {
+        Value timeout = NilObject::the();
+        nat_int_t events = 0;
+        for (size_t i = 0; i < args.size(); i++) {
+            if (args[i]->is_numeric()) {
+                if (!timeout->is_nil())
+                    env->raise("ArgumentError", "timeout given more than once");
+                timeout = args[i];
+            } else if (args[i]->is_symbol()) {
+                const auto &str = args[i]->as_symbol()->string();
+                if (str == "r" || str == "read" || str == "readable") {
+                    events |= WAIT_READABLE;
+                } else if (str == "w" || str == "write" || str == "writable") {
+                    events |= WAIT_WRITABLE;
+                } else if (str == "rw" || str == "read_write" || str == "readable_writable") {
+                    events |= (WAIT_READABLE | WAIT_WRITABLE);
+                } else {
+                    env->raise("ArgumentError", "unsupported mode: {}", str);
+                }
+            } else {
+                env->raise("ArgumentError", "invalid input in IO#wait");
+            }
+        }
+        if (events == 0)
+            events = WAIT_READABLE;
+
+        auto read_ios = new ArrayObject {};
+        if (events & WAIT_READABLE)
+            read_ios->push(this);
+        auto write_ios = new ArrayObject {};
+        if (events & WAIT_WRITABLE)
+            write_ios->push(this);
+        auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, timeout);
+        nat_int_t result = 0;
+        if (select_result->is_array()) {
+            auto select_array = select_result->as_array();
+            if (!select_array->at(0)->as_array()->is_empty())
+                result |= WAIT_READABLE;
+            if (!select_array->at(1)->as_array()->is_empty())
+                result |= WAIT_WRITABLE;
+        }
+        if (result == 0)
+            return NilObject::the();
+        return this;
     }
 
     return NilObject::the();
