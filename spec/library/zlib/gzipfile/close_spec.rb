@@ -16,6 +16,8 @@ describe "Zlib::GzipFile#close" do
         raise_error(Zlib::GzipFile::Error, 'closed gzip stream')
     end
 
-    io.string[10..-1].should == ([3] + Array.new(9,0)).pack('C*')
+    NATFIXME 'Actually write the gzip file', exception: SpecFailedException do
+      io.string[10..-1].should == ([3] + Array.new(9,0)).pack('C*')
+    end
   end
 end
