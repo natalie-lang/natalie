@@ -90,9 +90,7 @@ describe "IO#wait" do
 
     it "raises IOError when io is closed (closed stream (IOError))" do
       @io.close
-      NATFIXME 'raises IOError when io is closed (closed stream (IOError))', exception: SpecFailedException do
-        -> { @io.wait(IO::READABLE, 0) }.should raise_error(IOError, "closed stream")
-      end
+      -> { @io.wait(IO::READABLE, 0) }.should raise_error(IOError, "closed stream")
     end
 
     ruby_version_is "3.2" do
@@ -165,9 +163,7 @@ describe "IO#wait" do
     ruby_version_is "3.2" do
       it "raises IOError when io is closed (closed stream (IOError))" do
         @io.close
-        NATFIXME 'raises IOError when io is closed (closed stream (IOError))', exception: SpecFailedException do
-          -> { @io.wait(0, :r) }.should raise_error(IOError, "closed stream")
-        end
+        -> { @io.wait(0, :r) }.should raise_error(IOError, "closed stream")
       end
     end
   end

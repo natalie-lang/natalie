@@ -835,6 +835,7 @@ Value IoObject::ungetc(Env *env, Value c) {
 }
 
 Value IoObject::wait(Env *env, Args args) {
+    raise_if_closed(env);
     return NilObject::the();
 }
 
