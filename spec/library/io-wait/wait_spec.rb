@@ -95,10 +95,8 @@ describe "IO#wait" do
 
     ruby_version_is "3.2" do
       it "raises ArgumentError when events is not positive" do
-        NATFIXME 'raises ArgumentError when events is not positive', exception: SpecFailedException do
-          -> { @w.wait(0, 0) }.should raise_error(ArgumentError, "Events must be positive integer!")
-          -> { @w.wait(-1, 0) }.should raise_error(ArgumentError, "Events must be positive integer!")
-        end
+        -> { @w.wait(0, 0) }.should raise_error(ArgumentError, "Events must be positive integer!")
+        -> { @w.wait(-1, 0) }.should raise_error(ArgumentError, "Events must be positive integer!")
       end
     end
   end

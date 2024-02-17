@@ -836,6 +836,13 @@ Value IoObject::ungetc(Env *env, Value c) {
 
 Value IoObject::wait(Env *env, Args args) {
     raise_if_closed(env);
+
+    if (args.size() == 2 && args[0]->is_integer() && args[1]->is_numeric()) {
+        const auto events = args[0]->to_int(env)->to_nat_int_t();
+        if (events <= 0)
+            env->raise("ArgumentError", "Events must be positive integer!");
+    }
+
     return NilObject::the();
 }
 
