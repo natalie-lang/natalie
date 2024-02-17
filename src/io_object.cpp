@@ -841,7 +841,7 @@ Value IoObject::wait(Env *env, Args args) {
     Value timeout = NilObject::the();
     bool return_self = false;
 
-    if (args.size() == 2 && args[0]->is_integer() && args[1]->is_numeric()) {
+    if (args.size() == 2 && args.at(0, NilObject::the())->is_integer() && args.at(1, NilObject::the())->is_numeric()) {
         events = args[0]->to_int(env)->to_nat_int_t();
         timeout = args[1];
 
@@ -850,7 +850,9 @@ Value IoObject::wait(Env *env, Args args) {
     } else {
         return_self = true;
         for (size_t i = 0; i < args.size(); i++) {
-            if (args[i]->is_numeric()) {
+            if (!args[i]) {
+                continue;
+            } else if (args[i]->is_numeric()) {
                 if (!timeout->is_nil())
                     env->raise("ArgumentError", "timeout given more than once");
                 timeout = args[i];
@@ -897,19 +899,11 @@ Value IoObject::wait(Env *env, Args args) {
 }
 
 Value IoObject::wait_readable(Env *env, Value timeout) {
-    auto read_ios = new ArrayObject { this };
-    auto select_result = IoObject::select(env, read_ios, nullptr, nullptr, timeout);
-    if (select_result->is_nil())
-        return NilObject::the();
-    return this;
+    return wait(env, { "read"_s, timeout });
 }
 
 Value IoObject::wait_writable(Env *env, Value timeout) {
-    auto write_ios = new ArrayObject { this };
-    auto select_result = IoObject::select(env, nullptr, write_ios, nullptr, timeout);
-    if (select_result->is_nil())
-        return NilObject::the();
-    return this;
+    return wait(env, { "write"_s, timeout });
 }
 
 int IoObject::rewind(Env *env) {
