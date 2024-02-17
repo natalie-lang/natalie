@@ -117,4 +117,36 @@ module Zlib
       end
     end
   end
+
+  class GzipFile
+    class Error < Zlib::Error; end
+
+    attr_writer :orig_name
+
+    def initialize(io)
+      @io = io
+      @closed = false
+    end
+
+    def close
+      @closed = true
+    end
+
+    def orig_name
+      raise GzipFile::Error, 'closed gzip stream' if @closed
+
+      @orig_name
+    end
+  end
+
+  class GzipWriter < GzipFile
+    class << self
+      def wrap(io)
+        gzip_writer = new(io)
+        yield(gzip_writer)
+      ensure
+        gzip_writer.close
+      end
+    end
+  end
 end
