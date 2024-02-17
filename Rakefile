@@ -268,7 +268,7 @@ DOCKER_FLAGS = '-e DOCKER=true ' +
     ''
   end
 
-DEFAULT_HOST_RUBY_VERSION = 'ruby3.2'.freeze
+DEFAULT_HOST_RUBY_VERSION = 'ruby3.3'.freeze
 
 task :docker_build_gcc do
   sh "docker build -t natalie_gcc_#{ruby_version_string} " \
