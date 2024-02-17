@@ -121,7 +121,7 @@ module Zlib
   class GzipFile
     class Error < Zlib::Error; end
 
-    attr_writer :orig_name
+    attr_writer :comment, :orig_name
 
     def initialize(io)
       @io = io
@@ -130,6 +130,12 @@ module Zlib
 
     def close
       @closed = true
+    end
+
+    def comment
+      raise GzipFile::Error, 'closed gzip stream' if @closed
+
+      @comment
     end
 
     def orig_name
