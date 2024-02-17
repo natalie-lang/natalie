@@ -132,6 +132,10 @@ module Zlib
       @closed = true
     end
 
+    def closed?
+      @closed
+    end
+
     def comment
       raise GzipFile::Error, 'closed gzip stream' if @closed
 
