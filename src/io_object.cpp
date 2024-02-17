@@ -834,6 +834,10 @@ Value IoObject::ungetc(Env *env, Value c) {
     return ungetbyte(env, c->to_str(env));
 }
 
+Value IoObject::wait(Env *env, Args args) {
+    return NilObject::the();
+}
+
 Value IoObject::wait_readable(Env *env, Value timeout) {
     auto read_ios = new ArrayObject { this };
     auto select_result = IoObject::select(env, read_ios, nullptr, nullptr, timeout);

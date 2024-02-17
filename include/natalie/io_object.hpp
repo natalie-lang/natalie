@@ -113,6 +113,7 @@ public:
     static Value try_convert(Env *, Value);
     Value ungetbyte(Env *, Value);
     Value ungetc(Env *, Value);
+    Value wait(Env *, Args);
     Value wait_readable(Env *, Value = nullptr);
     Value wait_writable(Env *, Value = nullptr);
 
