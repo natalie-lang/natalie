@@ -130,6 +130,10 @@ protected:
     int write(Env *, Value);
 
 private:
+    static const nat_int_t WAIT_READABLE = 1;
+    static const nat_int_t WAIT_PRIORITY = 2;
+    static const nat_int_t WAIT_WRITABLE = 4;
+
     ssize_t blocking_read(Env *env, void *buf, int count) const;
 
     EncodingObject *m_external_encoding { nullptr };

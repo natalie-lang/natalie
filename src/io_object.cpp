@@ -1112,6 +1112,10 @@ void IoObject::build_constants(Env *, ClassObject *klass) {
     klass->const_set("SEEK_END"_s, Value::integer(SEEK_END));
     klass->const_set("SEEK_DATA"_s, Value::integer(SEEK_DATA));
     klass->const_set("SEEK_HOLE"_s, Value::integer(SEEK_HOLE));
+
+    klass->const_set("READABLE"_s, Value::integer(WAIT_READABLE));
+    klass->const_set("PRIORITY"_s, Value::integer(WAIT_PRIORITY));
+    klass->const_set("WRITABLE"_s, Value::integer(WAIT_WRITABLE));
 }
 
 }
