@@ -255,6 +255,13 @@ bool IoObject::is_eof(Env *env) {
     return buffer == 0;
 }
 
+bool IoObject::is_nonblock(Env *env) const {
+    const auto flags = ::fcntl(m_fileno, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    return (flags & O_NONBLOCK);
+}
+
 bool IoObject::isatty(Env *env) const {
     raise_if_closed(env);
     return ::isatty(m_fileno) == 1;
@@ -769,6 +776,25 @@ Value IoObject::set_sync(Env *env, Value value) {
     raise_if_closed(env);
     m_sync = value->is_truthy();
     return value;
+}
+
+void IoObject::set_nonblock(Env *env, bool enable) const {
+    auto flags = ::fcntl(fileno(), F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if (enable) {
+        if (!(flags & O_NONBLOCK)) {
+            flags |= O_NONBLOCK;
+            if (::fcntl(fileno(), F_SETFL, flags) < 0)
+                env->raise_errno();
+        }
+    } else {
+        if (flags & O_NONBLOCK) {
+            flags &= ~O_NONBLOCK;
+            if (::fcntl(fileno(), F_SETFL, flags) < 0)
+                env->raise_errno();
+        }
+    }
 }
 
 Value IoObject::stat(Env *env) const {

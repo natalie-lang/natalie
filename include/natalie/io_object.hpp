@@ -77,6 +77,7 @@ public:
     bool is_closed() const { return m_closed; }
     bool is_close_on_exec(Env *) const;
     bool is_eof(Env *);
+    bool is_nonblock(Env *) const;
     bool isatty(Env *) const;
     int lineno(Env *) const;
     static Value pipe(Env *, Value, Value, Block *, ClassObject *);
@@ -95,6 +96,7 @@ public:
     void set_fileno(int fileno) { m_fileno = fileno; }
     Value set_lineno(Env *, Value);
     Value set_sync(Env *, Value);
+    void set_nonblock(Env *, bool) const;
     Value stat(Env *) const;
     static Value sysopen(Env *, Value, Value = nullptr, Value = nullptr);
     Value read(Env *, Value, Value);

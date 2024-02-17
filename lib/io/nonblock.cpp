@@ -9,33 +9,13 @@ Value init_nonblock(Env *env, Value self) {
 
 Value IO_is_nonblock(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
-    const auto io = self->as_io()->fileno();
-    const auto flags = fcntl(io, F_GETFL);
-    if (flags < 0)
-        env->raise_errno();
-    if (flags & O_NONBLOCK)
+    if (self->as_io()->is_nonblock(env))
         return TrueObject::the();
     return FalseObject::the();
 }
 
 Value IO_set_nonblock(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
-    const auto io = self->as_io()->fileno();
-    auto flags = fcntl(io, F_GETFL);
-    if (flags < 0)
-        env->raise_errno();
-    if (args.at(0)->is_truthy()) {
-        if ((flags & O_NONBLOCK) != O_NONBLOCK) {
-            flags |= O_NONBLOCK;
-            if (fcntl(io, F_SETFL, flags) < 0)
-                env->raise_errno();
-        }
-    } else {
-        if (flags & O_NONBLOCK) {
-            flags &= ~O_NONBLOCK;
-            if (fcntl(io, F_SETFL, flags) < 0)
-                env->raise_errno();
-        }
-    }
+    self->as_io()->set_nonblock(env, args.at(0)->is_truthy());
     return args.at(0);
 }
