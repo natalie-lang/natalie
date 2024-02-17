@@ -837,32 +837,18 @@ Value IoObject::ungetc(Env *env, Value c) {
 Value IoObject::wait(Env *env, Args args) {
     raise_if_closed(env);
 
+    nat_int_t events = 0;
+    Value timeout = NilObject::the();
+    bool return_self = false;
+
     if (args.size() == 2 && args[0]->is_integer() && args[1]->is_numeric()) {
-        const auto events = args[0]->to_int(env)->to_nat_int_t();
+        events = args[0]->to_int(env)->to_nat_int_t();
+        timeout = args[1];
+
         if (events <= 0)
             env->raise("ArgumentError", "Events must be positive integer!");
-
-        auto read_ios = new ArrayObject {};
-        if (events & WAIT_READABLE)
-            read_ios->push(this);
-        auto write_ios = new ArrayObject {};
-        if (events & WAIT_WRITABLE)
-            write_ios->push(this);
-        auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, args[1]);
-        nat_int_t result = 0;
-        if (select_result->is_array()) {
-            auto select_array = select_result->as_array();
-            if (!select_array->at(0)->as_array()->is_empty())
-                result |= WAIT_READABLE;
-            if (!select_array->at(1)->as_array()->is_empty())
-                result |= WAIT_WRITABLE;
-        }
-        if (result == 0)
-            return NilObject::the();
-        return Value::integer(result);
     } else {
-        Value timeout = NilObject::the();
-        nat_int_t events = 0;
+        return_self = true;
         for (size_t i = 0; i < args.size(); i++) {
             if (args[i]->is_numeric()) {
                 if (!timeout->is_nil())
@@ -885,28 +871,29 @@ Value IoObject::wait(Env *env, Args args) {
         }
         if (events == 0)
             events = WAIT_READABLE;
-
-        auto read_ios = new ArrayObject {};
-        if (events & WAIT_READABLE)
-            read_ios->push(this);
-        auto write_ios = new ArrayObject {};
-        if (events & WAIT_WRITABLE)
-            write_ios->push(this);
-        auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, timeout);
-        nat_int_t result = 0;
-        if (select_result->is_array()) {
-            auto select_array = select_result->as_array();
-            if (!select_array->at(0)->as_array()->is_empty())
-                result |= WAIT_READABLE;
-            if (!select_array->at(1)->as_array()->is_empty())
-                result |= WAIT_WRITABLE;
-        }
-        if (result == 0)
-            return NilObject::the();
-        return this;
     }
 
-    return NilObject::the();
+    auto read_ios = new ArrayObject {};
+    if (events & WAIT_READABLE)
+        read_ios->push(this);
+    auto write_ios = new ArrayObject {};
+    if (events & WAIT_WRITABLE)
+        write_ios->push(this);
+    auto select_result = IoObject::select(env, read_ios, write_ios, nullptr, timeout);
+    nat_int_t result = 0;
+    if (select_result->is_array()) {
+        auto select_array = select_result->as_array();
+        if (!select_array->at(0)->as_array()->is_empty())
+            result |= WAIT_READABLE;
+        if (!select_array->at(1)->as_array()->is_empty())
+            result |= WAIT_WRITABLE;
+    }
+
+    if (result == 0)
+        return NilObject::the();
+    if (return_self)
+        return this;
+    return Value::integer(result);
 }
 
 Value IoObject::wait_readable(Env *env, Value timeout) {
