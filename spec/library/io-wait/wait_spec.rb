@@ -38,16 +38,12 @@ describe "IO#wait" do
 
     ruby_version_is "3.2" do
       it "returns events mask when the READABLE event is ready during the timeout" do
-        NATFIXME 'returns events mask when the READABLE event is ready during the timeout', exception: SpecFailedException do
-          @w.write('data to read')
-          @r.wait(IO::READABLE, 2).should == IO::READABLE
-        end
+        @w.write('data to read')
+        @r.wait(IO::READABLE, 2).should == IO::READABLE
       end
 
       it "returns events mask when the WRITABLE event is ready during the timeout" do
-        NATFIXME 'returns events mask when the WRITABLE event is ready during the timeout', exception: SpecFailedException do
-          @w.wait(IO::WRITABLE, 0).should == IO::WRITABLE
-        end
+        @w.wait(IO::WRITABLE, 0).should == IO::WRITABLE
       end
     end
 
