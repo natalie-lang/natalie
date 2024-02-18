@@ -306,6 +306,10 @@ class StringIO
 
   alias << write
 
+  def write_nonblock(argument, exception: true)
+    write(argument)
+  end
+
   private def __assert_not_read_closed
     raise IOError, 'not opened for reading' if closed_read?
   end
