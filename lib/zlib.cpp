@@ -55,7 +55,7 @@ Value Zlib_deflate_initialize(Env *env, Value self, Args args, Block *) {
 
     auto stream = new z_stream {};
     self->ivar_set(env, "@stream"_s, new VoidPObject(stream, Zlib_stream_cleanup));
-    self->ivar_set(env, "@result"_s, new StringObject);
+    self->ivar_set(env, "@result"_s, new StringObject("", Encoding::ASCII_8BIT));
     auto in = new unsigned char[ZLIB_BUF_SIZE];
     self->ivar_set(env, "@in"_s, new VoidPObject(in, Zlib_buffer_cleanup));
     auto out = new unsigned char[ZLIB_BUF_SIZE];
@@ -99,7 +99,6 @@ void Zlib_do_deflate(Env *env, Value self, const String &string, int flush) {
             int have = ZLIB_BUF_SIZE - strm->avail_out;
             result->append((char *)out, have);
         } while (strm->avail_out == 0);
-        assert(strm->avail_in == 0);
     } while (index < string.length());
 }
 
@@ -110,6 +109,18 @@ Value Zlib_deflate_append(Env *env, Value self, Args args, Block *) {
     Zlib_do_deflate(env, self, string->string(), Z_NO_FLUSH);
 
     return self;
+}
+
+Value Zlib_deflate_deflate(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto string = args[0]->as_string_or_raise(env);
+    auto flush = Z_NO_FLUSH;
+    if (auto flush_obj = args.at(1, nullptr); flush_obj)
+        flush = flush_obj->as_integer_or_raise(env)->to_nat_int_t();
+
+    Zlib_do_deflate(env, self, string->string(), flush);
+
+    return self->ivar_get(env, "@result"_s);
 }
 
 Value Zlib_deflate_set_dictionary(Env *env, Value self, Args args, Block *) {
