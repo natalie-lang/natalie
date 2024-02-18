@@ -34,6 +34,11 @@ class StringIO
     warn('warning: StringIO::new() does not take block; use StringIO::open() instead') if block_given?
   end
 
+  def binmode
+    @string.force_encoding(Encoding::ASCII_8BIT)
+    self
+  end
+
   def close
     @read_closed = true
     @write_closed = true
