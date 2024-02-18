@@ -39,6 +39,10 @@ class StringIO
     nil
   end
 
+  def closed?
+    closed_read? && closed_write?
+  end
+
   def close_read
     @read_closed = true
     nil
