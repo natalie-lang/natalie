@@ -220,11 +220,17 @@ class StringIO
   def read_nonblock(length = nil, buffer = nil, exception: true)
     result = read(length, buffer)
     if length&.to_int&.positive? && (result.nil? || result.empty?)
-      raise EOFError, 'end of file reached'
+      raise EOFError, 'end of file reached' if exception
+      return nil
     end
     result
   end
   alias sysread read_nonblock
+
+  def rewind
+    @lineno = 0
+    @index = 0
+  end
 
   def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
