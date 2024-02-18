@@ -1,4 +1,6 @@
 class StringIO
+  VERSION = '3.1.0'.freeze
+
   attr_reader :string, :lineno
 
   private def initialize(string = '', mode = nil)
