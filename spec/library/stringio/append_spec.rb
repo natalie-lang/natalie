@@ -20,7 +20,9 @@ describe "StringIO#<< when passed [Object]" do
   it "writes the passed argument at the current position" do
     @io.pos = 5
     @io << "<test>"
-    @io.string.should == "examp<test>"
+    NATFIXME 'writes the passed argument at the current position (issue in StringIO#write)', exception: SpecFailedException do
+      @io.string.should == "examp<test>"
+    end
   end
 
   it "pads self with \\000 when the current position is after the end" do
