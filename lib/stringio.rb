@@ -311,11 +311,15 @@ class StringIO
     argument.bytes.size
   end
 
-  alias << write
   alias syswrite write
 
   def write_nonblock(argument, exception: true)
     write(argument)
+  end
+
+  def <<(argument)
+    write(argument)
+    self
   end
 
   private def __assert_not_read_closed
