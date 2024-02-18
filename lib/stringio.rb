@@ -250,6 +250,11 @@ class StringIO
   end
   alias length size
 
+  def string=(string)
+    @string = string.is_a?(String) ? string : string.to_str
+    rewind
+  end
+
   def sync
     true
   end
