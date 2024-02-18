@@ -42,12 +42,10 @@ describe "StringIO#read_nonblock" do
       it "returns nil" do
         stringio = StringIO.new('')
         stringio << "hello"
-        NATFIXME 'Implement StringIO#rewind', exception: NoMethodError, message: "undefined method `rewind' for an instance of StringIO" do
-          stringio.rewind
+        stringio.rewind
 
-          stringio.read_nonblock(5).should == "hello"
-          stringio.read_nonblock(5, exception: false).should be_nil
-        end
+        stringio.read_nonblock(5).should == "hello"
+        stringio.read_nonblock(5, exception: false).should be_nil
       end
     end
   end

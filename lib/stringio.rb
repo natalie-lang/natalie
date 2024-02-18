@@ -1,7 +1,8 @@
 class StringIO
   VERSION = '3.1.0'.freeze
 
-  attr_reader :string, :lineno
+  attr_reader :string
+  attr_accessor :lineno
 
   private def initialize(string = '', mode = nil)
     unless string.is_a? String
@@ -31,6 +32,11 @@ class StringIO
     end
 
     warn('warning: StringIO::new() does not take block; use StringIO::open() instead') if block_given?
+  end
+
+  def binmode
+    @string.force_encoding(Encoding::ASCII_8BIT)
+    self
   end
 
   def close
@@ -219,11 +225,17 @@ class StringIO
   def read_nonblock(length = nil, buffer = nil, exception: true)
     result = read(length, buffer)
     if length&.to_int&.positive? && (result.nil? || result.empty?)
-      raise EOFError, 'end of file reached'
+      raise EOFError, 'end of file reached' if exception
+      return nil
     end
     result
   end
   alias sysread read_nonblock
+
+  def rewind
+    @lineno = 0
+    @index = 0
+  end
 
   def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
