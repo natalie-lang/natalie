@@ -242,7 +242,7 @@ class StringIO
     unless @string.frozen?
       @string.force_encoding(@external_encoding)
     end
-    @external_encoding
+    self
   end
 
   def size
