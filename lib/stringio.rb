@@ -211,6 +211,15 @@ class StringIO
     end
   end
 
+  def read_nonblock(length = nil, buffer = nil, exception: true)
+    result = read(length, buffer)
+    if length&.to_int&.positive? && (result.nil? || result.empty?)
+      raise EOFError, 'end of file reached'
+    end
+    result
+  end
+  alias sysread read_nonblock
+
   def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
     unless @string.frozen?
@@ -298,6 +307,11 @@ class StringIO
   end
 
   alias << write
+  alias syswrite write
+
+  def write_nonblock(argument, exception: true)
+    write(argument)
+  end
 
   private def __assert_not_read_closed
     raise IOError, 'not opened for reading' if closed_read?
