@@ -105,6 +105,14 @@ describe 'string' do
     end
   end
 
+  describe '#[]=' do
+    it 'works well with [start, end] calls where start > 0' do
+      string = '123456789012'
+      string[10, 5] = 'abcde'
+      string.should == '1234567890abcde'
+    end
+  end
+
   describe '#bytes' do
     it 'returns an array of byte values' do
       'foo'.bytes.should == [102, 111, 111]

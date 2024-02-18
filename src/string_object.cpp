@@ -1928,7 +1928,7 @@ Value StringObject::refeq(Env *env, Value arg1, Value arg2, Value value) {
 
     nat_int_t chars_to_be_removed = end - begin;
     if (end > (nat_int_t)chars->size())
-        chars_to_be_removed = chars->size();
+        chars_to_be_removed = chars->size() - begin;
 
     auto string = value->to_str(env);
     auto arg_chars = string->chars(env)->as_array();
