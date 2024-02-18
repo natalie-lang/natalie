@@ -20,7 +20,7 @@ describe "StringIO#<< when passed [Object]" do
   it "writes the passed argument at the current position" do
     @io.pos = 5
     @io << "<test>"
-    NATFIXME 'writes the passed argument at the current position (issue in StringIO#write)', exception: SpecFailedException do
+    NATFIXME 'writes the passed argument at the current position (issue in String#[]=)', exception: SpecFailedException do
       @io.string.should == "examp<test>"
     end
   end
