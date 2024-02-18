@@ -1,7 +1,8 @@
 class StringIO
   VERSION = '3.1.0'.freeze
 
-  attr_reader :string, :lineno
+  attr_reader :string
+  attr_accessor :lineno
 
   private def initialize(string = '', mode = nil)
     unless string.is_a? String
