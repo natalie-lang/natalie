@@ -305,6 +305,7 @@ class StringIO
   end
 
   alias << write
+  alias syswrite write
 
   def write_nonblock(argument, exception: true)
     write(argument)
