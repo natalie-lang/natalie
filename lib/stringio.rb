@@ -209,6 +209,14 @@ class StringIO
     end
   end
 
+  def read_nonblock(length = nil, buffer = nil, exception: true)
+    result = read(length, buffer)
+    if length&.to_int&.positive? && (result.nil? || result.empty?)
+      raise EOFError, 'end of file reached'
+    end
+    result
+  end
+
   def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
     unless @string.frozen?
