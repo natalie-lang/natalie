@@ -96,6 +96,9 @@ public:
     bool rescued() const { return m_rescued; }
     void set_rescued(bool rescued) { m_rescued = rescued; }
 
+    bool has_file(SymbolObject *name) const { return m_files.get(name); }
+    void add_file(Env *env, SymbolObject *name);
+
     friend class SymbolObject;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -135,5 +138,7 @@ private:
     MethodMissingReason m_method_missing_reason { MethodMissingReason::Undefined };
     bool m_instance_evaling { false };
     bool m_rescued { false };
+
+    TM::Hashmap<SymbolObject *> m_files {};
 };
 }

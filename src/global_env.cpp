@@ -3,6 +3,18 @@
 
 namespace Natalie {
 
+void GlobalEnv::add_file(Env *env, SymbolObject *name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    m_files.set(name);
+
+    auto loaded_features = new ArrayObject { m_files.size() };
+    for (auto [file, _] : m_files) {
+        loaded_features->push(file->to_s(env));
+    }
+    global_set(env, "$\""_s, loaded_features);
+}
+
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
@@ -82,6 +94,8 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     }
     for (size_t i = 0; i < EncodingCount; i++)
         visitor.visit(m_Encodings[i]);
+    for (auto pair : m_files)
+        visitor.visit(pair.first);
     visitor.visit(m_Array);
     visitor.visit(m_BasicObject);
     visitor.visit(m_Binding);

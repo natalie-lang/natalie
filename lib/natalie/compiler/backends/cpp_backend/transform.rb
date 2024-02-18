@@ -181,8 +181,12 @@ module Natalie
           "<#{self.class.name}:0x#{object_id.to_s(16)}>"
         end
 
-        def files_var_name
-          "#{@compiler_context[:var_prefix]}files"
+        def has_file(name)
+          "GlobalEnv::the()->has_file(#{name})"
+        end
+
+        def add_file(name)
+          "GlobalEnv::the()->add_file(env, #{name})"
         end
 
         private
