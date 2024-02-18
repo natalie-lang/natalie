@@ -216,6 +216,7 @@ class StringIO
     end
     result
   end
+  alias sysread read_nonblock
 
   def set_encoding(external_encoding, _ = nil, **_options)
     @external_encoding = external_encoding || Encoding.default_external
