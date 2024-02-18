@@ -141,6 +141,7 @@ class StringIO
   def pos
     @index
   end
+  alias tell pos
 
   def pos=(new_index)
     if new_index < 0
