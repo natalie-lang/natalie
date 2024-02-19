@@ -50,6 +50,7 @@ class StringIO
   end
 
   def close_read
+    raise IOError, 'closing non-duplex IO for reading' unless @mode.include?('r')
     @read_closed = true
     nil
   end
