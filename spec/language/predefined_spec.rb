@@ -963,15 +963,13 @@ describe "Global variable $\"" do
   end
 
   it "is read-only" do
-    NATFIXME 'is read-only', exception: SpecFailedException do
-      -> {
-        $" = []
-      }.should raise_error(NameError)
+    -> {
+      $" = []
+    }.should raise_error(NameError)
 
-      -> {
-        $LOADED_FEATURES = []
-      }.should raise_error(NameError)
-    end
+    -> {
+      $LOADED_FEATURES = []
+    }.should raise_error(NameError)
   end
 end
 

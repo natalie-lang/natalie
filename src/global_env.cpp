@@ -3,6 +3,12 @@
 
 namespace Natalie {
 
+static const auto readonly_globals = []() {
+    TM::Hashmap<TM::String> readonly_globals;
+    readonly_globals.set("$\"");
+    return readonly_globals;
+}();
+
 void GlobalEnv::add_file(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
@@ -12,7 +18,7 @@ void GlobalEnv::add_file(Env *env, SymbolObject *name) {
     for (auto [file, _] : m_files) {
         loaded_features->push(file->to_s(env));
     }
-    global_set(env, "$\""_s, loaded_features);
+    global_set(env, "$\""_s, loaded_features, false);
 }
 
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
@@ -41,7 +47,7 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
         return NilObject::the();
 }
 
-Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
+Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool check_readonly) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     if (!name->is_global_name())
@@ -49,9 +55,12 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
 
     auto info = m_global_variables.get(name, env);
     if (info) {
+        if (check_readonly && info->is_readonly())
+            env->raise_name_error(name, "{} is a read only variable", name->string());
         info->set_object(val.object());
     } else {
-        auto info = new GlobalVariableInfo { val.object() };
+        auto readonly = readonly_globals.get(name->string()) != nullptr;
+        auto info = new GlobalVariableInfo { val.object(), readonly };
         m_global_variables.put(name, info, env);
     }
     return val;
