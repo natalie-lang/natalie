@@ -79,6 +79,16 @@ class StringIO
   end
   alias each_line each
 
+  def each_byte
+    return enum_for(:each_byte) unless block_given?
+
+    until eof?
+      yield getc.ord
+    end
+
+    self
+  end
+
   def each_char
     return enum_for(:each_char) unless block_given?
 
