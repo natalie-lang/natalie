@@ -4,11 +4,12 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
-  private def initialize(string = '', arg_mode = nil, mode: nil)
+  private def initialize(string = '', arg_mode = nil, mode: nil, binmode: false)
     unless string.is_a? String
       string = string.to_str
     end
     @string = string
+    @string.force_encoding(Encoding::ASCII_8BIT) if binmode
     @index = 0
     @lineno = 0
 
