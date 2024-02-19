@@ -4,14 +4,18 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
-  private def initialize(string = '', mode = nil)
-    unless string.is_a? String
+  private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
+    if string.nil?
+      string = ''.force_encoding(Encoding.default_external)
+    elsif !string.is_a?(String)
       string = string.to_str
     end
     @string = string
+    @string.force_encoding(Encoding::ASCII_8BIT) if binmode
     @index = 0
     @lineno = 0
 
+    mode ||= arg_mode
     unless mode
       if string.frozen?
         mode = 'r'
@@ -20,10 +24,45 @@ class StringIO
       end
     end
 
+    if mode.is_a?(Integer)
+      if (mode & IO::TRUNC) == IO::TRUNC
+        @string.clear
+        mode &= ~IO::TRUNC
+      end
+
+      if (mode & IO::APPEND) == IO::APPEND
+        @index = string.size - 1
+        mode &= ~IO::APPEND
+      end
+
+      case mode
+      when IO::RDONLY
+        mode = 'r'
+      when IO::WRONLY
+        mode = 'w'
+      when IO::RDWR
+        mode = 'r+'
+      end
+    end
+
     unless mode.is_a? String
       mode = mode.to_str
     end
     @mode = mode
+
+    if !binmode.nil?
+      if @mode.include?('b')
+        raise ArgumentError, 'binmode specified twice'
+      elsif @mode.include?('t') || (binmode && textmode)
+        raise ArgumentError, 'both textmode and binmode specified'
+      end
+    elsif !textmode.nil?
+      if @mode.include?('t')
+        raise ArgumentError, 'textmode specified twice'
+      elsif @mode.include?('b')
+        raise ArgumentError, 'both textmode and binmode specified'
+      end
+    end
 
     __set_closed
 

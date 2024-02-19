@@ -74,49 +74,45 @@ describe "StringIO#initialize when passed [Object, mode]" do
   end
 
   it "allows passing the mode as an Integer" do
-    NATFIXME 'do not call #to_str on an Integer', exception: NoMethodError, message: /undefined method `to_str'/ do
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDONLY)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_true
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDONLY)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY | IO::TRUNC)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY | IO::TRUNC)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR | IO::TRUNC)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR | IO::TRUNC)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY | IO::APPEND)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY | IO::APPEND)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR | IO::APPEND)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
-    end
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR | IO::APPEND)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
   end
 
   it "raises a FrozenError when passed a frozen String in truncate mode as StringIO backend" do
-    NATFIXME 'do not call #to_str on an Integer', exception: SpecFailedException do
-      io = StringIO.allocate
-      -> { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(FrozenError)
-    end
+    io = StringIO.allocate
+    -> { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(FrozenError)
   end
 
   it "tries to convert the passed mode to a String using #to_str" do
@@ -167,6 +163,91 @@ describe "StringIO#initialize when passed [Object]" do
   end
 end
 
+# NOTE: Synchronise with core/io/new_spec.rb (core/io/shared/new.rb)
+describe "StringIO#initialize when passed keyword arguments" do
+  it "sets the mode based on the passed :mode option" do
+    io = StringIO.new("example", "r")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
+  end
+
+  it "accepts a mode argument set to nil with a valid :mode option" do
+    @io = StringIO.new('', nil, mode: "w")
+    @io.write("foo").should == 3
+  end
+
+  it "accepts a mode argument with a :mode option set to nil" do
+    @io = StringIO.new('', "w", mode: nil)
+    @io.write("foo").should == 3
+  end
+
+  it "sets binmode from :binmode option" do
+    @io = StringIO.new('', 'w', binmode: true)
+    @io.external_encoding.to_s.should == "ASCII-8BIT" # #binmode? isn't implemented in StringIO
+  end
+
+  it "does not set binmode from false :binmode" do
+    @io = StringIO.new('', 'w', binmode: false)
+    @io.external_encoding.to_s.should == "UTF-8" # #binmode? isn't implemented in StringIO
+  end
+end
+
+# NOTE: Synchronise with core/io/new_spec.rb (core/io/shared/new.rb)
+describe "StringIO#initialize when passed keyword arguments and error happens" do
+  it "raises an error if passed encodings two ways" do
+    -> {
+      @io = StringIO.new('', 'w:ISO-8859-1', encoding: 'ISO-8859-1')
+    }.should raise_error(ArgumentError)
+    -> {
+      @io = StringIO.new('', 'w:ISO-8859-1', external_encoding: 'ISO-8859-1')
+    }.should raise_error(ArgumentError)
+    -> {
+      @io = StringIO.new('', 'w:ISO-8859-1:UTF-8', internal_encoding: 'ISO-8859-1')
+    }.should raise_error(ArgumentError)
+  end
+
+  it "raises an error if passed matching binary/text mode two ways" do
+    -> {
+      @io = StringIO.new('', "wb", binmode: true)
+    }.should raise_error(ArgumentError, 'binmode specified twice')
+    -> {
+      @io = StringIO.new('', "wt", textmode: true)
+    }.should raise_error(ArgumentError, 'textmode specified twice')
+
+    -> {
+      @io = StringIO.new('', "wb", textmode: false)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
+    -> {
+      @io = StringIO.new('', "wt", binmode: false)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
+  end
+
+  it "raises an error if passed conflicting binary/text mode two ways" do
+    -> {
+      @io = StringIO.new('', "wb", binmode: false)
+    }.should raise_error(ArgumentError)
+    -> {
+      @io = StringIO.new('', "wt", textmode: false)
+    }.should raise_error(ArgumentError)
+
+    -> {
+      @io = StringIO.new('', "wb", textmode: true)
+    }.should raise_error(ArgumentError)
+    -> {
+      @io = StringIO.new('', "wt", binmode: true)
+    }.should raise_error(ArgumentError)
+  end
+
+  it "raises an error when trying to set both binmode and textmode" do
+    -> {
+      @io = StringIO.new('', "w", textmode: true, binmode: true)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
+    -> {
+      @io = StringIO.new('', File::Constants::WRONLY, textmode: true, binmode: true)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
+  end
+end
+
 describe "StringIO#initialize when passed no arguments" do
   before :each do
     @io = StringIO.allocate
@@ -203,10 +284,8 @@ describe "StringIO#initialize sets" do
 
   it "the encoding to Encoding.default_external when passed no arguments" do
     io = StringIO.new
-    NATFIXME 'the encoding to Encoding.default_external when passed no arguments', exception: SpecFailedException do
-      io.external_encoding.should == Encoding::ISO_8859_2
-      io.string.encoding.should == Encoding::ISO_8859_2
-    end
+    io.external_encoding.should == Encoding::ISO_8859_2
+    io.string.encoding.should == Encoding::ISO_8859_2
   end
 
   it "the encoding to the encoding of the String when passed a String" do
@@ -215,14 +294,9 @@ describe "StringIO#initialize sets" do
     io.string.encoding.should == Encoding::EUC_JP
   end
 
-  guard_not -> { # [Bug #16497]
-    stringio_version = StringIO.const_defined?(:VERSION) ? StringIO::VERSION : "0.0.2"
-    version_is(stringio_version, "0.0.3"..."0.1.1")
-  } do
-    it "the #external_encoding to the encoding of the String when passed a String" do
-      s = ''.force_encoding(Encoding::EUC_JP)
-      io = StringIO.new(s)
-      io.external_encoding.should == Encoding::EUC_JP
-    end
+  it "the #external_encoding to the encoding of the String when passed a String" do
+    s = ''.force_encoding(Encoding::EUC_JP)
+    io = StringIO.new(s)
+    io.external_encoding.should == Encoding::EUC_JP
   end
 end
