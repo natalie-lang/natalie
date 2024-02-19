@@ -4,7 +4,7 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
-  private def initialize(string = '', arg_mode = nil, mode: nil, binmode: false)
+  private def initialize(string = '', arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
     unless string.is_a? String
       string = string.to_str
     end
@@ -47,6 +47,20 @@ class StringIO
       mode = mode.to_str
     end
     @mode = mode
+
+    if !binmode.nil?
+      if @mode.include?('b')
+        raise ArgumentError, 'binmode specified twice'
+      elsif @mode.include?('t') || (binmode && textmode)
+        raise ArgumentError, 'both textmode and binmode specified'
+      end
+    elsif !textmode.nil?
+      if @mode.include?('t')
+        raise ArgumentError, 'textmode specified twice'
+      elsif @mode.include?('b')
+        raise ArgumentError, 'both textmode and binmode specified'
+      end
+    end
 
     __set_closed
 

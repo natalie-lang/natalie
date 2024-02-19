@@ -209,17 +209,17 @@ describe "StringIO#initialize when passed keyword arguments and error happens" d
   it "raises an error if passed matching binary/text mode two ways" do
     -> {
       @io = StringIO.new('', "wb", binmode: true)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'binmode specified twice')
     -> {
       @io = StringIO.new('', "wt", textmode: true)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'textmode specified twice')
 
     -> {
       @io = StringIO.new('', "wb", textmode: false)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
     -> {
       @io = StringIO.new('', "wt", binmode: false)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
   end
 
   it "raises an error if passed conflicting binary/text mode two ways" do
@@ -241,10 +241,10 @@ describe "StringIO#initialize when passed keyword arguments and error happens" d
   it "raises an error when trying to set both binmode and textmode" do
     -> {
       @io = StringIO.new('', "w", textmode: true, binmode: true)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
     -> {
       @io = StringIO.new('', File::Constants::WRONLY, textmode: true, binmode: true)
-    }.should raise_error(ArgumentError)
+    }.should raise_error(ArgumentError, 'both textmode and binmode specified')
   end
 end
 
