@@ -4,6 +4,18 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
+  def self.open(*args, **kwargs)
+    stringio = new(*args, **kwargs)
+    return stringio unless block_given?
+
+    begin
+      yield(stringio)
+    ensure
+      stringio.instance_variable_set(:@string, nil)
+      stringio.close
+    end
+  end
+
   private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
     if string.nil?
       string = ''.force_encoding(Encoding.default_external)
