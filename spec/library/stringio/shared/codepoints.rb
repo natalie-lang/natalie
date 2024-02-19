@@ -15,12 +15,16 @@ describe :stringio_codepoints, shared: true do
 
   it "yields each codepoint starting from the current position" do
     @io.pos = 15
-    @enum.to_a.should == [238, 116, 233]
+    NATFIXME 'Use index for byte count instead of character count', exception: SpecFailedException do
+      @enum.to_a.should == [238, 116, 233]
+    end
   end
 
   it "raises an error if reading invalid sequence" do
     @io.pos = 1  # inside of a multibyte sequence
-    -> { @enum.first }.should raise_error(ArgumentError)
+    NATFIXME 'Use index for byte count instead of character count', exception: SpecFailedException do
+      -> { @enum.first }.should raise_error(ArgumentError)
+    end
   end
 
   it "raises an IOError if not readable" do

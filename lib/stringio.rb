@@ -101,6 +101,12 @@ class StringIO
     self
   end
 
+  def each_codepoint
+    return enum_for(:each_codepoint) unless block_given?
+
+    each_char { |c| yield c.ord }
+  end
+
   def eof?
     @index >= @string.length
   end
