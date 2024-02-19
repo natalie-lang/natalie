@@ -74,49 +74,45 @@ describe "StringIO#initialize when passed [Object, mode]" do
   end
 
   it "allows passing the mode as an Integer" do
-    NATFIXME 'do not call #to_str on an Integer', exception: NoMethodError, message: /undefined method `to_str'/ do
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDONLY)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_true
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDONLY)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY | IO::TRUNC)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY | IO::TRUNC)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR | IO::TRUNC)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR | IO::TRUNC)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::WRONLY | IO::APPEND)
-      io.closed_read?.should be_true
-      io.closed_write?.should be_false
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::WRONLY | IO::APPEND)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
 
-      io = StringIO.allocate
-      io.send(:initialize, "example", IO::RDWR | IO::APPEND)
-      io.closed_read?.should be_false
-      io.closed_write?.should be_false
-    end
+    io = StringIO.allocate
+    io.send(:initialize, "example", IO::RDWR | IO::APPEND)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
   end
 
   it "raises a FrozenError when passed a frozen String in truncate mode as StringIO backend" do
-    NATFIXME 'do not call #to_str on an Integer', exception: SpecFailedException do
-      io = StringIO.allocate
-      -> { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(FrozenError)
-    end
+    io = StringIO.allocate
+    -> { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(FrozenError)
   end
 
   it "tries to convert the passed mode to a String using #to_str" do

@@ -20,6 +20,27 @@ class StringIO
       end
     end
 
+    if mode.is_a?(Integer)
+      if (mode & IO::TRUNC) == IO::TRUNC
+        @string.clear
+        mode &= ~IO::TRUNC
+      end
+
+      if (mode & IO::APPEND) == IO::APPEND
+        @index = string.size - 1
+        mode &= ~IO::APPEND
+      end
+
+      case mode
+      when IO::RDONLY
+        mode = 'r'
+      when IO::WRONLY
+        mode = 'w'
+      when IO::RDWR
+        mode = 'r+'
+      end
+    end
+
     unless mode.is_a? String
       mode = mode.to_str
     end
