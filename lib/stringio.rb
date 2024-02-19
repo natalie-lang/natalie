@@ -4,7 +4,7 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
-  private def initialize(string = '', mode = nil)
+  private def initialize(string = '', arg_mode = nil, mode: nil)
     unless string.is_a? String
       string = string.to_str
     end
@@ -12,6 +12,7 @@ class StringIO
     @index = 0
     @lineno = 0
 
+    mode ||= arg_mode
     unless mode
       if string.frozen?
         mode = 'r'
