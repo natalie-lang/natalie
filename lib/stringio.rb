@@ -83,7 +83,7 @@ class StringIO
     return enum_for(:each_byte) unless block_given?
 
     until eof?
-      yield getc.ord
+      getc.each_byte { |b| yield b }
     end
 
     self
