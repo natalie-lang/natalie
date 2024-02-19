@@ -284,10 +284,8 @@ describe "StringIO#initialize sets" do
 
   it "the encoding to Encoding.default_external when passed no arguments" do
     io = StringIO.new
-    NATFIXME 'the encoding to Encoding.default_external when passed no arguments', exception: SpecFailedException do
-      io.external_encoding.should == Encoding::ISO_8859_2
-      io.string.encoding.should == Encoding::ISO_8859_2
-    end
+    io.external_encoding.should == Encoding::ISO_8859_2
+    io.string.encoding.should == Encoding::ISO_8859_2
   end
 
   it "the encoding to the encoding of the String when passed a String" do

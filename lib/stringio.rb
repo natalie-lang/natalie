@@ -4,8 +4,10 @@ class StringIO
   attr_reader :string
   attr_accessor :lineno
 
-  private def initialize(string = '', arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
-    unless string.is_a? String
+  private def initialize(string = nil, arg_mode = nil, mode: nil, binmode: nil, textmode: nil)
+    if string.nil?
+      string = ''.force_encoding(Encoding.default_external)
+    elsif !string.is_a?(String)
       string = string.to_str
     end
     @string = string
