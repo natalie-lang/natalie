@@ -11,6 +11,7 @@
 #include <mach/mach.h>
 #endif
 #include <atomic>
+#include <condition_variable>
 #include <sys/ucontext.h>
 #include <thread>
 
@@ -308,8 +309,8 @@ private:
 
     // This condition variable is used to wake a sleeping thread,
     // i.e. a thread where Kernel#sleep has been called.
-    pthread_cond_t m_sleep_cond = PTHREAD_COND_INITIALIZER;
-    pthread_mutex_t m_sleep_lock = PTHREAD_MUTEX_INITIALIZER;
+    std::condition_variable m_sleep_cond;
+    std::mutex m_sleep_lock;
 
     inline static ThreadObject *s_main = nullptr;
     inline static TM::Vector<ThreadObject *> s_list {};
