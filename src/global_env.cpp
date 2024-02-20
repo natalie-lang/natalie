@@ -14,11 +14,8 @@ void GlobalEnv::add_file(Env *env, SymbolObject *name) {
 
     m_files.set(name);
 
-    auto loaded_features = new ArrayObject { m_files.size() };
-    for (auto [file, _] : m_files) {
-        loaded_features->push(file->to_s(env));
-    }
-    global_set(env, "$\""_s, loaded_features, false);
+    auto loaded_features = global_get(env, "$\""_s);
+    loaded_features->as_array()->push(name->to_s(env));
 }
 
 bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
