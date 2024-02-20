@@ -1,3 +1,4 @@
+#include <chrono>
 #include <signal.h>
 #include <sys/time.h>
 
@@ -357,9 +358,10 @@ Value ThreadObject::raise(Env *env, Args args) {
     m_exception = exception;
 
     // Wake up the thread in case it is sleeping.
-    pthread_mutex_lock(&m_sleep_lock);
-    pthread_cond_signal(&m_sleep_cond);
-    pthread_mutex_unlock(&m_sleep_lock);
+    {
+        std::unique_lock sleep_lock { m_sleep_lock };
+        m_sleep_cond.notify_one();
+    }
 
     // In case this thread is blocking on read/select/whatever,
     // we may need to interrupt it (and all other threads, incidentally).
@@ -379,9 +381,10 @@ Value ThreadObject::wakeup(Env *env) {
 
     wait_until_running();
 
-    pthread_mutex_lock(&m_sleep_lock);
-    pthread_cond_signal(&m_sleep_cond);
-    pthread_mutex_unlock(&m_sleep_lock);
+    {
+        std::unique_lock sleep_lock { m_sleep_lock };
+        m_sleep_cond.notify_one();
+    }
 
     return this;
 }
@@ -400,59 +403,34 @@ Value ThreadObject::sleep(Env *env, float timeout) {
         return Value::integer(elapsed);
     };
 
-    auto handle_error = [&env](int result) {
-        switch (result) {
-        case 0:
-        case ETIMEDOUT:
-            return;
-        case EINVAL:
-            env->raise("ThreadError", "EINVAL");
-        case EPERM:
-            env->raise("ThreadError", "EPERM");
-        default:
-            env->raise("ThreadError", "unknown error");
-        }
-    };
-
     if (timeout < 0.0) {
-        pthread_mutex_lock(&m_sleep_lock);
+        {
+            std::unique_lock sleep_lock { m_sleep_lock };
 
-        check_exception(env);
+            check_exception(env);
 
-        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-        ThreadObject::set_current_sleeping(true);
+            Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+            ThreadObject::set_current_sleeping(true);
 
-        handle_error(pthread_cond_wait(&m_sleep_cond, &m_sleep_lock));
-        pthread_mutex_unlock(&m_sleep_lock);
+            m_sleep_cond.wait(sleep_lock);
+        }
 
         check_exception(env);
 
         return calculate_elapsed();
     }
 
-    timespec wait;
-    timeval now;
-    if (gettimeofday(&now, nullptr) != 0)
-        env->raise_errno();
-    wait.tv_sec = now.tv_sec + (int)timeout;
-    auto us = (timeout - (int)timeout) * 1000 * 1000;
-    auto ns = (now.tv_usec + us) * 1000;
-    constexpr long ns_in_sec = 1000 * 1000 * 1000;
-    if (ns >= ns_in_sec) {
-        wait.tv_sec += 1;
-        ns -= ns_in_sec;
+    const auto wait = std::chrono::nanoseconds(static_cast<int64_t>(timeout * 1000 * 1000 * 1000));
+    {
+        std::unique_lock sleep_lock { m_sleep_lock };
+
+        check_exception(env);
+
+        Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
+        ThreadObject::set_current_sleeping(true);
+
+        m_sleep_cond.wait_for(sleep_lock, wait);
     }
-    wait.tv_nsec = ns;
-
-    pthread_mutex_lock(&m_sleep_lock);
-
-    check_exception(env);
-
-    Defer done_sleeping([] { ThreadObject::set_current_sleeping(false); });
-    ThreadObject::set_current_sleeping(true);
-
-    handle_error(pthread_cond_timedwait(&m_sleep_cond, &m_sleep_lock, &wait));
-    pthread_mutex_unlock(&m_sleep_lock);
 
     check_exception(env);
 
