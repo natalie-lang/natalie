@@ -333,6 +333,21 @@ class StringIO
     arg
   end
 
+  def truncate(integer)
+    integer = integer.to_int if !integer.is_a?(Integer) && integer.respond_to?(:to_int)
+    raise TypeError, "no implicit conversion of #{integer.class} into Integer" unless integer.is_a?(Integer)
+    raise Errno::EINVAL, 'Invalid argument - negative length' if integer.negative?
+    raise IOError, 'not opened for writing' if closed_write?
+
+    if integer < @string.size
+      @string.slice!(integer, @string.size)
+    elsif integer > @string.size
+      @string << "\x00".b * (integer - @string.size)
+    end
+
+    0 # It looks like MRI always returns 0
+  end
+
   def ungetbyte(integer)
     __assert_not_read_closed
     __assert_not_write_closed
