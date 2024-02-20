@@ -1,6 +1,8 @@
 class StringIO
   VERSION = '3.1.0'.freeze
 
+  include Enumerable
+
   attr_reader :string
   attr_accessor :lineno
 
