@@ -306,6 +306,23 @@ class StringIO
     @index = 0
   end
 
+  def seek(offset, whence = IO::SEEK_SET)
+    raise IOError, 'closed stream' if closed?
+    offset = offset.to_int if !offset.is_a?(Integer) && offset.respond_to?(:to_int)
+    raise TypeError, "no implicit conversion of #{offset.class} into Integer" unless offset.is_a?(Integer)
+    case whence
+    when IO::SEEK_CUR
+      @index += offset
+    when IO::SEEK_END
+      @index = @string.size + offset
+    when IO::SEEK_SET
+      raise Errno::EINVAL, 'Invalid argument' if offset.negative?
+      @index = offset
+    else
+      raise Errno::EINVAL, 'Invalid argument - invalid whence'
+    end
+  end
+
   def set_encoding(external_encoding, _ = nil, **_options)
     external_encoding = Encoding.find(external_encoding) if external_encoding.is_a?(String)
     @external_encoding = external_encoding || Encoding.default_external
