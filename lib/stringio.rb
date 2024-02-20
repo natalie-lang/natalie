@@ -84,6 +84,8 @@ class StringIO
       raise Errno::EACCES, 'Permission denied'
     end
 
+    @mutex = Mutex.new
+
     warn('warning: StringIO::new() does not take block; use StringIO::open() instead') if block_given?
   end
 
@@ -429,15 +431,17 @@ class StringIO
       argument = argument.to_s
     end
 
-    if __appending?
-      @string << argument
-      @index = @string.length
-    elsif @index >= @string.length
-      @string << "\000" * (@index - @string.length) << argument
-      @index = @string.length
-    else
-      @string[@index, argument.length] = argument
-      @index += argument.length
+    @mutex.synchronize do
+      if __appending?
+        @string << argument
+        @index = @string.length
+      elsif @index >= @string.length
+        @string << "\000" * (@index - @string.length) << argument
+        @index = @string.length
+      else
+        @string[@index, argument.length] = argument
+        @index += argument.length
+      end
     end
     argument.bytes.size
   end

@@ -45,8 +45,7 @@ describe :stringio_write_string, shared: true do
     @io.pos.should eql(4)
   end
 
-  # NATFIXME: Concurrency, we probably need a mutex
-  xit "handles concurrent writes correctly" do
+  it "handles concurrent writes correctly" do
     @io = StringIO.new
     n = 8
     go = false
