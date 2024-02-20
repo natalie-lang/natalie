@@ -303,6 +303,16 @@ class StringIO
   end
   alias sysread read_nonblock
 
+  def readbyte
+    raise EOFError, 'end of file reached' if eof?
+    getbyte
+  end
+
+  def readchar
+    raise EOFError, 'end of file reached' if eof?
+    getc
+  end
+
   def rewind
     @lineno = 0
     @index = 0
