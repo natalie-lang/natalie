@@ -407,7 +407,7 @@ Env *build_top_env() {
 
     env->global_set("$$"_s, Value::integer(getpid()));
 
-    env->global_set("$\""_s, new ArrayObject {});
+    env->global_set("$\""_s, new ArrayObject {}, true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
     Value ENV = new Natalie::Object {};
