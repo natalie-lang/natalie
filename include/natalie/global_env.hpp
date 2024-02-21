@@ -80,7 +80,7 @@ public:
 
     bool global_defined(Env *, SymbolObject *);
     Value global_get(Env *, SymbolObject *);
-    Value global_set(Env *, SymbolObject *, Value);
+    Value global_set(Env *, SymbolObject *, Value, bool = true);
     Value global_alias(Env *, SymbolObject *, SymbolObject *);
     ArrayObject *global_list(Env *);
 
