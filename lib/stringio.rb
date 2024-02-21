@@ -315,6 +315,11 @@ class StringIO
     getc
   end
 
+  def readline(...)
+    raise EOFError, 'end of file reached' if eof?
+    gets(...)
+  end
+
   def rewind
     @lineno = 0
     @index = 0
@@ -505,6 +510,10 @@ class StringIO
     if separator.is_a? Integer
       limit = separator
       separator = $/
+    end
+
+    if limit&.negative?
+      limit = nil
     end
 
     if limit == 0
