@@ -145,8 +145,6 @@ describe "StringIO#readline when passed [limit]" do
 
   it "ignores it when the limit is negative" do
     seen = []
-    NATFIXME 'ignores it when the limit is negative', exception: SpecFailedException do
-      @io.readline(-4).should == "this>is>an>example"
-    end
+    @io.readline(-4).should == "this>is>an>example"
   end
 end

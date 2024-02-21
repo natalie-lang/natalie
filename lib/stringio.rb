@@ -512,6 +512,10 @@ class StringIO
       separator = $/
     end
 
+    if limit&.negative?
+      limit = nil
+    end
+
     if limit == 0
       @lineno += 1
       return ''
