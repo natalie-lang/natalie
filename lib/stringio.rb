@@ -315,6 +315,11 @@ class StringIO
     getc
   end
 
+  def readline(...)
+    raise EOFError, 'end of file reached' if eof?
+    gets(...)
+  end
+
   def rewind
     @lineno = 0
     @index = 0
