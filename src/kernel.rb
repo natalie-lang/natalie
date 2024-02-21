@@ -856,4 +856,37 @@ module Kernel
   rescue
     nil
   end
+
+  # NATFIXME: PoC for Throw/Catch, should be implemented in C++ and not use Exception base class
+  class ThrowCatchException < Exception
+    attr_reader :name, :value
+
+    def initialize(name, value = nil)
+      @name = name
+      @value = value
+    end
+  end
+
+  def catch(name = Object.new)
+    unless Thread.current.thread_variable?(:__catch_stack)
+      Thread.current.thread_variable_set(:__catch_stack, [])
+    end
+    Thread.current.thread_variable_get(:__catch_stack) << name
+    yield(name)
+  rescue ThrowCatchException => e
+    if e.name.equal?(name)
+      e.value
+    elsif Thread.current.thread_variable_get(:__catch_stack).any? { |v| v.equal?(e.name) }
+      raise
+    else
+      raise ArgumentError, "uncaught throw #{e.name.inspect}"
+    end
+  ensure
+    Thread.current.thread_variable_get(:__catch_stack).pop
+  end
+
+  def throw(name, value = nil)
+    raise ThrowCatchException.new(name, value)
+  end
+  # NATFIXME: End PoC for Throw/Catch
 end
