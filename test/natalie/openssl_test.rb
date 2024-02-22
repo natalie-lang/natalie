@@ -13,6 +13,13 @@ describe "OpenSSL::OPENSSL_VERSION" do
   end
 end
 
+describe "OpenSSL::BN.new" do
+  it "can be constructed with an integer in the int64 range" do
+    bn = OpenSSL::BN.new(1234)
+    bn.should be_kind_of(OpenSSL::BN)
+  end
+end
+
 describe "OpenSSL::X509::Certificate#serial" do
   it "can be set and queried with integer" do
     cert = OpenSSL::X509::Certificate.new

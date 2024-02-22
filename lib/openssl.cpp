@@ -1,4 +1,6 @@
+#include <limits>
 #include <openssl/asn1.h>
+#include <openssl/bn.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -11,6 +13,11 @@
 #include "natalie.hpp"
 
 using namespace Natalie;
+
+static void OpenSSL_BN_cleanup(VoidPObject *self) {
+    auto bn = static_cast<BIGNUM *>(self->void_ptr());
+    BN_clear_free(bn);
+}
 
 static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->void_ptr());
@@ -623,6 +630,47 @@ Value init_openssl(Env *env, Value self) {
     KDF->define_singleton_method(env, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
     return NilObject::the();
+}
+
+Value OpenSSL_BN_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto arg = args[0];
+    if (arg->is_string()) {
+        arg = KernelModule::Integer(env, arg, args.at(1, nullptr), (Value)TrueObject::the());
+    } else {
+        args.ensure_argc_is(env, 1);
+    }
+
+    auto bn = BN_secure_new();
+    if (!bn)
+        OpenSSL_raise_error(env, "BN_secure_new");
+    self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
+
+    if (arg->is_a(env, self->klass())) {
+        args.ensure_argc_is(env, 1);
+        auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+        if (!BN_copy(bn, from))
+            OpenSSL_raise_error(env, "BN_copy");
+    } else if (arg->is_integer()) {
+        args.ensure_argc_is(env, 1);
+        if (arg->as_integer()->is_bignum())
+            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Bignum)");
+        const auto int_arg = arg->as_integer()->to_nat_int_t();
+        if (int_arg < std::numeric_limits<int64_t>::min() || int_arg > std::numeric_limits<int64_t>::max())
+            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Integer) with argument outsize int64_t");
+        auto asn1 = ASN1_INTEGER_new();
+        if (!asn1)
+            OpenSSL_raise_error(env, "ASN1_INTEGER_new");
+        Defer asn1_free { [&asn1]() { ASN1_INTEGER_free(asn1); } };
+        if (!ASN1_INTEGER_set_int64(asn1, static_cast<int64_t>(int_arg)))
+            OpenSSL_raise_error(env, "ASN1_INTEGER_set_int64");
+        if (!ASN1_INTEGER_to_BN(asn1, bn))
+            OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
+    } else {
+        env->raise("TypeError", "Cannot convert into OpenSSL::BN");
+    }
+
+    return self;
 }
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
