@@ -1,4 +1,6 @@
+#include <limits>
 #include <openssl/asn1.h>
+#include <openssl/bn.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -11,6 +13,11 @@
 #include "natalie.hpp"
 
 using namespace Natalie;
+
+static void OpenSSL_BN_cleanup(VoidPObject *self) {
+    auto bn = static_cast<BIGNUM *>(self->void_ptr());
+    BN_clear_free(bn);
+}
 
 static void OpenSSL_CIPHER_CTX_cleanup(VoidPObject *self) {
     auto ctx = static_cast<EVP_CIPHER_CTX *>(self->void_ptr());
@@ -65,6 +72,18 @@ static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
     static auto X509 = OpenSSL->const_get("X509"_s);
     static auto NameError = X509->const_get("NameError"_s);
     OpenSSL_raise_error(env, func, NameError->as_class());
+}
+
+static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
+    auto value = BN_secure_new();
+    if (!value)
+        OpenSSL_raise_error(env, "BN_secure_new");
+    if (!ASN1_INTEGER_to_BN(asn1, value))
+        OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
+    auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
+    auto bn = Object::allocate(env, BN, {}, nullptr);
+    bn->ivar_set(env, "@bn"_s, new VoidPObject { value, OpenSSL_BN_cleanup });
+    return bn;
 }
 
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
@@ -414,7 +433,38 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block
         OpenSSL_raise_error(env, "X509_new");
     self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
 
+    self->send(env, "serial="_s, { Value::integer(0) });
+
     return self;
+}
+
+Value OpenSSL_X509_Certificate_serial(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    const auto serial = X509_get0_serialNumber(x509);
+    return OpenSSL_BN_new(env, serial);
+}
+
+Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto serial = args[0];
+
+    auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
+    if (!serial->is_a(env, BN))
+        serial = Object::_new(env, BN, { serial }, nullptr);
+    auto asn1_serial = ASN1_INTEGER_new();
+    if (!asn1_serial)
+        OpenSSL_raise_error(env, "ASN1_INTEGER_new");
+    Defer asn1_serial_free { [&asn1_serial]() { ASN1_INTEGER_free(asn1_serial); } };
+    auto bn = static_cast<BIGNUM *>(serial->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    if (!BN_to_ASN1_INTEGER(bn, asn1_serial))
+        OpenSSL_raise_error(env, "BN_to_ASN1_INTEGER");
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_set_serialNumber(x509, asn1_serial))
+        OpenSSL_raise_error(env, "X509_set_serialNumber");
+
+    return args[0];
 }
 
 Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args args, Block *) {
@@ -591,6 +641,57 @@ Value init_openssl(Env *env, Value self) {
     KDF->define_singleton_method(env, "scrypt"_s, OpenSSL_KDF_scrypt, -1);
 
     return NilObject::the();
+}
+
+Value OpenSSL_BN_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_between(env, 1, 2);
+    auto arg = args[0];
+    if (arg->is_string()) {
+        arg = KernelModule::Integer(env, arg, args.at(1, nullptr), (Value)TrueObject::the());
+    } else {
+        args.ensure_argc_is(env, 1);
+    }
+
+    auto bn = BN_secure_new();
+    if (!bn)
+        OpenSSL_raise_error(env, "BN_secure_new");
+    self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
+
+    if (arg->is_a(env, self->klass())) {
+        args.ensure_argc_is(env, 1);
+        auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+        if (!BN_copy(bn, from))
+            OpenSSL_raise_error(env, "BN_copy");
+    } else if (arg->is_integer()) {
+        args.ensure_argc_is(env, 1);
+        if (arg->as_integer()->is_bignum())
+            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Bignum)");
+        const auto int_arg = arg->as_integer()->to_nat_int_t();
+        if (int_arg < std::numeric_limits<int64_t>::min() || int_arg > std::numeric_limits<int64_t>::max())
+            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Integer) with argument outsize int64_t");
+        auto asn1 = ASN1_INTEGER_new();
+        if (!asn1)
+            OpenSSL_raise_error(env, "ASN1_INTEGER_new");
+        Defer asn1_free { [&asn1]() { ASN1_INTEGER_free(asn1); } };
+        if (!ASN1_INTEGER_set_int64(asn1, static_cast<int64_t>(int_arg)))
+            OpenSSL_raise_error(env, "ASN1_INTEGER_set_int64");
+        if (!ASN1_INTEGER_to_BN(asn1, bn))
+            OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
+    } else {
+        env->raise("TypeError", "Cannot convert into OpenSSL::BN");
+    }
+
+    return self;
+}
+
+Value OpenSSL_BN_cmp(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto other = args[0];
+    if (!other->is_a(env, self->klass()))
+        other = Object::_new(env, self->klass(), args, nullptr);
+    auto bn = static_cast<BIGNUM *>(self->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    auto other_bn = static_cast<BIGNUM *>(other->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    return Value::integer(BN_cmp(bn, other_bn));
 }
 
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {

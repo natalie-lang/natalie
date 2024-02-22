@@ -6,8 +6,8 @@ describe "OpenSSL::X509::Store#verify" do
     key = OpenSSL::PKey::RSA.new 2048
     cert = OpenSSL::X509::Certificate.new
     cert.version = 2
-    NATFIXME 'Implement OpenSSL::X509::Certificate#serial=', exception: NoMethodError, message: "undefined method `serial=' for an instance of OpenSSL::X509::Certificate" do
-      cert.serial = 1
+    cert.serial = 1
+    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
       cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
       cert.issuer = cert.subject
       cert.public_key = key.public_key
@@ -24,8 +24,8 @@ describe "OpenSSL::X509::Store#verify" do
     key = OpenSSL::PKey::RSA.new 2048
     cert = OpenSSL::X509::Certificate.new
     cert.version = 2
-    NATFIXME 'Implement OpenSSL::X509::Certificate#serial=', exception: NoMethodError, message: "undefined method `serial=' for an instance of OpenSSL::X509::Certificate" do
-      cert.serial = 1
+    cert.serial = 1
+    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
       cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
       cert.issuer = cert.subject
       cert.public_key = key.public_key
@@ -42,8 +42,8 @@ describe "OpenSSL::X509::Store#verify" do
     root_key = OpenSSL::PKey::RSA.new 2048
     root_cert = OpenSSL::X509::Certificate.new
     root_cert.version = 2
-    NATFIXME 'Implement OpenSSL::X509::Certificate#serial=', exception: NoMethodError, message: "undefined method `serial=' for an instance of OpenSSL::X509::Certificate" do
-      root_cert.serial = 1
+    root_cert.serial = 1
+    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
       root_cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
       root_cert.issuer = root_cert.subject
       root_cert.public_key = root_key.public_key

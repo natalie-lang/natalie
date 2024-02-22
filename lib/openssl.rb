@@ -81,6 +81,13 @@ module OpenSSL
     __constant__('BMPSTRING', 'int', 'V_ASN1_BMPSTRING')
   end
 
+  class BN
+    include Comparable
+
+    __bind_method__ :initialize, :OpenSSL_BN_initialize
+    __bind_method__ :<=>, :OpenSSL_BN_cmp
+  end
+
   module Random
     __bind_static_method__ :random_bytes, :OpenSSL_Random_random_bytes
   end
@@ -182,6 +189,8 @@ module OpenSSL
 
     class Certificate
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
+      __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
+      __bind_method__ :serial=, :OpenSSL_X509_Certificate_set_serial
       __bind_method__ :version, :OpenSSL_X509_Certificate_version
       __bind_method__ :version=, :OpenSSL_X509_Certificate_set_version
     end
