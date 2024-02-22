@@ -74,6 +74,18 @@ static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
     OpenSSL_raise_error(env, func, NameError->as_class());
 }
 
+static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
+    auto value = BN_secure_new();
+    if (!value)
+        OpenSSL_raise_error(env, "BN_secure_new");
+    if (!ASN1_INTEGER_to_BN(asn1, value))
+        OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
+    auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
+    auto bn = Object::allocate(env, BN, {}, nullptr);
+    bn->ivar_set(env, "@bn"_s, new VoidPObject { value, OpenSSL_BN_cleanup });
+    return bn;
+}
+
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 2);
     auto a = args[0]->to_str(env);
@@ -430,25 +442,24 @@ Value OpenSSL_X509_Certificate_serial(Env *env, Value self, Args args, Block *) 
     args.ensure_argc_is(env, 0);
 
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
-    const auto asn1_serial = X509_get0_serialNumber(x509);
-    uint64_t serial;
-    if (!ASN1_INTEGER_get_uint64(&serial, asn1_serial))
-        OpenSSL_raise_error(env, "ASN1_INTEGER_get_uint64");
-
-    return Value::integer(serial);
+    const auto serial = X509_get0_serialNumber(x509);
+    return OpenSSL_BN_new(env, serial);
 }
 
 Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
+    auto serial = args[0];
 
-    const auto serial = static_cast<uint64_t>(args[0]->to_int(env)->to_nat_int_t());
+    auto BN = fetch_nested_const({ "OpenSSL"_s, "BN"_s })->as_class();
+    if (!serial->is_a(env, BN))
+        serial = Object::_new(env, BN, { serial }, nullptr);
     auto asn1_serial = ASN1_INTEGER_new();
     if (!asn1_serial)
         OpenSSL_raise_error(env, "ASN1_INTEGER_new");
     Defer asn1_serial_free { [&asn1_serial]() { ASN1_INTEGER_free(asn1_serial); } };
-    if (!ASN1_INTEGER_set_uint64(asn1_serial, serial))
-        OpenSSL_raise_error(env, "ASN1_INTEGER_set_uint64");
-
+    auto bn = static_cast<BIGNUM *>(serial->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    if (!BN_to_ASN1_INTEGER(bn, asn1_serial))
+        OpenSSL_raise_error(env, "BN_to_ASN1_INTEGER");
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     if (!X509_set_serialNumber(x509, asn1_serial))
         OpenSSL_raise_error(env, "X509_set_serialNumber");
