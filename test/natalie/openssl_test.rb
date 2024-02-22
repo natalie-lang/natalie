@@ -35,6 +35,28 @@ describe "OpenSSL::BN" do
 end
 
 describe "OpenSSL::X509::Certificate" do
+  describe "OpenSSL::X509::Certificate#issuer" do
+    it "can be set and queried with OpenSSL::X509::Name" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.issuer = OpenSSL::X509::Name.parse("/DC=org/DC=truffleruby/CN=TruffleRuby CA")
+      cert.issuer.should be_kind_of(OpenSSL::X509::Name)
+      cert.issuer.should == OpenSSL::X509::Name.parse("/DC=org/DC=truffleruby/CN=TruffleRuby CA")
+    end
+
+    it "has a default issuer" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.issuer.should be_kind_of(OpenSSL::X509::Name)
+      cert.issuer.should == OpenSSL::X509::Name.new
+    end
+
+    it "cannot be set with String" do
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.issuer = "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+      }.should raise_error(TypeError, "wrong argument type String (expected OpenSSL/X509/NAME)")
+    end
+  end
+
   describe "OpenSSL::X509::Certificate#serial" do
     it "can be set and queried with integer" do
       cert = OpenSSL::X509::Certificate.new
@@ -69,6 +91,28 @@ describe "OpenSSL::X509::Certificate" do
       serial.should_not_receive(:to_int)
       cert = OpenSSL::X509::Certificate.new
       -> { cert.serial = serial }.should raise_error(TypeError, 'Cannot convert into OpenSSL::BN')
+    end
+  end
+
+  describe "OpenSSL::X509::Certificate#subject" do
+    it "can be set and queried with OpenSSL::X509::Name" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.subject = OpenSSL::X509::Name.parse("/DC=org/DC=truffleruby/CN=TruffleRuby CA")
+      cert.subject.should be_kind_of(OpenSSL::X509::Name)
+      cert.subject.should == OpenSSL::X509::Name.parse("/DC=org/DC=truffleruby/CN=TruffleRuby CA")
+    end
+
+    it "has a default subject" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.subject.should be_kind_of(OpenSSL::X509::Name)
+      cert.subject.should == OpenSSL::X509::Name.new
+    end
+
+    it "cannot be set with String" do
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.subject = "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+      }.should raise_error(TypeError, "wrong argument type String (expected OpenSSL/X509/NAME)")
     end
   end
 

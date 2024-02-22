@@ -86,6 +86,16 @@ static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
     return bn;
 }
 
+static Value OpenSSL_X509_Name_new(Env *env, const X509_NAME *value) {
+    auto copy = X509_NAME_dup(value);
+    if (!copy)
+        OpenSSL_raise_error(env, "X509_NAME_dup");
+    auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
+    auto name = Object::allocate(env, Name, {}, nullptr);
+    name->ivar_set(env, "@name"_s, new VoidPObject { copy, OpenSSL_X509_NAME_cleanup });
+    return name;
+}
+
 Value OpenSSL_fixed_length_secure_compare(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 2);
     auto a = args[0]->to_str(env);
@@ -438,6 +448,32 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block
     return self;
 }
 
+Value OpenSSL_X509_Certificate_issuer(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto name = X509_get_issuer_name(x509);
+    if (!name)
+        OpenSSL_raise_error(env, "X509_get_issuer_name");
+    return OpenSSL_X509_Name_new(env, name);
+}
+
+Value OpenSSL_X509_Certificate_set_issuer(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto issuer = args[0];
+
+    auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
+    if (!issuer->is_a(env, Name))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", issuer->klass()->inspect_str());
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto name = static_cast<X509_NAME *>(issuer->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    if (!X509_set_issuer_name(x509, name))
+        OpenSSL_raise_error(env, "X509_set_issuer_name");
+
+    return args[0];
+}
+
 Value OpenSSL_X509_Certificate_serial(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
@@ -463,6 +499,32 @@ Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args args, Block
     auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
     if (!X509_set_serialNumber(x509, asn1_serial))
         OpenSSL_raise_error(env, "X509_set_serialNumber");
+
+    return args[0];
+}
+
+Value OpenSSL_X509_Certificate_subject(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto name = X509_get_subject_name(x509);
+    if (!name)
+        OpenSSL_raise_error(env, "X509_get_subject_name");
+    return OpenSSL_X509_Name_new(env, name);
+}
+
+Value OpenSSL_X509_Certificate_set_subject(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto subject = args[0];
+
+    auto Name = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Name"_s })->as_class();
+    if (!subject->is_a(env, Name))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/NAME)", subject->klass()->inspect_str());
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto name = static_cast<X509_NAME *>(subject->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    if (!X509_set_subject_name(x509, name))
+        OpenSSL_raise_error(env, "X509_set_subject_name");
 
     return args[0];
 }
@@ -809,4 +871,14 @@ Value OpenSSL_X509_Name_to_s(Env *env, Value self, Args args, Block *) {
     if (size < 0)
         OpenSSL_X509_Name_raise_error(env, "BIO_get_mem_data");
     return new StringObject { mem, static_cast<size_t>(size) };
+}
+
+Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto other = args[0];
+    if (!other->is_a(env, self->klass()))
+        return NilObject::the();
+    auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
+    return Value::integer(X509_NAME_cmp(name, other_name));
 }

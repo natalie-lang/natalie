@@ -7,9 +7,9 @@ describe "OpenSSL::X509::Store#verify" do
     cert = OpenSSL::X509::Certificate.new
     cert.version = 2
     cert.serial = 1
-    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
-      cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
-      cert.issuer = cert.subject
+    cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+    cert.issuer = cert.subject
+    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
       cert.public_key = key.public_key
       cert.not_before = Time.now - 10
       cert.not_after = cert.not_before + 365 * 24 * 60 * 60
@@ -25,9 +25,9 @@ describe "OpenSSL::X509::Store#verify" do
     cert = OpenSSL::X509::Certificate.new
     cert.version = 2
     cert.serial = 1
-    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
-      cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
-      cert.issuer = cert.subject
+    cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+    cert.issuer = cert.subject
+    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
       cert.public_key = key.public_key
       cert.not_before = Time.now - 10
       cert.not_after = Time.now - 5
@@ -43,9 +43,9 @@ describe "OpenSSL::X509::Store#verify" do
     root_cert = OpenSSL::X509::Certificate.new
     root_cert.version = 2
     root_cert.serial = 1
-    NATFIXME 'Implement OpenSSL::X509::Certificate#subject=', exception: NoMethodError, message: "undefined method `subject=' for an instance of OpenSSL::X509::Certificate" do
-      root_cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
-      root_cert.issuer = root_cert.subject
+    root_cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+    root_cert.issuer = root_cert.subject
+    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
       root_cert.public_key = root_key.public_key
       root_cert.not_before = Time.now - 10
       root_cert.not_after = Time.now - 5
