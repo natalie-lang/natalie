@@ -20,6 +20,18 @@ describe "OpenSSL::BN.new" do
   end
 end
 
+describe "OpenSSL::BN#<=>" do
+  it "can compare two OpenSSL::BN instances" do
+    OpenSSL::BN.new(1234).should == OpenSSL::BN.new(1234)
+    OpenSSL::BN.new(1234).should != OpenSSL::BN.new(4321)
+  end
+
+  it "can compare a OpenSSL::BN instance to an Integer" do
+    OpenSSL::BN.new(1234).should == 1234
+    OpenSSL::BN.new(1234).should != 4321
+  end
+end
+
 describe "OpenSSL::X509::Certificate#serial" do
   it "can be set and queried with integer" do
     cert = OpenSSL::X509::Certificate.new

@@ -684,6 +684,16 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args args, Block *) {
     return self;
 }
 
+Value OpenSSL_BN_cmp(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto other = args[0];
+    if (!other->is_a(env, self->klass()))
+        other = Object::_new(env, self->klass(), args, nullptr);
+    auto bn = static_cast<BIGNUM *>(self->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    auto other_bn = static_cast<BIGNUM *>(other->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    return Value::integer(BN_cmp(bn, other_bn));
+}
+
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     Value length = args[0]->to_int(env);

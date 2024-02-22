@@ -82,7 +82,10 @@ module OpenSSL
   end
 
   class BN
+    include Comparable
+
     __bind_method__ :initialize, :OpenSSL_BN_initialize
+    __bind_method__ :<=>, :OpenSSL_BN_cmp
   end
 
   module Random
