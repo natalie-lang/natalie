@@ -191,11 +191,15 @@ module OpenSSL
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
       __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
       __bind_method__ :serial=, :OpenSSL_X509_Certificate_set_serial
+      __bind_method__ :subject, :OpenSSL_X509_Certificate_subject
+      __bind_method__ :subject=, :OpenSSL_X509_Certificate_set_subject
       __bind_method__ :version, :OpenSSL_X509_Certificate_version
       __bind_method__ :version=, :OpenSSL_X509_Certificate_set_version
     end
 
     class Name
+      include Comparable
+
       OBJECT_TYPE_TEMPLATE = {
         'C'               => ASN1::PRINTABLESTRING,
         'countryName'     => ASN1::PRINTABLESTRING,
@@ -215,6 +219,7 @@ module OpenSSL
       __bind_method__ :add_entry, :OpenSSL_X509_Name_add_entry
       __bind_method__ :to_a, :OpenSSL_X509_Name_to_a
       __bind_method__ :to_s, :OpenSSL_X509_Name_to_s
+      __bind_method__ :<=>, :OpenSSL_X509_Name_cmp
 
       class << self
         def parse_openssl(str, template = OBJECT_TYPE_TEMPLATE)
