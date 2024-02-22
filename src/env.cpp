@@ -20,9 +20,9 @@ Value Env::global_get(SymbolObject *name) {
     return GlobalEnv::the()->global_get(this, name);
 }
 
-Value Env::global_set(SymbolObject *name, Value val) {
+Value Env::global_set(SymbolObject *name, Value val, bool readonly) {
     NAT_GC_GUARD_VALUE(val);
-    return GlobalEnv::the()->global_set(this, name, val);
+    return GlobalEnv::the()->global_set(this, name, val, readonly);
 }
 
 Value Env::global_alias(SymbolObject *new_name, SymbolObject *old_name) {
