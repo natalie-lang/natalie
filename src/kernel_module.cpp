@@ -86,6 +86,41 @@ Value KernelModule::caller_locations(Env *env, Value start, Value length) {
     return ary;
 }
 
+Value KernelModule::catch_method(Env *env, Value name, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+    if (!name) name = new Object {};
+
+    auto thread = ThreadObject::current();
+    if (!thread->has_thread_variable(env, "__catch_stack"_s))
+        thread->thread_variable_set(env, "__catch_stack"_s, new ArrayObject {});
+    auto catch_stack = thread->thread_variable_get(env, "__catch_stack"_s)->as_array();
+    catch_stack->push(name);
+    Defer pop_catch_stack { [&catch_stack] { catch_stack->pop(); } };
+
+    try {
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { name }, nullptr);
+    } catch (ExceptionObject *e) {
+        auto klass = fetch_nested_const({ "Kernel"_s, "ThrowCatchException"_s })->as_class();
+        if (e->is_a(env, klass)) {
+            auto e_name = e->send(env, "name"_s);
+            if (e_name->equal(name)) {
+                return e->send(env, "value"_s);
+            } else {
+                for (auto v : *catch_stack) {
+                    if (v->equal(e_name))
+                        throw e;
+                }
+                env->raise("ArgumentError", "uncaught throw {}", e_name->inspect_str(env));
+            }
+        } else {
+            throw e;
+        }
+    }
+
+    NAT_UNREACHABLE();
+}
+
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
     return Complex(env, real, imaginary, exception ? exception->is_true() : true);
 }

@@ -122,8 +122,6 @@ end
 
 describe "Kernel#catch" do
   it "is a private method" do
-    NATFIXME 'is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:catch)
-    end
+    Kernel.should have_private_instance_method(:catch)
   end
 end
