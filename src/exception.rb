@@ -35,7 +35,14 @@ end
 
 class StandardError < Exception; end
   class ArgumentError < StandardError; end
-    class UncaughtThrowError < ArgumentError; end
+    class UncaughtThrowError < ArgumentError
+      attr_reader :tag, :value
+      def initialize(tag, value, message = nil)
+        super(message)
+        @tag = tag
+        @value = value
+      end
+    end
   # end ArgumentError subclasses
   class EncodingError < StandardError; end
   class FiberError < StandardError; end

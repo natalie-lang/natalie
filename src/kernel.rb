@@ -886,6 +886,9 @@ module Kernel
   end
 
   def throw(name, value = nil)
+    if !Thread.current.thread_variable?(:__catch_stack) || Thread.current.thread_variable_get(:__catch_stack).empty?
+      raise UncaughtThrowError.new(name, value)
+    end
     raise ThrowCatchException.new(name, value)
   end
   # NATFIXME: End PoC for Throw/Catch
