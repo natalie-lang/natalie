@@ -4,6 +4,7 @@
 namespace Natalie {
 
 static void last_regex_match_assignment_hook(Env *env, Object **current, Object *object) {
+    if (!object) return;
     if (!object->is_match_data() && !object->is_nil())
         env->raise("TypeError", "wrong argument type {} (expected MatchData)", object->klass()->inspect_str());
     *current = object;
