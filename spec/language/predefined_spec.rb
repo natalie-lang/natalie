@@ -107,9 +107,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(bar)/
     $~ = foo_match
-    NATFIXME 'Update $` after assignment of $~', exception: SpecFailedException do
-      $`.should == "foo "
-    end
+    $`.should == "foo "
   end
 
   it "changes the value of the derived following match global" do
@@ -117,9 +115,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(bar)/
     $~ = foo_match
-    NATFIXME "Update $' after assignment of $~", exception: SpecFailedException do
-      $'.should == " hello"
-    end
+    $'.should == " hello"
   end
 
   it "changes the value of the derived full match global" do

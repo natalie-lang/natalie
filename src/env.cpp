@@ -281,11 +281,6 @@ void Env::set_last_match(MatchDataObject *match) {
     auto env = non_block_env();
     env->global_set("$~"_s, match);
     env->set_match(match);
-    if (match) {
-        env->global_set("$`"_s, match->pre_match(env));
-        env->global_set("$'"_s, match->post_match(env));
-        env->global_set("$+"_s, match->captures(env)->as_array()->compact(env)->as_array()->last());
-    }
 }
 
 Value Env::exception_object() {
