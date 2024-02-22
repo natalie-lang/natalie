@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/thread_object.hpp"
+#include "natalie/throw_catch_exception.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -100,21 +101,15 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
 
     try {
         return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { name }, nullptr);
-    } catch (ExceptionObject *e) {
-        auto klass = fetch_nested_const({ "Kernel"_s, "ThrowCatchException"_s })->as_class();
-        if (e->is_a(env, klass)) {
-            auto e_name = e->send(env, "name"_s);
-            if (e_name->equal(name)) {
-                return e->send(env, "value"_s);
-            } else {
-                for (auto v : *catch_stack) {
-                    if (v->equal(e_name))
-                        throw e;
-                }
-                env->raise("ArgumentError", "uncaught throw {}", e_name->inspect_str(env));
-            }
+    } catch (ThrowCatchException *e) {
+        if (e->get_name()->equal(name)) {
+            return e->get_value();
         } else {
-            throw e;
+            for (auto v : *catch_stack) {
+                if (e->get_name()->equal(v))
+                    throw e;
+            }
+            env->raise("ArgumentError", "uncaught throw {}", e->get_name()->inspect_str(env));
         }
     }
 
@@ -772,10 +767,7 @@ Value KernelModule::throw_method(Env *env, Value name, Value value) {
         env->raise_exception(exception);
     }
 
-    auto klass = fetch_nested_const({ "Kernel"_s, "ThrowCatchException"_s })->as_class();
-    auto exception = _new(env, klass, { name, value }, nullptr)->as_exception();
-    env->raise_exception(exception);
-    NAT_UNREACHABLE();
+    throw new ThrowCatchException { name, value };
 }
 
 }

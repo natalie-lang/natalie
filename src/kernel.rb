@@ -856,15 +856,4 @@ module Kernel
   rescue
     nil
   end
-
-  # NATFIXME: PoC for Throw/Catch, should be implemented in C++ and not use Exception base class
-  class ThrowCatchException < Exception
-    attr_reader :name, :value
-
-    def initialize(name, value = nil)
-      @name = name
-      @value = value
-    end
-  end
-  # NATFIXME: End PoC for Throw/Catch
 end
