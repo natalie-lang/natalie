@@ -189,6 +189,8 @@ module OpenSSL
 
     class Certificate
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
+      __bind_method__ :issuer, :OpenSSL_X509_Certificate_issuer
+      __bind_method__ :issuer=, :OpenSSL_X509_Certificate_set_issuer
       __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
       __bind_method__ :serial=, :OpenSSL_X509_Certificate_set_serial
       __bind_method__ :subject, :OpenSSL_X509_Certificate_subject
