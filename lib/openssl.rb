@@ -174,7 +174,9 @@ module OpenSSL
     class PKeyError < OpenSSLError; end
     class RSAError < PKeyError; end
 
-    class RSA
+    class PKey; end
+
+    class RSA < PKey
       __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize
       __bind_method__ :export, :OpenSSL_PKey_RSA_export
       __bind_method__ :private?, :OpenSSL_PKey_RSA_is_private
@@ -197,6 +199,8 @@ module OpenSSL
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
       __bind_method__ :issuer, :OpenSSL_X509_Certificate_issuer
       __bind_method__ :issuer=, :OpenSSL_X509_Certificate_set_issuer
+      __bind_method__ :public_key, :OpenSSL_X509_Certificate_public_key
+      __bind_method__ :public_key=, :OpenSSL_X509_Certificate_set_public_key
       __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
       __bind_method__ :serial=, :OpenSSL_X509_Certificate_set_serial
       __bind_method__ :subject, :OpenSSL_X509_Certificate_subject

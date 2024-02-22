@@ -9,8 +9,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.serial = 1
     cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     cert.issuer = cert.subject
-    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
-      cert.public_key = key.public_key
+    cert.public_key = key.public_key
+    NATFIXME 'Implement OpenSSL::X509::Certificate#not_before=', exception: NoMethodError, message: "undefined method `not_before=' for an instance of OpenSSL::X509::Certificate" do
       cert.not_before = Time.now - 10
       cert.not_after = cert.not_before + 365 * 24 * 60 * 60
       cert.sign key, OpenSSL::Digest.new('SHA256')
@@ -27,8 +27,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.serial = 1
     cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     cert.issuer = cert.subject
-    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
-      cert.public_key = key.public_key
+    cert.public_key = key.public_key
+    NATFIXME 'Implement OpenSSL::X509::Certificate#not_before=', exception: NoMethodError, message: "undefined method `not_before=' for an instance of OpenSSL::X509::Certificate" do
       cert.not_before = Time.now - 10
       cert.not_after = Time.now - 5
       cert.sign key, OpenSSL::Digest.new('SHA256')
@@ -45,8 +45,8 @@ describe "OpenSSL::X509::Store#verify" do
     root_cert.serial = 1
     root_cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     root_cert.issuer = root_cert.subject
-    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
-      root_cert.public_key = root_key.public_key
+    root_cert.public_key = root_key.public_key
+    NATFIXME 'Implement OpenSSL::X509::Certificate#not_before=', exception: NoMethodError, message: "undefined method `not_before=' for an instance of OpenSSL::X509::Certificate" do
       root_cert.not_before = Time.now - 10
       root_cert.not_after = Time.now - 5
       ef = OpenSSL::X509::ExtensionFactory.new
