@@ -441,18 +441,30 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args args, Block *) {
         OpenSSL_raise_error(env, "BIO_new_mem_buf");
     Defer bio_free { [&bio]() { BIO_free(bio); } };
 
-    PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
+    if (self->send(env, "private?"_s)->is_truthy()) {
+        PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
+    } else {
+        PEM_write_bio_PUBKEY(bio, pkey);
+    }
 
     char *data;
     auto size = BIO_get_mem_data(bio, &data);
-    if (size <= 0) {
-        // Possibly only a public key
-        PEM_write_bio_PUBKEY(bio, pkey);
-        size = BIO_get_mem_data(bio, &data);
-        if (size <= 0)
-            OpenSSL_raise_error(env, "BIO_get_mem_data");
-    }
+    if (size <= 0)
+        OpenSSL_raise_error(env, "BIO_get_mem_data");
     return new StringObject { data, static_cast<size_t>(size) };
+}
+
+Value OpenSSL_PKey_RSA_is_private(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto pkey = static_cast<EVP_PKEY *>(self->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
+    BIGNUM *tmp = nullptr;
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_D, &tmp)) {
+        BN_clear_free(tmp);
+        return TrueObject::the();
+    }
+
+    return FalseObject::the();
 }
 
 Value OpenSSL_PKey_RSA_public_key(Env *env, Value self, Args args, Block *) {
