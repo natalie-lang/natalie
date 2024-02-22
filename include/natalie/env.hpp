@@ -87,7 +87,6 @@ public:
     }
 
     void set_catch(Value value) { m_catch = value; }
-    bool has_catch() const;
     bool has_catch(Value value) const;
 
     void warn(String);

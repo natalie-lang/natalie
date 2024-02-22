@@ -99,10 +99,8 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
     } catch (ThrowCatchException *e) {
         if (e->get_name()->equal(name)) {
             return e->get_value();
-        } else if (env->has_catch(e->get_name())) {
-            throw e;
         } else {
-            env->raise("ArgumentError", "uncaught throw {}", e->get_name()->inspect_str(env));
+            throw e;
         }
     }
 }
@@ -751,9 +749,10 @@ Value KernelModule::this_method(Env *env) {
 }
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
-    if (!env->has_catch()) {
+    if (!env->has_catch(name)) {
         auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
-        auto exception = _new(env, klass, { name, value }, nullptr)->as_exception();
+        auto message = StringObject::format("uncaught throw {}", name->inspect_str(env));
+        auto exception = _new(env, klass, { name, value, message }, nullptr)->as_exception();
         env->raise_exception(exception);
     }
 
