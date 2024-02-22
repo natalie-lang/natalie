@@ -212,6 +212,8 @@ module OpenSSL
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
       __bind_method__ :issuer, :OpenSSL_X509_Certificate_issuer
       __bind_method__ :issuer=, :OpenSSL_X509_Certificate_set_issuer
+      __bind_method__ :not_before, :OpenSSL_X509_Certificate_not_before
+      __bind_method__ :not_before=, :OpenSSL_X509_Certificate_set_not_before
       __bind_method__ :public_key, :OpenSSL_X509_Certificate_public_key
       __bind_method__ :public_key=, :OpenSSL_X509_Certificate_set_public_key
       __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
