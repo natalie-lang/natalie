@@ -410,6 +410,8 @@ Env *build_top_env() {
     env->global_set("$\""_s, new ArrayObject {}, true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
+    env->global_set("$?"_s, NilObject::the(), true);
+
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
@@ -788,7 +790,7 @@ void set_status_object(Env *env, int pid, int status) {
     status_obj->ivar_set(env, "@to_i"_s, Value::integer(status));
     status_obj->ivar_set(env, "@exitstatus"_s, Value::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, "@pid"_s, Value::integer(pid));
-    env->global_set("$?"_s, status_obj);
+    env->global_set("$?"_s, status_obj, true);
 }
 
 Value super(Env *env, Value self, Args args, Block *block) {
