@@ -411,6 +411,7 @@ Env *build_top_env() {
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);
 
     env->global_set("$?"_s, NilObject::the(), true);
+    env->global_set("$~"_s, NilObject::the());
 
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);

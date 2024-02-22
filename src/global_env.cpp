@@ -3,6 +3,12 @@
 
 namespace Natalie {
 
+static void last_regex_match_assignment_hook(Env *env, Object **current, Object *object) {
+    if (!object->is_match_data() && !object->is_nil())
+        env->raise("TypeError", "wrong argument type {} (expected MatchData)", object->klass()->inspect_str());
+    *current = object;
+}
+
 void GlobalEnv::add_file(Env *env, SymbolObject *name) {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
@@ -50,9 +56,11 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readon
             env->raise_name_error(name, "{} is a read only variable", name->string());
         if (readonly)
             assert(info->is_readonly()); // changing a global to read-only is not anticipated.
-        info->set_object(val.object());
+        info->set_object(env, val.object());
     } else {
         auto info = new GlobalVariableInfo { val.object(), readonly };
+        if (name->string() == "$~")
+            info->set_assignment_hook(last_regex_match_assignment_hook);
         m_global_variables.put(name, info, env);
     }
     return val;
