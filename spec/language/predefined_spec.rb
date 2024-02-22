@@ -88,10 +88,8 @@ describe "Predefined global $~" do
     $~ = /foo/.match("foo")
     $~.should be_an_instance_of(MatchData)
 
-    NATFIXME 'raises an error if assigned an object not nil or instanceof MatchData', exception: SpecFailedException do
-      -> { $~ = Object.new }.should raise_error(TypeError)
-      -> { $~ = 1 }.should raise_error(TypeError)
-    end
+    -> { $~ = Object.new }.should raise_error(TypeError)
+    -> { $~ = 1 }.should raise_error(TypeError)
   end
 
   it "changes the value of derived capture globals when assigned" do
