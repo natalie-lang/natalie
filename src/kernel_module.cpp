@@ -729,4 +729,18 @@ Value KernelModule::this_method(Env *env) {
     return SymbolObject::intern(method->name());
 }
 
+Value KernelModule::throw_method(Env *env, Value name, Value value) {
+    auto thread = ThreadObject::current();
+    if (!thread->has_thread_variable(env, "__catch_stack"_s) || thread->thread_variable_get(env, "__catch_stack"_s)->as_array()->is_empty()) {
+        auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
+        auto exception = _new(env, klass, { name, value }, nullptr)->as_exception();
+        env->raise_exception(exception);
+    }
+
+    auto klass = fetch_nested_const({ "Kernel"_s, "ThrowCatchException"_s })->as_class();
+    auto exception = _new(env, klass, { name, value }, nullptr)->as_exception();
+    env->raise_exception(exception);
+    NAT_UNREACHABLE();
+}
+
 }

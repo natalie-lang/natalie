@@ -75,8 +75,6 @@ end
 
 describe "Kernel#throw" do
   it "is a private method" do
-    NATFIXME 'is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:throw)
-    end
+    Kernel.should have_private_instance_method(:throw)
   end
 end

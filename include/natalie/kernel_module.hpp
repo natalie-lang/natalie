@@ -69,6 +69,7 @@ public:
     static Value String(Env *env, Value value);
     static Value test(Env *, Value, Value);
     static Value this_method(Env *env);
+    static Value throw_method(Env *, Value, Value = nullptr);
     static bool block_given(Env *env, Block *block) { return !!block; }
 
     Value define_singleton_method(Env *env, Value name, Block *block);
