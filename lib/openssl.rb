@@ -177,9 +177,14 @@ module OpenSSL
     class RSA
       __bind_method__ :initialize, :OpenSSL_PKey_RSA_initialize
       __bind_method__ :export, :OpenSSL_PKey_RSA_export
+      __bind_method__ :public_key, :OpenSSL_PKey_RSA_public_key
 
       alias to_pem export
       alias to_s export
+
+      def public?
+        true
+      end
     end
   end
 

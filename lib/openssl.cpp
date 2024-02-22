@@ -403,14 +403,30 @@ Value OpenSSL_SSL_SSLSocket_write(Env *env, Value self, Args args, Block *) {
 
 Value OpenSSL_PKey_RSA_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
+    EVP_PKEY *pkey = nullptr;
 
-    // NATFIXME: Support other constructor types
-    const unsigned int bits = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
-    auto pkey = EVP_RSA_gen(bits);
-    if (!pkey)
-        OpenSSL_raise_error(env, "EVP_PKEY_new");
+    if (args.at(0)->is_string()) {
+        auto str = args.at(0)->as_string();
+        if (str->include("PUBLIC KEY")) {
+            auto bio = BIO_new_mem_buf(str->c_str(), str->bytesize());
+            if (!bio)
+                OpenSSL_raise_error(env, "BIO_new_mem_buf");
+            Defer bio_free { [&bio]() { BIO_vfree(bio); } };
+            if (!PEM_read_bio_PUBKEY(bio, &pkey, nullptr, nullptr))
+                OpenSSL_raise_error(env, "PEM_read_bio_PUBKEY");
+        } else if (str->include("PRIVATE KEY")) {
+            env->raise("NotImplementedError", "TODO: RSA private key constructor from string");
+        } else {
+            env->raise("ArgumentError", "Invalid key type");
+        }
+    } else {
+        const unsigned int bits = args.at(0)->as_integer_or_raise(env)->to_nat_int_t();
+        pkey = EVP_RSA_gen(bits);
+        if (!pkey)
+            OpenSSL_raise_error(env, "EVP_PKEY_new");
+    }
+
     self->ivar_set(env, "@pkey"_s, new VoidPObject { pkey, OpenSSL_PKEY_cleanup });
-
     return self;
 }
 
@@ -428,10 +444,34 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args args, Block *) {
     PEM_write_bio_PrivateKey(bio, pkey, nullptr, nullptr, 0, nullptr, nullptr);
 
     char *data;
+    auto size = BIO_get_mem_data(bio, &data);
+    if (size <= 0) {
+        // Possibly only a public key
+        PEM_write_bio_PUBKEY(bio, pkey);
+        size = BIO_get_mem_data(bio, &data);
+        if (size <= 0)
+            OpenSSL_raise_error(env, "BIO_get_mem_data");
+    }
+    return new StringObject { data, static_cast<size_t>(size) };
+}
+
+Value OpenSSL_PKey_RSA_public_key(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto pkey = static_cast<EVP_PKEY *>(self->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
+
+    auto bio = BIO_new(BIO_s_mem());
+    if (!bio)
+        OpenSSL_raise_error(env, "BIO_new_mem_buf");
+    Defer bio_free { [&bio]() { BIO_free(bio); } };
+    PEM_write_bio_PUBKEY(bio, pkey);
+
+    char *data;
     const auto size = BIO_get_mem_data(bio, &data);
     if (size <= 0)
         OpenSSL_raise_error(env, "BIO_get_mem_data");
-    return new StringObject { data, static_cast<size_t>(size) };
+    auto pem = new StringObject { data, static_cast<size_t>(size) };
+    return Object::_new(env, self->klass(), { pem }, nullptr);
 }
 
 Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block *) {

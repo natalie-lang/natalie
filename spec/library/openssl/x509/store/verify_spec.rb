@@ -9,7 +9,7 @@ describe "OpenSSL::X509::Store#verify" do
     cert.serial = 1
     cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     cert.issuer = cert.subject
-    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
+    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
       cert.public_key = key.public_key
       cert.not_before = Time.now - 10
       cert.not_after = cert.not_before + 365 * 24 * 60 * 60
@@ -27,7 +27,7 @@ describe "OpenSSL::X509::Store#verify" do
     cert.serial = 1
     cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     cert.issuer = cert.subject
-    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
+    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
       cert.public_key = key.public_key
       cert.not_before = Time.now - 10
       cert.not_after = Time.now - 5
@@ -45,7 +45,7 @@ describe "OpenSSL::X509::Store#verify" do
     root_cert.serial = 1
     root_cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
     root_cert.issuer = root_cert.subject
-    NATFIXME 'Implement OpenSSL::PKey::RSA#public_key', exception: NoMethodError, message: "undefined method `public_key' for an instance of OpenSSL::PKey::RSA" do
+    NATFIXME 'Implement OpenSSL::X509::Certificate#public_key=', exception: NoMethodError, message: "undefined method `public_key=' for an instance of OpenSSL::X509::Certificate" do
       root_cert.public_key = root_key.public_key
       root_cert.not_before = Time.now - 10
       root_cert.not_after = Time.now - 5
