@@ -177,10 +177,13 @@ module OpenSSL
   end
 
   module X509
+    class CertificateError < OpenSSLError; end
     class NameError < OpenSSLError; end
 
     class Certificate
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
+      __bind_method__ :version, :OpenSSL_X509_Certificate_version
+      __bind_method__ :version=, :OpenSSL_X509_Certificate_set_version
     end
 
     class Name

@@ -13,6 +13,38 @@ describe "OpenSSL::OPENSSL_VERSION" do
   end
 end
 
+describe "OpenSSL::X509::Certificate#version" do
+  it "can be set and queried" do
+    cert = OpenSSL::X509::Certificate.new
+    cert.version = 2
+    cert.version.should == 2
+  end
+
+  it "has a default version" do
+    cert = OpenSSL::X509::Certificate.new
+    # Default version might depend on OpenSSL settings/version, so just check the type
+    cert.version.should be_kind_of(Integer)
+  end
+
+  it "coerces the input with #to_int" do
+    version = mock("version")
+    version.should_receive(:to_int).and_return(1)
+    cert = OpenSSL::X509::Certificate.new
+    cert.version = version
+    cert.version.should == 1
+  end
+
+  it "raises a TypeError on invalid input type" do
+    cert = OpenSSL::X509::Certificate.new
+    -> { cert.version = Object.new }.should raise_error(TypeError, "no implicit conversion of Object into Integer")
+  end
+
+  it "requires the version to be positive" do
+    cert = OpenSSL::X509::Certificate.new
+    -> { cert.version = -1 }.should raise_error(OpenSSL::X509::CertificateError, "version must be >= 0!")
+  end
+end
+
 describe "OpenSSL::X509::Name#initialize" do
   it "can handle input with types" do
     input = [

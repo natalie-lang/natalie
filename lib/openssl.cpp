@@ -417,6 +417,30 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block
     return self;
 }
 
+Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    const auto version = X509_get_version(x509);
+    return Value::integer(version);
+}
+
+Value OpenSSL_X509_Certificate_set_version(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    const auto version = args[0]->to_int(env)->to_nat_int_t();
+    if (version < 0) {
+        auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
+        env->raise(CertificateError, "version must be >= 0!");
+    }
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_set_version(x509, version))
+        OpenSSL_raise_error(env, "X509_set_version");
+
+    return args[0];
+}
+
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {
     auto kwargs = args.pop_keyword_hash();
     args.ensure_argc_is(env, 1);
