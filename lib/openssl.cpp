@@ -37,6 +37,11 @@ static void OpenSSL_SSL_cleanup(VoidPObject *self) {
     SSL_free(ssl);
 }
 
+static void OpenSSL_X509_cleanup(VoidPObject *self) {
+    auto x509 = static_cast<X509 *>(self->void_ptr());
+    X509_free(x509);
+}
+
 static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
     auto name = static_cast<X509_NAME *>(self->void_ptr());
     X509_NAME_free(name);
@@ -398,6 +403,18 @@ Value OpenSSL_PKey_RSA_export(Env *env, Value self, Args args, Block *) {
     if (size <= 0)
         OpenSSL_raise_error(env, "BIO_get_mem_data");
     return new StringObject { data, static_cast<size_t>(size) };
+}
+
+Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block *) {
+    // NATFIXME: Support arguments
+    args.ensure_argc_is(env, 0);
+
+    X509 *x509 = X509_new();
+    if (!x509)
+        OpenSSL_raise_error(env, "X509_new");
+    self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
+
+    return self;
 }
 
 Value OpenSSL_KDF_pbkdf2_hmac(Env *env, Value self, Args args, Block *) {

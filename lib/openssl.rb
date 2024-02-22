@@ -179,6 +179,10 @@ module OpenSSL
   module X509
     class NameError < OpenSSLError; end
 
+    class Certificate
+      __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
+    end
+
     class Name
       OBJECT_TYPE_TEMPLATE = {
         'C'               => ASN1::PRINTABLESTRING,
