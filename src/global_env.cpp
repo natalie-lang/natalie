@@ -7,6 +7,7 @@ static void last_regex_match_assignment_hook(Env *env, Object **current, Object 
     if (!object->is_match_data() && !object->is_nil())
         env->raise("TypeError", "wrong argument type {} (expected MatchData)", object->klass()->inspect_str());
     *current = object;
+    env->set_match(object);
     if (!object->is_nil()) {
         env->global_set("$`"_s, object->as_match_data()->pre_match(env));
         env->global_set("$'"_s, object->as_match_data()->post_match(env));
