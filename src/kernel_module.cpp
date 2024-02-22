@@ -92,28 +92,19 @@ Value KernelModule::catch_method(Env *env, Value name, Block *block) {
         env->raise("LocalJumpError", "no block given");
     if (!name) name = new Object {};
 
-    auto thread = ThreadObject::current();
-    if (!thread->has_thread_variable(env, "__catch_stack"_s))
-        thread->thread_variable_set(env, "__catch_stack"_s, new ArrayObject {});
-    auto catch_stack = thread->thread_variable_get(env, "__catch_stack"_s)->as_array();
-    catch_stack->push(name);
-    Defer pop_catch_stack { [&catch_stack] { catch_stack->pop(); } };
-
     try {
-        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, { name }, nullptr);
+        auto block_env = new Env { env };
+        block_env->set_catch(name);
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(block_env, block, { name }, nullptr);
     } catch (ThrowCatchException *e) {
         if (e->get_name()->equal(name)) {
             return e->get_value();
+        } else if (env->has_catch(e->get_name())) {
+            throw e;
         } else {
-            for (auto v : *catch_stack) {
-                if (e->get_name()->equal(v))
-                    throw e;
-            }
             env->raise("ArgumentError", "uncaught throw {}", e->get_name()->inspect_str(env));
         }
     }
-
-    NAT_UNREACHABLE();
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
@@ -760,8 +751,7 @@ Value KernelModule::this_method(Env *env) {
 }
 
 Value KernelModule::throw_method(Env *env, Value name, Value value) {
-    auto thread = ThreadObject::current();
-    if (!thread->has_thread_variable(env, "__catch_stack"_s) || thread->thread_variable_get(env, "__catch_stack"_s)->as_array()->is_empty()) {
+    if (!env->has_catch()) {
         auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
         auto exception = _new(env, klass, { name, value }, nullptr)->as_exception();
         env->raise_exception(exception);

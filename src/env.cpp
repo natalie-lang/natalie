@@ -210,6 +210,14 @@ void Env::raise_not_comparable_error(Value lhs, Value rhs) {
     raise("ArgumentError", std::move(message));
 }
 
+bool Env::has_catch() const {
+    return m_catch || (m_caller && m_caller->has_catch());
+}
+
+bool Env::has_catch(Value value) const {
+    return (m_catch && value->equal(m_catch)) || (m_caller && m_caller->has_catch(value)) || (m_outer && m_outer->has_catch(value));
+}
+
 void Env::warn(String message) {
     Value _stderr = global_get("$stderr"_s);
     message = String::format("warning: {}", message);
