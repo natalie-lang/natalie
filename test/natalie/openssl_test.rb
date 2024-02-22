@@ -13,6 +13,43 @@ describe "OpenSSL::OPENSSL_VERSION" do
   end
 end
 
+describe "OpenSSL::X509::Certificate#serial" do
+  it "can be set and queried with integer" do
+    cert = OpenSSL::X509::Certificate.new
+    cert.serial = 2
+    cert.serial.should == 2
+  end
+
+  it "can be set and queried with OpenSSL::BN" do
+    cert = OpenSSL::X509::Certificate.new
+    cert.serial = OpenSSL::BN.new(2)
+    cert.serial.should == OpenSSL::BN.new(2)
+  end
+
+  it "has a default serial" do
+    cert = OpenSSL::X509::Certificate.new
+    # Default serial might depend on OpenSSL settings/version, so just check the type
+    cert.serial.should be_kind_of(OpenSSL::BN)
+  end
+
+  it "does not require the serial to be positive" do
+    cert = OpenSSL::X509::Certificate.new
+    -> { cert.serial = -1 }.should_not raise_error
+  end
+
+  it "raises a TypeError on invalid input type" do
+    cert = OpenSSL::X509::Certificate.new
+    -> { cert.serial = Object.new }.should raise_error(TypeError, 'Cannot convert into OpenSSL::BN')
+  end
+
+  it "does not coerce the input with #to_int" do
+    serial = mock("version")
+    serial.should_not_receive(:to_int)
+    cert = OpenSSL::X509::Certificate.new
+    -> { cert.serial = serial }.should raise_error(TypeError, 'Cannot convert into OpenSSL::BN')
+  end
+end
+
 describe "OpenSSL::X509::Certificate#version" do
   it "can be set and queried" do
     cert = OpenSSL::X509::Certificate.new

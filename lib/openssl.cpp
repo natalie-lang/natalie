@@ -414,7 +414,39 @@ Value OpenSSL_X509_Certificate_initialize(Env *env, Value self, Args args, Block
         OpenSSL_raise_error(env, "X509_new");
     self->ivar_set(env, "@x509"_s, new VoidPObject { x509, OpenSSL_X509_cleanup });
 
+    self->send(env, "serial="_s, { Value::integer(0) });
+
     return self;
+}
+
+Value OpenSSL_X509_Certificate_serial(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    const auto asn1_serial = X509_get0_serialNumber(x509);
+    uint64_t serial;
+    if (!ASN1_INTEGER_get_uint64(&serial, asn1_serial))
+        OpenSSL_raise_error(env, "ASN1_INTEGER_get_uint64");
+
+    return Value::integer(serial);
+}
+
+Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+
+    const auto serial = static_cast<uint64_t>(args[0]->to_int(env)->to_nat_int_t());
+    auto asn1_serial = ASN1_INTEGER_new();
+    if (!asn1_serial)
+        OpenSSL_raise_error(env, "ASN1_INTEGER_new");
+    Defer asn1_serial_free { [&asn1_serial]() { ASN1_INTEGER_free(asn1_serial); } };
+    if (!ASN1_INTEGER_set_uint64(asn1_serial, serial))
+        OpenSSL_raise_error(env, "ASN1_INTEGER_set_uint64");
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_set_serialNumber(x509, asn1_serial))
+        OpenSSL_raise_error(env, "X509_set_serialNumber");
+
+    return args[0];
 }
 
 Value OpenSSL_X509_Certificate_version(Env *env, Value self, Args args, Block *) {
