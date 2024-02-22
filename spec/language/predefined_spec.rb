@@ -995,11 +995,9 @@ end
 
 describe "Global variable $?" do
   it "is read-only" do
-    NATFIXME 'is read-only', exception: SpecFailedException do
-      -> {
-        $? = nil
-      }.should raise_error(NameError)
-    end
+    -> {
+      $? = nil
+    }.should raise_error(NameError)
   end
 
   # NATFIXME: Threads, and a very ugly error when running this
