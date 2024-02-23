@@ -395,7 +395,14 @@ Value OpenSSL_SSL_SSLSocket_connect(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
     auto ssl = static_cast<SSL *>(self->ivar_get(env, "@ssl"_s)->as_void_p()->void_ptr());
     auto fd = self->ivar_get(env, "@io"_s)->as_io()->fileno();
-    const auto flags = fcntl(fd, F_GETFL);
+    auto flags = fcntl(fd, F_GETFL);
+    if (flags < 0)
+        env->raise_errno();
+    if (flags & O_NONBLOCK) {
+        flags &= ~O_NONBLOCK;
+        if (fcntl(fd, F_SETFL, flags) < 0)
+            env->raise_errno();
+    }
     if (!SSL_set_fd(ssl, fd))
         OpenSSL_raise_error(env, "SSL_set_fd");
     if (!SSL_connect(ssl))
