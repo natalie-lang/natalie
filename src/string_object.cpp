@@ -2877,6 +2877,15 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
     return this;
 }
 
+Value StringObject::dump(Env *env) {
+    auto result = new StringObject { m_encoding };
+    result->append(inspect(env));
+    if (!m_encoding->is_ascii_compatible()) {
+        result->append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
+    }
+    return result;
+}
+
 StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
     auto flags = check_case_options(env, arg1, arg2, Upcase);
     auto str = new StringObject { "", m_encoding };

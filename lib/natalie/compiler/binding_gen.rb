@@ -1227,6 +1227,7 @@ gen.binding('String', 'concat', 'StringObject', 'concat', argc: :any, pass_env: 
 gen.binding('String', 'count', 'StringObject', 'count', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete', 'StringObject', 'delete_str', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete!', 'StringObject', 'delete_in_place', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'dump', 'StringObject', 'dump', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'crypt', 'StringObject', 'crypt', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_prefix', 'StringObject', 'delete_prefix', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'delete_prefix!', 'StringObject', 'delete_prefix_in_place', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
