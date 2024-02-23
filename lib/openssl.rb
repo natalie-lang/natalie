@@ -151,6 +151,13 @@ module OpenSSL
   end
 
   module SSL
+    __constant__ 'SSL2_VERSION', 'int'
+    __constant__ 'SSL3_VERSION', 'int'
+    __constant__ 'TLS1_VERSION', 'int'
+    __constant__ 'TLS1_1_VERSION', 'int'
+    __constant__ 'TLS1_2_VERSION', 'int'
+    __constant__ 'TLS1_3_VERSION', 'int'
+
     class SSLContext
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
     end
