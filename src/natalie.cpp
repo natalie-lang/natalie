@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/global_variable_info/access_hooks.hpp"
 #include "natalie/value.hpp"
 #include <ctype.h>
 #include <math.h>
@@ -405,7 +406,7 @@ Env *build_top_env() {
 
     env->global_set("$/"_s, new StringObject { "\n", 1 });
 
-    env->global_set("$$"_s, Value::integer(getpid()));
+    GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
     env->global_set("$\""_s, new ArrayObject {}, true);
     env->global_alias("$LOADED_FEATURES"_s, "$\""_s);

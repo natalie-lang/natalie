@@ -20,7 +20,7 @@ bool GlobalEnv::global_defined(Env *env, SymbolObject *name) {
 
     auto info = m_global_variables.get(name, env);
     if (info)
-        return info->object();
+        return info->object(env);
     else
         return false;
 }
@@ -33,7 +33,7 @@ Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
 
     auto info = m_global_variables.get(name, env);
     if (info)
-        return info->object();
+        return info->object(env);
     else
         return NilObject::the();
 }
@@ -72,7 +72,7 @@ Value GlobalEnv::global_alias(Env *env, SymbolObject *new_name, SymbolObject *ol
         info = m_global_variables.get(old_name, env);
     }
     m_global_variables.put(new_name, info, env);
-    return info->object();
+    return info->object(env);
 }
 
 ArrayObject *GlobalEnv::global_list(Env *env) {
@@ -86,6 +86,18 @@ ArrayObject *GlobalEnv::global_list(Env *env) {
     result->push("$!"_s);
     result->push("$@"_s);
     return result;
+}
+
+void GlobalEnv::global_set_read_hook(Env *env, SymbolObject *name, bool readonly, GlobalVariableInfo::read_hook_t read_hook) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto info = m_global_variables.get(name, env);
+    if (!info) {
+        global_set(env, name, NilObject::the(), readonly);
+        info = m_global_variables.get(name, env);
+    }
+    assert(readonly == info->is_readonly());
+    info->set_read_hook(read_hook);
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) {
