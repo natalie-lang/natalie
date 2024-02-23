@@ -269,6 +269,38 @@ describe "OpenSSL::SSL::SSLContext" do
     # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
   end
 
+  describe "#max_version=" do
+    it "can be set using a constant" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.max_version = OpenSSL::SSL::TLS1_3_VERSION
+    end
+
+    it "can be set using a Symbol" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.max_version = :TLS1_3
+    end
+
+    it "can be set using a String" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.max_version = "TLS1_3"
+    end
+
+    it "cannot be set to a wrong numeric value" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> { context.max_version = 1 }.should raise_error(OpenSSL::SSL::SSLError, /SSL_CTX_set_max_proto_version/)
+    end
+
+    it "cannot be set to a wrong Symbol" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> { context.max_version = :MD5 }.should raise_error(ArgumentError, 'unrecognized version "MD5"')
+    end
+
+    it "cannot be set using the constant name as a Symbol" do
+      context = OpenSSL::SSL::SSLContext.new
+      -> { context.max_version = :TLS1_3_VERSION }.should raise_error(ArgumentError, 'unrecognized version "TLS1_3_VERSION"')
+    end
+  end
+
   describe "#min_version=" do
     it "can be set using a constant" do
       context = OpenSSL::SSL::SSLContext.new
@@ -298,6 +330,12 @@ describe "OpenSSL::SSL::SSLContext" do
     it "cannot be set using the constant name as a Symbol" do
       context = OpenSSL::SSL::SSLContext.new
       -> { context.min_version = :TLS1_3_VERSION }.should raise_error(ArgumentError, 'unrecognized version "TLS1_3_VERSION"')
+    end
+
+    it "can be set to versions conflicting with max" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.max_version = OpenSSL::SSL::TLS1_2_VERSION
+      context.min_version = OpenSSL::SSL::TLS1_3_VERSION
     end
   end
 end
