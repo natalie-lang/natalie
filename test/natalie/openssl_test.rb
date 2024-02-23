@@ -259,13 +259,15 @@ describe "OpenSSL::X509::Name" do
   end
 end
 
-describe "OpenSSL::SSL::SSLContext#initialize" do
-  it "can be constructed without arguments" do
-    context = OpenSSL::SSL::SSLContext.new
-    context.should be_kind_of(OpenSSL::SSL::SSLContext)
-  end
+describe "OpenSSL::SSL::SSLContext" do
+  describe ".new" do
+    it "can be constructed without arguments" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.should be_kind_of(OpenSSL::SSL::SSLContext)
+    end
 
-  # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
+    # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
+  end
 end
 
 describe "OpenSSL::SSL::SSLSocket#initialize" do
