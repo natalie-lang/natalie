@@ -75,6 +75,13 @@ static void OpenSSL_X509_Certificate_raise_error(Env *env, const char *func) {
     OpenSSL_raise_error(env, func, CertificateError->as_class());
 }
 
+static void OpenSSL_SSL_raise_error(Env *env, const char *func) {
+    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
+    static auto SSL = OpenSSL->const_get("SSL"_s);
+    static auto SSLError = SSL->const_get("SSLError"_s);
+    OpenSSL_raise_error(env, func, SSLError->as_class());
+}
+
 static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
     static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
     static auto X509 = OpenSSL->const_get("X509"_s);
@@ -359,6 +366,25 @@ Value OpenSSL_SSL_SSLContext_initialize(Env *env, Value self, Args args, Block *
         OpenSSL_raise_error(env, "SSL_CTX_new");
     self->ivar_set(env, "@ctx"_s, new VoidPObject { ctx, OpenSSL_SSL_CTX_cleanup });
     return self;
+}
+
+Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto version = args[0];
+
+    if (version->is_string() || version->is_symbol()) {
+        version = StringObject::format("{}_VERSION", version->to_s(env)->string());
+        const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
+        version = SSL->const_get(version->as_string()->to_sym(env)->as_symbol());
+        if (!version)
+            env->raise("ArgumentError", "unrecognized version \"{}\"", args[0]->to_s(env)->string());
+    }
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    if (!SSL_CTX_set_min_proto_version(ctx, IntegerObject::convert_to_int(env, version)))
+        OpenSSL_SSL_raise_error(env, "SSL_CTX_set_min_proto_version");
+
+    return args[0];
 }
 
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {

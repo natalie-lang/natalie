@@ -158,8 +158,11 @@ module OpenSSL
     __constant__ 'TLS1_2_VERSION', 'int'
     __constant__ 'TLS1_3_VERSION', 'int'
 
+    class SSLError < OpenSSLError; end
+
     class SSLContext
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
+      __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
     end
 
     class SSLSocket
