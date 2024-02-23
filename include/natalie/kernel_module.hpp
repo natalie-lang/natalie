@@ -40,6 +40,7 @@ public:
     static Value binding(Env *env);
     static Value caller(Env *env, Value start = nullptr, Value length = nullptr);
     static Value caller_locations(Env *env, Value start = nullptr, Value length = nullptr);
+    static Value catch_method(Env *, Value = nullptr, Block * = nullptr);
     static Value Complex(Env *env, Value real, Value imaginary, Value exception);
     static Value Complex(Env *env, Value real, Value imaginary, bool exception = true);
     static Value cur_dir(Env *env);
@@ -69,6 +70,7 @@ public:
     static Value String(Env *env, Value value);
     static Value test(Env *, Value, Value);
     static Value this_method(Env *env);
+    static Value throw_method(Env *, Value, Value = nullptr);
     static bool block_given(Env *env, Block *block) { return !!block; }
 
     Value define_singleton_method(Env *env, Value name, Block *block);

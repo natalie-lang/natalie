@@ -86,6 +86,9 @@ public:
         raise(class_name, message);
     }
 
+    void set_catch(Value value) { m_catch = value; }
+    bool has_catch(Value value) const;
+
     void warn(String);
 
     template <typename... Args>
@@ -180,5 +183,6 @@ private:
     const ModuleObject *m_module { nullptr };
     Value m_match { nullptr };
     ExceptionObject *m_exception { nullptr };
+    Value m_catch { nullptr };
 };
 }

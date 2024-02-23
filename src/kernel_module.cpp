@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/thread_object.hpp"
+#include "natalie/throw_catch_exception.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -84,6 +85,24 @@ Value KernelModule::caller_locations(Env *env, Value start, Value length) {
             ary = ary->first(env, length)->as_array();
     }
     return ary;
+}
+
+Value KernelModule::catch_method(Env *env, Value name, Block *block) {
+    if (!block)
+        env->raise("LocalJumpError", "no block given");
+    if (!name) name = new Object {};
+
+    try {
+        auto block_env = new Env { env };
+        block_env->set_catch(name);
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(block_env, block, { name }, nullptr);
+    } catch (ThrowCatchException *e) {
+        if (e->get_name()->equal(name)) {
+            return e->get_value();
+        } else {
+            throw e;
+        }
+    }
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value exception) {
@@ -727,6 +746,17 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
 Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
     return SymbolObject::intern(method->name());
+}
+
+Value KernelModule::throw_method(Env *env, Value name, Value value) {
+    if (!env->has_catch(name)) {
+        auto klass = GlobalEnv::the()->Object()->const_fetch("UncaughtThrowError"_s)->as_class();
+        auto message = StringObject::format("uncaught throw {}", name->inspect_str(env));
+        auto exception = _new(env, klass, { name, value, message }, nullptr)->as_exception();
+        env->raise_exception(exception);
+    }
+
+    throw new ThrowCatchException { name, value };
 }
 
 }
