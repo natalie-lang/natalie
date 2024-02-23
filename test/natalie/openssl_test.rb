@@ -57,6 +57,28 @@ describe "OpenSSL::X509::Certificate" do
     end
   end
 
+  describe "OpenSSL::X509::Certificate#public_key" do
+    it "can be set and queried with OpenSSL::PKey::RSA" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      cert.public_key = key.public_key
+      cert.public_key.export.should == key.public_key.export
+    end
+
+    it "has no default value" do
+      cert = OpenSSL::X509::Certificate.new
+      -> { cert.public_key }.should raise_error(OpenSSL::X509::CertificateError)
+    end
+
+    it "cannot be set with String" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.public_key = key.public_key.to_s
+      }.should raise_error(TypeError, "wrong argument type String (expected OpenSSL/EVP_PKEY)")
+    end
+  end
+
   describe "OpenSSL::X509::Certificate#serial" do
     it "can be set and queried with integer" do
       cert = OpenSSL::X509::Certificate.new
