@@ -55,37 +55,29 @@ static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
 }
 
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
-    static auto OpenSSLError = GlobalEnv::the()->Object()->const_get("OpenSSL"_s)->const_get("OpenSSLError"_s)->as_class();
-    if (!klass) klass = OpenSSLError;
+    if (!klass)
+        klass = fetch_nested_const({ "OpenSSL"_s, "OpenSSLError"_s })->as_class();
     env->raise(klass, "{}: {}", func, ERR_reason_error_string(ERR_get_error()));
 }
 
 static void OpenSSL_Cipher_raise_error(Env *env, const char *func) {
-    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    static auto Cipher = OpenSSL->const_get("Cipher"_s);
-    static auto CipherError = Cipher->const_get("CipherError"_s);
-    OpenSSL_raise_error(env, func, CipherError->as_class());
+    auto CipherError = fetch_nested_const({ "OpenSSL"_s, "Cipher"_s, "CipherError"_s })->as_class();
+    OpenSSL_raise_error(env, func, CipherError);
 }
 
 static void OpenSSL_X509_Certificate_raise_error(Env *env, const char *func) {
-    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    static auto X509 = OpenSSL->const_get("X509"_s);
-    static auto CertificateError = X509->const_get("CertificateError"_s);
-    OpenSSL_raise_error(env, func, CertificateError->as_class());
+    auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
+    OpenSSL_raise_error(env, func, CertificateError);
 }
 
 static void OpenSSL_SSL_raise_error(Env *env, const char *func) {
-    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    static auto SSL = OpenSSL->const_get("SSL"_s);
-    static auto SSLError = SSL->const_get("SSLError"_s);
-    OpenSSL_raise_error(env, func, SSLError->as_class());
+    auto SSLError = fetch_nested_const({ "OpenSSL"_s, "SSL"_s, "SSLError"_s })->as_class();
+    OpenSSL_raise_error(env, func, SSLError);
 }
 
 static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
-    static auto OpenSSL = GlobalEnv::the()->Object()->const_get("OpenSSL"_s);
-    static auto X509 = OpenSSL->const_get("X509"_s);
-    static auto NameError = X509->const_get("NameError"_s);
-    OpenSSL_raise_error(env, func, NameError->as_class());
+    auto NameError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "NameError"_s })->as_class();
+    OpenSSL_raise_error(env, func, NameError);
 }
 
 static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
