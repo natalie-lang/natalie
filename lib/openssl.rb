@@ -86,6 +86,9 @@ module OpenSSL
 
     __bind_method__ :initialize, :OpenSSL_BN_initialize
     __bind_method__ :<=>, :OpenSSL_BN_cmp
+    __bind_method__ :to_i, :OpenSSL_BN_to_i
+
+    alias to_int to_i
   end
 
   module Random

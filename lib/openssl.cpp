@@ -930,6 +930,16 @@ Value OpenSSL_BN_cmp(Env *env, Value self, Args args, Block *) {
     return Value::integer(BN_cmp(bn, other_bn));
 }
 
+Value OpenSSL_BN_to_i(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto bn = static_cast<BIGNUM *>(self->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
+    auto str = BN_bn2dec(bn);
+    if (!str)
+        OpenSSL_raise_error(env, "BN_bn2dec");
+    Defer str_free { [str] { OPENSSL_free(str); } };
+    return IntegerObject::create(str);
+}
+
 Value OpenSSL_Random_random_bytes(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     Value length = args[0]->to_int(env);

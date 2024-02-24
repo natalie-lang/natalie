@@ -37,6 +37,13 @@ describe "OpenSSL::BN" do
       OpenSSL::BN.new(1234).should != 4321
     end
   end
+
+  describe "OpenSSL::BN#to_i" do
+    it "returns the value as an Integer" do
+      bn = OpenSSL::BN.new(1234)
+      bn.to_i.should == 1234
+    end
+  end
 end
 
 describe "OpenSSL::X509::Certificate" do
