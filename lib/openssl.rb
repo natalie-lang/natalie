@@ -151,8 +151,19 @@ module OpenSSL
   end
 
   module SSL
+    __constant__ 'SSL2_VERSION', 'int'
+    __constant__ 'SSL3_VERSION', 'int'
+    __constant__ 'TLS1_VERSION', 'int'
+    __constant__ 'TLS1_1_VERSION', 'int'
+    __constant__ 'TLS1_2_VERSION', 'int'
+    __constant__ 'TLS1_3_VERSION', 'int'
+
+    class SSLError < OpenSSLError; end
+
     class SSLContext
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
+      __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
+      __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
     end
 
     class SSLSocket
