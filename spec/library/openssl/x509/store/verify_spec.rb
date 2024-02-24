@@ -14,8 +14,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.not_after = cert.not_before + 365 * 24 * 60 * 60
     cert.sign key, OpenSSL::Digest.new('SHA256')
     store = OpenSSL::X509::Store.new
-    NATFIXME 'Implement OpenSSL::X509::Store#add_cert', exception: NoMethodError, message: "undefined method `add_cert' for an instance of OpenSSL::X509::Store" do
-      store.add_cert(cert)
+    store.add_cert(cert)
+    NATFIXME 'Implement OpenSSL::X509::Store#verify', exception: NoMethodError, message: "undefined method `verify' for an instance of OpenSSL::X509::Store" do
       [store.verify(cert), store.error, store.error_string].should == [true, 0, "ok"]
     end
   end
@@ -32,8 +32,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.not_after = Time.now - 5
     cert.sign key, OpenSSL::Digest.new('SHA256')
     store = OpenSSL::X509::Store.new
-    NATFIXME 'Implement OpenSSL::X509::Store#add_cert', exception: NoMethodError, message: "undefined method `add_cert' for an instance of OpenSSL::X509::Store" do
-      store.add_cert(cert)
+    store.add_cert(cert)
+    NATFIXME 'Implement OpenSSL::X509::Store#verify', exception: NoMethodError, message: "undefined method `verify' for an instance of OpenSSL::X509::Store" do
       store.verify(cert).should == false
     end
   end

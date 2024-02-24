@@ -470,6 +470,19 @@ describe "OpenSSL::X509::Store" do
     end
   end
 
+  describe "#add_cert" do
+    it "can be called with a OpenSSL::X509::Certificate" do
+      cert = OpenSSL::X509::Certificate.new
+      store = OpenSSL::X509::Store.new
+      store.add_cert(cert).should == store
+    end
+
+    it "cannot be called with other objects" do
+      store = OpenSSL::X509::Store.new
+      -> { store.add_cert("cert") }.should raise_error(TypeError, "wrong argument type String (expected OpenSSL/X509)")
+    end
+  end
+
   describe "#set_default_paths" do
     it "can be called" do
       store = OpenSSL::X509::Store.new
