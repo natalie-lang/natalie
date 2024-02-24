@@ -106,9 +106,7 @@ static Value OpenSSL_PKey_new(Env *env, EVP_PKEY *value) {
     if (!copy)
         OpenSSL_raise_error(env, "X509_PKEY_dup");
     ClassObject *klass = nullptr;
-    BIGNUM *tmp = nullptr;
-    if (EVP_PKEY_get_bn_param(value, OSSL_PKEY_PARAM_RSA_N, &tmp)) {
-        BN_clear_free(tmp);
+    if (EVP_PKEY_is_a(value, "RSA")) {
         klass = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "RSA"_s })->as_class();
     }
     if (!klass)
