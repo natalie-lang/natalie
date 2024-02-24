@@ -43,12 +43,10 @@ describe "String#inspect" do
   end
 
   it "returns a string with \\#<char> when # is followed by $, @, {" do
-    NATFIXME 'returns a string with \\#<char> when # is followed by $, @, {', exception: SpecFailedException do
-      [ ["\#$", '"\\#$"'],
-        ["\#@", '"\\#@"'],
-        ["\#{", '"\\#{"']
-      ].should be_computed_by(:inspect)
-    end
+    [ ["\#$", '"\\#$"'],
+      ["\#@", '"\\#@"'],
+      ["\#{", '"\\#{"']
+    ].should be_computed_by(:inspect)
   end
 
   it "returns a string with # not escaped when followed by any other character" do

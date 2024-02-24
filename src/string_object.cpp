@@ -502,7 +502,7 @@ StringObject *StringObject::inspect(Env *env) {
     for (size_t i = 0; i < len; i++) {
         unsigned char c = m_string[i];
         char c2 = (i + 1) < len ? m_string[i + 1] : 0;
-        if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
+        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
             out->append_char('\\');
             out->append_char(c);
         } else if (c == '\a') {
