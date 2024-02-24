@@ -338,6 +338,33 @@ describe "OpenSSL::SSL::SSLContext" do
       context.min_version = OpenSSL::SSL::TLS1_3_VERSION
     end
   end
+
+  describe "#security_level" do
+    it "has a default value" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.security_level.should be_kind_of(Integer)
+    end
+
+    it "can be set to an integer" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.security_level = 2
+      context.security_level.should == 2
+    end
+
+    it "converts the input with #to_int" do
+      security_level = mock("security level")
+      security_level.should_receive(:to_int).and_return(2)
+      context = OpenSSL::SSL::SSLContext.new
+      context.security_level = security_level
+      context.security_level.should == 2
+    end
+
+    it "can be set to any integer value" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.security_level = -2
+      context.security_level.should == -2
+    end
+  end
 end
 
 describe "OpenSSL::SSL::SSLSocket#initialize" do
