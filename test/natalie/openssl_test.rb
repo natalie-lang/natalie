@@ -15,9 +15,29 @@ end
 
 describe "OpenSSL::BN" do
   describe "OpenSSL::BN.new" do
-    it "can be constructed with an integer in the int64 range" do
+    it "can be constructed with an Integer" do
       bn = OpenSSL::BN.new(1234)
       bn.should be_kind_of(OpenSSL::BN)
+
+      bn = OpenSSL::BN.new(1 << 30) # Natalie Bignum type
+      bn.should be_kind_of(OpenSSL::BN)
+    end
+
+    it "can be constructor with a different BN object" do
+      bn = OpenSSL::BN.new(1234)
+      bn.should == OpenSSL::BN.new(bn)
+    end
+
+    it "can be constructed with a String" do
+      bn = OpenSSL::BN.new("1234")
+      bn.should be_kind_of(OpenSSL::BN)
+      bn.to_i.should == 1234
+    end
+
+    it "can be constructed with a String with a base" do
+      bn = OpenSSL::BN.new("1234", 16)
+      bn.should be_kind_of(OpenSSL::BN)
+      bn.to_i.should == 0x1234
     end
   end
 
@@ -30,6 +50,22 @@ describe "OpenSSL::BN" do
     it "can compare a OpenSSL::BN instance to an Integer" do
       OpenSSL::BN.new(1234).should == 1234
       OpenSSL::BN.new(1234).should != 4321
+    end
+
+    it "can compare a OpenSSL::BN instance to a Natalie Bignum type" do
+      OpenSSL::BN.new(1 << 30).should == 1 << 30
+    end
+  end
+
+  describe "OpenSSL::BN#to_i" do
+    it "returns the value as an Integer" do
+      bn = OpenSSL::BN.new(1234)
+      bn.to_i.should == 1234
+    end
+
+    it "supports the Natalie Bignum type" do
+      bn = OpenSSL::BN.new(1 << 30)
+      bn.to_i.should == 1 << 30
     end
   end
 end
