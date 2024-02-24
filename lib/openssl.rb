@@ -177,6 +177,8 @@ module OpenSSL
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
       __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
 
+      attr_accessor :cert_store
+
       alias freeze setup
     end
 

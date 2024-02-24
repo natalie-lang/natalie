@@ -488,6 +488,37 @@ describe "OpenSSL::SSL::SSLContext" do
     # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
   end
 
+  describe "#cert_store" do
+    it "can be set using a Store" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should be_kind_of(OpenSSL::X509::Store)
+    end
+
+    it "returns the same object" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should equal(cert_store)
+    end
+
+    it "saves the Store as an instance variable" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.instance_variables.should_not.include?(:@cert_store)
+      context.cert_store = cert_store
+      context.instance_variables.should.include?(:@cert_store)
+    end
+
+    it "can be set to any type (It raises an exception when calling setup)" do
+      cert_store = Object.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should == cert_store
+    end
+  end
+
   describe "#max_version=" do
     it "can be set using a constant" do
       context = OpenSSL::SSL::SSLContext.new
@@ -603,6 +634,13 @@ describe "OpenSSL::SSL::SSLContext" do
       context = OpenSSL::SSL::SSLContext.new
       context.setup
       context.setup.should be_nil
+    end
+
+    it "validates the cert_store object" do
+      cert_store = Object.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      -> { context.setup }.should raise_error(TypeError, "wrong argument type Object (expected OpenSSL/X509/STORE)")
     end
   end
 end

@@ -448,6 +448,16 @@ Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
 
     self->freeze();
 
+    auto cert_store = self->ivar_get(env, "@cert_store"_s);
+    if (!cert_store->is_nil()) {
+        auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
+        if (!cert_store->is_a(env, Store))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store->klass()->inspect_str());
+        auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+        auto store = static_cast<X509_STORE *>(cert_store->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+        SSL_CTX_set1_cert_store(ctx, store);
+    }
+
     return TrueObject::the();
 }
 
