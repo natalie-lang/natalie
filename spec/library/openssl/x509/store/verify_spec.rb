@@ -11,8 +11,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.issuer = cert.subject
     cert.public_key = key.public_key
     cert.not_before = Time.now - 10
-    NATFIXME 'Implement OpenSSL::X509::Certificate#not_after=', exception: NoMethodError, message: "undefined method `not_after=' for an instance of OpenSSL::X509::Certificate" do
-      cert.not_after = cert.not_before + 365 * 24 * 60 * 60
+    cert.not_after = cert.not_before + 365 * 24 * 60 * 60
+    NATFIXME 'Implement OpenSSL::X509::Certificate#sign', exception: NoMethodError, message: "undefined method `sign' for an instance of OpenSSL::X509::Certificate" do
       cert.sign key, OpenSSL::Digest.new('SHA256')
       store = OpenSSL::X509::Store.new
       store.add_cert(cert)
@@ -29,8 +29,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.issuer = cert.subject
     cert.public_key = key.public_key
     cert.not_before = Time.now - 10
-    NATFIXME 'Implement OpenSSL::X509::Certificate#not_after=', exception: NoMethodError, message: "undefined method `not_after=' for an instance of OpenSSL::X509::Certificate" do
-      cert.not_after = Time.now - 5
+    cert.not_after = Time.now - 5
+    NATFIXME 'Implement OpenSSL::X509::Certificate#sign', exception: NoMethodError, message: "undefined method `sign' for an instance of OpenSSL::X509::Certificate" do
       cert.sign key, OpenSSL::Digest.new('SHA256')
       store = OpenSSL::X509::Store.new
       store.add_cert(cert)
@@ -47,8 +47,8 @@ describe "OpenSSL::X509::Store#verify" do
     root_cert.issuer = root_cert.subject
     root_cert.public_key = root_key.public_key
     root_cert.not_before = Time.now - 10
-    NATFIXME 'Implement OpenSSL::X509::Certificate#not_after=', exception: NoMethodError, message: "undefined method `not_after=' for an instance of OpenSSL::X509::Certificate" do
-      root_cert.not_after = Time.now - 5
+    root_cert.not_after = Time.now - 5
+    NATFIXME 'Implement OpenSSL::X509::ExtensionFactory', exception: NameError, message: 'uninitialized constant OpenSSL::X509::ExtensionFactory' do
       ef = OpenSSL::X509::ExtensionFactory.new
       ef.subject_certificate = root_cert
       ef.issuer_certificate = root_cert
