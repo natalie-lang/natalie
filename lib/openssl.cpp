@@ -440,6 +440,23 @@ Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args,
     return args[0];
 }
 
+Value OpenSSL_SSL_SSLContext_verify_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    auto verify_mode = SSL_CTX_get_verify_mode(ctx);
+    return Value::integer(verify_mode);
+}
+
+Value OpenSSL_SSL_SSLContext_set_verify_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto verify_mode = args[0]->to_int(env)->to_nat_int_t();
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL_CTX_set_verify(ctx, verify_mode, nullptr);
+
+    return args[0];
+}
+
 Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 

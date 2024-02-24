@@ -12,7 +12,8 @@ TCPSocket.open('natalie-lang.org', 443) do |sock|
   ssl_context = OpenSSL::SSL::SSLContext.new
   ssl_context.min_version = :TLS1_3
   ssl_context.max_version = :TLS1_3
-  ssl_context.security_level = 3
+  ssl_context.security_level = 2
+  ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
   ssl_context.cert_store = cert_store
 
   ssl_sock = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)

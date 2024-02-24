@@ -167,6 +167,12 @@ module OpenSSL
     __constant__ 'TLS1_2_VERSION', 'int'
     __constant__ 'TLS1_3_VERSION', 'int'
 
+    __constant__ 'VERIFY_NONE', 'int', 'SSL_VERIFY_NONE'
+    __constant__ 'VERIFY_PEER', 'int', 'SSL_VERIFY_PEER'
+    __constant__ 'VERIFY_FAIL_IF_NO_PEER_CERT', 'int', 'SSL_VERIFY_FAIL_IF_NO_PEER_CERT'
+    __constant__ 'VERIFY_CLIENT_ONCE', 'int', 'SSL_VERIFY_CLIENT_ONCE'
+    __constant__ 'VERIFY_POST_HANDSHAKE', 'int', 'SSL_VERIFY_POST_HANDSHAKE'
+
     class SSLError < OpenSSLError; end
 
     class SSLContext
@@ -176,6 +182,8 @@ module OpenSSL
       __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
       __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
+      __bind_method__ :verify_mode, :OpenSSL_SSL_SSLContext_verify_mode
+      __bind_method__ :verify_mode=, :OpenSSL_SSL_SSLContext_set_verify_mode
 
       attr_accessor :cert_store
 
