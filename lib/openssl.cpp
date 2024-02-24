@@ -1,4 +1,3 @@
-#include <limits>
 #include <openssl/asn1.h>
 #include <openssl/bn.h>
 #include <openssl/core_names.h>
@@ -880,19 +879,12 @@ Value init_openssl(Env *env, Value self) {
 }
 
 Value OpenSSL_BN_initialize(Env *env, Value self, Args args, Block *) {
-    args.ensure_argc_between(env, 1, 2);
-    auto arg = args[0];
-    if (arg->is_string()) {
-        arg = KernelModule::Integer(env, arg, args.at(1, nullptr), (Value)TrueObject::the());
-    } else {
-        args.ensure_argc_is(env, 1);
-    }
-
     auto bn = BN_secure_new();
     if (!bn)
         OpenSSL_raise_error(env, "BN_secure_new");
     self->ivar_set(env, "@bn"_s, new VoidPObject { bn, OpenSSL_BN_cleanup });
 
+    auto arg = args.at(0, NilObject::the());
     if (arg->is_a(env, self->klass())) {
         args.ensure_argc_is(env, 1);
         auto from = static_cast<BIGNUM *>(args[0]->ivar_get(env, "@bn"_s)->as_void_p()->void_ptr());
@@ -900,20 +892,23 @@ Value OpenSSL_BN_initialize(Env *env, Value self, Args args, Block *) {
             OpenSSL_raise_error(env, "BN_copy");
     } else if (arg->is_integer()) {
         args.ensure_argc_is(env, 1);
-        if (arg->as_integer()->is_bignum())
-            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Bignum)");
-        const auto int_arg = arg->as_integer()->to_nat_int_t();
-        if (int_arg < std::numeric_limits<int64_t>::min() || int_arg > std::numeric_limits<int64_t>::max())
-            env->raise("NotImplementedError", "TODO: OpenSSL::BN.new(Integer) with argument outsize int64_t");
-        auto asn1 = ASN1_INTEGER_new();
-        if (!asn1)
-            OpenSSL_raise_error(env, "ASN1_INTEGER_new");
-        Defer asn1_free { [&asn1]() { ASN1_INTEGER_free(asn1); } };
-        if (!ASN1_INTEGER_set_int64(asn1, static_cast<int64_t>(int_arg)))
-            OpenSSL_raise_error(env, "ASN1_INTEGER_set_int64");
-        if (!ASN1_INTEGER_to_BN(asn1, bn))
-            OpenSSL_raise_error(env, "ASN1_INTEGER_to_BN");
+        const auto str = arg->as_integer()->to_s();
+        if (!BN_dec2bn(&bn, str.c_str()))
+            OpenSSL_raise_error(env, "BN_dec2bn");
+    } else if (arg->is_string()) {
+        args.ensure_argc_between(env, 1, 2);
+        if (args.size() == 1 || args[1]->is_nil()) {
+            if (!BN_dec2bn(&bn, arg->as_string()->c_str()))
+                OpenSSL_raise_error(env, "BN_dec2bn");
+        } else {
+            // No support in OpenSSL libs to add a base argument, so convert string to int with base, and convert int back to string
+            arg = KernelModule::Integer(env, arg, args[1], (Value)TrueObject::the());
+            const auto str = arg->as_integer()->to_s();
+            if (!BN_dec2bn(&bn, str.c_str()))
+                OpenSSL_raise_error(env, "BN_dec2bn");
+        }
     } else {
+        args.ensure_argc_is(env, 1);
         env->raise("TypeError", "Cannot convert into OpenSSL::BN");
     }
 
