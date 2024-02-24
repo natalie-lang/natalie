@@ -54,6 +54,11 @@ static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
     X509_NAME_free(name);
 }
 
+static void OpenSSL_X509_STORE_cleanup(VoidPObject *self) {
+    auto store = static_cast<X509_STORE *>(self->void_ptr());
+    X509_STORE_free(store);
+}
+
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
     if (!klass)
         klass = fetch_nested_const({ "OpenSSL"_s, "OpenSSLError"_s })->as_class();
@@ -78,6 +83,11 @@ static void OpenSSL_SSL_raise_error(Env *env, const char *func) {
 static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
     auto NameError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "NameError"_s })->as_class();
     OpenSSL_raise_error(env, func, NameError);
+}
+
+static void OpenSSL_X509_Store_raise_error(Env *env, const char *func) {
+    auto StoreError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "StoreError"_s })->as_class();
+    OpenSSL_raise_error(env, func, StoreError);
 }
 
 static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
@@ -1161,4 +1171,13 @@ Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args args, Block *) {
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     return Value::integer(X509_NAME_cmp(name, other_name));
+}
+
+Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    X509_STORE *store = X509_STORE_new();
+    if (!store)
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_new");
+    self->ivar_set(env, "@store"_s, new VoidPObject { store, OpenSSL_X509_STORE_cleanup });
+    return self;
 }

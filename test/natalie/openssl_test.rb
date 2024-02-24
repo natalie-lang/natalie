@@ -462,6 +462,15 @@ describe "OpenSSL::X509::Name" do
   end
 end
 
+describe "OpenSSL::X509::Store" do
+  describe ".new" do
+    it "can be constructed without arguments" do
+      store = OpenSSL::X509::Store.new
+      store.should be_kind_of(OpenSSL::X509::Store)
+    end
+  end
+end
+
 describe "OpenSSL::SSL::SSLContext" do
   describe ".new" do
     it "can be constructed without arguments" do

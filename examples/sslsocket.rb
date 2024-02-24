@@ -6,10 +6,13 @@ require 'openssl'
 
 # Warning: OpenSSL support is a work in progress and should not be used for anything other than testing.
 TCPSocket.open('natalie-lang.org', 443) do |sock|
+  cert_store = OpenSSL::X509::Store.new
+
   ssl_context = OpenSSL::SSL::SSLContext.new
   ssl_context.min_version = :TLS1_3
   ssl_context.max_version = :TLS1_3
   ssl_context.security_level = 3
+
   ssl_sock = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
   ssl_sock.connect
 

@@ -216,6 +216,7 @@ module OpenSSL
   module X509
     class CertificateError < OpenSSLError; end
     class NameError < OpenSSLError; end
+    class StoreError < OpenSSLError; end
 
     class Certificate
       __bind_method__ :initialize, :OpenSSL_X509_Certificate_initialize
@@ -274,6 +275,10 @@ module OpenSSL
 
         alias parse parse_openssl
       end
+    end
+
+    class Store
+      __bind_method__ :initialize, :OpenSSL_X509_Store_initialize
     end
   end
 end
