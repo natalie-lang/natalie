@@ -19,6 +19,11 @@ describe "OpenSSL::BN" do
       bn = OpenSSL::BN.new(1234)
       bn.should be_kind_of(OpenSSL::BN)
     end
+
+    it "can be constructor with a different BN object" do
+      bn = OpenSSL::BN.new(1234)
+      bn.should == OpenSSL::BN.new(bn)
+    end
   end
 
   describe "OpenSSL::BN#<=>" do
