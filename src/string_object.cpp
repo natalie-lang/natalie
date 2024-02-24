@@ -497,11 +497,24 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
 }
 
 StringObject *StringObject::inspect(Env *env) {
-    size_t len = length();
     StringObject *out = new StringObject { "\"" };
-    for (size_t i = 0; i < len; i++) {
-        unsigned char c = m_string[i];
-        char c2 = (i + 1) < len ? m_string[i + 1] : 0;
+
+    size_t index = 0;
+    auto [valid, ch] = next_char_result(&index);
+    while (!ch.is_empty()) {
+        if (!valid) {
+            for (size_t i = 0; i < ch.size(); i++)
+                out->append_sprintf("\\x%02X", static_cast<uint8_t>(ch[i]));
+            auto pair = next_char_result(&index);
+            valid = pair.first;
+            ch = pair.second;
+            continue;
+        }
+        const auto c = m_encoding->decode_codepoint(ch);
+        auto pair = next_char_result(&index);
+        valid = pair.first;
+        const auto c2 = !valid || ch.is_empty() ? 0 : m_encoding->decode_codepoint(pair.second);
+
         if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
             out->append_char('\\');
             out->append_char(c);
@@ -525,9 +538,11 @@ StringObject *StringObject::inspect(Env *env) {
             auto escaped_char = m_encoding->escaped_char(c);
             out->append(escaped_char);
         } else {
-            out->append_char(c);
+            out->append(ch);
         }
+        ch = pair.second;
     }
+
     out->append_char('"');
     return out;
 }
