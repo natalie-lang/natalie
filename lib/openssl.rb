@@ -279,6 +279,7 @@ module OpenSSL
 
     class Store
       __bind_method__ :initialize, :OpenSSL_X509_Store_initialize
+      __bind_method__ :set_default_paths, :OpenSSL_X509_Store_set_default_paths
     end
   end
 end

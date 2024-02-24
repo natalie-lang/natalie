@@ -469,6 +469,13 @@ describe "OpenSSL::X509::Store" do
       store.should be_kind_of(OpenSSL::X509::Store)
     end
   end
+
+  describe "#set_default_paths" do
+    it "can be called" do
+      store = OpenSSL::X509::Store.new
+      store.set_default_paths.should be_nil
+    end
+  end
 end
 
 describe "OpenSSL::SSL::SSLContext" do

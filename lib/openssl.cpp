@@ -1181,3 +1181,11 @@ Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args args, Block *) {
     self->ivar_set(env, "@store"_s, new VoidPObject { store, OpenSSL_X509_STORE_cleanup });
     return self;
 }
+
+Value OpenSSL_X509_Store_set_default_paths(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+    if (!X509_STORE_set_default_paths(store))
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_set_default_paths");
+    return NilObject::the();
+}
