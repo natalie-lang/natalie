@@ -612,6 +612,82 @@ Value OpenSSL_X509_Certificate_set_issuer(Env *env, Value self, Args args, Block
     return args[0];
 }
 
+Value OpenSSL_X509_Certificate_not_after(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto time = X509_get0_notAfter(x509);
+    if (!time)
+        OpenSSL_raise_error(env, "X509_get0_notAfter");
+    tm tm;
+    if (!ASN1_TIME_to_tm(time, &tm))
+        return NilObject::the();
+
+    auto Time = find_top_level_const(env, "Time"_s)->as_class();
+    time_t time_since_epoch = mktime(&tm);
+    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
+}
+
+Value OpenSSL_X509_Certificate_set_not_after(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto time = args[0];
+
+    auto Time = find_top_level_const(env, "Time"_s)->as_class();
+    if (!time->is_a(env, Time)) {
+        time = KernelModule::Integer(env, time, 0, true);
+        time = Time->send(env, "at"_s, { time });
+    }
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env)->as_integer()->to_nat_int_t());
+    if (!asn1)
+        OpenSSL_raise_error(env, "ASN1_TIME_set");
+    Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_set1_notAfter(x509, asn1))
+        OpenSSL_raise_error(env, "X509_set1_notAfter");
+
+    return args[0];
+}
+
+Value OpenSSL_X509_Certificate_not_before(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto time = X509_get0_notBefore(x509);
+    if (!time)
+        OpenSSL_raise_error(env, "X509_get0_notBefore");
+    tm tm;
+    if (!ASN1_TIME_to_tm(time, &tm))
+        return NilObject::the();
+
+    auto Time = find_top_level_const(env, "Time"_s)->as_class();
+    time_t time_since_epoch = mktime(&tm);
+    auto kwargs = new HashObject { env, { "in"_s, Value::integer(0) } };
+    return Time->send(env, "at"_s, Args { { Value::integer(time_since_epoch), kwargs }, true });
+}
+
+Value OpenSSL_X509_Certificate_set_not_before(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto time = args[0];
+
+    auto Time = find_top_level_const(env, "Time"_s)->as_class();
+    if (!time->is_a(env, Time)) {
+        time = KernelModule::Integer(env, time, 0, true);
+        time = Time->send(env, "at"_s, { time });
+    }
+    ASN1_TIME *asn1 = ASN1_UTCTIME_set(nullptr, time->as_time()->to_i(env)->as_integer()->to_nat_int_t());
+    if (!asn1)
+        OpenSSL_raise_error(env, "ASN1_TIME_set");
+    Defer asn1_time_free { [asn1]() { ASN1_TIME_free(asn1); } };
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    if (!X509_set1_notBefore(x509, asn1))
+        OpenSSL_raise_error(env, "X509_set1_notBefore");
+
+    return args[0];
+}
+
 Value OpenSSL_X509_Certificate_public_key(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 

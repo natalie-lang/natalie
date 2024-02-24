@@ -93,6 +93,106 @@ describe "OpenSSL::X509::Certificate" do
     end
   end
 
+  describe "OpenSSL::X509::Certificate#not_after" do
+    before :each do
+      # Time compare with different timezones is broken in Natalie, so run this in UTC.
+      # The following code yields `true` in MRI, but `false` in Natalie:
+      #
+      #     Time.new(2024, 1, 1, 0, 0, 0, 3600) == Time.new(2023, 12, 31, 23, 0, 0, 0)
+      @tz, ENV["TZ"] = ENV["TZ"], "UTC"
+    end
+
+    after :each do
+      ENV["TZ"] = @tz
+    end
+
+    it "can be set and queried with Time" do
+      time = Time.now + 10
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_after = time
+      cert.not_after.should > time - 1
+      cert.not_after.should < time + 1
+    end
+
+    it "can be set with Integer" do
+      time = Time.now + 10
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_after = time.to_i
+      cert.not_after.should > time - 1
+      cert.not_after.should < time + 1
+    end
+
+    it "returns time in UTC" do
+      ENV["TZ"] = "CET"
+      time = Time.new(2024, 1, 1, 0, 0, 0, 3600)
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_after = time
+      cert.not_after.should == Time.new(2023, 12, 31, 23, 0, 0, 0)
+    end
+
+    it "has no default value" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_after.should be_nil
+    end
+
+    it "cannot be set with String" do
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.not_after = "2999-01-01 00:00:00"
+      }.should raise_error(ArgumentError, /invalid value for Integer\(\):/)
+    end
+  end
+
+  describe "OpenSSL::X509::Certificate#not_before" do
+    before :each do
+      # Time compare with different timezones is broken in Natalie, so run this in UTC.
+      # The following code yields `true` in MRI, but `false` in Natalie:
+      #
+      #     Time.new(2024, 1, 1, 0, 0, 0, 3600) == Time.new(2023, 12, 31, 23, 0, 0, 0)
+      @tz, ENV["TZ"] = ENV["TZ"], "UTC"
+    end
+
+    after :each do
+      ENV["TZ"] = @tz
+    end
+
+    it "can be set and queried with Time" do
+      time = Time.now - 10
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_before = time
+      cert.not_before.should > time - 1
+      cert.not_before.should < time + 1
+    end
+
+    it "can be set with Integer" do
+      time = Time.now - 10
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_before = time.to_i
+      cert.not_before.should > time - 1
+      cert.not_before.should < time + 1
+    end
+
+    it "returns time in UTC" do
+      ENV["TZ"] = "CET"
+      time = Time.new(2024, 1, 1, 0, 0, 0, 3600)
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_before = time
+      cert.not_before.should == Time.new(2023, 12, 31, 23, 0, 0, 0)
+    end
+
+    it "has no default value" do
+      cert = OpenSSL::X509::Certificate.new
+      cert.not_before.should be_nil
+    end
+
+    it "cannot be set with String" do
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.not_before = "2999-01-01 00:00:00"
+      }.should raise_error(ArgumentError, /invalid value for Integer\(\):/)
+    end
+  end
+
   describe "OpenSSL::X509::Certificate#public_key" do
     it "can be set and queried with OpenSSL::PKey::RSA" do
       key = OpenSSL::PKey::RSA.new(2048)
