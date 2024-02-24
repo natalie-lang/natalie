@@ -164,6 +164,8 @@ module OpenSSL
       __bind_method__ :initialize, :OpenSSL_SSL_SSLContext_initialize
       __bind_method__ :max_version=, :OpenSSL_SSL_SSLContext_set_max_version
       __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
+      __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
+      __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
     end
 
     class SSLSocket

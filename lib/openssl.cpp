@@ -406,6 +406,24 @@ Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args args, Bl
     return args[0];
 }
 
+Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    const auto security_level = SSL_CTX_get_security_level(ctx);
+    return Value::integer(security_level);
+}
+
+Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto security_level = args[0]->to_int(env)->to_nat_int_t();
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL_CTX_set_security_level(ctx, security_level);
+
+    return args[0];
+}
+
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto io = args.at(0);
