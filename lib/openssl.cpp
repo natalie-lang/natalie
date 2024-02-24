@@ -742,6 +742,33 @@ Value OpenSSL_X509_Certificate_set_serial(Env *env, Value self, Args args, Block
     return args[0];
 }
 
+Value OpenSSL_X509_Certificate_sign(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 2);
+
+    auto key = args[0];
+    auto digest = args[1];
+
+    auto PKey = fetch_nested_const({ "OpenSSL"_s, "PKey"_s, "PKey"_s })->as_class();
+    if (!key->is_a(env, PKey))
+        env->raise("TypeError", "wrong argument type {} (expected OpenSSL/EVP_PKEY)", key->klass()->inspect_str());
+    if (key->send(env, "private?"_s)->is_falsey())
+        env->raise("ArgumentError", "private key is needed");
+    auto Digest = fetch_nested_const({ "OpenSSL"_s, "Digest"_s })->as_class();
+    if (!digest->is_a(env, Digest))
+        digest = Object::_new(env, Digest, { digest }, nullptr);
+
+    auto x509 = static_cast<X509 *>(self->ivar_get(env, "@x509"_s)->as_void_p()->void_ptr());
+    auto pkey = static_cast<EVP_PKEY *>(key->ivar_get(env, "@pkey"_s)->as_void_p()->void_ptr());
+    const auto md = EVP_get_digestbyname(digest->send(env, "name"_s)->as_string()->c_str());
+    if (!X509_sign(x509, pkey, md)) {
+        ERR_get_error(); // This error is not disclosed to the user
+        auto CertificateError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "CertificateError"_s })->as_class();
+        env->raise(CertificateError, "internal error");
+    }
+
+    return self;
+}
+
 Value OpenSSL_X509_Certificate_subject(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 0);
 
