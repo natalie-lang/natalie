@@ -586,15 +586,10 @@ describe "OpenSSL::SSL::SSLSocket#initialize" do
     ssl_socket.context.should == context
   end
 
-  # NATFIXME: The macos CI runner detects the Ruby version as 3.0-, but the code behaves like 3.1+
-  #           For now, just disable this test on Darwin, it does not add anything and the tests are
-  #           mostly relevant for developing.
-  platform_is_not :darwin do
-    it "raises a TypeError if the first argument is not an IO object" do
-      -> {
-        OpenSSL::SSL::SSLSocket.new(42)
-      }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
-    end
+  it "raises a TypeError if the first argument is not an IO object" do
+    -> {
+      OpenSSL::SSL::SSLSocket.new(42)
+    }.should raise_error(TypeError, 'wrong argument type Integer (expected File)')
   end
 
   it "raises a TypeError if the second argument is not an SSLContext object" do
