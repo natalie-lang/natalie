@@ -271,9 +271,7 @@ describe "Kernel.Complex()" do
   describe "when passed exception: false" do
     describe "and [Numeric]" do
       it "returns a complex number" do
-        NATFIXME '[Numeric]', exception: SpecFailedException do
-          Complex("123", exception: false).should == Complex(123)
-        end
+        Complex("123", exception: false).should == Complex(123)
       end
     end
 

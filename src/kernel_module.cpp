@@ -110,6 +110,10 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 }
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
+    if (real->is_string()) {
+        if (auto real_int = Integer(env, real, 10, false); real_int && !real_int->is_nil())
+            real = real_int;
+    }
 
     if (real->is_complex() && imaginary == nullptr) {
         return real;

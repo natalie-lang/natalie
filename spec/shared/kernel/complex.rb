@@ -6,15 +6,11 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands integers" do
-    NATFIXME 'understands integers', exception: SpecFailedException do
-      @object.send(@method, '20').should == Complex(20)
-    end
+    @object.send(@method, '20').should == Complex(20)
   end
 
   it "understands negative integers" do
-    NATFIXME 'understands negative integers', exception: SpecFailedException do
-      @object.send(@method, '-3').should == Complex(-3)
-    end
+    @object.send(@method, '-3').should == Complex(-3)
   end
 
   it "understands fractions (numerator/denominator) for the real part" do
