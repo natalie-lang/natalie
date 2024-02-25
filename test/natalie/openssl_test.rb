@@ -252,6 +252,73 @@ describe "OpenSSL::X509::Certificate" do
     end
   end
 
+  describe "OpenSSL::X509::Certificate#sign" do
+    it "can can sign using an RSA key (after settings tons of options)" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      cert.version = 2
+      cert.serial = 1
+      cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+      cert.issuer = cert.subject
+      cert.public_key = key.public_key
+      cert.not_before = Time.now - 10
+      cert.not_after = cert.not_before + 365 * 24 * 60 * 60
+      cert.sign(key, OpenSSL::Digest.new("SHA256"))
+    end
+
+    it "can convert a String digest argument into a Digest class" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      cert.version = 2
+      cert.serial = 1
+      cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+      cert.issuer = cert.subject
+      cert.public_key = key.public_key
+      cert.not_before = Time.now - 10
+      cert.not_after = cert.not_before + 365 * 24 * 60 * 60
+      cert.sign(key, "SHA256")
+    end
+
+    it "raises a CertificateError when required settings are missing" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.sign(key, OpenSSL::Digest.new("SHA256"))
+      }.should raise_error(OpenSSL::X509::CertificateError, "internal error")
+    end
+
+    it "does not convert a PEM key export into a PKey" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.sign(key.export, OpenSSL::Digest.new("SHA256"))
+      }.should raise_error(TypeError, "wrong argument type String (expected OpenSSL/EVP_PKEY)")
+    end
+
+    it "cannot be signed with a public key" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      cert.version = 2
+      cert.serial = 1
+      cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=truffleruby/CN=TruffleRuby CA"
+      cert.issuer = cert.subject
+      cert.public_key = key.public_key
+      cert.not_before = Time.now - 10
+      cert.not_after = cert.not_before + 365 * 24 * 60 * 60
+      -> {
+        cert.sign(key.public_key, OpenSSL::Digest.new("SHA256"))
+      }.should raise_error(ArgumentError, "private key is needed")
+    end
+
+    it "does not convert a Symbol into a Digest class" do
+      key = OpenSSL::PKey::RSA.new(2048)
+      cert = OpenSSL::X509::Certificate.new
+      -> {
+        cert.sign(key, :SHA256)
+      }.should raise_error(TypeError, "wrong argument type Symbol (expected OpenSSL/Digest)")
+    end
+  end
+
   describe "OpenSSL::X509::Certificate#subject" do
     it "can be set and queried with OpenSSL::X509::Name" do
       cert = OpenSSL::X509::Certificate.new

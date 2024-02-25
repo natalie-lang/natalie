@@ -12,8 +12,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.public_key = key.public_key
     cert.not_before = Time.now - 10
     cert.not_after = cert.not_before + 365 * 24 * 60 * 60
-    NATFIXME 'Implement OpenSSL::X509::Certificate#sign', exception: NoMethodError, message: "undefined method `sign' for an instance of OpenSSL::X509::Certificate" do
-      cert.sign key, OpenSSL::Digest.new('SHA256')
+    cert.sign key, OpenSSL::Digest.new('SHA256')
+    NATFIXME 'Implement OpenSSL::X509::Store', exception: NameError, message: 'uninitialized constant OpenSSL::X509::Store' do
       store = OpenSSL::X509::Store.new
       store.add_cert(cert)
       [store.verify(cert), store.error, store.error_string].should == [true, 0, "ok"]
@@ -30,8 +30,8 @@ describe "OpenSSL::X509::Store#verify" do
     cert.public_key = key.public_key
     cert.not_before = Time.now - 10
     cert.not_after = Time.now - 5
-    NATFIXME 'Implement OpenSSL::X509::Certificate#sign', exception: NoMethodError, message: "undefined method `sign' for an instance of OpenSSL::X509::Certificate" do
-      cert.sign key, OpenSSL::Digest.new('SHA256')
+    cert.sign key, OpenSSL::Digest.new('SHA256')
+    NATFIXME 'Implement OpenSSL::X509::Store', exception: NameError, message: 'uninitialized constant OpenSSL::X509::Store' do
       store = OpenSSL::X509::Store.new
       store.add_cert(cert)
       store.verify(cert).should == false

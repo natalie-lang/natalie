@@ -223,6 +223,7 @@ module OpenSSL
       __bind_method__ :public_key=, :OpenSSL_X509_Certificate_set_public_key
       __bind_method__ :serial, :OpenSSL_X509_Certificate_serial
       __bind_method__ :serial=, :OpenSSL_X509_Certificate_set_serial
+      __bind_method__ :sign, :OpenSSL_X509_Certificate_sign
       __bind_method__ :subject, :OpenSSL_X509_Certificate_subject
       __bind_method__ :subject=, :OpenSSL_X509_Certificate_set_subject
       __bind_method__ :version, :OpenSSL_X509_Certificate_version
