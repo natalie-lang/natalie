@@ -502,7 +502,7 @@ StringObject *StringObject::inspect(Env *env) {
     for (size_t i = 0; i < len; i++) {
         unsigned char c = m_string[i];
         char c2 = (i + 1) < len ? m_string[i + 1] : 0;
-        if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
+        if (c == '"' || c == '\\' || (c == '#' && (c2 == '{' || c2 == '$' || c2 == '@'))) {
             out->append_char('\\');
             out->append_char(c);
         } else if (c == '\a') {
@@ -2875,6 +2875,15 @@ Value StringObject::downcase_in_place(Env *env, Value arg1, Value arg2) {
         return Value(NilObject::the());
     }
     return this;
+}
+
+Value StringObject::dump(Env *env) {
+    auto result = new StringObject { m_encoding };
+    result->append(inspect(env));
+    if (!m_encoding->is_ascii_compatible()) {
+        result->append_sprintf(".force_encoding(\"%s\")", m_encoding->name()->c_str());
+    }
+    return result;
 }
 
 StringObject *StringObject::upcase(Env *env, Value arg1, Value arg2) {
