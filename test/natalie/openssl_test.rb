@@ -584,6 +584,27 @@ describe "OpenSSL::SSL::SSLContext" do
       context.security_level.should == -2
     end
   end
+
+  describe "#setup" do
+    it "freezes the context" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.should_not.frozen?
+
+      context.setup
+      context.should.frozen?
+    end
+
+    it "returns true the first time it is called" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.setup.should be_true
+    end
+
+    it "returns nil the next time it is called" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.setup
+      context.setup.should be_nil
+    end
+  end
 end
 
 describe "OpenSSL::SSL::SSLSocket#initialize" do

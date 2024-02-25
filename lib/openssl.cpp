@@ -431,6 +431,17 @@ Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args,
     return args[0];
 }
 
+Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    if (self->is_frozen())
+        return NilObject::the();
+
+    self->freeze();
+
+    return TrueObject::the();
+}
+
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_between(env, 1, 2);
     auto io = args.at(0);

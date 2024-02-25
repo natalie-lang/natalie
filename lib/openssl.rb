@@ -175,6 +175,9 @@ module OpenSSL
       __bind_method__ :min_version=, :OpenSSL_SSL_SSLContext_set_min_version
       __bind_method__ :security_level, :OpenSSL_SSL_SSLContext_security_level
       __bind_method__ :security_level=, :OpenSSL_SSL_SSLContext_set_security_level
+      __bind_method__ :setup, :OpenSSL_SSL_SSLContext_setup
+
+      alias freeze setup
     end
 
     class SSLSocket
