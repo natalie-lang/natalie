@@ -462,6 +462,22 @@ describe "OpenSSL::X509::Name" do
   end
 end
 
+describe "OpenSSL::X509::Store" do
+  describe ".new" do
+    it "can be constructed without arguments" do
+      store = OpenSSL::X509::Store.new
+      store.should be_kind_of(OpenSSL::X509::Store)
+    end
+  end
+
+  describe "#set_default_paths" do
+    it "can be called" do
+      store = OpenSSL::X509::Store.new
+      store.set_default_paths.should be_nil
+    end
+  end
+end
+
 describe "OpenSSL::SSL::SSLContext" do
   describe ".new" do
     it "can be constructed without arguments" do
@@ -470,6 +486,37 @@ describe "OpenSSL::SSL::SSLContext" do
     end
 
     # NATFIXME: It can be constructed with 1 argument too, but that is deprecated, do we want to reproduce that?
+  end
+
+  describe "#cert_store" do
+    it "can be set using a Store" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should be_kind_of(OpenSSL::X509::Store)
+    end
+
+    it "returns the same object" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should equal(cert_store)
+    end
+
+    it "saves the Store as an instance variable" do
+      cert_store = OpenSSL::X509::Store.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.instance_variables.should_not.include?(:@cert_store)
+      context.cert_store = cert_store
+      context.instance_variables.should.include?(:@cert_store)
+    end
+
+    it "can be set to any type (It raises an exception when calling setup)" do
+      cert_store = Object.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      context.cert_store.should == cert_store
+    end
   end
 
   describe "#max_version=" do
@@ -568,6 +615,34 @@ describe "OpenSSL::SSL::SSLContext" do
       context.security_level.should == -2
     end
   end
+
+  describe "#setup" do
+    it "freezes the context" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.should_not.frozen?
+
+      context.setup
+      context.should.frozen?
+    end
+
+    it "returns true the first time it is called" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.setup.should be_true
+    end
+
+    it "returns nil the next time it is called" do
+      context = OpenSSL::SSL::SSLContext.new
+      context.setup
+      context.setup.should be_nil
+    end
+
+    it "validates the cert_store object" do
+      cert_store = Object.new
+      context = OpenSSL::SSL::SSLContext.new
+      context.cert_store = cert_store
+      -> { context.setup }.should raise_error(TypeError, "wrong argument type Object (expected OpenSSL/X509/STORE)")
+    end
+  end
 end
 
 describe "OpenSSL::SSL::SSLSocket#initialize" do
@@ -584,6 +659,12 @@ describe "OpenSSL::SSL::SSLSocket#initialize" do
     ssl_socket.should be_kind_of(OpenSSL::SSL::SSLSocket)
     ssl_socket.io.should == $stderr
     ssl_socket.context.should == context
+  end
+
+  it "calls SSLContext#setup" do
+    context = OpenSSL::SSL::SSLContext.new
+    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
+    context.setup.should be_nil
   end
 
   it "raises a TypeError if the first argument is not an IO object" do

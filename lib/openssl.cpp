@@ -54,6 +54,11 @@ static void OpenSSL_X509_NAME_cleanup(VoidPObject *self) {
     X509_NAME_free(name);
 }
 
+static void OpenSSL_X509_STORE_cleanup(VoidPObject *self) {
+    auto store = static_cast<X509_STORE *>(self->void_ptr());
+    X509_STORE_free(store);
+}
+
 static void OpenSSL_raise_error(Env *env, const char *func, ClassObject *klass = nullptr) {
     if (!klass)
         klass = fetch_nested_const({ "OpenSSL"_s, "OpenSSLError"_s })->as_class();
@@ -78,6 +83,11 @@ static void OpenSSL_SSL_raise_error(Env *env, const char *func) {
 static void OpenSSL_X509_Name_raise_error(Env *env, const char *func) {
     auto NameError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "NameError"_s })->as_class();
     OpenSSL_raise_error(env, func, NameError);
+}
+
+static void OpenSSL_X509_Store_raise_error(Env *env, const char *func) {
+    auto StoreError = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "StoreError"_s })->as_class();
+    OpenSSL_raise_error(env, func, StoreError);
 }
 
 static Value OpenSSL_BN_new(Env *env, const ASN1_INTEGER *asn1) {
@@ -369,6 +379,9 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args args, Bl
     args.ensure_argc_is(env, 1);
     auto version = args[0];
 
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+
     if (version->is_string() || version->is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
@@ -387,6 +400,9 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args args, Bl
 Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto version = args[0];
+
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
 
     if (version->is_string() || version->is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
@@ -415,10 +431,51 @@ Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args,
     args.ensure_argc_is(env, 1);
     auto security_level = args[0]->to_int(env)->to_nat_int_t();
 
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_security_level(ctx, security_level);
 
     return args[0];
+}
+
+Value OpenSSL_SSL_SSLContext_verify_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    auto verify_mode = SSL_CTX_get_verify_mode(ctx);
+    return Value::integer(verify_mode);
+}
+
+Value OpenSSL_SSL_SSLContext_set_verify_mode(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 1);
+    auto verify_mode = args[0]->to_int(env)->to_nat_int_t();
+
+    auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+    SSL_CTX_set_verify(ctx, verify_mode, nullptr);
+
+    return args[0];
+}
+
+Value OpenSSL_SSL_SSLContext_setup(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+
+    if (self->is_frozen())
+        return NilObject::the();
+
+    self->freeze();
+
+    auto cert_store = self->ivar_get(env, "@cert_store"_s);
+    if (!cert_store->is_nil()) {
+        auto Store = fetch_nested_const({ "OpenSSL"_s, "X509"_s, "Store"_s })->as_class();
+        if (!cert_store->is_a(env, Store))
+            env->raise("TypeError", "wrong argument type {} (expected OpenSSL/X509/STORE)", cert_store->klass()->inspect_str());
+        auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
+        auto store = static_cast<X509_STORE *>(cert_store->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+        SSL_CTX_set1_cert_store(ctx, store);
+    }
+
+    return TrueObject::the();
 }
 
 Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *) {
@@ -434,6 +491,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *)
         if (!context->is_a(env, SSLContext->as_class()))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
     }
+    context->send(env, "setup"_s);
     auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL *ssl = SSL_new(ctx);
     if (!ssl)
@@ -1161,4 +1219,21 @@ Value OpenSSL_X509_Name_cmp(Env *env, Value self, Args args, Block *) {
     auto name = static_cast<X509_NAME *>(self->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     auto other_name = static_cast<X509_NAME *>(other->ivar_get(env, "@name"_s)->as_void_p()->void_ptr());
     return Value::integer(X509_NAME_cmp(name, other_name));
+}
+
+Value OpenSSL_X509_Store_initialize(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    X509_STORE *store = X509_STORE_new();
+    if (!store)
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_new");
+    self->ivar_set(env, "@store"_s, new VoidPObject { store, OpenSSL_X509_STORE_cleanup });
+    return self;
+}
+
+Value OpenSSL_X509_Store_set_default_paths(Env *env, Value self, Args args, Block *) {
+    args.ensure_argc_is(env, 0);
+    auto store = static_cast<X509_STORE *>(self->ivar_get(env, "@store"_s)->as_void_p()->void_ptr());
+    if (!X509_STORE_set_default_paths(store))
+        OpenSSL_X509_Store_raise_error(env, "X509_STORE_set_default_paths");
+    return NilObject::the();
 }
