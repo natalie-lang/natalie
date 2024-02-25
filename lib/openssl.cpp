@@ -316,12 +316,20 @@ Value OpenSSL_Digest_digest(Env *env, Value self, Args args, Block *) {
         OpenSSL_Digest_update(env, self, { args[0] }, nullptr);
     }
 
+    EVP_MD_CTX *copy = EVP_MD_CTX_new();
+    if (!copy)
+        OpenSSL_raise_error(env, "EVP_MD_CTX_new");
+    Defer copy_free { [&copy] { EVP_MD_CTX_free(copy); } };
+    if (!EVP_MD_CTX_copy_ex(copy, mdctx))
+        OpenSSL_raise_error(env, "EVP_MD_CTX_copy_ex");
+
     unsigned char buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
-    if (!EVP_DigestFinal_ex(mdctx, buf, &md_len))
+    if (!EVP_DigestFinal_ex(copy, buf, &md_len))
         OpenSSL_raise_error(env, "EVP_DigestFinal_ex");
 
-    OpenSSL_Digest_reset(env, self, {}, nullptr);
+    if (args.size() == 1)
+        OpenSSL_Digest_reset(env, self, {}, nullptr);
 
     return new StringObject { reinterpret_cast<const char *>(buf), md_len, Encoding::ASCII_8BIT };
 }
