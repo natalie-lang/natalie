@@ -464,6 +464,7 @@ Value OpenSSL_SSL_SSLSocket_initialize(Env *env, Value self, Args args, Block *)
         if (!context->is_a(env, SSLContext->as_class()))
             env->raise("TypeError", "wrong argument type {} (expected OpenSSL/SSL/CTX)", context->klass()->inspect_str());
     }
+    context->send(env, "setup"_s);
     auto *ctx = static_cast<SSL_CTX *>(context->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL *ssl = SSL_new(ctx);
     if (!ssl)

@@ -623,6 +623,12 @@ describe "OpenSSL::SSL::SSLSocket#initialize" do
     ssl_socket.context.should == context
   end
 
+  it "calls SSLContext#setup" do
+    context = OpenSSL::SSL::SSLContext.new
+    ssl_socket = OpenSSL::SSL::SSLSocket.new($stderr, context)
+    context.setup.should be_nil
+  end
+
   it "raises a TypeError if the first argument is not an IO object" do
     -> {
       OpenSSL::SSL::SSLSocket.new(42)
