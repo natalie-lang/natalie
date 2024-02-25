@@ -12,10 +12,4 @@ describe 'rational' do
     reduced.numerator.should == 10
     reduced.denominator.should == 3
   end
-
-  # NATFIXME: Remove this and sync upstream spec once https://github.com/ruby/spec/pull/1007 is merged
-  it 'is frozen' do
-    r = Rational(1)
-    r.frozen?.should == true
-  end
 end
