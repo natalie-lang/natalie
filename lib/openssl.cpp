@@ -379,6 +379,9 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args args, Bl
     args.ensure_argc_is(env, 1);
     auto version = args[0];
 
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
+
     if (version->is_string() || version->is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
         const auto SSL = fetch_nested_const({ "OpenSSL"_s, "SSL"_s })->as_module();
@@ -397,6 +400,9 @@ Value OpenSSL_SSL_SSLContext_set_max_version(Env *env, Value self, Args args, Bl
 Value OpenSSL_SSL_SSLContext_set_min_version(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto version = args[0];
+
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
 
     if (version->is_string() || version->is_symbol()) {
         version = StringObject::format("{}_VERSION", version->to_s(env)->string());
@@ -424,6 +430,9 @@ Value OpenSSL_SSL_SSLContext_security_level(Env *env, Value self, Args args, Blo
 Value OpenSSL_SSL_SSLContext_set_security_level(Env *env, Value self, Args args, Block *) {
     args.ensure_argc_is(env, 1);
     auto security_level = args[0]->to_int(env)->to_nat_int_t();
+
+    if (self->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", self->to_s(env)->string());
 
     auto ctx = static_cast<SSL_CTX *>(self->ivar_get(env, "@ctx"_s)->as_void_p()->void_ptr());
     SSL_CTX_set_security_level(ctx, security_level);
