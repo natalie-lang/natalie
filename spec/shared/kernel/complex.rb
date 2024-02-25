@@ -38,9 +38,7 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands floats (a.b) for the real part" do
-    NATFIXME 'understands floats (a.b) for the real part', exception: SpecFailedException do
-      @object.send(@method, '2.3').should == Complex(2.3)
-    end
+    @object.send(@method, '2.3').should == Complex(2.3)
   end
 
   it "understands floats (a.b) for the imaginary part" do
@@ -50,9 +48,7 @@ describe :kernel_complex, shared: true do
   end
 
   it "understands negative floats (-a.b) for the real part" do
-    NATFIXME 'understands negative floats (-a.b) for the real part', exception: SpecFailedException do
-      @object.send(@method, '-2.33').should == Complex(-2.33)
-    end
+    @object.send(@method, '-2.33').should == Complex(-2.33)
   end
 
   it "understands negative floats (-a.b) for the imaginary part" do
