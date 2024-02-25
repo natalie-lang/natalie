@@ -111,7 +111,9 @@ Value KernelModule::Complex(Env *env, Value real, Value imaginary, Value excepti
 
 Value KernelModule::Complex(Env *env, Value real, Value imaginary, bool exception) {
 
-    if (imaginary == nullptr) {
+    if (real->is_complex() && imaginary == nullptr) {
+        return real;
+    } else if (imaginary == nullptr) {
         return new ComplexObject { real };
     } else if (real->is_string()) {
         // NATFIXME: Add support for strings too.

@@ -14,10 +14,8 @@ describe "Kernel.Complex()" do
 
   describe "when passed [Complex]" do
     it "returns the passed Complex number" do
-      NATFIXME 'when passed [Complex]', exception: SpecFailedException do
-        Complex(Complex(1, 2)).should == Complex(1, 2)
-        Complex(Complex(-3.4, bignum_value)).should == Complex(-3.4, bignum_value)
-      end
+      Complex(Complex(1, 2)).should == Complex(1, 2)
+      Complex(Complex(-3.4, bignum_value)).should == Complex(-3.4, bignum_value)
     end
   end
 
