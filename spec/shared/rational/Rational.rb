@@ -145,4 +145,8 @@ describe :kernel_Rational, shared: true do
       end
     end
   end
+
+  it "freezes its result" do
+    Rational(1).frozen?.should == true
+  end
 end
