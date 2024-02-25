@@ -17,6 +17,12 @@ module Digest
       OpenSSL::Digest.new(name)
     end
 
+    def ==(other)
+      other = other.to_str if !other.is_a?(String) && other.respond_to?(:to_str)
+      other = other.hexdigest if other.is_a?(self.class)
+      hexdigest == other
+    end
+
     def length
       digest_length
     end
