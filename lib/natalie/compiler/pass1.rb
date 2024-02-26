@@ -2093,6 +2093,24 @@ module Natalie
         instructions
       end
 
+      def transform_source_encoding_node(node, used:)
+        instructions = [
+          PushObjectClassInstruction.new,
+          ConstFindInstruction.new(:Encoding, strict: true),
+          PushStringInstruction.new(@file.encoding.name),
+          PushArgcInstruction.new(1),
+          SendInstruction.new(
+            :find,
+            receiver_is_self: true,
+            with_block: false,
+            file: @file.path,
+            line: node.location.start_line,
+          ),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_source_file_node(node, used:)
         return [] unless used
         [PushStringInstruction.new(node.filepath, encoding: @file.encoding)]
