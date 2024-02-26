@@ -23,9 +23,9 @@ std::pair<bool, StringView> UsAsciiEncodingObject::next_char(const String &strin
     return { true, StringView(&string, i, 1) };
 }
 
-String UsAsciiEncodingObject::escaped_char(unsigned char c) const {
+String UsAsciiEncodingObject::escaped_char(const nat_int_t c) const {
     char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
+    snprintf(buf, 5, "\\x%02llX", c);
     return String(buf);
 }
 

@@ -49,7 +49,7 @@ public:
     virtual bool valid_codepoint(nat_int_t codepoint) const = 0;
     virtual std::pair<bool, StringView> prev_char(const String &, size_t *) const = 0;
     virtual std::pair<bool, StringView> next_char(const String &, size_t *) const = 0;
-    virtual String escaped_char(unsigned char c) const = 0;
+    virtual String escaped_char(const nat_int_t c) const = 0;
     virtual Value encode(Env *, EncodingObject *, StringObject *) const;
     virtual String encode_codepoint(nat_int_t codepoint) const = 0;
     virtual nat_int_t decode_codepoint(StringView &str) const = 0;
