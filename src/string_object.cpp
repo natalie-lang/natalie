@@ -534,11 +534,11 @@ StringObject *StringObject::inspect(Env *env) {
             out->append("\\t");
         } else if (c == '\v') {
             out->append("\\v");
-        } else if (c < 32 || (c >= 127 && c <= 255)) {
+        } else if (m_encoding->is_printable_char(c)) {
+            out->append(ch);
+        } else {
             auto escaped_char = m_encoding->escaped_char(c);
             out->append(escaped_char);
-        } else {
-            out->append(ch);
         }
         ch = pair.second;
     }
