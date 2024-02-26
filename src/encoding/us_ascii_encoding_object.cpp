@@ -16,10 +16,10 @@ std::pair<bool, StringView> UsAsciiEncodingObject::next_char(const String &strin
     if (*index >= string.size())
         return { true, StringView() };
     size_t i = *index;
+    (*index)++;
     unsigned char c = string[i];
     if ((int)c > 127)
         return { false, StringView(&string, i, 1) };
-    (*index)++;
     return { true, StringView(&string, i, 1) };
 }
 
