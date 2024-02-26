@@ -13,16 +13,20 @@ describe "The __ENCODING__ pseudo-variable" do
   end
 
   it "is the evaluated strings's one inside an eval" do
-    eval("__ENCODING__".force_encoding("US-ASCII")).should == Encoding::US_ASCII
-    eval("__ENCODING__".force_encoding("BINARY")).should == Encoding::BINARY
+    NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+      eval("__ENCODING__".force_encoding("US-ASCII")).should == Encoding::US_ASCII
+      eval("__ENCODING__".force_encoding("BINARY")).should == Encoding::BINARY
+    end
   end
 
   it "is the encoding specified by a magic comment inside an eval" do
-    code = "# encoding: BINARY\n__ENCODING__".force_encoding("US-ASCII")
-    eval(code).should == Encoding::BINARY
+    NATFIXME 'Eval', exception: TypeError, message: 'eval() only works on static strings' do
+      code = "# encoding: BINARY\n__ENCODING__".force_encoding("US-ASCII")
+      eval(code).should == Encoding::BINARY
 
-    code = "# encoding: us-ascii\n__ENCODING__".force_encoding("BINARY")
-    eval(code).should == Encoding::US_ASCII
+      code = "# encoding: us-ascii\n__ENCODING__".force_encoding("BINARY")
+      eval(code).should == Encoding::US_ASCII
+    end
   end
 
   it "is the encoding specified by a magic comment in the file" do
