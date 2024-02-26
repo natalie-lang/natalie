@@ -534,7 +534,7 @@ StringObject *StringObject::inspect(Env *env) {
             out->append("\\t");
         } else if (c == '\v') {
             out->append("\\v");
-        } else if ((int)c < 32 || (int)c == 127 || (int)c == 128) {
+        } else if ((int)c < 32 || ((int)c >= 127 && (int)c <= 255)) {
             auto escaped_char = m_encoding->escaped_char(c);
             out->append(escaped_char);
         } else {
