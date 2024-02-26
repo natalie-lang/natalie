@@ -19,16 +19,18 @@ describe "The class keyword" do
   end
 
   it "can redefine a class when called from a block" do
-    ClassSpecs::DEFINE_CLASS.call
-    A.should be_an_instance_of(Class)
+    NATFIXME 'can redefine a class when called from a block', exception: NameError, message: 'uninitialized constant ClassSpecs::DEFINE_CLASS' do
+      ClassSpecs::DEFINE_CLASS.call
+      A.should be_an_instance_of(Class)
 
-    Object.send(:remove_const, :A)
-    defined?(A).should be_nil
+      Object.send(:remove_const, :A)
+      defined?(A).should be_nil
 
-    ClassSpecs::DEFINE_CLASS.call
-    A.should be_an_instance_of(Class)
-  ensure
-    Object.send(:remove_const, :A) if defined?(::A)
+      ClassSpecs::DEFINE_CLASS.call
+      A.should be_an_instance_of(Class)
+    ensure
+      Object.send(:remove_const, :A) if defined?(::A)
+    end
   end
 end
 
@@ -39,7 +41,9 @@ describe "A class definition" do
   end
 
   it "has no class variables" do
-    ClassSpecs::A.class_variables.should == []
+    NATFIXME 'has no class variables', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::A" do
+      ClassSpecs::A.class_variables.should == []
+    end
   end
 
   it "raises TypeError if constant given as class name exists and is not a Module" do
@@ -51,22 +55,26 @@ describe "A class definition" do
 
   # test case known to be detecting bugs (JRuby, MRI)
   it "raises TypeError if the constant qualifying the class is nil" do
-    -> {
-      class nil::Foo
-      end
-    }.should raise_error(TypeError)
+    NATFIXME 'raises TypeError if the constant qualifying the class is nil', exception: SpecFailedException do
+      -> {
+        class nil::Foo
+        end
+      }.should raise_error(TypeError)
+    end
   end
 
   it "raises TypeError if any constant qualifying the class is not a Module" do
-    -> {
-      class ClassSpecs::Number::MyClass
-      end
-    }.should raise_error(TypeError)
+    NATFIXME 'raises TypeError if any constant qualifying the class is not a Module', exception: SpecFailedException do
+      -> {
+        class ClassSpecs::Number::MyClass
+        end
+      }.should raise_error(TypeError)
 
-    -> {
-      class ClassSpecsNumber::MyClass
-      end
-    }.should raise_error(TypeError)
+      -> {
+        class ClassSpecsNumber::MyClass
+        end
+      }.should raise_error(TypeError)
+    end
   end
 
   it "inherits from Object by default" do
@@ -77,10 +85,12 @@ describe "A class definition" do
     module ClassSpecs
       class SuperclassResetToSubclass < L
       end
-      -> {
-        class SuperclassResetToSubclass < M
-        end
-      }.should raise_error(TypeError, /superclass mismatch/)
+      NATFIXME 'raises an error when trying to change the superclass', exception: SpecFailedException do
+        -> {
+          class SuperclassResetToSubclass < M
+          end
+        }.should raise_error(TypeError, /superclass mismatch/)
+      end
     end
   end
 
@@ -90,11 +100,13 @@ describe "A class definition" do
       end
       SuperclassReopenedBasicObject.superclass.should == A
 
-      -> {
-        class SuperclassReopenedBasicObject < BasicObject
-        end
-      }.should raise_error(TypeError, /superclass mismatch/)
-      SuperclassReopenedBasicObject.superclass.should == A
+      NATFIXME 'raises an error when reopening a class with BasicObject as superclass', exception: SpecFailedException do
+        -> {
+          class SuperclassReopenedBasicObject < BasicObject
+          end
+        }.should raise_error(TypeError, /superclass mismatch/)
+        SuperclassReopenedBasicObject.superclass.should == A
+      end
     end
   end
 
@@ -105,11 +117,13 @@ describe "A class definition" do
       end
       SuperclassReopenedObject.superclass.should == A
 
-      -> {
-        class SuperclassReopenedObject < Object
-        end
-      }.should raise_error(TypeError, /superclass mismatch/)
-      SuperclassReopenedObject.superclass.should == A
+      NATFIXME 'raises an error when reopening a class with Object as superclass', exception: SpecFailedException do
+        -> {
+          class SuperclassReopenedObject < Object
+          end
+        }.should raise_error(TypeError, /superclass mismatch/)
+        SuperclassReopenedObject.superclass.should == A
+      end
     end
   end
 
@@ -130,10 +144,12 @@ describe "A class definition" do
       class NoSuperclassSet
       end
 
-      -> {
-        class NoSuperclassSet < String
-        end
-      }.should raise_error(TypeError, /superclass mismatch/)
+      NATFIXME 'does not allow to set the superclass even if it was not specified by the first declaration', exception: SpecFailedException do
+        -> {
+          class NoSuperclassSet < String
+          end
+        }.should raise_error(TypeError, /superclass mismatch/)
+      end
     end
   end
 
@@ -165,8 +181,10 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in the body" do
-    ClassSpecs.string_class_variables(ClassSpecs::B).should == ["@@cvar"]
-    ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
+    NATFIXME 'allows the declaration of class variables in the body', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::B" do
+      ClassSpecs.string_class_variables(ClassSpecs::B).should == ["@@cvar"]
+      ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
+    end
   end
 
   it "stores instance variables defined in the class body in the class object" do
@@ -175,10 +193,12 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in a class method" do
-    ClassSpecs::C.class_variables.should == []
-    ClassSpecs::C.make_class_variable
-    ClassSpecs.string_class_variables(ClassSpecs::C).should == ["@@cvar"]
-    ClassSpecs::C.remove_class_variable :@@cvar
+    NATFIXME 'allows the declaration of class variables in a class method', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::C" do
+      ClassSpecs::C.class_variables.should == []
+      ClassSpecs::C.make_class_variable
+      ClassSpecs.string_class_variables(ClassSpecs::C).should == ["@@cvar"]
+      ClassSpecs::C.remove_class_variable :@@cvar
+    end
   end
 
   it "allows the definition of class-level instance variables in a class method" do
@@ -189,10 +209,12 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in an instance method" do
-    ClassSpecs::D.class_variables.should == []
-    ClassSpecs::D.new.make_class_variable
-    ClassSpecs.string_class_variables(ClassSpecs::D).should == ["@@cvar"]
-    ClassSpecs::D.remove_class_variable :@@cvar
+    NATFIXME 'allows the declaration of class variables in an instance method', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::D" do
+      ClassSpecs::D.class_variables.should == []
+      ClassSpecs::D.new.make_class_variable
+      ClassSpecs.string_class_variables(ClassSpecs::D).should == ["@@cvar"]
+      ClassSpecs::D.remove_class_variable :@@cvar
+    end
   end
 
   it "allows the definition of instance methods" do
@@ -231,15 +253,19 @@ describe "A class definition" do
         end
       end
 
-      klass.get_class_name.should == 'CS_CONST_CLASS_SPECS'
-      ::CS_CONST_CLASS_SPECS.name.should == 'CS_CONST_CLASS_SPECS'
+      NATFIXME 'for named classes at the toplevel', exception: NameError, message: 'uninitialized constant CS_CONST_CLASS_SPECS' do
+        klass.get_class_name.should == 'CS_CONST_CLASS_SPECS'
+        ::CS_CONST_CLASS_SPECS.name.should == 'CS_CONST_CLASS_SPECS'
+      end
     end
 
     it "for named classes in a module" do
       klass = ClassSpecs::ANON_CLASS_FOR_NEW.call
 
-      ClassSpecs::NamedInModule.name.should == 'ClassSpecs::NamedInModule'
-      klass.get_class_name.should == 'ClassSpecs::NamedInModule'
+      NATFIXME 'for named classes in a module', exception: NameError, message: 'uninitialized constant ClassSpecs::NamedInModule' do
+        ClassSpecs::NamedInModule.name.should == 'ClassSpecs::NamedInModule'
+        klass.get_class_name.should == 'ClassSpecs::NamedInModule'
+      end
     end
 
     it "for anonymous classes" do
@@ -269,8 +295,10 @@ describe "A class definition" do
         end
       end
 
-      AnonWithConstant.name.should == 'AnonWithConstant'
-      klass.get_class_name.should == 'AnonWithConstant'
+      NATFIXME 'for anonymous classes assigned to a constant', exception: NameError, message: 'uninitialized constant AnonWithConstant' do
+        AnonWithConstant.name.should == 'AnonWithConstant'
+        klass.get_class_name.should == 'AnonWithConstant'
+      end
     end
   end
 end
@@ -309,13 +337,17 @@ describe "A class definition extending an object (sclass)" do
   end
 
   it "does not allow accessing the block of the original scope" do
-    -> {
-      ClassSpecs.sclass_with_block { 123 }
-    }.should raise_error(SyntaxError)
+    NATFIXME 'does not allow accessing the block of the original scope', exception: SpecFailedException, message: /LocalJumpError: no block given/ do
+      -> {
+        ClassSpecs.sclass_with_block { 123 }
+      }.should raise_error(SyntaxError)
+    end
   end
 
   it "can use return to cause the enclosing method to return" do
-    ClassSpecs.sclass_with_return.should == :inner
+    NATFIXME 'can use return to cause the enclosing method to return', exception: NoMethodError, message: "undefined method `sclass_with_return' for module ClassSpecs" do
+      ClassSpecs.sclass_with_return.should == :inner
+    end
   end
 end
 
@@ -331,7 +363,9 @@ describe "Reopening a class" do
   end
 
   it "raises a TypeError when superclasses mismatch" do
-    -> { class ClassSpecs::A < Array; end }.should raise_error(TypeError)
+    NATFIXME 'raises a TypeError when superclasses mismatch', exception: SpecFailedException, message: /instead raised nothing/ do
+      -> { class ClassSpecs::A < Array; end }.should raise_error(TypeError)
+    end
   end
 
   it "adds new methods to subclasses" do
@@ -348,6 +382,8 @@ end
 
 describe "class provides hooks" do
   it "calls inherited when a class is created" do
-    ClassSpecs::H.track_inherited.should == [ClassSpecs::K]
+    NATFIXME 'calls inherited when a class is created', exception: SpecFailedException do
+      ClassSpecs::H.track_inherited.should == [ClassSpecs::K]
+    end
   end
 end
