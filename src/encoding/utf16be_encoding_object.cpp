@@ -96,9 +96,9 @@ std::pair<bool, StringView> Utf16BeEncodingObject::next_char(const String &strin
     return { false, StringView(&string, i, 2) };
 }
 
-String Utf16BeEncodingObject::escaped_char(unsigned char c) const {
+String Utf16BeEncodingObject::escaped_char(const nat_int_t c) const {
     char buf[7];
-    snprintf(buf, 7, "\\u%04llX", (long long)c);
+    snprintf(buf, 7, "\\u%04llX", c);
     return String(buf);
 }
 

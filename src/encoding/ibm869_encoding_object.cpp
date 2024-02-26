@@ -17,9 +17,9 @@ std::pair<bool, StringView> Ibm869EncodingObject::next_char(const String &string
     return { true, StringView(&string, i, 1) };
 }
 
-String Ibm869EncodingObject::escaped_char(unsigned char c) const {
+String Ibm869EncodingObject::escaped_char(const nat_int_t c) const {
     char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
+    snprintf(buf, 5, "\\x%02llX", c);
     return String(buf);
 }
 

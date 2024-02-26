@@ -17,9 +17,9 @@ std::pair<bool, StringView> SingleByteEncodingObject::next_char(const String &st
     return { true, StringView(&string, i, 1) };
 }
 
-String SingleByteEncodingObject::escaped_char(unsigned char c) const {
+String SingleByteEncodingObject::escaped_char(const nat_int_t c) const {
     char buf[5];
-    snprintf(buf, 5, "\\x%02llX", (long long)c);
+    snprintf(buf, 5, "\\x%02llX", c);
     return String(buf);
 }
 

@@ -1939,13 +1939,12 @@ std::pair<bool, StringView> EucJpEncodingObject::next_char(const String &string,
     return { true, StringView(&string, i, length) };
 }
 
-String EucJpEncodingObject::escaped_char(unsigned char c) const {
-    long long cint = (long long)c;
+String EucJpEncodingObject::escaped_char(const nat_int_t c) const {
     char buf[7];
-    if (cint <= 0xFF) {
-        snprintf(buf, 5, "\\x%02llX", cint);
+    if (c >= 0 && c <= 0xFF) {
+        snprintf(buf, 5, "\\x%02llX", c);
     } else {
-        snprintf(buf, 7, "\\u%04llX", cint);
+        snprintf(buf, 7, "\\u%04llX", c);
     }
     return String(buf);
 }

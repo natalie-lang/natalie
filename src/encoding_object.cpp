@@ -270,6 +270,10 @@ nat_int_t EncodingObject::codepoint_to_titlecase(nat_int_t codepoint) {
     return codepoint + delta;
 }
 
+bool EncodingObject::is_printable_char(const nat_int_t c) const {
+    return (c >= 32 && c < 127) || c >= 256;
+}
+
 bool EncodingObject::is_compatible_with(EncodingObject *other_encoding) const {
     if (other_encoding == this) return true;
 

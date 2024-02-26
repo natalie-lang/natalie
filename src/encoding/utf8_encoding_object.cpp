@@ -145,9 +145,22 @@ std::pair<bool, StringView> Utf8EncodingObject::next_char(const String &string, 
     return { valid, StringView(&string, i, length) };
 }
 
-String Utf8EncodingObject::escaped_char(unsigned char c) const {
+/*
+    0x00..0x1F, 0x7F: C0 controls (same as ASCII)
+    0x80..0x9F: C1 controls
+    U+FFF0..U+FFF8: non-assigned code points
+    U+FFFE, U+FFFF: Not a character
+
+    See: https://en.wikipedia.org/wiki/C0_and_C1_control_codes#Unicode
+    See: https://en.wikipedia.org/wiki/Specials_(Unicode_block)
+*/
+bool Utf8EncodingObject::is_printable_char(const nat_int_t c) const {
+    return (c >= 32 && c < 127) || (c >= 160 && c < 65520) || (c >= 65529 && c < 65534) || c >= 65536;
+}
+
+String Utf8EncodingObject::escaped_char(const nat_int_t c) const {
     char buf[7];
-    snprintf(buf, 7, "\\u%04llX", (long long)c);
+    snprintf(buf, 7, "\\u%04llX", c);
     return String(buf);
 }
 

@@ -522,7 +522,7 @@ StringObject *StringObject::inspect(Env *env) {
             out->append("\\a");
         } else if (c == '\b') {
             out->append("\\b");
-        } else if ((int)c == 27) { // FIXME: change to '\033' ??
+        } else if (c == 27) { // FIXME: change to '\033' ??
             out->append("\\e");
         } else if (c == '\f') {
             out->append("\\f");
@@ -534,11 +534,11 @@ StringObject *StringObject::inspect(Env *env) {
             out->append("\\t");
         } else if (c == '\v') {
             out->append("\\v");
-        } else if ((int)c < 32 || (int)c == 127 || (int)c == 128) {
+        } else if (m_encoding->is_printable_char(c)) {
+            out->append(ch);
+        } else {
             auto escaped_char = m_encoding->escaped_char(c);
             out->append(escaped_char);
-        } else {
-            out->append(ch);
         }
         ch = pair.second;
     }
