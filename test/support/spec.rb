@@ -464,6 +464,8 @@ class Matcher
   end
 
   def diff(actual, expected)
+    return if ENV['CI']
+
     actual_file = Tempfile.create('actual')
     actual_file.write(actual)
     actual_file.close
