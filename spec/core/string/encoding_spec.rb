@@ -18,7 +18,9 @@ describe "String#encoding" do
   end
 
   it "returns the given encoding if #encode!has been called" do
-    "a".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!' for an instance of String" do
+      "a".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    end
   end
 end
 
@@ -113,8 +115,10 @@ describe "String#encoding for Strings with \\u escapes" do
   end
 
   it "returns the given encoding if #encode!has been called" do
-    "\u{20}".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    "\u{2020}".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!' for an instance of String" do
+      "\u{20}".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      "\u{2020}".encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    end
   end
 end
 
@@ -181,8 +185,10 @@ describe "String#encoding for Strings with \\x escapes" do
 
   it "returns the given encoding if #encode!has been called" do
     x50 = "\x50"
-    x50.encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
-    x00 = "x\00"
-    x00.encode!(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+    NATFIXME 'Implement String#encode!', exception: NoMethodError, message: "undefined method `encode!' for an instance of String" do
+      x50.encode!(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      x00 = "x\00"
+      x00.encode!(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+    end
   end
 end
