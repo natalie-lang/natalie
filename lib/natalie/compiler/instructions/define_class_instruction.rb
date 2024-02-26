@@ -53,7 +53,11 @@ module Natalie
         code << "auto #{klass} = #{namespace}->const_find_with_autoload(env, self, " \
                 "#{transform.intern(@name)}, Object::ConstLookupSearchMode::#{search_mode}, " \
                 'Object::ConstLookupFailureMode::Null)'
-        code << "if (!#{klass}) {"
+        code << "if (#{klass}) {"
+        code << "  if (!#{klass}->is_module()) {"
+        code << "    env->raise(\"TypeError\", \"#{@name} is not a class\");"
+        code << '  }'
+        code << "} else {"
         code << "  #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{klass})"
         code << '}'
