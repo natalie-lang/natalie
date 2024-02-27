@@ -1029,7 +1029,7 @@ gen.binding('Module', 'autoload?', 'ModuleObject', 'is_autoload', argc: 1, pass_
 gen.binding('Module', 'class_variable_defined?', 'ModuleObject', 'class_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'class_variable_get', 'ModuleObject', 'class_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'class_variable_set', 'ModuleObject', 'class_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Module', 'class_variables', 'ModuleObject', 'class_variables', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
+gen.binding('Module', 'class_variables', 'ModuleObject', 'class_variables', argc: 0..1, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Module', 'const_defined?', 'ModuleObject', 'const_defined', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'const_get', 'ModuleObject', 'const_get', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'const_missing', 'ModuleObject', 'const_missing', argc: 1, pass_env: true, pass_block: false, return_type: :Object)

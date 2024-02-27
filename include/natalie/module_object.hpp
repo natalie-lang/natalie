@@ -93,7 +93,7 @@ public:
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
     Value class_variable_set(Env *, Value, Value);
-    ArrayObject *class_variables() const;
+    ArrayObject *class_variables(Value = nullptr) const;
     Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Value, Block *);

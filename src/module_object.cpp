@@ -428,7 +428,7 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
 }
 
-ArrayObject *ModuleObject::class_variables() const {
+ArrayObject *ModuleObject::class_variables(Value inherit) const {
     std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
 
     auto result = new ArrayObject {};
@@ -438,6 +438,8 @@ ArrayObject *ModuleObject::class_variables() const {
         for (auto [cvar, _] : singleton_class()->m_class_vars)
             result->push(cvar);
     }
+    if (inherit && inherit->is_truthy() && m_superclass)
+        result->concat(*m_superclass->class_variables(inherit));
     return result;
 }
 
