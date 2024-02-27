@@ -428,6 +428,24 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
 }
 
+Value ModuleObject::remove_class_variable(Env *env, Value name) {
+    assert_not_frozen(env);
+    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+
+    if (!name_sym->is_cvar_name())
+        env->raise_name_error(name_sym, "`{}' is not allowed as a class variable name", name_sym->string());
+
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto val = cvar_get_or_null(env, name_sym);
+    if (!val)
+        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
+
+    m_class_vars.remove(name_sym);
+
+    return val;
+}
+
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
     assert_not_frozen(env, this);
     Method *method = env->file() ? new Method { name->string(), this, fn, arity, env->file(), env->line() }

@@ -93,6 +93,7 @@ public:
     bool class_variable_defined(Env *, Value);
     Value class_variable_get(Env *, Value);
     Value class_variable_set(Env *, Value, Value);
+    Value remove_class_variable(Env *, Value);
 
     Value define_method(Env *, Value, Value, Block *);
     virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int, bool optimized = false) override;
