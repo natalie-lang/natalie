@@ -26,7 +26,9 @@ describe "A class variable defined in a module" do
   end
 
   it "can be accessed from classes that extend the module" do
-    ClassVariablesSpec::ClassC.cvar_m.should == :value
+    NATFIXME 'can be accessed from classes that extend the module', exception: NameError, message: 'uninitialized class variable @@cvar_m in ClassVariablesSpec::ClassC' do
+      ClassVariablesSpec::ClassC.cvar_m.should == :value
+    end
   end
 
   it "is not defined in these classes" do
@@ -51,7 +53,9 @@ describe "A class variable defined in a module" do
   end
 
   it "can be accessed from modules that extend the module" do
-    ClassVariablesSpec::ModuleO.cvar_n.should == :value
+    NATFIXME 'can be accessed from modules that extend the module', exception: NameError, message: 'uninitialized class variable @@cvar_n in ClassVariablesSpec::ModuleO' do
+      ClassVariablesSpec::ModuleO.cvar_n.should == :value
+    end
   end
 
   it "is defined in the extended module" do
@@ -85,12 +89,14 @@ end
 
 describe 'Accessing a class variable' do
   it "raises a RuntimeError when accessed from the toplevel scope (not in some module or class)" do
-    -> {
-      eval "@@cvar_toplevel1"
-    }.should raise_error(RuntimeError, 'class variable access from toplevel')
-    -> {
-      eval "@@cvar_toplevel2 = 2"
-    }.should raise_error(RuntimeError, 'class variable access from toplevel')
+    NATFIXME 'raises a RuntimeError when accessed from the toplevel scope (not in some module or class)', exception: SpecFailedException, message: /NameError: uninitialized class variable @@cvar_toplevel1/ do
+      -> {
+        eval "@@cvar_toplevel1"
+      }.should raise_error(RuntimeError, 'class variable access from toplevel')
+      -> {
+        eval "@@cvar_toplevel2 = 2"
+      }.should raise_error(RuntimeError, 'class variable access from toplevel')
+    end
   end
 
   it "does not raise an error when checking if defined from the toplevel scope" do
@@ -105,10 +111,12 @@ describe 'Accessing a class variable' do
     subclass.class_variable_set(:@@cvar_overtaken, :subclass)
     parent.class_variable_set(:@@cvar_overtaken, :parent)
 
-    -> {
-      subclass.class_variable_get(:@@cvar_overtaken)
-    }.should raise_error(RuntimeError, /class variable @@cvar_overtaken of .+ is overtaken by .+/)
+    NATFIXME 'raises a RuntimeError when a class variable is overtaken in an ancestor class', exception: SpecFailedException, message: /instead raised nothing/ do
+      -> {
+        subclass.class_variable_get(:@@cvar_overtaken)
+      }.should raise_error(RuntimeError, /class variable @@cvar_overtaken of .+ is overtaken by .+/)
 
-    parent.class_variable_get(:@@cvar_overtaken).should == :parent
+      parent.class_variable_get(:@@cvar_overtaken).should == :parent
+    end
   end
 end
