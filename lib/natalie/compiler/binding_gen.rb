@@ -1026,6 +1026,7 @@ gen.binding('Module', 'attr_accessor', 'ModuleObject', 'attr_accessor', argc: 1.
 gen.binding('Module', 'attr_reader', 'ModuleObject', 'attr_reader', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'attr_writer', 'ModuleObject', 'attr_writer', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'autoload?', 'ModuleObject', 'is_autoload', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'class_variable_defined?', 'ModuleObject', 'class_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'class_variable_get', 'ModuleObject', 'class_variable_get', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'class_variable_set', 'ModuleObject', 'class_variable_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'const_defined?', 'ModuleObject', 'const_defined', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)

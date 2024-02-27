@@ -406,6 +406,12 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     return val;
 }
 
+bool ModuleObject::class_variable_defined(Env *env, Value name) {
+    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+
+    return cvar_get_or_null(env, name_sym);
+}
+
 Value ModuleObject::class_variable_get(Env *env, Value name) {
     auto *name_sym = name->to_symbol(env, Conversion::Strict);
 
