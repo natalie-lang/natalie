@@ -434,6 +434,10 @@ ArrayObject *ModuleObject::class_variables() const {
     auto result = new ArrayObject {};
     for (auto [cvar, _] : m_class_vars)
         result->push(cvar);
+    if (singleton_class()) {
+        for (auto [cvar, _] : singleton_class()->m_class_vars)
+            result->push(cvar);
+    }
     return result;
 }
 
