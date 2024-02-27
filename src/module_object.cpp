@@ -428,6 +428,15 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
 }
 
+ArrayObject *ModuleObject::class_variables() const {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto result = new ArrayObject {};
+    for (auto [cvar, _] : m_class_vars)
+        result->push(cvar);
+    return result;
+}
+
 Value ModuleObject::remove_class_variable(Env *env, Value name) {
     assert_not_frozen(env);
     auto *name_sym = name->to_symbol(env, Conversion::Strict);
