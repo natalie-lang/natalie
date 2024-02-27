@@ -41,9 +41,7 @@ describe "A class definition" do
   end
 
   it "has no class variables" do
-    NATFIXME 'has no class variables', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::A" do
-      ClassSpecs::A.class_variables.should == []
-    end
+    ClassSpecs::A.class_variables.should == []
   end
 
   it "raises TypeError if constant given as class name exists and is not a Module" do
@@ -181,10 +179,8 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in the body" do
-    NATFIXME 'allows the declaration of class variables in the body', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::B" do
-      ClassSpecs.string_class_variables(ClassSpecs::B).should == ["@@cvar"]
-      ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
-    end
+    ClassSpecs.string_class_variables(ClassSpecs::B).should == ["@@cvar"]
+    ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
   end
 
   it "stores instance variables defined in the class body in the class object" do
@@ -193,12 +189,10 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in a class method" do
-    NATFIXME 'allows the declaration of class variables in a class method', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::C" do
-      ClassSpecs::C.class_variables.should == []
-      ClassSpecs::C.make_class_variable
-      ClassSpecs.string_class_variables(ClassSpecs::C).should == ["@@cvar"]
-      ClassSpecs::C.remove_class_variable :@@cvar
-    end
+    ClassSpecs::C.class_variables.should == []
+    ClassSpecs::C.make_class_variable
+    ClassSpecs.string_class_variables(ClassSpecs::C).should == ["@@cvar"]
+    ClassSpecs::C.remove_class_variable :@@cvar
   end
 
   it "allows the definition of class-level instance variables in a class method" do
@@ -209,12 +203,10 @@ describe "A class definition" do
   end
 
   it "allows the declaration of class variables in an instance method" do
-    NATFIXME 'allows the declaration of class variables in an instance method', exception: NoMethodError, message: "undefined method `class_variables' for class ClassSpecs::D" do
-      ClassSpecs::D.class_variables.should == []
-      ClassSpecs::D.new.make_class_variable
-      ClassSpecs.string_class_variables(ClassSpecs::D).should == ["@@cvar"]
-      ClassSpecs::D.remove_class_variable :@@cvar
-    end
+    ClassSpecs::D.class_variables.should == []
+    ClassSpecs::D.new.make_class_variable
+    ClassSpecs.string_class_variables(ClassSpecs::D).should == ["@@cvar"]
+    ClassSpecs::D.remove_class_variable :@@cvar
   end
 
   it "allows the definition of instance methods" do

@@ -406,6 +406,12 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     return val;
 }
 
+bool ModuleObject::class_variable_defined(Env *env, Value name) {
+    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+
+    return cvar_get_or_null(env, name_sym);
+}
+
 Value ModuleObject::class_variable_get(Env *env, Value name) {
     auto *name_sym = name->to_symbol(env, Conversion::Strict);
 
@@ -420,6 +426,39 @@ Value ModuleObject::class_variable_set(Env *env, Value name, Value value) {
     assert_not_frozen(env);
 
     return cvar_set(env, name->to_symbol(env, Conversion::Strict), value);
+}
+
+ArrayObject *ModuleObject::class_variables(Value inherit) const {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto result = new ArrayObject {};
+    for (auto [cvar, _] : m_class_vars)
+        result->push(cvar);
+    if (singleton_class()) {
+        for (auto [cvar, _] : singleton_class()->m_class_vars)
+            result->push(cvar);
+    }
+    if (inherit && inherit->is_truthy() && m_superclass)
+        result->concat(*m_superclass->class_variables(inherit));
+    return result;
+}
+
+Value ModuleObject::remove_class_variable(Env *env, Value name) {
+    assert_not_frozen(env);
+    auto *name_sym = name->to_symbol(env, Conversion::Strict);
+
+    if (!name_sym->is_cvar_name())
+        env->raise_name_error(name_sym, "`{}' is not allowed as a class variable name", name_sym->string());
+
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto val = cvar_get_or_null(env, name_sym);
+    if (!val)
+        env->raise_name_error(name_sym, "uninitialized class variable {} in {}", name_sym->string(), inspect_str());
+
+    m_class_vars.remove(name_sym);
+
+    return val;
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity, bool optimized) {
