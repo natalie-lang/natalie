@@ -229,7 +229,7 @@ public:
 
     StringObject *to_str() { return this; }
 
-    StringObject *inspect(Env *);
+    StringObject *inspect(Env *) const;
 
     StringObject &operator=(StringObject other) {
         this->m_string = other.m_string;
