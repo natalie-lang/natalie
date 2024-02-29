@@ -496,7 +496,7 @@ Value StringObject::tr_in_place(Env *env, Value from_value, Value to_value) {
     return this;
 }
 
-StringObject *StringObject::inspect(Env *env) {
+StringObject *StringObject::inspect(Env *env) const {
     StringObject *out = new StringObject { "\"" };
 
     size_t index = 0;
