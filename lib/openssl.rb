@@ -40,7 +40,13 @@ module Digest
     end
 
     def inspect
+      return super if method(:update).owner == ::Digest::Instance
       "#<#{self.class}: #{hexdigest}>"
+    end
+
+    def to_s
+      return super if method(:update).owner == ::Digest::Instance
+      hexdigest
     end
 
     def self.included(klass)
