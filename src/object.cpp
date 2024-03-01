@@ -1109,8 +1109,7 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     auto method_info = klass->find_method(env, name_symbol);
     if (!method_info.is_defined()) {
         if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-            auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
-            return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+            return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) })->is_truthy();
         }
         return false;
     }
@@ -1122,8 +1121,7 @@ bool Object::respond_to_method(Env *env, Value name_val, bool include_all) {
     if (visibility == MethodVisibility::Public) {
         return true;
     } else if (klass->find_method(env, "respond_to_missing?"_s).is_defined()) {
-        auto include_all_val = include_all ? (Value)TrueObject::the() : (Value)FalseObject::the();
-        return send(env, "respond_to_missing?"_s, { name_val, include_all_val })->is_truthy();
+        return send(env, "respond_to_missing?"_s, { name_val, bool_object(include_all) })->is_truthy();
     } else {
         return false;
     }

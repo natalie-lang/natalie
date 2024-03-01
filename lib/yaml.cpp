@@ -115,7 +115,7 @@ static void emit_value(Env *env, RangeObject *value, yaml_emitter_t &emitter, ya
     emit_value(env, new StringObject { "end" }, emitter, event);
     emit_value(env, value->end(), emitter, event);
     emit_value(env, new StringObject { "excl" }, emitter, event);
-    auto exclude_end = value->exclude_end() ? static_cast<Value>(TrueObject::the()) : static_cast<Value>(FalseObject::the());
+    auto exclude_end = bool_object(value->exclude_end());
     emit_value(env, exclude_end, emitter, event);
 
     yaml_mapping_end_event_initialize(&event);
