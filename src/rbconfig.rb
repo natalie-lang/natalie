@@ -6,6 +6,7 @@ module RbConfig
     "EXEEXT" => (RUBY_PLATFORM =~ /msys/ ? '.exe' : ''),
     "DLEXT" => (RUBY_PLATFORM =~ /darwin/ ? 'bundle' : 'so'),
     "SOEXT" => (RUBY_PLATFORM =~ /darwin/ ? 'dylib' : 'so'),
+    "LIBPATHENV" => (RUBY_PLATFORM =~ /darwin/ ? 'DYLD_LIBRARY_PATH' : 'LD_LIBRARY_PATH'),
     "host_cpu" => RUBY_PLATFORM.split('-')[0],
     "host_os" => RUBY_PLATFORM.split('-')[1],
     "AR" => "ar",
