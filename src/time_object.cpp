@@ -247,7 +247,7 @@ Value TimeObject::subsec(Env *) {
 }
 
 Value TimeObject::to_a(Env *env) const {
-    Value dstval = isdst(env) ? (Value)(TrueObject::the()) : (Value)(FalseObject::the());
+    auto dstval = bool_object(isdst(env));
     return new ArrayObject { sec(env), min(env), hour(env), mday(env), month(env), year(env), wday(env), yday(env), dstval, zone(env) };
 }
 

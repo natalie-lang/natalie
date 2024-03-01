@@ -729,23 +729,23 @@ Value KernelModule::test(Env *env, Value cmd, Value file) {
     case 'C':
         return FileObject::stat(env, file)->as_file_stat()->ctime(env);
     case 'd':
-        return FileObject::is_directory(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_directory(env, file));
     case 'e':
-        return FileObject::exist(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::exist(env, file));
     case 'f':
-        return FileObject::is_file(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_file(env, file));
     case 'l':
-        return FileObject::is_symlink(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_symlink(env, file));
     case 'M':
         return FileObject::stat(env, file)->as_file_stat()->mtime(env);
     case 'r':
-        return FileObject::is_readable(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_readable(env, file));
     case 'R':
-        return FileObject::is_readable_real(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_readable_real(env, file));
     case 'w':
-        return FileObject::is_writable(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_writable(env, file));
     case 'W':
-        return FileObject::is_writable_real(env, file) ? (Value)TrueObject::the() : (Value)FalseObject::the();
+        return bool_object(FileObject::is_writable_real(env, file));
     default:
         env->raise("ArgumentError", "unknown command '{}'", cmd->to_str(env)->string()[0]);
     }
