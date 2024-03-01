@@ -328,6 +328,8 @@ class Runner
   def print_cpp_source(path)
     if system('which bat 2>&1 >/dev/null')
       system('bat', path, '-lcpp')
+    elsif system('which batcat 2>&1 >/dev/null')
+      system('batcat', path, '-lcpp')
     else
       puts File.read(path)
       puts '-' * 80
