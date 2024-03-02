@@ -413,6 +413,10 @@ Env *build_top_env() {
     env->global_set("$DEBUG"_s, FalseObject::the());
     env->global_alias("$-d"_s, "$DEBUG"_s);
 
+    env->global_set("$VERBOSE"_s, FalseObject::the());
+    env->global_alias("$-v"_s, "$VERBOSE"_s);
+    env->global_alias("$-w"_s, "$VERBOSE"_s);
+
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
     env->global_set("$\""_s, new ArrayObject {}, true);

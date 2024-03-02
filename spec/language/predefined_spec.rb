@@ -1054,9 +1054,7 @@ describe "Global variable $VERBOSE" do
   end
 
   it "is false by default" do
-    NATFIXME 'is false by default', exception: SpecFailedException do
-      $VERBOSE.should be_false
-    end
+    $VERBOSE.should be_false
   end
 
   it "converts truthy values to true" do
