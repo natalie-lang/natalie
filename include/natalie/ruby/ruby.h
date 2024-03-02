@@ -21,3 +21,8 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
     String str { size, c }; // Add this contructor to StringObject
     return new StringObject { std::move(str) };
 }
+
+#define StringValue(value)          \
+    do {                            \
+        value = value->to_str(env); \
+    } while (0);

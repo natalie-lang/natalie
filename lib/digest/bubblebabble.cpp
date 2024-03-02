@@ -29,9 +29,9 @@ bubblebabble_str_new(Env *env, VALUE str_digest)
         'p', 'r', 's', 't', 'v', 'z', 'x'
     };
 
-    auto str_digest_to_str = str_digest->to_str(env);
-    digest = RSTRING_PTR(str_digest_to_str);
-    digest_len = RSTRING_LEN(str_digest_to_str);
+    StringValue(str_digest);
+    digest = RSTRING_PTR(str_digest);
+    digest_len = RSTRING_LEN(str_digest);
 
     if ((LONG_MAX - 2) / 3 < (digest_len | 1)) {
         env->raise("RuntimeError", "digest string too long");
