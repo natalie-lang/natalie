@@ -6,6 +6,8 @@
 
 #include "natalie.hpp"
 
+#include <type_traits>
+
 using VALUE = Value;
 
 inline char *RSTRING_PTR(Value string) {
@@ -22,7 +24,8 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
     return new StringObject { std::move(str) };
 }
 
-#define StringValue(value)          \
-    do {                            \
-        value = value->to_str(env); \
+#define StringValue(string)                                                \
+    do {                                                                   \
+        static_assert(!std::is_rvalue_reference<decltype(string)>::value); \
+        string = string->to_str(env);                                      \
     } while (0);
