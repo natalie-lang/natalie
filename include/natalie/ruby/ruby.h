@@ -37,6 +37,9 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
         string = string->to_str(env);                                      \
     } while (0);
 
+#define rb_funcallv(RECEIVER, NAME, ARGC, ARGV)    \
+    RECEIVER->send(env, NAME, { ARGC, ARGV })
+
 #define rb_define_module_function(RECEIVER, NAME, FUNCTION, ARITY) \
     do {                                                           \
         SymbolObject *name = SymbolObject::intern(NAME);           \

@@ -100,7 +100,7 @@ rb_digest_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 static VALUE
 rb_digest_class_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 {
-    return bubblebabble_str_new(env, klass->send(env, "digest"_s, args));
+    return bubblebabble_str_new(env, rb_funcallv(klass, "digest"_s, args.size(), args.data()));
 }
 
 /* Document-method: Digest::Instance#bubblebabble
