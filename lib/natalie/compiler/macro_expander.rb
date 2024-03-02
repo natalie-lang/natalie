@@ -261,6 +261,9 @@ module Natalie
           puts "Expected #{path} to contain function: `#{init_function}`"
           raise CompileError, "could not load #{name}"
         end
+        unless File.absolute_path?(path)
+          path = File.join(Dir.pwd, path)
+        end
         ::Prism::StatementsNode.new(
           [
             Prism.call_node(
