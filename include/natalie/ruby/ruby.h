@@ -7,3 +7,7 @@
 #include "natalie.hpp"
 
 using VALUE = Value;
+
+inline size_t RSTRING_LEN(Value string) {
+    return string->as_string()->bytesize();
+}
