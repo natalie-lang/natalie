@@ -155,6 +155,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | file(s)          | copyright                         | license           |
 | ---------------- | --------------------------------- | ----------------- |
 | `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
+| `bubblebabble.c` | Akinori MUSHA                     | BSD               |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
