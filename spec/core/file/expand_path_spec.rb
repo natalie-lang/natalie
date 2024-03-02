@@ -30,7 +30,9 @@ describe "File.expand_path" do
   it "converts a pathname to an absolute pathname" do
     File.expand_path('').should == @base
     File.expand_path('a').should == File.join(@base, 'a')
-    File.expand_path('a', nil).should == File.join(@base, 'a')
+    NATFIXME 'converts a pathname to an absolute pathname', exception: TypeError, message: 'no implicit conversion from nil to string' do
+      File.expand_path('a', nil).should == File.join(@base, 'a')
+    end
   end
 
   it "converts a pathname to an absolute pathname, Ruby-Talk:18512" do
@@ -64,22 +66,30 @@ describe "File.expand_path" do
     # FIXME: these are insane!
     it "expand path with" do
       File.expand_path("../../bin", "/tmp/x").should == "/bin"
-      File.expand_path("../../bin", "/tmp").should == "/bin"
-      File.expand_path("../../bin", "/").should == "/bin"
+      NATFIXME 'expand path with', exception: SpecFailedException do
+        File.expand_path("../../bin", "/tmp").should == "/bin"
+        File.expand_path("../../bin", "/").should == "/bin"
+      end
       File.expand_path("../bin", "tmp/x").should == File.join(@base, 'tmp', 'bin')
       File.expand_path("../bin", "x/../tmp").should == File.join(@base, 'bin')
     end
 
     it "expand_path for common unix path gives a full path" do
       File.expand_path('/tmp/').should =='/tmp'
-      File.expand_path('/tmp/../../../tmp').should == '/tmp'
+      NATFIXME 'expand_path for common unix path gives a full path', exception: SpecFailedException do
+        File.expand_path('/tmp/../../../tmp').should == '/tmp'
+      end
       File.expand_path('').should == Dir.pwd
-      File.expand_path('./////').should == Dir.pwd
+      NATFIXME 'expand_path for common unix path gives a full path', exception: SpecFailedException do
+        File.expand_path('./////').should == Dir.pwd
+      end
       File.expand_path('.').should == Dir.pwd
       File.expand_path(Dir.pwd).should == Dir.pwd
-      File.expand_path('~/').should == @var_home
-      File.expand_path('~/..badfilename').should == "#{@var_home}/..badfilename"
-      File.expand_path('~/a','~/b').should == "#{@var_home}/a"
+      NATFIXME 'expand_path for common unix path gives a full path', exception: SpecFailedException do
+        File.expand_path('~/').should == @var_home
+        File.expand_path('~/..badfilename').should == "#{@var_home}/..badfilename"
+        File.expand_path('~/a','~/b').should == "#{@var_home}/a"
+      end
       File.expand_path('..').should == File.dirname(Dir.pwd)
     end
 
@@ -88,19 +98,27 @@ describe "File.expand_path" do
     end
 
     it "replaces multiple '/' with a single '/'" do
-      File.expand_path('/some////path').should == "/some/path"
+      NATFIXME "replaces multiple '/' with a single '/'", exception: SpecFailedException do
+        File.expand_path('/some////path').should == "/some/path"
+      end
     end
 
     it "raises an ArgumentError if the path is not valid" do
-      -> { File.expand_path("~a_not_existing_user") }.should raise_error(ArgumentError)
+      NATFIXME 'raises an ArgumentError if the path is not valid', exception: SpecFailedException do
+        -> { File.expand_path("~a_not_existing_user") }.should raise_error(ArgumentError)
+      end
     end
 
     it "expands ~ENV['USER'] to the user's home directory" do
-      File.expand_path("~#{ENV['USER']}").should == @db_home
+      NATFIXME "expands ~ENV['USER'] to the user's home directory", exception: SpecFailedException do
+        File.expand_path("~#{ENV['USER']}").should == @db_home
+      end
     end
 
     it "expands ~ENV['USER']/a to a in the user's home directory" do
-      File.expand_path("~#{ENV['USER']}/a").should == "#{@db_home}/a"
+      NATFIXME "expands ~ENV['USER']/a to a in the user's home directory", exception: SpecFailedException do
+        File.expand_path("~#{ENV['USER']}/a").should == "#{@db_home}/a"
+      end
     end
 
     it "does not expand ~ENV['USER'] when it's not at the start" do
@@ -108,12 +126,16 @@ describe "File.expand_path" do
     end
 
     it "expands ../foo with ~/dir as base dir to /path/to/user/home/foo" do
-      File.expand_path('../foo', '~/dir').should == "#{@var_home}/foo"
+      NATFIXME 'expands ../foo with ~/dir as base dir to /path/to/user/home/foo', exception: SpecFailedException do
+        File.expand_path('../foo', '~/dir').should == "#{@var_home}/foo"
+      end
     end
   end
 
   it "accepts objects that have a #to_path method" do
-    File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
+    NATFIXME 'accepts objects that have a #to_path method', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
+      File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
+    end
   end
 
   it "raises a TypeError if not passed a String type" do
@@ -138,17 +160,21 @@ describe "File.expand_path" do
     Encoding.default_external = Encoding::SHIFT_JIS
 
     path = "./a".force_encoding Encoding::CP1251
-    File.expand_path(path).encoding.should equal(Encoding::CP1251)
+    NATFIXME 'returns a String in the same encoding as the argument', exception: SpecFailedException do
+      File.expand_path(path).encoding.should equal(Encoding::CP1251)
 
-    weird_path = [222, 173, 190, 175].pack('C*')
-    File.expand_path(weird_path).encoding.should equal(Encoding::BINARY)
+      weird_path = [222, 173, 190, 175].pack('C*')
+      File.expand_path(weird_path).encoding.should equal(Encoding::BINARY)
+    end
   end
 
   platform_is_not :windows do
     it "expands a path when the default external encoding is BINARY" do
       Encoding.default_external = Encoding::BINARY
       path_8bit = [222, 173, 190, 175].pack('C*')
-      File.expand_path( path_8bit, @rootdir).should == "#{@rootdir}" + path_8bit
+      NATFIXME 'expands a path when the default external encoding is BINARY', exception: SpecFailedException do
+        File.expand_path( path_8bit, @rootdir).should == "#{@rootdir}" + path_8bit
+      end
     end
   end
 
@@ -159,7 +185,9 @@ describe "File.expand_path" do
   platform_is_not :windows do
     it "raises an Encoding::CompatibilityError if the external encoding is not compatible" do
       Encoding.default_external = Encoding::UTF_16BE
-      -> { File.expand_path("./a") }.should raise_error(Encoding::CompatibilityError)
+      NATFIXME 'raises an Encoding::CompatibilityError if the external encoding is not compatible', exception: SpecFailedException do
+        -> { File.expand_path("./a") }.should raise_error(Encoding::CompatibilityError)
+      end
     end
   end
 
@@ -171,7 +199,9 @@ describe "File.expand_path" do
 
   it "does not modify a HOME string argument" do
     str = "~/a"
-    File.expand_path(str).should == "#{Dir.home}/a"
+    NATFIXME 'converts a pathname to an absolute pathname, using ~ (home) as base', exception: SpecFailedException do
+      File.expand_path(str).should == "#{Dir.home}/a"
+    end
     str.should == "~/a"
   end
 
@@ -196,9 +226,11 @@ platform_is_not :windows do
 
     it "converts a pathname to an absolute pathname, using ~ (home) as base" do
       home = "/rubyspec_home"
-      File.expand_path('~').should == home
-      File.expand_path('~', '/tmp/gumby/ddd').should == home
-      File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home, 'a')
+      NATFIXME 'converts a pathname to an absolute pathname, using ~ (home) as base', exception: SpecFailedException do
+        File.expand_path('~').should == home
+        File.expand_path('~', '/tmp/gumby/ddd').should == home
+        File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home, 'a')
+      end
     end
 
     it "does not return a frozen string" do
@@ -233,18 +265,24 @@ platform_is_not :windows do
     } do
       it "uses the user database when passed '~' if HOME is nil" do
         ENV.delete "HOME"
-        File.directory?(File.expand_path("~")).should == true
+        NATFIXME "File.expand_path when HOME is not set", exception: SpecFailedException do
+          File.directory?(File.expand_path("~")).should == true
+        end
       end
 
       it "uses the user database when passed '~/' if HOME is nil" do
         ENV.delete "HOME"
-        File.directory?(File.expand_path("~/")).should == true
+        NATFIXME "File.expand_path when HOME is not set", exception: SpecFailedException do
+          File.directory?(File.expand_path("~/")).should == true
+        end
       end
     end
 
     it "raises an ArgumentError when passed '~' if HOME == ''" do
       ENV["HOME"] = ""
-      -> { File.expand_path("~") }.should raise_error(ArgumentError)
+      NATFIXME "File.expand_path when HOME is not set", exception: SpecFailedException do
+        -> { File.expand_path("~") }.should raise_error(ArgumentError)
+      end
     end
   end
 
@@ -259,7 +297,9 @@ platform_is_not :windows do
 
     it "raises an ArgumentError" do
       ENV["HOME"] = "non-absolute"
-      -> { File.expand_path("~") }.should raise_error(ArgumentError, 'non-absolute home')
+      NATFIXME 'File.expand_path with a non-absolute HOME raises an ArgumentError', exception: SpecFailedException do
+        -> { File.expand_path("~") }.should raise_error(ArgumentError, 'non-absolute home')
+      end
     end
   end
 end
