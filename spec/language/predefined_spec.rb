@@ -744,29 +744,23 @@ describe "Predefined global $." do
   end
 
   it "can be assigned a Float" do
-    NATFIXME 'can be assigned a Float', exception: SpecFailedException do
-      $. = 123.5
-      $..should == 123
-    end
+    $. = 123.5
+    $..should == 123
   end
 
   it "should call #to_int to convert the object to an Integer" do
-    NATFIXME 'should call #to_int to convert the object to an Integer', exception: SpecFailedException do
-      obj = mock("good-value")
-      obj.should_receive(:to_int).and_return(321)
+    obj = mock("good-value")
+    obj.should_receive(:to_int).and_return(321)
 
-      $. = obj
-      $..should == 321
-    end
+    $. = obj
+    $..should == 321
   end
 
   it "raises TypeError if object can't be converted to an Integer" do
-    NATFIXME "raises TypeError if object can't be converted to an Integer", exception: SpecFailedException do
-      obj = mock("bad-value")
-      obj.should_receive(:to_int).and_return('abc')
+    obj = mock("bad-value")
+    obj.should_receive(:to_int).and_return('abc')
 
-      -> { $. = obj }.should raise_error(TypeError)
-    end
+    -> { $. = obj }.should raise_error(TypeError)
   end
 end
 

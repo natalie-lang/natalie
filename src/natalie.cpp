@@ -414,6 +414,7 @@ Env *build_top_env() {
     env->global_set("$?"_s, NilObject::the(), true);
 
     env->global_set("$."_s, Value::integer(0));
+    GlobalEnv::the()->global_set_write_hook(env, "$."_s, GlobalVariableAccessHooks::WriteHooks::to_int);
 
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
