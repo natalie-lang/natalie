@@ -30,9 +30,7 @@ describe "File.expand_path" do
   it "converts a pathname to an absolute pathname" do
     File.expand_path('').should == @base
     File.expand_path('a').should == File.join(@base, 'a')
-    NATFIXME 'converts a pathname to an absolute pathname', exception: TypeError, message: 'no implicit conversion from nil to string' do
-      File.expand_path('a', nil).should == File.join(@base, 'a')
-    end
+    File.expand_path('a', nil).should == File.join(@base, 'a')
   end
 
   it "converts a pathname to an absolute pathname, Ruby-Talk:18512" do
