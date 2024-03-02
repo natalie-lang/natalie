@@ -12,6 +12,11 @@ using VALUE = Value;
 
 const char *rb_eRuntimeError = "RuntimeError";
 
+#define rb_raise(CLASS, MSG)        \
+    do {                            \
+        env->raise((CLASS), (MSG)); \
+    } while (0);
+
 inline char *RSTRING_PTR(Value string) {
     // We probably shouldn't be const casting
     return const_cast<char *>(string->as_string()->c_str());
