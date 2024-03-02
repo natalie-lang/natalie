@@ -11,10 +11,10 @@
 
 ************************************************/
 
-#include "natalie.hpp"
+#include <natalie/ruby/ruby.h>
 
-static Value
-bubblebabble_str_new(Env *env, Value str_digest)
+static VALUE
+bubblebabble_str_new(Env *env, VALUE str_digest)
 {
     const char *digest;
     size_t digest_len;
@@ -81,8 +81,8 @@ bubblebabble_str_new(Env *env, Value str_digest)
  *
  * Returns a BubbleBabble encoded version of a given _string_.
  */
-static Value
-rb_digest_s_bubblebabble(Env *env, Value klass, Args args, Block *)
+static VALUE
+rb_digest_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 {
     args.ensure_argc_is(env, 1);
     auto str = args.at(0);
@@ -96,8 +96,8 @@ rb_digest_s_bubblebabble(Env *env, Value klass, Args args, Block *)
  *
  * Returns the BubbleBabble encoded hash value of a given _string_.
  */
-static Value
-rb_digest_class_s_bubblebabble(Env *env, Value klass, Args args, Block *)
+static VALUE
+rb_digest_class_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 {
     return bubblebabble_str_new(env, klass->send(env, "digest"_s, args));
 }
@@ -109,8 +109,8 @@ rb_digest_class_s_bubblebabble(Env *env, Value klass, Args args, Block *)
  *
  * Returns the resulting hash value in a Bubblebabble encoded form.
  */
-static Value
-rb_digest_instance_bubblebabble(Env *env, Value self, Args args, Block *)
+static VALUE
+rb_digest_instance_bubblebabble(Env *env, VALUE self, Args args, Block *)
 {
     return bubblebabble_str_new(env, self->send(env, "digest"_s));
 }
@@ -121,7 +121,7 @@ rb_digest_instance_bubblebabble(Env *env, Value self, Args args, Block *)
  */
 Value init_bubblebabble(Env *env, Value self) {
 #undef rb_intern
-    Value rb_mDigest, rb_mDigest_Instance, rb_cDigest_Class;
+    VALUE rb_mDigest, rb_mDigest_Instance, rb_cDigest_Class;
 
 #if 0
     rb_mDigest = rb_define_module("Digest");
