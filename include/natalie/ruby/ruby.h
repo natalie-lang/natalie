@@ -10,6 +10,8 @@
 
 using VALUE = Value;
 
+const char *rb_eRuntimeError = "RuntimeError";
+
 inline char *RSTRING_PTR(Value string) {
     // We probably shouldn't be const casting
     return const_cast<char *>(string->as_string()->c_str());
