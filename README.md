@@ -152,21 +152,21 @@ Some parts of this program are copied from other sources, and the copyright
 belongs to the respective owner. Such copyright notices are either at the top of
 the respective file, in the same directory with a name like `LICENSE`, or both.
 
-| file(s)          | copyright                         | license           |
-| ---------------- | --------------------------------- | ----------------- |
-| `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
-| `bubblebabble.c` | Akinori MUSHA                     | BSD               |
+| file(s)            | copyright                         | license           |
+| ------------------ | --------------------------------- | ----------------- |
+| `big_int.*`        | Syed Faheel Ahmad                 | MIT               |
+| `bubblebabble.c`   | Akinori MUSHA                     | BSD               |
 | `bubblebabble.cpp` | Akinori MUSHA                     | BSD               |
-| `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
-| `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
-| `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
-| `minicoro.h`     | Eduardo Bart                      | MIT               |
-| `pp.rb`          | Yukihiro Matsumoto                | BSD               |
-| `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
-| `spec/*`         | Engine Yard, Inc.                 | MIT               |
-| `uri.rb`         | Akira Yamada                      | BSD               |
-| `uri/*`          | Akira Yamada                      | BSD               |
-| `version.rb`     | Engine Yard, Inc.                 | MIT               |
-| `zlib`           | Jean-loup Gailly and Mark Adler   | zlib license      |
+| `dtoa.c`           | David M. Gay, Lucent Technologies | custom permissive |
+| `ipaddr.rb`        | Hajimu Umemoto and Akinori Musha  | BSD               |
+| `linenoise`        | S. Sanfilippo and P. Noordhuis    | BSD               |
+| `minicoro.h`       | Eduardo Bart                      | MIT               |
+| `pp.rb`            | Yukihiro Matsumoto                | BSD               |
+| `prettyprint.rb`   | Yukihiro Matsumoto                | BSD               |
+| `spec/*`           | Engine Yard, Inc.                 | MIT               |
+| `uri.rb`           | Akira Yamada                      | BSD               |
+| `uri/*`            | Akira Yamada                      | BSD               |
+| `version.rb`       | Engine Yard, Inc.                 | MIT               |
+| `zlib`             | Jean-loup Gailly and Mark Adler   | zlib license      |
 
 See each file above for full copyright and license text.
