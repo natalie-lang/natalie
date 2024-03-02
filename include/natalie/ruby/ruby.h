@@ -16,3 +16,8 @@ inline char *RSTRING_PTR(Value string) {
 inline size_t RSTRING_LEN(Value string) {
     return string->as_string()->bytesize();
 }
+
+inline StringObject *rb_str_new(const char c, const size_t size) {
+    String str { size, c }; // Add this contructor to StringObject
+    return new StringObject { std::move(str) };
+}

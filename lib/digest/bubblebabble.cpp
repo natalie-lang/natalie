@@ -18,6 +18,7 @@ bubblebabble_str_new(Env *env, VALUE str_digest)
 {
     char *digest;
     size_t digest_len;
+    VALUE str;
     char *p;
     size_t i, j, seed = 1;
     static const char vowels[] = {
@@ -36,8 +37,8 @@ bubblebabble_str_new(Env *env, VALUE str_digest)
         env->raise("RuntimeError", "digest string too long");
     }
 
-    String str { (digest_len | 1) * 3 + 2, '\0' };
-    p = &str[0];
+    str = rb_str_new(0, (digest_len | 1) * 3 + 2);
+    p = RSTRING_PTR(str);
 
     i = j = 0;
     p[j++] = 'x';
@@ -71,7 +72,7 @@ bubblebabble_str_new(Env *env, VALUE str_digest)
 
     p[j] = 'x';
 
-    return new StringObject { str, EncodingObject::get(Encoding::ASCII_8BIT) };
+    return str;
 }
 
 /* Document-method: Digest::bubblebabble
