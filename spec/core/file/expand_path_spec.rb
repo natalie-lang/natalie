@@ -131,9 +131,7 @@ describe "File.expand_path" do
   end
 
   it "accepts objects that have a #to_path method" do
-    NATFIXME 'accepts objects that have a #to_path method', exception: TypeError, message: 'no implicit conversion of MockObject into String' do
-      File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
-    end
+    File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
   end
 
   it "raises a TypeError if not passed a String type" do
