@@ -16,7 +16,7 @@
 static VALUE
 bubblebabble_str_new(Env *env, VALUE str_digest)
 {
-    const char *digest;
+    char *digest;
     size_t digest_len;
     char *p;
     size_t i, j, seed = 1;
@@ -29,7 +29,7 @@ bubblebabble_str_new(Env *env, VALUE str_digest)
     };
 
     auto str_digest_to_str = str_digest->to_str(env);
-    digest = str_digest_to_str->c_str();
+    digest = RSTRING_PTR(str_digest_to_str);
     digest_len = RSTRING_LEN(str_digest_to_str);
 
     if ((LONG_MAX - 2) / 3 < (digest_len | 1)) {
