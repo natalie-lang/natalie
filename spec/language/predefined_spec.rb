@@ -587,10 +587,8 @@ describe "Predefined global $/" do
   end
 
   it "changes $-0" do
-    NATFIXME 'Implement $-0', exception: SpecFailedException do
-      $/ = "xyz"
-      $-0.should equal($/)
-    end
+    $/ = "xyz"
+    $-0.should equal($/)
   end
 
   it "does not call #to_str to convert the object to a String" do
@@ -644,10 +642,8 @@ describe "Predefined global $-0" do
   end
 
   it "changes $/" do
-    NATFIXME 'Implement $-0', exception: SpecFailedException do
-      $-0 = "xyz"
-      $/.should equal($-0)
-    end
+    $-0 = "xyz"
+    $/.should equal($-0)
   end
 
   it "does not call #to_str to convert the object to a String" do
@@ -1042,11 +1038,9 @@ describe "Global variable $-d" do
 
   it "is an alias of $DEBUG" do
     $DEBUG = true
-    NATFIXME 'is an alias of $DEBUG', exception: SpecFailedException do
-      $-d.should be_true
-      $-d = false
-      $DEBUG.should be_false
-    end
+    $-d.should be_true
+    $-d = false
+    $DEBUG.should be_false
   end
 end
 
@@ -1060,9 +1054,7 @@ describe "Global variable $VERBOSE" do
   end
 
   it "is false by default" do
-    NATFIXME 'is false by default', exception: SpecFailedException do
-      $VERBOSE.should be_false
-    end
+    $VERBOSE.should be_false
   end
 
   it "converts truthy values to true" do
