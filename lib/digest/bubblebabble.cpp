@@ -13,6 +13,8 @@
 
 #include <natalie/ruby/ruby.h>
 
+static ID id_digest;
+
 static VALUE
 bubblebabble_str_new(Env *env, VALUE str_digest)
 {
@@ -100,7 +102,7 @@ rb_digest_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 static VALUE
 rb_digest_class_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 {
-    return bubblebabble_str_new(env, rb_funcallv(klass, "digest"_s, args.size(), args.data()));
+    return bubblebabble_str_new(env, rb_funcallv(klass, id_digest, args.size(), args.data()));
 }
 
 /* Document-method: Digest::Instance#bubblebabble
@@ -113,7 +115,7 @@ rb_digest_class_s_bubblebabble(Env *env, VALUE klass, Args args, Block *)
 static VALUE
 rb_digest_instance_bubblebabble(Env *env, VALUE self, Args args, Block *)
 {
-    return bubblebabble_str_new(env, self->send(env, "digest"_s));
+    return bubblebabble_str_new(env, self->send(env, id_digest));
 }
 
 /*
@@ -150,6 +152,8 @@ Value init_bubblebabble(Env *env, Value self) {
     rb_define_module_function(rb_mDigest, "bubblebabble", rb_digest_s_bubblebabble, 1);
     rb_define_singleton_method(rb_cDigest_Class, "bubblebabble", rb_digest_class_s_bubblebabble, -1);
     rb_define_method(rb_mDigest_Instance, "bubblebabble", rb_digest_instance_bubblebabble, 0);
+
+    id_digest = rb_intern("digest");
 
     return NilObject::the();
 }

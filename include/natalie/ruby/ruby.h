@@ -9,6 +9,7 @@
 #include <type_traits>
 
 using VALUE = Value;
+using ID = SymbolObject *;
 
 const char *rb_eRuntimeError = "RuntimeError";
 
@@ -59,3 +60,7 @@ inline void rb_require(const char *) {}
     do {                                                                           \
         RECEIVER->define_method(env, SymbolObject::intern(NAME), FUNCTION, ARITY); \
     } while (0);
+
+inline SymbolObject *rb_intern(const char *name) {
+    return SymbolObject::intern(name);
+}
