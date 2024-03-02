@@ -267,7 +267,7 @@ module Natalie
               receiver: nil,
               name: :__internal_inline_code__,
               arguments: [
-                Prism.string_node(unescaped: cpp_source, location: location)
+                Prism.string_node(unescaped: "#include \"#{path}\"", location: location)
               ],
               location: location
             ),
