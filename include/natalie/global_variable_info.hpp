@@ -9,7 +9,7 @@ namespace Natalie {
 class GlobalVariableInfo : public Cell {
 public:
     using read_hook_t = std::function<Value(Env *, GlobalVariableInfo &)>;
-    using write_hook_t = std::function<Object *(Env *, Value, GlobalVariableInfo &)>;
+    using write_hook_t = Object *(*)(Env *, Value, GlobalVariableInfo &);
 
     GlobalVariableInfo(Object *object, bool readonly)
         : m_object { object }
