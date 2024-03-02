@@ -407,6 +407,9 @@ Env *build_top_env() {
     env->global_set("$/"_s, new StringObject { "\n", 1 });
     env->global_alias("$-0"_s, "$/"_s);
 
+    env->global_set("$;"_s, NilObject::the());
+    env->global_alias("$-F"_s, "$;"_s);
+
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
     env->global_set("$\""_s, new ArrayObject {}, true);
