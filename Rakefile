@@ -243,6 +243,7 @@ task :format do
      "-type f -name '*.?pp' " \
      "! -path src/encoding/casemap.cpp " \
      "! -path src/encoding/casefold.cpp " \
+     "! -path lib/digest/bubblebabble.cpp " \
      "-exec clang-format -i --style=file {} +"
 end
 
