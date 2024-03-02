@@ -50,7 +50,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val, bool readon
             env->raise_name_error(name, "{} is a read only variable", name->string());
         if (readonly)
             assert(info->is_readonly()); // changing a global to read-only is not anticipated.
-        info->set_object(val.object());
+        info->set_object(env, val.object());
     } else {
         auto info = new GlobalVariableInfo { val.object(), readonly };
         m_global_variables.put(name, info, env);
@@ -98,6 +98,17 @@ void GlobalEnv::global_set_read_hook(Env *env, SymbolObject *name, bool readonly
     }
     assert(readonly == info->is_readonly());
     info->set_read_hook(read_hook);
+}
+
+void GlobalEnv::global_set_write_hook(Env *env, SymbolObject *name, GlobalVariableInfo::write_hook_t write_hook) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    auto info = m_global_variables.get(name, env);
+    if (!info)
+        env->raise("ScriptError", "Trying to add a write hook to undefined global variable {}", name->inspect_str(env));
+    if (info->is_readonly())
+        env->raise("ScriptError", "Trying to add a write hook to readonly global variable {}", name->inspect_str(env));
+    info->set_write_hook(write_hook);
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) {

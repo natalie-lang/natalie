@@ -86,11 +86,6 @@ describe "English" do
   end
 
   it "aliases $INPUT_LINE_NUMBER to $." do
-    NATFIXME '$. is initialized with 0 in MRI, but is nil in Natalie, work around this limitation by reading a line', exception: SpecFailedException do
-      $..should_not be_nil
-    end
-    File.open(__FILE__) { |f| f.readline }
-    # NATFIXME: Remove the read above once this issue is fixed
     $INPUT_LINE_NUMBER.should_not be_nil
     $INPUT_LINE_NUMBER.should == $.
   end

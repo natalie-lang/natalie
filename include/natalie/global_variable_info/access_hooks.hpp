@@ -8,4 +8,8 @@ namespace GlobalVariableAccessHooks::ReadHooks {
     Value getpid(Env *, GlobalVariableInfo &);
 }
 
+namespace GlobalVariableAccessHooks::WriteHooks {
+    Object *to_int(Env *, Value, GlobalVariableInfo &);
+}
+
 }
