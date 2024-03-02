@@ -145,10 +145,9 @@ Value init_bubblebabble(Env *env, Value self) {
         rb_mDigest->const_set("Class"_s, rb_cDigest_Class);
     }
 
-    rb_mDigest->define_method(env, "bubblebabble"_s, rb_digest_s_bubblebabble, 1);
-    rb_mDigest->module_function(env, "bubblebabble"_s);
-    rb_cDigest_Class->define_singleton_method(env, "bubblebabble"_s, rb_digest_class_s_bubblebabble, -1);
-    rb_mDigest_Instance->define_method(env, "bubblebabble"_s, rb_digest_instance_bubblebabble, 0);
+    rb_define_module_function(rb_mDigest, "bubblebabble", rb_digest_s_bubblebabble, 1);
+    rb_define_singleton_method(rb_cDigest_Class, "bubblebabble", rb_digest_class_s_bubblebabble, -1);
+    rb_define_method(rb_mDigest_Instance, "bubblebabble", rb_digest_instance_bubblebabble, 0);
 
     return NilObject::the();
 }

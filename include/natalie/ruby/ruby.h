@@ -36,3 +36,20 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
         static_assert(!std::is_rvalue_reference<decltype(string)>::value); \
         string = string->to_str(env);                                      \
     } while (0);
+
+#define rb_define_module_function(RECEIVER, NAME, FUNCTION, ARITY) \
+    do {                                                           \
+        SymbolObject *name = SymbolObject::intern(NAME);           \
+        RECEIVER->define_method(env, name, FUNCTION, ARITY);       \
+        RECEIVER->module_function(env, name);                      \
+    } while (0);
+
+#define rb_define_singleton_method(RECEIVER, NAME, FUNCTION, ARITY)                          \
+    do {                                                                                     \
+        RECEIVER->define_singleton_method(env, SymbolObject::intern(NAME), FUNCTION, ARITY); \
+    } while (0);
+
+#define rb_define_method(RECEIVER, NAME, FUNCTION, ARITY)                          \
+    do {                                                                           \
+        RECEIVER->define_method(env, SymbolObject::intern(NAME), FUNCTION, ARITY); \
+    } while (0);
