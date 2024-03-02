@@ -40,6 +40,9 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
 #define rb_funcallv(RECEIVER, NAME, ARGC, ARGV)    \
     RECEIVER->send(env, NAME, { ARGC, ARGV })
 
+// Should probably check with GlobalEnv to see if the file is included
+inline void rb_require(const char *) {}
+
 #define rb_define_module_function(RECEIVER, NAME, FUNCTION, ARITY) \
     do {                                                           \
         SymbolObject *name = SymbolObject::intern(NAME);           \

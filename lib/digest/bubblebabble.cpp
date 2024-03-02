@@ -124,6 +124,8 @@ Value init_bubblebabble(Env *env, Value self) {
 #undef rb_intern
     VALUE rb_mDigest, rb_mDigest_Instance, rb_cDigest_Class;
 
+    rb_require("digest");
+
 #if 0
     rb_mDigest = rb_define_module("Digest");
     rb_mDigest_Instance = rb_define_module_under(rb_mDigest, "Instance");
