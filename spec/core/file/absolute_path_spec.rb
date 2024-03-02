@@ -57,52 +57,40 @@ describe "File.absolute_path" do
   end
 
   it "returns the argument if it's an absolute pathname" do
-    NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-      File.absolute_path(@abs).should == @abs
-    end
+    File.absolute_path(@abs).should == @abs
   end
 
   it "resolves paths relative to the current working directory" do
     path = File.dirname(@abs)
     Dir.chdir(path) do
-      NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-        File.absolute_path('hello.txt').should == File.join(Dir.pwd, 'hello.txt')
-      end
+      File.absolute_path('hello.txt').should == File.join(Dir.pwd, 'hello.txt')
     end
   end
 
   it "does not expand '~' to a home directory." do
-    NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-      File.absolute_path('~').should_not == File.expand_path('~')
-    end
+    File.absolute_path('~').should_not == File.expand_path('~')
   end
 
   platform_is_not :windows do
     it "does not expand '~' when given dir argument" do
-      NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-        File.absolute_path('~', '/').should == '/~'
-      end
+      File.absolute_path('~', '/').should == '/~'
     end
   end
 
   it "does not expand '~user' to a home directory." do
     path = File.dirname(@abs)
     Dir.chdir(path) do
-      NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-        File.absolute_path('~user').should == File.join(Dir.pwd, '~user')
-      end
+      File.absolute_path('~user').should == File.join(Dir.pwd, '~user')
     end
   end
 
   it "accepts a second argument of a directory from which to resolve the path" do
-    NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
+    NATFIXME 'accepts a second argument of a directory from which to resolve the path', exception: SpecFailedException do
       File.absolute_path(__FILE__, __dir__).should == @abs
     end
   end
 
   it "calls #to_path on its argument" do
-    NATFIXME 'Implement File.absolute_path', exception: NoMethodError, message: "undefined method `absolute_path' for class File" do
-      File.absolute_path(mock_to_path(@abs)).should == @abs
-    end
+    File.absolute_path(mock_to_path(@abs)).should == @abs
   end
 end

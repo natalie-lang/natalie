@@ -68,6 +68,20 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
     return this;
 }
 
+Value FileObject::absolute_path(Env *env, Value path, Value dir) {
+    path = ioutil::convert_using_to_path(env, path);
+    if (path->as_string()->start_with(env, { new StringObject { "/" } }))
+        return path;
+    if ((!dir || dir->is_nil()) && path->as_string()->eq(env, new StringObject { "~" }))
+        return path;
+
+    auto File = GlobalEnv::the()->Object()->const_get("File"_s);
+    assert(File);
+    if (!dir || dir->is_nil())
+        dir = DirObject::pwd(env);
+    return File->send(env, "join"_s, { dir, path });
+}
+
 Value FileObject::expand_path(Env *env, Value path, Value root) {
     path = ioutil::convert_using_to_path(env, path);
 

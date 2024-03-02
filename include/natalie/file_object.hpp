@@ -21,6 +21,7 @@ public:
 
     Value initialize(Env *, Args, Block *);
 
+    static Value absolute_path(Env *env, Value path, Value dir = nullptr);
     static Value expand_path(Env *env, Value path, Value root);
     static void unlink(Env *env, Value path);
     static Value unlink(Env *env, Args args);
