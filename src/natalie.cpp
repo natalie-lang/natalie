@@ -413,6 +413,8 @@ Env *build_top_env() {
 
     env->global_set("$?"_s, NilObject::the(), true);
 
+    env->global_set("$."_s, Value::integer(0));
+
     Value ENV = new Natalie::Object {};
     Object->const_set("ENV"_s, ENV);
     ENV->extend_once(env, Enumerable);
