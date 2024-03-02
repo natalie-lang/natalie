@@ -1038,11 +1038,9 @@ describe "Global variable $-d" do
 
   it "is an alias of $DEBUG" do
     $DEBUG = true
-    NATFIXME 'is an alias of $DEBUG', exception: SpecFailedException do
-      $-d.should be_true
-      $-d = false
-      $DEBUG.should be_false
-    end
+    $-d.should be_true
+    $-d = false
+    $DEBUG.should be_false
   end
 end
 
