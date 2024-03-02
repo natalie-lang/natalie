@@ -405,6 +405,7 @@ Env *build_top_env() {
     Object->const_set("STDERR"_s, _stderr);
 
     env->global_set("$/"_s, new StringObject { "\n", 1 });
+    env->global_alias("$-0"_s, "$/"_s);
 
     GlobalEnv::the()->global_set_read_hook(env, "$$"_s, true, GlobalVariableAccessHooks::ReadHooks::getpid);
 
