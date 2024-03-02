@@ -38,11 +38,11 @@ inline StringObject *rb_str_new(const char c, const size_t size) {
         string = string->to_str(env);                                      \
     } while (0);
 
-#define rb_funcallv(RECEIVER, NAME, ARGC, ARGV)    \
+#define rb_funcallv(RECEIVER, NAME, ARGC, ARGV) \
     RECEIVER->send(env, NAME, { ARGC, ARGV })
 
 // Should probably check with GlobalEnv to see if the file is included
-inline void rb_require(const char *) {}
+inline void rb_require(const char *) { }
 
 #define rb_define_module_function(RECEIVER, NAME, FUNCTION, ARITY) \
     do {                                                           \
