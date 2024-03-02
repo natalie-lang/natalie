@@ -69,13 +69,13 @@ Value FileObject::initialize(Env *env, Args args, Block *block) {
 }
 
 Value FileObject::expand_path(Env *env, Value path, Value root) {
-    path->assert_type(env, Object::Type::String, "String");
+    path = ioutil::convert_using_to_path(env, path);
 
     StringObject *merged;
     if (path->as_string()->length() > 0 && path->as_string()->string()[0] == '/') {
         merged = path->as_string();
-    } else if (root) {
-        root->assert_type(env, Object::Type::String, "String");
+    } else if (root && !root->is_nil()) {
+        root = ioutil::convert_using_to_path(env, root);
         root = expand_path(env, root, nullptr);
         merged = StringObject::format("{}/{}", root->as_string(), path->as_string());
     } else {
