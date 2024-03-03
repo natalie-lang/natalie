@@ -397,6 +397,7 @@ Env *build_top_env() {
 
     Value _stdout = new IoObject { STDOUT_FILENO };
     env->global_set("$stdout"_s, _stdout);
+    GlobalEnv::the()->global_set_write_hook(env, "$stdout"_s, GlobalVariableAccessHooks::WriteHooks::set_stdout);
     env->global_alias("$>"_s, "$stdout"_s);
     Object->const_set("STDOUT"_s, _stdout);
 
@@ -405,7 +406,11 @@ Env *build_top_env() {
     Object->const_set("STDERR"_s, _stderr);
 
     env->global_set("$/"_s, new StringObject { "\n", 1 });
+    GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
+
+    env->global_set("$\\"_s, NilObject::the());
+    GlobalEnv::the()->global_set_write_hook(env, "$\\"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
 
     env->global_set("$;"_s, NilObject::the());
     env->global_alias("$-F"_s, "$;"_s);
@@ -414,6 +419,7 @@ Env *build_top_env() {
     env->global_alias("$-d"_s, "$DEBUG"_s);
 
     env->global_set("$VERBOSE"_s, FalseObject::the());
+    GlobalEnv::the()->global_set_write_hook(env, "$VERBOSE"_s, GlobalVariableAccessHooks::WriteHooks::to_bool);
     env->global_alias("$-v"_s, "$VERBOSE"_s);
     env->global_alias("$-w"_s, "$VERBOSE"_s);
 

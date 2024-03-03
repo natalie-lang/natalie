@@ -229,16 +229,12 @@ describe "Predefined global $stdout" do
   end
 
   it "raises TypeError error if assigned to nil" do
-    NATFIXME 'raises TypeError error if assigned to nil', exception: SpecFailedException do
-      -> { $stdout = nil }.should raise_error(TypeError)
-    end
+    -> { $stdout = nil }.should raise_error(TypeError)
   end
 
   it "raises TypeError error if assigned to object that doesn't respond to #write" do
     obj = mock('object')
-    NATFIXME "raises TypeError error if assigned to object that doesn't respond to #write", exception: SpecFailedException do
-      -> { $stdout = obj }.should raise_error(TypeError)
-    end
+    -> { $stdout = obj }.should raise_error(TypeError)
 
     obj.stub!(:write)
     $stdout = obj
@@ -582,24 +578,18 @@ describe "Predefined global $/" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$/ value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$/ value")
+    obj.should_not_receive(:to_str)
 
-      -> { $/ = obj }.should raise_error(TypeError)
-    end
+    -> { $/ = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned an Integer" do
-    NATFIXME 'raises a TypeError if assigned an Integer', exception: SpecFailedException do
-      -> { $/ = 1 }.should raise_error(TypeError)
-    end
+    -> { $/ = 1 }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned a boolean" do
-    NATFIXME 'raises a TypeError if assigned a boolean', exception: SpecFailedException do
-      -> { $/ = true }.should raise_error(TypeError)
-    end
+    -> { $/ = true }.should raise_error(TypeError)
   end
 end
 
@@ -637,24 +627,18 @@ describe "Predefined global $-0" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$-0 value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$-0 value")
+    obj.should_not_receive(:to_str)
 
-      -> { $-0 = obj }.should raise_error(TypeError)
-    end
+    -> { $-0 = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned an Integer" do
-    NATFIXME 'raises a TypeError if assigned an Integer', exception: SpecFailedException do
-      -> { $-0 = 1 }.should raise_error(TypeError)
-    end
+    -> { $-0 = 1 }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned a boolean" do
-    NATFIXME 'raises a TypeError if assigned a boolean', exception: SpecFailedException do
-      -> { $-0 = true }.should raise_error(TypeError)
-    end
+    -> { $-0 = true }.should raise_error(TypeError)
   end
 end
 
@@ -685,19 +669,15 @@ describe "Predefined global $\\" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$\\ value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$\\ value")
+    obj.should_not_receive(:to_str)
 
-      -> { $\ = obj }.should raise_error(TypeError)
-    end
+    -> { $\ = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned not String" do
-    NATFIXME 'raises a TypeError if assigned not String', exception: SpecFailedException do
-      -> { $\ = 1 }.should raise_error(TypeError)
-      -> { $\ = true }.should raise_error(TypeError)
-    end
+    -> { $\ = 1 }.should raise_error(TypeError)
+    -> { $\ = true }.should raise_error(TypeError)
   end
 end
 
@@ -1042,11 +1022,9 @@ describe "Global variable $VERBOSE" do
   end
 
   it "converts truthy values to true" do
-    NATFIXME 'converts truthy values to true', exception: SpecFailedException do
-      [true, 1, 0, [], ""].each do |true_value|
-        $VERBOSE = true_value
-        $VERBOSE.should be_true
-      end
+    [true, 1, 0, [], ""].each do |true_value|
+      $VERBOSE = true_value
+      $VERBOSE.should be_true
     end
   end
 
@@ -1072,7 +1050,7 @@ describe :verbose_global_alias, shared: true do
 
   it "is an alias of $VERBOSE" do
     $VERBOSE = true
-      NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+    NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
       eval(@method).should be_true
       eval("#{@method} = false")
       $VERBOSE.should be_false

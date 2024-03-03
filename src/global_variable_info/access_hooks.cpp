@@ -48,6 +48,18 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 
 namespace GlobalVariableAccessHooks::WriteHooks {
 
+    Object *as_string_or_raise(Env *env, Value v, GlobalVariableInfo &) {
+        if (v->is_nil())
+            return NilObject::the();
+        return v->as_string_or_raise(env);
+    }
+
+    Object *to_bool(Env *env, Value v, GlobalVariableInfo &) {
+        if (v->is_nil())
+            return NilObject::the();
+        return bool_object(v->is_truthy()).object();
+    }
+
     Object *to_int(Env *env, Value v, GlobalVariableInfo &) {
         return v->to_int(env);
     }
@@ -58,6 +70,12 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         auto match = v->as_match_data_or_raise(env);
         env->set_last_match(match);
         return match;
+    }
+
+    Object *set_stdout(Env *env, Value v, GlobalVariableInfo &) {
+        if (!v->respond_to(env, "write"_s))
+            env->raise("TypeError", "$stdout must have write method, {} given", v->klass()->inspect_str());
+        return v.object();
     }
 }
 
