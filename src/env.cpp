@@ -268,12 +268,10 @@ void Env::ensure_no_extra_keywords(HashObject *kwargs) {
     raise("ArgumentError", std::move(message));
 }
 
-Value Env::last_match(bool to_s) {
+Value Env::last_match() {
     Env *env = non_block_env();
-    if (env->m_match) {
-        auto match = env->m_match;
-        return to_s ? match->as_match_data()->to_s(this) : match;
-    }
+    if (env->m_match)
+        return env->m_match;
     return NilObject::the();
 }
 
