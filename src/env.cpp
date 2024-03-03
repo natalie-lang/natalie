@@ -282,9 +282,7 @@ bool Env::has_last_match() {
 }
 
 void Env::set_last_match(MatchDataObject *match) {
-    auto env = non_block_env();
-    env->global_set("$~"_s, match);
-    env->set_match(match);
+    non_block_env()->set_match(match);
 }
 
 Value Env::exception_object() {

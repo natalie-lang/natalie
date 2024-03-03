@@ -48,7 +48,9 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Object *last_match(Env *env, Value v, GlobalVariableInfo &) {
         if (!v || v->is_nil())
             return NilObject::the();
-        return v->as_match_data_or_raise(env);
+        auto match = v->as_match_data_or_raise(env);
+        env->set_last_match(match);
+        return match;
     }
 }
 
