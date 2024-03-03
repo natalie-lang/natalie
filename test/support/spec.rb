@@ -9,6 +9,7 @@ require_relative 'spec_helpers/io'
 require_relative 'spec_helpers/mock_to_path'
 require_relative 'spec_helpers/tmp'
 require_relative 'spec_utils/warnings'
+require_relative 'nat_binary'
 require 'tempfile'
 
 class SpecFailedException < StandardError

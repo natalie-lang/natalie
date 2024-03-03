@@ -1075,8 +1075,7 @@ describe "Global variable $0" do
     $0 = @orig_program_name
   end
 
-  # NATFIXME: Very ugly error when running this
-  xit "is the path given as the main script and the same as __FILE__" do
+  it "is the path given as the main script and the same as __FILE__" do
     script = "fixtures/dollar_zero.rb"
     Dir.chdir(__dir__) do
       ruby_exe(script).should == "#{script}\n#{script}\nOK"
