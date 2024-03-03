@@ -10,6 +10,7 @@ namespace GlobalVariableAccessHooks::ReadHooks {
     Value last_match_pre_match(Env *, GlobalVariableInfo &);
     Value last_match_post_match(Env *, GlobalVariableInfo &);
     Value last_match_last_group(Env *, GlobalVariableInfo &);
+    Value last_match_to_s(Env *, GlobalVariableInfo &);
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {

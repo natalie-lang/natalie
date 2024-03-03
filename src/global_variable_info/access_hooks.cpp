@@ -37,6 +37,13 @@ namespace GlobalVariableAccessHooks::ReadHooks {
         return last_match->as_match_data()->captures(env)->as_array()->compact(env)->as_array()->last();
     }
 
+    Value last_match_to_s(Env *env, GlobalVariableInfo &) {
+        auto last_match = env->last_match();
+        if (last_match->is_nil())
+            return NilObject::the();
+        return last_match->as_match_data()->to_s(env);
+    }
+
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {
