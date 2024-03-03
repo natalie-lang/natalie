@@ -16,6 +16,27 @@ namespace GlobalVariableAccessHooks::ReadHooks {
         return env->last_match();
     }
 
+    Value last_match_pre_match(Env *env, GlobalVariableInfo &) {
+        auto last_match = env->last_match();
+        if (last_match->is_nil())
+            return NilObject::the();
+        return last_match->as_match_data()->pre_match(env);
+    }
+
+    Value last_match_post_match(Env *env, GlobalVariableInfo &) {
+        auto last_match = env->last_match();
+        if (last_match->is_nil())
+            return NilObject::the();
+        return last_match->as_match_data()->post_match(env);
+    }
+
+    Value last_match_last_group(Env *env, GlobalVariableInfo &) {
+        auto last_match = env->last_match();
+        if (last_match->is_nil())
+            return NilObject::the();
+        return last_match->as_match_data()->captures(env)->as_array()->compact(env)->as_array()->last();
+    }
+
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {

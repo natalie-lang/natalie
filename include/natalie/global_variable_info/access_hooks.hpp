@@ -7,6 +7,9 @@ namespace Natalie {
 namespace GlobalVariableAccessHooks::ReadHooks {
     Value getpid(Env *, GlobalVariableInfo &);
     Value last_match(Env *, GlobalVariableInfo &);
+    Value last_match_pre_match(Env *, GlobalVariableInfo &);
+    Value last_match_post_match(Env *, GlobalVariableInfo &);
+    Value last_match_last_group(Env *, GlobalVariableInfo &);
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {
