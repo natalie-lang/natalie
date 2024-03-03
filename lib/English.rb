@@ -1,3 +1,5 @@
+alias $ERROR_INFO $!
+alias $ERROR_POSITION $@
 alias $FS $;
 alias $FIELD_SEPARATOR $;
 alias $OFS $,

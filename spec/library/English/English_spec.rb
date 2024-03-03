@@ -4,27 +4,23 @@ require 'English'
 
 describe "English" do
   it "aliases $ERROR_INFO to $!" do
-    NATFIXME '$! is rewritten at compile time, impossible to alias', exception: SpecFailedException do
-      begin
-        raise "error"
-      rescue
-        $ERROR_INFO.should_not be_nil
-        $ERROR_INFO.should == $!
-      end
-      $ERROR_INFO.should be_nil
+    begin
+      raise "error"
+    rescue
+      $ERROR_INFO.should_not be_nil
+      $ERROR_INFO.should == $!
     end
+    $ERROR_INFO.should be_nil
   end
 
   it "aliases $ERROR_POSITION to $@" do
-    NATFIXME '$@ is rewritten at compile time, impossible to alias', exception: SpecFailedException do
-      begin
-        raise "error"
-      rescue
-        $ERROR_POSITION.should_not be_nil
-        $ERROR_POSITION.should == $@
-      end
-      $ERROR_POSITION.should be_nil
+    begin
+      raise "error"
+    rescue
+      $ERROR_POSITION.should_not be_nil
+      $ERROR_POSITION.should == $@
     end
+    $ERROR_POSITION.should be_nil
   end
 
   it "aliases $FS to $;" do
