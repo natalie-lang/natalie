@@ -48,6 +48,12 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 
 namespace GlobalVariableAccessHooks::WriteHooks {
 
+    Object *as_string_or_raise(Env *env, Value v, GlobalVariableInfo &) {
+        if (v->is_nil())
+            return NilObject::the();
+        return v->as_string_or_raise(env);
+    }
+
     Object *to_int(Env *env, Value v, GlobalVariableInfo &) {
         return v->to_int(env);
     }

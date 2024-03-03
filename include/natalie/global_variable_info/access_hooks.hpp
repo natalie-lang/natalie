@@ -14,6 +14,7 @@ namespace GlobalVariableAccessHooks::ReadHooks {
 }
 
 namespace GlobalVariableAccessHooks::WriteHooks {
+    Object *as_string_or_raise(Env *, Value, GlobalVariableInfo &);
     Object *to_int(Env *, Value, GlobalVariableInfo &);
     Object *last_match(Env *, Value, GlobalVariableInfo &);
 }

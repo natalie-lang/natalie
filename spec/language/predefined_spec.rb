@@ -582,24 +582,18 @@ describe "Predefined global $/" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$/ value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$/ value")
+    obj.should_not_receive(:to_str)
 
-      -> { $/ = obj }.should raise_error(TypeError)
-    end
+    -> { $/ = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned an Integer" do
-    NATFIXME 'raises a TypeError if assigned an Integer', exception: SpecFailedException do
-      -> { $/ = 1 }.should raise_error(TypeError)
-    end
+    -> { $/ = 1 }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned a boolean" do
-    NATFIXME 'raises a TypeError if assigned a boolean', exception: SpecFailedException do
-      -> { $/ = true }.should raise_error(TypeError)
-    end
+    -> { $/ = true }.should raise_error(TypeError)
   end
 end
 
@@ -637,24 +631,18 @@ describe "Predefined global $-0" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$-0 value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$-0 value")
+    obj.should_not_receive(:to_str)
 
-      -> { $-0 = obj }.should raise_error(TypeError)
-    end
+    -> { $-0 = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned an Integer" do
-    NATFIXME 'raises a TypeError if assigned an Integer', exception: SpecFailedException do
-      -> { $-0 = 1 }.should raise_error(TypeError)
-    end
+    -> { $-0 = 1 }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned a boolean" do
-    NATFIXME 'raises a TypeError if assigned a boolean', exception: SpecFailedException do
-      -> { $-0 = true }.should raise_error(TypeError)
-    end
+    -> { $-0 = true }.should raise_error(TypeError)
   end
 end
 

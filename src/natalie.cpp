@@ -405,6 +405,7 @@ Env *build_top_env() {
     Object->const_set("STDERR"_s, _stderr);
 
     env->global_set("$/"_s, new StringObject { "\n", 1 });
+    GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
 
     env->global_set("$;"_s, NilObject::the());
