@@ -19,8 +19,6 @@ module Natalie
           transform.exec_and_push(:exception, "env->exception_object()")
         when :$@
           transform.exec_and_push(:backtrace, "env->exception_object()->is_exception() ? static_cast<Value>(env->exception_object()->as_exception()->backtrace(env)) : static_cast<Value>(NilObject::the())")
-        when :$~
-          transform.exec_and_push(:last_match, "env->last_match()")
         else
           transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
         end
@@ -30,8 +28,6 @@ module Natalie
         case @name
         when :$!
           vm.push($!)
-        when :$~
-          vm.push($~)
         else
           vm.push(vm.global_variables[@name])
         end
