@@ -229,16 +229,12 @@ describe "Predefined global $stdout" do
   end
 
   it "raises TypeError error if assigned to nil" do
-    NATFIXME 'raises TypeError error if assigned to nil', exception: SpecFailedException do
-      -> { $stdout = nil }.should raise_error(TypeError)
-    end
+    -> { $stdout = nil }.should raise_error(TypeError)
   end
 
   it "raises TypeError error if assigned to object that doesn't respond to #write" do
     obj = mock('object')
-    NATFIXME "raises TypeError error if assigned to object that doesn't respond to #write", exception: SpecFailedException do
-      -> { $stdout = obj }.should raise_error(TypeError)
-    end
+    -> { $stdout = obj }.should raise_error(TypeError)
 
     obj.stub!(:write)
     $stdout = obj

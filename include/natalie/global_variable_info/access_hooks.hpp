@@ -18,6 +18,7 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     Object *to_bool(Env *, Value, GlobalVariableInfo &);
     Object *to_int(Env *, Value, GlobalVariableInfo &);
     Object *last_match(Env *, Value, GlobalVariableInfo &);
+    Object *set_stdout(Env *, Value, GlobalVariableInfo &);
 }
 
 }
