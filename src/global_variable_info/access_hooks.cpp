@@ -12,6 +12,16 @@ namespace GlobalVariableAccessHooks::ReadHooks {
         return pid;
     }
 
+    Value last_exception(Env *env, GlobalVariableInfo &) {
+        return env->exception_object();
+    }
+
+    Value last_exception_backtrace(Env *env, GlobalVariableInfo &) {
+        if (!env->exception_object()->is_exception())
+            return NilObject::the();
+        return env->exception_object()->as_exception()->backtrace(env);
+    }
+
     Value last_match(Env *env, GlobalVariableInfo &) {
         return env->last_match();
     }

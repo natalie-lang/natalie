@@ -433,6 +433,9 @@ Env *build_top_env() {
     env->global_set("$."_s, Value::integer(0));
     GlobalEnv::the()->global_set_write_hook(env, "$."_s, GlobalVariableAccessHooks::WriteHooks::to_int);
 
+    GlobalEnv::the()->global_set_read_hook(env, "$!"_s, true, GlobalVariableAccessHooks::ReadHooks::last_exception);
+    GlobalEnv::the()->global_set_read_hook(env, "$@"_s, true, GlobalVariableAccessHooks::ReadHooks::last_exception_backtrace);
+
     GlobalEnv::the()->global_set_read_hook(env, "$~"_s, false, GlobalVariableAccessHooks::ReadHooks::last_match);
     GlobalEnv::the()->global_set_write_hook(env, "$~"_s, GlobalVariableAccessHooks::WriteHooks::last_match);
     GlobalEnv::the()->global_set_read_hook(env, "$`"_s, true, GlobalVariableAccessHooks::ReadHooks::last_match_pre_match);

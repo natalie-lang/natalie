@@ -14,25 +14,11 @@ module Natalie
       end
 
       def generate(transform)
-        case @name
-        when :$!
-          transform.exec_and_push(:exception, "env->exception_object()")
-        when :$@
-          transform.exec_and_push(:backtrace, "env->exception_object()->is_exception() ? static_cast<Value>(env->exception_object()->as_exception()->backtrace(env)) : static_cast<Value>(NilObject::the())")
-        else
-          transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
-        end
+        transform.exec_and_push(:gvar, "env->global_get(#{transform.intern(@name)})")
       end
 
       def execute(vm)
-        case @name
-        when :$!
-          vm.push($!)
-        when :$@
-          vm.push($@)
-        else
-          vm.push(vm.global_variables[@name])
-        end
+        vm.push(vm.global_variables[@name])
       end
     end
   end
