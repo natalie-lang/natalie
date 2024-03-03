@@ -101,7 +101,7 @@ public:
     void ensure_no_missing_keywords(HashObject *, std::initializer_list<const String>);
     void ensure_no_extra_keywords(HashObject *);
 
-    Value last_match(bool to_s = false);
+    Value last_match();
     bool has_last_match();
     void set_last_match(MatchDataObject *match);
 

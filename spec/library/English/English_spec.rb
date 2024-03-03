@@ -161,11 +161,9 @@ describe "English" do
   end
 
   it "aliases $MATCH to $&" do
-    NATFIXME '$& is rewritten at compile time, impossible to alias', exception: SpecFailedException do
-      /c(a)t/ =~ "cat"
-      $MATCH.should_not be_nil
-      $MATCH.should == $&
-    end
+    /c(a)t/ =~ "cat"
+    $MATCH.should_not be_nil
+    $MATCH.should == $&
   end
 
   it "aliases $PREMATCH to $`" do

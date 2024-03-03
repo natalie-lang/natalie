@@ -222,6 +222,7 @@ public:
     FloatObject *as_float_or_raise(Env *);
     HashObject *as_hash_or_raise(Env *);
     IntegerObject *as_integer_or_raise(Env *);
+    MatchDataObject *as_match_data_or_raise(Env *);
     StringObject *as_string_or_raise(Env *);
 
     KernelModule *as_kernel_module_for_method_binding();

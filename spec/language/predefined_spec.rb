@@ -88,10 +88,8 @@ describe "Predefined global $~" do
     $~ = /foo/.match("foo")
     $~.should be_an_instance_of(MatchData)
 
-    NATFIXME 'raises an error if assigned an object not nil or instanceof MatchData', exception: SpecFailedException do
-      -> { $~ = Object.new }.should raise_error(TypeError)
-      -> { $~ = 1 }.should raise_error(TypeError)
-    end
+    -> { $~ = Object.new }.should raise_error(TypeError)
+    -> { $~ = 1 }.should raise_error(TypeError)
   end
 
   it "changes the value of derived capture globals when assigned" do
@@ -99,9 +97,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(b)ar/
     $~ = foo_match
-    NATFIXME 'Update $1 after assignment of $~', exception: SpecFailedException do
-      $1.should == "f"
-    end
+    $1.should == "f"
   end
 
   it "changes the value of the derived preceding match global" do
@@ -109,9 +105,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(bar)/
     $~ = foo_match
-    NATFIXME 'Update $` after assignment of $~', exception: SpecFailedException do
-      $`.should == "foo "
-    end
+    $`.should == "foo "
   end
 
   it "changes the value of the derived following match global" do
@@ -119,9 +113,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(bar)/
     $~ = foo_match
-    NATFIXME "Update $' after assignment of $~", exception: SpecFailedException do
-      $'.should == " hello"
-    end
+    $'.should == " hello"
   end
 
   it "changes the value of the derived full match global" do
@@ -129,9 +121,7 @@ describe "Predefined global $~" do
     foo_match = $~
     "bar" =~ /(bar)/
     $~ = foo_match
-    NATFIXME 'Update $& after assignment of $~', exception: SpecFailedException do
-      $&.should == "foo"
-    end
+    $&.should == "foo"
   end
 end
 

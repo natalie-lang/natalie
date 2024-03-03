@@ -16,6 +16,7 @@ alias $PROCESS_ID $$
 alias $CHILD_STATUS $?
 alias $LAST_MATCH_INFO $~
 alias $ARGV $*
+alias $MATCH $&
 alias $PREMATCH $`
 alias $POSTMATCH $'
 alias $LAST_PAREN_MATCH $+

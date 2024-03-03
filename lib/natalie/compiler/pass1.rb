@@ -278,10 +278,8 @@ module Natalie
       def transform_back_reference_read_node(node, used:)
         return [] unless used
         case node.slice
-        when '$`', "$'", '$+'
+        when '$`', "$'", '$+', '$&'
           [GlobalVariableGetInstruction.new(node.slice.to_sym)]
-        when '$&'
-          [PushLastMatchInstruction.new(to_s: true)]
         else
           raise "unknown back ref read node: #{node.slice}"
         end
@@ -1808,11 +1806,11 @@ module Natalie
       def transform_match_write_node(node, used:)
         instructions = []
         instructions << transform_expression(node.call, used: used)
-        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << PushLastMatchInstruction.new
         instructions << IfInstruction.new
 
         # if match
-        instructions << PushLastMatchInstruction.new(to_s: false)
+        instructions << PushLastMatchInstruction.new
         instructions << PushArgcInstruction.new(0)
         instructions << SendInstruction.new(
           :named_captures,
@@ -1900,7 +1898,7 @@ module Natalie
       def transform_numbered_reference_read_node(node, used:)
         return [] unless used
         [
-          PushLastMatchInstruction.new(to_s: false),
+          PushLastMatchInstruction.new,
           DupInstruction.new,
           IfInstruction.new,
           PushIntInstruction.new(node.number),
