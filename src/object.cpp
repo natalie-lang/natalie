@@ -557,6 +557,12 @@ IntegerObject *Object::as_integer_or_raise(Env *env) {
     return static_cast<IntegerObject *>(this);
 }
 
+MatchDataObject *Object::as_match_data_or_raise(Env *env) {
+    if (!is_match_data())
+        env->raise("TypeError", "{} can't be coerced into MatchData", m_klass->inspect_str());
+    return static_cast<MatchDataObject *>(this);
+}
+
 StringObject *Object::as_string_or_raise(Env *env) {
     if (!is_string())
         env->raise("TypeError", "{} can't be coerced into String", m_klass->inspect_str());

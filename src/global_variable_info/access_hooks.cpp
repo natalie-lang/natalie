@@ -25,9 +25,9 @@ namespace GlobalVariableAccessHooks::WriteHooks {
     }
 
     Object *last_match(Env *env, Value v, GlobalVariableInfo &) {
-        if (v && !v->is_nil() && !v->is_match_data())
-            env->raise("TypeError", "wrong argument type {} (expected MatchData)");
-        return v.object();
+        if (!v || v->is_nil())
+            return NilObject::the();
+        return v->as_match_data_or_raise(env);
     }
 }
 
