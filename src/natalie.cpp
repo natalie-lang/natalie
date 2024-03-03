@@ -408,6 +408,9 @@ Env *build_top_env() {
     GlobalEnv::the()->global_set_write_hook(env, "$/"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
     env->global_alias("$-0"_s, "$/"_s);
 
+    env->global_set("$\\"_s, NilObject::the());
+    GlobalEnv::the()->global_set_write_hook(env, "$\\"_s, GlobalVariableAccessHooks::WriteHooks::as_string_or_raise);
+
     env->global_set("$;"_s, NilObject::the());
     env->global_alias("$-F"_s, "$;"_s);
 

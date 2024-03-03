@@ -673,19 +673,15 @@ describe "Predefined global $\\" do
   end
 
   it "does not call #to_str to convert the object to a String" do
-    NATFIXME 'does not call #to_str to convert the object to a String', exception: SpecFailedException do
-      obj = mock("$\\ value")
-      obj.should_not_receive(:to_str)
+    obj = mock("$\\ value")
+    obj.should_not_receive(:to_str)
 
-      -> { $\ = obj }.should raise_error(TypeError)
-    end
+    -> { $\ = obj }.should raise_error(TypeError)
   end
 
   it "raises a TypeError if assigned not String" do
-    NATFIXME 'raises a TypeError if assigned not String', exception: SpecFailedException do
-      -> { $\ = 1 }.should raise_error(TypeError)
-      -> { $\ = true }.should raise_error(TypeError)
-    end
+    -> { $\ = 1 }.should raise_error(TypeError)
+    -> { $\ = true }.should raise_error(TypeError)
   end
 end
 
