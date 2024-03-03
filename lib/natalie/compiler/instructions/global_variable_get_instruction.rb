@@ -28,6 +28,8 @@ module Natalie
         case @name
         when :$!
           vm.push($!)
+        when :$@
+          vm.push($@)
         else
           vm.push(vm.global_variables[@name])
         end
