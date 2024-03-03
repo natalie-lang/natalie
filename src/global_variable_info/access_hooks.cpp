@@ -54,6 +54,12 @@ namespace GlobalVariableAccessHooks::WriteHooks {
         return v->as_string_or_raise(env);
     }
 
+    Object *to_bool(Env *env, Value v, GlobalVariableInfo &) {
+        if (v->is_nil())
+            return NilObject::the();
+        return bool_object(v->is_truthy()).object();
+    }
+
     Object *to_int(Env *env, Value v, GlobalVariableInfo &) {
         return v->to_int(env);
     }

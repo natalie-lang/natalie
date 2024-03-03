@@ -1026,11 +1026,9 @@ describe "Global variable $VERBOSE" do
   end
 
   it "converts truthy values to true" do
-    NATFIXME 'converts truthy values to true', exception: SpecFailedException do
-      [true, 1, 0, [], ""].each do |true_value|
-        $VERBOSE = true_value
-        $VERBOSE.should be_true
-      end
+    [true, 1, 0, [], ""].each do |true_value|
+      $VERBOSE = true_value
+      $VERBOSE.should be_true
     end
   end
 
