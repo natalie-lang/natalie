@@ -462,6 +462,10 @@ Value KernelModule::methods(Env *env, Value regular_val) {
     }
 }
 
+bool KernelModule::neqtilde(Env *env, Value other) {
+    return send(env, "=~"_s, { other })->is_falsey();
+}
+
 Value KernelModule::p(Env *env, Args args) {
     if (args.size() == 0) {
         return NilObject::the();
