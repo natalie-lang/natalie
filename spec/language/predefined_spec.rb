@@ -1054,7 +1054,7 @@ describe :verbose_global_alias, shared: true do
 
   it "is an alias of $VERBOSE" do
     $VERBOSE = true
-      NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
+    NATFIXME 'eval', exception: TypeError, message: 'eval() only works on static strings' do
       eval(@method).should be_true
       eval("#{@method} = false")
       $VERBOSE.should be_false
