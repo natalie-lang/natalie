@@ -1,14 +1,15 @@
 require_relative '../spec_helper'
 
 describe "A method send" do
-  evaluate <<-ruby do
-      def m(a) a end
-    ruby
+  # NATFIXME: Implement evaluate
+  #evaluate <<-ruby do
+      #def m(a) a end
+    #ruby
 
-    a = b = m 1
-    a.should == 1
-    b.should == 1
-  end
+    #a = b = m 1
+    #a.should == 1
+    #b.should == 1
+  #end
 
   context "with a single splatted Object argument" do
     before :all do
@@ -482,685 +483,759 @@ describe "A method" do
   SpecEvaluate.desc = "for definition"
 
   context "assigns no local variables" do
-    evaluate <<-ruby do
-        def m
-        end
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m
+        #end
+      #ruby
 
-      m.should be_nil
-    end
+      #m.should be_nil
+    #end
 
-    evaluate <<-ruby do
-        def m()
-        end
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m()
+        #end
+      #ruby
 
-      m.should be_nil
-    end
+      #m.should be_nil
+    #end
   end
 
   context "assigns local variables from method parameters" do
-    evaluate <<-ruby do
-        def m(a) a end
-      ruby
-
-      m((args = 1, 2, 3)).should equal(args)
-    end
-
-    evaluate <<-ruby do
-        def m((a)) a end
-      ruby
-
-      m(1).should == 1
-      m([1, 2, 3]).should == 1
-    end
-
-    evaluate <<-ruby do
-        def m((*a, b)) [a, b] end
-      ruby
-
-      m(1).should == [[], 1]
-      m([1, 2, 3]).should == [[1, 2], 3]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1) a end
-      ruby
-
-      m().should == 1
-      m(2).should == 2
-    end
-
-    evaluate <<-ruby do
-        def m() end
-      ruby
-
-      m().should be_nil
-      m(*[]).should be_nil
-      m(**{}).should be_nil
-    end
-
-    evaluate <<-ruby do
-        def m(*) end
-      ruby
-
-      m().should be_nil
-      m(1).should be_nil
-      m(1, 2, 3).should be_nil
-    end
-
-    evaluate <<-ruby do
-        def m(*a) a end
-      ruby
-
-      m().should == []
-      m(1).should == [1]
-      m(1, 2, 3).should == [1, 2, 3]
-      m(*[]).should == []
-      m(**{}).should == []
-    end
-
-    evaluate <<-ruby do
-        def m(a:) a end
-      ruby
-
-      -> { m() }.should raise_error(ArgumentError)
-      m(a: 1).should == 1
-      suppress_keyword_warning do
-        -> { m("a" => 1, a: 1) }.should raise_error(ArgumentError)
-      end
-    end
-
-    evaluate <<-ruby do
-        def m(a:, **kw) [a, kw] end
-      ruby
-
-      -> { m(b: 1) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1) a end
-      ruby
-
-      m().should == 1
-      m(a: 2).should == 2
-    end
-
-    evaluate <<-ruby do
-        def m(**) end
-      ruby
-
-      m().should be_nil
-      m(a: 1, b: 2).should be_nil
-      -> { m(1) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(**k) k end
-      ruby
-
-      m().should == {}
-      m(a: 1, b: 2).should == { a: 1, b: 2 }
-      m(*[]).should == {}
-      m(**{}).should == {}
-      suppress_warning {
-        eval "m(**{a: 1, b: 2}, **{a: 4, c: 7})"
-      }.should == { a: 4, b: 2, c: 7 }
-      -> { m(2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-      def m(**k); k end;
-      ruby
-
-      m("a" => 1).should == { "a" => 1 }
-    end
-
-    evaluate <<-ruby do
-        def m(&b) b end
-      ruby
-
-      m { }.should be_an_instance_of(Proc)
-    end
-
-    evaluate <<-ruby do
-        def m(a, b) [a, b] end
-      ruby
-
-      m(1, 2).should == [1, 2]
-    end
-
-    evaluate <<-ruby do
-        def m(a, (b, c)) [a, b, c] end
-      ruby
-
-      m(1, 2).should == [1, 2, nil]
-      m(1, [2, 3, 4]).should == [1, 2, 3]
-    end
-
-    evaluate <<-ruby do
-        def m((a), (b)) [a, b] end
-      ruby
-
-      m(1, 2).should == [1, 2]
-      m([1, 2], [3, 4]).should == [1, 3]
-    end
-
-    evaluate <<-ruby do
-        def m((*), (*)) end
-      ruby
-
-      m(2, 3).should be_nil
-      m([2, 3, 4], [5, 6]).should be_nil
-      -> { m a: 1 }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m((*a), (*b)) [a, b] end
-      ruby
-
-      m(1, 2).should == [[1], [2]]
-      m([1, 2], [3, 4]).should == [[1, 2], [3, 4]]
-    end
-
-    evaluate <<-ruby do
-        def m((a, b), (c, d))
-          [a, b, c, d]
-        end
-      ruby
-
-      m(1, 2).should == [1, nil, 2, nil]
-      m([1, 2, 3], [4, 5, 6]).should == [1, 2, 4, 5]
-    end
-
-    evaluate <<-ruby do
-        def m((a, *b), (*c, d))
-          [a, b, c, d]
-        end
-      ruby
-
-      m(1, 2).should == [1, [], [], 2]
-      m([1, 2, 3], [4, 5, 6]).should == [1, [2, 3], [4, 5], 6]
-    end
-
-    evaluate <<-ruby do
-        def m((a, b, *c, d), (*e, f, g), (*h))
-          [a, b, c, d, e, f, g, h]
-        end
-      ruby
-
-      m(1, 2, 3).should == [1, nil, [], nil, [], 2, nil, [3]]
-      result = m([1, 2, 3], [4, 5, 6, 7, 8], [9, 10])
-      result.should == [1, 2, [], 3, [4, 5, 6], 7, 8, [9, 10]]
-    end
-
-    evaluate <<-ruby do
-        def m(a, (b, (c, *d), *e))
-          [a, b, c, d, e]
-        end
-      ruby
-
-      m(1, 2).should == [1, 2, nil, [], []]
-      m(1, [2, [3, 4, 5], 6, 7, 8]).should == [1, 2, 3, [4, 5], [6, 7, 8]]
-    end
-
-    evaluate <<-ruby do
-        def m(a, (b, (c, *d, (e, (*f)), g), (h, (i, j))))
-          [a, b, c, d, e, f, g, h, i, j]
-        end
-      ruby
-
-      m(1, 2).should == [1, 2, nil, [], nil, [nil], nil, nil, nil, nil]
-      result = m(1, [2, [3, 4, 5, [6, [7, 8]], 9], [10, [11, 12]]])
-      result.should == [1, 2, 3, [4, 5], 6, [7, 8], 9, 10, 11, 12]
-    end
-
-    evaluate <<-ruby do
-        def m(a, b=1) [a, b] end
-      ruby
-
-      m(2).should == [2, 1]
-      m(1, 2).should == [1, 2]
-    end
-
-    evaluate <<-ruby do
-        def m(a, *) a end
-      ruby
-
-      m(1).should == 1
-      m(1, 2, 3).should == 1
-    end
-
-    evaluate <<-ruby do
-        def m(a, *b) [a, b] end
-      ruby
-
-      m(1).should == [1, []]
-      m(1, 2, 3).should == [1, [2, 3]]
-    end
-
-    evaluate <<-ruby do
-        def m(a, b:) [a, b] end
-      ruby
-
-      m(1, b: 2).should == [1, 2]
-      suppress_keyword_warning do
-        -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-      end
-    end
-
-    evaluate <<-ruby do
-        def m(a, b: 1) [a, b] end
-      ruby
-
-      m(2).should == [2, 1]
-      m(1, b: 2).should == [1, 2]
-      -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a, **) a end
-      ruby
-
-      m(1).should == 1
-      m(1, a: 2, b: 3).should == 1
-      -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a, **k) [a, k] end
-      ruby
-
-      m(1).should == [1, {}]
-      m(1, a: 2, b: 3).should == [1, {a: 2, b: 3}]
-      -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a, &b) [a, b] end
-      ruby
-
-      m(1).should == [1, nil]
-      m(1, &(l = -> {})).should == [1, l]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, b) [a, b] end
-      ruby
-
-      m(2).should == [1, 2]
-      m(2, 3).should == [2, 3]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, *) a end
-      ruby
-
-      m().should == 1
-      m(2, 3, 4).should == 2
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, *b) [a, b] end
-      ruby
-
-      m().should == [1, []]
-      m(2, 3, 4).should == [2, [3, 4]]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, c)) [a, b, c] end
-      ruby
-
-      m(2).should == [1, 2, nil]
-      m(2, 3).should == [2, 3, nil]
-      m(2, [3, 4, 5]).should == [2, 3, 4]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, (c, *d))) [a, b, c, d] end
-      ruby
-
-      m(2).should == [1, 2, nil, []]
-      m(2, 3).should == [2, 3, nil, []]
-      m(2, [3, [4, 5, 6], 7]).should == [2, 3, 4, [5, 6]]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, (c, *d), *e)) [a, b, c, d, e] end
-      ruby
-
-      m(2).should == [1, 2, nil, [], []]
-      m(2, [3, 4, 5, 6]).should == [2, 3, 4, [], [5, 6]]
-      m(2, [3, [4, 5, 6], 7]).should == [2, 3, 4, [5, 6], [7]]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b), (c)) [a, b, c] end
-      ruby
-
-      m(2, 3).should == [1, 2, 3]
-      m(2, 3, 4).should == [2, 3, 4]
-      m(2, [3, 4], [5, 6, 7]).should == [2, 3, 5]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (*b), (*c)) [a, b, c] end
-      ruby
-
-      -> { m() }.should raise_error(ArgumentError)
-      -> { m(2) }.should raise_error(ArgumentError)
-      m(2, 3).should == [1, [2], [3]]
-      m(2, [3, 4], [5, 6]).should == [2, [3, 4], [5, 6]]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, c), (d, e)) [a, b, c, d, e] end
-      ruby
-
-      m(2, 3).should == [1, 2, nil, 3, nil]
-      m(2, [3, 4, 5], [6, 7, 8]).should == [2, 3, 4, 6, 7]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, *c), (*d, e))
-          [a, b, c, d, e]
-        end
-      ruby
-
-      m(1, 2).should == [1, 1, [], [], 2]
-      m(1, [2, 3], [4, 5, 6]).should == [1, 2, [3], [4, 5], 6]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, (b, *c), (d, (*e, f)))
-          [a, b, c, d, e, f]
-        end
-      ruby
-
-      m(1, 2).should == [1, 1, [], 2, [], nil]
-      m(nil, nil).should == [1, nil, [], nil, [], nil]
-      result = m([1, 2, 3], [4, 5, 6], [7, 8, 9])
-      result.should == [[1, 2, 3], 4, [5, 6], 7, [], 8]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, b:) [a, b] end
-      ruby
-
-      m(b: 2).should == [1, 2]
-      m(2, b: 1).should == [2, 1]
-      -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, b: 2) [a, b] end
-      ruby
-
-      m().should == [1, 2]
-      m(2).should == [2, 2]
-      m(b: 3).should == [1, 3]
-      -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, **) a end
-      ruby
-
-      m().should == 1
-      m(2, a: 1, b: 0).should == 2
-      m("a" => 1, a: 2).should == 1
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, **k) [a, k] end
-      ruby
-
-      m().should == [1, {}]
-      m(2, a: 1, b: 2).should == [2, {a: 1, b: 2}]
-    end
-
-    evaluate <<-ruby do
-        def m(a=1, &b) [a, b] end
-      ruby
-
-      m().should == [1, nil]
-      m(&(l = -> {})).should == [1, l]
-
-      p = -> {}
-      l = mock("to_proc")
-      l.should_receive(:to_proc).and_return(p)
-      m(&l).should == [1, p]
-    end
-
-    evaluate <<-ruby do
-        def m(*, a) a end
-      ruby
-
-      m(1).should == 1
-      m(1, 2, 3).should == 3
-    end
-
-    evaluate <<-ruby do
-        def m(*a, b) [a, b] end
-      ruby
-
-      m(1).should == [[], 1]
-      m(1, 2, 3).should == [[1, 2], 3]
-    end
-
-    evaluate <<-ruby do
-        def m(*, &b) b end
-      ruby
-
-      m().should be_nil
-      m(1, 2, 3, 4).should be_nil
-      m(&(l = ->{})).should equal(l)
-    end
-
-    evaluate <<-ruby do
-        def m(*a, &b) [a, b] end
-      ruby
-
-      m().should == [[], nil]
-      m(1).should == [[1], nil]
-      m(1, 2, 3, &(l = -> {})).should == [[1, 2, 3], l]
-    end
-
-    evaluate <<-ruby do
-        def m(a:, b:) [a, b] end
-      ruby
-
-      m(a: 1, b: 2).should == [1, 2]
-      suppress_keyword_warning do
-        -> { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
-      end
-    end
-
-    evaluate <<-ruby do
-        def m(a:, b: 1) [a, b] end
-      ruby
-
-      m(a: 1).should == [1, 1]
-      m(a: 1, b: 2).should == [1, 2]
-      suppress_keyword_warning do
-        -> { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
-      end
-    end
-
-    evaluate <<-ruby do
-        def m(a:, **) a end
-      ruby
-
-      m(a: 1).should == 1
-      m(a: 1, b: 2).should == 1
-      m("a" => 1, a: 1, b: 2).should == 1
-    end
-
-    evaluate <<-ruby do
-        def m(a:, **k) [a, k] end
-      ruby
-
-      m(a: 1).should == [1, {}]
-      m(a: 1, b: 2, c: 3).should == [1, {b: 2, c: 3}]
-      m("a" => 1, a: 1, b: 2).should == [1, {"a" => 1, b: 2}]
-    end
-
-    evaluate <<-ruby do
-        def m(a:, &b) [a, b] end
-      ruby
-
-      m(a: 1).should == [1, nil]
-      m(a: 1, &(l = ->{})).should == [1, l]
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1, b:) [a, b] end
-      ruby
-
-      m(b: 0).should == [1, 0]
-      m(b: 2, a: 3).should == [3, 2]
-    end
-
-    evaluate <<-ruby do
-        def m(a: def m(a: 1) a end, b:)
-          [a, b]
-        end
-      ruby
-
-      m(a: 2, b: 3).should == [2, 3]
-      m(b: 1).should == [:m, 1]
-
-      # Note the default value of a: in the original method.
-      m().should == 1
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1, b: 2) [a, b] end
-      ruby
-
-      m().should == [1, 2]
-      m(b: 3, a: 4).should == [4, 3]
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1, **) a end
-      ruby
-
-      m().should == 1
-      m(a: 2, b: 1).should == 2
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1, **k) [a, k] end
-      ruby
-
-      m(b: 2, c: 3).should == [1, {b: 2, c: 3}]
-    end
-
-    evaluate <<-ruby do
-        def m(a: 1, &b) [a, b] end
-      ruby
-
-      m(&(l = ->{})).should == [1, l]
-      m().should == [1, nil]
-    end
-
-    evaluate <<-ruby do
-        def m(**, &b) b end
-      ruby
-
-      m(a: 1, b: 2, &(l = ->{})).should == l
-    end
-
-    evaluate <<-ruby do
-        def m(**k, &b) [k, b] end
-      ruby
-
-      m(a: 1, b: 2).should == [{ a: 1, b: 2}, nil]
-    end
-
-    evaluate <<-ruby do
-        def m(a, b=1, *c, (*d, (e)), f: 2, g:, h:, **k, &l)
-          [a, b, c, d, e, f, g, h, k, l]
-        end
-      ruby
-
-      result = m(9, 8, 7, 6, f: 5, g: 4, h: 3, &(l = ->{}))
-      result.should == [9, 8, [7], [], 6, 5, 4, 3, {}, l]
-    end
-
-    evaluate <<-ruby do
-        def m(a, b=1, *c, d, e:, f: 2, g:, **k, &l)
-          [a, b, c, d, e, f, g, k, l]
-        end
-      ruby
-
-      result = m(1, 2, e: 3, g: 4, h: 5, i: 6, &(l = ->{}))
-      result.should == [1, 1, [], 2, 3, 2, 4, { h: 5, i: 6 }, l]
-    end
-
-    evaluate <<-ruby do
-      def m(a, **nil); a end;
-      ruby
-
-      m({a: 1}).should == {a: 1}
-      m({"a" => 1}).should == {"a" => 1}
-
-      -> { m(a: 1) }.should raise_error(ArgumentError, 'no keywords accepted')
-      -> { m(**{a: 1}) }.should raise_error(ArgumentError, 'no keywords accepted')
-      -> { m("a" => 1) }.should raise_error(ArgumentError, 'no keywords accepted')
-    end
-
-    evaluate <<-ruby do
-        def m(a, b = nil, c = nil, d, e: nil, **f)
-          [a, b, c, d, e, f]
-        end
-      ruby
-
-      result = m(1, 2)
-      result.should == [1, nil, nil, 2, nil, {}]
-
-      result = m(1, 2, {foo: :bar})
-      result.should == [1, 2, nil, {foo: :bar}, nil, {}]
-
-      result = m(1, {foo: :bar})
-      result.should == [1, nil, nil, {foo: :bar}, nil, {}]
-    end
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a) a end
+      #ruby
+
+      #m((args = 1, 2, 3)).should equal(args)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((a)) a end
+      #ruby
+
+      #m(1).should == 1
+      #m([1, 2, 3]).should == 1
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((*a, b)) [a, b] end
+      #ruby
+
+      #m(1).should == [[], 1]
+      #m([1, 2, 3]).should == [[1, 2], 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1) a end
+      #ruby
+
+      #m().should == 1
+      #m(2).should == 2
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m() end
+      #ruby
+
+      #m().should be_nil
+      #m(*[]).should be_nil
+      #m(**{}).should be_nil
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*) end
+      #ruby
+
+      #m().should be_nil
+      #m(1).should be_nil
+      #m(1, 2, 3).should be_nil
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*a) a end
+      #ruby
+
+      #m().should == []
+      #m(1).should == [1]
+      #m(1, 2, 3).should == [1, 2, 3]
+      #m(*[]).should == []
+      #m(**{}).should == []
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:) a end
+      #ruby
+
+      #-> { m() }.should raise_error(ArgumentError)
+      #m(a: 1).should == 1
+      #suppress_keyword_warning do
+        #-> { m("a" => 1, a: 1) }.should raise_error(ArgumentError)
+      #end
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, **kw) [a, kw] end
+      #ruby
+
+      #-> { m(b: 1) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1) a end
+      #ruby
+
+      #m().should == 1
+      #m(a: 2).should == 2
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(**) end
+      #ruby
+
+      #m().should be_nil
+      #m(a: 1, b: 2).should be_nil
+      #-> { m(1) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(**k) k end
+      #ruby
+
+      #m().should == {}
+      #m(a: 1, b: 2).should == { a: 1, b: 2 }
+      #m(*[]).should == {}
+      #m(**{}).should == {}
+      #suppress_warning {
+        #eval "m(**{a: 1, b: 2}, **{a: 4, c: 7})"
+      #}.should == { a: 4, b: 2, c: 7 }
+      #-> { m(2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+      #def m(**k); k end;
+      #ruby
+
+      #m("a" => 1).should == { "a" => 1 }
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(&b) b end
+      #ruby
+
+      #m { }.should be_an_instance_of(Proc)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b) [a, b] end
+      #ruby
+
+      #m(1, 2).should == [1, 2]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, (b, c)) [a, b, c] end
+      #ruby
+
+      #m(1, 2).should == [1, 2, nil]
+      #m(1, [2, 3, 4]).should == [1, 2, 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((a), (b)) [a, b] end
+      #ruby
+
+      #m(1, 2).should == [1, 2]
+      #m([1, 2], [3, 4]).should == [1, 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((*), (*)) end
+      #ruby
+
+      #m(2, 3).should be_nil
+      #m([2, 3, 4], [5, 6]).should be_nil
+      #-> { m a: 1 }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((*a), (*b)) [a, b] end
+      #ruby
+
+      #m(1, 2).should == [[1], [2]]
+      #m([1, 2], [3, 4]).should == [[1, 2], [3, 4]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((a, b), (c, d))
+          #[a, b, c, d]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, nil, 2, nil]
+      #m([1, 2, 3], [4, 5, 6]).should == [1, 2, 4, 5]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((a, *b), (*c, d))
+          #[a, b, c, d]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, [], [], 2]
+      #m([1, 2, 3], [4, 5, 6]).should == [1, [2, 3], [4, 5], 6]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m((a, b, *c, d), (*e, f, g), (*h))
+          #[a, b, c, d, e, f, g, h]
+        #end
+      #ruby
+
+      #m(1, 2, 3).should == [1, nil, [], nil, [], 2, nil, [3]]
+      #result = m([1, 2, 3], [4, 5, 6, 7, 8], [9, 10])
+      #result.should == [1, 2, [], 3, [4, 5, 6], 7, 8, [9, 10]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, (b, (c, *d), *e))
+          #[a, b, c, d, e]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, 2, nil, [], []]
+      #m(1, [2, [3, 4, 5], 6, 7, 8]).should == [1, 2, 3, [4, 5], [6, 7, 8]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, (b, (c, *d, (e, (*f)), g), (h, (i, j))))
+          #[a, b, c, d, e, f, g, h, i, j]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, 2, nil, [], nil, [nil], nil, nil, nil, nil]
+      #result = m(1, [2, [3, 4, 5, [6, [7, 8]], 9], [10, [11, 12]]])
+      #result.should == [1, 2, 3, [4, 5], 6, [7, 8], 9, 10, 11, 12]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b=1) [a, b] end
+      #ruby
+
+      #m(2).should == [2, 1]
+      #m(1, 2).should == [1, 2]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, *) a end
+      #ruby
+
+      #m(1).should == 1
+      #m(1, 2, 3).should == 1
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, *b) [a, b] end
+      #ruby
+
+      #m(1).should == [1, []]
+      #m(1, 2, 3).should == [1, [2, 3]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b:) [a, b] end
+      #ruby
+
+      #m(1, b: 2).should == [1, 2]
+      #suppress_keyword_warning do
+        #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+      #end
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b: 1) [a, b] end
+      #ruby
+
+      #m(2).should == [2, 1]
+      #m(1, b: 2).should == [1, 2]
+      #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, **) a end
+      #ruby
+
+      #m(1).should == 1
+      #m(1, a: 2, b: 3).should == 1
+      #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, **k) [a, k] end
+      #ruby
+
+      #m(1).should == [1, {}]
+      #m(1, a: 2, b: 3).should == [1, {a: 2, b: 3}]
+      #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, &b) [a, b] end
+      #ruby
+
+      #m(1).should == [1, nil]
+      #m(1, &(l = -> {})).should == [1, l]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, b) [a, b] end
+      #ruby
+
+      #m(2).should == [1, 2]
+      #m(2, 3).should == [2, 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, *) a end
+      #ruby
+
+      #m().should == 1
+      #m(2, 3, 4).should == 2
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, *b) [a, b] end
+      #ruby
+
+      #m().should == [1, []]
+      #m(2, 3, 4).should == [2, [3, 4]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, c)) [a, b, c] end
+      #ruby
+
+      #m(2).should == [1, 2, nil]
+      #m(2, 3).should == [2, 3, nil]
+      #m(2, [3, 4, 5]).should == [2, 3, 4]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, (c, *d))) [a, b, c, d] end
+      #ruby
+
+      #m(2).should == [1, 2, nil, []]
+      #m(2, 3).should == [2, 3, nil, []]
+      #m(2, [3, [4, 5, 6], 7]).should == [2, 3, 4, [5, 6]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, (c, *d), *e)) [a, b, c, d, e] end
+      #ruby
+
+      #m(2).should == [1, 2, nil, [], []]
+      #m(2, [3, 4, 5, 6]).should == [2, 3, 4, [], [5, 6]]
+      #m(2, [3, [4, 5, 6], 7]).should == [2, 3, 4, [5, 6], [7]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b), (c)) [a, b, c] end
+      #ruby
+
+      #m(2, 3).should == [1, 2, 3]
+      #m(2, 3, 4).should == [2, 3, 4]
+      #m(2, [3, 4], [5, 6, 7]).should == [2, 3, 5]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (*b), (*c)) [a, b, c] end
+      #ruby
+
+      #-> { m() }.should raise_error(ArgumentError)
+      #-> { m(2) }.should raise_error(ArgumentError)
+      #m(2, 3).should == [1, [2], [3]]
+      #m(2, [3, 4], [5, 6]).should == [2, [3, 4], [5, 6]]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, c), (d, e)) [a, b, c, d, e] end
+      #ruby
+
+      #m(2, 3).should == [1, 2, nil, 3, nil]
+      #m(2, [3, 4, 5], [6, 7, 8]).should == [2, 3, 4, 6, 7]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, *c), (*d, e))
+          #[a, b, c, d, e]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, 1, [], [], 2]
+      #m(1, [2, 3], [4, 5, 6]).should == [1, 2, [3], [4, 5], 6]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, (b, *c), (d, (*e, f)))
+          #[a, b, c, d, e, f]
+        #end
+      #ruby
+
+      #m(1, 2).should == [1, 1, [], 2, [], nil]
+      #m(nil, nil).should == [1, nil, [], nil, [], nil]
+      #result = m([1, 2, 3], [4, 5, 6], [7, 8, 9])
+      #result.should == [[1, 2, 3], 4, [5, 6], 7, [], 8]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, b:) [a, b] end
+      #ruby
+
+      #m(b: 2).should == [1, 2]
+      #m(2, b: 1).should == [2, 1]
+      #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, b: 2) [a, b] end
+      #ruby
+
+      #m().should == [1, 2]
+      #m(2).should == [2, 2]
+      #m(b: 3).should == [1, 3]
+      #-> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, **) a end
+      #ruby
+
+      #m().should == 1
+      #m(2, a: 1, b: 0).should == 2
+      #m("a" => 1, a: 2).should == 1
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, **k) [a, k] end
+      #ruby
+
+      #m().should == [1, {}]
+      #m(2, a: 1, b: 2).should == [2, {a: 1, b: 2}]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a=1, &b) [a, b] end
+      #ruby
+
+      #m().should == [1, nil]
+      #m(&(l = -> {})).should == [1, l]
+
+      #p = -> {}
+      #l = mock("to_proc")
+      #l.should_receive(:to_proc).and_return(p)
+      #m(&l).should == [1, p]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*, a) a end
+      #ruby
+
+      #m(1).should == 1
+      #m(1, 2, 3).should == 3
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*a, b) [a, b] end
+      #ruby
+
+      #m(1).should == [[], 1]
+      #m(1, 2, 3).should == [[1, 2], 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*, &b) b end
+      #ruby
+
+      #m().should be_nil
+      #m(1, 2, 3, 4).should be_nil
+      #m(&(l = ->{})).should equal(l)
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*a, &b) [a, b] end
+      #ruby
+
+      #m().should == [[], nil]
+      #m(1).should == [[1], nil]
+      #m(1, 2, 3, &(l = -> {})).should == [[1, 2, 3], l]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, b:) [a, b] end
+      #ruby
+
+      #m(a: 1, b: 2).should == [1, 2]
+      #suppress_keyword_warning do
+        #-> { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
+      #end
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, b: 1) [a, b] end
+      #ruby
+
+      #m(a: 1).should == [1, 1]
+      #m(a: 1, b: 2).should == [1, 2]
+      #suppress_keyword_warning do
+        #-> { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
+      #end
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, **) a end
+      #ruby
+
+      #m(a: 1).should == 1
+      #m(a: 1, b: 2).should == 1
+      #m("a" => 1, a: 1, b: 2).should == 1
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, **k) [a, k] end
+      #ruby
+
+      #m(a: 1).should == [1, {}]
+      #m(a: 1, b: 2, c: 3).should == [1, {b: 2, c: 3}]
+      #m("a" => 1, a: 1, b: 2).should == [1, {"a" => 1, b: 2}]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a:, &b) [a, b] end
+      #ruby
+
+      #m(a: 1).should == [1, nil]
+      #m(a: 1, &(l = ->{})).should == [1, l]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1, b:) [a, b] end
+      #ruby
+
+      #m(b: 0).should == [1, 0]
+      #m(b: 2, a: 3).should == [3, 2]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: def m(a: 1) a end, b:)
+          #[a, b]
+        #end
+      #ruby
+
+      #m(a: 2, b: 3).should == [2, 3]
+      #m(b: 1).should == [:m, 1]
+
+      ## Note the default value of a: in the original method.
+      #m().should == 1
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1, b: 2) [a, b] end
+      #ruby
+
+      #m().should == [1, 2]
+      #m(b: 3, a: 4).should == [4, 3]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1, **) a end
+      #ruby
+
+      #m().should == 1
+      #m(a: 2, b: 1).should == 2
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1, **k) [a, k] end
+      #ruby
+
+      #m(b: 2, c: 3).should == [1, {b: 2, c: 3}]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: 1, &b) [a, b] end
+      #ruby
+
+      #m(&(l = ->{})).should == [1, l]
+      #m().should == [1, nil]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(**, &b) b end
+      #ruby
+
+      #m(a: 1, b: 2, &(l = ->{})).should == l
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(**k, &b) [k, b] end
+      #ruby
+
+      #m(a: 1, b: 2).should == [{ a: 1, b: 2}, nil]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b=1, *c, (*d, (e)), f: 2, g:, h:, **k, &l)
+          #[a, b, c, d, e, f, g, h, k, l]
+        #end
+      #ruby
+
+      #result = m(9, 8, 7, 6, f: 5, g: 4, h: 3, &(l = ->{}))
+      #result.should == [9, 8, [7], [], 6, 5, 4, 3, {}, l]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b=1, *c, d, e:, f: 2, g:, **k, &l)
+          #[a, b, c, d, e, f, g, k, l]
+        #end
+      #ruby
+
+      #result = m(1, 2, e: 3, g: 4, h: 5, i: 6, &(l = ->{}))
+      #result.should == [1, 1, [], 2, 3, 2, 4, { h: 5, i: 6 }, l]
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+      #def m(a, **nil); a end;
+      #ruby
+
+      #m({a: 1}).should == {a: 1}
+      #m({"a" => 1}).should == {"a" => 1}
+
+      #-> { m(a: 1) }.should raise_error(ArgumentError, 'no keywords accepted')
+      #-> { m(**{a: 1}) }.should raise_error(ArgumentError, 'no keywords accepted')
+      #-> { m("a" => 1) }.should raise_error(ArgumentError, 'no keywords accepted')
+    #end
+
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b = nil, c = nil, d, e: nil, **f)
+          #[a, b, c, d, e, f]
+        #end
+      #ruby
+
+      #result = m(1, 2)
+      #result.should == [1, nil, nil, 2, nil, {}]
+
+      #result = m(1, 2, {foo: :bar})
+      #result.should == [1, 2, nil, {foo: :bar}, nil, {}]
+
+      #result = m(1, {foo: :bar})
+      #result.should == [1, nil, nil, {foo: :bar}, nil, {}]
+    #end
   end
 
   context 'when passing an empty keyword splat to a method that does not accept keywords' do
-    evaluate <<-ruby do
-        def m(*a); a; end
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(*a); a; end
+      #ruby
 
-      h = {}
-      m(**h).should == []
-    end
+      #h = {}
+      #m(**h).should == []
+    #end
   end
 
   context 'when passing an empty keyword splat to a method that does not accept keywords' do
-    evaluate <<-ruby do
-        def m(a); a; end
-      ruby
-      h = {}
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a); a; end
+      #ruby
+      #h = {}
 
-      -> do
-        m(**h).should == {}
-      end.should raise_error(ArgumentError)
-    end
+      #-> do
+        #m(**h).should == {}
+      #end.should raise_error(ArgumentError)
+    #end
   end
 
   context "raises ArgumentError if passing hash as keyword arguments" do
-    evaluate <<-ruby do
-        def m(a: nil); a; end
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a: nil); a; end
+      #ruby
 
-      options = {a: 1}.freeze
-      -> do
-        m(options)
-      end.should raise_error(ArgumentError)
-    end
+      #options = {a: 1}.freeze
+      #-> do
+        #m(options)
+      #end.should raise_error(ArgumentError)
+    #end
   end
 
   it "assigns the last Hash to the last optional argument if the Hash contains non-Symbol keys and is not passed as keywords" do
@@ -1265,88 +1340,95 @@ describe "An array-dereference method ([])" do
   SpecEvaluate.desc = "for definition"
 
   context "received the passed-in block" do
-    evaluate <<-ruby do
-        def [](*, &b)
-          b.call
-        end
-    ruby
-      pr = proc {:ok}
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def [](*, &b)
+          #b.call
+        #end
+    #ruby
+      #pr = proc {:ok}
 
-      self[&pr].should == :ok
-      self['foo', &pr].should == :ok
-      self.[](&pr).should == :ok
-      self.[]('foo', &pr).should == :ok
-    end
+      #self[&pr].should == :ok
+      #self['foo', &pr].should == :ok
+      #self.[](&pr).should == :ok
+      #self.[]('foo', &pr).should == :ok
+    #end
 
-    evaluate <<-ruby do
-        def [](*)
-          yield
-        end
-    ruby
-      pr = proc {:ok}
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def [](*)
+          #yield
+        #end
+    #ruby
+      #pr = proc {:ok}
 
-      self[&pr].should == :ok
-      self['foo', &pr].should == :ok
-      self.[](&pr).should == :ok
-      self.[]('foo', &pr).should == :ok
-    end
+      #self[&pr].should == :ok
+      #self['foo', &pr].should == :ok
+      #self.[](&pr).should == :ok
+      #self.[]('foo', &pr).should == :ok
+    #end
   end
 end
 
 describe "An endless method definition" do
   context "without arguments" do
-    evaluate <<-ruby do
-        def m() = 42
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m() = 42
+      #ruby
 
-      m.should == 42
-    end
+      #m.should == 42
+    #end
 
     context "without parenthesis" do
-      evaluate <<-ruby do
-        def m = 42
-      ruby
+    # NATFIXME: Implement evaluate
+      #evaluate <<-ruby do
+        #def m = 42
+      #ruby
 
-        m.should == 42
-      end
+        #m.should == 42
+      #end
     end
   end
 
   context "with arguments" do
-    evaluate <<-ruby do
-        def m(a, b) = a + b
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(a, b) = a + b
+      #ruby
 
-      m(1, 4).should == 5
-    end
+      #m(1, 4).should == 5
+    #end
   end
 
   context "with multiline body" do
-    evaluate <<-ruby do
-        def m(n) =
-          if n > 2
-            m(n - 2) + m(n - 1)
-          else
-            1
-          end
-      ruby
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def m(n) =
+          #if n > 2
+            #m(n - 2) + m(n - 1)
+          #else
+            #1
+          #end
+      #ruby
 
-      m(6).should == 8
-    end
+      #m(6).should == 8
+    #end
   end
 
   # tested more thoroughly in language/delegation_spec.rb
   context "with args forwarding" do
-    evaluate <<-ruby do
-        def mm(word, num:)
-          word * num
-        end
+    # NATFIXME: Implement evaluate
+    #evaluate <<-ruby do
+        #def mm(word, num:)
+          #word * num
+        #end
 
-        def m(...) = mm(...) + mm(...)
-      ruby
+        #def m(...) = mm(...) + mm(...)
+      #ruby
 
-      m("meow", num: 2).should == "meow" * 4
-    end
+      #m("meow", num: 2).should == "meow" * 4
+    #end
   end
 end
 
@@ -1419,40 +1501,42 @@ end
 ruby_version_is "3.1" do
   describe "kwarg with omitted value in a method call" do
     context "accepts short notation 'kwarg' in method call" do
-      evaluate <<-ruby do
-          def call(*args, **kwargs) = [args, kwargs]
-        ruby
+      # NATFIXME: Implement evaluate
+      #evaluate <<-ruby do
+          #def call(*args, **kwargs) = [args, kwargs]
+        #ruby
 
-        a, b, c = 1, 2, 3
-        arr, h = eval('call a:')
-        h.should == {a: 1}
-        arr.should == []
+        #a, b, c = 1, 2, 3
+        #arr, h = eval('call a:')
+        #h.should == {a: 1}
+        #arr.should == []
 
-        arr, h = eval('call(a:, b:, c:)')
-        h.should == {a: 1, b: 2, c: 3}
-        arr.should == []
+        #arr, h = eval('call(a:, b:, c:)')
+        #h.should == {a: 1, b: 2, c: 3}
+        #arr.should == []
 
-        arr, h = eval('call(a:, b: 10, c:)')
-        h.should == {a: 1, b: 10, c: 3}
-        arr.should == []
-      end
+        #arr, h = eval('call(a:, b: 10, c:)')
+        #h.should == {a: 1, b: 10, c: 3}
+        #arr.should == []
+      #end
     end
 
     context "with methods and local variables" do
-      evaluate <<-ruby do
-          def call(*args, **kwargs) = [args, kwargs]
+      # NATFIXME: Implement evaluate
+      #evaluate <<-ruby do
+          #def call(*args, **kwargs) = [args, kwargs]
 
-          def bar
-            "baz"
-          end
+          #def bar
+            #"baz"
+          #end
 
-          def foo(val)
-            call bar:, val:
-          end
-        ruby
+          #def foo(val)
+            #call bar:, val:
+          #end
+        #ruby
 
-        foo(1).should == [[], {bar: "baz", val: 1}]
-      end
+        #foo(1).should == [[], {bar: "baz", val: 1}]
+      #end
     end
   end
 
