@@ -112,7 +112,7 @@ describe "A block yielded a single" do
     end
 
     it "does not call #to_hash on final argument to get keyword arguments and does not autosplat" do
-      NATFIXME 'Implement suppress_keyword_warning', exception: NoMethodError, message: "undefined method `suppress_keyword_warning' for main" do
+      NATFIXME 'does not call #to_hash on final argument to get keyword arguments and does not autosplat', exception: SpecFailedException do
         suppress_keyword_warning do
           obj = mock("coerce block keyword arguments")
           obj.should_not_receive(:to_hash)
@@ -135,7 +135,7 @@ describe "A block yielded a single" do
 
     describe "when non-symbol keys are in a keyword arguments Hash" do
       it "does not separate non-symbol keys and symbol keys and does not autosplat" do
-        NATFIXME 'Implement suppress_keyword_warning', exception: NoMethodError, message: "undefined method `suppress_keyword_warning' for main" do
+        NATFIXME 'does not separate non-symbol keys and symbol keys and does not autosplat', exception: SpecFailedException do
           suppress_keyword_warning do
             result = m(["a" => 10, b: 2]) { |a=nil, **b| [a, b] }
             result.should == [[{"a" => 10, b: 2}], {}]
