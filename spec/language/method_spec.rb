@@ -31,17 +31,21 @@ describe "A method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      m(*x).should == x
+        m(*x).should == x
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { m(*x) }.should raise_error(TypeError)
+        -> { m(*x) }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -65,17 +69,21 @@ describe "A method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      m(*x, 2, 3, 4).should == [x, 2, [], 3, 4]
+        m(*x, 2, 3, 4).should == [x, 2, [], 3, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { m(*x, 2, 3) }.should raise_error(TypeError)
+        -> { m(*x, 2, 3) }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -99,17 +107,21 @@ describe "A method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      m(1, 2, *x, 4).should == [1, 2, [], x, 4]
+        m(1, 2, *x, 4).should == [1, 2, [], x, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { m(1, *x, 2, 3) }.should raise_error(TypeError)
+        -> { m(1, *x, 2, 3) }.should raise_error(TypeError)
+      end
     end
 
     it "copies the splatted array" do
@@ -144,17 +156,21 @@ describe "A method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      m(1, 2, *x, 4).should == [1, [2, x], 4]
+        m(1, 2, *x, 4).should == [1, [2, x], 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { m(1, 2, *x) }.should raise_error(TypeError)
+        -> { m(1, 2, *x) }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -207,18 +223,22 @@ describe "An element assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o[*x] = 1).should == 1
-      ScratchPad.recorded.should == [x, 1]
+        (@o[*x] = 1).should == 1
+        ScratchPad.recorded.should == [x, 1]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o[*x] = 1 }.should raise_error(TypeError)
+        -> { @o[*x] = 1 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -245,18 +265,22 @@ describe "An element assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o[*x, 2, 3, 4] = 5).should == 5
-      ScratchPad.recorded.should == [x, 2, [3], 4, 5]
+        (@o[*x, 2, 3, 4] = 5).should == 5
+        ScratchPad.recorded.should == [x, 2, [3], 4, 5]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o[*x, 2, 3] = 4 }.should raise_error(TypeError)
+        -> { @o[*x, 2, 3] = 4 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -283,18 +307,22 @@ describe "An element assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o[1, 2, *x, 3] = 4).should == 4
-      ScratchPad.recorded.should == [1, 2, [x], 3, 4]
+        (@o[1, 2, *x, 3] = 4).should == 4
+        ScratchPad.recorded.should == [1, 2, [x], 3, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o[1, 2, *x, 3] = 4 }.should raise_error(TypeError)
+        -> { @o[1, 2, *x, 3] = 4 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -321,18 +349,22 @@ describe "An element assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o[1, 2, 3, *x] = 4).should == 4
-      ScratchPad.recorded.should == [1, 2, [3], x, 4]
+        (@o[1, 2, 3, *x] = 4).should == 4
+        ScratchPad.recorded.should == [1, 2, [3], x, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o[1, 2, 3, *x] = 4 }.should raise_error(TypeError)
+        -> { @o[1, 2, 3, *x] = 4 }.should raise_error(TypeError)
+      end
     end
   end
 end
@@ -359,17 +391,21 @@ describe "An attribute assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o.send :m=, *x, 1).should == [x, 1]
+        (@o.send :m=, *x, 1).should == [x, 1]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o.send :m=, *x, 1 }.should raise_error(TypeError)
+        -> { @o.send :m=, *x, 1 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -394,17 +430,21 @@ describe "An attribute assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o.send :m=, *x, 2, 3, 4, 5).should == [x, 2, [3], 4, 5]
+        (@o.send :m=, *x, 2, 3, 4, 5).should == [x, 2, [3], 4, 5]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o.send :m=, *x, 2, 3, 4 }.should raise_error(TypeError)
+        -> { @o.send :m=, *x, 2, 3, 4 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -429,17 +469,21 @@ describe "An attribute assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o.send :m=, 1, 2, *x, 3, 4).should == [1, 2, [x], 3, 4]
+        (@o.send :m=, 1, 2, *x, 3, 4).should == [1, 2, [x], 3, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o.send :m=, 1, 2, *x, 3, 4 }.should raise_error(TypeError)
+        -> { @o.send :m=, 1, 2, *x, 3, 4 }.should raise_error(TypeError)
+      end
     end
   end
 
@@ -464,17 +508,21 @@ describe "An attribute assignment method send" do
     end
 
     it "wraps the argument in an Array if #to_a returns nil" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(nil)
+      NATFIXME 'wraps the argument in an Array if #to_a returns nil', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(nil)
 
-      (@o.send :m=, 1, 2, 3, *x, 4).should == [1, 2, [3], x, 4]
+        (@o.send :m=, 1, 2, 3, *x, 4).should == [1, 2, [3], x, 4]
+      end
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("splat argument")
-      x.should_receive(:to_a).and_return(1)
+      NATFIXME 'raises a TypeError if #to_a does not return an Array', exception: SpecFailedException do
+        x = mock("splat argument")
+        x.should_receive(:to_a).and_return(1)
 
-      -> { @o.send :m=, 1, 2, 3, *x, 4 }.should raise_error(TypeError)
+        -> { @o.send :m=, 1, 2, 3, *x, 4 }.should raise_error(TypeError)
+      end
     end
   end
 end
