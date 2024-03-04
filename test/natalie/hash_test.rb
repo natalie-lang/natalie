@@ -90,6 +90,26 @@ describe 'hash' do
       h = Hash['a' => 100, 'b' => 200]
       h.should == { 'a' => 100, 'b' => 200 }
     end
+
+    it "removes the default" do
+      hash = Hash.new(1)
+      Hash[hash].default.should be_nil
+    end
+  end
+
+  describe '#dup' do
+    it 'retains the default proc' do
+      pr = proc { |h, k| h[k] = [] }
+      hash = Hash.new(&pr)
+      hash.default_proc.should == pr
+      hash.dup.default_proc.should == pr
+    end
+
+    it 'retains the default value' do
+      hash = Hash.new(1)
+      hash.default.should == 1
+      hash.dup.default.should == 1
+    end
   end
 
   describe '#sort' do
