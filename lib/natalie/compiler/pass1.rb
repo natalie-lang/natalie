@@ -2300,10 +2300,10 @@ module Natalie
       def encoding_for_string_node(node)
         if node.forced_utf8_encoding?
           Encoding::UTF_8
-        elsif  node.forced_binary_encoding?
+        elsif node.forced_binary_encoding?
           Encoding::ASCII_8BIT
         else
-          encoding = @file.encoding
+          @file.encoding
         end
       end
 
