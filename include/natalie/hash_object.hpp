@@ -62,7 +62,9 @@ public:
 
     HashObject(Env *env, const HashObject &other)
         : Object { other }
-        , m_is_comparing_by_identity { other.m_is_comparing_by_identity } {
+        , m_is_comparing_by_identity { other.m_is_comparing_by_identity }
+        , m_default_value { other.m_default_value }
+        , m_default_proc { other.m_default_proc } {
         for (auto node : other) {
             put(env, node.key, node.val);
         }

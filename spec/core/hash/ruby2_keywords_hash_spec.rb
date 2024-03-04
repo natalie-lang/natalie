@@ -58,22 +58,18 @@ describe "Hash.ruby2_keywords_hash" do
   end
 
   it "retains the default value" do
-    NATFIXME 'Issue with Hash#dup', exception: SpecFailedException do
-      hash = Hash.new(1)
-      Hash.ruby2_keywords_hash(hash).default.should == 1
-      hash[:a] = 1
-      Hash.ruby2_keywords_hash(hash).default.should == 1
-    end
+    hash = Hash.new(1)
+    Hash.ruby2_keywords_hash(hash).default.should == 1
+    hash[:a] = 1
+    Hash.ruby2_keywords_hash(hash).default.should == 1
   end
 
   it "retains the default_proc" do
-    NATFIXME 'Issue with Hash#dup', exception: SpecFailedException do
-      pr = proc { |h, k| h[k] = [] }
-      hash = Hash.new(&pr)
-      Hash.ruby2_keywords_hash(hash).default_proc.should == pr
-      hash[:a] = 1
-      Hash.ruby2_keywords_hash(hash).default_proc.should == pr
-    end
+    pr = proc { |h, k| h[k] = [] }
+    hash = Hash.new(&pr)
+    Hash.ruby2_keywords_hash(hash).default_proc.should == pr
+    hash[:a] = 1
+    Hash.ruby2_keywords_hash(hash).default_proc.should == pr
   end
 
   ruby_version_is '3.3' do

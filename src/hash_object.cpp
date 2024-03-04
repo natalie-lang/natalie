@@ -236,6 +236,8 @@ Value HashObject::square_new(Env *env, Args args, ClassObject *klass) {
             value = value->to_hash(env);
         if (value->is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
+            hash->m_default_proc = nullptr;
+            hash->m_default_value = NilObject::the();
             hash->m_klass = klass;
             return hash;
         } else {
