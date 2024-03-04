@@ -394,6 +394,8 @@ ensure
   $stderr = old_stderr
 end
 
+alias suppress_keyword_warning suppress_warning
+
 def before(type = :each, &block)
   if type == :each
     $context.last.add_before_each(block)
