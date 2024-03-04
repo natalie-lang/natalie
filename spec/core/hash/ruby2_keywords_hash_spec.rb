@@ -7,14 +7,12 @@ describe "Hash.ruby2_keywords_hash?" do
   end
 
   it "returns true if the Hash is a keywords Hash marked by Module#ruby2_keywords" do
-    NATFIXME 'Implement Module.ruby2_keywords' do
-      obj = Class.new {
-        ruby2_keywords def m(*args)
-          args.last
-        end
-      }.new
-      Hash.ruby2_keywords_hash?(obj.m(a: 1)).should == true
-    end
+    obj = Class.new {
+      ruby2_keywords def m(*args)
+        args.last
+      end
+    }.new
+    Hash.ruby2_keywords_hash?(obj.m(a: 1)).should == true
   end
 
   it "raises TypeError for non-Hash" do

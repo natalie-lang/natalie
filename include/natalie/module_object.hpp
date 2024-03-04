@@ -157,6 +157,7 @@ public:
     Value alias_method(Env *, Value, Value);
     Value remove_method(Env *, Args);
     Value undef_method(Env *, Args);
+    Value ruby2_keywords(Env *, Value);
 
     bool eqeqeq(Env *env, Value other) {
         return other->is_a(env, this);

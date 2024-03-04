@@ -50,8 +50,10 @@ describe "Module#ruby2_keywords" do
     after_usage = obj.single(*args)
     after_usage.should == h
     after_usage.should_not.equal?(h)
-    after_usage.should_not.equal?(marked)
-    Hash.ruby2_keywords_hash?(after_usage).should == false
+    NATFIXME 'makes a copy and unmark the Hash when calling a method taking (arg)', exception: SpecFailedException do
+      after_usage.should_not.equal?(marked)
+      Hash.ruby2_keywords_hash?(after_usage).should == false
+    end
     Hash.ruby2_keywords_hash?(marked).should == true
   end
 
@@ -68,12 +70,14 @@ describe "Module#ruby2_keywords" do
     marked = args.last
     Hash.ruby2_keywords_hash?(marked).should == true
 
-    after_usage = obj.kwargs(*args)
-    after_usage.should == h
-    after_usage.should_not.equal?(h)
-    after_usage.should_not.equal?(marked)
-    Hash.ruby2_keywords_hash?(after_usage).should == false
-    Hash.ruby2_keywords_hash?(marked).should == true
+    NATFIXME 'makes a copy and unmark the Hash when calling a method taking (**kw)', exception: ArgumentError, message: 'wrong number of arguments (given 1, expected 0)' do
+      after_usage = obj.kwargs(*args)
+      after_usage.should == h
+      after_usage.should_not.equal?(h)
+      after_usage.should_not.equal?(marked)
+      Hash.ruby2_keywords_hash?(after_usage).should == false
+      Hash.ruby2_keywords_hash?(marked).should == true
+    end
   end
 
   ruby_version_is "3.2" do
@@ -101,8 +105,10 @@ describe "Module#ruby2_keywords" do
       after_usage = obj.splat(*args)
       after_usage.should == h
       after_usage.should_not.equal?(h)
-      after_usage.should_not.equal?(marked)
-      Hash.ruby2_keywords_hash?(after_usage).should == false
+      NATFIXME 'makes a copy and unmark the Hash when calling a method taking (*args)', exception: SpecFailedException do
+        after_usage.should_not.equal?(marked)
+        Hash.ruby2_keywords_hash?(after_usage).should == false
+      end
       Hash.ruby2_keywords_hash?(marked).should == true
 
       args = mark(1, **h)
@@ -110,8 +116,10 @@ describe "Module#ruby2_keywords" do
       after_usage = obj.splat1(*args)
       after_usage.should == h
       after_usage.should_not.equal?(h)
-      after_usage.should_not.equal?(marked)
-      Hash.ruby2_keywords_hash?(after_usage).should == false
+      NATFIXME 'makes a copy and unmark the Hash when calling a method taking (*args)', exception: SpecFailedException do
+        after_usage.should_not.equal?(marked)
+        Hash.ruby2_keywords_hash?(after_usage).should == false
+      end
       Hash.ruby2_keywords_hash?(marked).should == true
 
       args = mark(**h)
@@ -119,8 +127,10 @@ describe "Module#ruby2_keywords" do
       after_usage = obj.proc_call(*args)
       after_usage.should == h
       after_usage.should_not.equal?(h)
-      after_usage.should_not.equal?(marked)
-      Hash.ruby2_keywords_hash?(after_usage).should == false
+      NATFIXME 'makes a copy and unmark the Hash when calling a method taking (*args)', exception: SpecFailedException do
+        after_usage.should_not.equal?(marked)
+        Hash.ruby2_keywords_hash?(after_usage).should == false
+      end
       Hash.ruby2_keywords_hash?(marked).should == true
 
       args = mark(**h)
@@ -128,8 +138,10 @@ describe "Module#ruby2_keywords" do
       after_usage = obj.send(:splat, *args)
       after_usage.should == h
       after_usage.should_not.equal?(h)
-      after_usage.should_not.equal?(marked)
-      Hash.ruby2_keywords_hash?(after_usage).should == false
+      NATFIXME 'makes a copy and unmark the Hash when calling a method taking (*args)', exception: SpecFailedException do
+        after_usage.should_not.equal?(marked)
+        Hash.ruby2_keywords_hash?(after_usage).should == false
+      end
       Hash.ruby2_keywords_hash?(marked).should == true
     end
   end
@@ -211,7 +223,9 @@ describe "Module#ruby2_keywords" do
     Hash.ruby2_keywords_hash?(last).should == true
 
     last = obj.bar(1, 2, a: "a")
-    Hash.ruby2_keywords_hash?(last).should == true
+    NATFIXME 'applies to the underlying method and applies across aliasing', exception: SpecFailedException do
+      Hash.ruby2_keywords_hash?(last).should == true
+    end
 
     last = obj.baz(1, 2, a: "a")
     Hash.ruby2_keywords_hash?(last).should == true
@@ -266,32 +280,38 @@ describe "Module#ruby2_keywords" do
     obj = Object.new
     def obj.foo(a, b, c) end
 
-    -> {
-      obj.singleton_class.class_exec do
-        ruby2_keywords :foo
-      end
-    }.should complain(/Skipping set of ruby2_keywords flag for/)
+    NATFIXME 'prints warning when a method does not accept argument splat', exception: SpecFailedException do
+      -> {
+        obj.singleton_class.class_exec do
+          ruby2_keywords :foo
+        end
+      }.should complain(/Skipping set of ruby2_keywords flag for/)
+    end
   end
 
   it "prints warning when a method accepts keywords" do
     obj = Object.new
     def obj.foo(a:, b:) end
 
-    -> {
-      obj.singleton_class.class_exec do
-        ruby2_keywords :foo
-      end
-    }.should complain(/Skipping set of ruby2_keywords flag for/)
+    NATFIXME 'prints warning when a method accepts keywords', exception: SpecFailedException do
+      -> {
+        obj.singleton_class.class_exec do
+          ruby2_keywords :foo
+        end
+      }.should complain(/Skipping set of ruby2_keywords flag for/)
+    end
   end
 
   it "prints warning when a method accepts keyword splat" do
     obj = Object.new
     def obj.foo(**a) end
 
-    -> {
-      obj.singleton_class.class_exec do
-        ruby2_keywords :foo
-      end
-    }.should complain(/Skipping set of ruby2_keywords flag for/)
+    NATFIXME 'prints warning when a method accepts keyword splat', exception: SpecFailedException do
+      -> {
+        obj.singleton_class.class_exec do
+          ruby2_keywords :foo
+        end
+      }.should complain(/Skipping set of ruby2_keywords flag for/)
+    end
   end
 end
