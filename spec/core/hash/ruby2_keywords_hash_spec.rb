@@ -7,12 +7,14 @@ describe "Hash.ruby2_keywords_hash?" do
   end
 
   it "returns true if the Hash is a keywords Hash marked by Module#ruby2_keywords" do
-    obj = Class.new {
-      ruby2_keywords def m(*args)
-        args.last
-      end
-    }.new
-    Hash.ruby2_keywords_hash?(obj.m(a: 1)).should == true
+    NATFIXME 'Implement Module.ruby2_keywords' do
+      obj = Class.new {
+        ruby2_keywords def m(*args)
+          args.last
+        end
+      }.new
+      Hash.ruby2_keywords_hash?(obj.m(a: 1)).should == true
+    end
   end
 
   it "raises TypeError for non-Hash" do
@@ -58,18 +60,22 @@ describe "Hash.ruby2_keywords_hash" do
   end
 
   it "retains the default value" do
-    hash = Hash.new(1)
-    Hash.ruby2_keywords_hash(hash).default.should == 1
-    hash[:a] = 1
-    Hash.ruby2_keywords_hash(hash).default.should == 1
+    NATFIXME 'Issue with Hash#dup', exception: SpecFailedException do
+      hash = Hash.new(1)
+      Hash.ruby2_keywords_hash(hash).default.should == 1
+      hash[:a] = 1
+      Hash.ruby2_keywords_hash(hash).default.should == 1
+    end
   end
 
   it "retains the default_proc" do
-    pr = proc { |h, k| h[k] = [] }
-    hash = Hash.new(&pr)
-    Hash.ruby2_keywords_hash(hash).default_proc.should == pr
-    hash[:a] = 1
-    Hash.ruby2_keywords_hash(hash).default_proc.should == pr
+    NATFIXME 'Issue with Hash#dup', exception: SpecFailedException do
+      pr = proc { |h, k| h[k] = [] }
+      hash = Hash.new(&pr)
+      Hash.ruby2_keywords_hash(hash).default_proc.should == pr
+      hash[:a] = 1
+      Hash.ruby2_keywords_hash(hash).default_proc.should == pr
+    end
   end
 
   ruby_version_is '3.3' do

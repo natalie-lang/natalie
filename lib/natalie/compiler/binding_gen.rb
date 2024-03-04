@@ -763,6 +763,8 @@ gen.static_binding('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass
 gen.static_binding('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Hash', '[]', 'HashObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding('Hash', 'ruby2_keywords_hash?', 'HashObject', 'is_ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('Hash', 'ruby2_keywords_hash', 'HashObject', 'ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Hash', '==', 'HashObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>=', 'HashObject', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>', 'HashObject', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

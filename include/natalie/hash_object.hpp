@@ -89,6 +89,9 @@ public:
     static size_t hash(Key *&);
     static bool compare(Key *&, Key *&, void *);
 
+    static bool is_ruby2_keywords_hash(Env *, Value);
+    static Value ruby2_keywords_hash(Env *, Value);
+
     size_t size() const { return m_hashmap.size(); }
     Value size(Env *) const;
 
@@ -228,6 +231,7 @@ private:
     TM::Hashmap<Key *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
+    bool m_is_ruby2_keywords_hash { false };
     Value m_default_value { nullptr };
     ProcObject *m_default_proc { nullptr };
 };
