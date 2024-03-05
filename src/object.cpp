@@ -911,10 +911,14 @@ Value Object::send(Env *env, Args args, Block *block) {
 }
 
 Value Object::send(Env *env, SymbolObject *name, Args args, Block *block, MethodVisibility visibility_at_least, Value sent_from) {
+    static const auto initialize = SymbolObject::intern("initialize");
     Method *method = find_method(env, name, visibility_at_least, sent_from);
     args.pop_empty_keyword_hash();
     if (method) {
-        return method->call(env, this, args, block);
+        auto result = method->call(env, this, args, block);
+        if (name == initialize)
+            result = this;
+        return result;
     } else if (respond_to(env, "method_missing"_s)) {
         return method_missing_send(env, name, args, block);
     } else {

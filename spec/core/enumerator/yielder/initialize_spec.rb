@@ -13,8 +13,6 @@ describe "Enumerator::Yielder#initialize" do
   end
 
   it "returns self when given a block" do
-    NATFIXME 'Object#initialize should return self', exception: SpecFailedException do
-      @uninitialized.send(:initialize) {}.should equal(@uninitialized)
-    end
+    @uninitialized.send(:initialize) {}.should equal(@uninitialized)
   end
 end
