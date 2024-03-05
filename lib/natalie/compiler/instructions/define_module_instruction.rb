@@ -55,7 +55,7 @@ module Natalie
         code << "  #{mod} = new ModuleObject(#{@name.to_s.inspect})"
         code << "  #{namespace}->const_set(#{transform.intern(@name)}, #{mod})"
         code << "}"
-        code << "if (!#{mod}->is_module()) {"
+        code << "if (!#{mod}->is_module() || #{mod}->is_class()) {"
         code << "  env->raise(\"TypeError\", \"#{@name} is not a module\");"
         code << "}"
         code << "#{mod}->as_module()->eval_body(env, #{fn})"

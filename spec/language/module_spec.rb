@@ -45,11 +45,9 @@ describe "The module keyword" do
   end
 
   it "raises a TypeError if the constant is a Class" do
-    NATFIXME 'raises a TypeError if the constant is a Class', exception: SpecFailedException do
-      -> do
-        module ModuleSpecs::Modules::Klass; end
-      end.should raise_error(TypeError)
-    end
+    -> do
+      module ModuleSpecs::Modules::Klass; end
+    end.should raise_error(TypeError)
   end
 
   it "raises a TypeError if the constant is a String" do
