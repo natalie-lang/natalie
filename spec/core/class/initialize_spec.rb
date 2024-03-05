@@ -2,7 +2,9 @@ require_relative '../../spec_helper'
 
 describe "Class#initialize" do
   it "is private" do
-    Class.should have_private_method(:initialize)
+    NATFIXME 'Implement have_private_method and Kernel#private_methods', exception: NoMethodError, message: "undefined method `have_private_method' for main" do
+      Class.should have_private_method(:initialize)
+    end
   end
 
   it "raises a TypeError when called on already initialized classes" do
