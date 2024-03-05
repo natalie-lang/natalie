@@ -1,4 +1,4 @@
-module Encoding
+class Encoding
   class Converter
     INVALID_REPLACE = 2
     INVALID_MASK = 15
