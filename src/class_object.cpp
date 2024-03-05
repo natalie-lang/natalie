@@ -3,6 +3,8 @@
 namespace Natalie {
 
 Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
+    if (m_is_initialized)
+        env->raise("TypeError", "already initialized class");
     if (!superclass)
         superclass = GlobalEnv::the()->Object();
     if (!superclass->is_class())
