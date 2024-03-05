@@ -1094,6 +1094,7 @@ gen.binding('Proc', 'initialize', 'ProcObject', 'initialize', argc: 0, pass_env:
 gen.binding('Proc', 'arity', 'ProcObject', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcObject', 'call', argc: :any, pass_env: true, pass_block: true, aliases: ['[]', 'yield'], return_type: :Object)
 gen.binding('Proc', 'lambda?', 'ProcObject', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Proc', 'ruby2_keywords', 'ProcObject', 'ruby2_keywords', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Proc', 'source_location', 'ProcObject', 'source_location', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Proc', 'to_proc', 'ProcObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Proc', 'to_s', 'ProcObject', 'to_s', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)

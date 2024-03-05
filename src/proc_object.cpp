@@ -25,6 +25,23 @@ bool ProcObject::equal_value(Value other) const {
     return other->is_proc() && other->as_proc()->m_block == m_block;
 }
 
+Value ProcObject::ruby2_keywords(Env *env) {
+    auto block_wrapper = [](Env *env, Value self, Args args, Block *block) -> Value {
+        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+        auto new_args = args.to_array_for_block(env, 0, -1, true);
+        if (!kwargs->is_empty())
+            new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
+        auto old_block = env->outer()->var_get("old_block", 1)->as_proc();
+        return old_block->call(env, new_args, block);
+    };
+
+    auto inner_env = new Env { *env };
+    inner_env->var_set("old_block", 1, true, new ProcObject { m_block });
+    m_block = new Block { inner_env, this, block_wrapper, -1 };
+
+    return this;
+}
+
 Value ProcObject::source_location() {
     assert(m_block);
     auto file = m_block->env()->file();
