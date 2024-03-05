@@ -1049,6 +1049,30 @@ Value ModuleObject::undef_method(Env *env, Args args) {
     return this;
 }
 
+Value ModuleObject::ruby2_keywords(Env *env, Value name) {
+    if (name->is_string()) {
+        name = name->as_string()->to_sym(env);
+    } else if (!name->is_symbol()) {
+        env->raise("TypeError", "{} is not a symbol nor a string", name->inspect_str(env));
+    }
+
+    auto method_wrapper = [](Env *env, Value self, Args args, Block *block) -> Value {
+        auto kwargs = args.has_keyword_hash() ? args.pop_keyword_hash() : new HashObject;
+        auto new_args = args.to_array_for_block(env, 0, -1, true);
+        if (!kwargs->is_empty())
+            new_args->push(HashObject::ruby2_keywords_hash(env, kwargs));
+        auto old_method = env->outer()->var_get("old_method", 1)->as_unbound_method();
+        return old_method->bind_call(env, self, new_args, block);
+    };
+
+    auto inner_env = new Env { *env };
+    inner_env->var_set("old_method", 1, true, instance_method(env, name));
+    undef_method(env, { name });
+    define_method(env, name->as_symbol(), new Block { inner_env, this, method_wrapper, -1 });
+
+    return NilObject::the();
+}
+
 void ModuleObject::visit_children(Visitor &visitor) {
     Object::visit_children(visitor);
     visitor.visit(m_env);

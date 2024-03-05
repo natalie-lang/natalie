@@ -763,6 +763,8 @@ gen.static_binding('GC', 'print_stats', 'GCModule', 'print_stats', argc: 0, pass
 gen.static_binding('GC', 'start', 'GCModule', 'start', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Hash', '[]', 'HashObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding('Hash', 'ruby2_keywords_hash?', 'HashObject', 'is_ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('Hash', 'ruby2_keywords_hash', 'HashObject', 'ruby2_keywords_hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Hash', '==', 'HashObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>=', 'HashObject', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>', 'HashObject', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -1065,6 +1067,7 @@ gen.binding('Module', 'public_instance_method', 'ModuleObject', 'public_instance
 gen.binding('Module', 'remove_class_variable', 'ModuleObject', 'remove_class_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'remove_const', 'ModuleObject', 'remove_const', argc: 1, pass_env: true, pass_block: false, return_type: :Object, visibility: :private)
 gen.binding('Module', 'remove_method', 'ModuleObject', 'remove_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'ruby2_keywords', 'ModuleObject', 'ruby2_keywords', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'to_s', 'ModuleObject', 'inspect', argc: 0, pass_env: true, pass_block: false, aliases: ['inspect'], return_type: :Object)
 gen.binding('Module', 'undef_method', 'ModuleObject', 'undef_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 

@@ -19,6 +19,16 @@ bool HashObject::compare(Key *&a, Key *&b, void *env) {
     return a->key.send((Env *)env, "eql?"_s, { b->key })->is_truthy();
 }
 
+bool HashObject::is_ruby2_keywords_hash(Env *env, Value hash) {
+    return hash->as_hash_or_raise(env)->m_is_ruby2_keywords_hash;
+}
+
+Value HashObject::ruby2_keywords_hash(Env *env, Value hash) {
+    auto result = hash->as_hash_or_raise(env)->dup(env)->as_hash();
+    result->m_is_ruby2_keywords_hash = true;
+    return result;
+}
+
 Value HashObject::compare_by_identity(Env *env) {
     assert_not_frozen(env);
     this->m_is_comparing_by_identity = true;
