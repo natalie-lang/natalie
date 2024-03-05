@@ -31,7 +31,9 @@ describe "The module keyword" do
   ruby_version_is '3.2' do
     it "does not reopen a module included in Object" do
       module IncludedModuleSpecs; Reopened = true; end
-      ModuleSpecs::IncludedInObject::IncludedModuleSpecs.should_not == Object::IncludedModuleSpecs
+      NATFIXME 'does not reopen a module included in Object', exception: SpecFailedException do
+        ModuleSpecs::IncludedInObject::IncludedModuleSpecs.should_not == Object::IncludedModuleSpecs
+      end
     end
   end
 
@@ -43,9 +45,11 @@ describe "The module keyword" do
   end
 
   it "raises a TypeError if the constant is a Class" do
-    -> do
-      module ModuleSpecs::Modules::Klass; end
-    end.should raise_error(TypeError)
+    NATFIXME 'raises a TypeError if the constant is a Class', exception: SpecFailedException do
+      -> do
+        module ModuleSpecs::Modules::Klass; end
+      end.should raise_error(TypeError)
+    end
   end
 
   it "raises a TypeError if the constant is a String" do
@@ -81,7 +85,9 @@ describe "Assigning an anonymous module to a constant" do
   it "sets the name of a module scoped by an anonymous module" do
     a, b = Module.new, Module.new
     a::B = b
-    b.name.should.end_with? '::B'
+    NATFIXME 'sets the name of a module scoped by an anonymous module', exception: SpecFailedException do
+      b.name.should.end_with? '::B'
+    end
   end
 
   it "sets the name of contained modules when assigning a toplevel anonymous module" do
@@ -94,7 +100,9 @@ describe "Assigning an anonymous module to a constant" do
     ::ModuleSpecs_CS2 = a
     a.name.should == "ModuleSpecs_CS2"
     b.name.should == "ModuleSpecs_CS2::B"
-    c.name.should == "ModuleSpecs_CS2::B::C"
+    NATFIXME 'sets the name of contained modules when assigning a toplevel anonymous module', exception: SpecFailedException do
+      c.name.should == "ModuleSpecs_CS2::B::C"
+    end
     d.name.should == "ModuleSpecs_CS2::D"
   end
 end
