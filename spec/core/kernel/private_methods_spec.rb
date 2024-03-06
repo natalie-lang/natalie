@@ -8,7 +8,9 @@ describe "Kernel#private_methods" do
     m = KernelSpecs::Methods.private_methods(false)
     m.should include(:shichi)
     m = KernelSpecs::Methods.new.private_methods(false)
-    m.should include(:juu_shi)
+    NATFIXME 'returns a list of the names of privately accessible methods in the object', exception: SpecFailedException do
+      m.should include(:juu_shi)
+    end
   end
 
   it "returns a list of the names of privately accessible methods in the object and its ancestors and mixed-in modules" do
@@ -45,8 +47,10 @@ end
 
 describe :kernel_private_methods_with_falsy, shared: true do
   it "returns a list of private methods in without its ancestors" do
-    ReflectSpecs::F.private_methods(@object).select{|m|/_pri\z/ =~ m}.sort.should == [:ds_pri, :fs_pri]
-    ReflectSpecs::F.new.private_methods(@object).should == [:f_pri]
+    NATFIXME 'returns a list of private methods in without its ancestors', exception: SpecFailedException do
+      ReflectSpecs::F.private_methods(@object).select{|m|/_pri\z/ =~ m}.sort.should == [:ds_pri, :fs_pri]
+      ReflectSpecs::F.new.private_methods(@object).should == [:f_pri]
+    end
   end
 end
 

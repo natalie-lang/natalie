@@ -86,6 +86,7 @@ public:
     Value method(Env *env, Value name);
     Value methods(Env *env, Value regular_val);
     bool neqtilde(Env *, Value);
+    Value private_methods(Env *, Value = nullptr);
     Value remove_instance_variable(Env *env, Value name_val);
     Value tap(Env *env, Block *block);
     bool is_a(Env *env, Value module);

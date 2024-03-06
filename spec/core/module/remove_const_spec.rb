@@ -74,9 +74,7 @@ describe "Module#remove_const" do
   end
 
   it "is a private method" do
-    NATFIXME 'Implement Module.private_methods', exception: NoMethodError, message: "undefined method `private_methods' for class Module" do
-      Module.private_methods.should include(:remove_const)
-    end
+    Module.private_methods.should include(:remove_const)
     -> { ConstantSpecs.remove_const(:CONST) }.should raise_error(NoMethodError, "private method `remove_const' called for module ConstantSpecs")
   end
 
