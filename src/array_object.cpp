@@ -24,6 +24,9 @@ ArrayObject::ArrayObject(std::initializer_list<Value> list)
 Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 
+    if (!size && !value && block)
+        env->warn("given block not used");
+
     if (!size) {
         ArrayObject new_array;
         *this = std::move(new_array);
