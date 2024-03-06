@@ -1216,6 +1216,24 @@ class HaveMethodExpectation
   end
 end
 
+class HavePrivateMethodExpectation
+  def initialize(method)
+    @method = method.to_sym
+  end
+
+  def match(subject)
+    unless subject.private_methods.include?(@method)
+      raise SpecFailedException, "Expected #{subject} to have private method '#{@method}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.private_methods.include?(@method)
+      raise SpecFailedException, "Expected #{subject} NOT to have private method '#{@method}' but it does"
+    end
+  end
+end
+
 class HaveInstanceMethodExpectation
   def initialize(method, include_super)
     @method = method.to_sym
@@ -1442,6 +1460,10 @@ class Object
 
   def have_method(method)
     HaveMethodExpectation.new(method)
+  end
+
+  def have_private_method(method)
+    HavePrivateMethodExpectation.new(method)
   end
 
   def have_instance_method(method, include_super = true)
