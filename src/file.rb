@@ -39,7 +39,7 @@ class File
     if path.respond_to?(:to_str)
       path = path.to_str
     end
-    raise TypeError, "path must be convertable to String" unless path.is_a?(String)
+    raise TypeError, "path must be convertable to String (got #{path.inspect} (#{path.class}))" unless path.is_a?(String)
 
     base = path.sub(/#{SEPARATOR}+\z/, '') # strip all trailing separators
              .split(SEPARATOR)[-1]
