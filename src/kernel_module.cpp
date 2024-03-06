@@ -504,6 +504,22 @@ Value KernelModule::print(Env *env, Args args) {
     return _stdout->send(env, "write"_s, args);
 }
 
+Value KernelModule::private_methods(Env *env, Value regular_val) {
+    bool regular = regular_val ? regular_val->is_truthy() : true;
+    if (regular) {
+        if (singleton_class()) {
+            return singleton_class()->private_instance_methods(env, TrueObject::the());
+        } else {
+            return klass()->private_instance_methods(env, TrueObject::the());
+        }
+    }
+    if (singleton_class()) {
+        return singleton_class()->private_instance_methods(env, FalseObject::the());
+    } else {
+        return new ArrayObject {};
+    }
+}
+
 Value KernelModule::proc(Env *env, Block *block) {
     if (block) {
         return new ProcObject { block };
