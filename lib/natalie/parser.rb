@@ -1,5 +1,5 @@
-$LOAD_PATH << File.expand_path('../../build/prism/lib', __dir__)
-$LOAD_PATH << File.expand_path('../../build/prism/ext', __dir__)
+$LOAD_PATH.unshift(File.expand_path('../../build/prism/lib', __dir__))
+$LOAD_PATH.unshift(File.expand_path('../../build/prism/ext', __dir__))
 require 'prism'
 
 module Prism
