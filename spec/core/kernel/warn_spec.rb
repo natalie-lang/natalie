@@ -99,25 +99,23 @@ describe "Kernel#warn" do
     it "prepends a message with specified line from the backtrace" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
-        -> { w.f4("foo", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: foo|)
-        -> { w.f4("foo", 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: foo|)
-        -> { w.f4("foo", 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: foo|)
-        -> { w.f4("foo", 3) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f3_call_lineno}: warning: foo|)
-      end
+      -> { w.f4("foo", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: foo|)
+      -> { w.f4("foo", 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: foo|)
+      -> { w.f4("foo", 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: foo|)
+      -> { w.f4("foo", 3) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f3_call_lineno}: warning: foo|)
     end
 
     # Test both explicitly without and with RubyGems as RubyGems overrides Kernel#warn
     it "shows the caller of #require and not #require itself without RubyGems" do
       file = fixture(__FILE__ , "warn_require_caller.rb")
-      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
+      NATFIXME 'File has a dynamic load call', exception: SpecFailedException do
         ruby_exe(file, options: "--disable-gems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
       end
     end
 
     it "shows the caller of #require and not #require itself with RubyGems loaded" do
       file = fixture(__FILE__ , "warn_require_caller.rb")
-      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
+      NATFIXME 'File has a dynamic load call', exception: SpecFailedException do
         ruby_exe(file, options: "-rrubygems", args: "2>&1").should == "#{file}:2: warning: warn-require-warning\n"
       end
     end
@@ -171,38 +169,30 @@ describe "Kernel#warn" do
     it "converts first arg using to_s" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
-        -> { w.f4(false, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: false|)
-        -> { w.f4(nil, 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: |)
-        obj = mock("obj")
-        obj.should_receive(:to_s).and_return("to_s called")
-        -> { w.f4(obj, 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: to_s called|)
-      end
+      -> { w.f4(false, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: false|)
+      -> { w.f4(nil, 1) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f1_call_lineno}: warning: |)
+      obj = mock("obj")
+      obj.should_receive(:to_s).and_return("to_s called")
+      -> { w.f4(obj, 2) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.f2_call_lineno}: warning: to_s called|)
     end
 
     it "does not prepend caller information if the uplevel argument is too large" do
       w = KernelSpecs::WarnInNestedCall.new
-      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
-        -> { w.f4("foo", 100) }.should output(nil, "warning: foo\n")
-      end
+      -> { w.f4("foo", 100) }.should output(nil, "warning: foo\n")
     end
 
     it "prepends even if a message is empty or nil" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
-        -> { w.f4("", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
-        -> { w.f4(nil, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
-      end
+      -> { w.f4("", 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
+      -> { w.f4(nil, 0) }.should output(nil, %r|core/kernel/fixtures/classes.rb:#{w.warn_call_lineno}: warning: \n$|)
     end
 
     it "converts value to Integer" do
       w = KernelSpecs::WarnInNestedCall.new
 
-      NATFIXME 'Add :uplevel keyword argument', exception: ArgumentError, message: 'unknown keyword: :uplevel' do
-        -> { w.f4(0.1) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
-        -> { w.f4(Rational(1, 2)) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
-      end
+      -> { w.f4(0.1) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
+      -> { w.f4(Rational(1, 2)) }.should output(nil, %r|classes.rb:#{w.warn_call_lineno}:|)
     end
 
     it "raises ArgumentError if passed negative value" do
@@ -215,12 +205,10 @@ describe "Kernel#warn" do
     end
 
     it "raises TypeError if passed not Integer" do
-      NATFIXME 'Add :uplevel keyword argument', exception: SpecFailedException do
-        -> { warn "", uplevel: "" }.should raise_error(TypeError)
-        -> { warn "", uplevel: [] }.should raise_error(TypeError)
-        -> { warn "", uplevel: {} }.should raise_error(TypeError)
-        -> { warn "", uplevel: Object.new }.should raise_error(TypeError)
-      end
+      -> { warn "", uplevel: "" }.should raise_error(TypeError)
+      -> { warn "", uplevel: [] }.should raise_error(TypeError)
+      -> { warn "", uplevel: {} }.should raise_error(TypeError)
+      -> { warn "", uplevel: Object.new }.should raise_error(TypeError)
     end
   end
 

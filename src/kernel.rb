@@ -56,16 +56,27 @@ module Kernel
     Random::DEFAULT.rand(*args)
   end
 
-  def warn(*msgs, category: nil)
+  def warn(*msgs, category: nil, uplevel: nil)
     if !category.nil? && !category.is_a?(Symbol)
       category = category.to_sym if category.respond_to?(:to_sym)
       raise TypeError, "no implicit conversion of #{category.class} into Symbol" unless category.is_a?(Symbol)
     end
+    location = nil
+    unless uplevel.nil?
+      uplevel = uplevel.to_int if !uplevel.is_a?(Integer) && uplevel.respond_to?(:to_int)
+      raise TypeError, "no implicit conversion of #{uplevel.class} into Integer" unless uplevel.is_a?(Integer)
+      raise ArgumentError, "negative level (#{uplevel})" if uplevel&.negative?
+      backtrace = caller_locations(uplevel + 1, 1)&.first
+      location = "warning: "
+      location.prepend("#{backtrace.path}:#{backtrace.lineno}: ") unless backtrace.nil?
+    end
+
 
     msgs = msgs[0] if msgs.size == 1 && msgs[0].is_a?(Array)
     msgs.each do |message|
       message = message.to_s
       message = message + "\n" unless message.end_with?("\n")
+      message = location + message unless location.nil?
       Warning.warn(message, category: category)
     end
     nil

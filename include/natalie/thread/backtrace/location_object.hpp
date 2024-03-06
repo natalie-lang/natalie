@@ -24,6 +24,7 @@ public:
     Value absolute_path(Env *) const;
     StringObject *inspect(Env *) const;
     IntegerObject *lineno() const { return m_line; }
+    Value path() const { return m_file; }
     StringObject *to_s() const;
 
     void visit_children(Visitor &);

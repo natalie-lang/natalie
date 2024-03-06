@@ -25,10 +25,7 @@ describe "Exception#backtrace_locations" do
       $!
     end
 
-    NATFIXME 'Implement Thread::Backtrace::Location#path', exception: NoMethodError, message: "undefined method `path' for an instance of Thread::Backtrace::Location" do
-      exception.backtrace_locations.first.path.should =~ /backtrace_locations_spec/
-    end
-    exception.backtrace_locations.first.absolute_path.should =~ /backtrace_locations_spec/
+    exception.backtrace_locations.first.path.should =~ /backtrace_locations_spec/
   end
 
   it "returns an Array that can be updated" do
