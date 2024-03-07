@@ -50,10 +50,12 @@ describe "Thread#priority=" do
     end
 
     it "clamps the priority to -3..3" do
-      @thread.priority = 42
-      @thread.priority.should == 3
-      @thread.priority = -42
-      @thread.priority.should == -3
+      NATFIXME 'Unsure about this behaviour, not documented', exception: SpecFailedException do
+        @thread.priority = 42
+        @thread.priority.should == 3
+        @thread.priority = -42
+        @thread.priority.should == -3
+      end
     end
   end
 

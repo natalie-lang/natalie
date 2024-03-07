@@ -131,6 +131,9 @@ public:
     Value name(Env *);
     Value set_name(Env *, Value);
 
+    Value priority(Env *) const;
+    Value set_priority(Env *, Value);
+
     Value fetch(Env *, Value, Value = nullptr, Block * = nullptr);
     bool has_key(Env *, Value);
     Value keys(Env *);
