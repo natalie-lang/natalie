@@ -56,8 +56,8 @@ module Zlib
   #class << self
   __bind_static_method__ :adler32, :Zlib_adler32
   __bind_static_method__ :crc32, :Zlib_crc32
-  __bind_static_method__ :crc_table, :Zlib_crc_table
-  __bind_static_method__ :zlib_version, :Zlib_zlib_version
+  __bind_static_method__ :crc_table, :Zlib_crc_table, 0
+  __bind_static_method__ :zlib_version, :Zlib_zlib_version, 0
   #end
 
   def self.deflate(...)
@@ -69,19 +69,19 @@ module Zlib
   end
 
   class ZStream
-    __bind_method__ :adler, :Zlib_ZStream_adler
-    __bind_method__ :avail_in, :Zlib_ZStream_avail_in
-    __bind_method__ :avail_out, :Zlib_ZStream_avail_out
-    __bind_method__ :data_type, :Zlib_ZStream_data_type
+    __bind_method__ :adler, :Zlib_ZStream_adler, 0
+    __bind_method__ :avail_in, :Zlib_ZStream_avail_in, 0
+    __bind_method__ :avail_out, :Zlib_ZStream_avail_out, 0
+    __bind_method__ :data_type, :Zlib_ZStream_data_type, 0
   end
   
   class Deflate < ZStream
     __bind_method__ :initialize, :Zlib_deflate_initialize
-    __bind_method__ :<<, :Zlib_deflate_append
+    __bind_method__ :<<, :Zlib_deflate_append, 1
     __bind_method__ :deflate, :Zlib_deflate_deflate
-    __bind_method__ :set_dictionary, :Zlib_deflate_set_dictionary
-    __bind_method__ :finish, :Zlib_deflate_finish
-    __bind_method__ :close, :Zlib_deflate_close
+    __bind_method__ :set_dictionary, :Zlib_deflate_set_dictionary, 1
+    __bind_method__ :finish, :Zlib_deflate_finish, 0
+    __bind_method__ :close, :Zlib_deflate_close, 0
 
     class << self
       def deflate(input, level = -1)
@@ -100,9 +100,9 @@ module Zlib
 
   class Inflate < ZStream
     __bind_method__ :initialize, :Zlib_inflate_initialize
-    __bind_method__ :<<, :Zlib_inflate_append
-    __bind_method__ :finish, :Zlib_inflate_finish
-    __bind_method__ :close, :Zlib_inflate_close
+    __bind_method__ :<<, :Zlib_inflate_append, 1
+    __bind_method__ :finish, :Zlib_inflate_finish, 0
+    __bind_method__ :close, :Zlib_inflate_close, 0
 
     class << self
       def inflate(input)
