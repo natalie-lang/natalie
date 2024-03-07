@@ -161,6 +161,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `minicoro.h`     | Eduardo Bart                      | MIT               |
 | `pp.rb`          | Yukihiro Matsumoto                | BSD               |
 | `prettyprint.rb` | Yukihiro Matsumoto                | BSD               |
+| `shellwords.rb`  | Akinori MUSHA                     | BSD               |
 | `spec/*`         | Engine Yard, Inc.                 | MIT               |
 | `uri.rb`         | Akira Yamada                      | BSD               |
 | `uri/*`          | Akira Yamada                      | BSD               |
