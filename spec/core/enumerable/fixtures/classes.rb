@@ -1,3 +1,5 @@
+require 'set' # NATFIXME: No autoload in Natalie
+
 module EnumerableSpecs
 
   class Numerous
