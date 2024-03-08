@@ -60,8 +60,8 @@ describe :queue_deq, shared: true do
 
   it "returns nil for a closed empty queue" do
     q = @object.call
-    NATFIXME 'Implement Queue#close', exception: NoMethodError, message: "undefined method `close' for an instance of Queue" do
-      q.close
+    q.close
+    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
       q.send(@method).should == nil
     end
   end
@@ -77,9 +77,7 @@ describe :queue_deq, shared: true do
 
     # NATFIXME: Enable this line once the Thread above works
     #Thread.pass until t.status == "sleep" && q.num_waiting == 1
-    NATFIXME "Implement Queue#close", exception: NoMethodError, message: "undefined method `close' for an instance of Queue" do
-      q.close
-    end
+    q.close
     t.join
   end
 
@@ -159,8 +157,8 @@ describe :queue_deq, shared: true do
 
       it "returns nil for a closed empty queue" do
         q = @object.call
-        NATFIXME "Implement Queue#close", exception: NoMethodError, message: "undefined method `close' for an instance of Queue" do
-          q.close
+        q.close
+        NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
           q.send(@method, timeout: 0).should == nil
         end
       end
@@ -196,8 +194,8 @@ describe :queue_deq, shared: true do
 
     it "raises a ThreadError for a closed empty queue" do
       q = @object.call
-      NATFIXME "Implement Queue#close", exception: NoMethodError, message: "undefined method `close' for an instance of Queue" do
-        q.close
+      q.close
+      NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
         -> { q.send(@method, true) }.should raise_error(ThreadError)
       end
     end

@@ -1,5 +1,6 @@
 class Queue
   def initialize(enum = nil)
+    @closed = false
     @mutex = Mutex.new
     if enum.nil?
       @queue = []
@@ -11,6 +12,15 @@ class Queue
       @queue = enum.to_a
       raise TypeError, "can't convert #{enum.class} to Array (#{enum.class}#to_a gives #{@queue.class})" unless @queue.is_a?(Array)
     end
+  end
+
+  def close
+    @mutex.synchronize { @closed = true }
+    self
+  end
+
+  def closed?
+    @mutex.synchronize { @closed }
   end
 
   def empty?

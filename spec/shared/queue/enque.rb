@@ -12,8 +12,8 @@ describe :queue_enq, shared: true do
 
   it "is an error for a closed queue" do
     q = @object.call
-    NATFIXME "Implement Queue#close", exception: NoMethodError, message: "undefined method `close' for an instance of Queue" do
-      q.close
+    q.close
+    NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
       -> {
         q.send @method, Object.new
       }.should raise_error(ClosedQueueError)
