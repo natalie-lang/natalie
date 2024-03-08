@@ -16,12 +16,10 @@ describe "Queue#initialize" do
       q = Queue.new([1, 2, 3])
       q.size.should == 3
       q.should_not.empty?
-      NATFIXME 'Implement Queue#pop', exception: NoMethodError, message: "undefined method `pop' for an instance of Queue" do
-        q.pop.should == 1
-        q.pop.should == 2
-        q.pop.should == 3
-        q.should.empty?
-      end
+      q.pop.should == 1
+      q.pop.should == 2
+      q.pop.should == 3
+      q.should.empty?
     end
 
     describe "converts the given argument to an Array using #to_a" do
@@ -31,12 +29,10 @@ describe "Queue#initialize" do
         q = Queue.new(enumerable)
         q.size.should == 3
         q.should_not.empty?
-        NATFIXME 'Implement Queue#pop', exception: NoMethodError, message: "undefined method `pop' for an instance of Queue" do
-          q.pop.should == 1
-          q.pop.should == 2
-          q.pop.should == 3
-          q.should.empty?
-        end
+        q.pop.should == 1
+        q.pop.should == 2
+        q.pop.should == 3
+        q.should.empty?
       end
 
       it "raises a TypeError if the given argument can't be converted to an Array" do

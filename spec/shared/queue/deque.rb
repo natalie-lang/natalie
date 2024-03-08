@@ -3,20 +3,16 @@ describe :queue_deq, shared: true do
     q = @object.call
     q << Object.new
     q.size.should == 1
-    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-      q.send @method
-      q.size.should == 0
-    end
+    q.send @method
+    q.size.should == 0
   end
 
   it "returns items in the order they were added" do
     q = @object.call
     q << 1
     q << 2
-    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-      q.send(@method).should == 1
-      q.send(@method).should == 2
-    end
+    q.send(@method).should == 1
+    q.send(@method).should == 2
   end
 
   it "blocks the thread until there are items in the queue" do
@@ -24,27 +20,21 @@ describe :queue_deq, shared: true do
     v = 0
 
     th = Thread.new do
-      NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-        q.send(@method)
-        v = 1
-      end
+      q.send(@method)
+      v = 1
     end
 
     v.should == 0
     q << Object.new
     th.join
-    NATFIXME "Implement Queue##{@method}", exception: SpecFailedException do
-      v.should == 1
-    end
+    v.should == 1
   end
 
   it "removes an item from a closed queue" do
     q = @object.call
     q << 1
     q.close
-    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-      q.send(@method).should == 1
-    end
+    q.send(@method).should == 1
   end
 
   it "converts false-ish for non_blocking to boolean" do
@@ -52,31 +42,24 @@ describe :queue_deq, shared: true do
     q << 1
     q << 2
 
-    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-      q.send(@method, false).should == 1
-      q.send(@method, nil).should == 2
-    end
+    q.send(@method, false).should == 1
+    q.send(@method, nil).should == 2
   end
 
   it "returns nil for a closed empty queue" do
     q = @object.call
     q.close
-    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-      q.send(@method).should == nil
-    end
+    q.send(@method).should == nil
   end
 
   it "returns nil for an empty queue that becomes closed" do
     q = @object.call
 
     t = Thread.new {
-      NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-        q.send(@method).should == nil
-      end
+      q.send(@method).should == nil
     }
 
-    # NATFIXME: Enable this line once the Thread above works
-    #Thread.pass until t.status == "sleep" && q.num_waiting == 1
+    Thread.pass until t.status == "sleep" && q.num_waiting == 1
     q.close
     t.join
   end
@@ -87,7 +70,7 @@ describe :queue_deq, shared: true do
         q = @object.call
 
         t = Thread.new {
-          NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
+          NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
             q.send(@method, timeout: TIME_TOLERANCE).should == 1
           end
         }
@@ -101,7 +84,7 @@ describe :queue_deq, shared: true do
         q = @object.call
 
         Thread.new {
-          NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
+          NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
             q.send(@method, timeout: 0.001).should == nil
           end
         }.join
@@ -110,12 +93,9 @@ describe :queue_deq, shared: true do
       it "does nothing if the timeout is nil" do
         q = @object.call
         t = Thread.new {
-          NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
-            q.send(@method, timeout: nil).should == 1
-          end
+          q.send(@method, timeout: nil).should == 1
         }
-        # NATFIXME: Enable this line once the Thread above works
-        #Thread.pass until t.status == "sleep" && q.num_waiting == 1
+        Thread.pass until t.status == "sleep" && q.num_waiting == 1
         q << 1
         t.join
       end
@@ -123,7 +103,7 @@ describe :queue_deq, shared: true do
       it "immediately returns nil if no item is available and the timeout is 0" do
         q = @object.call
         q << 1
-        NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: /undefined method `#{@method}' for an instance of Queue/ do
+        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
           q.send(@method, timeout: 0).should == 1
           q.send(@method, timeout: 0).should == nil
         end
@@ -131,7 +111,7 @@ describe :queue_deq, shared: true do
 
       it "raise TypeError if timeout is not a valid numeric" do
         q = @object.call
-        NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
+        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
           -> {
             q.send(@method, timeout: "1")
           }.should raise_error(TypeError, "no implicit conversion to float from string")
@@ -144,7 +124,7 @@ describe :queue_deq, shared: true do
 
       it "raise ArgumentError if non_block = true is passed too" do
         q = @object.call
-        NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
+        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
           -> {
             q.send(@method, true, timeout: 1)
           }.should raise_error(ArgumentError, "can't set a timeout if non_block is enabled")
@@ -154,7 +134,7 @@ describe :queue_deq, shared: true do
       it "returns nil for a closed empty queue" do
         q = @object.call
         q.close
-        NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
+        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
           q.send(@method, timeout: 0).should == nil
         end
       end
@@ -166,44 +146,34 @@ describe :queue_deq, shared: true do
       q = @object.call
       q << Object.new
       q.size.should == 1
-      NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: /undefined method `#{@method}' for an instance of Queue/ do
-        q.send(@method, true)
-        q.size.should == 0
-      end
+      q.send(@method, true)
+      q.size.should == 0
     end
 
     it "raises a ThreadError if the queue is empty" do
       q = @object.call
-      NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
-        -> { q.send(@method, true) }.should raise_error(ThreadError)
-      end
+      -> { q.send(@method, true) }.should raise_error(ThreadError)
     end
 
     it "removes an item from a closed queue" do
       q = @object.call
       q << 1
       q.close
-      NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: /undefined method `#{@method}' for an instance of Queue/ do
-        q.send(@method, true).should == 1
-      end
+      q.send(@method, true).should == 1
     end
 
     it "raises a ThreadError for a closed empty queue" do
       q = @object.call
       q.close
-      NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
-        -> { q.send(@method, true) }.should raise_error(ThreadError)
-      end
+      -> { q.send(@method, true) }.should raise_error(ThreadError)
     end
 
     it "converts true-ish non_blocking argument to true" do
       q = @object.call
 
-      NATFIXME "Implement Queue##{@method}", exception: SpecFailedException, message: /undefined method `#{@method}' for an instance of Queue/ do
-        -> { q.send(@method, true) }.should raise_error(ThreadError)
-        -> { q.send(@method, 1) }.should raise_error(ThreadError)
-        -> { q.send(@method, "") }.should raise_error(ThreadError)
-      end
+      -> { q.send(@method, true) }.should raise_error(ThreadError)
+      -> { q.send(@method, 1) }.should raise_error(ThreadError)
+      -> { q.send(@method, "") }.should raise_error(ThreadError)
     end
   end
 end
