@@ -31,4 +31,15 @@ class Queue
     @mutex.synchronize { @queue.length }
   end
   alias size length
+
+  def push(obj)
+    @mutex.synchronize do
+      raise ClosedQueueError, 'queue closed' if @closed
+
+      @queue.push(obj)
+    end
+    self
+  end
+  alias << push
+  alias enq push
 end
