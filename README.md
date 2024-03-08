@@ -157,6 +157,7 @@ the respective file, in the same directory with a name like `LICENSE`, or both.
 | `big_int.*`      | Syed Faheel Ahmad                 | MIT               |
 | `dtoa.c`         | David M. Gay, Lucent Technologies | custom permissive |
 | `ipaddr.rb`      | Hajimu Umemoto and Akinori Musha  | BSD               |
+| `find.rb`        | Kazuki Tsujimoto                  | BSD               |
 | `linenoise`      | S. Sanfilippo and P. Noordhuis    | BSD               |
 | `minicoro.h`     | Eduardo Bart                      | MIT               |
 | `pp.rb`          | Yukihiro Matsumoto                | BSD               |
