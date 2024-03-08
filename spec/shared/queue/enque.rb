@@ -1,8 +1,8 @@
 describe :queue_enq, shared: true do
   it "adds an element to the Queue" do
     q = @object.call
-    NATFIXME "Implement Queue#size", exception: NoMethodError, message: "undefined method `size' for an instance of Queue" do
-      q.size.should == 0
+    q.size.should == 0
+    NATFIXME "Implement Queue##{@method}", exception: NoMethodError, message: "undefined method `#{@method}' for an instance of Queue" do
       q.send @method, Object.new
       q.size.should == 1
       q.send @method, Object.new

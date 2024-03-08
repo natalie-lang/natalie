@@ -3,8 +3,8 @@ require_relative '../../spec_helper'
 describe "Queue#initialize" do
   it "can be passed no arguments for an empty Queue" do
     q = Queue.new
-    NATFIXME 'Implement Queue#size', exception: NoMethodError, message: "undefined method `size' for an instance of Queue" do
-      q.size.should == 0
+    q.size.should == 0
+    NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
       q.should.empty?
     end
   end
@@ -16,8 +16,8 @@ describe "Queue#initialize" do
   ruby_version_is '3.1' do
     it "adds all elements of the passed Enumerable to self" do
       q = Queue.new([1, 2, 3])
-      NATFIXME 'Implement Queue#size', exception: NoMethodError, message: "undefined method `size' for an instance of Queue" do
-        q.size.should == 3
+      q.size.should == 3
+      NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
         q.should_not.empty?
         q.pop.should == 1
         q.pop.should == 2
@@ -31,8 +31,8 @@ describe "Queue#initialize" do
         enumerable = MockObject.new('mock-enumerable')
         enumerable.should_receive(:to_a).and_return([1, 2, 3])
         q = Queue.new(enumerable)
-        NATFIXME 'Implement Queue#size', exception: NoMethodError, message: "undefined method `size' for an instance of Queue" do
-          q.size.should == 3
+        q.size.should == 3
+        NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
           q.should_not.empty?
           q.pop.should == 1
           q.pop.should == 2
