@@ -14,6 +14,11 @@ class Queue
     end
   end
 
+  def clear
+    @mutex.synchronize { @queue.clear }
+    self
+  end
+
   def close
     @mutex.synchronize { @closed = true }
     self
