@@ -4,9 +4,7 @@ describe "Queue#initialize" do
   it "can be passed no arguments for an empty Queue" do
     q = Queue.new
     q.size.should == 0
-    NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
-      q.should.empty?
-    end
+    q.should.empty?
   end
 
   it "is a private method" do
@@ -17,8 +15,8 @@ describe "Queue#initialize" do
     it "adds all elements of the passed Enumerable to self" do
       q = Queue.new([1, 2, 3])
       q.size.should == 3
-      NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
-        q.should_not.empty?
+      q.should_not.empty?
+      NATFIXME 'Implement Queue#pop', exception: NoMethodError, message: "undefined method `pop' for an instance of Queue" do
         q.pop.should == 1
         q.pop.should == 2
         q.pop.should == 3
@@ -32,8 +30,8 @@ describe "Queue#initialize" do
         enumerable.should_receive(:to_a).and_return([1, 2, 3])
         q = Queue.new(enumerable)
         q.size.should == 3
-        NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
-          q.should_not.empty?
+        q.should_not.empty?
+        NATFIXME 'Implement Queue#pop', exception: NoMethodError, message: "undefined method `pop' for an instance of Queue" do
           q.pop.should == 1
           q.pop.should == 2
           q.pop.should == 3

@@ -1,9 +1,7 @@
 describe :queue_empty?, shared: true do
   it "returns true on an empty Queue" do
     queue = @object.call
-    NATFIXME 'Implement Queue#empty?', exception: NoMethodError, message: "undefined method `empty?' for an instance of Queue" do
-      queue.empty?.should be_true
-    end
+    queue.empty?.should be_true
   end
 
   it "returns false when Queue is not empty" do

@@ -13,6 +13,10 @@ class Queue
     end
   end
 
+  def empty?
+    @mutex.synchronize { @queue.empty? }
+  end
+
   def length
     @mutex.synchronize { @queue.length }
   end
