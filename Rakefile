@@ -192,6 +192,7 @@ task test_all_ruby_spec_nightly: :build do
     bundle config set --local with 'run_all_specs'
     bundle install
     git clone https://github.com/ruby/spec /tmp/ruby_spec
+    sed -i "1i require 'set' # NATFIXME: No autoload in Natalie\\n" /tmp/ruby_spec/core/enumerable/fixtures/classes.rb
     mv spec/support spec/spec_helper.rb /tmp/ruby_spec
     rm -rf spec
     mv /tmp/ruby_spec spec
