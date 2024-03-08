@@ -27,6 +27,10 @@ class Queue
     @mutex.synchronize { @queue.empty? }
   end
 
+  def freeze
+    raise TypeError, "cannot freeze #{self}"
+  end
+
   def length
     @mutex.synchronize { @queue.length }
   end
