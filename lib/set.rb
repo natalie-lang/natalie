@@ -392,11 +392,11 @@ class Set
 end
 
 module Enumerable
-  def to_set(&block)
+  def to_set(klass = Set, &block)
     if block
-      Set.new(map(&block))
+      klass.new(map(&block))
     else
-      Set.new(self)
+      klass.new(self)
     end
   end
 end
