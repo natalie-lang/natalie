@@ -37,25 +37,23 @@ describe "Mutex#synchronize" do
   end
 
   it "blocks the caller if another thread is also in the synchronize block" do
-    NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
-      m = Mutex.new
-      q1 = Queue.new
-      q2 = Queue.new
+    m = Mutex.new
+    q1 = Queue.new
+    q2 = Queue.new
 
-      t = Thread.new {
-        m.synchronize {
-          q1.push :ready
-          q2.pop
-        }
+    t = Thread.new {
+      m.synchronize {
+        q1.push :ready
+        q2.pop
       }
+    }
 
-      q1.pop.should == :ready
+    q1.pop.should == :ready
 
-      -> { m.synchronize { } }.should block_caller
+    -> { m.synchronize { } }.should block_caller
 
-      q2.push :done
-      t.join
-    end
+    q2.push :done
+    t.join
   end
 
   it "is not recursive" do

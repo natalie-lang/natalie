@@ -162,18 +162,16 @@ describe "Thread#raise on a running thread" do
   end
 
   it "can go unhandled" do
-    NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
-      q = Queue.new
-      t = Thread.new do
-        Thread.current.report_on_exception = false
-        q << true
-        loop { Thread.pass }
-      end
-
-      q.pop # wait for `report_on_exception = false`.
-      t.raise
-      -> { t.value }.should raise_error(RuntimeError)
+    q = Queue.new
+    t = Thread.new do
+      Thread.current.report_on_exception = false
+      q << true
+      loop { Thread.pass }
     end
+
+    q.pop # wait for `report_on_exception = false`.
+    t.raise
+    -> { t.value }.should raise_error(RuntimeError)
   end
 
   it "raises the given argument even when there is an active exception" do

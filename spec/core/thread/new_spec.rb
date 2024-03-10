@@ -3,12 +3,10 @@ require_relative 'fixtures/classes'
 
 describe "Thread.new" do
   it "creates a thread executing the given block" do
-    NATFIXME 'Implement Queue', exception: NameError, message: 'uninitialized constant Queue' do
-      q = Queue.new
-      Thread.new { q << true }.join
-      q << false
-      q.pop.should == true
-    end
+    q = Queue.new
+    Thread.new { q << true }.join
+    q << false
+    q.pop.should == true
   end
 
   it "can pass arguments to the thread block" do
