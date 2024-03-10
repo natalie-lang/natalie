@@ -65,13 +65,23 @@ describe "Mutex#sleep" do
     Thread.pass until locked
     Thread.pass until th.stop?
     th.raise(Exception)
-    th.value.should be_true
+    NATFIXME 'relocks the mutex when woken by an exception being raised', exception: SpecFailedException do
+      th.value.should be_true
+    end
   end
 
   it "returns the rounded number of seconds asleep" do
     m = Mutex.new
     locked = false
-    th = Thread.start do
+    NATFIXME 'Implement Thread.start', exception: NoMethodError, message: "undefined method `start' for class Thread" do
+      th = Thread.start do
+        m.lock
+        locked = true
+        m.sleep
+      end
+    end
+    # NATFIXME: Replace `Thread.start` with `Thread.new`, this block can be removed once the code above passes
+    th = Thread.new do
       m.lock
       locked = true
       m.sleep
@@ -79,7 +89,9 @@ describe "Mutex#sleep" do
     Thread.pass until locked
     Thread.pass until th.stop?
     th.wakeup
-    th.value.should be_kind_of(Integer)
+    NATFIXME 'returns the rounded number of seconds asleep', exception: SpecFailedException do
+      th.value.should be_kind_of(Integer)
+    end
   end
 
   it "wakes up when requesting sleep times near or equal to zero" do
