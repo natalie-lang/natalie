@@ -46,19 +46,28 @@ describe "Enumerable#grep" do
     end
   end
 
-  it "sets $~ to the last match when given no block" do
+  it "does not set $~ when given no block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep(/b/).should == ["abc"]
+    $&.should == "z"
+  end
 
-    # Set by the failed match of "def"
-    NATFIXME 'nth ref inside block', exception: SpecFailedException do
-      $~.should == nil
-    end
+  it "does not modify Regexp.last_match without block" do
+    "z" =~ /z/ # Reset last match
+    ["abc", "def"].grep(/b/).should == ["abc"]
+    Regexp.last_match[0].should == "z"
+  end
 
-    ["abc", "def"].grep(/e/)
-    NATFIXME 'nth ref inside block', exception: SpecFailedException do
-      $&.should == "e"
+  it "correctly handles non-string elements" do
+    'set last match' =~ /set last (.*)/
+    [:a, 'b', 'z', :c, 42, nil].grep(/[a-d]/).should == [:a, 'b', :c]
+    $1.should == 'match'
+
+    o = Object.new
+    def o.to_str
+      'hello'
     end
+    [o].grep(/ll/).first.should.equal?(o)
   end
 
   describe "with a block" do
