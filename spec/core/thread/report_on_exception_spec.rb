@@ -144,11 +144,9 @@ describe "Thread#report_on_exception=" do
           raise RuntimeError, "Thread#report_on_exception specs"
         }
 
-        NATFIXME 'Mutex#sleep re-raises the thread exception', exception: SpecFailedException, message: /but instead raised nothing/ do
-          -> {
-            mutex.sleep(5)
-          }.should raise_error(RuntimeError, "Thread#report_on_exception specs")
-        end
+        -> {
+          mutex.sleep(5)
+        }.should raise_error(RuntimeError, "Thread#report_on_exception specs")
       }.should output(/^\*?/, /Thread.+terminated with exception.+Thread#report_on_exception specs/m)
 
       -> {
