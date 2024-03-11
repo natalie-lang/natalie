@@ -7,15 +7,11 @@
 
 describe :rb_num2dbl_fails, shared: true do
   it "fails if string is provided" do
-    NATFIXME 'Implement Queue#pop with timeout argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-      -> { @object.call("123") }.should raise_error(TypeError, "no implicit conversion to float from string")
-    end
+    -> { @object.call("123") }.should raise_error(TypeError, "no implicit conversion to float from string")
   end
 
   it "fails if boolean is provided" do
-    NATFIXME 'Implement Queue#pop with timeout argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-      -> { @object.call(true) }.should raise_error(TypeError, "no implicit conversion to float from true")
-      -> { @object.call(false) }.should raise_error(TypeError, "no implicit conversion to float from false")
-    end
+    -> { @object.call(true) }.should raise_error(TypeError, "no implicit conversion to float from true")
+    -> { @object.call(false) }.should raise_error(TypeError, "no implicit conversion to float from false")
   end
 end

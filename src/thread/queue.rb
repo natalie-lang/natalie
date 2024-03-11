@@ -55,15 +55,24 @@ class Thread
     end
 
     def pop(non_block = false, timeout: nil)
-      raise NotImplementedError, 'Queue#pop with timeout keyword is not supported' unless timeout.nil?
+      unless timeout.nil?
+        raise ArgumentError, "can't set a timeout if non_block is enabled" if non_block
+        if !timeout.is_a?(Float) && !timeout.is_a?(Integer)
+          raise TypeError, "no implicit conversion to float from #{timeout.class.to_s.downcase.delete_suffix('class')}"
+        end
+      end
 
       @mutex.synchronize do
         raise ThreadError, 'queue empty' if non_block && @queue.empty?
         return @queue.shift if !@queue.empty? || @closed
 
         @waiting << Thread.current
-        while @queue.empty? && !@closed
-          @mutex.sleep
+        if timeout.nil?
+          while @queue.empty? && !@closed
+            @mutex.sleep
+          end
+        else
+          @mutex.sleep(timeout) if @queue.empty? && !@closed
         end
         @queue.shift
       ensure

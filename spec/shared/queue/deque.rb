@@ -70,12 +70,9 @@ describe :queue_deq, shared: true do
         q = @object.call
 
         t = Thread.new {
-          NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-            q.send(@method, timeout: TIME_TOLERANCE).should == 1
-          end
+          q.send(@method, timeout: TIME_TOLERANCE).should == 1
         }
-        # NATFIXME: Enable this line once the Thread above works
-        #Thread.pass until t.status == "sleep" && q.num_waiting == 1
+        Thread.pass until t.status == "sleep" && q.num_waiting == 1
         q << 1
         t.join
       end
@@ -84,9 +81,7 @@ describe :queue_deq, shared: true do
         q = @object.call
 
         Thread.new {
-          NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-            q.send(@method, timeout: 0.001).should == nil
-          end
+          q.send(@method, timeout: 0.001).should == nil
         }.join
       end
 
@@ -103,40 +98,32 @@ describe :queue_deq, shared: true do
       it "immediately returns nil if no item is available and the timeout is 0" do
         q = @object.call
         q << 1
-        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-          q.send(@method, timeout: 0).should == 1
-          q.send(@method, timeout: 0).should == nil
-        end
+        q.send(@method, timeout: 0).should == 1
+        q.send(@method, timeout: 0).should == nil
       end
 
       it "raise TypeError if timeout is not a valid numeric" do
         q = @object.call
-        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-          -> {
-            q.send(@method, timeout: "1")
-          }.should raise_error(TypeError, "no implicit conversion to float from string")
+        -> {
+          q.send(@method, timeout: "1")
+        }.should raise_error(TypeError, "no implicit conversion to float from string")
 
-          -> {
-            q.send(@method, timeout: false)
-          }.should raise_error(TypeError, "no implicit conversion to float from false")
-        end
+        -> {
+          q.send(@method, timeout: false)
+        }.should raise_error(TypeError, "no implicit conversion to float from false")
       end
 
       it "raise ArgumentError if non_block = true is passed too" do
         q = @object.call
-        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-          -> {
-            q.send(@method, true, timeout: 1)
-          }.should raise_error(ArgumentError, "can't set a timeout if non_block is enabled")
-        end
+        -> {
+          q.send(@method, true, timeout: 1)
+        }.should raise_error(ArgumentError, "can't set a timeout if non_block is enabled")
       end
 
       it "returns nil for a closed empty queue" do
         q = @object.call
         q.close
-        NATFIXME 'Implement timeout keyword argument', exception: NotImplementedError, message: 'Queue#pop with timeout keyword is not supported' do
-          q.send(@method, timeout: 0).should == nil
-        end
+        q.send(@method, timeout: 0).should == nil
       end
     end
   end
