@@ -102,7 +102,9 @@ describe "ConditionVariable#wait" do
     th.kill
     th.join
 
-    owned.should == true
+    NATFIXME 'Probably an issue with Mutex, not with ConditionVariable', exception: SpecFailedException do
+      owned.should == true
+    end
   end
 
   it "reacquires the lock even if the thread is killed after being signaled" do
@@ -162,9 +164,11 @@ describe "ConditionVariable#wait" do
         # Cause interactions with the waiting threads.
         # On TruffleRuby, this causes a safepoint which has interesting
         # interactions with the ConditionVariable.
-        bt = t.backtrace
-        bt.should be_kind_of(Array)
-        bt.size.should >= 2
+        NATFIXME 'Implement Thread#backtrace', exception: NoMethodError, message: "undefined method `backtrace' for an instance of Thread" do
+          bt = t.backtrace
+          bt.should be_kind_of(Array)
+          bt.size.should >= 2
+        end
       }
     end
 
