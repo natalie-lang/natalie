@@ -19,9 +19,11 @@ describe "Kernel#define_singleton_method" do
 
     it "defines any Child class method from any Parent's class methods" do
       um = KernelSpecs::Parent.method(:parent_class_method).unbind
-      KernelSpecs::Child.send :define_singleton_method, :child_class_method, um
-      KernelSpecs::Child.child_class_method.should == :foo
-      ->{KernelSpecs::Parent.child_class_method}.should raise_error(NoMethodError)
+      NATFIXME 'Implement support for UnboundMethod', exception: NotImplementedError, message: 'TODO: Unbound method' do
+        KernelSpecs::Child.send :define_singleton_method, :child_class_method, um
+        KernelSpecs::Child.child_class_method.should == :foo
+        ->{KernelSpecs::Parent.child_class_method}.should raise_error(NoMethodError)
+      end
     end
 
     it "will raise when attempting to define an object's singleton method from another object's singleton method" do
@@ -33,7 +35,9 @@ describe "Kernel#define_singleton_method" do
         end
       end
       um = p.method(:singleton_method).unbind
-      ->{ other.send :define_singleton_method, :other_singleton_method, um }.should raise_error(TypeError)
+      NATFIXME 'Implement support for UnboundMethod', exception: NotImplementedError, message: 'TODO: Unbound method' do
+        ->{ other.send :define_singleton_method, :other_singleton_method, um }.should raise_error(TypeError)
+      end
     end
 
   end

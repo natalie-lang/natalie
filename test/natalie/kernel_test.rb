@@ -1,6 +1,18 @@
 require_relative '../spec_helper'
 
 describe 'Kernel' do
+  describe '#define_singleton_method' do
+    it 'does not support callable objects' do
+      callable = Object.new
+      callable.define_singleton_method(:call) { |x| x + 1 }
+
+      o = Object.new
+      ->{
+        o.define_singleton_method(:foo, callable)
+      }.should raise_error(TypeError, 'wrong argument type Object (expected Proc/Method/UnboundMethod)')
+    end
+  end
+
   describe '#enum_for' do
     it 'returns a new Enumerator created by calling the given method' do
       a = [1, 2, 3]

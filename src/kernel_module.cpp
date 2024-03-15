@@ -157,7 +157,18 @@ Value KernelModule::cur_dir(Env *env) {
     }
 }
 
-Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) {
+Value KernelModule::define_singleton_method(Env *env, Value name, Value proc, Block *block) {
+    if (proc) {
+        if (proc->is_proc()) {
+            block = proc->to_proc(env)->block();
+        } else if (proc->is_method()) {
+            block = proc->as_method()->to_proc(env)->block();
+        } else if (proc->is_unbound_method()) {
+            env->raise("NotImplementedError", "TODO: Unbound method");
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", proc->klass()->inspect_str());
+        }
+    }
     env->ensure_block_given(block);
     SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
     Object::define_singleton_method(env, name_obj, block);

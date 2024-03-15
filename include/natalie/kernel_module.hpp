@@ -73,7 +73,7 @@ public:
     static Value throw_method(Env *, Value, Value = nullptr);
     static bool block_given(Env *env, Block *block) { return !!block; }
 
-    Value define_singleton_method(Env *env, Value name, Block *block);
+    Value define_singleton_method(Env *env, Value name, Value proc, Block *block);
     Value hash(Env *env);
     Value initialize_copy(Env *env, Value object);
     Value inspect(Env *env);
