@@ -54,7 +54,12 @@ class BindingGen
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
       binding.aliases.each do |method|
-        puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{method.inspect}_s, #{binding.name}, #{binding.arity}, #{binding.optimized ? 'true' : 'false'});"
+        define_method_name = binding.define_method_name
+        if define_method_name == 'define_method'
+          puts "    #{binding.rb_class_as_c_variable}->method_alias(env, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
+        else
+          puts "    #{binding.rb_class_as_c_variable}->#{define_method_name}(env, #{method.inspect}_s, #{binding.name}, #{binding.arity}, #{binding.optimized ? 'true' : 'false'});"
+        end
       end
     end
     @undefine_methods.each { |rb_class, method| puts "    #{rb_class}->undefine_method(env, #{method.inspect}_s);" }
