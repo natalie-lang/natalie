@@ -196,7 +196,7 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
       if @module_function
         'method_alias'
       elsif @singleton || @static
-        nil
+        'singleton_method_alias'
       else
         'method_alias'
       end
