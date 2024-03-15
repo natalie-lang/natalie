@@ -55,7 +55,7 @@ class Tempfile
   end
   alias delete unlink
 
-  (File.public_instance_methods - public_instance_methods).each do |method|
+  (File.public_instance_methods(false) + IO.public_instance_methods(false)).each do |method|
     define_method(method) do |*args, **kwargs, &block|
       @tmpfile.public_send(method, *args, **kwargs, &block)
     end
