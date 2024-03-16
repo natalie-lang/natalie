@@ -184,6 +184,7 @@ void ThreadObject::build_main_thread(Env *env, void *start_of_stack) {
     thread->m_start_of_stack = start_of_stack;
     thread->m_status = ThreadObject::Status::Active;
     thread->m_suspend_status = ThreadObject::SuspendStatus::Running;
+    thread->m_group = ThreadGroupObject::get_default();
     set_stack_for_thread(thread);
     thread->build_main_fiber();
     s_main = thread;
@@ -207,6 +208,7 @@ ThreadObject *ThreadObject::initialize(Env *env, Args args, Block *block) {
         env->raise("ThreadError", "must be called with a block");
 
     add_to_list(this);
+    m_group = ThreadGroupObject::get_default();
 
     // DANGER ZONE ===========================================
     // Do not allocate any GC-managed object after this point
@@ -611,6 +613,7 @@ void ThreadObject::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
     visitor.visit(m_fiber_scheduler);
     visitor.visit(s_thread_kill_class);
+    visitor.visit(m_group);
 
     visitor.visit(m_current_fiber);
     visitor.visit(m_main_fiber);

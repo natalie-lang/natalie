@@ -1363,6 +1363,7 @@ gen.binding('Thread', 'abort_on_exception', 'ThreadObject', 'abort_on_exception'
 gen.binding('Thread', 'abort_on_exception=', 'ThreadObject', 'set_abort_on_exception', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'alive?', 'ThreadObject', 'is_alive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Thread', 'fetch', 'ThreadObject', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Thread', 'group', 'ThreadObject', 'group', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'initialize', 'ThreadObject', 'initialize', argc: :any, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Thread', 'join', 'ThreadObject', 'join', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Thread', 'key?', 'ThreadObject', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
