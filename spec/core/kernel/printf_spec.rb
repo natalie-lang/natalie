@@ -4,9 +4,7 @@ require_relative 'shared/sprintf'
 
 describe "Kernel#printf" do
   it "is a private method" do
-    NATFIXME 'Kernel#printf is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:printf)
-    end
+    Kernel.should have_private_instance_method(:printf)
   end
 end
 

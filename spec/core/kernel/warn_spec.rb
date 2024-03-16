@@ -14,9 +14,7 @@ describe "Kernel#warn" do
   end
 
   it "is a private method" do
-    NATFIXME 'is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:warn)
-    end
+    Kernel.should have_private_instance_method(:warn)
   end
 
   it "accepts multiple arguments" do
