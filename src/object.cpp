@@ -102,6 +102,10 @@ Value Object::create(Env *env, ClassObject *klass) {
         obj = new Thread::Backtrace::LocationObject { klass };
         break;
 
+    case Object::Type::ThreadGroup:
+        obj = new ThreadGroupObject { klass };
+        break;
+
     case Object::Type::ThreadMutex:
         obj = new Thread::MutexObject { klass };
         break;

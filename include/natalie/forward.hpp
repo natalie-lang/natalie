@@ -53,6 +53,7 @@ class SignalModule;
 class StringObject;
 class SymbolObject;
 class ThreadObject;
+class ThreadGroupObject;
 class TimeObject;
 class TrueObject;
 class Object;

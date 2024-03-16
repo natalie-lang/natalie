@@ -108,6 +108,7 @@
 #include "natalie/symbol_object.hpp"
 #include "natalie/thread/backtrace/location_object.hpp"
 #include "natalie/thread/mutex_object.hpp"
+#include "natalie/thread_group_object.hpp"
 #include "natalie/thread_object.hpp"
 #include "natalie/time_object.hpp"
 #include "natalie/true_object.hpp"

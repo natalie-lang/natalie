@@ -365,6 +365,11 @@ Env *build_top_env() {
     ClassObject *ThreadBacktraceLocation = Object->subclass(env, "Location", Object::Type::ThreadBacktraceLocation);
     ThreadBacktrace->const_set("Location"_s, ThreadBacktraceLocation);
 
+    ClassObject *ThreadGroup = Object->subclass(env, "ThreadGroup", Object::Type::ThreadGroup);
+    Object->const_set("ThreadGroup"_s, ThreadGroup);
+    ThreadGroupObject::initialize_default();
+    ThreadGroup->const_set("Default"_s, ThreadGroupObject::get_default());
+
     ClassObject *ThreadMutex = Object->subclass(env, "Mutex", Object::Type::ThreadMutex);
     Thread->const_set("Mutex"_s, ThreadMutex);
     Object->const_set("Mutex"_s, ThreadMutex);
