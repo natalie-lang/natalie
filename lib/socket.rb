@@ -256,6 +256,12 @@ class Addrinfo
   __bind_method__ :initialize, :Addrinfo_initialize
   __bind_method__ :to_sockaddr, :Addrinfo_to_sockaddr
 
+  def bind
+    socket = Socket.new(afamily, socktype, protocol)
+    socket.bind(to_sockaddr)
+    socket
+  end
+
   def ip_address
     unless @ip_address
       raise SocketError, 'need IPv4 or IPv6 address'
