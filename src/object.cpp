@@ -792,6 +792,15 @@ void Object::method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_na
     }
 }
 
+void Object::singleton_method_alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+    std::lock_guard<std::recursive_mutex> lock(g_gc_recursive_mutex);
+
+    ClassObject *klass = singleton_class(env);
+    if (klass->is_frozen())
+        env->raise("FrozenError", "can't modify frozen object: {}", to_s(env)->string());
+    klass->method_alias(env, new_name, old_name);
+}
+
 nat_int_t Object::object_id() const {
     if (is_integer()) {
         const auto i = as_integer();

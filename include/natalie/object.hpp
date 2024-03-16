@@ -280,6 +280,7 @@ public:
 
     void method_alias(Env *env, Value new_name, Value old_name);
     virtual void method_alias(Env *, SymbolObject *, SymbolObject *);
+    virtual void singleton_method_alias(Env *, SymbolObject *, SymbolObject *);
 
     nat_int_t object_id() const;
 

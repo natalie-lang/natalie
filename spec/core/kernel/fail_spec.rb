@@ -3,9 +3,7 @@ require_relative 'fixtures/classes'
 
 describe "Kernel#fail" do
   it "is a private method" do
-    NATFIXME 'is a private method', exception: SpecFailedException do
-      Kernel.should have_private_instance_method(:fail)
-    end
+    Kernel.should have_private_instance_method(:fail)
   end
 
   it "raises a RuntimeError" do

@@ -54,7 +54,7 @@ class BindingGen
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
       binding.aliases.each do |method|
-        puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{method.inspect}_s, #{binding.name}, #{binding.arity}, #{binding.optimized ? 'true' : 'false'});"
+        puts "    #{binding.rb_class_as_c_variable}->#{binding.alias_name}(env, #{method.inspect}_s, #{binding.rb_method.inspect}_s);"
       end
     end
     @undefine_methods.each { |rb_class, method| puts "    #{rb_class}->undefine_method(env, #{method.inspect}_s);" }
@@ -184,6 +184,16 @@ auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
         'define_singleton_method'
       else
         'define_method'
+      end
+    end
+
+    def alias_name
+      if @module_function
+        'method_alias'
+      elsif @singleton || @static
+        'singleton_method_alias'
+      else
+        'method_alias'
       end
     end
 
