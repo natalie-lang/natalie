@@ -22,6 +22,8 @@ public:
         : Object { Object::Type::ThreadGroup, klass } { }
 
     Value add(Env *, Value);
+    Value enclose();
+    bool is_enclosed() const { return m_enclosed; }
     ArrayObject *list();
 
     static void initialize_default();
@@ -34,6 +36,7 @@ private:
 
     static inline ThreadGroupObject *m_default { nullptr };
     Vector<ThreadObject *> m_threads;
+    bool m_enclosed { false };
 };
 
 }

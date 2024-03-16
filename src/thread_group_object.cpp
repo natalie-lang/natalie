@@ -11,6 +11,8 @@ Value ThreadGroupObject::add(Env *env, Value value) {
     auto old_thread_group = thread->group();
     if (old_thread_group != this) {
         if (old_thread_group) {
+            if (old_thread_group->m_enclosed)
+                env->raise("ThreadError", "can't move from the enclosed thread group");
             for (size_t i = 0; i < old_thread_group->m_threads.size(); i++) {
                 if (old_thread_group->m_threads[i] == thread) {
                     old_thread_group->m_threads.remove(i);
@@ -21,6 +23,11 @@ Value ThreadGroupObject::add(Env *env, Value value) {
         m_threads.push(thread);
         thread->set_group(this);
     }
+    return this;
+}
+
+Value ThreadGroupObject::enclose() {
+    m_enclosed = true;
     return this;
 }
 
