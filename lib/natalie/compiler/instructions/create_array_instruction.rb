@@ -28,6 +28,18 @@ module Natalie
         @count.times { ary.unshift(vm.pop) }
         vm.push(ary)
       end
+
+      def serialize
+        [
+          instruction_number,
+          @count,
+        ].pack('Cw')
+      end
+
+      def self.deserialize(io)
+        count = io.read_ber_integer
+        new(count:)
+      end
     end
   end
 end
