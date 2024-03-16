@@ -123,10 +123,7 @@ describe "English" do
   it "aliases $CHILD_STATUS to $?" do
     ruby_exe('exit 0')
     $CHILD_STATUS.should_not be_nil
-    NATFIXME 'Issue with Process::Status#==', exception: SpecFailedException do
-      $CHILD_STATUS.should == $?
-    end
-    $CHILD_STATUS.to_s.should == $?.to_s
+    $CHILD_STATUS.should == $?
   end
 
   it "aliases $LAST_MATCH_INFO to $~" do

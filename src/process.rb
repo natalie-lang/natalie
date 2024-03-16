@@ -65,7 +65,11 @@ module Process
     end
 
     def ==(other)
-      other.is_a?(Integer) && to_i == other
+      if other.is_a?(self.class)
+        pid == other.pid && to_i == other.to_i && exitstatus == other.exitstatus
+      else
+        other.is_a?(Integer) && to_i == other
+      end
     end
 
     def exited?
